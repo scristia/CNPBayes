@@ -52,8 +52,8 @@ nn <- pars$size[order(pars$centers)]
 Z <- rep(0, length(xx))
 
 ### create storage matrices, initialize parameters from data
-nsim <- 3000
-thin <- 15
+nsim <- 1000
+thin <- 1
 MU <- OMEGA <- ALPHA <- PREC <- PI <- matrix(rep(0, nsim/thin *K), ncol=K)
 
 #MCMC
@@ -64,8 +64,8 @@ for ( s in 1:nsim) {
     #draw Z
     v <- 1/(1+tau*psi^2)
     m <- v*tau*psi*(xx-mu)
-    z1 <- rtnorm(nn[1], m[which(S==1)], sqrt(v[1]), lower=1)
-    z2 <- rtnorm(nn[2], m[which(S==2)], sqrt(v[2]), lower=1)
+    z1 <- rtnorm(nn[1], m[S==1], sqrt(v[1]), lower=0)
+    z2 <- rtnorm(nn[2], m[S==2], sqrt(v[2]), lower=0)
     X1 <- cbind(rep(1, length(z1)), z1)
     X2 <- cbind(rep(1, length(z2)), z2)
 
@@ -104,7 +104,8 @@ for ( s in 1:nsim) {
     d <- matrix(NA, nrow = length(xx), ncol = K)
     for(i in 1:K) d[,i] <- pi[i]*dsn(xx, mu[i], omega[i], alpha[i])
     p <- d/apply(d, 1, sum)
-
+#
+#    S <- rMultinom(p, 1)
     u <- runif(length((xx)))
     tmp <- p[, 1]
     S[u < tmp] <- 1
@@ -129,7 +130,7 @@ for ( s in 1:nsim) {
 }
 
 
-burnin <- 1:1000
+burnin <- 1:100
 mus <- colMeans(MU[-burnin, ])
 omegas <- colMeans(OMEGA[-burnin, ])
 alphas <- colMeans(ALPHA[-burnin, ])
@@ -161,3 +162,6 @@ mx <- max(post.dens)
 lines(y2, dsn(y2, mus[1], omegas[1], alphas[1] )/mx, col="gray40", lty=2)
 lines(y2, dsn(y2, mus[2], omegas[2], alphas[2] )/mx, col="gray40", lty=2)
 dev.off()
+
+
+

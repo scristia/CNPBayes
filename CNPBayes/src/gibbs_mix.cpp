@@ -86,6 +86,10 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
     NumericMatrix::Row precrow = xprecs(0, _);
     precrow = postprec;
 
+    // check if homozygous deletion present
+    bool homdel = 0;
+    if(min(xr) < -1) homdel = 1;
+
     // GIBBS SAMPLER
     for(int s=1; s<n_mcmc; s++) {
         //should generate pi from dirichlet distribution
@@ -131,12 +135,18 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
             //       if(q[res[m]]) {
             if( q[m] ) {
                 if( m > 0 & m < endpoints.size() - 3) {
-                    a = endpoints[m] + xdelta[0];
+                    if(homdel & (m == 1))
+                        a = endpoints[m] + 0.2;
+                    else
+                        a = endpoints[m] + xdelta[0];
                     b = endpoints[m+2] - xdelta[0];
                 }
                 else if( m == 0 ) {
                     a = endpoints[m];
-                    b = endpoints[m+2] - xdelta[0];
+                    if(homdel)
+                        b = endpoints[m+2] - 0.2;
+                    else
+                        b = endpoints[m+2] - xdelta[0];
                 }
                 else {
                     a = endpoints[m] + xdelta[0];
