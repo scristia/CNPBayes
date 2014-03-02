@@ -6,11 +6,11 @@ library(MASS)
 library(mvtnorm)
 library(gtools)
 ## real data
-avgRs <- readRDS("~/Projects/MixtureModel/avgRs.rds")
+#avgRs <- readRDS("~/Projects/MixtureModel/avgRs.rds")
 xx <- avgRs[1, ]
 xx <- xx[!is.na(xx)]
-## simulated data (comment out when using real data)
-#xx <- append(rsn(5000, 4, 1, 2.5), rsn(3000, 0, 1, 0))
+# simulated data (comment out when using real data)
+#xx <- append(rsn(5000, 2, 1, 2.5), rsn(3000, 0, 1, 0))
 K <- 2
 phi <- 0.5
 n <- length(xx)
@@ -52,7 +52,7 @@ nn <- pars$size[order(pars$centers)]
 Z <- rep(0, length(xx))
 
 ### create storage matrices, initialize parameters from data
-nsim <- 1000
+nsim <- 10000
 thin <- 1
 MU <- OMEGA <- ALPHA <- PREC <- PI <- matrix(rep(0, nsim/thin *K), ncol=K)
 
@@ -130,7 +130,7 @@ for ( s in 1:nsim) {
 }
 
 
-burnin <- 1:100
+burnin <- 1:1000
 mus <- colMeans(MU[-burnin, ])
 omegas <- colMeans(OMEGA[-burnin, ])
 alphas <- colMeans(ALPHA[-burnin, ])
@@ -153,15 +153,14 @@ mcmcplot(cbind(MUS, PIS, OMEGAS, ALPHAS), parms=c("mu1", "mu2", "pi1", "pi2",
 pdf("/Users/scrist/Dropbox/Mixture Models/skewnormal/sn_hist.pdf")
 lim <- range(xx, na.rm=TRUE)
 par(las=1, mfrow=c(1,1), mar=c(4, 4, 4, 4))
-hist(xx, breaks = 500, col='gray', border='gray', freq=FALSE, main="",
+hist(xx, breaks = 500, col='lightgray', border='gray', freq=FALSE, main="",
      xlim=lim)
 y2 <- seq(-3, 13, len=5000)
-post.dens <- pis[1]*dsn(y2, mus[1], omegas[1], alphas[1] ) + pis[2]*dsn(y2, mus[2], omegas[2], alphas[2])
-lines(y2, post.dens,lwd=2)
+#post.dens <- pis[1]*dsn(y2, mus[1], omegas[1], alphas[1] ) + pis[2]*dsn(y2, mus[2], omegas[2], alphas[2])
+#lines(y2, post.dens,lwd=2)
 mx <- max(post.dens)
-lines(y2, dsn(y2, mus[1], omegas[1], alphas[1] )/mx, col="gray40", lty=2)
-lines(y2, dsn(y2, mus[2], omegas[2], alphas[2] )/mx, col="gray40", lty=2)
+lines(y2, pi[1]*dsn(y2, mus[1], omegas[1], alphas[1] ), col="gray40", lty=2, lwd=2)
+lines(y2, pi[2]*dsn(y2, mus[2], omegas[2], alphas[2] ), col="gray40", lty=2, lwd=2)
 dev.off()
-
 
 

@@ -19,15 +19,13 @@ getPost <-
             alpha <- rep(1,k)
             print(mu0)
 
-#            post <- gibbs(r=r,nn=nn, tau20=0.1, K=k, alpha=alpha, sigma20=sigma20, mu0=mu0, S=S, delta=delta)
             post <- gibbs.mix(r=r, k=k, tau20=0.1, S=S, nu0=1, kappa0=1,
                               burnin=burnin, delta=delta)
 
             loglik[k-kmin+1] <- post$loglik
             bic[k-kmin+1] <- post$bic
             icl[k-kmin+1] <- post$icl
-            #loglik[k-kmin+1] <- loglik.normmix(r, post, K=k, burnin=burnin)
-            #bic[k-kmin+1] <- -2*loglik[k-kmin+1] + (3*k-1)*log(n)
+
             #save posterior
             kpost[[k-kmin+1]] <- post
         }
