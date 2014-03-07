@@ -76,6 +76,6 @@ layeredPlots <- function(df, col=rgb(0,0.5,1, alpha=0.6), shift=2, ylim) {
               ylim=ylim, ylab="", par.settings=list(axis.line=list(col = 0)),
               scales=list(y=list(at=NULL)), xlab="Average log Rs")
 }
-pdf("presentation.pdf")
+pdf("layeredhists.pdf")
 layeredPlots(df, shift=2, ylim=c(0,7))
 dev.off()

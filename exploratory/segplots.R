@@ -6,7 +6,7 @@ segplots <- function(subject.cnvs, red.range, indices, flag=20000L,
     ranges <- cbind(x, y)
 
     w <- cbind(start(red.range) - ranges[,1] > flag,
-              ranges[, 2] - end(red.range) > flag)
+               ranges[, 2] - end(red.range) > flag)
 
     disjoin.gr <- disjoin(subject.cnvs[j])
     disjoin.counts <- countOverlaps(disjoin.gr, subject.cnvs[j])
@@ -16,9 +16,10 @@ segplots <- function(subject.cnvs, red.range, indices, flag=20000L,
     if(sum(w[,2])/nrow(w) > 0.2) xlim[2] <- max(ranges[,2])
     ## Plot segments of chromosomal region first
     ## if overlapping == false, show x axis
-    if(olap == TRUE) {
+    if(olap == FALSE) {
         plot(NULL, xlim=xlim, ylim=c(0.7, nrow(ranges) + 0.3), xlab="Position",
-             ylab="Subject", las=1, bty="l", xaxt='n')
+             ylab="Subject", las=1, bty="l")
+#        axis(1, at=seq(xlim[1], xlim[2], by = 5000L), outer=TRUE)
         ## show rug if markers provided
         if(!is.null(markers)) {
             ## rug for CN and SNP probes
@@ -29,13 +30,14 @@ segplots <- function(subject.cnvs, red.range, indices, flag=20000L,
 
             rug(cn.pos, ticksize=-0.02, lwd=0.5)
             if(length(snp.pos) > 0)
-                rug(snp.pos, ticksize=-0.04, lwd=0.5, col="blue")
+                rug(snp.pos, ticksize=-0.03, lwd=1, col="blue")
         }
     }
-    else
+    else {
         plot(NULL, xlim=xlim, ylim=c(0.7, nrow(ranges) + 0.3), xlab="Position",
              ylab="Subject", las=1, bty="l", xaxt='n')
-#    axis(1, at=seq(xlim[1], xlim[2], by = 5000L), outer=TRUE)
+    }
+    #    axis(1, at=seq(xlim[1], xlim[2], by = 5000L), outer=TRUE)
 
     ## Plot line segments, color black if not in reduced range by threshold
     count <- 1
@@ -73,8 +75,11 @@ overlapping <- function(xcoords, ycoords, red.range, n, xlim) {
         cn.pos <- start(markers[cn.ids])
         snp.pos <- start(markers[snp.ids])
 
+        num.markers <- length(snp.ids) + length(cn.ids)
+        legend('topleft', legend = paste0("Markers = ", num.markers, bty='n'))
+
         rug(cn.pos, ticksize=-0.02, lwd=0.5)
         if(length(snp.pos) > 0)
-            rug(snp.pos, ticksize=-0.04, lwd=0.5, col="blue")
+            rug(snp.pos, ticksize=-0.04, lwd=1.5, col="blue")
     }
 }
