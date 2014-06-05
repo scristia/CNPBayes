@@ -1,3 +1,10 @@
 *.so
 *.o
 *.rds
+*.swp
+*.pdf
+*.log
+*.RDS
+*.csv
+temp.r
+x*-do.R

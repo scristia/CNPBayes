@@ -1,66 +1,54 @@
-library(snow)
-library(doSNOW)
-library(foreach)
-library(GenomicRanges)
 library(oligoClasses)
 library(aricExperimentData)
 library(aricUricAcid)
+library(GenomicRanges)
+library(snow)
+library(doSNOW)
+library(foreach)
 NW <- 20
 setParallelization(WORKERS=NW)
+
 expdd <- "/local/recover/r00/aric/aricExperimentData/data"
 uadir <- "/home/bst/student/rscharpf/Software/ARIC/aricUricAcid/data"
 phenodir <- "/home/bst/student/rscharpf/Software/ARIC/aricPhenotypes/data"
+dat <- read.csv("/home/student/scristia/Software/CNPBayes/mccarroll-cnp.csv", header=TRUE, as.is=TRUE)
+
+invisible(sapply(3:6, function(x) dat[,x] <<- as.integer(gsub(",", "", dat[,x]))))
+
+ranges <- IRanges(dat[,5], dat[,6])
+gr <- GRanges(seqnames=Rle(dat[,2]), ranges=ranges)
+gr@elementMetadata@listData$CN <- dat[,7]
+
+reduced.gr <- readRDS('~/Software/wcreduced_penn.gr')
 
 pd.df <- readRDS(file.path(phenodir, "phenotypes.rds"))
 pd.df <- pd.df[c(EA(pd.df), AA(pd.df)), ]
 pd.df <- pd.df[keep(pd.df), ]
 lrr.stats <- readRDS(file.path(uadir, "lrr_stats_penn.rds"))
 
-reduced.gr <- readRDS(file.path(uadir, "reduced_granges.rds"))
-
-###########################################################
-###########################################################
-
-## using pennCNV calls
-# vi.grl <- readRDS(file.path(uadir, "CNV_grl_EA_VI.rds"))
-vi.grl <- readRDS("/home/student/scristia/Software/CNPBayes/penncnv_granges.rds")
-gr <- unlist(vi.grl)
-dj <- disjoin(gr)
-
-gr2 <- subsetByOverlaps(gr, reduced.gr)
-j <- findOverlaps(gr2, reduced.gr, select="first")
-grl <- split(gr2, j)
-
-## setdiff do recursively
-reduced.gr2 <- foreach(g=grl) %do%{
-    ## g=grl[[1]]
-    dj <- disjoin(g)
-    cnt <- countOverlaps(dj, g)
-    tmp <- reduce(dj[cnt > max(cnt)/2])##, min.gapwidth=1e3)
-
-}
-reduced.grl2 <- GRangesList(reduced.gr2)
-reduced.gr2 <- unlist(reduced.grl2)
-length(reduced.gr2) ## 378
-median(width(reduced.gr2))##~13kb
-NR <- length(reduced.gr2)
-
-###########################################################
-###########################################################
-
-
-wc.files <- list.files(expdd, full.names=TRUE, pattern="wc_")
 if (!exists('feature.gr'))
     feature.gr <- readRDS(file.path(expdd, "feature_granges.rds"))
 auto.index <- which(chromosome(feature.gr) %in% autosomes())
 feature.gr <- feature.gr[auto.index]
 
+### chr1 regions we don't catch
+#gr.chr1 <- gr[seqnames(gr)=="chr1"]
+#reduced.chr1 <- reduced.gr[seqnames(reduced.gr)=="chr1"]
+#hits <- subjectHits(findOverlaps(reduced.chr1, gr.chr1))
+
+wc.files <- list.files(expdd, full.names=TRUE, pattern="wc_")
 names(wc.files) <- gsub(".rds", "", gsub("wc_", "", basename(wc.files)))
 wc.files <- wc.files[as.character(pd.df$cel_id)] #8411
 
-olaps <- findOverlaps(reduced.gr2, feature.gr)
+#set.seed(12)
+#NR <- 15
+#gr2 <- sample(gr.chr1[-hits], NR)
+NR <- length(gr)
+
+olaps <- findOverlaps(gr, feature.gr)
 subj.index <- subjectHits(olaps)
 query.index <- queryHits(olaps)
+
 
 batchjob <- rep(seq_len(NW), length.out=length(wc.files))
 fileList <- split(wc.files, batchjob)
@@ -79,8 +67,9 @@ avgLrr <- foreach(k = seq_along(fileList), .combine="cbind") %dopar% {
     }
     A
 }
+
 se <- SummarizedExperiment(assays=SimpleList(avglrr=avgLrr),
-                           rowData=reduced.gr2)
+                           rowData=gr)
 #saveRDS(se, file="summarized_experiment_median_lrr_hg18.rds")
-saveRDS(se, file="se_median_lrr_penncnv.rds")
+saveRDS(se, file="se_mccarroll.rds")
 q('no')

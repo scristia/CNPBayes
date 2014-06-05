@@ -32,15 +32,33 @@ j <- findOverlaps(gr2, reduced.gr, select="first")
 grl <- split(gr2, j)
 
 ## setdiff do recursively
-reduced.gr2 <- foreach(g=grl) %do%{
+reduced.gr2 <- foreach(collection=grl) %do%{
     ## g=grl[[1]]
-    dj <- disjoin(g)
-    cnt <- countOverlaps(dj, g)
-    tmp <- reduce(dj[cnt > max(cnt)/2])##, min.gapwidth=1e3)
-
+    dj <- disjoin(collection)
+    cnt <- countOverlaps(dj, collection)
+    regionlist <- vector("list", 20)
+    i <- 1
+    while(max(cnt) > 118 && i <= 20) {
+        region <- reduce(dj[cnt > max(cnt)/2])##, min.gapwidth=1e3)
+        dj <- dj[!(cnt > max(cnt)/2)]
+        cnt <- countOverlaps(dj, collection)
+#        region2 <- reduce(dj2[cnt2 > max(cnt2)/2])##, min.gapwidth=1e3)
+#        abline(v=c(start(region), end(region))/1e6)
+#        if(length(region) > 1) browser()
+        regionlist[[i]] <- region
+#        region2 <- setdiff(collection, region)
+#        abline(v=c(start(region2), end(region2))/1e6)
+#        dj <- disjoin(collection)
+#        cnt <- countOverlaps(dj, collection)
+        i <- i+1
+    }
+    regionlist <- regionlist[!sapply(regionlist, is.null)]
+    regions <- unlist(GRangesList(regionlist))
 }
-reduced.grl2 <- GRangesList(reduced.gr2)
-reduced.gr2 <- unlist(reduced.grl2)
+reduced.gr2 <- unlist(GRangesList(reduced.gr2))
+
+#reduced.grl2 <- GRangesList(reduced.gr2)
+#reduced.gr2 <- unlist(reduced.grl2)
 length(reduced.gr2) ## 378
 median(width(reduced.gr2))##~13kb
 NR <- length(reduced.gr2)

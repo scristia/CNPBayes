@@ -30,14 +30,12 @@ dj <- disjoin(gr)
 gr2 <- subsetByOverlaps(gr, reduced.gr)
 j <- findOverlaps(gr2, reduced.gr, select="first")
 grl <- split(gr2, j)
-
-## setdiff do recursively
+## setdiff
 reduced.gr2 <- foreach(g=grl) %do%{
     ## g=grl[[1]]
     dj <- disjoin(g)
     cnt <- countOverlaps(dj, g)
-    tmp <- reduce(dj[cnt > max(cnt)/2])##, min.gapwidth=1e3)
-
+    reduce(dj[cnt > max(cnt)/2])##, min.gapwidth=1e3)
 }
 reduced.grl2 <- GRangesList(reduced.gr2)
 reduced.gr2 <- unlist(reduced.grl2)
@@ -66,16 +64,20 @@ batchjob <- rep(seq_len(NW), length.out=length(wc.files))
 fileList <- split(wc.files, batchjob)
 
 ## Find files that we need QC stats
+### Want a list of log Rs and BAF for all samples
 fileList <- fileList[1:NW]
 for(i in seq_len(NW)) fileList[[i]] <- fileList[[i]]
-avgLrr <- foreach(k = seq_along(fileList), .combine="cbind") %dopar% {
+avgLrr <- foreach(k = seq_along(fileList), .combine="append") %dopar% {
     files <- fileList[[k]]
-    A <- matrix(NA, NR, length(files))
-    colnames(A) <- gsub(".rds", "", gsub("wc_", "", basename(files)))
-    for(m in seq_along(files)){
+    A <- vector(mode="list", length = length(files))
+    names(A) <- gsub(".rds", "", gsub("wc_", "", basename(files)))
+#    for(m in seq_along(files)){
+    for(m in 1:3) {
         dat <- readRDS(files[m])
         rlist <- split(dat[subj.index, "robust_lrr"], query.index)
-        A[, m] <- sapply(rlist, median, na.rm=TRUE)
+        baflist <- split(dat[subj.index, "BAF"], query.index)
+        ## create a matrix for each sample in list. col1: lrr, col2: baf
+        A[[m]] <- mapply(lrr=rlist, baf=baflist, function(lrr,baf) cbind(lrr,baf))
     }
     A
 }

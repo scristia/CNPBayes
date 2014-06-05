@@ -124,46 +124,48 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
         LogicalVector q = is_finite(mun);
         double a = 0;
         double b = 0;
-        //        Rcpp::Rcout << "\nis finite = ";
-        //        for(int i=0; i<q.size(); i++) {
-        //            Rcpp::Rcout << q[i] << " ";
-        //        }
-        //        Rcpp::Rcout << std::endl;
-        //
-        for(int m=0; m<endpoints.size()-2; m++) {
-            //     Rcpp::Rcout << q[res[m]] << "::" << res[m];
-            //       if(q[res[m]]) {
-            if( q[m] ) {
-                if( m > 0 & m < endpoints.size() - 3) {
-                    if(homdel & (m == 1))
-                        a = endpoints[m] + 0.2;
-                    else
-                        a = endpoints[m] + xdelta[0];
-                    b = endpoints[m+2] - xdelta[0];
-                }
-                else if( m == 0 ) {
-                    a = endpoints[m];
-                    if(homdel)
-                        b = endpoints[m+2] - 0.2;
-                    else
+
+        if(s < xburnin[0]) {
+            // normal mcmc updates
+            for(int j = 0; j < K; j++)
+                theta[j] = as<double>(rnorm(1, mun[j], sqrt(tau2n[j])));
+        }
+        else{
+            for(int m=0; m<endpoints.size()-2; m++) {
+                //     Rcpp::Rcout << q[res[m]] << "::" << res[m];
+                //       if(q[res[m]]) {
+                if( q[m] ) {
+                    if( m > 0 & m < endpoints.size() - 3) {
+                        if(homdel & (m == 1))
+                            a = endpoints[m] + 0.2;
+                        else
+                            a = endpoints[m] + xdelta[0];
                         b = endpoints[m+2] - xdelta[0];
-                }
-                else {
-                    a = endpoints[m] + xdelta[0];
-                    b = endpoints[m+2];
-                }
+                    }
+                    else if( m == 0 ) {
+                        a = endpoints[m];
+                        if(homdel)
+                            b = endpoints[m+2] - 0.2;
+                        else
+                            b = endpoints[m+2] - xdelta[0];
+                    }
+                    else {
+                        a = endpoints[m] + xdelta[0];
+                        b = endpoints[m+2];
+                    }
 
-                //          Rcpp::Rcout << "a = " << a << std::endl;
-                //          Rcpp::Rcout << "b = " << b << std::endl
-                //        if(mun[res[m]] < a) mun[res[m]] = a;
-                //        if(mun[res[m]] > b) mun[res[m]] = b;
-                if(mun[m] < a) mun[m] = a;
-                if(mun[m] > b) mun[m] = b;
-                //           theta[res[m]] = as<double>(rnorm(1, mun[res[m]], sqrt(tau2n[res[m]])));
+                    //          Rcpp::Rcout << "a = " << a << std::endl;
+                    //          Rcpp::Rcout << "b = " << b << std::endl
+                    //        if(mun[res[m]] < a) mun[res[m]] = a;
+                    //        if(mun[res[m]] > b) mun[res[m]] = b;
+                    if(mun[m] < a) mun[m] = a;
+                    if(mun[m] > b) mun[m] = b;
+                    //           theta[res[m]] = as<double>(rnorm(1, mun[res[m]], sqrt(tau2n[res[m]])));
 
-                theta[m] = cons_normal(mun[m], tau2n[m], a, b);
+                    theta[m] = cons_normal(mun[m], tau2n[m], a, b);
+                }
+                //      }
             }
-            //      }
         }
 
         // store theta and precision in their respective matrices
@@ -249,9 +251,11 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
 
         // for each individual, save which copy number state
         // keep tally, find probability after loop terminates.
-        for(int i=0; i<size; i++) {
-            for(int j=0; j<K; j++) {
-                if(z[i] == j) xZ( i, j) += 1;
+        if(s >= xburnin[0]) {
+            for(int i=0; i<size; i++) {
+                for(int j=0; j<K; j++) {
+                    if(z[i] == j) xZ( i, j) += 1;
+                }
             }
         }
         //  IntegerMatrix::Row Zrow = xZ(s, _);
@@ -272,5 +276,6 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
     ret["precs"] = xprecs( Range( xburnin[0], n_mcmc-1), _);
     ret["P"] = xP( Range( xburnin[0], n_mcmc-1), _);
     ret["Z"] = xZ;
+    ret["start"] = xmu0;
     return ret;
 }
