@@ -6,40 +6,56 @@ library(MASS)
 library(mvtnorm)
 library(gtools)
 ## real data
-#avgRs <- readRDS("~/Projects/MixtureModel/avgRs.rds")
+avgRs <- readRDS("~/Projects/MixtureModel/avgRs.rds")
 xx <- avgRs[1, ]
 xx <- xx[!is.na(xx)]
 # simulated data (comment out when using real data)
-#xx <- append(rsn(5000, 2, 1, 2.5), rsn(3000, 0, 1, 0))
+omega <- c(4, 1)
+omega2 <- omega^2
+alpha <- c(-3, 0)
+mu <- c(0, 4)
+
+xx <- c(rsn(5000, mu[1], omega[1], alpha[1]), rsn(8000, mu[2], omega[2], alpha[2]))
+xx <- xx[sample.int(8000)]
+plot(density(xx), type="l")
 K <- 2
 phi <- 0.5
 n <- length(xx)
 
+##transformations
+delta <- alpha/sqrt(1+alpha^2)
+Ey <- mu+omega2*delta*sqrt(2/3.1415)
+psi <- omega*delta
+sigma2 <- omega2*(1-delta^2)
+
 ### PRIORS
+
 beta0.psi <- 0
 beta0.xi <- mean(xx)
-D0.psi <- 0.1
-D0.xi <- 0.1
+D0.psi <- 0.01
+D0.xi <- 0.01
 B0 <- diag(c(D0.xi, D0.psi))
-c0 <- 2.5
-C0 <- phi * var(xx)
-#c0 <- 0.01
-#C0 <- 0.01
+#c0 <- 2.5
+#C0 <- phi * var(xx)
+c0 <- 0.01
+C0 <- 0.01
 eta <- rep(5, K)
 
 ## INITS
 #mu <- rep(mean(xx), K)
-alpha <- rep(0, K) ## skewness parameter
-omega <- rep(var(xx), K) ## scale parameter
-omega2 <- omega^2
+alpha0 <- rep(0, K) ## skewness parameter
+#alpha0 <- c(-3, 0)
+omega0 <- rep(var(xx), K) ## scale parameter
+omega20 <- omega^2
+tau <- c(1,1)
 
 pi <- rep(1/K, K) ## intitial mixing params
 
 ## transformations
-delta <- alpha/sqrt(1+alpha^2)
+delta <- alpha0/sqrt(1+alpha0^2)
 psi <- omega*delta
-sigma2 <- omega2*(1-delta^2)
-tau <- 1/sigma2 ## precision
+sigma20 <- omega20*(1-delta^2)
+tau <- 1/sigma20 ## precision
 
 beta <- rbind(c(0,0), psi)
 
@@ -52,29 +68,29 @@ nn <- pars$size[order(pars$centers)]
 Z <- rep(0, length(xx))
 
 ### create storage matrices, initialize parameters from data
-nsim <- 10000
+nsim <- 25000
 thin <- 1
 MU <- OMEGA <- ALPHA <- PREC <- PI <- matrix(rep(0, nsim/thin *K), ncol=K)
 
 #MCMC
 for ( s in 1:nsim) {
-    ## update mixture probabilities
-    pi <- rdirichlet(1, nn+eta)
 
     #draw Z
     v <- 1/(1+tau*psi^2)
-    m <- v*tau*psi*(xx-mu)
-    z1 <- rtnorm(nn[1], m[S==1], sqrt(v[1]), lower=0)
-    z2 <- rtnorm(nn[2], m[S==2], sqrt(v[2]), lower=0)
+#    m <- v*tau*psi*(xx-mu)
+    m1 <- v[1]*tau[1]*psi[1]*(xx[S==1]-mu[1])
+    m2 <- v[2]*tau[2]*psi[2]*(xx[S==2]-mu[2])
+    z1 <- rtnorm(nn[1], m1, sqrt(v[1]), lower=0)
+    z2 <- rtnorm(nn[2], m2, sqrt(v[2]), lower=0)
     X1 <- cbind(rep(1, length(z1)), z1)
     X2 <- cbind(rep(1, length(z2)), z2)
 
     # Draw beta
     ### make these matrix operations faster
-    B1 <- solve(solve(B0) + tau[1]*crossprod(X1))
-    B2 <- solve(solve(B0) + tau[2]*crossprod(X2))
-    beta1 <- B1%*%( solve(B0)%*%beta[,1] + tau[1]*crossprod(X1,xx[S==1]))
-    beta2 <- B2%*%( solve(B0)%*%beta[,2] + tau[2]*crossprod(X2,xx[S==2]))
+    B1 <- solve(B0 + tau[1]*crossprod(X1))
+    B2 <- solve(B0 + tau[2]*crossprod(X2))
+    beta1 <- B1%*%( B0%*%beta[,1] + tau[1]*crossprod(X1, xx[S==1]))
+    beta2 <- B2%*%( B0%*%beta[,2] + tau[2]*crossprod(X2, xx[S==2]))
 #    beta1 <- (xx[S==1] %*% X1 + c((1/D0.xi * beta0.xi), (1/D0.psi * beta0.psi)))%*%B1
 #    beta2 <- (xx[S==2] %*% X2 + c((1/D0.xi * beta0.xi), (1/D0.psi * beta0.psi)))%*%B2
 
@@ -84,12 +100,12 @@ for ( s in 1:nsim) {
     mvdraw1 <- c(rmvnorm(1, beta1, B1))
     mvdraw2 <- c(rmvnorm(1, beta2, B2))
     mu <- c(mvdraw1[1], mvdraw2[1])
-    psi <- c(mvdraw1[1], mvdraw2[2])
+    psi <- c(mvdraw1[2], mvdraw2[2])
 
     # Draw tau from its Gamma distribution
     cc <- c0 + nn/2
-    eps1 <- crossprod(xx[S=1] - beta1[2] - z1 * beta1[1])
-    eps2 <- crossprod(xx[S=2] - beta2[2] - z2 * beta2[1])
+    eps1 <- crossprod(xx[S==1] - beta1[2] - z1 * beta1[1])
+    eps2 <- crossprod(xx[S==2] - beta2[2] - z2 * beta2[1])
     #C1 <- C0 + 0.5*(eps1 + 1/D0.xi*(beta1[2] - beta0.xi)^2 + 1/D0.psi*(beta1[1] - beta0.psi)^2)
     #C2 <- C0 + 0.5*(eps2 + 1/D0.xi*(beta2[2] - beta0.xi)^2 + 1/D0.psi*(beta2[1] - beta0.psi)^2)
     tau1 <- rgamma(1, cc[1], C0 + crossprod(xx[S==1] - X1%*%mvdraw1)/2)
@@ -119,6 +135,9 @@ for ( s in 1:nsim) {
     nn[1] <- sum(S==1)
     nn[2] <- sum(S==2)
 
+    ## update mixture probabilities
+    pi <- rdirichlet(1, nn+eta)
+
     # transform and store
     if(s%%thin == 0) {
         MU[s, ] <- mu
@@ -130,7 +149,7 @@ for ( s in 1:nsim) {
 }
 
 
-burnin <- 1:1000
+burnin <- 1:5000
 mus <- colMeans(MU[-burnin, ])
 omegas <- colMeans(OMEGA[-burnin, ])
 alphas <- colMeans(ALPHA[-burnin, ])
@@ -147,20 +166,22 @@ colnames(PIS) <- c("pi1", "pi2")
 colnames(OMEGAS) <- c("omega1", "omega2")
 colnames(ALPHAS) <- c("alpha1", "alpha2")
 
-mcmcplot(cbind(MUS, PIS, OMEGAS, ALPHAS), parms=c("mu1", "mu2", "pi1", "pi2",
-                                             "omega1", "omega2", "alpha1", "alpha2"), dir="/Users/scrist/Dropbox/Mixture Models/skewnormal")
+mcmcplot(cbind(MUS, PIS, OMEGAS, ALPHAS), parms=c("mu1", "mu2", "pi1", "pi2", "omega1", "omega2", "alpha1", "alpha2"),
+         dir="/Users/scrist/Dropbox/Mixture Models/skewnormal")
 
-pdf("/Users/scrist/Dropbox/Mixture Models/skewnormal/sn_hist.pdf")
+pdf("/Users/scrist/scratch")
+#pdf("/Users/scrist/Dropbox/Mixture Models/skewnormal/sn_hist.pdf")
 lim <- range(xx, na.rm=TRUE)
 par(las=1, mfrow=c(1,1), mar=c(4, 4, 4, 4))
 hist(xx, breaks = 500, col='lightgray', border='gray', freq=FALSE, main="",
      xlim=lim)
-y2 <- seq(-3, 13, len=5000)
+y2 <- seq(min(xx), max(xx), len=5000)
 #post.dens <- pis[1]*dsn(y2, mus[1], omegas[1], alphas[1] ) + pis[2]*dsn(y2, mus[2], omegas[2], alphas[2])
 #lines(y2, post.dens,lwd=2)
-mx <- max(post.dens)
-lines(y2, pi[1]*dsn(y2, mus[1], omegas[1], alphas[1] ), col="gray40", lty=2, lwd=2)
-lines(y2, pi[2]*dsn(y2, mus[2], omegas[2], alphas[2] ), col="gray40", lty=2, lwd=2)
+#mx <- max(post.dens)
+for(k in 1:K) lines(y2, pi[k]*dsn(y2, mus[k], omegas[k], alphas[k] ), col="gray40", lty=2, lwd=2)
+lines(y2, rowSums(sapply(1:K, function(x) pi[x]*dsn(y2, mus[x], omegas[x], alphas[x]))), col="skyblue3", lwd=2)
 dev.off()
 
 
+lapply(xlist, cbind, 1)

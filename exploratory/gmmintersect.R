@@ -14,6 +14,8 @@ mu1 <- xr$MU[2]
 mu2 <- xr$MU[3]
 sd1 <- sqrt(xr$SIGMA[2])
 sd2 <- sqrt(xr$SIGMA[3])
+pi1 <- xr$PI[1]
+pi2 <- xr$PI[2]
 xs <- seq(min(mu1 - 3*sd1, mu2 - 3*sd2), max(mu1 + 3*sd1, mu2 + 3*sd2), .01)
 f1 <- pi1*dnorm(xs, mean=mu1, sd=sd1)
 f2 <- pi2*dnorm(xs, mean=mu2, sd=sd2)

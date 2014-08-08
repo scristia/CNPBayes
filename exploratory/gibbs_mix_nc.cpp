@@ -8,10 +8,30 @@
  */
 
 #include "gibbs_mix.h"
-#include "miscfunctions.h"
 #include "Rmath.h"
 
 using namespace Rcpp;
+
+// Function to simulate from dirichlet distribution
+void rdirichlet(NumericVector a, NumericVector pr) {
+    double sample[a.size()];
+    double sample_sum = 0;
+    for(int i=0; i<a.size(); i++) {
+        sample[i] = as<double>(rgamma(1, a[i], 1));
+        sample_sum += sample[i];
+    }
+    for(int i = 0; i<a.size(); i++) {
+        pr[i] = sample[i] / sample_sum ;
+    }
+}
+
+
+// Function for drawing from contrained normal distribution for theta
+double cons_normal(double mean, double var, double a, double b) {
+    double p = R::pnorm(a, mean, sqrt(var), 1, 0) + as<double>(runif(1)) *
+        (R::pnorm(b, mean, sqrt(var), 1, 0) - R::pnorm(a, mean, sqrt(var), 1, 0));
+    return R::qnorm(p, mean, sqrt(var), 1, 0);
+}
 
 RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
         SEXP nu0, SEXP mu0, SEXP kappa0, SEXP alpha,
@@ -58,10 +78,8 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
 
     for(int j=0; j<K; j++) {
         nun[j] = xnu0[0] + xnn[j];
-        theta[j] = xrbar[j];
-        postprec[j] = 1/xs2[j];
-        //theta[j] = as<double>(rnorm(1, xmu0[j], sqrt(xtau20[0])));
-        //postprec[j] = 1/xsigma20[j];
+        theta[j] = as<double>(rnorm(1, xmu0[j], sqrt(xtau20[0])));
+        postprec[j] = 1/xsigma20[j];
     }
     // Reference row 1 of mean and prec matrix and store value
     NumericMatrix::Row meanrow = xmeans(0, _);
@@ -84,16 +102,28 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
             mun[j] = (1/xtau20[0])/(1/xtau20[0] + xnn[j]*postprec[j])*xmu0[j] +
                 xnn[j]*postprec[j]/(1/xtau20[0] + xnn[j]*postprec[j])*xrbar[j];
             s2n[j] = 1/nun[j] * (xnu0[0]*xsigma20[j] + (xnn[j] - 1)*xs2[j] +
-                    xkappa0[0]*xnn[j]/(xkappa0[0] + xnn[j]) *
+                    xkappa0[0]*xnn[j]/(xkappa0[0]*xnn[j]) *
                     pow(xrbar[j]-xmu0[j], 2));
-            // is this wrong?
-            //s2n[j] = 1/nun[j] * (xnu0[0]*xsigma20[j] + (xnn[j] - 1)*xs2[j] +
-            //        xkappa0[0]*xnn[j]/(xkappa0[0]*xnn[j]) *
-            //        pow(xrbar[j]-xmu0[j], 2));
             // theta[j] = as<double>(rnorm(1, mun[j], sqrt(tau2n[j])));
             // simulate from the precision's full conditional
             // if s2n is NA, rgamma returns NaN
+            //
+            // Metropolis update on varance
             postprec[j] = as<double>(rgamma(1, nun[j]/2, 1/(nun[j]/2*s2n[j])));
+            // normal theta updates
+            theta[j] = as<double>(rnorm(1, mun[j], sqrt(tau2n[j])));
+        }
+
+        // hierarchical update on precision
+        // C = as<double>(rgamma(1, K*xnu0 - 1, 1/sum(1/postprec)));
+        // b = as<double>(rnorm(1, 1/K * sum(theta, xtau20/K)));
+        LogicalVector vec = s2n > -0.75;
+        for(j=0; j<K; j++) {
+            if(theta[j] < -0.75) {
+            }
+        // have different update rule
+        //
+
         }
 
         // Update theta. Use constrained normal distribution
@@ -112,48 +142,6 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
         double a = 0;
         double b = 0;
 
-        if(s < xburnin[0]) {
-            // normal mcmc updates
-            for(int j = 0; j < K; j++)
-                theta[j] = as<double>(rnorm(1, mun[j], sqrt(tau2n[j])));
-        }
-        else{
-            for(int m=0; m<endpoints.size()-2; m++) {
-                //     Rcpp::Rcout << q[res[m]] << "::" << res[m];
-                //       if(q[res[m]]) {
-                if( q[m] ) {
-                    if( m > 0 & m < endpoints.size() - 3) {
-                        if(homdel & (m == 1))
-                            a = endpoints[m] + 0.2;
-                        else
-                            a = endpoints[m] + xdelta[0];
-                        b = endpoints[m+2] - xdelta[0];
-                    }
-                    else if( m == 0 ) {
-                        a = endpoints[m];
-                        if(homdel)
-                            b = endpoints[m+2] - 0.2;
-                        else
-                            b = endpoints[m+2] - xdelta[0];
-                    }
-                    else {
-                        a = endpoints[m] + xdelta[0];
-                        b = endpoints[m+2];
-                    }
-
-                    //          Rcpp::Rcout << "a = " << a << std::endl;
-                    //          Rcpp::Rcout << "b = " << b << std::endl
-                    //        if(mun[res[m]] < a) mun[res[m]] = a;
-                    //        if(mun[res[m]] > b) mun[res[m]] = b;
-                    if(mun[m] < a) mun[m] = a;
-                    if(mun[m] > b) mun[m] = b;
-                    //           theta[res[m]] = as<double>(rnorm(1, mun[res[m]], sqrt(tau2n[res[m]])));
-
-                    theta[m] = cons_normal(mun[m], tau2n[m], a, b);
-                }
-                //      }
-            }
-        }
 
         // store theta and precision in their respective matrices
         NumericMatrix::Row meanrow = xmeans(s, _);
@@ -215,23 +203,22 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
             }
         }
         // recalculate component sample variances
-        // xs2 not xsigma20
-        std::fill(xs2.begin(), xs2.end(), 0);
+        std::fill(xsigma20.begin(), xsigma20.end(), 0);
         for(int i=0; i<size; i++) {
             for(int j=0; j<K; j++) {
-                if(z[i] == j) xs2[j] += pow(xr[i]-xrbar[j], 2)/xnn[j];
+                if(z[i] == j) xsigma20[j] += pow(xr[i]-xrbar[j], 2)/xnn[j];
             }
         }
         // Check for 1 and 0 member components, assign NAs accordingly
         LogicalVector is_one = xnn == 1;
         LogicalVector is_zero = xnn == 0;
         if( is_true(any(is_one)) ) {
-            for(int j=0; j<K; j++) if(is_one[j] == 1) xs2[j] = NA_REAL;
+            for(int j=0; j<K; j++) if(is_one[j] == 1) xsigma20[j] = NA_REAL;
         }
         if( is_true(any(is_zero)) ) {
             for(int j=0; j<K; j++) {
                 if(is_zero[j] == 1) {
-                    xs2[j] = NA_REAL;
+                    xsigma20[j] = NA_REAL;
                     xrbar[j] = NA_REAL;
                 }
             }

@@ -70,10 +70,10 @@ plotPosts <- function(r, posts, burnin=1, main="", crit="bic", full=TRUE) {
         text(posts[[subs[1]]]$start, y=0, labels="x", col="tomato")
         ## Write key with K and BIC
         ## this is getting out of control
-        legend("topleft", legend=paste(paste("K = ",
-                                             c(paste(K2, collapse= " & "), paste(Kbic, collapse=" & ")) ,
-                                             c(" ICL = "," BIC = "), c(paste(round(best.icl), collapse=" & "),
-                                                                       paste(round(best.bic), collapse=" & ")))), bty="n")
+        legend("topleft",
+               legend=paste(paste("K = ", c(paste(K2, collapse= " & "), paste(Kbic, collapse=" & ")) ,
+                                  c(" ICL = "," BIC = "), c(paste(round(best.icl), collapse=" & "),
+                                                            paste(round(best.bic), collapse=" & ")))), bty="n")
 #        if(crit == "bic") {
 #            legend("topleft", legend=paste(paste("K = ", K2, " BIC = ", round(best.bic))), col=c("darkgreen", rgb(24,167,181,max=255)), lty=1:2, bty="n")
 #        }

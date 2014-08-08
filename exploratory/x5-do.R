@@ -21,8 +21,9 @@ reduced.gr <- readRDS(file.path(uadir, "reduced_granges.rds"))
 ###########################################################
 ###########################################################
 
-## using pennCNV calls
+## using VI CNV calls
 vi.grl <- readRDS(file.path(uadir, "CNV_grl_EA_VI.rds"))
+## uncomment for pennCNV calls
 #vi.grl <- readRDS("/home/student/scristia/Software/CNPBayes/penncnv_granges.rds")
 gr <- unlist(vi.grl)
 dj <- disjoin(gr)
@@ -96,7 +97,9 @@ avgLrr <- foreach(k = seq_along(fileList), .combine="cbind") %dopar% {
     for(m in seq_along(files)){
         dat <- readRDS(files[m])
         rlist <- split(dat[subj.index, "robust_lrr"], query.index)
-        A[, m] <- sapply(rlist, median, na.rm=TRUE)
+        tmp <- tryCatch(sapply(rlist, median, na.rm=TRUE), error=function(e) return(NULL))
+        if(!is.null(tmp)) A[, m] <- tmp
+        else browser()
     }
     A
 }

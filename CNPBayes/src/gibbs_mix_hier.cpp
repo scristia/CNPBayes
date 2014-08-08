@@ -7,13 +7,13 @@
  *        - Check: priors and starting values.
  */
 
-#include "gibbs_mix.h"
+#include "gibbs_mix_hier.h"
 #include "miscfunctions.h"
 #include "Rmath.h"
 
 using namespace Rcpp;
 
-RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
+RcppExport SEXP gibbs_mix_hier(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
         SEXP nu0, SEXP mu0, SEXP kappa0, SEXP alpha,
         SEXP tau20, SEXP sigma20, SEXP rbar,
         SEXP s2, SEXP nn, SEXP delta, SEXP burnin) {
@@ -42,6 +42,8 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
     const int K = xmeans.ncol(); // number of components
     double a0 = min(xr);
     double b0 = max(xr);
+    double g0 = 0.2;
+    double G0 = 10/(max(xr) - min(xr));
 
     // initialize vectors that depend on size of K, and not passed from R
     Rcpp::NumericVector mun(K);
@@ -56,13 +58,15 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
     Rcpp::IntegerVector z(size);
     Rcpp::NumericVector u(size);
 
+    // starting values
     for(int j=0; j<K; j++) {
-        nun[j] = xnu0[0] + xnn[j];
-        theta[j] = xrbar[j];
+        //nun[j] = xnu0[0] + xnn[j];
+        theta[j] = xmu0[j];
         postprec[j] = 1/xs2[j];
         //theta[j] = as<double>(rnorm(1, xmu0[j], sqrt(xtau20[0])));
         //postprec[j] = 1/xsigma20[j];
     }
+
     // Reference row 1 of mean and prec matrix and store value
     NumericMatrix::Row meanrow = xmeans(0, _);
     meanrow = theta;
@@ -79,21 +83,24 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
         // tau a single value
         for(int j=0; j<K; j++) {
             // update tau2n, nun, mun, s2n
-            tau2n[j] = 1/(1/xtau20[0] + xnn[j]*postprec[j]);
-            nun[j] = xnu0[0] + xnn[j];
+            // theta hyperparameters
             mun[j] = (1/xtau20[0])/(1/xtau20[0] + xnn[j]*postprec[j])*xmu0[j] +
                 xnn[j]*postprec[j]/(1/xtau20[0] + xnn[j]*postprec[j])*xrbar[j];
-            s2n[j] = 1/nun[j] * (xnu0[0]*xsigma20[j] + (xnn[j] - 1)*xs2[j] +
+            tau2n[j] = 1/(1/xtau20[0] + xnn[j]*postprec[j]);
+
+            // precision hyperparameters
+            nun[j] = xnu0[0] + xnn[j]/2;
+            s2n[j] = 1/nun[j] * (xnu0[0]*xsigma20[0] + (xnn[j] - 1)*xs2[j] +
                     xkappa0[0]*xnn[j]/(xkappa0[0] + xnn[j]) *
                     pow(xrbar[j]-xmu0[j], 2));
-            // is this wrong?
-            //s2n[j] = 1/nun[j] * (xnu0[0]*xsigma20[j] + (xnn[j] - 1)*xs2[j] +
-            //        xkappa0[0]*xnn[j]/(xkappa0[0]*xnn[j]) *
-            //        pow(xrbar[j]-xmu0[j], 2));
             // theta[j] = as<double>(rnorm(1, mun[j], sqrt(tau2n[j])));
             // simulate from the precision's full conditional
             // if s2n is NA, rgamma returns NaN
-            postprec[j] = as<double>(rgamma(1, nun[j]/2, 1/(nun[j]/2*s2n[j])));
+            //
+            // Metropolis update on varance
+            postprec[j] = as<double>(rgamma(1, nun[j], 1/(nun[j]/2*s2n[j])));
+            // normal theta updates
+            //theta[j] = as<double>(rnorm(1, mun[j], sqrt(tau2n[j])));
         }
 
         // Update theta. Use constrained normal distribution
@@ -161,6 +168,7 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
         NumericMatrix::Row precrow = xprecs(s, _);
         precrow = postprec;
 
+
         // update alpha
         for(int j=0; j<K; j++) nalpha[j] = xalpha[j] + xnn[j];
         // simulate pi from its multinomial posterior
@@ -206,6 +214,15 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
             }
         }
 
+        // update hyperparameter
+        double gn = g0 + K * xnu0[0]/2;
+        //double Gn = G0 + xnu0[0]/2 * sum(postprec);
+        double Gn = G0 + xnu0[0]/2 * sum(postprec);
+        xsigma20[0] = as<double>(rgamma(1, gn, Gn));
+        Rcpp::Rcout << "gn: " << gn << "Gn: "<< Gn << "sigma20: " << xsigma20[0] << std::endl;
+        //double wprec = sum(pi * postprec);
+        //Rcpp::Rcout << "weighted precisions: " << wprec << std::endl;
+
         // Split data by components and take new sample means and variances.
         // Still needed: add checks for when component is empty or singular.
         std::fill(xrbar.begin(), xrbar.end(), 0);
@@ -215,7 +232,6 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
             }
         }
         // recalculate component sample variances
-        // xs2 not xsigma20
         std::fill(xs2.begin(), xs2.end(), 0);
         for(int i=0; i<size; i++) {
             for(int j=0; j<K; j++) {
@@ -226,6 +242,7 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
         LogicalVector is_one = xnn == 1;
         LogicalVector is_zero = xnn == 0;
         if( is_true(any(is_one)) ) {
+            break;
             for(int j=0; j<K; j++) if(is_one[j] == 1) xs2[j] = NA_REAL;
         }
         if( is_true(any(is_zero)) ) {

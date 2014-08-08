@@ -55,7 +55,12 @@ segplots <- function(subject.cnvs, red.range, indices, flag=20000L,
 #        }
 #        count <- count + 1
 #    }
-    abline(v=c(start(red.range), end(red.range)), col="blue", lty=2, lwd=2)
+    abline(v=c(start(red.range), end(red.range))/1e6, col="blue", lty=2, lwd=2)
+    if(!olap & !is.null(markers)) {
+        m2 <- markers[queryHits(findOverlaps(markers, red.range))]
+        num.markers <- length(m2)
+        legend('topleft', legend = paste0("Markers = ", num.markers), bty="n")
+    }
     if(olap == TRUE) {
         xcoords <- c(rbind(start(disjoin.gr), end(disjoin.gr)))
         ycoords <- c(rbind(disjoin.counts, disjoin.counts))
@@ -65,6 +70,7 @@ segplots <- function(subject.cnvs, red.range, indices, flag=20000L,
 
 }
 
+## need to fix coords to be on megabase scale
 overlapping <- function(xcoords, ycoords, red.range, n, xlim) {
     plot(NULL, xlim=xlim, ylim=c(1, n), las=1, bty="l")
     polygon(x=c(min(xcoords), xcoords, max(xcoords)), y=c(0, ycoords, 0),
