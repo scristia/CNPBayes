@@ -1,37 +1,4 @@
 ## Skew normal mixture model
-### Right now does not take priors or starting values as input.
-### 
-library(CNPBayes)
-library(sn)
-library(msm)
-library(MASS)
-library(mvtnorm)
-library(gtools)
-## real data
-#avgRs <- readRDS("~/Projects/MixtureModel/avgRs.rds")
-avgRs <- readRDS("../avgRs_wc_ea-vi.rds")
-## 18, 347, 57, /!\78/!\, 107, 35
-xx <- avgRs[,18]
-xx <- xx[!is.na(xx)]
-# simulated data (comment out when using real data)
-omega <- c(4, 1)
-omega2 <- omega^2
-alpha <- c(-3, 0)
-mu <- c(0, 4)
-
-xx <- c(rsn(5000, mu[1], omega[1], alpha[1]), rsn(8000, mu[2], omega[2], alpha[2]))
-xx <- xx[sample.int(8000)]
-#plot(density(xx), type="l")
-K <- 2
-n <- length(xx)
-
-##transformations
-delta <- alpha/sqrt(1+alpha^2)
-Ey <- mu+omega2*delta*sqrt(2/3.1415)
-psi <- omega*delta
-sigma2 <- omega2*(1-delta^2)
-
-
 skewnormal.gibbs <- function(xx, priors, K, S, thin=1) {
 
     ### PRIORS
@@ -160,26 +127,3 @@ skewnormal.gibbs <- function(xx, priors, K, S, thin=1) {
         if(s%%100==0) cat(s,"\n")
     }
 }
-
-burnin <- 1:1000
-mus <- colMeans(MU[-burnin, ])
-omegas <- colMeans(OMEGA[-burnin, ])
-alphas <- colMeans(ALPHA[-burnin, ])
-pis <- colMeans(PI[-burnin, ])
-
-source("sn_loglik.R")
-snmixture <- list("mu"=MU[-burnin,], "omega"=OMEGA[-burnin,], "alpha"=ALPHA[-burnin,], "P"=PI[-burnin,])
-loglik <- loglik.snmix(xx, snmixture, K)
-bic <- -2*loglik + (4*K-1)*log(length(xx))
-
-
-lim <- range(xx, na.rm=TRUE)
-par(las=1, mfrow=c(1,1), mar=c(4, 4, 4, 4))
-hist(xx, breaks = 500, col='lightgray', border='gray', freq=FALSE, main="",
-     xlim=lim)
-y2 <- seq(min(xx), max(xx), len=5000)
-#post.dens <- pis[1]*dsn(y2, mus[1], omegas[1], alphas[1] ) + pis[2]*dsn(y2, mus[2], omegas[2], alphas[2])
-#lines(y2, post.dens,lwd=2)
-#mx <- max(post.dens)
-for(k in 1:K) lines(y2, pi[k]*dsn(y2, mus[k], omegas[k], alphas[k] ), col="gray40", lty=2, lwd=2)
-lines(y2, rowSums(sapply(1:K, function(x) pi[x]*dsn(y2, mus[x], omegas[x], alphas[x]))), col="skyblue3", lwd=2)

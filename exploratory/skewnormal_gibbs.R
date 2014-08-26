@@ -4,7 +4,6 @@ library(sn)
 library(mvtnorm)
 library(msm)
 library(MASS)
-library(mvtnorm)
 library(gtools)
 ## real data
 #avgRs <- readRDS("~/Projects/MixtureModel/avgRs.rds")
@@ -12,6 +11,7 @@ avgRs <- readRDS("../avgRs_wc_ea-vi.rds")
 ## 18, 347, 57, /!\78/!\, 107, 35
 xx <- avgRs[,18]
 xx <- xx[!is.na(xx)]
+res <- sntest(r=xx, K=5, nsim=2500, n=10)
 # simulated data (comment out when using real data)
 omega <- c(4, 1)
 omega2 <- omega^2
@@ -21,7 +21,7 @@ mu <- c(0, 4)
 xx <- c(rsn(5000, mu[1], omega[1], alpha[1]), rsn(8000, mu[2], omega[2], alpha[2]))
 xx <- xx[sample.int(8000)]
 #plot(density(xx), type="l")
-K <- 2
+K <- 3
 n <- length(xx)
 
 ##transformations
@@ -31,7 +31,7 @@ psi <- omega*delta
 sigma2 <- omega2*(1-delta^2)
 
 
-skewnormal.gibbs <- function(xx, priors, K, S, thin=1) {
+skewnormal.gibbs <- function(xx, K, nsim, thin=1) {
 
     ### PRIORS
 
@@ -53,7 +53,7 @@ skewnormal.gibbs <- function(xx, priors, K, S, thin=1) {
     #alpha0 <- c(-3, 0)
     omega0 <- rep(mad(xx), K) ## scale parameter
     omega20 <- omega0^2
-    tau <- c(1,1)
+#    tau <- c(1,1)
 
     pi <- rep(1/K, K) ## intitial mixing params
 
@@ -74,12 +74,10 @@ skewnormal.gibbs <- function(xx, priors, K, S, thin=1) {
     Z <- rep(0, length(xx))
 
     ### create storage matrices, initialize parameters from data
-    nsim <- 2500
-    thin <- 1
     thin.ind <- 1
     MU <- OMEGA <- ALPHA <- PREC <- PI <- matrix(rep(0, nsim/thin * K), ncol=K)
-    assig <- matrix(0, nrow(xx), K)
-    rownames(assig) <- rownames(xx)
+#    assig <- matrix(0, length(xx), K)
+#    rownames(assig) <- rownames(xx)
 
     #MCMC
     for ( s in 1:nsim) {
@@ -159,13 +157,28 @@ skewnormal.gibbs <- function(xx, priors, K, S, thin=1) {
         }
         if(s%%100==0) cat(s,"\n")
     }
+    return(list("MU" = MU,
+                "OMEGA" = OMEGA,
+                "ALPHA" = ALPHA,
+                "PI" = PI))
 }
 
-burnin <- 1:1000
-mus <- colMeans(MU[-burnin, ])
-omegas <- colMeans(OMEGA[-burnin, ])
-alphas <- colMeans(ALPHA[-burnin, ])
-pis <- colMeans(PI[-burnin, ])
+res = skewnormal.gibbs(xx, K=2, nsim=2500)
+burnin <- 1:1500
+mus <- colMeans(res$MU[-burnin, ])
+omegas <- colMeans(res$OMEGA[-burnin, ])
+alphas <- colMeans(res$ALPHA[-burnin, ])
+pis <- colMeans(res$PI[-burnin, ])
+
+
+K = 2
+xx = avgRs[,2]
+res <- sntest(r=xx, K=K, nsim=2500)
+burnin <- 1:1500
+mus <- colMeans(res$MU[-burnin, ])
+omegas <- colMeans(res$OMEGA[-burnin, ])
+alphas <- colMeans(res$ALPHA[-burnin, ])
+etas <- colMeans(res$ETA[-burnin, ])
 
 source("sn_loglik.R")
 snmixture <- list("mu"=MU[-burnin,], "omega"=OMEGA[-burnin,], "alpha"=ALPHA[-burnin,], "P"=PI[-burnin,])
@@ -182,5 +195,11 @@ y2 <- seq(min(xx), max(xx), len=5000)
 #post.dens <- pis[1]*dsn(y2, mus[1], omegas[1], alphas[1] ) + pis[2]*dsn(y2, mus[2], omegas[2], alphas[2])
 #lines(y2, post.dens,lwd=2)
 #mx <- max(post.dens)
-for(k in 1:K) lines(y2, pi[k]*dsn(y2, mus[k], omegas[k], alphas[k] ), col="gray40", lty=2, lwd=2)
-lines(y2, rowSums(sapply(1:K, function(x) pi[x]*dsn(y2, mus[x], omegas[x], alphas[x]))), col="skyblue3", lwd=2)
+for(k in 1:K) lines(y2, etas[k]*dsn(y2, mus[k], omegas[k], alphas[k] ), col="gray40", lty=2, lwd=2)
+lines(y2, rowSums(sapply(1:K, function(x) etas[x]*dsn(y2, mus[x], omegas[x], alphas[x]))), col="skyblue3", lwd=2)
+
+
+library(rbenchmark)
+benchmark(sntest(r=xx, K=5, nsim=200),
+          skewnormal.gibbs(xx, K=5, nsim=300, thin=1),
+          replications=3)

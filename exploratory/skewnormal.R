@@ -1,14 +1,19 @@
 ## Skew normal mixture model
 library(sn)
-library(mvtnorm)
+fibrary(mvtnorm)
 library(msm)
 library(MASS)
 library(mvtnorm)
 library(gtools)
+library(CNPBayes)
 ## real data
 avgRs <- readRDS("~/Projects/MixtureModel/avgRs.rds")
-xx <- avgRs[1, ]
+xx <- avgRs[18, ]
 xx <- xx[!is.na(xx)]
+K <- 3
+n <- 10
+nsim <- 100
+sntest(K=K, n=n, nsim=nsim, r=xx)
 # simulated data (comment out when using real data)
 omega <- c(4, 1)
 omega2 <- omega^2
@@ -18,7 +23,6 @@ mu <- c(0, 4)
 xx <- c(rsn(5000, mu[1], omega[1], alpha[1]), rsn(8000, mu[2], omega[2], alpha[2]))
 xx <- xx[sample.int(8000)]
 plot(density(xx), type="l")
-K <- 2
 phi <- 0.5
 n <- length(xx)
 

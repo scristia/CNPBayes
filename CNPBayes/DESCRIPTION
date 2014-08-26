@@ -4,9 +4,9 @@ Title: What the package does (short line)
 Version: 1.0
 Date: 2013-07-11
 Author: S. Cristiano
-Depends: gtools, Hmisc, Rcpp (>= 0.10.4)
+Depends: gtools, Hmisc, Rcpp (>= 0.10.4), RcppArmadillo (>= 0.2.0)
 Suggests: RUnit
 Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
 License: What license is it under?
-LinkingTo: Rcpp
+LinkingTo: Rcpp, RcppArmadillo
