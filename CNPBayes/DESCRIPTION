@@ -1,12 +1,16 @@
 Package: CNPBayes
 Type: Package
-Title: What the package does (short line)
-Version: 1.0
-Date: 2013-07-11
+Title: Bayesian mixture models for copy number polymorphisms
+Version: 0.0.1
+Date: Sat Sep  6 08:52:52 EDT 2014
 Author: S. Cristiano
 Depends: gtools, Hmisc, Rcpp (>= 0.10.4), RcppArmadillo (>= 0.2.0)
 Suggests: RUnit
-Maintainer: Who to complain to <yourfault@somewhere.net>
+Maintainer: Stephen Cristiano <scristia@jhu.edu>
 Description: More about what it does (maybe more than one line)
-License: What license is it under?
+License: Artistic-2.0
 LinkingTo: Rcpp, RcppArmadillo
+biocViews: CopyNumberVariation
+## Local Variables:
+## time-stamp-pattern: "8/Date: %3a %3b %2d %02H:%02M:%02S %Z %:y\n"
+## End:
