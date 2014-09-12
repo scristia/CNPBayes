@@ -6,7 +6,6 @@
  */
 
 // [[Rcpp::depends(RcppArmadillo)]]
-#include <RcppArmadilloExtensions/sample.h>
 #include <RcppArmadillo.h>
 #include "gibbs_mix.h"
 #include "miscfunctions.h"
@@ -204,7 +203,10 @@ RcppExport SEXP skewnormal_mix(SEXP xr, SEXP xK, SEXP xS, SEXP xmu,
         omega_row = omega;
         NumericMatrix::Row eta_row = ETA(s, _);
         eta_row = eta;
+
+        Rprintf("%d\rs = ", s+1);
     }
+    Rprintf("\n");
 
     List ret;
     ret["MU"] = MU;

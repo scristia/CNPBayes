@@ -155,15 +155,17 @@ skewnormal.gibbs <- function(xx, K, nsim, thin=1) {
             PI[thin.ind, ] <- pi
             thin.ind <- thin.ind+1
         }
-        if(s%%100==0) cat(s,"\n")
+
+        if(s%%100==0) cat("\rs = ", s, sep="")
     }
+    cat("\n")
     return(list("MU" = MU,
                 "OMEGA" = OMEGA,
                 "ALPHA" = ALPHA,
                 "PI" = PI))
 }
 
-res = skewnormal.gibbs(xx, K=2, nsim=2500)
+res = skewnormal.gibbs(xx, K=2, nsim=500)
 burnin <- 1:1500
 mus <- colMeans(res$MU[-burnin, ])
 omegas <- colMeans(res$OMEGA[-burnin, ])
@@ -173,7 +175,7 @@ pis <- colMeans(res$PI[-burnin, ])
 
 K = 2
 xx = avgRs[,2]
-res <- sntest(r=xx, K=K, nsim=2500)
+res <- sntest(r=xx, K=K, nsim=5500)
 burnin <- 1:1500
 mus <- colMeans(res$MU[-burnin, ])
 omegas <- colMeans(res$OMEGA[-burnin, ])
@@ -181,7 +183,7 @@ alphas <- colMeans(res$ALPHA[-burnin, ])
 etas <- colMeans(res$ETA[-burnin, ])
 
 source("sn_loglik.R")
-snmixture <- list("mu"=MU[-burnin,], "omega"=OMEGA[-burnin,], "alpha"=ALPHA[-burnin,], "P"=PI[-burnin,])
+snmixture <- list("mu"=res$MU[-burnin,], "omega"=res$OMEGA[-burnin,], "alpha"=res$ALPHA[-burnin,], "P"=res$ETA[-burnin,])
 loglik <- loglik.snmix(xx, snmixture, K)
 bic <- -2*loglik + (4*K-1)*log(length(xx))
 #9006.405 - 3, 9134.143 - 4, 
