@@ -1,7 +1,7 @@
 Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
-Version: 0.0.2
+Version: 0.0.3
 Date: Tue Sep  9 12:13:07 EDT 2014
 Author: S. Cristiano
 Depends: gtools, Hmisc, Rcpp (>= 0.10.4), RcppArmadillo (>= 0.2.0)
