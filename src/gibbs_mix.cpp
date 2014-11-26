@@ -79,13 +79,13 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
         // tau a single value
         for(int j=0; j<K; j++) {
             // update tau2n, nun, mun, s2n
-            tau2n[j] = 1/(1/xtau20[0] + xnn[j]*postprec[j]);
+	  tau2n[j] = 1/(1/xtau20[0] + xnn[j]*postprec[j]);
             nun[j] = xnu0[0] + xnn[j];
             mun[j] = (1/xtau20[0])/(1/xtau20[0] + xnn[j]*postprec[j])*xmu0[j] +
                 xnn[j]*postprec[j]/(1/xtau20[0] + xnn[j]*postprec[j])*xrbar[j];
             s2n[j] = 1/nun[j] * (xnu0[0]*xsigma20[j] + (xnn[j] - 1)*xs2[j] +
-                    xkappa0[0]*xnn[j]/(xkappa0[0] + xnn[j]) *
-                    pow(xrbar[j]-xmu0[j], 2));
+				 xkappa0[0]*xnn[j]/(xkappa0[0] + xnn[j]) *
+				 pow(xrbar[j]-xmu0[j], 2));
             // is this wrong?
             //s2n[j] = 1/nun[j] * (xnu0[0]*xsigma20[j] + (xnn[j] - 1)*xs2[j] +
             //        xkappa0[0]*xnn[j]/(xkappa0[0]*xnn[j]) *
@@ -115,7 +115,7 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
         if(s < xburnin[0]) {
             // normal mcmc updates
             for(int j = 0; j < K; j++)
-                theta[j] = as<double>(rnorm(1, mun[j], sqrt(tau2n[j])));
+	      theta[j] = as<double>(rnorm(1, mun[j], sqrt(tau2n[j])));
         }
         else{
             for(int m=0; m<endpoints.size()-2; m++) {
@@ -124,7 +124,7 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
                 if( q[m] ) {
                     if( m > 0 & m < endpoints.size() - 3) {
                         if(homdel & (m == 1))
-                            a = endpoints[m] + 0.2;
+			  a = endpoints[m] + 0.2;
                         else
                             a = endpoints[m] + xdelta[0];
                         b = endpoints[m+2] - xdelta[0];
@@ -154,7 +154,6 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
                 //      }
             }
         }
-
         // store theta and precision in their respective matrices
         NumericMatrix::Row meanrow = xmeans(s, _);
         meanrow = theta;
@@ -171,8 +170,8 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
         // Simulate latent variables
         // This can be made faster
         for(int j=0; j<K; j++) {
-            NumericMatrix::Column dcol = d( _, j);
-            dcol = pi[j]*dnorm(xr, theta[j], sqrt(1/postprec[j]));
+	  NumericMatrix::Column dcol = d( _, j);
+	  dcol = pi[j]*dnorm(xr, theta[j], sqrt(1/postprec[j]));
         }
         // normalize d so rows sum to one
         // If d(i, j) not finite (as in the case null or singular components),
@@ -273,4 +272,3 @@ RcppExport SEXP gibbs_mix(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
 /* Function for finding marginal likelihood from mcmc chain
  * Use Bridge sampling as in Fruhwirth-Schnatter book
  */
-

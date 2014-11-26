@@ -14,12 +14,12 @@
 using namespace Rcpp;
 
 RcppExport SEXP gibbs_mix_hier(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
-        SEXP nu0, SEXP mu0, SEXP kappa0, SEXP alpha,
-        SEXP tau20, SEXP sigma20, SEXP rbar,
-        SEXP s2, SEXP nn, SEXP delta, SEXP burnin) {
-    // Rcpp::RNGScope scope;
-    // initialize objects that are passed from R
-    RNGScope scope;
+			       SEXP nu0, SEXP mu0, SEXP kappa0, SEXP alpha,
+			       SEXP tau20, SEXP sigma20, SEXP rbar,
+			       SEXP s2, SEXP nn, SEXP delta, SEXP burnin) {
+  // Rcpp::RNGScope scope;
+  // initialize objects that are passed from R
+  RNGScope scope;
     Rcpp::NumericVector xr(r);
     Rcpp::NumericMatrix xmeans(means);
     Rcpp::NumericMatrix xprecs(precs);
@@ -61,8 +61,8 @@ RcppExport SEXP gibbs_mix_hier(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
     // starting values
     for(int j=0; j<K; j++) {
         //nun[j] = xnu0[0] + xnn[j];
-        theta[j] = xmu0[j];
-        postprec[j] = 1/xs2[j];
+      theta[j] = xmu0[j];
+      postprec[j] = 1/xs2[j];
         //theta[j] = as<double>(rnorm(1, xmu0[j], sqrt(xtau20[0])));
         //postprec[j] = 1/xsigma20[j];
     }
@@ -81,7 +81,7 @@ RcppExport SEXP gibbs_mix_hier(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
     for(int s=1; s<n_mcmc; s++) {
         //should generate pi from dirichlet distribution
         // tau a single value
-        for(int j=0; j<K; j++) {
+      for(int j=0; j<K; j++) {
             // update tau2n, nun, mun, s2n
             // theta hyperparameters
             mun[j] = (1/xtau20[0])/(1/xtau20[0] + xnn[j]*postprec[j])*xmu0[j] +
@@ -290,4 +290,3 @@ RcppExport SEXP gibbs_mix_hier(SEXP r, SEXP means, SEXP precs, SEXP P, SEXP Z,
 /* Function for finding marginal likelihood from mcmc chain
  * Use Bridge sampling as in Fruhwirth-Schnatter book
  */
-

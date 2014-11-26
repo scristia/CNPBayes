@@ -1,16 +1,56 @@
 Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
-Version: 0.0.2
-Date: Tue Sep  9 12:13:07 EDT 2014
+Version: 0.0.3
+Date: Fri Nov 14 20:37:07 EST 2014
 Author: S. Cristiano
-Depends: gtools, Hmisc, Rcpp (>= 0.10.4), RcppArmadillo (>= 0.2.0)
-Suggests: RUnit
+Depends:
+    gtools,
+    Hmisc,
+    Rcpp (>= 0.10.4),
+    RcppArmadillo (>= 0.2.0)
+Imports:
+    truncnorm,
+    gtools,
+    methods,
+    matrixStats,
+    mixtools
+Suggests:
+    RUnit
+Collate:
+    'help.R'
+    'AllGenerics.R'
+    'AllClasses.R'
+    'constr.draw.R'
+    'dnormmix.R'
+    'dppgbbs.R'
+    'dppgibbs.R'
+    'functions.R'
+    'getPost.R'
+    'gibbs.R'
+    'gibbs.mix.R'
+    'icl.R'
+    'inits.R'
+    'loglik.normmix.R'
+    'methods-BatchModel.R'
+    'methods-Hyperparameters.R'
+    'methods-MarginalModel.R'
+    'methods-McmcChains.R'
+    'methods-McmcParams.R'
+    'methods-MixtureModel.R'
+    'methods-Posterior.R'
+    'mixture.R'
+    'plotPosts.R'
+    'sampleranges.R'
+    'segplots.R'
+    'sn.gibbs.mix.R'
+    'sntest.R'
 Maintainer: Stephen Cristiano <scristia@jhu.edu>
 Description: More about what it does (maybe more than one line)
 License: Artistic-2.0
 LinkingTo: Rcpp, RcppArmadillo
 biocViews: CopyNumberVariation
-## Local Variables:
+Roxygen: list(wrap=FALSE)
+## Local Variables: 
 ## time-stamp-pattern: "8/Date: %3a %3b %2d %02H:%02M:%02S %Z %:y\n"
-## End:
+## End: 

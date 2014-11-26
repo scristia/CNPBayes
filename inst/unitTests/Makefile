@@ -12,8 +12,15 @@ inst: # Install package
 	R CMD INSTALL ${PKG}
 
 
-## RS: I'll be testing with the following setup
-robtest:
+##  test all unit tests
+test:
+	export RCMDCHECK=FALSE;\
+	export RUNITFILEPATTERN="$(file)";\
+	cd ${TOP}/tests;\
+	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 --vanilla --slave < ${SUITE}
+
+## install CNPBayes and then test unit tests
+devel:
 	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 CMD INSTALL --no-lock ${PKG}
 	export RCMDCHECK=FALSE;\
 	export RUNITFILEPATTERN="$(file)";\
@@ -21,5 +28,5 @@ robtest:
 	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 --vanilla --slave < ${SUITE}
 
 ## RS: I'll be testing with the following setup
-robinstall:
+install:
 	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 CMD INSTALL --no-lock ${PKG}
