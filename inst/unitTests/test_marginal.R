@@ -129,15 +129,15 @@ test_marginal_Moderate <- function(){
   ##
   mc <- mcmcChains(model)
   pmns <- colMeans(theta(mc))
-  checkEquals(pmns, theta(truth), tolerance=0.02)
+  checkEquals(pmns, theta(truth), tolerance=0.04)
 
   ps <- colMeans(sigma(mc))
-  checkEquals(ps, sigma(truth), tolerance=0.07)
+  checkEquals(ps, sigma(truth), tolerance=0.04)
 
 
   pmix <- p(truth)
   pm_pmix <- colMeans(p(mc))
-  checkEquals(pmix, pm_pmix, tolerance=0.06)
+  checkEquals(pmix, pm_pmix, tolerance=0.03)
 }
 
 test_marginal_priors_misspecified<- function(){
@@ -165,14 +165,14 @@ test_marginal_priors_misspecified<- function(){
   ##
   mc <- mcmcChains(model)
   pmns <- colMeans(theta(mc))
-  checkEquals(pmns, theta(truth), tolerance=0.05)
+  checkEquals(pmns, theta(truth), tolerance=0.09)
 
   ps <- colMeans(sigma(mc))
-  checkEquals(ps, sigma(truth), tolerance=0.03)
+  checkEquals(ps, sigma(truth), tolerance=0.08)
 
   pmix <- p(truth)
   pm_pmix <- colMeans(p(mc))
-  checkEquals(pmix, pm_pmix, tolerance=0.02)
+  checkEquals(pmix, pm_pmix, tolerance=0.06)
 }
 
 
@@ -205,14 +205,14 @@ test_marginal_hard <- function(){
   mc <- mcmcChains(model)
   s <- sigma(mc)
   ps <- colMeans(s)
-  checkEquals(ps, sigma(truth), tolerance=0.1)
+  checkEquals(ps, sigma(truth), tolerance=0.05)
 
   pmns <- colMeans(theta(mc))
   checkEquals(pmns, theta(truth), tolerance=0.05)
 
   pmix <- p(truth)
   pm_pmix <- colMeans(p(mc))
-  checkEquals(pmix, pm_pmix, tolerance=0.01)
+  checkEquals(pmix, pm_pmix, tolerance=0.07)
 }
 
 

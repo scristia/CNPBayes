@@ -98,7 +98,7 @@ test_selectK_batch_easy <- function(){
   ##
   ## Evaluate at different K
   ##
-  mcmcp <- McmcParams(iter=1000, burnin=100, constrainTheta=TRUE)
+  mcmcp <- McmcParams(iter=1000, burnin=200, constrainTheta=TRUE)
   bicstat <- foreach(k = 1:7, .packages="CNPBayes", .combine="c") %dopar% {
     cat(".")
     params <- ModelParams("batch", y=y(truth), k=k,
@@ -109,6 +109,29 @@ test_selectK_batch_easy <- function(){
     bic(modelk)
   }
   checkIdentical(which.min(bicstat), 3L)
+  if(FALSE) {
+    CNPBayes::plot(truth, use.current=TRUE)
+    params <- ModelParams("batch", y=y(truth), k=4,
+                          batch=rep(letters[1:3], length.out=2500),
+                          mcmc.params=mcmcp)
+    modelk <- initializeModel(params)
+    modelk <- posteriorSimulation(modelk, mcmcp)
+    op <- par(mfrow=c(1,2),las=1)
+    plot(truth, use.current=T)
+    plot(modelk)
+    par(op)
+
+    params <- ModelParams("batch", y=y(truth), k=3,
+                          batch=rep(letters[1:3], length.out=2500),
+                          mcmc.params=mcmcp)
+    model3 <- initializeModel(params)
+    model3 <- posteriorSimulation(model3, mcmcp)
+    bic(model3)
+    op <- par(mfrow=c(1,2),las=1)
+    plot(truth, use.current=T)
+    plot(model3)
+    par(op)
+  }
 }
 
 test_selectK_batch_moderate <- function(){
@@ -127,10 +150,10 @@ test_selectK_batch_moderate <- function(){
                              .batch=rep(letters[1:3], length.out=2500),
                              .alpha=c(100, 200, 400))
   if(FALSE) CNPBayes::plot(truth, use.current=TRUE)
+
   if(FALSE){
     ## unrealistic best case scenario: we start at the true values
     model <- truth
-    mcmcp <- McmcParams(iter=2000, burnin=500)
     mcmcChains(model) <- McmcChains(model, mcmcp)
     model <- posteriorSimulation(model, mcmcp)
     mc <- mcmcChains(model)
@@ -153,6 +176,7 @@ test_selectK_batch_moderate <- function(){
   ##
   ## Start from defaults.
   ##
+  mcmcp <- McmcParams(iter=2000, burnin=500)
   params <- ModelParams("batch", y=y(truth), k=3,
                         batch=rep(letters[1:3], length.out=2500),
                         mcmc.params=mcmcp)
@@ -172,14 +196,14 @@ test_selectK_batch_moderate <- function(){
   checkEquals(pmix, p(truth), tolerance=0.08)
 }
 
-hardTruth <- function(prop_comp1=0.005){
+hardTruth <- function(prop_comp1=0.005, s=0.3){
   set.seed(1234)
   k <- 3
   nbatch <- 3
   means <- matrix(c(-1.9, -2, -1.85,
                     -0.45, -0.4, -0.35,
                     -0.1, 0, -0.05), nbatch, k, byrow=FALSE)
-  sds <- matrix(0.3, nbatch, k)
+  sds <- matrix(s, nbatch, k)
   ncomp1 <- ceiling(prop_comp1*1500 )
   ncomp2 <- 500-ncomp1
   ncomp3 <- 1000
@@ -194,7 +218,7 @@ hardTruth <- function(prop_comp1=0.005){
 
 
 .test_hard1 <- function(){
-  truth <- hardTruth(0.005)
+  truth <- hardTruth(0.005, s=0.3)
   table(z(truth), batch(truth))
   if(FALSE) plot(truth, use.current=TRUE)
   ##
@@ -209,115 +233,147 @@ hardTruth <- function(prop_comp1=0.005){
   model <- posteriorSimulation(model, mcmcp)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
-    plot(truth, use.current=TRUE, xlim=c(-2,1))
-    plot(model, xlim=c(-2,1))
+    CNPBayes::plot(truth, use.current=TRUE, xlim=c(-2,1))
+    CNPBayes::plot(model, xlim=c(-2,1))
     par(op)
+    ## we get the mixture probabilities backwards for comp 2 and 3
   }
+  mc <- mcmcChains(model)
+  cbind(colMeans(theta(mc)), as.numeric(theta(truth)))
+  cbind(colMeans(sigma(mc)), as.numeric(sigma(truth)))
+  cbind(colMeans(p(mc)), p(truth))
+  ## this fails
+  checkEquals(colMeans(p(mc)), p(truth), tolerance=0.1)
 }
 
 .test_hard2 <- function(){
-  truth <- hardTruth(0.005)
+  ##
+  ## Repeat above, but with smaller simulated variance (sd=0.2)
+  ##
+  truth <- hardTruth(0.005, s=0.2)
   table(z(truth), batch(truth))
-  if(FALSE) plot(truth, use.current=TRUE)
+  if(FALSE) CNPBayes::plot(truth, use.current=TRUE)
+
+  ## start at true values
+  mcmcp <- McmcParams(iter=1000, burnin=0, thin=1)
+  model <- truth
+  model <- posteriorSimulation(model, mcmcp)
+  mc <- mcmcChains(model)
+  checkEquals(colMeans(theta(mc)), as.numeric(theta(truth)), tolerance=0.06)
+  checkEquals(colMeans(sigma(mc)), as.numeric(sigma(truth)), tolerance=0.05)
+  checkEquals(colMeans(p(mc)), as.numeric(p(truth)), tolerance=0.17)
+  if(FALSE){
+    op <- par(mfrow=c(1,2),las=1)
+    CNPBayes::plot(truth, use.current=TRUE, xlim=c(-2,1))
+    CNPBayes::plot(model, xlim=c(-2,1))
+    par(op)
+    plot.ts(logpotential(mc), col="gray")
+  }
+  ##
+  ## Default starts
+  ##
+  mcmcp <- McmcParams(iter=1000, burnin=1000, thin=1)
+  params <- ModelParams("batch", y=y(truth), k=3,
+                        batch=batch(truth),
+                        mcmc.params=mcmcp)
+  model <- initializeModel(params)
+  model <- collapseBatch(model, mcmcp)
+  model <- posteriorSimulation(model, mcmcp)
+  mc <- mcmcChains(model)
+  if(FALSE){
+    op <- par(mfrow=c(1,2),las=1)
+    CNPBayes::plot(truth, use.current=TRUE, xlim=c(-2,1))
+    CNPBayes::plot(model, xlim=c(-2,1))
+    par(op)
+    plot.ts(p(mc), col="gray")
+    plot.ts(sigma(mc), col="gray")
+    plot.ts(mu(mc), col="gray")
+    checkEquals(colMeans(theta(mc)), as.numeric(theta(truth)), tolerance=0.06)
+    checkEquals(colMeans(sigma(mc)), as.numeric(sigma(truth)), tolerance=0.11)
+    checkEquals(colMeans(p(mc)), as.numeric(p(truth)), tolerance=0.1)
+
+    probs <- apply(probz(model), 1, max)
+    plot(probs~jitter(as.integer(z(truth)), amount=0.1))
+  }
+  ## Fails
+  checkEquals(colMeans(theta(mc)), as.numeric(theta(truth)), tolerance=0.1)
+  ## Fails
+  checkEquals(colMeans(sigma(mc)), as.numeric(sigma(truth)), tolerance=0.1)
+  ## Fails
+  checkEquals(colMeans(p(mc)), as.numeric(p(truth)), tolerance=0.1)
+}
+
+test_hard3 <- function(){
+  ##
+  ## Repeat above, but with smaller simulated variance (sd=0.2)
+  ##
+  truth <- hardTruth(0.005, s=0.1)
+  table(z(truth), batch(truth))
+  if(FALSE) CNPBayes::plot(truth, use.current=TRUE)
   ##
   ## Use defaults
   ##
-  mcmcp <- McmcParams(iter=2000, burnin=1000, thin=2)
-  params <- ModelParams("marginal", y=y(truth), k=3,
+  mcmcp <- McmcParams(iter=1000, burnin=1000, thin=1)
+  params <- ModelParams("batch", y=y(truth), k=3,
+                        batch=batch(truth),
                         mcmc.params=mcmcp)
   model <- initializeModel(params)
+  model <- collapseBatch(model, mcmcp)
+  ##trace(posteriorSimulation, browser)
   model <- posteriorSimulation(model, mcmcp)
+  if(FALSE){
+    op <- par(mfrow=c(1,2),las=1)
+    CNPBayes::plot(truth, use.current=TRUE, xlim=c(-2,1))
+    CNPBayes::plot(model, xlim=c(-2,1))
+    par(op)
+    mc <- mcmcChains(model)
+    plot.ts(sigma(mc), col="gray")
+    plot.ts(theta(mc), col="gray")
+    cbind(colMeans(sigma(mc)), as.numeric(sigma(truth)))
+  }
+  mc <- mcmcChains(model)
+  checkEquals(colMeans(theta(mc)), as.numeric(theta(truth)), tolerance=0.02)
+  checkEquals(colMeans(sigma(mc)), as.numeric(sigma(truth)), tolerance=0.05)
+  checkEquals(colMeans(p(mc)), as.numeric(p(truth)), tolerance=0.04)
 }
 
-.test_hard3 <- function(){
-  truth <- hardTruth(0.01)
+.test_hard4 <- function(){
+  truth <- hardTruth(0.01, s=0.15)
   mcmcp <- McmcParams(iter=2000, burnin=1000, thin=2)
   table(z(truth), batch(truth))
   params <- ModelParams("batch", y=y(truth), k=3,
                         batch=batch(truth),
                         mcmc.params=mcmcp)
   model <- initializeModel(params)
-  ##model <- collapseBatch(model, mcmcp)
+  model <- collapseBatch(model, mcmcp)
   model <- posteriorSimulation(model, mcmcp)
-}
-
-.test_hardk <- function(){
   ##
-  ## Remove homozygous obs.
+  ## The standard deviation of the second component is nearly twice as
+  ## high as the standard deviation of the third component
   ##
-  truth <- hardTruth(0.01)
-  params <- ModelParams("batch", y=r, k=3,
-                        batch=batch(truth),
-                        mcmc.params=mcmcp)
-  model <- initializeModel(params)
-  modelk <- collapseBatch(model, mcmcp)
-  bicstat <- foreach(k = 1:5, .packages="CNPBayes", .combine="c") %dopar% {
-    params <- ModelParams("batch", y=y(truth), k=k,
-                          batch=batch(modelk),
-                          mcmc.params=mcmcp)
-    model <- initializeModel(params)
-    model <- posteriorSimulation(model, mcmcp)
-    bic(model)
-  }
-  checkTrue(which.min(bicstat) == 3)
+  model <- posteriorSimulation(model, mcmcp)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
-    plot(truth, use.current=TRUE, xlim=c(-2,1))
-    plot(model, xlim=c(-2,1))
+    CNPBayes::plot(truth, use.current=TRUE, xlim=c(-2,1))
+    CNPBayes::plot(model, xlim=c(-2,1))
     par(op)
-    ##
-    ## variance of first component is bigger than the marginal
-    ## variance of the data
-    ##
-    ##-- acts as an outlier component that captures extreme
-    ##   observatios on either side of the modal component
-    ##
-    ## - constraining the variance to be less than or equal to the
-    ##   marginal variance would prevent the above, forcing other
-    ##   solutions
-    ##
-    ## Identifiability with batch.
-    ##
-    ##- is it reasonable to assume the variances should be about the
-    ## same for a component across batches
-    ##
-    ##- why are the means for the first and 3rd components too small?
-    ##-> 1st component has only a few observations -- lots of
-    ##-##shrinkage. Not sure about last component.
-    ##
     mc <- mcmcChains(model)
-    ps <- colMeans(sigma(mc))
-    checkEquals(ps, as.numeric(sigma(truth)), tolerance=0.1)
+    plot.ts(sigma(mc), col="gray")
+    plot.ts(theta(mc), col="gray")
+    cbind(colMeans(sigma(mc)), as.numeric(sigma(truth)))
 
-    pmns <- colMeans(theta(mc))
-    checkEquals(pmns, as.numeric(theta(truth)), tolerance=0.15)
-    pmix <- colMeans(p(mc))
-    ## FALSE
-    checkEquals(pmix, p(truth), tolerance=0.1)
-    plot.ts(sigma2(mc), col="gray")
+    probs <- probz(model)
+    maxprob <- apply(probs, 1, max)
+    plot(maxprob~jitter(as.integer(z(truth)), amount=0.1), pch=".")
   }
+  mc <- mcmcChains(model)
+  checkEquals(colMeans(theta(mc)), as.numeric(theta(truth)), tolerance=0.05)
+  checkEquals(colMeans(sigma(mc)), as.numeric(sigma(truth)), tolerance=0.05)
+  checkEquals(colMeans(p(mc)), as.numeric(p(truth)), tolerance=0.03)
 }
 
-test_KolmogorovSmirnov <- function(){
-  set.seed(123)
-  k <- 3
-  nbatch <- 3
-  means <- matrix(c(-1.2, -1.2, -1.0,
-                    0, 0, 0.2,
-                    0.8, 0.8, 1.0), nbatch, k, byrow=FALSE)
-  sds <- matrix(0.1, nbatch, k)
-  truth <- simulateBatchData(N=2500,
-                             .batch=rep(letters[1:3], length.out=2500),
-                             .k=3,
-                             .alpha=rep(1, k),
-                             means=means,
-                             sds=sds)
-  ## - collapse using KS test for two distributions
-  ks <- ksTest(truth)
-  checkIdentical(ks, c(TRUE, FALSE, FALSE))
-  truth2 <- collapseBatch(truth, mcmcp)
-  checkIdentical(uniqueBatch(truth2), c("a-b", "c"))
-}
+
+
 
 
 

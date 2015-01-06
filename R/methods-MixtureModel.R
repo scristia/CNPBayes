@@ -186,7 +186,8 @@ updateAll <- function(post, move_chain, s, constrainTheta=TRUE){
   hypp <- hyperParams(post)
   ##alpha.n <- alpha(hypp) + tablez(post)
   alpha.n <- alpha(hypp) + table(z(post))
-  p(post) <- as.numeric(rdirichlet(1, alpha.n))
+  mixprobs <- as.numeric(rdirichlet(1, alpha.n))
+  p(post) <- mixprobs
   ##
   ##  update auxillary variable
   ##
@@ -200,16 +201,16 @@ updateAll <- function(post, move_chain, s, constrainTheta=TRUE){
   ##
   sigma2.0(post) <- updateSigma2.0(post)
   nu.0(post) <- updateNu.0(post)
-  if(move_chain) {
-    logpotential(post) <- computePotential(post)
+  logpotential(post) <- computePotential(post)
+  if(move_chain){
     pZ <- probz(post)
     zz <- as.integer(z(post))
     for(j in seq_len(k(post))){
       pZ[, j] <- pZ[, j] + as.integer(zz==j)
     }
     probz(post) <- pZ
-    post <- moveChain(post, s+1)
   }
+  post <- moveChain(post, s)
   post
 }
 
@@ -223,12 +224,6 @@ setMethod("probz", "MixtureModel", function(object) object@probz)
 #' @export
 posteriorSimulation <- function(post, mcmcp){
   niter <- iter(mcmcp)
-  ## Count the initial values as the first iteration
-  S <- seq_len(niter-1)
-  if(length(S) > 0){
-    save_iter <- seq(1, niter-1, thin(mcmcp))
-    move_chain <- S %in% save_iter
-  }
   ##
   ## Record initial values
   ##
@@ -251,12 +246,25 @@ posteriorSimulation <- function(post, mcmcp){
     if(!identical(theta(post), sort(theta(post)))) {
       post <- reorderComponents(post)
     }
+    ## make the first iteration in the stored chain the last iteration from the mcmc
+    moveChain(post, 1)
+  }
+  ##browser()
+  if(niter==0) return(post)
+  ##browser()
+  if(FALSE){
+    table(z(post2), z(post))
+    cbind(theta(post2), theta(post))
   }
   probz(post) <- matrix(0, length(y(post)), k(post))
   ##
   ## Post burn-in
   ##
-  for(s in seq_len(savedIterations(mcmcp)-1)){
+  ## By starting at 2, the last iteration from the burnin or (if no
+  ## burnin) the starting values are the first element in the chains
+  S <- 2:savedIterations(mcmcp)
+  ##browser()
+  for(s in S){
     post <- updateAll(post, TRUE, s, constrainTheta=constrainTheta(mcmcp))
     if(thin(mcmcp) > 1){
       for(t in seq_len(thin(mcmcp))){
@@ -264,7 +272,7 @@ posteriorSimulation <- function(post, mcmcp){
       }
     }
   }
-  probz(post) <- probz(post)/(savedIterations(mcmcp) - 1)
+  probz(post) <- probz(post)/(savedIterations(mcmcp))
   post
 }
 
@@ -390,11 +398,11 @@ initializeModel <- function(params, .alpha){ ##.theta, .sigma){
   ## initalize sigma2.0 as weighted average of component variances
   sigma2.0(object) <- initializeSigma2.0(object)
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
-  dataMean(object) <- mu(object)
-  ##dataPrec(object) <- 1/computeVars(object)
   dataPrec(object) <- tau2(object)
+  mu(object) <- initializeMu(object)
+  tau2(object) <- initializeTau2(object)
+  dataMean(object) <- mu(object)
   z(object) <- updateZ(object)
-  mu(object) <- updateMu(object)
   ##
   ##
   ##
@@ -406,19 +414,13 @@ initializeModel <- function(params, .alpha){ ##.theta, .sigma){
   alpha(hypp) <- .alpha
   hyperParams(object) <- hypp
   ##
-  ##theta(object) <- .theta
-
-  mu(object) <- initializeMu(object)
-  tau2(object) <- initializeTau2(object)
-
-  ##sigma2(object) <- .sigma^2
-  ##p(post) <- as.numeric(rdirichlet(1, alpha.n))
-  p(object) <- as.numeric(rdirichlet(1, alpha(hypp)))
+  alpha.n <- alpha(hypp) + table(z(object))
+  p(object) <- as.numeric(rdirichlet(1, alpha.n))
   pisum <- cumsum(p(object))
   u <- runif(N(params), 0, 1)
   ## Simulate z according to pi
-  zz <- ifelse(u < pisum[1], 1, ifelse(u < pisum[2], 2, 3))
-  z(object) <- factor(zz, levels=seq_len(k(hypp)))
+  ##zz <- ifelse(u < pisum[1], 1, ifelse(u < pisum[2], 2, 3))
+  ##z(object) <- factor(zz, levels=seq_len(k(hypp)))
   mcmcChains(object) <- McmcChains(object, mcmcParams(params))
   object
 }
@@ -490,21 +492,27 @@ simulateData <- function(N=2500, .k=3, .batch, .alpha, means, sds){
   object
 }
 
-.updateZ <- function(p, k){
-  ## generalize to any k, k >= 1
+cumProbs <- function(p, k){
   pcum <- list()
   cols <- 2:(k-1)
-  u <- runif(nrow(p), 0, 1)
   for(j in seq_along(cols)){
     g <- cols[j]
     pcum[[j]] <- rowSums(p[, 1:g, drop=FALSE])
   }
   pcum2 <- cbind(p[, 1], do.call(cbind, pcum), 1)
+}
+
+.updateZ <- function(p, k){
+  ## generalize to any k, k >= 1
+  pcum <- cumProbs(p, k)
   z2 <- rep(NA, nrow(p))
-  z2[u <= pcum2[, 1]] <- 1
-  z2[u > pcum2[, ncol(pcum2)-1]] <- k
+  u <- runif(nrow(p), 0, 1)
+  ## update z for first and last component
+  z2[u <= pcum[, 1]] <- 1
+  z2[u > pcum[, ncol(pcum)-1]] <- k
+  ## update z for components 2, ..., k-1
   for(j in 1:(ncol(p)-2)){
-    z2[u > pcum2[, j] & u <= pcum2[, j+1]] <- j+1
+    z2[u > pcum[, j] & u <= pcum[, j+1]] <- j+1
   }
   factor(z2, levels=seq_len(k))
 }
@@ -565,7 +573,6 @@ ksTest <- function(object){
       b2 <- uB[k]
       stat <- ks.test(yy[B==b1], yy[B==b2])
       if(stat$p.value < 0.1) next()
-      ##browser()
       b <- paste(b1, b2, sep=",")
       B[B %in% b1 | B %in% b2] <- b
       ## once we've defined a new batch, the unique batches has

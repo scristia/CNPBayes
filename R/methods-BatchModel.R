@@ -79,7 +79,9 @@ setMethod("posteriorMultinomial", "BatchModel", function(object){
 
 setMethod("posteriorMultinomial", "UnivariateBatchModel", function(object) return(1))
 
+#' @export
 uniqueBatch <- function(object) unique(batch(object))
+
 nBatch <- function(object) length(uniqueBatch(object))
 
 
@@ -419,7 +421,7 @@ setMethod("updateSigma2", "BatchModel", function(object) {
 ##                nu.0(object),
 ##                sigma2.0(object),
   ##                tablez(object))
-  .updateSigma2Batch(object)
+  .updateSigma2Batch_2(object)
 })
 
 ##.updateSigma2 <- function(data.list, thetas, nu.0, sigma2.0, n.h){
@@ -430,6 +432,7 @@ setMethod("updateSigma2", "BatchModel", function(object) {
   ## guard against zeros
   ##
   n.hp <- pmax(n.hp, 1)
+  ##
   ##
   nu.n <- nu.0(object) + n.hp
   ##k <- length(nu.n)
@@ -442,7 +445,7 @@ setMethod("updateSigma2", "BatchModel", function(object) {
     yy <- y(object)[B==b]
     zz <- z(object)[B==b]
     m <- thetas[b, ]
-    m <- m[zz]
+    m <- m[as.integer(zz)]
     squares <- (yy - m)^2
     ss[b, ] <- sapply(split(squares, zz), sum)
   }
@@ -460,10 +463,74 @@ setMethod("updateSigma2", "BatchModel", function(object) {
   ##tmp <- rgamma(1000, shape=1/2*nu.n[1], rate=1/2*nu.n[1]*sigma2.nh[1])
   sigma2.h <- 1/sigma2.h.tilde
   stopif(any(is.nan(sigma2.h)))
-  if(any(sigma2.h > mad(y(object), na.rm=TRUE)^2)) {
+  if(any(sigma2.h > sd(y(object), na.rm=TRUE)^2)) {
     sigma2.h <- sigma2.current
   }
   sigma2.h
+}
+
+nonZeroCopynumber <- function(object) as.integer(as.integer(z(object)) > 1)
+
+## This is a more parsimonious model.  There are only 2 variance
+## estimates for each batch: the variance of the first component and
+## the variance of components k>1
+.updateSigma2Batch_2 <- function(object){
+  sigma2.current <- sigma2(object)
+
+  nz <- nonZeroCopynumber(object)
+  if(length(unique(nz)) ==1){
+    ## guard against zeros
+    nz[which.min(y(object))] <- 0
+  }
+  ##n.hp <- table(batch(object), z(object))
+  n.hp <- table(batch(object), nz)
+  ##
+  ## guard against zeros
+  ##
+  n.hp <- pmax(n.hp, 1)
+  ##
+  ##
+  nu.n <- nu.0(object) + n.hp
+  ##k <- length(nu.n)
+  thetas <- theta(object)
+  rownames(thetas) <- uniqueBatch(object)
+  B <- batch(object)
+  ss <- matrix(NA, nBatch(object), 2)
+  rownames(ss) <- rownames(thetas)
+  ##
+  ## assume variance for copy number 1-k is the same
+  ##
+  for(b in uniqueBatch(object)){
+    yy <- y(object)[B==b]
+    zz <- z(object)[B==b]
+    nonzero <- nz[B==b]
+    m <- thetas[b, ]
+    m <- m[as.integer(zz)]
+    squares <- (yy - m)^2
+    ss[b, ] <- sapply(split(squares, nonzero), sum)
+  }
+  ##
+  ## weighted average of sums of squares
+  ##
+  sigma2.nh <- 1/nu.n*(nu.0(object) * sigma2.0(object) + ss)
+  shape <- 1/2*nu.n
+  rate <- shape*sigma2.nh
+  sigma2.h.tilde <- matrix(NA, nBatch(object), 2)
+  rownames(sigma2.h.tilde) <- rownames(thetas)
+  for(b in uniqueBatch(object)){
+    sigma2.h.tilde[b, ] <- rgamma(2, shape=shape[b, ], rate=rate[b, ])
+  }
+  ##tmp <- rgamma(1000, shape=1/2*nu.n[1], rate=1/2*nu.n[1]*sigma2.nh[1])
+  sigma2.h <- 1/sigma2.h.tilde
+  ##stopif(any(is.nan(sigma2.h)))
+  if(any(sigma2.h > sd(y(object), na.rm=TRUE)^2)) {
+    sigma2.h <- sigma2.current
+  }
+  ##
+  ## return matrix of original dimension
+  ##
+  s2 <- cbind(sigma2.h[, 1], matrix(sigma2.h[, 2], nBatch(object), k(object)-1))
+  s2
 }
 
 
@@ -577,11 +644,12 @@ setMethod("bic", "BatchModel", function(object, ...){
     object <- updateWithPosteriorMeans(object)
   }
   ## K: number of free parameters to be estimated
-  ##   - component and batch-specific parameters:  theta, sigma  (2 x k(model) * nBatch(model))
-  ##   - component-specific parameters: mu, tau2                 +2 x k(model)
+  ##   - component and batch-specific parameters:  theta  ( k(model) * nBatch(model))
+  ##   - 2 variance estimates for each batch:  2*nBatch(model)
+  ##   - component-specific parameters: mu, tau2                 2 x k(model)
   ##   - length-one parameters: sigma2.0, nu.0                   +2
   ##   - mixture probs:  +3
-  K <- 2*k(object)*nBatch(object) + 2*k(object) + 2 + 3
+  K <- k(object)*nBatch(object) + 2*nBatch(object) +  2*k(object) + 2 + 3
   n <- length(y(object))
   -2*logpotential(object) + K*(log(n) - log(2*pi))
 })
@@ -638,5 +706,6 @@ setMethod("updateWithPosteriorMeans", "BatchModel", function(object){
   tau2(object) <- colMeans(tau2(mc))
   sigma2.0(object) <- mean(sigma2.0(object))
   logpotential(object) <- computePotential(object)
+  z(object) <- factor(map(object), levels=seq_len(k(object)))
   object
 })

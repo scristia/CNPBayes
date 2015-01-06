@@ -6,9 +6,9 @@ posteriorMeanConjugateNormal <- function(prior.precision, data.precision, poster
   (prior.precision/posterior.precision)*prior.mean + (data.precision/posterior.precision) * data.mean
 }
 
-sumOfSquares <- function(ylist, means){
-  mapply(function(y, theta) sum((y-theta)^2), y=ylist, theta=means)
-}
+##sumOfSquares <- function(ylist, means){
+##  mapply(function(y, theta) sum((y-theta)^2), y=ylist, theta=means)
+##}
 
 stopif <- function(x) stopifnot(!x)
 
