@@ -1,0 +1,2 @@
+library(RUnit)
+library(CNPBayes)

@@ -2,7 +2,7 @@ gibbs.mix <- function(r, S=1000, k, delta=0.15, mu0, tau20,
                       nu0, sigma20, kappa0, burnin=100, outliers.rm=FALSE) {
     ## Check: if initial value vectors not of length k, STOP
 
-    if(outliers.rm) {
+  if(outliers.rm) {
         quant <- quantile(r, c(0.001, 0.999))
         rd <- r[r > quant[1] & r < quant[2] ]
         rd.low <- r[r <= quant[1]]
@@ -25,7 +25,7 @@ gibbs.mix <- function(r, S=1000, k, delta=0.15, mu0, tau20,
     s2n <- tau2n <- mun <- numeric(k)
     p <- matrix(NA, sum(nn), k)
 
-    ## for sampling from contrained full conditionals
+    ## for sampling from constrained full conditionals
     a0 <- min(rd)
     b0 <- max(rd)
 

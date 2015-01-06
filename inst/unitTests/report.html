@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/transitional.dtd">
+<html><head><title>RUNIT TEST PROTOCOL--Tue Jan  6 15:01:27 2015</title>
+</head>
+<body><h1 TRUE>RUNIT TEST PROTOCOL--Tue Jan  6 15:01:27 2015</h1>
+<p>Number of test functions: 15</p>
+<p style=color:red>Number of errors: 2</p>
+<p style=color:red>Number of failures: 4</p>
+<hr>
+<h3 TRUE>1 Test suite</h3>
+<table border="1" width="60%" >
+<tr><th width="30%">Name</th>
+<th width="30%">Test functions</th>
+<th width="20%">Errors</th>
+<th width="20%">Failures</th>
+</tr>
+<tr><td><a href="#CNPBayes unit testing">CNPBayes unit testing</a></td>
+<td>15</td>
+<td bgcolor="red">2</td>
+<td bgcolor="red">4</td>
+</tr>
+</table>
+<hr>
+<h3 TRUE>Errors</h3>
+<table border="1" width="100%" >
+<tr><th width="30%">Test suite : test function</th>
+<th width="70%">message</th>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp707">CNPBayes unit testing : test_cnp707</a></td>
+<td>Error in 1/nu.n * (nu.0(object) * sigma2.0(object) + ss) : 
+  non-conformable arrays
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy">CNPBayes unit testing : test_selectK_batch_easy</a></td>
+<td>Error in { : task 1 failed - "non-conformable arrays"
+</td>
+</tr>
+</table>
+<hr>
+<h3 TRUE>Failures</h3>
+<table border="1" width="100%" >
+<tr><th width="30%">Test suite : test function</th>
+<th width="70%">message</th>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">CNPBayes unit testing : test_KolmogorovSmirnov</a></td>
+<td>Error in checkIdentical(uniqueBatch(truth2), c("a-b", "c")) : FALSE 
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">CNPBayes unit testing : test_marginal_hard</a></td>
+<td>Error in checkEquals(pmix, pm_pmix, tolerance = 0.01) : 
+  Mean relative difference: 0.1255322
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">CNPBayes unit testing : test_marginal_Moderate</a></td>
+<td>Error in checkEquals(pmns, theta(truth), tolerance = 0.02) : 
+  Mean relative difference: 0.06216919
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_priors_misspecified">CNPBayes unit testing : test_marginal_priors_misspecified</a></td>
+<td>Error in checkEquals(pmns, theta(truth), tolerance = 0.05) : 
+  Mean relative difference: 0.2271928
+</td>
+</tr>
+</table>
+<hr>
+<h3 TRUE>Details</h3>
+<p><a name="CNPBayes unit testing"><h5 TRUE>Test Suite: CNPBayes unit testing</h5>
+</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">test_batchEasy: (3 checks) ... OK (51.58 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp360">test_cnp360: (0 checks) ... OK (384.22 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp472">test_cnp472: (0 checks) ... OK (685.23 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp707"><u style=color:red>test_cnp707: ERROR !!  </u></a>Error in 1/nu.n * (nu.0(object) * sigma2.0(object) + ss) : 
+  non-conformable arrays
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">test_hard3: (3 checks) ... OK (225.78 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy"><u style=color:red>test_selectK_batch_easy: ERROR !!  </u></a>Error in { : task 1 failed - "non-conformable arrays"
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_moderate">test_selectK_batch_moderate: (3 checks) ... OK (126.24 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov"><u style=color:red>test_KolmogorovSmirnov: FAILURE !! (check number 1)  </u></a>Error in checkIdentical(uniqueBatch(truth2), c("a-b", "c")) : FALSE 
+<br/></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy_default_starts">test_marginalEasy_default_starts: (3 checks) ... OK (14.61 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard"><u style=color:red>test_marginal_hard: FAILURE !! (check number 3)  </u></a>Error in checkEquals(pmix, pm_pmix, tolerance = 0.01) : 
+  Mean relative difference: 0.1255322
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate"><u style=color:red>test_marginal_Moderate: FAILURE !! (check number 1)  </u></a>Error in checkEquals(pmns, theta(truth), tolerance = 0.02) : 
+  Mean relative difference: 0.06216919
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_priors_misspecified"><u style=color:red>test_marginal_priors_misspecified: FAILURE !! (check number 1)  </u></a>Error in checkEquals(pmns, theta(truth), tolerance = 0.05) : 
+  Mean relative difference: 0.2271928
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">test_selectK_easy: (1 checks) ... OK (27.47 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_hard">test_selectK_hard: (1 checks) ... OK (96.47 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_moderate">test_selectK_moderate: (1 checks) ... OK (57.17 seconds)<br/></a></li></ul></li></ul><hr>
+<table border="0" width="80%" >
+<tr><th>Name</th>
+<th>Value</th>
+</tr>
+<tr><td>platform</td>
+<td>x86_64-unknown-linux-gnu</td>
+</tr>
+<tr><td>arch</td>
+<td>x86_64</td>
+</tr>
+<tr><td>os</td>
+<td>linux-gnu</td>
+</tr>
+<tr><td>system</td>
+<td>x86_64, linux-gnu</td>
+</tr>
+<tr><td>status</td>
+<td>Under development (unstable)</td>
+</tr>
+<tr><td>major</td>
+<td>3</td>
+</tr>
+<tr><td>minor</td>
+<td>2.0</td>
+</tr>
+<tr><td>year</td>
+<td>2015</td>
+</tr>
+<tr><td>month</td>
+<td>01</td>
+</tr>
+<tr><td>day</td>
+<td>06</td>
+</tr>
+<tr><td>svn rev</td>
+<td>67336</td>
+</tr>
+<tr><td>language</td>
+<td>R</td>
+</tr>
+<tr><td>version.string</td>
+<td>R Under development (unstable) (2015-01-06 r67336)</td>
+</tr>
+<tr><td>nickname</td>
+<td>Unsuffered Consequences</td>
+</tr>
+<tr><td>host</td>
+<td>compute-057</td>
+</tr>
+<tr><td>compiler</td>
+<td>/usr/bin/g++</td>
+</tr>
+</table>
+</body>
+</html>
