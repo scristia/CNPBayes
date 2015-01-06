@@ -2,7 +2,7 @@ Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
 Version: 0.0.3
-Date: Fri Nov 14 20:37:07 EST 2014
+Date: Mon Jan  5 21:05:04 EST 2015
 Author: S. Cristiano
 Depends:
     gtools,
@@ -51,6 +51,6 @@ License: Artistic-2.0
 LinkingTo: Rcpp, RcppArmadillo
 biocViews: CopyNumberVariation
 Roxygen: list(wrap=FALSE)
-## Local Variables: 
+## Local Variables:
 ## time-stamp-pattern: "8/Date: %3a %3b %2d %02H:%02M:%02S %Z %:y\n"
-## End: 
+## End:
