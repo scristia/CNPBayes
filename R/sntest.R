@@ -1,4 +1,4 @@
-sntest <- function(r, K, nsim) {
+sntest <- function(r, K, nsim, burnin=500) {
 
     #mu <- rep(mean(xx), K)
     alpha0 <- rep(0, K) ## skewness parameter
@@ -16,6 +16,12 @@ sntest <- function(r, K, nsim) {
     eta0 <- rep(1/K, K) ## intitial mixing params
     mat <- .Call("skewnormal_mix", r, K=K, S=S, centers=mu, alpha=alpha0,
                  omega2=omega20, eta=eta0, nsim)
+
+    snmixture <- list("mu"=mat$MU[-burnin,], "omega"=mat$OMEGA[-burnin,],
+                      "alpha"=mat$ALPHA[-burnin,], "P"=mat$ETA[-burnin,])
+    loglik <- loglik.snmix(r, snmixture, K)
+    bic <- -2*loglik + (4*K-1)*log(length(r))
+    mat$BIC <- bic
 
     return(mat)
 }
