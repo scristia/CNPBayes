@@ -1,20 +1,24 @@
 Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
-Version: 0.0.3
-Date: Fri Nov 14 20:37:07 EST 2014
+Version: 0.0.4
+Date: Tue Dec 23 20:30:13 EST 2014
 Author: S. Cristiano
 Depends:
-    gtools,
-    Hmisc,
     Rcpp (>= 0.10.4),
-    RcppArmadillo (>= 0.2.0)
+    RcppArmadillo (>= 0.2.0),
+    foreach
 Imports:
+    Hmisc,
+    GenomicRanges,
     truncnorm,
-    gtools,
     methods,
     matrixStats,
-    mixtools
+    mixtools,
+    RColorBrewer,
+    gtools,
+    GenomeInfoDb,
+    msm
 Suggests:
     RUnit
 Collate:
@@ -38,6 +42,7 @@ Collate:
     'methods-McmcChains.R'
     'methods-McmcParams.R'
     'methods-MixtureModel.R'
+    'methods-ModelParams.R'
     'methods-Posterior.R'
     'mixture.R'
     'plotPosts.R'
@@ -45,6 +50,7 @@ Collate:
     'segplots.R'
     'sn.gibbs.mix.R'
     'sntest.R'
+    'test_rcpp.R'
 Maintainer: Stephen Cristiano <scristia@jhu.edu>
 Description: More about what it does (maybe more than one line)
 License: Artistic-2.0

@@ -18,9 +18,9 @@ function(r, ## data
 	 v<-rep(1/H,H)		# Conditional weights -- pr(c_i=h|c_i not in l<h)
 	 v[H]<-1			# Apply DP truncation to H classes
 	 mu<-rep(0,H)		# Cluster-specific means
-	 tau<-sigma2<-rep(1,H)	
+	 tau<-sigma2<-rep(1,H)
 	 p<-tmp2<-matrix(0,n,H) # p[i,h] = posterior prob that subject i belongs to cluster h
-	 
+
 	#########
 	# Store #
 	#########
@@ -46,11 +46,11 @@ function(r, ## data
 	 # Update v
 	  for (h in 1:(H-1)) v[h]<-rbeta(1,1+ns[h],alpha+sum(ns[(h+1):H]))
 	  V[i,]<-v
-	   
+
 	 # Update mu and sigma2 and Yhat (density estimate)
 	 for (h in 1:H) {
 	   var<-1/(tau20+tau[h]*ns[h])
-	   m<-var*(tau20*mu0+tau[h]*sum(y[c==h])) 
+	   m<-var*(tau20*mu0+tau[h]*sum(y[c==h]))
 	   Mu[i,h]<-mu[h]<-rnorm(1,m,sqrt(var))
 	   tau[h]<-rgamma(1,a+ns[h]/2,b+sum((y[c==h]-mu[h])^2)/2)
 	   Sigma[i,h]<-sigma2[h]<-1/tau[h]

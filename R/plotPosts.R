@@ -47,12 +47,12 @@ plotPosts <- function(r, posts, burnin=1, main="", crit="bic", full=TRUE) {
         hist(r, breaks=200, col="lightgray", border="lightgray", freq=FALSE, main=main, xlim=c(-3, 2))
         ## Overlay densities in different colors
         if(full) {
-            d.1 <- rowSums(sapply(1:length(p.1), dens.comp, y=y, 
+            d.1 <- rowSums(sapply(1:length(p.1), dens.comp, y=y,
                                   p=p.1, mix.mean=mean.1, mix.prec=prec.1), na.rm=TRUE)
-            d.2 <- rowSums(sapply(1:length(p.2), dens.comp, y=y, 
+            d.2 <- rowSums(sapply(1:length(p.2), dens.comp, y=y,
                                   p=p.2, mix.mean=mean.2, mix.prec=prec.2), na.rm=TRUE)
             lines(y, d.1, col="darkgreen", lwd=2)
-            lines(y, d.2, col=rgb(24,167,181, max=255), lty=2, lwd=2)
+            lines(y, d.2, col=rgb(24,167,181, maxColorValue=255), lty=2, lwd=2)
         }
 
         ###  plot individual components instead

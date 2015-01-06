@@ -17,7 +17,9 @@ setGeneric("z<-", function(object, value) standardGeneric("z<-"))
 setGeneric("theta<-", function(object, value) standardGeneric("theta<-"))
 setGeneric("sigma2<-", function(object, value) standardGeneric("sigma2<-"))
 setGeneric("p<-", function(object, value) standardGeneric("p<-"))
+setGeneric("mu", function(object) standardGeneric("mu"))
 setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
+setGeneric("tau2", function(object) standardGeneric("tau2"))
 setGeneric("tau2<-", function(object, value) standardGeneric("tau2<-"))
 setGeneric("nu.0<-", function(object, value) standardGeneric("nu.0<-"))
 setGeneric("sigma2.0<-", function(object, value) standardGeneric("sigma2.0<-"))
@@ -47,6 +49,7 @@ setGeneric("plot")
 
 #' @export
 setGeneric("batch", function(object) standardGeneric("batch"))
+setGeneric("batch<-", function(object,value) standardGeneric("batch<-"))
 
 setGeneric("startingValues", function(object) standardGeneric("startingValues"))
 
@@ -66,6 +69,8 @@ setGeneric("initializeSigma2.0", function(object) standardGeneric("initializeSig
 
 setGeneric("initializeMu", function(object) standardGeneric("initializeMu"))
 
+setGeneric("initializeTheta", function(object) standardGeneric("initializeTheta"))
+
 setGeneric("initializeTau2", function(object) standardGeneric("initializeTau2"))
 
 setGeneric("posteriorMultinomial", function(object) standardGeneric("posteriorMultinomial"))
@@ -75,10 +80,33 @@ setGeneric("batchCorrect", function(object) standardGeneric("batchCorrect"))
 
 setGeneric("moveChain", function(object, s) standardGeneric("moveChain"))
 
-setGeneric("updateTheta", function(object) standardGeneric("updateTheta"))
+setGeneric("updateTheta", function(object, constrain) standardGeneric("updateTheta"))
 setGeneric("updateSigma2", function(object) standardGeneric("updateSigma2"))
 setGeneric("updateSigma2.0", function(object) standardGeneric("updateSigma2.0"))
 setGeneric("updateNu.0", function(object) standardGeneric("updateNu.0"))
 setGeneric("updateTau2", function(object) standardGeneric("updateTau2"))
 
 setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
+
+setGeneric("updateWithPosteriorMeans", function(object) standardGeneric("updateWithPosteriorMeans"))
+
+#' @export
+setGeneric("bic", function(object, ...) standardGeneric("bic"))
+
+#' @export
+setGeneric("theta", function(object) standardGeneric("theta"))
+
+#' @export
+setGeneric("sigma2", function(object) standardGeneric("sigma2"))
+
+#' @export
+setGeneric("reorderComponents", function(object) standardGeneric("reorderComponents"))
+
+#' @export
+setGeneric("hwe", function(object) standardGeneric("hwe"))
+
+#' @export
+setGeneric("probz", function(object) standardGeneric("probz"))
+
+#' @export
+setGeneric("probz<-", function(object, value) standardGeneric("probz<-"))

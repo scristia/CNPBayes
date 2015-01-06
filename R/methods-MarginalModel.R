@@ -1,44 +1,56 @@
 MarginalModel <- function(data, k, batch){
   new("MarginalModel",
-      hyperparams=Hyperparameters(k=k),
+      hyperparams=HyperparametersMarginal(k=k),
       theta=numeric(k),
       sigma2=numeric(k),
-      mu=numeric(1),
-      tau2=numeric(1),
-      nu.0=numeric(1),
-      sigma2.0=numeric(1),
-      pi=numeric(k),
+      ##mu=numeric(k),
+      ##tau2=numeric(k),
+      nu.0=1L,
+      sigma2.0=1L,
+      pi=rep(1/k, k),
       data=data,
       data.mean=numeric(k),
       data.prec=numeric(k),
       z=factor(numeric(k)),
+      probz=matrix(0, length(data), k),
       logpotential=numeric(1),
       mcmc.chains=McmcChains(),
-      batch=batch)
+      batch=batch,
+      hwe=numeric())
 }
 
 UnivariateMarginalModel <- function(data, k=1, batch){
   new("UnivariateMarginalModel",
-      hyperparams=Hyperparameters(k=k),
+      hyperparams=HyperparametersMarginal(k=k),
       theta=numeric(k),
       sigma2=numeric(k),
-      mu=numeric(1),
-      tau2=numeric(1),
-      nu.0=numeric(1),
-      sigma2.0=numeric(1),
-      pi=numeric(k),
+      ##mu=numeric(1),
+      ##tau2=numeric(1),
+      nu.0=1L,
+      sigma2.0=1L,
+      pi=rep(1/k, k),
       data=data,
       data.mean=numeric(k),
       data.prec=numeric(k),
       z=factor(numeric(k)),
+      probz=matrix(1, length(data), 1),
       logpotential=numeric(1),
       mcmc.chains=McmcChains(),
-      batch=batch)
+      batch=batch,
+      hwe=numeric())
 }
 
+#' @export
+setMethod("mu", "MarginalModel", function(object) mu(hyperParams(object)))
 
+#' @export
+setMethod("tau2", "MarginalModel", function(object) tau2(hyperParams(object)))
 
 setMethod("updateZ", "UnivariateMarginalModel", function(object){
+  factor(rep(1, length(y(object))))
+})
+
+setMethod("updateZ", "UnivariateBatchModel", function(object){
   factor(rep(1, length(y(object))))
 })
 
@@ -52,9 +64,10 @@ setMethod("computePotential", "MarginalModel", function(object){
   mus <- mu(object)
   tau2s <- tau2(object)
   pp <- p(object)
-  p.mu <- dnorm(mus, mu.0(hypp), sqrt(tau2.0(hypp)))
+  ##p.mu <- dnorm(mus, mu.0(hypp), sqrt(tau2.0(hypp)))
+  ##p.mu <- 1
   p.sigma2.0 <- dgamma(sigma2.0(object), a(hypp), b(hypp))
-  p.nu.0 <- dgeom(nu.0(object), beta(hypp))
+  p.nu.0 <- dgeom(nu.0(object), betas(hypp))
   p.theta <- dnorm(thetas, mus, sqrt(tau2s))
   p.sigma2 <- dgamma(1/sigma2s, 1/2*nu.0(object), 1/2*nu.0(object)*sigma2.0(object))
   pot <- list()
@@ -63,17 +76,21 @@ setMethod("computePotential", "MarginalModel", function(object){
   }
   pot <- do.call("cbind", pot)
   pot <- rowSums(pot)
-  total_pot <- sum(log(pot)) + sum(log(p.theta)) + sum(log(p.sigma2)) + log(p.mu) + log(p.nu.0) + log(p.sigma2.0)
+  total_pot <- sum(log(pot)) + sum(log(p.theta)) + sum(log(p.sigma2)) + log(p.nu.0) + log(p.sigma2.0)
   total_pot
 })
 
-
+##
+## For the marginal model, mu and tau2 are hyper-parameters.  There is
+## no update.
+##
 setMethod("updateMu", "MarginalModel", function(object){
   ##tau2.0, tau2, eta.0, mu.0, thetas, k, nn){
   hypp <- hyperParams(object)
-  mu.k <- .updateMu(tau2.0(hypp), tau2(object), k(object), z(object),
-                    theta(object), mu.0(hypp))
-  mu.k
+  ##  mu.k <- .updateMu(tau2.0(hypp), tau2(object), k(object), z(object),
+  ##                    theta(object), mu.0(hypp))
+  ##  mu.k
+  mu(object)
 })
 
 .updateMu <- function(tau2.0, tau2, k, z, theta, mu.0){
@@ -109,20 +126,39 @@ setMethod("startingValues", "MarginalModel", function(object){
   }
   theta(object) <- mus
   sigma2(object) <- vars
+
   object
 })
 
-setMethod("initializeMu", "MarginalModel", function(object) mean(theta(object)))
+
 
 setMethod("initializeSigma2.0", "MarginalModel", function(object){
   hypp <- hyperParams(object)
   sum(alpha(hypp)*sigma2(object))/sum(alpha(hypp))
 })
 
+## 0 + 3sd = 0.4
 setMethod("initializeTau2", "MarginalModel", function(object){
-  hypp <- hyperParams(object)
-  1/rgamma(1, shape=1/2*eta.0(hypp), rate=1/2*eta.0(hypp)*m2.0(hypp))
+  ##hypp <- hyperParams(object)
+  ##1/rgamma(1, shape=1/2*eta.0(hypp), rate=1/2*eta.0(hypp)*m2.0(hypp))
+  ##rep(0.67, k(object))
+  ##rep((0.4/3)^2, k(object))
+  rep(0.68^2, k(object))
 })
+
+##setMethod("initializeMu", "MarginalModel", function(object){
+##  means <- switch(paste0("k", k(object)),
+##                  k1=0,
+##                  k2=c(-0.5, 0),
+##                  k3=c(-2, -0.5, 0),
+##                  k4=c(-2, -0.5, 0, 0.5),
+##                  k5=c(-2, -0.5, 0, 0.5, 1),
+##                  k6=c(-2, -0.5, -0.2, 0.2, 0.5, 1),
+##                  k7=c(-2, -0.5, -0.2, 0, 0.2, 0.5, 1),
+##                  NULL)
+##  if(is.null(means)) stop("k needs to be 1-7")
+##  means
+##})
 
 
 setMethod("posteriorMultinomial", "MarginalModel", function(object){
@@ -147,7 +183,9 @@ setMethod("posteriorMultinomial", "MarginalModel", function(object){
 setMethod("show", "MarginalModel", function(object) callNextMethod())
 
 setMethod("computeMeans", "MarginalModel", function(object){
-  sapply(split(y(object), z(object)), mean, na.rm=TRUE)
+  means <- sapply(split(y(object), z(object)), mean, na.rm=TRUE)
+  means[is.nan(means)] <- mu(object)[is.nan(means)]
+  means
 })
 
 
@@ -185,8 +223,11 @@ setMethod("moveChain", "MarginalModel", function(object, s){
   theta(mcmc)[s, ] <- as.numeric(theta(object))
   sigma2(mcmc)[s, ] <- as.numeric(sigma2(object))
   p(mcmc)[s, ] <- p(object)
-  mu(mcmc)[s] <- mu(object)
-  tau2(mcmc)[s] <- tau2(object)
+  ##
+  ## mu and tau2 are now hyper-parameters
+  ##mu(mcmc)[s] <- mu(object)
+  ##tau2(mcmc)[s] <- tau2(object)
+  ##
   nu.0(mcmc)[s] <- nu.0(object)
   sigma2.0(mcmc)[s] <- sigma2.0(object)
   logpotential(mcmc)[s] <- logpotential(object)
@@ -195,18 +236,21 @@ setMethod("moveChain", "MarginalModel", function(object, s){
 })
 
 
-setMethod("updateTheta", "MarginalModel", function(object) {
+setMethod("updateTheta", "MarginalModel", function(object, constrain) {
   .updateTheta(mu(object), tau2(object),
                sigma2(object),
                dataMean(object),
                n.h=tablez(object),
-               theta.last=theta(object))
+               theta.last=theta(object),
+               constrain=constrain)
 })
 
 .updateTheta <- function(mu, tau2,
                          sigma2,
                          data.mean,
-                         n.h, theta.last){
+                         n.h,
+                         theta.last,
+                         constrain=TRUE){
   tau2.tilde <- 1/tau2
   sigma2.tilde <- 1/sigma2
   tau2.n.tilde <- tau2.tilde + n.h*sigma2.tilde
@@ -217,14 +261,12 @@ setMethod("updateTheta", "MarginalModel", function(object) {
   w2 <- n.h*sigma2.tilde/denom
   mu.n <- w1*mu + w2*data.mean
   k <- length(tau2.n)
-  ##
-  ##  If there are very few observations, we will be sampling from a
-  ##  normal distribution with mean equal to the marginal mean. This
-  ##  will result in thetas that do not satisfy the order constraints
-  ##
-  ##
   thetas <- rnorm(k, mu.n, sqrt(tau2.n))
   stopif(any(is.na(thetas)))
+  ##
+  ## Do not constrain the thetas during burnin
+  ##
+  if(!constrain) return(thetas)
   if(identical(thetas, sort(thetas)))  return(thetas)
   ##
   ## sorted thetas are not the same
@@ -287,7 +329,7 @@ setMethod("updateSigma2.0", "MarginalModel", function(object){
 
 setMethod("updateNu.0", "MarginalModel", function(object){
   hypp <- hyperParams(object)
-  .updateNu.0(beta=beta(hypp), sigma2.0=sigma2.0(object), sigma2.h=sigma2(object),
+  .updateNu.0(beta=betas(hypp), sigma2.0=sigma2.0(object), sigma2.h=sigma2(object),
               nu.0=nu.0(object), k=k(object))
 })
 
@@ -298,12 +340,18 @@ setMethod("updateNu.0", "MarginalModel", function(object){
       -x * (beta + 0.5 * sigma2.0 * sum(1/sigma2.h))
   prob <- exp(lpnu0 - max(lpnu0))
   nu0 <- sample(x, 1, prob=prob)
+  nu0 <- max(1, nu0)
   nu0
 }
 
+##
+## For the marginal model, mu and tau2 are hyper-parameters.  There is
+## no update.
+##
 setMethod("updateTau2", "MarginalModel", function(object){
   hypp <- hyperParams(object)
-  .updateTau2(eta.0(hypp), m2.0(hypp), theta(object), mu(object), k(object))
+  ##.updateTau2(eta.0(hypp), m2.0(hypp), theta(object), mu(object), k(object))
+  tau2(object)
 })
 
 .updateTau2 <- function(eta.0, m2.0, theta, mu, k){
@@ -314,3 +362,66 @@ setMethod("updateTau2", "MarginalModel", function(object){
   stopif(is.nan(tau2))
   tau2
 }
+
+
+setReplaceMethod("tau2", "MarginalModel", function(object, value){
+  hyperParams(object)@tau2 <- value
+  object
+})
+
+setReplaceMethod("mu", "MarginalModel", function(object, value){
+  hyperParams(object)@mu <- value
+  object
+})
+
+##
+## For the marginal model, mu has already been initialized in the hyperparameters
+##
+setMethod("initializeMu", "MarginalModel", function(object)   mu(object))
+
+#' @export
+setMethod("bic", "MarginalModel", function(object, ...){
+  if(k(object) > 1){
+    object <- updateWithPosteriorMeans(object)
+  }
+  ## K: number of free parameters to be estimated
+  ##   - component-specific parameters:  theta, sigma, pi  (3 x k(model))
+  ##   - length-one parameters: sigma2.0, nu.0             +2
+  K <- 3*k(object) + 2
+  n <- length(y(object))
+  -2*logpotential(object) + K*(log(n) - log(2*pi))
+})
+
+setMethod("initializeTheta", "MarginalModel", function(object){
+  initializeTheta(k(object))
+})
+
+setMethod("theta", "MarginalModel", function(object) object@theta)
+
+setMethod("sigma2", "MarginalModel", function(object) object@sigma2)
+
+setMethod("reorderComponents", "MarginalModel", function(object){
+  ix <- order(theta(object))
+  theta(object) <- sort(theta(object))
+  sigma2(object) <- sigma2(object)[ix]
+  p(object) <- p(object)[ix]
+  zz <- z(object)
+  ## trick to reset the augmentation var
+  zz <- factor(as.integer(factor(zz, levels=ix)), levels=seq_len(k(object)))
+  z(object) <- zz
+  dataMean(object) <- dataMean(object)[ix]
+  dataPrec(object) <- dataPrec(object)[ix]
+  object
+})
+
+setMethod("updateWithPosteriorMeans", "MarginalModel", function(object){
+  mc <- mcmcChains(object)
+  theta(object) <- colMeans(theta(mc))
+  sigma2(object) <- colMeans(sigma2(mc))
+  p(object) <- colMeans(p(mc))
+  nu.0(object) <- median(nu.0(mc))
+  sigma2.0(object) <- mean(sigma2.0(object))
+  logpotential(object) <- computePotential(object)
+  z(object) <- map(object)
+  object
+})

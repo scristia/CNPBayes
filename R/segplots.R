@@ -65,13 +65,17 @@ segplots <- function(subject.cnvs, red.range, indices, flag=20000L,
         xcoords <- c(rbind(start(disjoin.gr), end(disjoin.gr)))
         ycoords <- c(rbind(disjoin.counts, disjoin.counts))
         n <- max(disjoin.counts)
-        overlapping(xcoords, ycoords, red.range, n, xlim)
+        overlapping(xcoords, ycoords, red.range, n, xlim, markers=markers)
     }
 
 }
 
+##
+## Stephen, markers is not defined!  I added markers as an argument
+## and pass it from the segplots function.
+##
 ## need to fix coords to be on megabase scale
-overlapping <- function(xcoords, ycoords, red.range, n, xlim) {
+overlapping <- function(xcoords, ycoords, red.range, n, xlim, markers=NULL) {
     plot(NULL, xlim=xlim, ylim=c(1, n), las=1, bty="l")
     polygon(x=c(min(xcoords), xcoords, max(xcoords)), y=c(0, ycoords, 0),
             col=rgb(0,0.5,1, alpha=0.3), border="gray")
