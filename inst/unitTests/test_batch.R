@@ -172,13 +172,7 @@ test_selectK_batch_moderate <- function(){
   checkEquals(pmix, p(truth), tolerance=0.08)
 }
 
-
-test_selectK_batch_hard <- function(){
-  if(require(doSNOW)){
-    library(doSNOW)
-    cl <- makeCluster(7, type = "SOCK")
-    registerDoSNOW(cl)
-  }
+hardTruth <- function(prop_comp1=0.005){
   set.seed(1234)
   k <- 3
   nbatch <- 3
@@ -186,67 +180,86 @@ test_selectK_batch_hard <- function(){
                     -0.45, -0.4, -0.35,
                     -0.1, 0, -0.05), nbatch, k, byrow=FALSE)
   sds <- matrix(0.3, nbatch, k)
-  truth <- simulateBatchData(2500,
+  ncomp1 <- ceiling(prop_comp1*1500 )
+  ncomp2 <- 500-ncomp1
+  ncomp3 <- 1000
+  ##trace(simulateBatchData, browser)
+  N <- 8e3
+  truth <- simulateBatchData(N,
                              means=means,
                              sds=sds,
-                             .batch=rep(letters[1:3], length.out=2500),
-                             .alpha=c(5, 500, 1000))
+                             .batch=rep(letters[1:3], length.out=N),
+                             .alpha=c(ncomp1, ncomp2, ncomp3))
+}
+
+
+.test_hard1 <- function(){
+  truth <- hardTruth(0.005)
+  table(z(truth), batch(truth))
   if(FALSE) plot(truth, use.current=TRUE)
   ##
-  ## Evaluate at different K
+  ## Use defaults
   ##
-  mcmcp <- McmcParams(iter=1000, burnin=0)
+  mcmcp <- McmcParams(iter=2000, burnin=1000, thin=2)
+  params <- ModelParams("batch", y=y(truth), k=3,
+                        batch=batch(truth),
+                        mcmc.params=mcmcp)
+  model <- initializeModel(params)
+  model <- collapseBatch(model, mcmcp)
+  model <- posteriorSimulation(model, mcmcp)
+  if(FALSE){
+    op <- par(mfrow=c(1,2),las=1)
+    plot(truth, use.current=TRUE, xlim=c(-2,1))
+    plot(model, xlim=c(-2,1))
+    par(op)
+  }
+}
+
+.test_hard2 <- function(){
+  truth <- hardTruth(0.005)
+  table(z(truth), batch(truth))
+  if(FALSE) plot(truth, use.current=TRUE)
+  ##
+  ## Use defaults
+  ##
+  mcmcp <- McmcParams(iter=2000, burnin=1000, thin=2)
+  params <- ModelParams("marginal", y=y(truth), k=3,
+                        mcmc.params=mcmcp)
+  model <- initializeModel(params)
+  model <- posteriorSimulation(model, mcmcp)
+}
+
+.test_hard3 <- function(){
+  truth <- hardTruth(0.01)
+  mcmcp <- McmcParams(iter=2000, burnin=1000, thin=2)
+  table(z(truth), batch(truth))
+  params <- ModelParams("batch", y=y(truth), k=3,
+                        batch=batch(truth),
+                        mcmc.params=mcmcp)
+  model <- initializeModel(params)
+  ##model <- collapseBatch(model, mcmcp)
+  model <- posteriorSimulation(model, mcmcp)
+}
+
+.test_hardk <- function(){
+  ##
+  ## Remove homozygous obs.
+  ##
+  truth <- hardTruth(0.01)
+  params <- ModelParams("batch", y=r, k=3,
+                        batch=batch(truth),
+                        mcmc.params=mcmcp)
+  model <- initializeModel(params)
+  modelk <- collapseBatch(model, mcmcp)
   bicstat <- foreach(k = 1:5, .packages="CNPBayes", .combine="c") %dopar% {
-    cat(".")
-    params <- ModelParams("batch", y=y(truth), k=3,
-                          batch=rep(letters[1:3], length.out=2500),
+    params <- ModelParams("batch", y=y(truth), k=k,
+                          batch=batch(modelk),
                           mcmc.params=mcmcp)
     model <- initializeModel(params)
     model <- posteriorSimulation(model, mcmcp)
-
-    model2 <- truth
-    params <- ModelParams("batch", y=y(truth), k=3,
-                          batch=rep(letters[1:3], length.out=2500),
-                          mcmc.params=mcmcp)
-    model2 <- posteriorSimulation(model2, mcmcp)
-
-    mc <- mcmcChains(model)
-    mc2 <- mcmcChains(model2)
-
-    op <- par(mfrow=c(1,2), las=1)
-    plot(truth, use.current=TRUE, xlim=c(-2,1))
-    plot(model, xlim=c(-2,1))
-
-    op <- par(mfrow=c(1,2), las=1)
-    plot(truth, use.current=TRUE, xlim=c(-2,1))
-    plot(model2, xlim=c(-2,1))
-
-    plot.ts(theta(mc), col="gray")
-    plot.ts(p(mc), col="gray")
-
     bic(model)
-
-    params <- ModelParams("batch", y=y(truth), k=2,
-                          batch=rep(letters[1:3], length.out=2500),
-                          mcmc.params=mcmcp)
-    model2 <- initializeModel(params)
-    model2 <- posteriorSimulation(model2, mcmcp)
-    mc <- mcmcChains(model2)
-        op <- par(mfrow=c(1,2),las=1)
-    plot(truth, use.current=TRUE, xlim=c(-2,1))
-    plot(model2, xlim=c(-2,1))
-
-    ## see if marginal model works
-    params <- ModelParams("marginal", y=y(truth), k=3)
-    model3 <- initializeModel(params)
-
-    model3 <- initializeModel(params)
-    model3 <- posteriorSimulation(model3, mcmcp)
-    mc <- mcmcChains(model2)
-
   }
   checkTrue(which.min(bicstat) == 3)
-
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth, use.current=TRUE, xlim=c(-2,1))
@@ -302,7 +315,7 @@ test_KolmogorovSmirnov <- function(){
   ## - collapse using KS test for two distributions
   ks <- ksTest(truth)
   checkIdentical(ks, c(TRUE, FALSE, FALSE))
-  truth2 <- collapseBatch(truth)
+  truth2 <- collapseBatch(truth, mcmcp)
   checkIdentical(uniqueBatch(truth2), c("a-b", "c"))
 }
 

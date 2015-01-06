@@ -67,7 +67,11 @@ setMethod("McmcChains", "MixtureModel", function(object, mcmc.params){
       logpotential=vec)
 }
 
-setMethod("McmcChains", "BatchModel", function(object, mcmc.params){
+setMethod("McmcChains", c("BatchModel", "missing"), function(object, mcmc.params){
+  .initializeMcmcBatch(object, mcmc.params)
+})
+
+setMethod("McmcChains", c("BatchModel", "McmcParams"), function(object, mcmc.params){
   .initializeMcmcBatch(object, mcmc.params)
 })
 

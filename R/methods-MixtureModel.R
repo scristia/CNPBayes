@@ -202,14 +202,13 @@ updateAll <- function(post, move_chain, s, constrainTheta=TRUE){
   nu.0(post) <- updateNu.0(post)
   if(move_chain) {
     logpotential(post) <- computePotential(post)
-    post <- moveChain(post, s+1)
-
     pZ <- probz(post)
     zz <- as.integer(z(post))
     for(j in seq_len(k(post))){
       pZ[, j] <- pZ[, j] + as.integer(zz==j)
     }
     probz(post) <- pZ
+    post <- moveChain(post, s+1)
   }
   post
 }
@@ -234,10 +233,11 @@ posteriorSimulation <- function(post, mcmcp){
   ## Record initial values
   ##
   post <- moveChain(post, 1)
+  post2 <- post
   ##
   ## Burn-in
   ##
-  if(burnin(mcmcp) > 0){
+  if( burnin(mcmcp) > 0){
     for(b in 1:burnin(mcmcp)){
       ## only store updates in the Posterior object slots; do not
       ## store anything in the chains
@@ -256,8 +256,13 @@ posteriorSimulation <- function(post, mcmcp){
   ##
   ## Post burn-in
   ##
-  for(s in S){
-    post <- updateAll(post, move_chain[s], s, constrainTheta=constrainTheta(mcmcp))
+  for(s in seq_len(savedIterations(mcmcp)-1)){
+    post <- updateAll(post, TRUE, s, constrainTheta=constrainTheta(mcmcp))
+    if(thin(mcmcp) > 1){
+      for(t in seq_len(thin(mcmcp))){
+        post <- updateAll(post, FALSE, s, constrainTheta=constrainTheta(mcmcp))
+      }
+    }
   }
   probz(post) <- probz(post)/(savedIterations(mcmcp) - 1)
   post
@@ -414,7 +419,6 @@ initializeModel <- function(params, .alpha){ ##.theta, .sigma){
   ## Simulate z according to pi
   zz <- ifelse(u < pisum[1], 1, ifelse(u < pisum[2], 2, 3))
   z(object) <- factor(zz, levels=seq_len(k(hypp)))
-
   mcmcChains(object) <- McmcChains(object, mcmcParams(params))
   object
 }
@@ -440,9 +444,9 @@ simulateBatchData <- function(N=2500, .k=3, .batch, .alpha, means, sds){
   if(missing(.batch)) .batch <- as.character(rep(1, N))
   yy <- rnorm(N)
   params <- ModelParams("batch", y=yy, k=.k, batch=.batch)
-  object <- constructModel(type(params), data=y(params), k=k(params), batch=batch(params))
+  object <- constructModel(type(params), data=y(params),
+                           k=k(params), batch=batch(params))
   hypp <- hyperParams(object) <- Hyperparameters(type(params), k=k(params))
-
   object <- initializeModel(params, .alpha=.alpha)
   theta(object) <- means
   sigma2(object) <- sds^2
