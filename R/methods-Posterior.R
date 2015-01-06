@@ -50,32 +50,30 @@ setValidity("Posterior", function(object){
 })
 
 
-
-
-splitDataByComponent <- function(object){
+splitByComponent <- function(object){
   k <- nComp(object)
   ylist <- split(y(object), factor(z(object), levels=seq_len(k)))
   ylist
 }
 
 calculateComponentMean <- function(object){
-  ylist <- splitDataByComonent(object)
+  ylist <- splitByComponent(object)
   sapply(ylist, mean, na.rm=TRUE)
 }
 
 calculateComponentPrec <- function(object){
-  ylist <- splitDataByComonent(object)
+  ylist <- splitByComponent(object)
   1/sapply(ylist, var, na.rm=TRUE)
 }
 
 
-posteriorModels <- function(Y, K, mcmcp){
-  postlist <- foreach(k = K, .packages="CNPBayes") %dopar%{
-    post <- initializePosterior(Y, ncomp=k)
-    mcmcChains(post) <- McmcChains(post, mcmcp)
-    post <- posteriorSimulation(post, mcmcp)
-  }
-  bic <- sapply(postlist, BIC)
-  post <- postlist[[which.min(bic)]]
-  post
-}
+##posteriorModels <- function(Y, K, mcmcp){
+##  postlist <- foreach(k = K, .packages="CNPBayes") %dopar%{
+##    post <- initializePosterior(Y, ncomp=k)
+##    mcmcChains(post) <- McmcChains(post, mcmcp)
+##    post <- posteriorSimulation(post, mcmcp)
+##  }
+##  bic <- sapply(postlist, BIC)
+##  post <- postlist[[which.min(bic)]]
+##  post
+##}

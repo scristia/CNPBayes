@@ -1,7 +1,6 @@
 ## from xmapcore package
 if( require( "RUnit", quietly=TRUE ) ) {
   pkg <- "CNPBayes"
-
   if( Sys.getenv( "RCMDCHECK" ) == "FALSE" ) {
     path <- file.path( getwd(), "..", "inst", "unitTests" )
   } else {
@@ -14,7 +13,7 @@ if( require( "RUnit", quietly=TRUE ) ) {
 
   ##xmap.clear.cache()
 
-  ##Fail on warnings
+  ##Do not fail on warnings
   options( warn=1 )
 
   ## Get the pattern (if there is one?)
@@ -22,12 +21,16 @@ if( require( "RUnit", quietly=TRUE ) ) {
   if( is.null( patt ) || nchar( patt ) == 0 ) {
     testSuite <- defineTestSuite(name=paste( pkg, "unit testing" ),
                                  dirs=path,
-                                 testFileRegexp=paste( "^test.+", patt, "\\.[rR]$", sep="" ))
+                                 testFileRegexp=paste( "^test.+", patt, "\\.[rR]$", sep="" ),
+                                 rngKind="Mersenne-Twister",
+                                 rngNormalKind="Inversion")
   } else {
     ##testSuite <- defineTestSuite( name=paste( pkg, "unit testing" ), testFileRegexp=paste( "^runit\\.", patt, "\\.[rR]$", sep="" ), dirs=path )
-    testSuite <- defineTestSuite(name=paste( pkg, "unit testing" ),
+    testSuite <- defineTestSuite(name=paste(pkg, "unit testing" ),
                                  testFileRegexp=paste( "^test.+", patt, "\\.[rR]$", sep="" ),
-                                 dirs=path )
+                                 dirs=path ,
+                                 rngKind="Mersenne-Twister",
+                                 rngNormalKind="Inversion")
   }
   tests <- runTestSuite( testSuite )
 

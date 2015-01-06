@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/transitional.dtd">
-<html><head><title>RUNIT TEST PROTOCOL--Mon Nov 24 21:04:55 2014</title>
+<html><head><title>RUNIT TEST PROTOCOL--Mon Jan  5 13:49:26 2015</title>
 </head>
-<body><h1 TRUE>RUNIT TEST PROTOCOL--Mon Nov 24 21:04:55 2014</h1>
-<p>Number of test functions: 3</p>
-<p>Number of errors: 0</p>
-<p>Number of failures: 0</p>
+<body><h1 TRUE>RUNIT TEST PROTOCOL--Mon Jan  5 13:49:26 2015</h1>
+<p>Number of test functions: 15</p>
+<p style=color:red>Number of errors: 14</p>
+<p style=color:red>Number of failures: 1</p>
 <hr>
 <h3 TRUE>1 Test suite</h3>
 <table border="1" width="60%" >
@@ -15,15 +15,120 @@
 <th width="20%">Failures</th>
 </tr>
 <tr><td><a href="#CNPBayes unit testing">CNPBayes unit testing</a></td>
-<td>3</td>
-<td>0</td>
-<td>0</td>
+<td>15</td>
+<td bgcolor="red">14</td>
+<td bgcolor="red">1</td>
+</tr>
+</table>
+<hr>
+<h3 TRUE>Errors</h3>
+<table border="1" width="100%" >
+<tr><th width="30%">Test suite : test function</th>
+<th width="70%">message</th>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp360">CNPBayes unit testing : test_cnp360</a></td>
+<td>Error in updateAll(post, move_chain[s], s, constrainTheta = constrainTheta(mcmcp)) : 
+  dims [product 2] do not match the length of object [3]
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp472">CNPBayes unit testing : test_cnp472</a></td>
+<td>Error in updateAll(post, move_chain[s], s, constrainTheta = constrainTheta(mcmcp)) : 
+  dims [product 2] do not match the length of object [3]
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp707">CNPBayes unit testing : test_cnp707</a></td>
+<td>Error in updateAll(post, move_chain[s], s, constrainTheta = constrainTheta(mcmcp)) : 
+  dims [product 2] do not match the length of object [3]
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_KolmogorovSmirnov">CNPBayes unit testing : test_KolmogorovSmirnov</a></td>
+<td>Error in func() : could not find function "ksTest"
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy">CNPBayes unit testing : test_selectK_batch_easy</a></td>
+<td>Error in { : 
+  task 3 failed - "dims [product 2] do not match the length of object [3]"
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_hard">CNPBayes unit testing : test_selectK_batch_hard</a></td>
+<td>Error in { : 
+  task 3 failed - "dims [product 2] do not match the length of object [3]"
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_moderate">CNPBayes unit testing : test_selectK_batch_moderate</a></td>
+<td>Error in initialize(value, ...) : object 'mcmcp' not found
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy_default_starts">CNPBayes unit testing : test_marginalEasy_default_starts</a></td>
+<td>Error in mapply(function(y, theta) sum((y - theta)^2), y = ylist, theta = means) : 
+  zero-length inputs cannot be mixed with those of non-zero length
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">CNPBayes unit testing : test_marginal_hard</a></td>
+<td>Error : !x is not TRUE
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">CNPBayes unit testing : test_marginal_Moderate</a></td>
+<td>Error : !x is not TRUE
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_priors_misspecified">CNPBayes unit testing : test_marginal_priors_misspecified</a></td>
+<td>Error : !x is not TRUE
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">CNPBayes unit testing : test_selectK_easy</a></td>
+<td>Error in { : 
+  task 2 failed - "zero-length inputs cannot be mixed with those of non-zero length"
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_hard">CNPBayes unit testing : test_selectK_hard</a></td>
+<td>Error in { : task 2 failed - "!x is not TRUE"
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_moderate">CNPBayes unit testing : test_selectK_moderate</a></td>
+<td>Error in { : task 2 failed - "!x is not TRUE"
+</td>
+</tr>
+</table>
+<hr>
+<h3 TRUE>Failures</h3>
+<table border="1" width="100%" >
+<tr><th width="30%">Test suite : test function</th>
+<th width="70%">message</th>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">CNPBayes unit testing : test_batchEasy</a></td>
+<td>Error in checkEquals(pmns, as.numeric(theta(truth)), tolerance = 0.02) : 
+  Mean relative difference: 0.9390636
+</td>
 </tr>
 </table>
 <hr>
 <h3 TRUE>Details</h3>
 <p><a name="CNPBayes unit testing"><h5 TRUE>Test Suite: CNPBayes unit testing</h5>
-</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy">test_marginalEasy: (3 checks) ... OK (23.79 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (3 checks) ... OK (34.66 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">test_marginal_Moderate: (3 checks) ... OK (34.65 seconds)<br/></a></li></ul></li></ul><hr>
+</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy"><u style=color:red>test_batchEasy: FAILURE !! (check number 1)  </u></a>Error in checkEquals(pmns, as.numeric(theta(truth)), tolerance = 0.02) : 
+  Mean relative difference: 0.9390636
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp360"><u style=color:red>test_cnp360: ERROR !!  </u></a>Error in updateAll(post, move_chain[s], s, constrainTheta = constrainTheta(mcmcp)) : 
+  dims [product 2] do not match the length of object [3]
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp472"><u style=color:red>test_cnp472: ERROR !!  </u></a>Error in updateAll(post, move_chain[s], s, constrainTheta = constrainTheta(mcmcp)) : 
+  dims [product 2] do not match the length of object [3]
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp707"><u style=color:red>test_cnp707: ERROR !!  </u></a>Error in updateAll(post, move_chain[s], s, constrainTheta = constrainTheta(mcmcp)) : 
+  dims [product 2] do not match the length of object [3]
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_KolmogorovSmirnov"><u style=color:red>test_KolmogorovSmirnov: ERROR !!  </u></a>Error in func() : could not find function "ksTest"
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy"><u style=color:red>test_selectK_batch_easy: ERROR !!  </u></a>Error in { : 
+  task 3 failed - "dims [product 2] do not match the length of object [3]"
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_hard"><u style=color:red>test_selectK_batch_hard: ERROR !!  </u></a>Error in { : 
+  task 3 failed - "dims [product 2] do not match the length of object [3]"
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_moderate"><u style=color:red>test_selectK_batch_moderate: ERROR !!  </u></a>Error in initialize(value, ...) : object 'mcmcp' not found
+<br/></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy_default_starts"><u style=color:red>test_marginalEasy_default_starts: ERROR !!  </u></a>Error in mapply(function(y, theta) sum((y - theta)^2), y = ylist, theta = means) : 
+  zero-length inputs cannot be mixed with those of non-zero length
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard"><u style=color:red>test_marginal_hard: ERROR !!  </u></a>Error : !x is not TRUE
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate"><u style=color:red>test_marginal_Moderate: ERROR !!  </u></a>Error : !x is not TRUE
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_priors_misspecified"><u style=color:red>test_marginal_priors_misspecified: ERROR !!  </u></a>Error : !x is not TRUE
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy"><u style=color:red>test_selectK_easy: ERROR !!  </u></a>Error in { : 
+  task 2 failed - "zero-length inputs cannot be mixed with those of non-zero length"
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_hard"><u style=color:red>test_selectK_hard: ERROR !!  </u></a>Error in { : task 2 failed - "!x is not TRUE"
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_moderate"><u style=color:red>test_selectK_moderate: ERROR !!  </u></a>Error in { : task 2 failed - "!x is not TRUE"
+<br/></li></ul></li></ul><hr>
 <table border="0" width="80%" >
 <tr><th>Name</th>
 <th>Value</th>
@@ -50,28 +155,28 @@
 <td>2.0</td>
 </tr>
 <tr><td>year</td>
-<td>2014</td>
+<td>2015</td>
 </tr>
 <tr><td>month</td>
-<td>11</td>
+<td>01</td>
 </tr>
 <tr><td>day</td>
-<td>24</td>
+<td>05</td>
 </tr>
 <tr><td>svn rev</td>
-<td>67052</td>
+<td>67327</td>
 </tr>
 <tr><td>language</td>
 <td>R</td>
 </tr>
 <tr><td>version.string</td>
-<td>R Under development (unstable) (2014-11-24 r67052)</td>
+<td>R Under development (unstable) (2015-01-05 r67327)</td>
 </tr>
 <tr><td>nickname</td>
 <td>Unsuffered Consequences</td>
 </tr>
 <tr><td>host</td>
-<td>compute-044</td>
+<td>compute-057</td>
 </tr>
 <tr><td>compiler</td>
 <td>/usr/bin/g++</td>

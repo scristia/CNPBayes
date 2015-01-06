@@ -71,6 +71,10 @@ setMethod("McmcChains", "BatchModel", function(object, mcmc.params){
   .initializeMcmcBatch(object, mcmc.params)
 })
 
+setMethod("mu", "McmcChains", function(object) object@mu)
+setMethod("tau2", "McmcChains", function(object) object@tau2)
+setMethod("theta", "McmcChains", function(object) object@theta)
+setMethod("sigma2", "McmcChains", function(object) object@sigma2)
 
 
 
