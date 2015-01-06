@@ -198,24 +198,32 @@ test_selectK_batch_hard <- function(){
   mcmcp <- McmcParams(iter=1000, burnin=0)
   bicstat <- foreach(k = 1:5, .packages="CNPBayes", .combine="c") %dopar% {
     cat(".")
-    params <- ModelParams("batch", y=y(truth), k=k,
-                          batch=rep(letters[1:3], length.out=2500),
-                          mcmc.params=mcmcp)
-    model <- initializeModel(params)
-    model <- posteriorSimulation(model, mcmcp)
-
-    model <- truth
     params <- ModelParams("batch", y=y(truth), k=3,
                           batch=rep(letters[1:3], length.out=2500),
                           mcmc.params=mcmcp)
     model <- initializeModel(params)
     model <- posteriorSimulation(model, mcmcp)
+
+    model2 <- truth
+    params <- ModelParams("batch", y=y(truth), k=3,
+                          batch=rep(letters[1:3], length.out=2500),
+                          mcmc.params=mcmcp)
+    model2 <- posteriorSimulation(model2, mcmcp)
+
     mc <- mcmcChains(model)
-    plot.ts(theta(mc), col="gray")
-    plot.ts(p(mc), col="gray")
-    op <- par(mfrow=c(1,2),las=1)
+    mc2 <- mcmcChains(model2)
+
+    op <- par(mfrow=c(1,2), las=1)
     plot(truth, use.current=TRUE, xlim=c(-2,1))
     plot(model, xlim=c(-2,1))
+
+    op <- par(mfrow=c(1,2), las=1)
+    plot(truth, use.current=TRUE, xlim=c(-2,1))
+    plot(model2, xlim=c(-2,1))
+
+    plot.ts(theta(mc), col="gray")
+    plot.ts(p(mc), col="gray")
+
     bic(model)
 
     params <- ModelParams("batch", y=y(truth), k=2,

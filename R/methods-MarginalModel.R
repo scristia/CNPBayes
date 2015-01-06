@@ -240,7 +240,7 @@ setMethod("updateTheta", "MarginalModel", function(object, constrain) {
   .updateTheta(mu(object), tau2(object),
                sigma2(object),
                dataMean(object),
-               n.h=tablez(object),
+               n.h=table(z(object)),
                theta.last=theta(object),
                constrain=constrain)
 })
@@ -294,7 +294,7 @@ setMethod("updateSigma2", "MarginalModel", function(object) {
                 theta(object),
                 nu.0(object),
                 sigma2.0(object),
-                tablez(object))
+                table(z(object)))
 })
 
 .updateSigma2 <- function(data.list, thetas, nu.0, sigma2.0, n.h){
