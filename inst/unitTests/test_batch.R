@@ -99,15 +99,26 @@ test_selectK_batch_easy <- function(){
   ## Evaluate at different K
   ##
   mcmcp <- McmcParams(iter=1000, burnin=200, constrainTheta=TRUE)
-  bicstat <- foreach(k = 1:7, .packages="CNPBayes", .combine="c") %dopar% {
+  bicstat <- rep(NA, 7)
+  for(k in 1:7){
     cat(".")
     params <- ModelParams("batch", y=y(truth), k=k,
                           batch=rep(letters[1:3], length.out=2500),
                           mcmc.params=mcmcp)
     modelk <- initializeModel(params)
     modelk <- posteriorSimulation(modelk, mcmcp)
-    bic(modelk)
+    bicstat[k] <- bic(modelk)
   }
+##
+##  bicstat <- foreach(k = 1:7, .packages="CNPBayes", .combine="c") %dopar% {
+##    cat(".")
+##    params <- ModelParams("batch", y=y(truth), k=k,
+##                          batch=rep(letters[1:3], length.out=2500),
+##                          mcmc.params=mcmcp)
+##    modelk <- initializeModel(params)
+##    modelk <- posteriorSimulation(modelk, mcmcp)
+##    bic(modelk)
+##  }
   checkIdentical(which.min(bicstat), 3L)
   if(FALSE) {
     CNPBayes::plot(truth, use.current=TRUE)
@@ -504,18 +515,16 @@ test_cnp707 <- function(){
   phenodata <- readRDS("~/Labs/ARIC/aricPhenotypes/data/phenotypes.rds")
   phenodata <- phenodata[phenodata$racegrp == "W",]
   se707 <- se707[, colnames(se707) %in% phenodata$cel_id]
+  se707 <- SummarizedExperiment(assays=SimpleList(medr=assays(se707)[["mean"]]),
+                                rowData=rowData(se707),
+                                colData=colData(se707))
+  colnames(colData(se707)) <- "plate"
+  mcmcp <- McmcParams(iter=1000, burnin=500)
+  mmodel <- fitMixtureModels(se707, mcmcp, K=3)[[1]]
   ##
   ## Batches may differ between CNPs
   ##
-  mcmcp <- McmcParams(iter=1000, burnin=500)
-  r <- assays(se707)[["mean"]][1, ]
-  params <- ModelParams("batch", y=r, k=3,
-                        batch=se707$chemplate,
-                        mcmc.params=mcmcp)
-  model <- initializeModel(params)
-  model <- collapseBatch(model, mcmcp)
-  modelk3 <- posteriorSimulation(model, mcmcp)
-  freq <- as.integer(table(z(modelk3)))
+  freq <- as.integer(table(z(mmodel)))
   checkIdentical(c(9718L, 0L, 0L), freq)
   ##
   ## with k = 3, we only have one component with more than 1 observation -- this is effectively k=1

@@ -60,7 +60,7 @@ test_marginalEasy_default_starts <- function(){
 
   pmix <- p(truth)
   pm_pmix <- colMeans(p(mc))
-  checkEquals(pmix, pm_pmix, tolerance=0.02)
+  checkEquals(pmix, pm_pmix, tolerance=0.025)
 }
 
 ##.test_wrong_k <- function()## incorrect k
@@ -94,15 +94,17 @@ test_selectK_easy <- function(){
   ## Evaluate at different K
   ##
   mcmcp <- McmcParams(iter=1000, burnin=100, constrainTheta=TRUE)
-  bicstat <- foreach(k = 1:7, .packages="CNPBayes", .combine="c") %dopar% {
-  ##for(k in 1:6){
-    cat(".")
-    params <- ModelParams("marginal", y=y(truth), k=k)
-    model2 <- initializeModel(params)
-    model2 <- posteriorSimulation(model2, mcmcp)
-    bic(model2)
-  }
+  mmodels <- fitMixtureModels(y(truth), mcmcp, K=1:5)
+  bicstat <- sapply(mmodels, bic)
+  mc <- mcmcChains(mmodels[[3]])
+  plot.ts(sigma(mc), col="gray")
   checkIdentical(which.min(bicstat), 3L)
+  if(FALSE){
+    op <- par(mfrow=c(1,2),las=1)
+    plot(truth, use.current=T)
+    plot(mmodels[[3]])
+    par(op)
+  }
 }
 
 

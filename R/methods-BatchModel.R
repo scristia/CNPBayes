@@ -424,6 +424,10 @@ setMethod("updateSigma2", "BatchModel", function(object) {
   .updateSigma2Batch_2(object)
 })
 
+setMethod("updateSigma2", "UnivariateBatchModel", function(object) {
+  .updateSigma2Batch(object)
+})
+
 ##.updateSigma2 <- function(data.list, thetas, nu.0, sigma2.0, n.h){
 .updateSigma2Batch <- function(object){
   sigma2.current <- sigma2(object)
@@ -463,8 +467,9 @@ setMethod("updateSigma2", "BatchModel", function(object) {
   ##tmp <- rgamma(1000, shape=1/2*nu.n[1], rate=1/2*nu.n[1]*sigma2.nh[1])
   sigma2.h <- 1/sigma2.h.tilde
   stopif(any(is.nan(sigma2.h)))
-  if(any(sigma2.h > sd(y(object), na.rm=TRUE)^2)) {
-    sigma2.h <- sigma2.current
+  v <- var(y(object), na.rm=TRUE) + 0.01
+  if(any(sigma2.h > v)) {
+    sigma2.h[sigma2.h > v] <- sigma2.current[sigma2.h > v]
   }
   sigma2.h
 }
@@ -480,7 +485,9 @@ nonZeroCopynumber <- function(object) as.integer(as.integer(z(object)) > 1)
   nz <- nonZeroCopynumber(object)
   if(length(unique(nz)) ==1){
     ## guard against zeros
-    nz[which.min(y(object))] <- 0
+    if(all(nz > 0)){
+      nz[which.min(y(object))] <- 0
+    } else nz[which.max(y(object))] <- 1
   }
   ##n.hp <- table(batch(object), z(object))
   n.hp <- table(batch(object), nz)
@@ -523,8 +530,9 @@ nonZeroCopynumber <- function(object) as.integer(as.integer(z(object)) > 1)
   ##tmp <- rgamma(1000, shape=1/2*nu.n[1], rate=1/2*nu.n[1]*sigma2.nh[1])
   sigma2.h <- 1/sigma2.h.tilde
   ##stopif(any(is.nan(sigma2.h)))
-  if(any(sigma2.h > sd(y(object), na.rm=TRUE)^2)) {
-    sigma2.h <- sigma2.current
+  v <- var(y(object), na.rm=TRUE) + 0.01
+  if(any(sigma2.h > v)) {
+    sigma2.h[sigma2.h > v] <- sigma2.current[sigma2.h > v]
   }
   ##
   ## return matrix of original dimension

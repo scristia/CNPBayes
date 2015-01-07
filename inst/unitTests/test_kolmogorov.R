@@ -16,5 +16,5 @@ test_KolmogorovSmirnov <- function(){
   ## - collapse using KS test for two distributions
   mcmcp <- McmcParams(iter=1000, burnin=200)
   truth2 <- collapseBatch(truth, mcmcp)
-  checkIdentical(uniqueBatch(truth2), c("a-b", "c"))
+  checkIdentical(uniqueBatch(truth2), c("a,b", "c"))
 }

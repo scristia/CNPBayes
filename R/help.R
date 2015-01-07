@@ -16,6 +16,7 @@
 #' @importFrom foreach %do% %dopar% foreach
 #' @importFrom matrixStats colSds
 #' @importFrom HardyWeinberg HWChisq
+#' @importFrom oligoClasses copyNumber
 #' @useDynLib CNPBayes
 NULL
 

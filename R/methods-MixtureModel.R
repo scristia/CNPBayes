@@ -173,7 +173,6 @@ updateAll <- function(post, move_chain, s, constrainTheta=TRUE){
   ##   - note these are independent in the prior
   ##
   theta(post) <- updateTheta(post, constrain=constrainTheta)
-  ##theta(post) <- updateTheta(post, constrain=s)
   sigma2(post) <- updateSigma2(post)
   ##
   ## update (mu, tau2)
@@ -223,6 +222,7 @@ setMethod("probz", "MixtureModel", function(object) object@probz)
 
 #' @export
 posteriorSimulation <- function(post, mcmcp){
+  mcmcChains(post) <- McmcChains(post, mcmcp)
   niter <- iter(mcmcp)
   ##
   ## Record initial values
@@ -247,9 +247,8 @@ posteriorSimulation <- function(post, mcmcp){
       post <- reorderComponents(post)
     }
     ## make the first iteration in the stored chain the last iteration from the mcmc
-    moveChain(post, 1)
+    post <- moveChain(post, 1)
   }
-  ##browser()
   if(niter==0) return(post)
   ##browser()
   if(FALSE){
@@ -262,7 +261,7 @@ posteriorSimulation <- function(post, mcmcp){
   ##
   ## By starting at 2, the last iteration from the burnin or (if no
   ## burnin) the starting values are the first element in the chains
-  S <- 2:savedIterations(mcmcp)
+  S <- 2:(savedIterations(mcmcp)+1)
   ##browser()
   for(s in S){
     post <- updateAll(post, TRUE, s, constrainTheta=constrainTheta(mcmcp))
@@ -272,7 +271,7 @@ posteriorSimulation <- function(post, mcmcp){
       }
     }
   }
-  probz(post) <- probz(post)/(savedIterations(mcmcp))
+  probz(post) <- probz(post)/(savedIterations(mcmcp)+1)
   post
 }
 
@@ -552,7 +551,7 @@ ksTest <- function(object){
       ##cat(" ")
       b1 <- uB[j]
       b2 <- uB[k]
-      stat <- ks.test(yy[B==b1], yy[B==b2])
+      stat <- suppressWarnings(ks.test(yy[B==b1], yy[B==b2]))
       ks[i, ] <- c(b1, b2, stat$statistic, stat$p.value)
       i <- i+1
     }
@@ -571,7 +570,7 @@ ksTest <- function(object){
       if(k <= j) next() ## next k
       b1 <- uB[j]
       b2 <- uB[k]
-      stat <- ks.test(yy[B==b1], yy[B==b2])
+      stat <- suppressWarnings(ks.test(yy[B==b1], yy[B==b2]))
       if(stat$p.value < 0.1) next()
       b <- paste(b1, b2, sep=",")
       B[B %in% b1 | B %in% b2] <- b
@@ -626,3 +625,45 @@ HardyWeinberg <- function(object){
 setMethod("hwe", "MixtureModel", function(object) object@hwe)
 
 map <- function(object) apply(probz(object), 1, which.max)
+
+
+
+setMethod("fitMixtureModels", "numeric", function(object, mcmcp, K=1:5){
+  fit <- vector("list", length(K))
+  message("Fitting ", length(K), " mixture models")
+  fit <- foreach(j = seq_along(K)) %do% {
+    cat(".")
+    k <- K[j]
+    params <- ModelParams("marginal", y=object, k=k,
+                          batch=batch(model),
+                          mcmc.params=mcmcp)
+    modelk <- initializeModel(params)
+    modelk <- posteriorSimulation(modelk, mcmcp)
+    modelk
+  }
+  fit
+})
+
+setMethod("fitMixtureModels", "SummarizedExperiment", function(object, mcmcp, K=1:5){
+  cn <- copyNumber(object)[1, ]
+  plt <- object$plate
+  params <- ModelParams("batch", y=cn, k=1,
+                        batch=plt,
+                        mcmc.params=mcmcp)
+  model <- initializeModel(params)
+  message("Defining batch variable")
+  model <- collapseBatch(model, mcmcp)
+  fit <- vector("list", length(K))
+  message("Fitting ", length(K), " mixture models")
+  fit <- foreach(j = seq_along(K)) %do% {
+    cat(".")
+    k <- K[j]
+    params <- ModelParams("batch", y=cn, k=k,
+                          batch=batch(model),
+                          mcmc.params=mcmcp)
+    modelk <- initializeModel(params)
+    modelk <- posteriorSimulation(modelk, mcmcp)
+    modelk
+  }
+  fit
+})

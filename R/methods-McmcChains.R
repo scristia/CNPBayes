@@ -20,7 +20,8 @@
 ##}
 
 .initializeMcmc <- function(object, mcmc.params){
-  nr <- iter(mcmc.params)/thin(mcmc.params)
+  ## add 1 for starting values (either the last run from the burnin, or default values if no burnin
+  nr <- iter(mcmc.params)/thin(mcmc.params) + 1
   K <- k(object)
   mat <- matrix(NA, nr, K)
   vec <- numeric(nr)
