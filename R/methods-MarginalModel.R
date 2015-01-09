@@ -109,11 +109,12 @@ setMethod("startingValues", "MarginalModel", function(object){
   tmp.file <- tempfile()
   sink(tmp.file)
   mmfit <- normalmixEM(y(object), arbvar = FALSE,
-                       epsilon = 1e-03, k=k(hypp), maxit=20)
+                       epsilon = 1e-03, k=k(hypp), maxit=2000)
   sink()
   unlink(tmp.file)
   mus <- mmfit$mu
   vars <- (mmfit$sigma[order(mmfit$mu)])^2
+  if(FALSE){
   if(k(object) >= 3 && any(y(object) < - 1.5)) {
     ## set first component to be near the expected mean for homozygous deletions
     mus[1] <- median(y(object)[y(object) < -1.5])
@@ -123,10 +124,12 @@ setMethod("startingValues", "MarginalModel", function(object){
     ## the variance may be overestimated
     vars[1] <- var(y(object)[y(object) < -1.5])
     vars[2:k(object)] <- var(y(object)[y(object) > -1.5 & y(object) < -0.15])
+
+    ## initialize using the posterior
   }
+}
   theta(object) <- mus
   sigma2(object) <- vars
-
   object
 })
 
@@ -459,4 +462,37 @@ setMethod("updateWithPosteriorMeans", "MarginalModel", function(object){
   logpotential(object) <- computePotential(object)
   z(object) <- factor(map(object), levels=seq_len(k(object)))
   object
+})
+
+setMethod("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
+  mc <- mcmcChains(x)
+  pot <- logpotential(mc)
+  index <- which.max(pot)
+  thetas <- theta(mc)[index, ]
+  if(identical(thetas, sort(thetas))){
+    ## nothing to do
+    return(x)
+  }
+  cn <- order(thetas)
+  theta(mc) <- theta(mc)[, cn]
+  theta(x) <- theta(x)[cn]
+
+  sigma2(mc) <- sigma2(mc)[, cn]
+  sigma2(x) <- sigma2(x)[cn]
+
+  p(mc) <- p(mc)[, cn]
+  p(x) <- p(x)[cn]
+
+  mu(x) <- mu(x)[cn]
+  tau2(x) <- tau2(x)[cn]
+
+  probz(x) <- probz(x)[, cn]
+
+
+  zz <- as.integer(z(x))
+  z(x) <- factor(as.integer(factor(zz, levels=cn)), levels=sort(unique(zz)))
+  dataMean(x) <- dataMean(x)[cn]
+  dataPrec(x) <- dataPrec(x)[cn]
+  mcmcChains(x) <- mc
+  x
 })

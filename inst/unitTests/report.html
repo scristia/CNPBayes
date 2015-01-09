@@ -1,10 +1,10 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/transitional.dtd">
-<html><head><title>RUNIT TEST PROTOCOL--Wed Jan  7 14:17:51 2015</title>
+<html><head><title>RUNIT TEST PROTOCOL--Thu Jan  8 18:15:39 2015</title>
 </head>
-<body><h1 TRUE>RUNIT TEST PROTOCOL--Wed Jan  7 14:17:51 2015</h1>
-<p>Number of test functions: 16</p>
-<p style=color:red>Number of errors: 1</p>
+<body><h1 TRUE>RUNIT TEST PROTOCOL--Thu Jan  8 18:15:39 2015</h1>
+<p>Number of test functions: 13</p>
+<p>Number of errors: 0</p>
 <p style=color:red>Number of failures: 2</p>
 <hr>
 <h3 TRUE>1 Test suite</h3>
@@ -15,20 +15,9 @@
 <th width="20%">Failures</th>
 </tr>
 <tr><td><a href="#CNPBayes unit testing">CNPBayes unit testing</a></td>
-<td>16</td>
-<td bgcolor="red">1</td>
+<td>13</td>
+<td>0</td>
 <td bgcolor="red">2</td>
-</tr>
-</table>
-<hr>
-<h3 TRUE>Errors</h3>
-<table border="1" width="100%" >
-<tr><th width="30%">Test suite : test function</th>
-<th width="70%">message</th>
-</tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_posthoc.R_test_posthoc">CNPBayes unit testing : test_posthoc</a></td>
-<td>Error in func() : could not find function "copyNumber"
-</td>
 </tr>
 </table>
 <hr>
@@ -37,22 +26,25 @@
 <tr><th width="30%">Test suite : test function</th>
 <th width="70%">message</th>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp707">CNPBayes unit testing : test_cnp707</a></td>
-<td>Error in checkIdentical(c(9718L, 0L, 0L), freq) : FALSE 
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_moderate">CNPBayes unit testing : test_selectK_batch_moderate</a></td>
+<td>Error in checkEquals(pmns, as.numeric(theta(truth)), tolerance = 0.03) : 
+  Mean relative difference: 0.4202382
 </td>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">CNPBayes unit testing : test_selectK_easy</a></td>
-<td>Error in checkIdentical(which.min(bicstat), 3L) : FALSE 
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_priors_misspecified">CNPBayes unit testing : test_marginal_priors_misspecified</a></td>
+<td>Error in checkEquals(pmns, theta(truth), tolerance = 0.09) : 
+  Mean relative difference: 0.137625
 </td>
 </tr>
 </table>
 <hr>
 <h3 TRUE>Details</h3>
 <p><a name="CNPBayes unit testing"><h5 TRUE>Test Suite: CNPBayes unit testing</h5>
-</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">test_batchEasy: (3 checks) ... OK (62.16 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp360">test_cnp360: (0 checks) ... OK (420.28 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp472">test_cnp472: (0 checks) ... OK (689.59 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp707"><u style=color:red>test_cnp707: FAILURE !! (check number 1)  </u></a>Error in checkIdentical(c(9718L, 0L, 0L), freq) : FALSE 
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">test_hard3: (3 checks) ... OK (191.41 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy">test_selectK_batch_easy: (1 checks) ... OK (434.67 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_moderate">test_selectK_batch_moderate: (3 checks) ... OK (120.21 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (1 checks) ... OK (0.1 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy_default_starts">test_marginalEasy_default_starts: (3 checks) ... OK (15.39 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (3 checks) ... OK (34.55 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">test_marginal_Moderate: (3 checks) ... OK (33.87 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_priors_misspecified">test_marginal_priors_misspecified: (3 checks) ... OK (33.37 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy"><u style=color:red>test_selectK_easy: FAILURE !! (check number 1)  </u></a>Error in checkIdentical(which.min(bicstat), 3L) : FALSE 
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_hard">test_selectK_hard: (1 checks) ... OK (130.58 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_moderate">test_selectK_moderate: (1 checks) ... OK (86 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_posthoc.R">Test file: test_posthoc.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_posthoc.R_test_posthoc"><u style=color:red>test_posthoc: ERROR !!  </u></a>Error in func() : could not find function "copyNumber"
-<br/></li></ul></li></ul><hr>
+</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">test_batchEasy: (3 checks) ... OK (79.49 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">test_hard3: (3 checks) ... OK (244.61 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy">test_selectK_batch_easy: (1 checks) ... OK (453.46 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_moderate"><u style=color:red>test_selectK_batch_moderate: FAILURE !! (check number 1)  </u></a>Error in checkEquals(pmns, as.numeric(theta(truth)), tolerance = 0.03) : 
+  Mean relative difference: 0.4202382
+<br/></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (1 checks) ... OK (0.11 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy_default_starts">test_marginalEasy_default_starts: (3 checks) ... OK (23.4 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (3 checks) ... OK (27.16 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">test_marginal_Moderate: (3 checks) ... OK (27.54 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_priors_misspecified"><u style=color:red>test_marginal_priors_misspecified: FAILURE !! (check number 1)  </u></a>Error in checkEquals(pmns, theta(truth), tolerance = 0.09) : 
+  Mean relative difference: 0.137625
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">test_selectK_easy: (1 checks) ... OK (151.57 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_hard">test_selectK_hard: (1 checks) ... OK (140.16 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_moderate">test_selectK_moderate: (1 checks) ... OK (127.9 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (14 checks) ... OK (1.1 seconds)<br/></a></li></ul></li></li></ul><hr>
 <table border="0" width="80%" >
 <tr><th>Name</th>
 <th>Value</th>
@@ -85,22 +77,22 @@
 <td>01</td>
 </tr>
 <tr><td>day</td>
-<td>07</td>
+<td>08</td>
 </tr>
 <tr><td>svn rev</td>
-<td>67342</td>
+<td>67366</td>
 </tr>
 <tr><td>language</td>
 <td>R</td>
 </tr>
 <tr><td>version.string</td>
-<td>R Under development (unstable) (2015-01-07 r67342)</td>
+<td>R Under development (unstable) (2015-01-08 r67366)</td>
 </tr>
 <tr><td>nickname</td>
 <td>Unsuffered Consequences</td>
 </tr>
 <tr><td>host</td>
-<td>compute-039</td>
+<td>compute-055</td>
 </tr>
 <tr><td>compiler</td>
 <td>/usr/bin/g++</td>

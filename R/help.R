@@ -4,6 +4,7 @@
 #' @name CNPBayes
 #' @import methods
 #' @import GenomicRanges
+#' @import S4Vectors
 #' @import mixtools
 #' @importFrom gtools rdirichlet
 #' @importFrom msm rtnorm
@@ -12,6 +13,7 @@
 #' @import Rcpp
 #' @import RcppArmadillo
 #' @import GenomeInfoDb
+#' @import BiocGenerics
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% %dopar% foreach
 #' @importFrom matrixStats colSds
@@ -23,3 +25,5 @@ NULL
 ## what are we iimporting in gtools?
 ## HMisc rMultinom
 ## gtools rdirichlet
+
+## S4Vectors is needed for the  SimpleList constructor

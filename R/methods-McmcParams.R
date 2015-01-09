@@ -1,5 +1,5 @@
 #' @export
-McmcParams <- function(iter=1000L, burnin=0L, thin=1L, constrainTheta=TRUE){
+McmcParams <- function(iter=1000L, burnin=0L, thin=1L, constrainTheta=FALSE){
   new("McmcParams", iter=iter, burnin=burnin, thin=thin, constrainTheta=constrainTheta)
 }
 
@@ -15,4 +15,5 @@ setMethod("show", "McmcParams", function(object){
   cat("   iterations:", iter(object), "\n")
   cat("   burnin    :", burnin(object), "\n")
   cat("   thin      :", thin(object), "\n")
+  cat("   constrain theta:", constrainTheta(object), "\n")
 })

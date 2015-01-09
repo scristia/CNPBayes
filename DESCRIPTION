@@ -1,13 +1,14 @@
 Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
-Version: 0.0.8
-Date: Wed Jan  7 14:40:39 EST 2015
+Version: 0.0.9
+Date: Thu Jan  8 22:33:53 EST 2015
 Author: S. Cristiano
 Depends:
     Rcpp (>= 0.10.4),
     RcppArmadillo (>= 0.2.0),
-    foreach
+    foreach,
+    BiocGenerics
 Imports:
     Hmisc,
     GenomicRanges,
@@ -20,7 +21,8 @@ Imports:
     GenomeInfoDb,
     msm,
     HardyWeinberg,
-    oligoClasses
+    oligoClasses,
+    S4Vectors
 Suggests:
     RUnit
 Collate:
