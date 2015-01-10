@@ -323,7 +323,7 @@ setMethod("batchCorrect", "BatchModel", function(object){
     tabz <- table(batch(object), zz)
     ttl <- rowSums(tabz)
     pi <- tabz/ttl
-    pi <- pi[uniqueBatch(object), ]
+    pi <- pi[uniqueBatch(object), , drop=FALSE]
 
     thetas <- matrix(colMeans(thetac(object)), nBatch(object), k(object))
     sds <- matrix(colMeans(sigmac(object)), nBatch(object), k(object))
@@ -522,6 +522,7 @@ setMethod("updateSigma2", "UnivariateBatchModel", function(object) {
   ## guard against zeros
   ##
   n.hp <- pmax(n.hp, 1)
+  n.hp <- n.hp[uniqueBatch(object), , drop=FALSE]
   ##
   ##
   nu.n <- nu.0(object) + n.hp
@@ -529,16 +530,8 @@ setMethod("updateSigma2", "UnivariateBatchModel", function(object) {
   thetas <- theta(object)
   rownames(thetas) <- uniqueBatch(object)
   B <- batch(object)
-  ss <- matrix(NA, nBatch(object), k(object))
-  rownames(ss) <- rownames(thetas)
-  for(b in uniqueBatch(object)){
-    yy <- y(object)[B==b]
-    zz <- z(object)[B==b]
-    m <- thetas[b, ]
-    m <- m[as.integer(zz)]
-    squares <- (yy - m)^2
-    ss[b, ] <- sapply(split(squares, zz), sum)
-  }
+  ss <- sumSquares(object)
+  if(k(object) == 1) ss <- ss[, 1, drop=FALSE]
   ##
   ## weighted average of sums of squares
   ##
