@@ -99,7 +99,6 @@ setGeneric("theta", function(object) standardGeneric("theta"))
 #' @export
 setGeneric("sigma2", function(object) standardGeneric("sigma2"))
 
-#' @export
 setGeneric("reorderComponents", function(object) standardGeneric("reorderComponents"))
 
 #' @export
@@ -108,8 +107,19 @@ setGeneric("hwe", function(object) standardGeneric("hwe"))
 #' @export
 setGeneric("probz", function(object) standardGeneric("probz"))
 
-#' @export
 setGeneric("probz<-", function(object, value) standardGeneric("probz<-"))
 
 #' @export
 setGeneric("fitMixtureModels", function(object, mcmcp, K=1:5) standardGeneric("fitMixtureModels"))
+
+#' @export
+setGeneric("nu.0", function(object) standardGeneric("nu.0"))
+
+#' @export
+setGeneric("sigma2.0", function(object) standardGeneric("sigma2.0"))
+
+#' @export
+setGeneric("y", function(object) standardGeneric("y"))
+
+#' @export
+setGeneric("z", function(object) standardGeneric("z"))

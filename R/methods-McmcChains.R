@@ -108,6 +108,9 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+setMethod("nu.0", "McmcChains", function(object) object@nu.0)
+
+setMethod("sigma2.0", "McmcChains", function(object) object@sigma2.0)
 
 setReplaceMethod("theta", "McmcChains", function(object, value){
   object@theta <- value

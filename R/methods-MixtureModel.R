@@ -22,21 +22,16 @@ observed <- function(object) object@data
 #' @export
 sigma <- function(object) sqrt(sigma2(object))
 
-
 #' @export
 tau <- function(object) sqrt(tau2(object))
 
-#' @export
-nu.0 <- function(object) object@nu.0
+setMethod("nu.0", "MixtureModel", function(object) object@nu.0)
 
-#' @export
-sigma2.0 <- function(object) object@sigma2.0
+setMethod("sigma2.0", "MixtureModel", function(object) object@sigma2.0)
 
-#' @export
-y <- function(object) object@data
+setMethod("y", "MixtureModel", function(object) object@data)
 
-#' @export
-z <- function(object) object@z
+setMethod("z", "MixtureModel", function(object) object@z)
 
 #' @export
 p <- function(object) object@pi
@@ -240,7 +235,7 @@ runBurnin <- function(object, mcmcp){
   ## had the largest potential.  This requires storing the chain
   ## during burin.  Reordering is important for the sigma2s (i.e,
   ## sigma2_j = sigma2_j' for all j and j' greater than 1 browser()
-  object <- sort(object)
+  ## object <- sort(object)
   ##mcmcChains(object) <- McmcChains(object, mcmcp)
   object
 }
@@ -283,6 +278,7 @@ posteriorSimulation <- function(post, mcmcp){
   ##
   post <- runMcmc(post, mcmcp)
   probz(post) <- probz(post)/(savedIterations(mcmcp)+1)
+  post <- sort(post)
   post
 }
 
@@ -695,3 +691,5 @@ sigmac <- function(object) sigma(mcmcChains(object))
 
 #' @export
 pic <- function(object) p(mcmcChains(object))
+
+muc <- function(object) mu(mcmcChains(object))

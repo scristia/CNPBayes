@@ -16,6 +16,8 @@ type <- function(object) object@type
 
 setMethod("k", "ModelParams", function(object) object@k)
 
+setMethod("y", "ModelParams", function(object) object@data)
+
 setMethod("batch", "ModelParams", function(object) object@batch)
 
 mcmcParams <- function(object) object@mcmc.params

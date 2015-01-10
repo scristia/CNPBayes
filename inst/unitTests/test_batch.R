@@ -325,3 +325,40 @@ test_hard3 <- function(){
   checkEquals(colMeans(sigma(mc)), as.numeric(sigma(truth)), tolerance=0.05)
   checkEquals(colMeans(p(mc)), as.numeric(p(truth)), tolerance=0.03)
 }
+
+
+
+
+test_unequal_pmix <- function(){
+  library(GenomicRanges)
+  library(oligoClasses)
+  truth <- readRDS("~/Software/CNPBayes/inst/extdata/unequal_mix_model.rds")
+
+  mcmcp <- McmcParams(iter=1000, burnin=1000)
+  params <- ModelParams("batch", y=y(truth), k=3,
+                        batch=batch(truth),
+                        mcmc.params=mcmcp)
+  bmodel <- initializeModel(params)
+  bmodel <- posteriorSimulation(bmodel, mcmcp)
+
+
+
+  th1 <- as.numeric(theta(truth))
+  th2 <- as.numeric(colMeans(thetac(bmodel)))
+  checkEquals(th1, th2, tolerance=0.02)
+
+  th1 <- as.numeric(sigma(truth))
+  th2 <- as.numeric(colMeans(sigmac(bmodel)))
+  checkEquals(th1, th2, tolerance=0.11)
+
+  th1 <- as.numeric(p(truth))
+  th2 <- as.numeric(colMeans(pic(bmodel)))
+  checkEquals(th1, th2, tolerance=0.01)
+
+  if(FALSE){
+    op <- par(mfrow=c(1,2),las=1)
+    plot(truth, use.current=T)
+    plot(bmodel)
+    par(op)
+  }
+}

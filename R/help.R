@@ -9,7 +9,7 @@
 #' @importFrom gtools rdirichlet
 #' @importFrom msm rtnorm
 #' @importFrom truncnorm rtruncnorm
-#' @import Hmisc
+#' @importFrom Hmisc rMultinom
 #' @import Rcpp
 #' @import RcppArmadillo
 #' @import GenomeInfoDb

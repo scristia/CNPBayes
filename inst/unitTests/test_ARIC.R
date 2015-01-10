@@ -1,4 +1,5 @@
 .test_chr4locus <- function(){
+  ## defining a 'truth' for chrom 4 CNP for unit testing
   library(GenomicRanges)
   library(oligoClasses)
   se.ea <- readRDS("~/Labs/ARIC/AricCNPData/data/se_medr_EA.rds")
@@ -17,92 +18,162 @@
   }
   ##mmfit <- mixtools:::normalmixEM(cn, arbvar = T, epsilon = 1e-06, k=3, maxit=2000)
   marg.model <- posteriorSimulation(marg.model, mcmcp)
-  marg.model <- sort(marg.model)
-
-  b.model <- BatchModel(y(marg.model), k(marg.model), batch=se.ea$plate)
-  b <- collapseBatch(b.model)
-  b.model <- BatchModel(y(marg.model), k(marg.model), batch=b)
-  b.model <- startingValues(b.model)
-  mu(b.model) <- theta(marg.model)
-  dataMean(b.model) <- theta(b.model) <- matrix(theta(marg.model), nBatch(b.model), k(b.model), byrow=TRUE)
-  sigma2(b.model) <- matrix(sigma2(marg.model), nBatch(b.model), k(b.model), byrow=TRUE)
-  dataPrec(b.model) <- 1/sigma2(b.model)
-  z(b.model) <- z(marg.model)
-  sigma2.0(b.model) <- sigma2.0(marg.model)
-  nu.0(b.model) <- nu.0(marg.model)
-  tau2(b.model) <- sigma2(b.model)[1, ]/4
-  b.model <- posteriorSimulation(b.model, mcmcp)
-
-###plot(b.model)
-  trace(.plotBatch, browser)
-  .plotBatch(b.model)
-
-  df <- data.frame(y=y(b.model), b=batch(b.model))
-  library(lattice)
-  histogram(~y|b, df)
-
-
-  mcmcp <- McmcParams(iter=1000, burnin=1000)
-  mmodel <- fitMixtureModels(se.ea[1, ], mcmcp, K=3)[[1]]
-  plot(mmodel)
-
-  mcmcp <- McmcParams(iter=2000, burnin=1000)
-  mmodel2 <- posteriorSimulation(mmodel, mcmcp)
-
-  plot(mmodel2)
-
-  se.ea2 <- se.ea[, se.ea$plate!= "BOCKS"]
-  se.ea2$plate <- batch(mmodel)
-  mcmcp <- McmcParams(iter=1, burnin=0)
-  mmodel2 <- fitMixtureModels(se.ea2[1, ], mcmcp, K=3)[[1]]
-
-
-
-  mc <- mcmcChains(mmodel)
-  plot.ts(theta(mc)[, 1:10])
-  mcmcp <- McmcParams(iter=1000, burnin=0)
-  mmodel2 <- posteriorSimulation(mmodel, mcmcp)
-  ##
-  ## Run the marginal model to find good starting values
-  ##
-  library(oligoClasses)
-  mcmcp <- McmcParams(iter=1000, burnin=0)
-  params <- ModelParams("marginal", y=copyNumber(se.ea)[1, ], k=3)
-  mmodel2 <- initializeModel(params)
-  mmodel2 <- posteriorSimulation(mmodel2, mcmcp)
-  plot.ts(theta(mcmcChains(mmodel2)))
-  if(FALSE) plot(mmodel2)
-
-  mcmcp <- McmcParams(iter=1000, burnin=0)
-  ##mmodels <- fitMixtureModels(se.ea[1, ], mcmcp, K=1:5)
-  mmodel <- fitMixtureModels(se.ea[1, ], mcmcp, K=3)[[1]]
-  plot(mmodel)
-
-
-
-  mcmcp <- McmcParams(iter=1000, burnin=1000)
-  mmodel <- posteriorSimulation(mmodel, mcmcp)
-  ##bicstat <- sapply(mmodels, bic)
-  model <- mmodels[[which.min(bicstat)]]
-  saveRDS(model, file="cnp9.rds")
-  model <- readRDS("~/Software/CNPBayes/tests/cnp9.rds")
-  if(FALSE){
-    CNPBayes::plot(model)
+  ##  saveRDS(marg.model, file="~/Software/CNPBayes/inst/unitTests/model_unequal_mix.rds")
+  ##  plot(marg.model)
+  b <- collapseBatch(se.ea[1,])
+  params <- ModelParams("batch", y=copyNumber(se.ea)[1, ], batch=b, k=3,
+                        mcmc.params=mcmcp)
+  truth <- initializeModel(params)
+  z(truth) <- z(marg.model)
+  p(truth) <- sapply(split(z(truth), z(truth)), length)/length(z(truth))
+  ylist <- split(y(truth), z(truth))
+  blist <- split(truth@batch, z(truth))
+  thetas <- foreach(y=ylist, b=blist, .combine="rbind") %do%{
+    sapply(split(y, b), mean)
   }
-  checkIdentical(which.min(bicstat), 3L)
-
-  mcmcp <- McmcParams(iter=1000, burnin=500)
-  mmodels <- fitMixtureModels(se.ea[2, ], mcmcp, K=1:5)
-  bicstat <- sapply(mmodels, bic)
-  model <- mmodels[[which.min(bicstat)]]
-  saveRDS(model, file="cnp10.rds")
-  if(FALSE){
-    op <- par(mfrow=c(1,1),las=1)
-    CNPBayes::plot(mmodel)
-    par(op)
+  thetas <- (t(thetas))[uniqueBatch(truth), ]
+  theta(truth) <- thetas
+  sigmas <- foreach(y=ylist, b=blist, .combine="rbind") %do%{
+    sapply(split(y, b), sd)
   }
-  checkIdentical(which.min(bicstat), 3L)
+  sigmas <- (t(sigmas))[uniqueBatch(truth), ]
+  sigma2(truth) <- sigmas^2
+  dataMean(truth) <- thetas
+  dataPrec(truth) <- 1/sigma2(truth)
+  saveRDS(truth, file="~/Software/CNPBayes/inst/extdata/unequal_mix_model.rds")
 }
+##
+##  pdf("example.pdf", width=10, height=6)
+##  op <- par(mfrow=c(1,3), las=1)
+##  plot(marg.model)
+##  plot(truth, use.current=T, main="truth")
+##  plot(bmodel, "Batch model")
+##  par(op)
+##  dev.off()
+##
+##
+##  op <- par(mfrow=c(1,2), las=1)
+##  plot(truth, use.current=T)
+##  plot(b.model)
+##  par(op)
+##  ##trace(.plotBatch2, browser)
+##  .plotBatch2(truth, use.current=TRUE)
+##
+##  b.model <- truth
+##  mcmcp <- McmcParams(iter=1000, burnin=0)
+##  b.model <- posteriorSimulation(b.model, mcmcp)
+##  plot.ts(thetac(b.model)[, 1:10])
+##  plot.ts(thetac(b.model)[, 11:20], plot.type="single")
+##  plot.ts(thetac(b.model)[, 21:24])
+##  plot.ts(pic(b.model), plot.type="single")
+##  plot.ts(muc(b.model), plot.type="single")
+##  zz <- map(b.model)
+##  table(zz, z(truth))
+##
+##  par(mfrow=c(1, 2), las=1)
+##  plot(truth, use.current=TRUE)
+##  plot(b.model)
+##  trace(.plotBatch, browser)
+##  .plotBatch(b.model)
+##
+##
+##  ## marginal model works well. The question is whether the batch
+##  ## model does just as well, and can be used on some of the more
+##  ## problematic CNPs in which batch appears problematic
+##
+##  b.model <- BatchModel(y(marg.model), k(marg.model), batch=se.ea$plate)
+##  b <- collapseBatch(b.model)
+##
+##  ## what is the empirical mixing probabilities by batch. Can we
+##  ## assume batches have the same pmix?
+##  tabz <- table(z(marg.model), b)
+##  total <- matrix(colSums(tabz), 3, 8, byrow=TRUE)
+##  pmix <- tabz/total
+##
+##
+##  b.model <- BatchModel(y(marg.model), k(marg.model), batch=b)
+##  b.model <- startingValues(b.model)
+##  mu(b.model) <- theta(marg.model)
+##  dataMean(b.model) <- theta(b.model) <- matrix(theta(marg.model), nBatch(b.model), k(b.model), byrow=TRUE)
+##  sigma2(b.model) <- matrix(sigma2(marg.model), nBatch(b.model), k(b.model), byrow=TRUE)
+##  dataPrec(b.model) <- 1/sigma2(b.model)
+##  z(b.model) <- z(marg.model)
+##  sigma2.0(b.model) <- sigma2.0(marg.model)
+##  nu.0(b.model) <- nu.0(marg.model)
+##  tau2(b.model) <- sigma2(b.model)[1, ]/4
+##  b.model <- posteriorSimulation(b.model, mcmcp)
+##
+##  plot(b.model)
+##  ##plot(b.model)
+##  trace(.plotBatch, browser)
+##  .plotBatch(b.model)
+##
+##  df <- data.frame(y=y(b.model), b=batch(b.model))
+##  library(lattice)
+##  histogram(~y|b, df)
+##
+##
+##  mcmcp <- McmcParams(iter=1000, burnin=1000)
+##  mmodel <- fitMixtureModels(se.ea[1, ], mcmcp, K=3)[[1]]
+##  plot(mmodel)
+##
+##  mcmcp <- McmcParams(iter=2000, burnin=1000)
+##  mmodel2 <- posteriorSimulation(mmodel, mcmcp)
+##
+##  plot(mmodel2)
+##
+##  se.ea2 <- se.ea[, se.ea$plate!= "BOCKS"]
+##  se.ea2$plate <- batch(mmodel)
+##  mcmcp <- McmcParams(iter=1, burnin=0)
+##  mmodel2 <- fitMixtureModels(se.ea2[1, ], mcmcp, K=3)[[1]]
+##
+##
+##
+##  mc <- mcmcChains(mmodel)
+##  plot.ts(theta(mc)[, 1:10])
+##  mcmcp <- McmcParams(iter=1000, burnin=0)
+##  mmodel2 <- posteriorSimulation(mmodel, mcmcp)
+##  ##
+##  ## Run the marginal model to find good starting values
+##  ##
+##  library(oligoClasses)
+##  mcmcp <- McmcParams(iter=1000, burnin=0)
+##  params <- ModelParams("marginal", y=copyNumber(se.ea)[1, ], k=3)
+##  mmodel2 <- initializeModel(params)
+##  mmodel2 <- posteriorSimulation(mmodel2, mcmcp)
+##  plot.ts(theta(mcmcChains(mmodel2)))
+##  if(FALSE) plot(mmodel2)
+##
+##  mcmcp <- McmcParams(iter=1000, burnin=0)
+##  ##mmodels <- fitMixtureModels(se.ea[1, ], mcmcp, K=1:5)
+##  mmodel <- fitMixtureModels(se.ea[1, ], mcmcp, K=3)[[1]]
+##  plot(mmodel)
+##
+##
+##
+##  mcmcp <- McmcParams(iter=1000, burnin=1000)
+##  mmodel <- posteriorSimulation(mmodel, mcmcp)
+##  ##bicstat <- sapply(mmodels, bic)
+##  model <- mmodels[[which.min(bicstat)]]
+##  saveRDS(model, file="cnp9.rds")
+##  model <- readRDS("~/Software/CNPBayes/tests/cnp9.rds")
+##  if(FALSE){
+##    CNPBayes::plot(model)
+##  }
+##  checkIdentical(which.min(bicstat), 3L)
+##
+##  mcmcp <- McmcParams(iter=1000, burnin=500)
+##  mmodels <- fitMixtureModels(se.ea[2, ], mcmcp, K=1:5)
+##  bicstat <- sapply(mmodels, bic)
+##  model <- mmodels[[which.min(bicstat)]]
+##  saveRDS(model, file="cnp10.rds")
+##  if(FALSE){
+##    op <- par(mfrow=c(1,1),las=1)
+##    CNPBayes::plot(mmodel)
+##    par(op)
+##  }
+##  checkIdentical(which.min(bicstat), 3L)
+##}
 
 .test_cnp360 <- function(){
   library(GenomicRanges)
@@ -111,105 +182,71 @@
   j <- subjectHits(findOverlaps(rowData(se360), rowData(se.ea)))[1]
   se360 <- se.ea[j, ]
 
-  phenodata <- readRDS("~/Labs/ARIC/aricPhenotypes/data/phenotypes.rds")
-  phenodata <- phenodata[phenodata$racegrp == "W",]
-  se360 <- se360[, colnames(se360) %in% phenodata$cel_id]
 
-
-  r <- assays(se360)[["mean"]][1, ]
-  freq <- table(se360$chemplate)
-  if(FALSE) hist(r, breaks=1000, col="gray", border="gray")
-  mcmcp <- McmcParams(iter=1000, burnin=500)
-
-  mmodel <- fitMixtureModels()
-  params <- ModelParams("batch", y=r, k=3,
-                        batch=se360$chemplate,
+  b <- collapseBatch(se360[1,])
+  mcmcp <- McmcParams(iter=1000, burnin=1000)
+  params <- ModelParams("batch", y=copyNumber(se360)[1, ], batch=b, k=3,
                         mcmc.params=mcmcp)
-  modelk <- initializeModel(params)
-  modelk2 <- collapseBatch(modelk, mcmcp)
-  modelk3 <- posteriorSimulation(modelk2, mcmcp)
-
+  bmodel <- initializeModel(params)
+  bmodel <- posteriorSimulation(bmodel, mcmcp)
+  zz <- map(bmodel)
+  is_homozygous <- zz==1
+  checkTrue(sum(is_homozygous) >= 2 & sum(is_homozygous) <=4)
 
   if(FALSE){
-    saveRDS(modelk3, file="~/Software/CNPBayes/inst/unitTests/model_360.rds")
-    saveRDS(batch(modelk3), file="~/Software/CNPBayes/inst/extdata/batch_ks.rds")
-
-    op <- par(mfrow=c(1,1),las=1)
-    CNPBayes::plot(modelk3)
-    par(op)
-
-    ##
-    ##
-    ##
-    index <- which(z(modelk3)==3)
-    y(modelk3)[index]## large values -- could be real, or outliers. Would need BAFs to verify
-    bic(modelk3)
-
-    params <- ModelParams("batch", y=r, k=4,
-                          batch=batch(modelk3),
+    params <- ModelParams("batch", y=copyNumber(se360)[1, ], batch=b, k=2,
                           mcmc.params=mcmcp)
-    modelk4 <- initializeModel(params)
-    modelk4 <- posteriorSimulation(modelk4, mcmcp)
-    table(z(modelk4))
-    bic(modelk4)
-
-    ##
-    ## call homozygous deletions post-hoc?
-    ##
-    params <- ModelParams("batch", y=r, k=2,
-                          batch=batch(modelk3),
-                          mcmc.params=mcmcp)
-    modelk2 <- initializeModel(params)
-    modelk2 <- posteriorSimulation(modelk2, mcmcp)
-    bic(modelk2)
-
-    ## the k = 3 model is selected by bic
-    sum(r(modelk3) < -2)
-
-    ##
-    mc <- mcmcChains(model)
-    ps <- colMeans(sigma(mc))
-    checkEquals(ps, as.numeric(sigma(truth)), tolerance=0.1)
-
-    pmns <- colMeans(theta(mc))
-    checkEquals(pmns, as.numeric(theta(truth)), tolerance=0.15)
-    pmix <- colMeans(p(mc))
-    ## FALSE
-    checkEquals(pmix, p(truth), tolerance=0.1)
-    plot.ts(sigma2(mc), col="gray")
+    bmodel2 <- initializeModel(params)
+    bmodel2 <- posteriorSimulation(bmodel2, mcmcp)
   }
 
-  ##modelk <- initializeModel(params)
-  ##  params <- ModelParams("marginal", y=r, k=3, batch=rep("A", length(r)),
-  ##                        mcmc.params=mcmcp)
-  ##  model <- initializeModel(params)
-  ##  model <- posteriorSimulation(model, mcmcParams(params))
-  ##  mc <- mcmcChains(model)
-  ##  plot.ts(theta(mc), col="gray")
-  ##  plot(model)
-  ##  bic(model)
+  if(FALSE){
+    op <- par(mfrow=c(1,1),las=1)
+    CNPBayes::plot(bmodel)
+    par(op)
+  }
 }
 
 
 .test_cnp472 <- function(){
   library(GenomicRanges)
+  library(oligoClasses)
   se472 <- readRDS("~/Software/CNPBayes/inst/extdata/se_cnp472.rds")
   se.ea <- readRDS("~/Labs/ARIC/AricCNPData/data/se_medr_EA.rds")
-  se472 <- readRDS("~/Software/CNPBayes/inst/extdata/se_cnp360.rds")
   j <- subjectHits(findOverlaps(rowData(se472), rowData(se.ea)))[1]
   se472 <- se.ea[j, ]
 
   ##
   ## Batches may differ between CNPs
   ##
-  mcmcp <- McmcParams(iter=1000, burnin=500)
-  mmodels <- fitMixtureModels(se472, mcmcp, K=1:3)
+  b <- collapseBatch(se472[1,])
+  mcmcp <- McmcParams(iter=1000, burnin=1000)
+  params <- ModelParams("batch", y=copyNumber(se472)[1, ], batch=b, k=3,
+                        mcmc.params=mcmcp)
+  bmodel <- initializeModel(params)
+  bmodel <- posteriorSimulation(bmodel, mcmcp)
 
-  op <- par(mfrow=c(1,1),las=1)
-  CNPBayes::plot(mmodels[[2]])
-  par(op)
+  zz <- map(bmodel)
+  sei <- readRDS("~/Labs/ARIC/AricCNPData/data/intensity_472.rds")
+  table(colnames(se472) %in% colnames(sei))
+  zz <- zz[colnames(se472) %in% colnames(sei)]
+  ##zz <- colnames(se472)[colnames(se472) %in% colnames(sei)]
+  se472 <- se472[, colnames(se472) %in% colnames(sei)]
+  sei <- sei[, colnames(se472)]
+  df <- data.frame(a=log2(assays(sei)[["A"]])[1,],
+                   b=log2(assays(sei)[["B"]])[1,],
+                   z=zz)
+  library(lattice)
+  xyplot(b~a, df[zz==2, ], pch=20, cex=0.3)
+  xyplot(b~a, df, pch=20, cex=0.3, col=zz)
+
+  ##mcmcp <- McmcParams(iter=1000, burnin=500)
+  ##mmodels <- fitMixtureModels(se472, mcmcp, K=1:3)
   ##plot(y(modelk3)~z(modelk3))
   if(FALSE){
+    op <- par(mfrow=c(1,1),las=1)
+    CNPBayes::plot(mmodels[[2]])
+    par(op)
     se_snps <- readRDS("~/Software/CNPBayes/inst/extdata/se_snps472.rds")
     se_snps <- se_snps[, colnames(se472)]
     df <- data.frame(A=as.numeric(A(se_snps)),
@@ -221,16 +258,21 @@
 
 .test_cnp707 <- function(){
   library(GenomicRanges)
+  library(oligoClasses)
   se707 <- readRDS("~/Software/CNPBayes/inst/extdata/se_cnp707.rds")
-  phenodata <- readRDS("~/Labs/ARIC/aricPhenotypes/data/phenotypes.rds")
-  phenodata <- phenodata[phenodata$racegrp == "W",]
-  se707 <- se707[, colnames(se707) %in% phenodata$cel_id]
-  se707 <- SummarizedExperiment(assays=SimpleList(medr=assays(se707)[["mean"]]),
-                                rowData=rowData(se707),
-                                colData=colData(se707))
-  colnames(colData(se707)) <- "plate"
+  se.ea <- readRDS("~/Labs/ARIC/AricCNPData/data/se_medr_EA.rds")
+  j <- subjectHits(findOverlaps(rowData(se707), rowData(se.ea)))[1]
+  se707 <- se.ea[j, ]
+
   mcmcp <- McmcParams(iter=1000, burnin=500)
-  mmodel <- fitMixtureModels(se707, mcmcp, K=3)[[1]]
+
+  b <- collapseBatch(se707[1,])
+  mcmcp <- McmcParams(iter=1000, burnin=1000)
+  params <- ModelParams("batch", y=copyNumber(se707)[1, ], batch=b, k=3,
+                        mcmc.params=mcmcp)
+  bmodel <- initializeModel(params)
+  bmodel <- posteriorSimulation(bmodel, mcmcp)
+
   ##
   ## Batches may differ between CNPs
   ##

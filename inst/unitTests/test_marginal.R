@@ -76,13 +76,6 @@ test_marginalEasy_default_starts <- function(){
 test_selectK_easy <- function(){
   ## Need to replace setParallelization with source code
   ## -investigate BiocParallel
-  if(FALSE){
-    if(require(doSNOW)){
-      library(doSNOW)
-      cl <- makeCluster(7, type = "SOCK")
-      registerDoSNOW(cl)
-    }
-  }
   library(foreach)
   set.seed(1000)
   means <- c(-1, 0, 1)
@@ -155,7 +148,7 @@ test_bad_starts <- function(){
                         means=c(-1, 0.4, 0.75),
                         sds=c(0.3, 0.1, 0.1),
                         .alpha=c(100, 200, 100))
-  mcmcp <- McmcParams(iter=1000, burnin=1000)
+  mcmcp <- McmcParams(iter=1000, burnin=3000)
   params <- ModelParams("marginal", y=y(truth), k=3, mcmc.params=mcmcp)
   model <- initializeModel(params)
   model <- posteriorSimulation(model, mcmcp)
@@ -188,7 +181,6 @@ test_marginal_hard <- function(){
   ## Rare components
   ##
   set.seed(2000)
-    set.seed(1000)
   truth <- simulateData(N=2500,
                         means=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
