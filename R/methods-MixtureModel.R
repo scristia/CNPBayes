@@ -22,21 +22,16 @@ observed <- function(object) object@data
 #' @export
 sigma <- function(object) sqrt(sigma2(object))
 
-
 #' @export
 tau <- function(object) sqrt(tau2(object))
 
-#' @export
-nu.0 <- function(object) object@nu.0
+setMethod("nu.0", "MixtureModel", function(object) object@nu.0)
 
-#' @export
-sigma2.0 <- function(object) object@sigma2.0
+setMethod("sigma2.0", "MixtureModel", function(object) object@sigma2.0)
 
-#' @export
-y <- function(object) object@data
+setMethod("y", "MixtureModel", function(object) object@data)
 
-#' @export
-z <- function(object) object@z
+setMethod("z", "MixtureModel", function(object) object@z)
 
 #' @export
 p <- function(object) object@pi
@@ -106,12 +101,15 @@ setReplaceMethod("mcmcChains", "MixtureModel", function(object, value){
 
 setGeneric("showMeans", function(object) standardGeneric("showMeans"))
 setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
+
 setMethod("showMeans", "MarginalModel", function(object){
   paste(round(theta(object), 2), collapse=", ")
 })
+
 setMethod("showSigmas", "MarginalModel", function(object){
   paste(round(sqrt(sigma2(object)), 2), collapse=", ")
 })
+
 setMethod("showMeans", "BatchModel", function(object){
   thetas <- round(theta(object), 2)
 ##  dimnames(thetas) <- list(paste0("batch", uniqueBatch(object)),
@@ -167,13 +165,12 @@ tablez <- function(post){
 }
 
 
-updateAll <- function(post, move_chain, s, constrainTheta=TRUE){
+updateAll <- function(post, move_chain, constrainTheta=TRUE){
   ##
   ## sample new value of (theta_h, sigma2_h)
   ##   - note these are independent in the prior
   ##
   theta(post) <- updateTheta(post, constrain=constrainTheta)
-  ##theta(post) <- updateTheta(post, constrain=s)
   sigma2(post) <- updateSigma2(post)
   ##
   ## update (mu, tau2)
@@ -210,7 +207,6 @@ updateAll <- function(post, move_chain, s, constrainTheta=TRUE){
     }
     probz(post) <- pZ
   }
-  post <- moveChain(post, s)
   post
 }
 
@@ -221,58 +217,68 @@ setReplaceMethod("probz", "MixtureModel", function(object, value){
 
 setMethod("probz", "MixtureModel", function(object) object@probz)
 
+runBurnin <- function(object, mcmcp){
+  if(burnin(mcmcp)==0){
+    object <- moveChain(object, 1)
+    return(object)
+  }
+  mcmc_burnin <- McmcParams(iter=burnin(mcmcp), burnin=0)
+  mcmcChains(object) <- McmcChains(object, mcmc_burnin)
+  object <- moveChain(object, 1)
+  for(b in seq_len(burnin(mcmcp))){
+    ## only store updates in the Posterior object slots; do not
+    ## store anything in the chains
+    object <- updateAll(object, move_chain=TRUE, constrainTheta=FALSE)
+    object <- moveChain(object, b+1)
+  }
+  ## Reorder the component indices by the iteration during burnin that
+  ## had the largest potential.  This requires storing the chain
+  ## during burin.  Reordering is important for the sigma2s (i.e,
+  ## sigma2_j = sigma2_j' for all j and j' greater than 1 browser()
+  ## object <- sort(object)
+  ##mcmcChains(object) <- McmcChains(object, mcmcp)
+  object
+}
+
+runMcmc <- function(object, mcmcp){
+  S <- 2:(savedIterations(mcmcp)+1)
+  do_thin <- thin(mcmcp) > 1
+  T <- seq_len(thin(mcmcp))
+  do_constrain <- constrainTheta(mcmcp)
+  for(s in S){
+    object <- updateAll(object, TRUE, constrainTheta=do_constrain)
+    object <- moveChain(object, s)
+    ## update without moving chain
+    if(do_thin){
+      for(t in T) object <- updateAll(object, FALSE, constrainTheta=do_constrain)
+    }
+  }
+  object
+}
+
 #' @export
 posteriorSimulation <- function(post, mcmcp){
+  ##mcmcChains(post) <- McmcChains(post, mcmcp)
   niter <- iter(mcmcp)
-  ##
-  ## Record initial values
-  ##
-  post <- moveChain(post, 1)
-  post2 <- post
   ##
   ## Burn-in
   ##
-  if( burnin(mcmcp) > 0){
-    for(b in 1:burnin(mcmcp)){
-      ## only store updates in the Posterior object slots; do not
-      ## store anything in the chains
-      post <- updateAll(post, move_chain=FALSE, b, constrainTheta=FALSE)
-    }
-    ##
-    ## The assumption here is that the ordering of the last update is
-    ## sufficient.  This could be more robust by using posterior
-    ## means.
-    ##
-    if(!identical(theta(post), sort(theta(post)))) {
-      post <- reorderComponents(post)
-    }
-    ## make the first iteration in the stored chain the last iteration from the mcmc
-    moveChain(post, 1)
-  }
-  ##browser()
+  post <- runBurnin(post, mcmcp)
   if(niter==0) return(post)
-  ##browser()
-  if(FALSE){
-    table(z(post2), z(post))
-    cbind(theta(post2), theta(post))
-  }
+  mcmcChains(post) <- McmcChains(post, mcmcp)
+  ## make the first iteration in the stored chain the last iteration from the mcmc
+  post <- moveChain(post, 1)
+  ##
+  ## if the chain moves quickly from the burnin, it might be related
+  ## to the constrain imposed after burnin
+  ##
   probz(post) <- matrix(0, length(y(post)), k(post))
   ##
   ## Post burn-in
   ##
-  ## By starting at 2, the last iteration from the burnin or (if no
-  ## burnin) the starting values are the first element in the chains
-  S <- 2:savedIterations(mcmcp)
-  ##browser()
-  for(s in S){
-    post <- updateAll(post, TRUE, s, constrainTheta=constrainTheta(mcmcp))
-    if(thin(mcmcp) > 1){
-      for(t in seq_len(thin(mcmcp))){
-        post <- updateAll(post, FALSE, s, constrainTheta=constrainTheta(mcmcp))
-      }
-    }
-  }
-  probz(post) <- probz(post)/(savedIterations(mcmcp))
+  post <- runMcmc(post, mcmcp)
+  probz(post) <- probz(post)/(savedIterations(mcmcp)+1)
+  post <- sort(post)
   post
 }
 
@@ -378,11 +384,20 @@ initialTau2 <- function(k) rep(0.2, k)
 
 #' @export
 ##initializeModel <- function(type, yy, k=2, batch, .alpha, .theta, .sigma){
+##setGeneric("initializeDataMean", function(object) standardGeneric("initializeDataMean"))
+##setMethod("initilalizeDataMean", "MarginalModel", function(object){
+##  mu(object)
+##})
+##
+##setMethod("initilalizeDataMean", "MarginalModel", function(object){
+##  mu(object)
+##})
 
 
 initializeModel <- function(params, .alpha){ ##.theta, .sigma){
   if(missing(.alpha)) .alpha <- rep(1, k(params))
-  object <- constructModel(type(params), data=y(params), k=k(params), batch=batch(params))
+  object <- constructModel(type(params), data=y(params), k=k(params),
+                           batch=batch(params))
   hypp <- hyperParams(object) <- Hyperparameters(type(params), k=k(params))
   ##  if(missing(.sigma)) .sigma <- rep(mad(y(params), na.rm=TRUE), k(params))
   ##  if(missing(.theta)) .theta <- mu(object)
@@ -398,10 +413,11 @@ initializeModel <- function(params, .alpha){ ##.theta, .sigma){
   ## initalize sigma2.0 as weighted average of component variances
   sigma2.0(object) <- initializeSigma2.0(object)
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
-  dataPrec(object) <- tau2(object)
+  ##dataPrec(object) <- tau2(object)
+  dataPrec(object) <- 1/sigma2(object)
   mu(object) <- initializeMu(object)
   tau2(object) <- initializeTau2(object)
-  dataMean(object) <- mu(object)
+  dataMean(object) <- theta(object)
   z(object) <- updateZ(object)
   ##
   ##
@@ -464,6 +480,10 @@ simulateBatchData <- function(N=2500, .k=3, .batch, .alpha, means, sds){
   dataMean(object) <- computeMeans(object)
   dataPrec(object) <- 1/computeVars(object)
   logpotential(object) <- computePotential(object)
+
+  zz <- z(object)
+  tabz <- table(zz)
+  p(object) <- as.numeric(tabz/length(zz))
   object
 }
 
@@ -489,6 +509,9 @@ simulateData <- function(N=2500, .k=3, .batch, .alpha, means, sds){
   dataMean(object) <- computeMeans(object)
   dataPrec(object) <- 1/computeVars(object)
   logpotential(object) <- computePotential(object)
+
+  tabz <- table(z(object))
+  p(object) <- as.numeric(tabz/length(z(object)))
   object
 }
 
@@ -552,7 +575,7 @@ ksTest <- function(object){
       ##cat(" ")
       b1 <- uB[j]
       b2 <- uB[k]
-      stat <- ks.test(yy[B==b1], yy[B==b2])
+      stat <- suppressWarnings(ks.test(yy[B==b1], yy[B==b2]))
       ks[i, ] <- c(b1, b2, stat$statistic, stat$p.value)
       i <- i+1
     }
@@ -561,22 +584,23 @@ ksTest <- function(object){
   ks
 }
 
-.collapseBatch <- function(object){
-  B <- batch(object)
+##.collapseBatch <- function(object){
+.collapseBatch <- function(yy, B){
+  #B <- batch(object)
   uB <- unique(B)
-  yy <- y(object)
+  #yy <- y(object)
   ## One plate can pair with many other plates.
   for(j in seq_along(uB)){
     for(k in seq_along(uB)){
       if(k <= j) next() ## next k
       b1 <- uB[j]
       b2 <- uB[k]
-      stat <- ks.test(yy[B==b1], yy[B==b2])
+      stat <- suppressWarnings(ks.test(yy[B==b1], yy[B==b2]))
       if(stat$p.value < 0.1) next()
       b <- paste(b1, b2, sep=",")
       B[B %in% b1 | B %in% b2] <- b
-      ## once we've defined a new batch, the unique batches has
-      ## changed and we must exit this function
+      ## once we've defined a new batch, return the new batch to the
+      ## calling function
       return(B)
     }
   }
@@ -584,27 +608,44 @@ ksTest <- function(object){
 }
 
 #' @export
-collapseBatch <- function(object, mcmcp){
-  ##ks <- ksTest(object)
-  ##b <- .collapseBatch(model, ks)
-  i <- 0
+setGeneric("collapseBatch", function(object) standardGeneric("collapseBatch"))
+
+##
+## the batch names tend to be much too long
+##
+makeUnique <- function(x){
+  ub <- unique(x)
+  ##names(ub) <- ub
+  abbrv <- setNames(make.unique(substr(ub, 1, 8)), ub)
+  as.character(abbrv[x])
+}
+
+
+setMethod("collapseBatch", "BatchModel", function(object){
   N <- choose(nBatch(object), 2)
   cond2 <- TRUE
   while(N > 1 && cond2){
     cat('.')
     B <- batch(object)
-    batch(object) <- .collapseBatch(object)
+    batch(object) <- .collapseBatch(y(object), batch(object))
     cond2 <- !identical(B, batch(object))
     N <- nBatch(object)
-    i <- i+1
   }
-  params <- ModelParams("batch", y=y(object),
-                        k=k(object),
-                        batch=batch(object),
-                        mcmc.params=mcmcp)
-  object <- initializeModel(params)
-  object
-}
+  makeUnique(batch(object))
+})
+
+setMethod("collapseBatch", "SummarizedExperiment", function(object){
+  N <- choose(length(unique(object$plate)), 2)
+  cond2 <- TRUE
+  while(N > 1 && cond2){
+    cat('.')
+    B <- object$plate
+    object$plate <- .collapseBatch(copyNumber(object)[1,], object$plate)
+    cond2 <- !identical(B, object$plate)
+    N <- choose(length(unique(object$plate)), 2)
+  }
+  makeUnique(object$plate)
+})
 
 
 HardyWeinberg <- function(object){
@@ -626,3 +667,29 @@ HardyWeinberg <- function(object){
 setMethod("hwe", "MixtureModel", function(object) object@hwe)
 
 map <- function(object) apply(probz(object), 1, which.max)
+
+
+
+setMethod("fitMixtureModels", "numeric", function(object, mcmcp, K=1:5){
+  message("Fitting ", length(K), " mixture models")
+  fit <- foreach(j = seq_along(K)) %do% {
+    cat(".")
+    kk <- K[j]
+    params <- ModelParams("marginal", y=object, k=kk, mcmc.params=mcmcp)
+    modelk <- initializeModel(params)
+    modelk <- posteriorSimulation(modelk, mcmcp)
+    modelk
+  }
+  fit
+})
+
+#' @export
+thetac <- function(object) theta(mcmcChains(object))
+
+#' @export
+sigmac <- function(object) sigma(mcmcChains(object))
+
+#' @export
+pic <- function(object) p(mcmcChains(object))
+
+muc <- function(object) mu(mcmcChains(object))

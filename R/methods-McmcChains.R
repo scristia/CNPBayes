@@ -20,7 +20,8 @@
 ##}
 
 .initializeMcmc <- function(object, mcmc.params){
-  nr <- iter(mcmc.params)/thin(mcmc.params)
+  ## add 1 for starting values (either the last run from the burnin, or default values if no burnin
+  nr <- iter(mcmc.params)/thin(mcmc.params) + 1
   K <- k(object)
   mat <- matrix(NA, nr, K)
   vec <- numeric(nr)
@@ -50,7 +51,7 @@ setMethod("McmcChains", "MixtureModel", function(object, mcmc.params){
 })
 
 .initializeMcmcBatch <- function(object, mcmc.params){
-  nr <- iter(mcmc.params)/thin(mcmc.params)
+  nr <- iter(mcmc.params)/thin(mcmc.params) + 1
   K <- k(object)
   B <- nBatch(object)
   mat_batch <- matrix(NA, nr, K*B)
@@ -107,6 +108,9 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+setMethod("nu.0", "McmcChains", function(object) object@nu.0)
+
+setMethod("sigma2.0", "McmcChains", function(object) object@sigma2.0)
 
 setReplaceMethod("theta", "McmcChains", function(object, value){
   object@theta <- value

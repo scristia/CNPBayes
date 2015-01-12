@@ -32,8 +32,6 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         hyperparams="Hyperparameters",
                                         theta="numericOrMatrix",
                                         sigma2="numericOrMatrix",
-                                        ##mu="numericOrMatrix",
-                                        ##tau2="numericOrMatrix",
                                         nu.0="numeric",
                                         sigma2.0="numeric",
                                         pi="numeric",
@@ -41,7 +39,6 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         data.mean="numericOrMatrix",
                                         data.prec="numericOrMatrix",
                                         z="factor",
-                                        ## the posterior probability for each copy number state (sample specific)
                                         probz="matrix",
                                         logpotential="numeric",
                                         mcmc.chains="McmcChains",
@@ -65,6 +62,9 @@ setClass("McmcParams", representation(thin="numeric",
                                       burnin="numeric",
                                       ## whether to constrain theta after the burnin
                                       constrainTheta="logical"))
+
+
+
 
 setClass("ModelParams", representation(type="character",
                                        k="numeric",
