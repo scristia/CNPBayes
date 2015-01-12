@@ -80,6 +80,7 @@ setGeneric("batchCorrect", function(object) standardGeneric("batchCorrect"))
 
 setGeneric("moveChain", function(object, s) standardGeneric("moveChain"))
 
+setGeneric("updateThetaCpp", function(object, constrain) standardGeneric("updateThetaCpp"))
 setGeneric("updateTheta", function(object, constrain) standardGeneric("updateTheta"))
 setGeneric("updateSigma2", function(object) standardGeneric("updateSigma2"))
 setGeneric("updateSigma2.0", function(object) standardGeneric("updateSigma2.0"))

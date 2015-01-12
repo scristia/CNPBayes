@@ -235,6 +235,15 @@ setMethod("moveChain", "MarginalModel", function(object, s){
   object
 })
 
+setMethod("updateThetaCpp", "MarginalModel", function(object, constrain) {
+  .Call("update_theta", object, constrain=constrain)
+})
+#
+#.updateThetaCpp <- function(obj, constrain=TRUE) {
+#    theta <- .Call("update", obj, constrain)
+#    theta
+#}
+
 
 setMethod("updateTheta", "MarginalModel", function(object, constrain) {
   .updateTheta(mu(object), tau2(object),
