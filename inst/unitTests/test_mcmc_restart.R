@@ -12,6 +12,9 @@ test_mcmc_restart <- function(){
   mc <- mcmcChains(model)
   checkIdentical(theta(mc)[1, ], theta(truth))
   checkIdentical(sigma(mc)[1, ], sigma(truth))
+  checkTrue(all(rowSums(probz(model))==1))
+
+
 
   ##
   ## Verify that when burnin exceeds the number of saved iterations
@@ -20,7 +23,9 @@ test_mcmc_restart <- function(){
   ## with no burnin, the first element stored in the mcmc chains should be the initial values
   ##
   mcmcp <- McmcParams(iter=1, burnin=10)
+  ##trace(posteriorSimulation, browser)
   model <- posteriorSimulation(model, mcmcp)
+  checkTrue(all(rowSums(probz(model))==1))
 
   ##
   ## Burnin of >=1, >=1 iterations
@@ -34,6 +39,7 @@ test_mcmc_restart <- function(){
   checkTrue(!identical(theta(mc)[1, ], theta(truth)))
   checkTrue(!identical(sigma(mc)[1, ], sigma(truth)))
   checkIdentical(theta(mc)[2, ], as.numeric(theta(model)))
+  checkTrue(all(rowSums(probz(model))==1))
 
   ##
   ## Burnin of >=1, 0 iterations
@@ -44,6 +50,7 @@ test_mcmc_restart <- function(){
   mc <- mcmcChains(model)
   checkTrue(identical(theta(mc)[1, ], theta(truth)))
   checkTrue(nrow(theta(mc))==2)
+  checkTrue(all(rowSums(probz(model))==1))
 
   ##
   ## Burnin =0, 0 iterations

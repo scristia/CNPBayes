@@ -881,6 +881,8 @@ setMethod("bic", "BatchModel", function(object, ...){
   ##   - length-one parameters: sigma2.0, nu.0                   +2
   ##   - mixture probs:  +3
   K <- k(object)*nBatch(object) + 2*nBatch(object) +  2*k(object) + 2 + 3
+  ## Experimental: extra penalty
+  K <- K+2
   n <- length(y(object))
   bicstat <- -2*logpotential(object) + K*(log(n) - log(2*pi))
 ##  if(k(object) > 1 && componentCapturesTails(object)){
@@ -901,6 +903,8 @@ setMethod("bic", "BatchModelNoHom", function(object, ...){
   ##   - length-one parameters: sigma2.0, nu.0                   +2
   ##   - mixture probs:  +3
   K <- k(object)*nBatch(object) + nBatch(object) +  2*k(object) + 2 + 3
+  ## Experimental: extra penalty
+  K <- K + 2
   n <- length(y(object))
   bicstat <- -2*logpotential(object) + K*(log(n) - log(2*pi))
   bicstat

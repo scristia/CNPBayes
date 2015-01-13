@@ -200,14 +200,18 @@ updateAll <- function(post, move_chain, constrainTheta=TRUE){
   nu.0(post) <- updateNu.0(post)
   logpotential(post) <- computePotential(post)
   if(move_chain){
-    pZ <- probz(post)
-    zz <- as.integer(z(post))
-    for(j in seq_len(k(post))){
-      pZ[, j] <- pZ[, j] + as.integer(zz==j)
-    }
-    probz(post) <- pZ
+    probz(post) <- .computeProbZ(post)
   }
   post
+}
+
+.computeProbZ <- function(object){
+  pZ <- probz(object)
+  zz <- as.integer(z(object))
+  for(j in seq_len(k(object))){
+    pZ[, j] <- pZ[, j] + as.integer(zz==j)
+  }
+  pZ
 }
 
 setReplaceMethod("probz", "MixtureModel", function(object, value){
@@ -220,6 +224,7 @@ setMethod("probz", "MixtureModel", function(object) object@probz)
 runBurnin <- function(object, mcmcp){
   if(burnin(mcmcp)==0){
     object <- moveChain(object, 1)
+    probz(object) <- .computeProbZ(object)
     return(object)
   }
   mcmc_burnin <- McmcParams(iter=burnin(mcmcp), burnin=0)
@@ -237,6 +242,11 @@ runBurnin <- function(object, mcmcp){
   ## sigma2_j = sigma2_j' for all j and j' greater than 1 browser()
   ## object <- sort(object)
   ##mcmcChains(object) <- McmcChains(object, mcmcp)
+  ##
+  ##
+  ## For recording prob(z) during the burnin, should we just just the
+  ## z from the last iteration of the burnin?
+  probz(object) <- probz(object)/rowSums(probz(object))
   object
 }
 
@@ -272,7 +282,7 @@ posteriorSimulation <- function(post, mcmcp){
   ## if the chain moves quickly from the burnin, it might be related
   ## to the constrain imposed after burnin
   ##
-  probz(post) <- matrix(0, length(y(post)), k(post))
+  ##probz(post) <- .computeProbZ(post)
   ##
   ## Post burn-in
   ##
