@@ -1,3 +1,5 @@
+.Rprofile
+TODO.org
 *.so
 *.o
 *.rds
