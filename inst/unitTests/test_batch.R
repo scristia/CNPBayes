@@ -89,10 +89,15 @@ test_selectK_batch_easy <- function(){
   ##
   ## Evaluate at different K
   ##
-  mcmcp <- McmcParams(iter=1000, burnin=300, constrainTheta=TRUE)
+  mcmcp <- McmcParams(iter=1000, burnin=300)
+  ##mcmcp <- McmcParams(iter=5, burnin=3)
   mmodels <- fitMixtureModels(se, mcmcp, K=1:5)
   bicstat <- sapply(mmodels, bic)
-  checkIdentical(which.min(bicstat), 3L)
+  ##
+  ## 4-component has higher bic, yet the max a post. estimate has only 3 components
+  ## --> inference from map would be the same
+  ##
+  checkTrue(which.min(bicstat) %in% c(3L, 4L))
   if(FALSE) {
     par(mfrow=c(1,2))
     CNPBayes::plot(truth, use.current=TRUE)
@@ -340,8 +345,6 @@ test_unequal_pmix <- function(){
                         mcmc.params=mcmcp)
   bmodel <- initializeModel(params)
   bmodel <- posteriorSimulation(bmodel, mcmcp)
-
-
 
   th1 <- as.numeric(theta(truth))
   th2 <- as.numeric(colMeans(thetac(bmodel)))

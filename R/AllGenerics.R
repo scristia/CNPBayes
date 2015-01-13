@@ -47,8 +47,9 @@ setGeneric("plot")
 
 ##setGeneric("BatchModel", function(object, ncomp, batch) standardGeneric("BatchModel"))
 
-#' @export
-setGeneric("batch", function(object) standardGeneric("batch"))
+
+##setGeneric("batch", function(object) standardGeneric("batch"))
+
 setGeneric("batch<-", function(object,value) standardGeneric("batch<-"))
 
 setGeneric("startingValues", function(object) standardGeneric("startingValues"))

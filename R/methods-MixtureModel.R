@@ -298,13 +298,19 @@ setMethod("hist", "MixtureModel", function(x, ...){
   new(class, ...)
 }
 
-
+homozygousComponent <- function(y){
+  ##mean(y < -1.5) > 0.005
+  sum(y < -1.5) >= 3
+}
 
 constructModel <- function(type, data, k, batch){
   nbatch <- length(unique(batch))
   if(k > 1){
     if(type=="batch"){
-      object <- BatchModel(data, k, batch)
+      is_hom <- homozygousComponent(data)
+      if(is_hom && k > 2) {
+        object <- BatchModelPlusHom(data, k, batch)
+      } else object <- BatchModelNoHom(data, k, batch)
     } else{
       object <- MarginalModel(data, k, batch)
     }

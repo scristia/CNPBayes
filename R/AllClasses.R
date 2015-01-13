@@ -48,6 +48,10 @@ setClass("MixtureModel", representation("VIRTUAL",
 
 setClass("BatchModel", contains="MixtureModel", representation(mu="numericOrMatrix", tau2="numericOrMatrix"))
 
+##
+setClass("BatchModelPlusHom", contains="BatchModel")
+setClass("BatchModelNoHom", contains="BatchModel")
+
 setClass("MarginalModel", contains="MixtureModel")
 
 setClass("UnivariateBatchModel", contains="BatchModel")

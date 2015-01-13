@@ -85,7 +85,7 @@ test_selectK_easy <- function(){
   ##
   ## Evaluate at different K
   ##
-  mcmcp <- McmcParams(iter=1000, burnin=1000, constrainTheta=TRUE)
+  mcmcp <- McmcParams(iter=1000, burnin=1000)
   mmodels <- fitMixtureModels(y(truth), mcmcp, K=1:5)
   bicstat <- sapply(mmodels, bic)
   checkIdentical(which.min(bicstat), 3L)
