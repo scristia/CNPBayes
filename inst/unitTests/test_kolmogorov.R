@@ -8,11 +8,10 @@ test_KolmogorovSmirnov <- function(){
   sds <- matrix(0.1, nbatch, k)
 
   truth <- simulateBatchData(N=2500,
-                             .batch=rep(letters[1:3], length.out=2500),
-                             .k=3,
-                             .alpha=rep(1, k),
-                             means=means,
-                             sds=sds)
+                             batch=rep(letters[1:3], length.out=2500),
+                             theta=means,
+                             sds=sds,
+                             p=c(1/3,1/3, 1/3))
   b <- collapseBatch(truth)
   checkIdentical(unique(b), c("a,b", "c"))
 }

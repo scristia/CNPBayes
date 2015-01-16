@@ -1,19 +1,45 @@
 #' @export
-McmcParams <- function(iter=1000L, burnin=0L, thin=1L, constrainTheta=FALSE){
-  new("McmcParams", iter=iter, burnin=burnin, thin=thin, constrainTheta=constrainTheta)
+McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1, nStartIter=200, checkLabels=FALSE){
+  if(missing(thin)) thin <- rep(1L, length(iter))
+  new("McmcParams", iter=iter, burnin=burnin, thin=thin, nstarts=nStarts, nstart_iter=nStartIter,
+      check_labels=checkLabels)
 }
 
 burnin <- function(object) object@burnin
 thin <- function(object) object@thin
 iter <- function(object) object@iter
-constrainTheta <- function(object) object@constrainTheta
 savedIterations <- function(object)iter(object)/thin(object)
 
 
 setMethod("show", "McmcParams", function(object){
   cat("An object of class 'McmcParams'\n")
-  cat("   iterations:", iter(object), "\n")
-  cat("   burnin    :", burnin(object), "\n")
-  cat("   thin      :", thin(object), "\n")
-  cat("   constrain theta:", constrainTheta(object), "\n")
+  cat("   iterations:", paste(iter(object), collapse=","), "\n")
+  cat("   burnin    :", paste(burnin(object), collapse=","),  "\n")
+  cat("   thin      :", paste(thin(object), collapse=","), "\n")
+  cat("   n starts  :", nStarts(object), "\n")
 })
+
+
+setMethod("[", "McmcParams", function(x, i, j, ..., drop=FALSE){
+  ## allow one to pass a vector for burnin, thin, and iter slots
+  if(length(iter(x))==1) return(x)
+  if(!missing(i)){
+    x@iter <- iter(x)[i]
+    x@burnin <- burnin(x)[i]
+    x@thin <- thin(x)[i]
+  }
+  x
+})
+
+setValidity("McmcParams", function(object){
+  msg <- TRUE
+  if(length(thin(object)) != length(burnin(object)) || length(thin(object)) != length(iter(object))){
+    msg <- "thin, burnin, and iter vectors must be the same length"
+    return(msg)
+  }
+  msg
+})
+
+setMethod("nStarts", "McmcParams", function(object) object@nstarts)
+setMethod("checkLabels", "McmcParams", function(object) object@check_labels)
+setMethod("nStartIter", "McmcParams", function(object) object@nstart_iter)

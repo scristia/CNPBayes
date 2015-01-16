@@ -9,7 +9,7 @@ BatchModel <- function(data, k, batch){
       tau2=numeric(k),
       nu.0=numeric(1),
       sigma2.0=numeric(1),
-      pi=numeric(k),
+      pi=matrix(NA, B, k),
       data=data,
       data.mean=matrix(NA, B, k),
       data.prec=matrix(NA, B, k),
@@ -21,51 +21,51 @@ BatchModel <- function(data, k, batch){
       hwe=numeric())
 }
 
-BatchModelNoHom <- function(data, k, batch){
-  mcmc.chains <- McmcChains()
-  B <- length(unique(batch))
-  new("BatchModelNoHom",
-      hyperparams=HyperparametersBatch(k=k),
-      theta=matrix(NA, B, k),
-      sigma2=matrix(NA, B, k),
-      mu=numeric(k),
-      tau2=numeric(k),
-      nu.0=numeric(1),
-      sigma2.0=numeric(1),
-      pi=numeric(k),
-      data=data,
-      data.mean=matrix(NA, B, k),
-      data.prec=matrix(NA, B, k),
-      z=factor(numeric(length(data))),
-      probz=matrix(0, length(data), k),
-      logpotential=numeric(1),
-      mcmc.chains=mcmc.chains,
-      batch=batch,
-      hwe=numeric())
-}
-
-BatchModelPlusHom <- function(data, k, batch){
-  mcmc.chains <- McmcChains()
-  B <- length(unique(batch))
-  new("BatchModelPlusHom",
-      hyperparams=HyperparametersBatch(k=k),
-      theta=matrix(NA, B, k),
-      sigma2=matrix(NA, B, k),
-      mu=numeric(k),
-      tau2=numeric(k),
-      nu.0=numeric(1),
-      sigma2.0=numeric(1),
-      pi=numeric(k),
-      data=data,
-      data.mean=matrix(NA, B, k),
-      data.prec=matrix(NA, B, k),
-      z=factor(numeric(length(data))),
-      probz=matrix(0, length(data), k),
-      logpotential=numeric(1),
-      mcmc.chains=mcmc.chains,
-      batch=batch,
-      hwe=numeric())
-}
+##BatchModelNoHom <- function(data, k, batch){
+##  mcmc.chains <- McmcChains()
+##  B <- length(unique(batch))
+##  new("BatchModelNoHom",
+##      hyperparams=HyperparametersBatch(k=k),
+##      theta=matrix(NA, B, k),
+##      sigma2=matrix(NA, B, k),
+##      mu=numeric(k),
+##      tau2=numeric(k),
+##      nu.0=numeric(1),
+##      sigma2.0=numeric(1),
+##      pi=numeric(k),
+##      data=data,
+##      data.mean=matrix(NA, B, k),
+##      data.prec=matrix(NA, B, k),
+##      z=factor(numeric(length(data))),
+##      probz=matrix(0, length(data), k),
+##      logpotential=numeric(1),
+##      mcmc.chains=mcmc.chains,
+##      batch=batch,
+##      hwe=numeric())
+##}
+##
+##BatchModelPlusHom <- function(data, k, batch){
+##  mcmc.chains <- McmcChains()
+##  B <- length(unique(batch))
+##  new("BatchModelPlusHom",
+##      hyperparams=HyperparametersBatch(k=k),
+##      theta=matrix(NA, B, k),
+##      sigma2=matrix(NA, B, k),
+##      mu=numeric(k),
+##      tau2=numeric(k),
+##      nu.0=numeric(1),
+##      sigma2.0=numeric(1),
+##      pi=numeric(k),
+##      data=data,
+##      data.mean=matrix(NA, B, k),
+##      data.prec=matrix(NA, B, k),
+##      z=factor(numeric(length(data))),
+##      probz=matrix(0, length(data), k),
+##      logpotential=numeric(1),
+##      mcmc.chains=mcmc.chains,
+##      batch=batch,
+##      hwe=numeric())
+##}
 
 ##
 ## Multiple batches, but only 1 component
@@ -74,17 +74,18 @@ UnivariateBatchModel <- function(data, k=1, batch){
   mcmc.chains <- McmcChains()
   B <- length(unique(batch))
   new("UnivariateBatchModel",
-      hyperparams=HyperparametersBatch(k=k),
-      theta=matrix(NA, B, k),
-      sigma2=matrix(NA, B, k),
+      hyperparams=HyperparametersBatch(k=1),
+      theta=matrix(NA, B, 1),
+      sigma2=matrix(NA, B, 1),
       mu=numeric(k),
       tau2=numeric(k),
       nu.0=numeric(1),
       sigma2.0=numeric(1),
-      pi=numeric(k),
+      ##pi=numeric(k),
+      pi=matrix(NA, B, 1),
       data=data,
-      data.mean=matrix(NA, B, k),
-      data.prec=matrix(NA, B, k),
+      data.mean=matrix(NA, B, 1),
+      data.prec=matrix(NA, B, 1),
       z=factor(numeric(length(data))),
       probz=matrix(1, length(data), 1),
       logpotential=numeric(1),
@@ -92,40 +93,40 @@ UnivariateBatchModel <- function(data, k=1, batch){
       batch=batch,
       hwe=numeric())
 }
-
-setMethod("startingValues", "BatchModel", function(object){
-  ##
-  ## Initialize all batches to the same starting values by ignoring
-  ## batch
-  ##
-  ##browser()
-  hypp <- hyperParams(object)
-  if(FALSE){
-    tmp.file <- tempfile()
-    sink(tmp.file)
-    mmfit <- normalmixEM(y(object), arbvar = FALSE, epsilon = 1e-03, k=k(hypp), maxit=2000)
-    sink()
-    unlink(tmp.file)
-    mus <- mmfit$mu
-    vars <- (mmfit$sigma[order(mmfit$mu)])^2
-    B <- nBatch(object)
-    mus <- matrix(mus, B, k(object), byrow=TRUE)
-    vars <- matrix(vars, B, k(object), byrow=TRUE)
-    rownames(vars) <- rownames(mus) <- uniqueBatch(object)
-    theta(object) <- mus
-    sigma2(object) <- vars
-  }
-  if(TRUE){
-    if(all(is.na(theta(object)))){
-      theta(object) <- initializeTheta(object)
-    }
-    hypp <- hyperParams(object)
-    B <- nBatch(object)
-    sigma2(object) <- matrix(mad(as.numeric(y(object)), na.rm=TRUE)^2, B, k(object))
-    rownames(theta(object)) <- rownames(sigma2(object)) <- uniqueBatch(object)
-  }
-  object
-})
+##
+##setMethod("startingValues", "BatchModel", function(object){
+##  ##
+##  ## Initialize all batches to the same starting values by ignoring
+##  ## batch
+##  ##
+##  ##browser()
+##  hypp <- hyperParams(object)
+##  if(FALSE){
+##    tmp.file <- tempfile()
+##    sink(tmp.file)
+##    mmfit <- normalmixEM(y(object), arbvar = FALSE, epsilon = 1e-03, k=k(hypp), maxit=2000)
+##    sink()
+##    unlink(tmp.file)
+##    mus <- mmfit$mu
+##    vars <- (mmfit$sigma[order(mmfit$mu)])^2
+##    B <- nBatch(object)
+##    mus <- matrix(mus, B, k(object), byrow=TRUE)
+##    vars <- matrix(vars, B, k(object), byrow=TRUE)
+##    rownames(vars) <- rownames(mus) <- uniqueBatch(object)
+##    theta(object) <- mus
+##    sigma2(object) <- vars
+##  }
+##  if(TRUE){
+##    if(all(is.na(theta(object)))){
+##      theta(object) <- initializeTheta(object)
+##    }
+##    hypp <- hyperParams(object)
+##    B <- nBatch(object)
+##    sigma2(object) <- matrix(mad(as.numeric(y(object)), na.rm=TRUE)^2, B, k(object))
+##    rownames(theta(object)) <- rownames(sigma2(object)) <- uniqueBatch(object)
+##  }
+##  object
+##})
 
 setMethod("initializeSigma2.0", "BatchModel", function(object){
   hypp <- hyperParams(object)
@@ -133,12 +134,40 @@ setMethod("initializeSigma2.0", "BatchModel", function(object){
 })
 
 
-setMethod("posteriorMultinomial", "BatchModel", function(object){
-  .multinomial_probs <- .posteriorMultinomialBatch(y(object),
-                                                   theta(object),
-                                                   sqrt(sigma2(object)),
-                                                   p(object))
+##setMethod("posteriorMultinomial", "BatchModel", function(object){
+##  .multinomial_probs <- .multinomialBatch(y(object),
+##                                                   theta(object),
+##                                                   sqrt(sigma2(object)),
+##                                                   p(object))
+##
+##})
 
+
+##
+## z has length y.  Each observation is a sample.
+##
+setMethod("updateZ", "BatchModel", function(object){
+  plist <- posteriorMultinomial(object)
+  ##zz <- simulateZ(length(y(object)), p)
+  zz <- rep(NA, length(y(object)))
+  ub <- uniqueBatch(object)
+  for(b in seq_along(plist)){
+    zz[batch(object)==ub[b]] <- .updateZ(plist[[b]])
+  }
+  factor(zz, levels=seq_len(k(object)))
+})
+
+setMethod("posteriorMultinomial", "BatchModel", function(object){
+  B <- nBatch(object)
+  plist <- vector("list", B)
+  ub <- uniqueBatch(object)
+  for(b in seq_len(B)){
+    plist[[b]] <- .multBatchSpecific(y(object)[batch(object)==ub[b]],
+                                     theta(object)[b, ],
+                                     sigma(object)[b, ],
+                                     p(object)[b, ])
+  }
+  return(plist)
 })
 
 
@@ -149,13 +178,12 @@ uniqueBatch <- function(object) unique(batch(object))
 
 nBatch <- function(object) length(uniqueBatch(object))
 
-
-.posteriorMultinomialBatch <- function(y, theta, sd, pi){
+.multBatch <- function(y, theta, sd, pi){
   K <- seq_len(length(pi))
   B <- nrow(theta)
   tmp <- matrix(NA, length(y), B)
   numerator <- list()
-  for(j in K){
+  for(j in K){l
     for(b in seq_len(B)){
       tmp[, b] <- pi[j]*dnorm(y, theta[b, j], sd[b, j])
     }
@@ -164,48 +192,24 @@ nBatch <- function(object) length(uniqueBatch(object))
   numerator <- do.call(cbind, numerator)
   denominator <- rowSums(numerator)
   mix.probs <- numerator/denominator
-  ## all(rowSums(mix.probs) == 1)
+  ## mix.probs has dimension N x K
   mix.probs
 }
 
-##setMethod("updateMu", "BatchModel", function(object){
-##  hypp <- hyperParams(object)
-##  mu.k <- .updateMuBatch(tau2.0(hypp), tau2(object), k(object), z(object),
-##                         theta(object), mu.0(hypp))
-##  mu.k
-##})
-##
-##
-##
-##.updateMuBatch <- function(tau2.0, tau2, k, z, theta, mu.0){
-##  P <- nrow(theta)
-##  tau2.0.tilde <- 1/tau2.0
-##  tau2.tilde <- 1/tau2
-##  tau2.P.tilde <- tau2.0.tilde + P*tau2.tilde
-##  nn <- table(z)
-##  ## average across batch for each component
-##  theta.bar.h <- colMeans(theta)
-##  mu.h <- tau2.0.tilde/(tau2.P.tilde)*mu.0 +
-##    P*tau2.tilde/(tau2.P.tilde)*theta.bar.h
-##  mu.h
-##}
-
-##setMethod("initializeTau2", "BatchModel", function(object){
-##  hypp <- hyperParams(object)
-##  tau2s <- 1/rgamma(1, shape=1/2*eta.0(hypp), rate=1/2*eta.0(hypp)*m2.0(hypp))
-##  ## assume initially that the taus are the same
-##  rep(tau2s, nBatch(object))
-##})
-
-##
-## Within-component heterogeneity of the thetas
-##
-setMethod("initializeTau2", "BatchModel", function(object){
-  s <- mad(y(object), na.rm=TRUE)/4
-  rep(s^2,  k(object))
-})
-
-setMethod("initializeMu", "BatchModel", function(object) colMeans(theta(object)))
+## y: length n_b vector  (number of samples in batch b)
+## theta: length K vector for batch b
+## sd:  length K vector for batch b
+## pi: length K vector for batch b.
+## Returns:  n_b x K matrix for batch b
+.multBatchSpecific <- function(y, theta, sd, pi){
+  K <- seq_len(length(pi))
+  result <- matrix(NA, length(y), length(theta))
+  for(j in K){
+    result[, j] <- pi[j]*dnorm(y, theta[j], sd[j])
+  }
+  mix.probs <- result/rowSums(result)
+  mix.probs
+}
 
 setMethod("initializeSigma2.0", "BatchModel", function(object){
   hypp <- hyperParams(object)
@@ -224,10 +228,8 @@ setMethod("computeMeans", "BatchModel", function(object){
   B <- factor(batch(object), levels=ubatch)
   ybatch <- split(y(object), B)
   zbatch <- split(z(object), B)
-  mus <- mu(object)
   ymeans <- foreach(y=ybatch, z=zbatch, .combine='rbind') %do%{
-    mns <- sapply(split(y, z), mean)
-    mns[is.na(mns)] <- mus[is.na(mns)]
+    mns <- sapply(split(y, z), mean, na.rm=TRUE)
     mns
   }
   rownames(ymeans) <- ubatch
@@ -242,7 +244,6 @@ setMethod("computeVars", "BatchModel", function(object){
   s2.0 <- sigma2.0(object)
   yvars <- foreach(y=ybatch, z=zbatch, .combine='rbind') %do%{
     v <- sapply(split(y, z), var)
-    v[is.na(v)] <- s2.0
     v
   }
   rownames(yvars) <- ubatch
@@ -290,8 +291,11 @@ setMethod("computePotential", "BatchModel", function(object){
 
 
 setMethod("show", "BatchModel", function(object){
-  callNextMethod()
+  ##callNextMethod()
+  cat("An object of class 'BatchModel'\n")
+  cat("     n. obs      :", length(y(object)), "\n")
   cat("     n. batches  :", nBatch(object), "\n")
+  cat("     k           :", k(object), "\n")
   cat("     nobs/batch  :", table(batch(object)), "\n")
 })
 
@@ -358,7 +362,11 @@ setMethod("batchCorrect", "BatchModel", function(object){
 ##  lines(xx, marginal.cum.prob, col="black", lwd=2)
 ##}
 
+##
+##
 ## use empirical, batch=specific mixing probabilities
+##
+##
 .plotBatch <- function(object, use.current=FALSE, show.batch=TRUE, ...){
   L <- length(y(object))
   hist(y(object), breaks=L/50, col="gray", border="gray", freq=FALSE, ...)
@@ -366,17 +374,20 @@ setMethod("batchCorrect", "BatchModel", function(object){
   if(!use.current){
     zz <- map(object)
     tabz <- table(batch(object), factor(zz, levels=seq_len(k(object))))
+    tabz <- tabz[uniqueBatch(object), , drop=FALSE]
     ttl <- rowSums(tabz)
     pi <- tabz/ttl
     pi <- pi[uniqueBatch(object), , drop=FALSE]
 
-    thetas <- matrix(colMeans(thetac(object)), nBatch(object), k(object))
-    sds <- matrix(colMeans(sigmac(object)), nBatch(object), k(object))
-    rownames(thetas) <- rownames(sds) <- uniqueBatch(object)
+    thetas <- thetaMean(object)
+    sds <- sigmaMean(object)
+    pp <- matrix(colMeans(pic(object)), nBatch(object), k(object))
+    browser()
     P <- matrix(colMeans(pic(object)), length(xx), k(object), byrow=TRUE)
     ##pi <- colMeans(pic(object))
   } else {
-    tabz <- table(batch(object), z(object))
+    ##tabz <- table(batch(object), z(object))
+    tabz <- tablez(object)
     ttl <- rowSums(tabz)
     pi <- tabz/ttl
     pi <- pi[uniqueBatch(object), ]
@@ -388,6 +399,7 @@ setMethod("batchCorrect", "BatchModel", function(object){
   }
   cols <- brewer.pal(max(k(object), 3),  "Set1")
   B <- batch(object)
+
   marginal.prob <- matrix(NA, length(xx), k(object))
   for(j in seq_len(k(object))){
     p.cummulative <- matrix(NA, length(xx), nBatch(object))
@@ -400,14 +412,15 @@ setMethod("batchCorrect", "BatchModel", function(object){
       p.cummulative[, k] <- p.x
       k <- k+1
     }
-    pbatch <- table(batch(object))/L
-    pbatch <- pbatch[uniqueBatch(object)]
+##    pbatch <- table(batch(object))/L
+##    pbatch <- pbatch[uniqueBatch(object)]
+    ##    pbatch <- matrix(pbatch, length(xx), nBatch(object), byrow=TRUE)
+    pbatch <- tabz[, j]/sum(tabz[, j])
     pbatch <- matrix(pbatch, length(xx), nBatch(object), byrow=TRUE)
     pcum <- rowSums(pbatch * p.cummulative)
     ##lines(xx, pcum, col="gray", lwd=2)
     marginal.prob[, j] <- pcum
   }
-  ##browser()
   marginal.cum.prob <- rowSums(P*marginal.prob)
   limits <- list(range(y(object), na.rm=TRUE), range(marginal.cum.prob, na.rm=TRUE))
   lines(xx, marginal.cum.prob, col="black", lwd=2)
@@ -451,11 +464,11 @@ setMethod("moveChain", "BatchModel", function(object, s){
 ## TODO: pass arguments to .updateThetaBatch to make it clear what
 ## parameters the theta update depends on
 ##
-setMethod("updateTheta", "BatchModel", function(object, constrain=TRUE) {
-  .updateThetaBatch(object, constrain=constrain)
+setMethod("updateTheta", "BatchModel", function(object) {
+  .updateThetaBatch(object)
 })
 
-.updateThetaBatch <- function(object, constrain=TRUE){
+.updateThetaBatch <- function(object){
   ##  if(constrain==2) browser()
   ##  if(constrain!=2) constrain <- TRUE
   tau2.tilde <- 1/tau2(object)
@@ -463,7 +476,7 @@ setMethod("updateTheta", "BatchModel", function(object, constrain=TRUE) {
   K <- k(object)
   ## should be a vector of length K
   tau2.n.tilde <- rep(NA, K)
-  n.hp <- table(batch(object), z(object))
+  n.hp <- tablez(object)
   ##
   ## Guard against zero-components
   ##
@@ -471,6 +484,9 @@ setMethod("updateTheta", "BatchModel", function(object, constrain=TRUE) {
   ##
   ## mu and tau2 are not batch-specific
   tau2.tilde <- matrix(tau2.tilde, nBatch(object), k(object), byrow=TRUE)
+  ##
+  ## Make mu the same dimension to make the arithmetic obvious
+  ##
   mus <- matrix(mu(object), nBatch(object), k(object), byrow=TRUE)
   ##
   tau2.n.tilde <- tau2.tilde + n.hp * sigma2.tilde
@@ -480,7 +496,14 @@ setMethod("updateTheta", "BatchModel", function(object, constrain=TRUE) {
   denom <- tau2.tilde + n.hp*sigma2.tilde
   w1 <- tau2.tilde/denom
   w2 <- n.hp*sigma2.tilde/denom
-  mu.n <- w1*mus + w2*dataMean(object)
+  ##
+  ## when a component has 0 observations, mu.n should just be w1*mu
+  ##
+  ybar <- dataMean(object)
+  if(any(is.nan(ybar))){
+    ybar[is.nan(ybar)] <- 0
+  }
+  mu.n <- w1*mus + w2*ybar
   rownames(tau.n) <- rownames(mu.n) <- uniqueBatch(object)
   ##
   ##  If there are very few observations, we will be sampling from a
@@ -488,49 +511,13 @@ setMethod("updateTheta", "BatchModel", function(object, constrain=TRUE) {
   ##  will result in thetas that do not satisfy the order constraints
   ##
   ##
-  thetas.last <- theta(object)
-  ##thetas.last <- matrix(theta(object), nBatch(object), k(object))
-  ##rownames(thetas.last) <- rownames(mu.n)
-  epsilon <- 1/1000
-  thetas <- matrix(NA, nrow(thetas.last), ncol(thetas.last))
-  rownames(thetas) <- rownames(thetas.last)
-  ##
-  if(!constrain){
-    for(B in uniqueBatch(object)){
-      thetas[B, ] <- rnorm(K, mu.n[B, ], tau.n[B, ])
-    }
-    return(thetas)
+  thetas <- matrix(NA, nBatch(object), k(object))
+  rownames(thetas) <- uniqueBatch(object)
+  for(b in uniqueBatch(object)){
+    thetas[b, ] <- rnorm(K, mu.n[b, ], tau.n[b, ])
   }
-  ## constrain thetas:
-  for(B in uniqueBatch(object)){
-    tmp <- rnorm(K, mu.n[B, ], tau.n[B, ])
-    if(identical(sort(tmp), tmp)) {
-      thetas[B, ] <- tmp
-      next()
-    }
-    if(!constrain){
-      thetas[B, ] <- tmp
-      next()
-    }
-    thetas[B, 1] <- rtruncnorm(1, a=-Inf,
-                               b=thetas.last[B, 2]-epsilon,
-                               mean=thetas.last[B, 1], sd=tau.n[B, 1])
-    for(i in 2:K){
-      a <- truncNormLower(thetas.last[B, i-1], epsilon)
-      b <- truncNormUpper(thetas.last[B, i+1], epsilon, i==K)
-      if(a > b){
-        epsilon <- epsilon/100
-        a <- truncNormLower(thetas.last[B, i-1], epsilon)
-        b <- truncNormUpper(thetas.last[B, i+1], epsilon, i==K)
-      }
-      thetas[B, i] <- rtruncnorm(1, a=a, b=b,
-                                 mean=mu.n[B, i],
-                                 sd=tau.n[B, i])
-    }
-  }
-  ##stopif(any(is.na(thetas)))
-  if(any(is.na(thetas))) browser()
-  thetas
+  if(any(is.na(thetas))) stop("NAs in thetas")
+  return(thetas)
 }
 
 truncNormLower <- function(theta.last, epsilon){
@@ -583,84 +570,99 @@ truncNormUpper <- function(theta.last, epsilon, iequalsk){
 ##
 ## assumes all variance components are the same
 ## - (the UnivariateBatchModel should also be able to use this update)
-setMethod("updateSigma2", "BatchModelNoHom", function(object){
-  .update_equal_s2(object)
-})
-
+##setMethod("updateSigma2", "BatchModelNoHom", function(object){
+##  .update_equal_s2(object)
+##})
 ##
-## Allows the first component to have a different variance, but
-## currently no constraint on the relationship between the first
-## component variance and the other components
+####
+#### Allows the first component to have a different variance, but
+#### currently no constraint on the relationship between the first
+#### component variance and the other components
+####
+##setMethod("updateSigma2", "BatchModelPlusHom", function(object){
+##  .update_nonzero_s2(object)
+##})
 ##
-setMethod("updateSigma2", "BatchModelPlusHom", function(object){
-  .update_nonzero_s2(object)
-})
+##.update_nonzero_s2 <- function(object){
+##  sigma2.current <- sigma2(object)
+##  nz <- nonZeroCopynumber(object)
+##  if(length(unique(nz)) ==1){
+##    ## guard against zeros
+##    if(all(nz > 0)){
+##      nz[which.min(y(object))] <- 0
+##    } else nz[which.max(y(object))] <- 1
+##  }
+##  n.hp <- table(batch(object), nz)
+##  n.hp <- n.hp[uniqueBatch(object), ]
+##  ##
+##  ## guard against zeros
+##  ##
+##  n.hp <- pmax(n.hp, 1)
+##  nu.n <- nu.0(object) + n.hp
+##  thetas <- theta(object)
+##  ##
+##  ## assume variance for copy number 1-k is the same
+##  ##
+##  ss <- sumSquares(object)
+##  ##
+##  ## weighted average of sums of squares
+##  ##
+##  sigma2.nh <- 1/nu.n*(nu.0(object) * sigma2.0(object) + ss)
+##  shape <- 1/2*nu.n
+##  rate <- shape*sigma2.nh
+##  sigma2.h.tilde <- matrix(NA, nBatch(object), 2)
+##  rownames(sigma2.h.tilde) <- rownames(thetas)
+##  for(b in uniqueBatch(object)){
+##    sigma2.h.tilde[b, ] <- rgamma(2, shape=shape[b, ], rate=rate[b, ])
+##  }
+##  sigma2.h <- 1/sigma2.h.tilde
+##  v <- var(y(object), na.rm=TRUE) + 0.05
+##  if(any(sigma2.h > v)) {
+##    sigma2.current <- sigma2.current[, 1:2]
+##    tmp <- tryCatch(sigma2.h[sigma2.h > v] <- sigma2.current[sigma2.h > v], error=function(e) NULL)
+##    if(is.null(tmp)) browser()
+##  }
+##  ##
+##  ## return matrix of original dimension
+##  ##
+##  s2 <- cbind(sigma2.h[, 1], matrix(sigma2.h[, 2], nBatch(object), k(object)-1))
+##  s2
+##}
 
-.update_nonzero_s2 <- function(object){
-  sigma2.current <- sigma2(object)
-  nz <- nonZeroCopynumber(object)
-  if(length(unique(nz)) ==1){
-    ## guard against zeros
-    if(all(nz > 0)){
-      nz[which.min(y(object))] <- 0
-    } else nz[which.max(y(object))] <- 1
-  }
-  n.hp <- table(batch(object), nz)
-  n.hp <- n.hp[uniqueBatch(object), ]
-  ##
-  ## guard against zeros
-  ##
-  n.hp <- pmax(n.hp, 1)
-  nu.n <- nu.0(object) + n.hp
+sumSquares <- function(object){
+  ss <- matrix(NA, nBatch(object), k(object))
+  rownames(ss) <- uniqueBatch(object)
+  B <- batch(object)
   thetas <- theta(object)
-  ##
-  ## assume variance for copy number 1-k is the same
-  ##
-  ss <- sumSquares(object)
-  ##
-  ## weighted average of sums of squares
-  ##
-  sigma2.nh <- 1/nu.n*(nu.0(object) * sigma2.0(object) + ss)
-  shape <- 1/2*nu.n
-  rate <- shape*sigma2.nh
-  sigma2.h.tilde <- matrix(NA, nBatch(object), 2)
-  rownames(sigma2.h.tilde) <- rownames(thetas)
+  yy <- y(object)
+  zz <- z(object)
   for(b in uniqueBatch(object)){
-    sigma2.h.tilde[b, ] <- rgamma(2, shape=shape[b, ], rate=rate[b, ])
+    y <- yy[B==b]
+    cn <- zz[B==b]
+    ##nonzero <- nz[B==b]
+    m <- thetas[b, ]
+    ## This could be tricky in C.  It works in R because of the factor to an integer:
+    ##  as.integer(factor(c(1, 3), levels=c("1", "2", "3"))) evaluates to 1,3
+    m <- m[as.integer(cn)]
+    squares <- (y - m)^2
+    ss[b, ] <- sapply(split(squares, cn), sum)
   }
-  sigma2.h <- 1/sigma2.h.tilde
-  v <- var(y(object), na.rm=TRUE) + 0.05
-  if(any(sigma2.h > v)) {
-    sigma2.current <- sigma2.current[, 1:2]
-    tmp <- tryCatch(sigma2.h[sigma2.h > v] <- sigma2.current[sigma2.h > v], error=function(e) NULL)
-    if(is.null(tmp)) browser()
-  }
-  ##
-  ## return matrix of original dimension
-  ##
-  s2 <- cbind(sigma2.h[, 1], matrix(sigma2.h[, 2], nBatch(object), k(object)-1))
-  s2
+  ss
 }
-
-
-
 
 .update_sigma2 <- function(object){
   sigma2.current <- sigma2(object)
-  n.hp <- table(batch(object), z(object))
+  n.hp <- tablez(object)
   ##
   ## guard against zeros
   ##
   n.hp <- pmax(n.hp, 1)
-  n.hp <- n.hp[uniqueBatch(object), , drop=FALSE]
-  ##
-  ##
   nu.n <- nu.0(object) + n.hp
-  ##k <- length(nu.n)
-  thetas <- theta(object)
-  rownames(thetas) <- uniqueBatch(object)
-  B <- batch(object)
   ss <- sumSquares(object)
+  ##
+  ## Zeros in sums of squares occurs for batches with no observations
+  ##
+  ## should handle this by polymorphism
   if(k(object) == 1) ss <- ss[, 1, drop=FALSE]
   ##
   ## weighted average of sums of squares
@@ -669,50 +671,34 @@ setMethod("updateSigma2", "BatchModelPlusHom", function(object){
   shape <- 1/2*nu.n
   rate <- shape*sigma2.nh
   sigma2.h.tilde <- matrix(NA, nBatch(object), k(object))
-  rownames(sigma2.h.tilde) <- rownames(thetas)
+  rownames(sigma2.h.tilde) <- uniqueBatch(object)
   for(b in uniqueBatch(object)){
     sigma2.h.tilde[b, ] <- rgamma(k(object), shape=shape[b, ], rate=rate[b, ])
   }
-  ##tmp <- rgamma(1000, shape=1/2*nu.n[1], rate=1/2*nu.n[1]*sigma2.nh[1])
   sigma2.h <- 1/sigma2.h.tilde
   stopif(any(is.nan(sigma2.h)))
-  v <- var(y(object), na.rm=TRUE) + 0.01
-  if(any(sigma2.h > v)) {
-    sigma2.h[sigma2.h > v] <- sigma2.current[sigma2.h > v]
-  }
   sigma2.h
 }
 
 ## special case when there is only one component
 setMethod("updateSigma2", "UnivariateBatchModel", function(object){
-  .update_s2(object)
+  .update_sigma2(object)
+})
+
+setMethod("updateSigma2", "BatchModel", function(object){
+  .update_sigma2(object)
 })
 
 nonZeroCopynumber <- function(object) as.integer(as.integer(z(object)) > 1)
 
-sumSquares <- function(object){
-  ss <- matrix(NA, nBatch(object), 2)
-  rownames(ss) <- uniqueBatch(object)
-  B <- batch(object)
-  thetas <- theta(object)
-  nz <- nonZeroCopynumber(object)
-  for(b in uniqueBatch(object)){
-    yy <- y(object)[B==b]
-    zz <- z(object)[B==b]
-    nonzero <- nz[B==b]
-    m <- thetas[b, ]
-    m <- m[as.integer(zz)]
-    squares <- (yy - m)^2
-    ss[b, ] <- sapply(split(squares, nonzero), sum)
-  }
-  ss
-}
+
+
 ## This is a more parsimonious model.  There are only 2 variance
 ## estimates for each batch: the variance of the first component and
 ## the variance of components k>1
-.updateSigma2Batch_2 <- function(object){
-
-}
+##.updateSigma2Batch_2 <- function(object){
+##
+##}
 
 sumSquares2 <- function(object){
   ss <- setNames(rep(NA, nBatch(object)), uniqueBatch(object))
@@ -734,10 +720,9 @@ sumSquares2 <- function(object){
 ## If K is 2, assume there is no homozygous deletion component
 ##  Constrain the variances to be the same so that one component will
 ##  not have heavier tails and capture the outliers
-.updateSigma2Batch_samevar <- function(object){
-
-}
-
+##.updateSigma2Batch_samevar <- function(object){
+##
+##}
 
 setMethod("updateMu", "BatchModel", function(object){
   .updateMuBatch(object)
@@ -745,22 +730,26 @@ setMethod("updateMu", "BatchModel", function(object){
 
 ##.updateMu <- function(tau2.0, tau2, k, z, theta, mu.0){
 .updateMuBatch <- function(object){
-##  browser()
   hypp <- hyperParams(object)
   tau2.0.tilde <- 1/tau2.0(hypp)
   tau2.tilde <- 1/tau2(object)
   P <- nBatch(object)
   tau2.P.tilde <- tau2.0.tilde + P*tau2.tilde
-  n.h <- table(batch(object), z(object))
+  n.h <- tablez(object)
   ## guard against components with zero observations
   n.h <- pmax(n.h, 1)
   thetas <- theta(object)
   ##
   ## between-batch average of thetas
+  w1 <- tau2.0.tilde/(tau2.0.tilde + P*tau2.tilde)
+  w2 <- P*tau2.tilde/(tau2.0.tilde + P*tau2.tilde)
+  ##
+  ## average thetas, giving more weight to batches with more
+  ## observations
+  ##
   theta.bar <- colSums(n.h*thetas)/colSums(n.h)
-  mu.P <- tau2.0.tilde/(tau2.0.tilde + P*tau2.tilde)*mu.0(hypp) +
-    P*tau2.tilde/(tau2.0.tilde + P*tau2.tilde)*theta.bar
-  stopif(any(is.nan(mu.P)))
+  ## when the prior is zero, mu.P is shrunk towards zero
+  mu.P <- w1*mu.0(hypp) + w2*theta.bar
   mu.P
 }
 
@@ -777,10 +766,8 @@ setMethod("updateTau2", "BatchModel", function(object){
   mus <- matrix(mus, P, k(object), byrow=TRUE)
   thetas <- theta(object)
   s2.P <- colSums((thetas-mus)^2)
-  ##s2.P <- sum((theta-mu)^2)
   m2.P <- 1/eta.P * (eta.0(hypp) * m2.0(hypp) + s2.P)
   tau2 <- 1/rgamma(k(object), shape=1/2 * eta.P, rate=1/2 * eta.P * m2.P)
-  stopif(is.nan(tau2))
   tau2
 }
 
@@ -837,78 +824,60 @@ setReplaceMethod("mu", "BatchModel", function(object, value){
   object
 })
 
-setMethod("initializeTheta", "BatchModelNoHom", function(object){
-  if(k(object)==3){
-    th <- matrix(c(-0.5, 0, 1/3), nBatch(object), 3, byrow=TRUE)
-    return(th)
-  }
-  if(k(object)==2){
-    th <- matrix(c(-0.5, 0), nBatch(object), 2, byrow=TRUE)
-    return(th)
-  }
-  if(k(object)==4){
-    th <- matrix(c(-0.5, 0, 1/3, 2/3), nBatch(object), 4, byrow=TRUE)
-    return(th)
-  }
-  if(k(object)==5){
-    th <- matrix(c(-0.5, 0, 1/3, 2/3, 1), nBatch(object), 5, byrow=TRUE)
-    return(th)
-  }
-})
 
-setMethod("initializeTheta", "BatchModel", function(object){
-  th <- matrix(initializeTheta(k(object)), nBatch(object), k(object), byrow=TRUE)
-  rownames(th) <- uniqueBatch(object)
-  th
-})
 
-componentCapturesTails <- function(object){
-  ix <- order(y(object))
-  if(any(head(z(object)[ix]) %in% tail(z(object)[ix]))){
-    is_outlier <- TRUE
-  } else is_outlier <- FALSE
-  is_outlier
-}
+##setMethod("initializeSigma2", "UnivariateBatchModel", function(object){
+##  tmp <- t(replicate(nBatch(object), 1/rgamma(k(object), shape=1/2*nu.0(object), rate=1/2*nu.0(object)*sigma2.0(object))))
+##  matrix(tmp, ncol=1)
+##})
+
+##setMethod("initializeTheta", "UnivariateBatchModel", function(object){
+##  tmp <- t(replicate(nBatch(object), sort(rnorm(k(object), mu(object), tau2(object)))))
+##  tmp <- matrix(tmp, ncol=1)
+##  tmp
+##})
+
+##componentCapturesTails <- function(object){
+##  ix <- order(y(object))
+##  if(any(head(z(object)[ix]) %in% tail(z(object)[ix]))){
+##    is_outlier <- TRUE
+##  } else is_outlier <- FALSE
+##  is_outlier
+##}
 
 setMethod("bic", "BatchModel", function(object, ...){
   if(k(object) > 1){
     object <- updateWithPosteriorMeans(object)
   }
   ## K: number of free parameters to be estimated
-  ##   - component and batch-specific parameters:  theta  ( k(model) * nBatch(model))
-  ##   - 2 variance estimates for each batch:  2*nBatch(model)
+  ##   - component and batch-specific parameters:  theta, sigma2  ( k(model) * nBatch(model))
   ##   - component-specific parameters: mu, tau2                 2 x k(model)
   ##   - length-one parameters: sigma2.0, nu.0                   +2
   ##   - mixture probs:  +3
-  K <- k(object)*nBatch(object) + 2*nBatch(object) +  2*k(object) + 2 + 3
-  ## Experimental: extra penalty
-  K <- K+2
+  K <- 2*k(object)*nBatch(object) + 2*k(object) + 2 + 3
   n <- length(y(object))
   bicstat <- -2*logpotential(object) + K*(log(n) - log(2*pi))
-##  if(k(object) > 1 && componentCapturesTails(object)){
-##    bicstat <- bicstat+1e5
+  bicstat
+})
+
+
+##setMethod("bic", "BatchModelNoHom", function(object, ...){
+##  if(k(object) > 1){
+##    object <- updateWithPosteriorMeans(object)
 ##  }
-  bicstat
-})
-
-
-setMethod("bic", "BatchModelNoHom", function(object, ...){
-  if(k(object) > 1){
-    object <- updateWithPosteriorMeans(object)
-  }
-  ## K: number of free parameters to be estimated
-  ##   - component and batch-specific parameters:  theta  ( k(model) * nBatch(model))
-  ##   - 1 variance estimate for each batch:  nBatch(model)
-  ##   - component-specific parameters: mu, tau2                 2 x k(model)
-  ##   - length-one parameters: sigma2.0, nu.0                   +2
-  ##   - mixture probs:  +3
-  K <- k(object)*nBatch(object) + nBatch(object) +  2*k(object) + 2 + 3
-  ## Experimental: extra penalty
-  K <- K + 2
-  n <- length(y(object))
-  bicstat <- -2*logpotential(object) + K*(log(n) - log(2*pi))
-  bicstat
-})
+##  ## K: number of free parameters to be estimated
+##  ##   - component and batch-specific parameters:  theta  ( k(model) * nBatch(model))
+##  ##   - 1 variance estimate for each batch:  nBatch(model)
+##  ##   - component-specific parameters: mu, tau2                 2 x k(model)
+##  ##   - length-one parameters: sigma2.0, nu.0                   +2
+##  ##   - mixture probs:  +3
+##  K <- k(object)*nBatch(object) + nBatch(object) +  2*k(object) + 2 + 3
+##  ## Experimental: extra penalty
+##  K <- K + 2
+##  n <- length(y(object))
+##  bicstat <- -2*logpotential(object) + K*(log(n) - log(2*pi))
+##  bicstat
+##})
 
 setMethod("theta", "BatchModel", function(object) {
   b <- object@theta
@@ -920,6 +889,12 @@ setMethod("theta", "BatchModel", function(object) {
 setReplaceMethod("theta", "BatchModel", function(object, value){
   rownames(value) <- uniqueBatch(object)
   object@theta <- value
+  object
+})
+
+setReplaceMethod("p", "BatchModel", function(object, value){
+  rownames(value) <- uniqueBatch(object)
+  object@pi <- value
   object
 })
 
@@ -969,7 +944,7 @@ setMethod("updateWithPosteriorMeans", "BatchModel", function(object){
   mc <- mcmcChains(object)
   theta(object) <- matrix(colMeans(theta(mc)), nBatch(object), k(object))
   sigma2(object) <- matrix(colMeans(sigma2(mc)), nBatch(object), k(object))
-  p(object) <- colMeans(p(mc))
+  p(object) <- matrix(colMeans(p(mc)), nBatch(object), k(object))
   nu.0(object) <- median(nu.0(mc))
   mu(object) <- colMeans(mu(mc))
   tau2(object) <- colMeans(tau2(mc))
@@ -1037,4 +1012,180 @@ setMethod("sort", "BatchModel", function(x, decreasing=FALSE, ...){
   dataPrec(x) <- dataPrec(x)[, cn]
   mcmcChains(x) <- mc
   x
+})
+
+.computeDistOneBatch <- function(th, s2, P, mus, tau2s, modes, param.sds){
+  thetad <- .absoluteDistance(th, modes[["theta"]])
+  sigma2d <- .absoluteDistance(s2, modes[["sigma2"]])
+  pid <- .absoluteDistance(P, modes[["mixprob"]])
+  mud <- .absoluteDistance(mus, modes[["mu"]])
+  tau2d <- .absoluteDistance(tau2s, modes[["tau2"]])
+  ##
+  ## sum the distances for each parameter matrix and standardize the
+  ## total distance by the standard deviation of the modal parameter
+  ## estimates
+  ##
+  thd <- rowSums(thetad)/param.sds[["theta"]]
+  s2d <- rowSums(sigma2d)/param.sds[["sigma2"]]
+  pid <- rowSums(pid)/param.sds[["mixprob"]]
+  mud <- rowSums(mud)/param.sds[["mu"]]
+  tau2d <- rowSums(tau2d)/param.sds[["tau2"]]
+  if(param.sds[["sigma2"]] > 0){
+    tot <- thd+s2d+pid+mud+tau2d
+  } else tot <- thd+pid+mud+tau2d
+  tot
+}
+
+## compute distance for a given permutation of columns
+.computeDistanceOnePerm <- function(mc, column.permutation, modes){
+  param.sds <- sapply(modes, sd)
+  .computeDistOneBatch(th=theta(mc)[, column.permutation],
+                       s2=sigma2(mc)[, column.permutation],
+                       mus=mu(mc)[, column.permutation],
+                       tau2s=tau2(mc)[, column.permutation],
+                       P=p(mc)[, column.permutation],
+                       modes=modes,
+                       param.sds=param.sds)
+}
+
+setMethod("computeDistance", "BatchModel", function(object){
+  modal.params <- modes(object)
+  ##param.sds <- sapply(modal.params, function(x) sd(x[1,]))
+  mc <- mcmcChains(object)
+  th <- theta(mc)
+  s2 <- sigma2(mc)
+  ## ix is the number of possible orderings for each batch
+  ix <- permutations(k(object), k(object))##
+  nr <- nrow(th)
+  nc <- nrow(ix)
+  Dlist <- vector("list", nBatch(bmodel))
+  ## iterate over batches
+  for(b in seq_len(nBatch(object))){
+    mc2 <- mc
+    batch.index <- seq(b, nBatch(object)*k(object), by=nBatch(object))
+    theta(mc2) <- th[, batch.index]
+    sigma2(mc2) <- s2[, batch.index]
+    D <- matrix(NA, nr, nc)
+    m.params <- list(theta=modal.params[["theta"]][b,],
+                     sigma2=modal.params[["sigma2"]][b,],
+                     mu=modal.params[["mu"]],
+                     tau2=modal.params[["tau2"]],
+                     mixprob=modal.params[["mixprob"]])
+    ## iterate over all possible permutations
+    for(j in 1:nrow(ix)){
+      J <- ix[j, ]
+      D[, j] <- .computeDistanceOnePerm(mc=mc2, column.permutation=J,
+                                        modes=m.params)
+    }
+    Dlist[[b]] <- D
+  }
+  Dlist
+})
+
+setMethod("switchLabels", "BatchModel", function(object){
+  Dlist <- computeDistance(object)
+  mc <- mcmcChains(object)
+  warn <- FALSE
+  for(b in seq_along(Dlist)){
+    D <- Dlist[[b]]
+    ordering_index <- apply(D, 1, which.min)
+    if(all(ordering_index == 1)) next()
+    warn <- TRUE
+    batch.index <- seq(b, nBatch(object)*k(object), by=nBatch(object))
+    mc2 <- mc
+    theta(mc2) <- theta(mc)[, batch.index]
+    sigma2(mc2) <- sigma2(mc)[, batch.index]
+    perms <- permutations(k(object), k(object))
+    tab <- as.integer(names(table(ordering_index)))
+    tab <- tab[tab!=1]
+    for(i in seq_along(tab)){
+      mcmc.index <- which(ordering_index == tab[i])
+      j <- perms[tab[i], ]
+      ## rewrite batch.index in mc from the permuted index in mc2
+      theta(mc)[mcmc.index, batch.index] <- theta(mc2)[mcmc.index, j]
+      sigma2(mc)[mcmc.index, batch.index] <- sigma2(mc2)[mcmc.index, j]
+      p(mc)[mcmc.index, ] <- p(mc)[mcmc.index, j]
+      mu(mc)[mcmc.index,] <- mu(mc)[mcmc.index, j]
+      tau2(mc)[mcmc.index,] <- tau2(mc)[mcmc.index, j]
+    }
+    mcmcChains(object) <- mc
+  }
+  if(warn) warning("Label switching occurred. Posterior probabilities for z may be incorrect")
+  object
+})
+
+
+.computeModesBatch <- function(object){
+  mc <- mcmcChains(object)
+  th <- theta(mc)
+  nr <- nrow(th)
+  nc <- ncol(th)
+  pot <- logpotential(mc)
+  i <- which.max(pot)
+  nb <- nBatch(object)
+  kk <- k(object)
+  thetamax <- matrix(theta(mc)[i, ], nb, kk)
+  sigma2max <- matrix(sigma2(mc)[i, ], nb, kk)
+  pmax <- p(mc)[i, ]
+  mumax <- mu(mc)[i, ]
+  tau2max <- tau2(mc)[i,]
+  modes <- list(theta=thetamax,
+                sigma2=sigma2max,
+                mixprob=pmax,
+                mu=mumax,
+                tau2=tau2max)
+  modes
+}
+
+setMethod("computeModes", "BatchModel", function(object){
+  .computeModesBatch(object)
+})
+
+setMethod("tracePlot", "BatchModel", function(object, name, ...){
+  ilist <- foreach(j=1:nBatch(object)) %do% seq(j, nBatch(object)*k(object), nBatch(object))
+  uB <- uniqueBatch(object)
+  if(name=="theta"){
+    ##op <- par(mfrow=c(3, 3), las=1)
+    foreach(k=1:nBatch(object)) %do% {
+      plot.ts(thetac(object)[, ilist[[k]]], ylab="", xlab="",
+              col="gray", plot.type="single", main=uB[k], ...)
+    }
+    ##par(op)
+  }
+  if(name=="sigma"){
+    ##op <- par(mfrow=c(nBatch(object)/3, 3), las=1)
+    foreach(k=1:nBatch(object)) %do% {
+      plot.ts(sigmac(object)[, ilist[[k]]], ylab="", xlab="",
+              col="gray", plot.type="single", main=uB[k],...)
+    }
+    ##par(op)
+  }
+  if(name=="p"){
+    ##op <- par(mfrow=c(1, k(object)), las=1)
+    foreach(k=1:nBatch(object)) %do% {
+      plot.ts(pic(object)[, ilist[[k]]], ylab="", xlab="",
+              col="gray", plot.type="single", main=uB[k],...)
+    }
+    ##plot.ts(pic(object), col="gray", ...)
+    ##par(op)
+  }
+  if(name=="mu"){
+    ##op <- par(mfrow=c(1, k(object)), las=1)
+    plot.ts(muc(object), col="gray", ...)
+    ##par(op)
+  }
+  if(name=="tau"){
+    ##op <- par(mfrow=c(1, k(object)), las=1)
+    plot.ts(tauc(object), col="gray", ...)
+    ##par(op)
+  }
+})
+
+setMethod("tablez", "BatchModel", function(object){
+  tab <- table(batch(object), z(object))
+  tab[uniqueBatch(object), , drop=FALSE]
+})
+
+setMethod("updateZ", "UnivariateBatchModel", function(object){
+  factor(rep(1, length(y(object))))
 })

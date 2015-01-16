@@ -1,12 +1,14 @@
 ## no reason to test if the other tests are working
-.test_marginalEasy <- function(){
+test_marginalEasy <- function(){
   set.seed(1)
-  truth <- simulateData(N=500, .k=3, means=c(-1, 0, 1), sds=c(0.1, 0.1, 0.1))
-  model <- truth
+  truth <- simulateData(N=2500, p=rep(1/3, 3), theta=c(-1, 0, 1),
+                        sds=rep(0.1, 3))
   if(FALSE) plot(truth, use.current=TRUE)
-  mcmcp <- McmcParams(iter=1000, burnin=100)
-  mcmcChains(model) <- McmcChains(model, mcmcp)
-  trace(posteriorSim
+
+  params <- ModelParams("marginal", y=y(truth), k=3)
+  mcmcp <- McmcParams(iter=1000, burnin=500)
+  ##trace(initializeModel, browser)
+  model <- initializeModel(params)
   model <- posteriorSimulation(model, mcmcp)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
@@ -16,81 +18,72 @@
   }
   mc <- mcmcChains(model)
   pmns <- colMeans(theta(mc))
-  checkEquals(pmns, theta(truth), tolerance=0.03)
+  checkEquals(sort(pmns), theta(truth), tolerance=0.03)
 
   ps <- colMeans(sigma(mc))
-  checkEquals(ps, sigma(truth), tolerance=0.1)
+  checkEquals(ps[order(pmns)], sigma(truth), tolerance=0.1)
 
   pmix <- p(truth)
   pm_pmix <- colMeans(p(mc))
-  checkEquals(pmix, pm_pmix, tolerance=0.01)
-
-
-
+  checkEquals(pmix, pm_pmix[order(pmns)], tolerance=0.05)
 }
 
-test_marginalEasy_default_starts <- function(){
-  set.seed(1000)
-  truth <- simulateData(N=2500,
-                        .k=3,
-                        means=c(-1, 0, 1), sds=c(0.1, 0.1, 0.1))
-  ##
-  ## Start with default starting values
-  ##
-  mcmcp <- McmcParams(iter=1000, burnin=100)
+.test_k_too_big <- function(){
+  ## when k is too big, chains may have a greater likelihood of crossing
+  set.seed(1)
+  truth <- simulateData(N=2500, p=rep(1/3, 3), theta=c(-1, 0, 1),
+                        sds=rep(0.1, 3))
+  if(FALSE) plot(truth, use.current=TRUE)
   params <- ModelParams("marginal", y=y(truth), k=3)
-  model2 <- initializeModel(params)
-  model2 <- posteriorSimulation(model2, mcmcp)
-
-  mc <- mcmcChains(model2)
-  ##plot.ts(theta(mc), col="gray")
-
-  pmns <- colMeans(theta(mc))
-  checkEquals(pmns, theta(truth), tolerance=0.02)
-
-  ps <- colMeans(sigma(mc))
-  checkEquals(ps, sigma(truth), tolerance=0.06)
-
-  pmix <- p(truth)
-  pm_pmix <- colMeans(p(mc))
-  checkEquals(pmix, pm_pmix, tolerance=0.025)
-
-  pz <- probz(model2)
-  checkTrue(all(rowSums(pz) == 1))
-
-  ##
-  ## HWE
-  ##
-  zz <- map(model)
-  hw.cs <- HardyWeinberg(model)$chisq
-  checkIdentical(round(hw.cs, 3), 40.5)
+  mcmcp <- McmcParams(iter=1000, burnin=500)
+  params <- ModelParams("marginal", y=y(truth), k=5)
+  mcmcp <- McmcParams(iter=1000, burnin=500)
+  model <- initializeModel(params)
+  model <- posteriorSimulation(model, mcmcp)
 }
 
-##.test_wrong_k <- function()## incorrect k
-##  mcmcp <- McmcParams(iter=1000, burnin=100, constrainTheta=TRUE)
-##  model3 <- initializeModel("marginal", yy=y(truth), k=5)
-##  mcmcChains(model3) <- McmcChains(model3, mcmcp)
-##  model3 <- posteriorSimulation(model3, mcmcp)
-##  mc <- mcmcChains(model3)
-##  plot.ts(theta(mc), col="gray")
-##  bic5 <- bic(model3)
-##  checkTrue(bic3 < bic5)
-##}
+## no reason to test if the other tests are working
+test_normality_assumption <- function(){
+  set.seed(1)
+  ## does the prior on theta hurt us
+  truth <- simulateData(N=2500, p=c(0.01, 1/3, 1-1/3-0.01), theta=c(-5, -0.4, 0),
+                        sds=rep(0.1, 3))
+  if(FALSE) plot(truth, use.current=TRUE)
+  params <- ModelParams("marginal", y=y(truth), k=3)
+  mcmcp <- McmcParams(iter=1000, burnin=500)
+  model <- initializeModel(params)
+  model <- posteriorSimulation(model, mcmcp)
+  if(FALSE){
+    op <- par(mfrow=c(1,2),las=1)
+    plot(truth, use.current=T)
+    plot(model)
+    par(op)
+  }
+  mc <- mcmcChains(model)
+  pmns <- colMeans(theta(mc))
+  checkEquals(sort(pmns), theta(truth), tolerance=0.03)
+
+  ps <- colMeans(sigma(mc))
+  checkEquals(ps[order(pmns)], sigma(truth), tolerance=0.1)
+
+  pmix <- p(truth)
+  pm_pmix <- colMeans(p(mc))[order(pmns)]
+  checkEquals(pmix, pm_pmix, tolerance=0.05)
+}
 
 test_selectK_easy <- function(){
   ## Need to replace setParallelization with source code
   ## -investigate BiocParallel
-  library(foreach)
   set.seed(1000)
   means <- c(-1, 0, 1)
-  sds <- c(0.1, 0.1, 0.1)
-  truth <- simulateData(N=2500, .k=3, means=means, sds=sds)
+  sds <- c(0.1, 0.2, 0.2)
+  truth <- simulateData(N=2500, p=rep(1/3, 3), theta=means, sds=sds)
   if(FALSE) plot(truth, use.current=TRUE)
   ##
   ## Evaluate at different K
   ##
-  mcmcp <- McmcParams(iter=1000, burnin=1000)
-  mmodels <- fitMixtureModels(y(truth), mcmcp, K=1:5)
+  mcmcp <- McmcParams(iter=rep(1000, 4), burnin=c(100, 200, 1000, 1000))
+  mmodels <- fitMixtureModels(y(truth), mcmcp, K=1:4)
   bicstat <- sapply(mmodels, bic)
   checkIdentical(which.min(bicstat), 3L)
   if(FALSE){
@@ -103,21 +96,17 @@ test_selectK_easy <- function(){
   }
 }
 
-
-
 test_marginal_Moderate <- function(){
   set.seed(100)
   truth <- simulateData(N=2500,
-                        means=c(-2, -0.4, 0),
+                        theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
-                        .alpha=c(100, 200, 400))
+                        p=c(0.05, 0.1, 0.8))
   if(FALSE) plot(truth, use.current=TRUE)
-  mcmcp <- McmcParams(iter=1000, burnin=1000)
-
+  mcmcp <- McmcParams(iter=100000, thin=100, burnin=3000)
   params <- ModelParams("marginal", y=y(truth), k=3)
   model <- initializeModel(params)
   model <- posteriorSimulation(model, mcmcp)
-  model <- sort(model)
   if(FALSE){
     plot.ts(thetac(model))
     plot.ts(sigma(model))
@@ -130,74 +119,39 @@ test_marginal_Moderate <- function(){
   ##
   ## Have to increase the tolerance a bit
   ##
-  ##  setGeneric("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
   mc <- mcmcChains(model)
   pmns <- colMeans(theta(mc))
-  checkEquals(pmns, theta(truth), tolerance=0.04)
+  checkEquals(sort(pmns), theta(truth), tolerance=0.06)
 
   ps <- colMeans(sigma(mc))
-  checkEquals(ps, sigma(truth), tolerance=0.04)
+  checkEquals(ps[order(pmns)], sigma(truth), tolerance=0.09)
 
   pmix <- p(truth)
   pm_pmix <- colMeans(p(mc))
-  checkEquals(pmix, pm_pmix, tolerance=0.1)
+  checkEquals(pmix, pm_pmix[order(pmns)], tolerance=0.1)
 }
-
-test_bad_starts <- function(){
-  set.seed(123)
-  ##
-  ## Default hyperparameters are not near the true values
-  ##
-  truth <- simulateData(N=2500,
-                        means=c(-1, 0.4, 0.75),
-                        sds=c(0.3, 0.1, 0.1),
-                        .alpha=c(100, 200, 100))
-  mcmcp <- McmcParams(iter=1000, burnin=3000)
-  params <- ModelParams("marginal", y=y(truth), k=3, mcmc.params=mcmcp)
-  model <- initializeModel(params)
-  model <- posteriorSimulation(model, mcmcp)
-  if(FALSE){
-    op <- par(mfrow=c(1,2),las=1)
-    plot(truth, use.current=T)
-    plot(model)
-    par(op)
-  }
-  ##
-  ## Have to increase the tolerance a bit
-  ##
-  mc <- mcmcChains(model)
-  pmns <- colMeans(theta(mc))
-  checkEquals(pmns, theta(truth), tolerance=0.09)
-
-  ps <- colMeans(sigma(mc))
-  checkEquals(ps, sigma(truth), tolerance=0.08)
-
-  pmix <- p(truth)
-  pm_pmix <- colMeans(p(mc))
-  checkEquals(pmix, pm_pmix, tolerance=0.06)
-}
-
-
-
 
 test_marginal_hard <- function(){
+  ##
+  ## The mixture probabilities are slow mixing -- high
+  ## autocorrelation.  Much more thinning is probably needed to
+  ## adequately explore the space.
+  ##
+  ##
   ##
   ## Rare components
   ##
   set.seed(2000)
-  truth <- simulateData(N=2500,
-                        means=c(-2, -0.4, 0),
+  truth <- simulateData(N=5e3,
+                        theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
-                        .alpha=c(5, 500, 1000))
-  model <- truth
-  true.sigmas <- sigma(truth)
+                        p=c(0.005, 1/10, 1-0.005-1/10))
   if(FALSE) plot(truth, use.current=TRUE)
 
-  mcmcp <- McmcParams(iter=1000, burnin=500)
+  mcmcp <- McmcParams(iter=50000, thin=50, burnin=3000)
   params <- ModelParams("marginal", y=y(truth), k=3, mcmc.params=mcmcp)
   modelk <- initializeModel(params)
   model <- posteriorSimulation(modelk, mcmcp)
-  model <- sort(model)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth, use.current=T)
@@ -207,61 +161,86 @@ test_marginal_hard <- function(){
   ##
   ## Have to increase the tolerance a bit
   ##
-  mc <- mcmcChains(model)
-  s <- sigma(mc)
-  ps <- colMeans(s)
-  checkEquals(ps, sigma(truth), tolerance=0.05)
+  pmns <- thetaMean(model)
+  checkEquals(sort(pmns), theta(truth), tolerance=0.08)
 
-  pmns <- colMeans(theta(mc))
-  checkEquals(pmns, theta(truth), tolerance=0.05)
+  ps <- sigmaMean(model)
+  checkEquals(ps[order(pmns)], sigma(truth), tolerance=0.15)
 
-  pmix <- p(truth)
-  pm_pmix <- colMeans(p(mc))
-  checkEquals(pmix, pm_pmix, tolerance=0.07)
+  pmix <- pMean(model)
+  checkEquals(p(truth), pmix[order(pmns)], tolerance=0.09)
+  ##min(effectiveSize::p(mc)) ## is very low
+}
+
+.test_outliers <- function(){
+  set.seed(2000)
+  truth <- simulateData(N=2500,
+                        theta=c(-2, -0.4, 0),
+                        sds=c(0.3, 0.15, 0.15),
+                        p=c(0.003, 1/10, 1-0.003-1/10))
+  ## heavy-tailed
+  ##y(truth)[z==1] <- rt
+
+
+
 }
 
 
 
 test_selectK_moderate <- function(){
-  library(HopkinsHPC)
-  setParallelization(7)
+  ##
+  ## Could think about having a MarginalPlusHomozygous class and
+  ## constraining the variance of one component to be at least the
+  ## variance of the other two components.  But then this would make
+  ## the components no longer exchangeable...
+  ##
   set.seed(1)
   truth <- simulateData(2500,
-                        means=c(-2, -0.4, 0),
-                        sds=c(0.3, 0.15, 0.15))
+                        theta=c(-2, -0.4, 0),
+                        sds=c(0.3, 0.15, 0.15),
+                        p=c(1/10, 1/5, 1-1/10-1/5))
   ##
-  ## Evaluate at different K
+  ## Evaluate at different K.  models with fewer components
+  ## (parameters) require fewer iterations to converge.
   ##
-  mcmcp <- McmcParams(iter=1000, burnin=500)
-  models <- fitMixtureModels(y(truth), mcmcp, K=1:5)
+  mcmcp <- McmcParams(iter=c(1000, 1000, 20000, 20000, 20000),
+                      burnin=c(100, 200, 2000, 2000, 2000),
+                      thin=c(1, 1, 10, 10, 10))
+  models <- fitMixtureModels(y(truth), mcmcp, K=1:4)
   bicstat <- sapply(models, bic)
   checkTrue(which.min(bicstat) == 3)
+  if(FALSE){
+    op <- par(mfrow=c(1,3),las=1)
+    plot(truth, use.current=T)
+    plot(models[[2]])
+    plot(models[[3]])
+    par(op)
+  }
 }
 
 
 test_selectK_hard <- function(){
-  if(require(doSNOW)){
-    library(doSNOW)
-    cl <- makeCluster(7, type = "SOCK")
-    registerDoSNOW(cl)
-  }
   set.seed(1234)
+  mcmcp <- McmcParams(iter=c(1000, 1000, 100000, 100000, 100000),
+                      burnin=c(100, 200, 3000, 3000, 3000),
+                      thin=c(1, 1, 100, 100, 100))
   truth <- simulateData(2500,
-                        means=c(-2, -0.4, 0),
+                        theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
-                        .alpha=c(5, 500, 1000))
+                        p=c(1/100, 1/10, 1-0.1-0.001))
   ##
   ## Evaluate at different K
   ##
-  mcmcp <- McmcParams(iter=2000, burnin=500)
-  bicstat <- foreach(k = 1:7, .packages="CNPBayes", .combine="c") %dopar% {
-    params <- ModelParams("marginal", k=k, y=y(truth), mcmc.params=mcmcp)
-    model <- initializeModel(params)
-    model <- posteriorSimulation(model, mcmcp)
-    bic(model)
-  }
+  mcmcp <- McmcParams(iter=50000, thin=50, burnin=3000)
+  params <- ModelParams("marginal", y=y(truth), k=3, mcmc.params=mcmcp)
+  ##modelk <- initializeModel(params)
+  ##model <- posteriorSimulation(modelk, mcmcp)
+  fit <- fitMixtureModels(y(truth), mcmcp, K=1:4)
+  bicstat <- sapply(fit, bic)
   checkTrue(which.min(bicstat) == 3)
 }
+
+
 
 
 .test_cnp360 <- function(){

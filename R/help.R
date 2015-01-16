@@ -19,6 +19,7 @@
 #' @importFrom matrixStats colSds
 #' @importFrom HardyWeinberg HWChisq
 #' @importFrom oligoClasses copyNumber batch
+#' @importFrom coda effectiveSize
 #' @useDynLib CNPBayes
 NULL
 

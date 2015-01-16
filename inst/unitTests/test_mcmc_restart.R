@@ -1,6 +1,6 @@
 test_mcmc_restart <- function(){
   set.seed(1)
-  truth <- simulateData(N=500, .k=3, means=c(-1, 0, 1), sds=c(0.1, 0.1, 0.1))
+  truth <- simulateData(N=500, theta=c(-1, 0, 1), sds=c(0.1, 0.1, 0.1), p=c(1/5, 1/6, 1-1/5-1/6))
   model <- truth
   ##
   ## No burnin, >=1 iterations
@@ -12,8 +12,7 @@ test_mcmc_restart <- function(){
   mc <- mcmcChains(model)
   checkIdentical(theta(mc)[1, ], theta(truth))
   checkIdentical(sigma(mc)[1, ], sigma(truth))
-  checkTrue(all(rowSums(probz(model))==1))
-
+  checkEquals(rowSums(probz(model)), rep(1.0, length(y(model))))
 
 
   ##
@@ -25,7 +24,7 @@ test_mcmc_restart <- function(){
   mcmcp <- McmcParams(iter=1, burnin=10)
   ##trace(posteriorSimulation, browser)
   model <- posteriorSimulation(model, mcmcp)
-  checkTrue(all(rowSums(probz(model))==1))
+  checkEquals(rowSums(probz(model)), rep(1.0, length(y(model))))
 
   ##
   ## Burnin of >=1, >=1 iterations
@@ -39,7 +38,7 @@ test_mcmc_restart <- function(){
   checkTrue(!identical(theta(mc)[1, ], theta(truth)))
   checkTrue(!identical(sigma(mc)[1, ], sigma(truth)))
   checkIdentical(theta(mc)[2, ], as.numeric(theta(model)))
-  checkTrue(all(rowSums(probz(model))==1))
+  checkEquals(rowSums(probz(model)), rep(1.0, length(y(model))))
 
   ##
   ## Burnin of >=1, 0 iterations
@@ -50,7 +49,7 @@ test_mcmc_restart <- function(){
   mc <- mcmcChains(model)
   checkTrue(identical(theta(mc)[1, ], theta(truth)))
   checkTrue(nrow(theta(mc))==2)
-  checkTrue(all(rowSums(probz(model))==1))
+  checkEquals(rowSums(probz(model)), rep(1.0, length(y(model))))
 
   ##
   ## Burnin =0, 0 iterations
@@ -89,10 +88,9 @@ test_mcmc_restart <- function(){
                     0.8, 1, 1.2), nbatch, k, byrow=FALSE)
   sds <- matrix(0.1, nbatch, k)
   truth <- simulateBatchData(N=2500,
-                             .batch=rep(letters[1:3], length.out=2500),
-                             .k=3,
-                             .alpha=rep(1, k),
-                             means=means,
+                             batch=rep(letters[1:3], length.out=2500),
+                             p=c(1/4, 1/6, 1-1/4-1/6),
+                             theta=means,
                              sds=sds)
   se <- as(truth, "SummarizedExperiment")
   mcmcp <- McmcParams(iter=5, burnin=0)
@@ -101,7 +99,7 @@ test_mcmc_restart <- function(){
   params <- ModelParams("batch", y=copyNumber(se)[1,], k=3,
                         batch=se$plate,
                         mcmc.params=mcmcp)
-  modelk1 <- initializeModel(params)
+  modelk1 <- initializeBatchModel(params)
   th1 <- as.numeric(theta(modelk1))
   modelk <- posteriorSimulation(modelk1, mcmcp)
   th2 <- thetac(modelk)[1,]

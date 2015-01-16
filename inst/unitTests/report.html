@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/transitional.dtd">
-<html><head><title>RUNIT TEST PROTOCOL--Sun Jan 11 06:03:09 2015</title>
+<html><head><title>RUNIT TEST PROTOCOL--Thu Jan 15 15:19:52 2015</title>
 </head>
-<body><h1 TRUE>RUNIT TEST PROTOCOL--Sun Jan 11 06:03:09 2015</h1>
+<body><h1 TRUE>RUNIT TEST PROTOCOL--Thu Jan 15 15:19:52 2015</h1>
 <p>Number of test functions: 14</p>
-<p>Number of errors: 0</p>
-<p style=color:red>Number of failures: 1</p>
+<p style=color:red>Number of errors: 3</p>
+<p style=color:red>Number of failures: 2</p>
 <hr>
 <h3 TRUE>1 Test suite</h3>
 <table border="1" width="60%" >
@@ -16,8 +16,30 @@
 </tr>
 <tr><td><a href="#CNPBayes unit testing">CNPBayes unit testing</a></td>
 <td>14</td>
-<td>0</td>
-<td bgcolor="red">1</td>
+<td bgcolor="red">3</td>
+<td bgcolor="red">2</td>
+</tr>
+</table>
+<hr>
+<h3 TRUE>Errors</h3>
+<table border="1" width="100%" >
+<tr><th width="30%">Test suite : test function</th>
+<th width="70%">message</th>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">CNPBayes unit testing : test_hard3</a></td>
+<td>Error in (function (classes, fdef, mtable)  : 
+  unable to find an inherited method for function ‘thetaMean’ for signature ‘"list"’
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy">CNPBayes unit testing : test_selectK_batch_easy</a></td>
+<td>Error in { : task 1 failed - "incorrect number of dimensions"
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_unequal_pmix">CNPBayes unit testing : test_unequal_pmix</a></td>
+<td>Error in batch(truth) : 
+  error in evaluating the argument 'object' in selecting a method for function 'batch': Error: object 'truth' not found
+
+</td>
 </tr>
 </table>
 <hr>
@@ -26,18 +48,36 @@
 <tr><th width="30%">Test suite : test function</th>
 <th width="70%">message</th>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_bad_starts">CNPBayes unit testing : test_bad_starts</a></td>
-<td>Error in checkEquals(pmns, theta(truth), tolerance = 0.09) : 
-  Mean relative difference: 0.5415449
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batch_moderate">CNPBayes unit testing : test_batch_moderate</a></td>
+<td>Error in checkEquals(pmix[j], p(truth), tolerance = 0.08) : 
+  Mean relative difference: 0.1000228
+</td>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">CNPBayes unit testing : test_marginal_Moderate</a></td>
+<td>Error in checkEquals(pmix, pm_pmix[order(pmns)], tolerance = 0.1) : 
+  Mean relative difference: 0.1899245
 </td>
 </tr>
 </table>
 <hr>
 <h3 TRUE>Details</h3>
 <p><a name="CNPBayes unit testing"><h5 TRUE>Test Suite: CNPBayes unit testing</h5>
-</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">test_batchEasy: (3 checks) ... OK (62.48 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">test_hard3: (3 checks) ... OK (219.77 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy">test_selectK_batch_easy: (1 checks) ... OK (335.76 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_moderate">test_selectK_batch_moderate: (3 checks) ... OK (108.34 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_unequal_pmix">test_unequal_pmix: (3 checks) ... OK (407.7 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (1 checks) ... OK (0.08 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_bad_starts"><u style=color:red>test_bad_starts: FAILURE !! (check number 1)  </u></a>Error in checkEquals(pmns, theta(truth), tolerance = 0.09) : 
-  Mean relative difference: 0.5415449
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy_default_starts">test_marginalEasy_default_starts: (3 checks) ... OK (16.93 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (3 checks) ... OK (24.12 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">test_marginal_Moderate: (3 checks) ... OK (31.98 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">test_selectK_easy: (1 checks) ... OK (160.27 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_hard">test_selectK_hard: (1 checks) ... OK (92.91 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_moderate">test_selectK_moderate: (1 checks) ... OK (123.39 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (13 checks) ... OK (0.67 seconds)<br/></a></li></ul></li></li></ul><hr>
+</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">test_batchEasy: (3 checks) ... OK (121.36 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batch_moderate"><u style=color:red>test_batch_moderate: FAILURE !! (check number 3)  </u></a>Error in checkEquals(pmix[j], p(truth), tolerance = 0.08) : 
+  Mean relative difference: 0.1000228
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3"><u style=color:red>test_hard3: ERROR !!  </u></a>Error in (function (classes, fdef, mtable)  : 
+  unable to find an inherited method for function ‘thetaMean’ for signature ‘"list"’
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy"><u style=color:red>test_selectK_batch_easy: ERROR !!  </u></a>Error in { : task 1 failed - "incorrect number of dimensions"
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_unequal_pmix"><u style=color:red>test_unequal_pmix: ERROR !!  </u></a>Error in batch(truth) : 
+  error in evaluating the argument 'object' in selecting a method for function 'batch': Error: object 'truth' not found
+
+<br/>Call Stack:<br/><ol><li>system.time(func())</li><li>func()</li><li>posteriorSimulation(bmod, mcmcp, nstarts = 10)</li><li>multipleStarts(post, mcmcp, nstarts)</li><li>ModelParams("batch", y = y(object), k = k(object), batch = batch(truth), mc</li><li>new("ModelParams", type = match.arg(type), data = y, k = k, batch = batch, </li><li>initialize(value, ...)</li><li>initialize(value, ...)</li><li>batch(truth)</li><li>(function () 
+{
+    res <- try(dump.frames())
+    if (inherits(res, "try-error</li><li>try(dump.frames())</li><li>tryCatch(expr, error = function(e) {
+    call <- conditionCall(e)
+    if (!is</li><li>tryCatchList(expr, classes, parentenv, handlers)</li><li>tryCatchOne(expr, names, parentenv, handlers[[1]])</li></ol></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (1 checks) ... OK (0.06 seconds)<br/></a></li></ul></li></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy">test_marginalEasy: (3 checks) ... OK (40.76 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (3 checks) ... OK (2376.65 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate"><u style=color:red>test_marginal_Moderate: FAILURE !! (check number 3)  </u></a>Error in checkEquals(pmix, pm_pmix[order(pmns)], tolerance = 0.1) : 
+  Mean relative difference: 0.1899245
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_normality_assumption">test_normality_assumption: (3 checks) ... OK (38.44 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">test_selectK_easy: (1 checks) ... OK (156.75 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_hard">test_selectK_hard: (1 checks) ... OK (4679.01 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_moderate">test_selectK_moderate: (1 checks) ... OK (1327.34 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (17 checks) ... OK (0.87 seconds)<br/></a></li></ul></li></li></ul><hr>
 <table border="0" width="80%" >
 <tr><th>Name</th>
 <th>Value</th>
@@ -70,22 +110,22 @@
 <td>01</td>
 </tr>
 <tr><td>day</td>
-<td>10</td>
+<td>14</td>
 </tr>
 <tr><td>svn rev</td>
-<td>67410</td>
+<td>67458</td>
 </tr>
 <tr><td>language</td>
 <td>R</td>
 </tr>
 <tr><td>version.string</td>
-<td>R Under development (unstable) (2015-01-10 r67410)</td>
+<td>R Under development (unstable) (2015-01-14 r67458)</td>
 </tr>
 <tr><td>nickname</td>
 <td>Unsuffered Consequences</td>
 </tr>
 <tr><td>host</td>
-<td>compute-048</td>
+<td>compute-079</td>
 </tr>
 <tr><td>compiler</td>
 <td>/usr/bin/g++</td>

@@ -51,7 +51,7 @@ setMethod("McmcChains", "MixtureModel", function(object, mcmc.params){
 })
 
 .initializeMcmcBatch <- function(object, mcmc.params){
-  nr <- iter(mcmc.params)/thin(mcmc.params) + 1
+  nr <- iter(mcmc.params[1])/thin(mcmc.params)[1] + 1
   K <- k(object)
   B <- nBatch(object)
   mat_batch <- matrix(NA, nr, K*B)
@@ -60,7 +60,7 @@ setMethod("McmcChains", "MixtureModel", function(object, mcmc.params){
   new("McmcChains",
       theta=mat_batch,
       sigma2=mat_batch,
-      pi=mat,
+      pi=mat_batch,
       mu=mat,
       tau2=mat,
       nu.0=vec,
@@ -80,8 +80,6 @@ setMethod("mu", "McmcChains", function(object) object@mu)
 setMethod("tau2", "McmcChains", function(object) object@tau2)
 setMethod("theta", "McmcChains", function(object) object@theta)
 setMethod("sigma2", "McmcChains", function(object) object@sigma2)
-
-
 
 
 ##posteriorMean <- function(object) object@mean
@@ -151,3 +149,5 @@ setReplaceMethod("logpotential", "McmcChains", function(object, value){
   object@logpotential <- value
   object
 })
+
+setMethod("names", "McmcChains", function(x) slotNames(x))
