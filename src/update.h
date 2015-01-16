@@ -7,6 +7,7 @@ RcppExport SEXP update_sigma2(SEXP xmod);
 
 // Access model values
 Rcpp::IntegerVector getZ(Rcpp::S4 model);
+Rcpp::NumericVector getData(Rcpp::S4 model);
 
 // Access hyperparameters
 int getK(Rcpp::S4 hyperparams);
