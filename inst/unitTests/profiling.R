@@ -25,8 +25,10 @@ params <- ModelParams("marginal", y=y(truth), k=k,
 model <- initializeModel(params)
 #model <- posteriorSimulation(model, mcmcp)
 
-updateTheta(model, constrain=TRUE)
+updateTheta(model, constrain=FALSE)
 updateThetaCpp(model, constrain=TRUE)
+
+updateSigma2Cpp(model)
 ## Need to profile posteriorSimulation.  
 Rprof()
 posteriorSimulation(model, mcmcp)

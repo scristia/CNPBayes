@@ -301,6 +301,10 @@ setMethod("updateTheta", "MarginalModel", function(object, constrain) {
   thetas
 }
 
+setMethod("updateSigma2Cpp", "MarginalModel", function(object) {
+  .Call("update_sigma2", object)
+})
+
 setMethod("updateSigma2", "MarginalModel", function(object) {
   ##.updateSigma2(object)
   .updateSigma2_2(object)
