@@ -215,21 +215,29 @@
   se.ea <- readRDS("~/Labs/ARIC/AricCNPData/data/se_medr_EA.rds")
   j <- subjectHits(findOverlaps(rowData(se472), rowData(se.ea)))[1]
   se472 <- se.ea[j, ]
-
   ##
-  ## Batches may differ between CNPs
   ##
-  b <- collapseBatch(se472[1,])
-  mcmcp <- McmcParams(iter=1000, burnin=1000)
-  params <- ModelParams("batch", y=copyNumber(se472)[1, ], batch=b, k=3,
+  ##
+  mcmcp <- McmcParams(iter=10000, burnin=200, thin=10, nStarts=10, nStartIter=200)
+  mparams <- ModelParams("marginal", y=copyNumber(se472)[1, ], k=3,
                         mcmc.params=mcmcp)
-  bmodel <- initializeModel(params)
-  bmodel <- posteriorSimulation(bmodel, mcmcp)
+  mmodel <- initializeModel(mparams)
+  mmodel <- posteriorSimulation(mmodel, mcmcp)
 
-  zz <- map(bmodel)
+  truth <- initializeModel(mparams)
+  z(truth) <- z(mmodel)
+  theta(truth) <- theta(mmodel)
+  p(truth) <- sapply(split(z(truth), z(truth)), length)/length(z(truth))
+  sigma2(truth) <- sigma2(mmodel)
+  mu(truth) <- mu(mmodel)
+  tau2(truth) <- tau2(mmodel)
+  mcmcp <- McmcParams(iter=0, burnin=500)
+  truth2 <- posteriorSimulation(truth, mcmcp)
+  saveRDS(truth2, file="~/Software/CNPBayes/inst/extdata/cnp472_model.rds")
+
   sei <- readRDS("~/Labs/ARIC/AricCNPData/data/intensity_472.rds")
   table(colnames(se472) %in% colnames(sei))
-  zz <- zz[colnames(se472) %in% colnames(sei)]
+  ##zz <- zz[colnames(se472) %in% colnames(sei)]
   ##zz <- colnames(se472)[colnames(se472) %in% colnames(sei)]
   se472 <- se472[, colnames(se472) %in% colnames(sei)]
   sei <- sei[, colnames(se472)]
@@ -237,6 +245,8 @@
                    b=log2(assays(sei)[["B"]])[1,],
                    z=zz)
   library(lattice)
+  xyplot(b~a, df, pch=20, cex=0.3)
+
   xyplot(b~a, df[zz==2, ], pch=20, cex=0.3)
   xyplot(b~a, df, pch=20, cex=0.3, col=zz)
 
@@ -263,15 +273,37 @@
   se.ea <- readRDS("~/Labs/ARIC/AricCNPData/data/se_medr_EA.rds")
   j <- subjectHits(findOverlaps(rowData(se707), rowData(se.ea)))[1]
   se707 <- se.ea[j, ]
-
-  mcmcp <- McmcParams(iter=1000, burnin=500)
-
   b <- collapseBatch(se707[1,])
-  mcmcp <- McmcParams(iter=1000, burnin=1000)
-  params <- ModelParams("batch", y=copyNumber(se707)[1, ], batch=b, k=3,
+
+
+  mcmcp <- McmcParams(iter=c(500, 1000, 1000), burnin=c(100, 200, 200))
+  params <- ModelParams("marginal", y=copyNumber(se707)[1, ], k=3,
                         mcmc.params=mcmcp)
-  bmodel <- initializeModel(params)
-  bmodel <- posteriorSimulation(bmodel, mcmcp)
+  mmodels <- fitMixtureModels(y(params), mcmcp, K=1:3)
+  sapply(mmodels, bic)
+
+
+  mcmcp <- McmcParams(iter=1000, burnin=100)
+  bparam <- ModelParams("batch", y=copyNumber(se707)[1, ], k=3, batch=b,
+                        mcmc.params=mcmcp)
+  bmod <- initializeBatchModel(bparam)
+  bmodel <- posteriorSimulation(bmod, mcmcp)
+
+  bparam <- ModelParams("batch", y=copyNumber(se707)[1, ], k=2, batch=b,
+                        mcmc.params=mcmcp)
+  bmod2 <- initializeBatchModel(bparam)
+  bmodel2 <- posteriorSimulation(bmod2, mcmcp)
+
+  bparam <- ModelParams("batch", y=copyNumber(se707)[1, ], k=1, batch=batch(bmod2),
+                        mcmc.params=mcmcp)
+  bmod1 <- initializeBatchModel(bparam)
+  bmodel1 <- posteriorSimulation(bmod1, mcmcp)
+
+  baffile <- list.files(datdir, pattern="BAllele", full.names=TRUE)
+  lrrfile <- list.files(datdir, pattern="LogR", full.names=TRUE)
+  gtfile <- list.files(datdir, pattern="Genotype", full.names=TRUE)
+
+  bafdat <- fread(baffile, nrows=10)
 
   ##
   ## Batches may differ between CNPs
@@ -287,22 +319,38 @@
   ##  modelk2 <- initializeModel(params)
   ##  modelk2 <- posteriorSimulation(modelk2, mcmcp)
   if(FALSE){
+    library(oligoClasses)
+    library(crlmm)
     op <- par(mfrow=c(1,1),las=1)
     CNPBayes::plot(modelk3)
     par(op)
 
     se_snps <- readRDS("~/Software/CNPBayes/inst/extdata/se_snps707.rds")
     library(lattice)
-    se_snps <- se_snps[, colnames(se707)]
-    a <- A(se_snps)
-    b <- B(se_snps)
+    table(colnames(se707) %in% colnames(se_snps))
+    se707_2 <- se707[, colnames(se707) %in% colnames(se_snps)]
+    se_snps <- se_snps[, colnames(se707_2)]
+    a <- log2(assays(se_snps)[["A"]])
+    b <- log2(assays(se_snps)[["B"]])
+
+    cn <- map(bmodel2)
+    names(cn) <- colnames(se707)
+    cn <- cn[colnames(se_snps)]
+    cn <- rep(cn, each=nrow(se_snps))
+
+    cn.marginal <- z(mmodels[[3]])
+    names(cn.marginal) <- colnames(se707)
+    cn.marginal <- cn.marginal[colnames(se_snps)]
+    cn.marginal <- rep(cn.marginal, each=nrow(se_snps))
     ##cn <- assays(se_map)[["mean"]]["CNP_707", names(r)]
-    cn <- matrix(z(modelk3), nrow(se_snps), ncol(se_snps), byrow=TRUE)
-    snpid <- matrix(rownames(se_snps), nrow(se_snps), ncol(se_snps))
-    alleles <- data.frame(A=log2(as.numeric(a)),
-                          B=log2(as.numeric(b)),
+    ##cn <- matrix(z(bmodel2), nrow(se_snps), ncol(se_snps), byrow=TRUE)
+    snpid <- rep(rownames(se_snps), ncol(se_snps))
+    ##snpid <- matrix(rownames(se_snps), nrow(se_snps), ncol(se_snps))
+    alleles <- data.frame(A=as.numeric(a),
+                          B=as.numeric(b),
                           cn=as.numeric(cn),
-                          snp=as.character(snp))
+                          cn.marginal=as.numeric(cn.marginal),
+                          snp=snpid)
     alleles$snp <- factor(alleles$snp)
     p <- xyplot(B~A|snp, alleles, pch=20, cex=0.3, layout=c(1, 3),
                 panel=function(x, y, cn,  ..., subscripts){
@@ -313,6 +361,14 @@
                 }, cn=alleles$cn, auto.key=list(points=TRUE, columns=2), xlab=expression(log[2](A)),
                 ylab=expression(log[2](B)))
     p
+    p2 <- xyplot(B~A|snp, alleles, pch=20, cex=0.3, layout=c(1, 3),
+                 panel=function(x, y, cn,  ..., subscripts){
+                   cn <- cn[subscripts]
+                   colors <- c("black", "gray")[cn]
+                   lpoints(x[cn==2], y[cn==2], col="gray", ...)
+                   lpoints(x[cn==1], y[cn==1], col="black", ...)
+                 }, cn=alleles$cn.marginal, auto.key=list(points=TRUE, columns=2), xlab=expression(log[2](A)),
+                 ylab=expression(log[2](B)))
   }
 
 }

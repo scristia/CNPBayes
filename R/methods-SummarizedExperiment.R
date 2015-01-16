@@ -7,21 +7,16 @@ setMethod("fitMixtureModels", "SummarizedExperiment", function(object, mcmcp, K=
   cn <- copyNumber(object)[1, ]
   object$plate <- collapseBatch(object)
   freq <- table(object$plate)
-##  if(any(freq < 25)){
-##    message("Removing ", sum(freq < 25), " plate(s) with fewer than 25 observations")
-##    batchid <- names(freq)[freq < 25]
-##    object <- object[, !object$plate %in% batchid]
-##    cn <- copyNumber(object)[1, ]
-##  }
   message("Fitting ", length(K), " mixture models")
   fit <- foreach(j = seq_along(K)) %do% {
     cat(".")
     kk <- K[j]
+    mp <- mcmcp[j]
     params <- ModelParams("batch", y=cn, k=kk,
                           batch=object$plate,
-                          mcmc.params=mcmcp)
-    modelk <- initializeModel(params)
-    modelk <- posteriorSimulation(modelk, mcmcp)
+                          mcmc.params=mp)
+    modelk <- initializeBatchModel(params)
+    modelk <- suppressMessages(posteriorSimulation(modelk, mp))
     modelk
   }
   fit

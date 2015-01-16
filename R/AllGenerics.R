@@ -68,6 +68,8 @@ setGeneric("updateMu", function(object) standardGeneric("updateMu"))
 
 setGeneric("initializeSigma2.0", function(object) standardGeneric("initializeSigma2.0"))
 
+setGeneric("initializeSigma2", function(object) standardGeneric("initializeSigma2"))
+
 setGeneric("initializeMu", function(object) standardGeneric("initializeMu"))
 
 setGeneric("initializeTheta", function(object) standardGeneric("initializeTheta"))
@@ -126,3 +128,47 @@ setGeneric("y", function(object) standardGeneric("y"))
 
 #' @export
 setGeneric("z", function(object) standardGeneric("z"))
+
+setGeneric("modalParameters", function(object) standardGeneric("modalParameters"))
+
+setGeneric("computeModes", function(object) standardGeneric("computeModes"))
+
+setGeneric("switchLabels", function(object) standardGeneric("switchLabels"))
+
+setGeneric("computeDistance", function(object) standardGeneric("computeDistance"))
+
+setGeneric("modes", function(object) standardGeneric("modes"))
+setGeneric("modes<-", function(object,value) standardGeneric("modes<-"))
+
+
+setGeneric("mu.0", function(object) standardGeneric("mu.0"))
+setGeneric("tau2.0", function(object) standardGeneric("tau2.0"))
+setGeneric("eta.0", function(object) standardGeneric("eta.0"))
+setGeneric("m2.0", function(object) standardGeneric("m2.0"))
+
+setGeneric("showMeans", function(object) standardGeneric("showMeans"))
+setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
+
+#' @export
+setGeneric("collapseBatch", function(object) standardGeneric("collapseBatch"))
+
+#' @export
+setGeneric("thetac", function(object) standardGeneric("thetac"))
+
+#' @export
+setGeneric("thetaMean", function(object) standardGeneric("thetaMean"))
+
+#' @export
+setGeneric("sigmaMean", function(object) standardGeneric("sigmaMean"))
+
+#' @export
+setGeneric("tracePlot", function(object, name, ...) standardGeneric("tracePlot"))
+
+setGeneric("tablez", function(object) standardGeneric("tablez"))
+
+setGeneric("nStarts", function(object) standardGeneric("nStarts"))
+setGeneric("checkLabels", function(object) standardGeneric("checkLabels"))
+setGeneric("nStartIter", function(object) standardGeneric("nStartIter"))
+
+setGeneric("updateAlpha", function(object) standardGeneric("updateAlpha"))
+setGeneric("alpha", function(object) standardGeneric("alpha"))
