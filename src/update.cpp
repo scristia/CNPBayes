@@ -46,16 +46,27 @@ RcppExport SEXP update_sigma2(SEXP xmod) {
     // initialize objects that are passed from R
     RNGScope scope;
     Rcpp::S4 model(xmod);
-    int K = getK(model.slot("hyperparams"));
+    NumericVector y = getData(model);
+    //int K = getK(model.slot("hyperparams"));
     IntegerVector z = getZ(model);
-    IntegerVector zu = unique(z);
-    return zu;
+    LogicalVector nz = nonZeroCopynumber(z);
+    Rcpp::Rcout << which_min(y);
+    if(nz.size() == 1) {
+       nz[which_min(y)] = FALSE;
+    }
+
+    return nz;
 }
 
 // Accessors
 Rcpp::IntegerVector getZ(Rcpp::S4 model) {
     IntegerVector z = model.slot("z");
     return z;
+}
+
+Rcpp::NumericVector getData(Rcpp::S4 model) {
+    NumericVector y = model.slot("data");
+    return y;
 }
 // FUNCTIONS FOR ACCESSING HYPERPARAMETERS
 int getK(Rcpp::S4 hyperparams) {
