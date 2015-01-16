@@ -18,36 +18,69 @@ RcppExport SEXP update_theta(SEXP xmod, SEXP constraint) {
     NumericVector data_mean = model.slot("data.mean");
     NumericVector sigma2_tilde = 1/sigma2;
     IntegerVector z = model.slot("z");
-    int K = theta.size();
+    int K = getK(model.slot("hyperparams"));
+    NumericVector mu_prior = getMu(model.slot("hyperparams"));
     //
     // Initialize nn, vector of component-wise sample size
     IntegerVector nn(K);
     for(int k = 0; k < K; k++) nn[k] = sum(z == k+1);
 
-    NumericVector denom;
-    for(int k = 0; k < K; k++)
-        denom[k] = tau2_tilde[k] + sigma2_tilde[k] * nn[k];
+    NumericVector denom = tau2_tilde + sigma2_tilde * as<NumericVector>(nn);
+
     NumericVector tau2_n = 1/denom;
 //    NumericVector denom = tau2_tilde + nn*sigma2_tilde;
     NumericVector w1 = tau2_tilde/denom;
     NumericVector w2 = as<NumericVector>(nn)*sigma2_tilde/denom;
 
-    // Create accessor function
-    NumericVector mu_prior = data_mean;
     NumericVector mu_n = w1*mu_prior + w2*data_mean;
-    NumericVector thetas;
-    for(int k = 0; k < K; k++)
-        thetas[k] = as<double>(rnorm(1, mu_prior[k], sqrt(tau2_n[k])));
+    NumericVector thetas(K);
+    for(int k = 0; k < K; k++) {
+        thetas[k] = as<double>(rnorm(1, mu_n[k], sqrt(tau2_n[k])));
+        //Rcpp::Rcout << mu_n[k] << " -- " << tau2_n[k] << " -- " << thetas[k] << "\n";
+    }
     return thetas;
-/*
-  tau2.n <- 1/tau2.n.tilde
-  denom <- tau2.tilde + n.h*sigma2.tilde
-  w1 <- tau2.tilde/denom
-  w2 <- n.h*sigma2.tilde/denom
-  mu.n <- w1*mu + w2*data.mean
-  k <- length(tau2.n)
-  thetas <- rnorm(k, mu.n, sqrt(tau2.n))
-  */
-    //Rcpp::Rcout << z[0] << " " << z[50];
-    //return theta;
 }
+
+RcppExport SEXP update_sigma2(SEXP xmod) {
+    // Rcpp::RNGScope scope;
+    // initialize objects that are passed from R
+    RNGScope scope;
+    Rcpp::S4 model(xmod);
+    int K = getK(model.slot("hyperparams"));
+    IntegerVector z = getZ(model);
+    IntegerVector zu = unique(z);
+    return zu;
+}
+
+// Accessors
+Rcpp::IntegerVector getZ(Rcpp::S4 model) {
+    IntegerVector z = model.slot("z");
+    return z;
+}
+// FUNCTIONS FOR ACCESSING HYPERPARAMETERS
+int getK(Rcpp::S4 hyperparams) {
+    int k = hyperparams.slot("k");
+    return k;
+}
+
+Rcpp::NumericVector getMu(Rcpp::S4 hyperparams) {
+    NumericVector mu = hyperparams.slot("mu");
+    return mu;
+}
+
+Rcpp::NumericVector getTau2(Rcpp::S4 hyperparams) {
+    NumericVector tau2 = hyperparams.slot("tau2");
+    return tau2;
+}
+
+Rcpp::IntegerVector getAlpha(Rcpp::S4 hyperparams) {
+    IntegerVector alpha = hyperparams.slot("alpha");
+    return alpha;
+}
+
+Rcpp::LogicalVector nonZeroCopynumber(Rcpp::IntegerVector z) {
+//nonZeroCopynumber <- function(object) as.integer(as.integer(z(object)) > 1)
+ LogicalVector nz = z > 1;
+ return nz;
+}
+
