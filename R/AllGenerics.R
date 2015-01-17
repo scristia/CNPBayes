@@ -162,6 +162,9 @@ setGeneric("thetaMean", function(object) standardGeneric("thetaMean"))
 setGeneric("sigmaMean", function(object) standardGeneric("sigmaMean"))
 
 #' @export
+setGeneric("pMean", function(object) standardGeneric("pMean"))
+
+#' @export
 setGeneric("tracePlot", function(object, name, ...) standardGeneric("tracePlot"))
 
 setGeneric("tablez", function(object) standardGeneric("tablez"))
@@ -172,3 +175,6 @@ setGeneric("nStartIter", function(object) standardGeneric("nStartIter"))
 
 setGeneric("updateAlpha", function(object) standardGeneric("updateAlpha"))
 setGeneric("alpha", function(object) standardGeneric("alpha"))
+
+setGeneric("orderTheta<-", function(object, value) standardGeneric("orderTheta<-"))
+setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))

@@ -36,9 +36,6 @@ initializeModel <- function(params){
   object <- constructModel(type(params), data=y(params), k=k(params),
                            batch=batch(params))
   hypp <- hyperParams(object) <- Hyperparameters(type(params), k=k(params))
-  hypp@eta.0 <- a(hypp)
-  hypp@m2.0 <- b(hypp)
-  hyperParams(object) <- hypp
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
   mu(object) <- rnorm(1, mu.0(object), sigma2.0(object))
@@ -60,8 +57,6 @@ initializeBatchModel <- function(params, zz){
   object <- constructModel(type(params), data=y(params), k=k(params),
                            batch=batch(params))
   hypp <- hyperParams(object) <- Hyperparameters(type(params), k=k(params))
-  hypp@eta.0 <- a(hypp)
-  hypp@m2.0 <- b(hypp)
   hyperParams(object) <- hypp
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
@@ -70,14 +65,17 @@ initializeBatchModel <- function(params, zz){
   nB <- nBatch(object)
   theta(object) <- initializeTheta(object)
   sigma2(object) <- initializeSigma2(object)
-  ##p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are platform, columns are components
-  p(object) <- rdirichlet(nBatch(object), alpha(hypp))
+  p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are platform, columns are components
+  ##p(object) <- rdirichlet(nBatch(object), alpha(hypp))
   if(missing(zz)){
-    zz <- rep(NA, length(y(params)))
-    tab <- table(batch(params))
-    for(b in uniqueBatch(object)){
-      zz[batch(params)==b] <- simulateZ(tab[b], p(object)[b, ])
-    }
+    ##tab <- table(batch(params))
+    zz <- simulateZ(length(y(params)), p(object))
+    ##    zz <- rep(NA, length(y(params)))
+    ##    tab <- table(batch(params))
+    ##    for(b in uniqueBatch(object)){
+    ##      zz[batch(params)==b] <- simulateZ(tab[b], p(object)[b, ])
+    ##      ##zz[batch(params)==b] <- simulateZ(tab[b], p(object))
+    ##    }
     z(object) <- factor(zz, levels=unique(sort(zz)))
   } else z(object) <- zz
   dataPrec(object) <- 1/computeVars(object)

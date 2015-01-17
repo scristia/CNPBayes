@@ -1,15 +1,17 @@
 #' @export
 simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
   if(missing(batch)) batch <- as.character(rep(1, N))
-  if(is(p, "numeric")) p <- matrix(p, nrow=length(unique(batch)), ncol=ncol(theta),
-                                   byrow=TRUE)
-  rownames(p) <- unique(batch)
+##  if(is(p, "numeric")) p <- matrix(p, nrow=length(unique(batch)), ncol=ncol(theta),
+##                                   byrow=TRUE)
+##  rownames(p) <- unique(batch)
   if(missing(zz)) {
-    zz <- rep(NA, N)
-    nb <- table(batch)
-    for(b in unique(batch)){
-      zz[batch==b] <- simulateZ(nb[b], p[b, ])
-    }
+    zz <- simulateZ(N, p)
+##    zz <- rep(NA, N)
+##    nb <- table(batch)
+##    for(b in unique(batch)){
+##      zz[batch==b] <- simulateZ(nb[b], p[b, ])
+    ##    }
+
   }
   yy <- rep(NA, N)
   ub <- unique(batch)
@@ -29,7 +31,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
   z(object) <- factor(zz, levels=unique(sort(zz)))
   theta(object) <- computeMeans(object)
   sigma2(object) <- computeVars(object)
-  p(object) <- tablez(object)/rowSums(tablez(object))
+  p(object) <- as.numeric(table(z(object))/N)
   object
 }
 

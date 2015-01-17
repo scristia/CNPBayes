@@ -12,7 +12,7 @@ test_batchEasy <- function(){
                              sds=sds,
                              p=c(1/5, 1/3, 1-1/3-1/5))
 
-  mcmcp <- McmcParams(iter=1500, burnin=100)
+  mcmcp <- McmcParams(iter=1000, burnin=100)
   params <- ModelParams("batch", y=y(truth), k=3,
                         batch=rep(letters[1:3], length.out=2500),
                         mcmc.params=mcmcp)
@@ -35,7 +35,7 @@ test_batchEasy <- function(){
   checkEquals(ps[, j], sigma(truth), tolerance=0.1)
 
   pmix <- pMean(model)
-  checkEquals(pmix[j], p(truth), tolerance=0.02)
+  checkEquals(pmix[,j], p(truth), tolerance=0.02)
 
   ## initialize batch model with k=1
   params <- ModelParams("batch", y=y(truth), k=1,
@@ -81,13 +81,19 @@ test_unequalp_across_batch <- function(){
                              zz=z(truth), p=p)
 
 
-  mcmcp <- McmcParams(iter=1000, burnin=1000)
+  mcmcp <- McmcParams(iter=100, burnin=100)
   params <- ModelParams("batch", y=y(truth), k=3,
                         batch=rep(letters[1:3], length.out=2500),
                         mcmc.params=mcmcp)
   bmod <- initializeBatchModel(params)
   bmodel <- posteriorSimulation(bmod, mcmcp)
-
+  ##trace(.plotBatch, browser)
+  plot(bmodel)
+  pmns <- thetaMean(bmodel)
+  j <- order(pmns[1,])
+  pmix <- pMean(bmodel)[, j]
+  mus <- colMeans(pmns)[j]
+  checkEquals(mus, colMeans(theta(truth)))
   if(FALSE){
     op <- par(mfrow=c(1,2), las=1)
     plot(truth, use.current=TRUE)
@@ -150,7 +156,7 @@ test_batch_moderate <- function(){
                              theta=means,
                              sds=sds)
   se <- as(truth, "SummarizedExperiment")
-  mcmcp <- McmcParams(iter=1000, burnin=1000)
+  mcmcp <- McmcParams(iter=1000, burnin=1000, nStarts=20, nStartIter=150)
   params <- ModelParams("batch", y=y(truth), k=3, batch=batch(truth),
                         mcmc.params=mcmcp)
   modelk <- initializeBatchModel(params)
@@ -377,7 +383,7 @@ test_chr4_locus <- function(){
   library(GenomicRanges)
   library(oligoClasses)
   truth <- readRDS("~/Software/CNPBayes/inst/extdata/unequal_mix_model.rds")
-  mcmcp <- McmcParams(iter=1000, burnin=100, nStarts=20, nStartIter=200)
+  mcmcp <- McmcParams(iter=1000, burnin=100)##, nStarts=20, nStartIter=200)
   params <- ModelParams("batch", y=y(truth), k=3,
                         batch=batch(truth),
                         mcmc.params=mcmcp)
@@ -387,7 +393,7 @@ test_chr4_locus <- function(){
   pmns <- thetaMean(bmodel)
   j <- order(pmns[1, ])
   ps <- sigmaMean(bmodel)[, j]
-  pmix <- pMean(bmodel)[j]
+  pmix <- pMean(bmodel)[, j]
 
   checkEquals(pmns[, j], theta(truth), tolerance=0.02)
   checkEquals(pmix, as.numeric(p(truth)), tolerance=0.01)
@@ -409,7 +415,7 @@ test_chr4_locus <- function(){
 
 
 
-test_cnp707 <- function(){
+test_cnp472 <- function(){
   library(GenomicRanges)
   library(oligoClasses)
   se472 <- readRDS("~/Software/CNPBayes/inst/extdata/se_cnp472.rds")
@@ -425,7 +431,7 @@ test_cnp707 <- function(){
   ## marginal model produces incorrect inference
 }
 
-test_cnp472 <- function(){
+.test_cnp472 <- function(){
   ##
   ## Not sure that the batch model is capable of correct inference
   ## when the number of observations in one component is very small.
@@ -465,6 +471,8 @@ test_cnp472 <- function(){
     par(op)
     tracePlot(bmodel, "p")
     tracePlot(bmodel, "sigma")
+
+    bmodel=bmodels[[2]]
 
     zz <- map(bmodel)
     table(zz, z(truth))

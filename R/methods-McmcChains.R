@@ -60,7 +60,7 @@ setMethod("McmcChains", "MixtureModel", function(object, mcmc.params){
   new("McmcChains",
       theta=mat_batch,
       sigma2=mat_batch,
-      pi=mat_batch,
+      pi=mat,
       mu=mat,
       tau2=mat,
       nu.0=vec,

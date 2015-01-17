@@ -32,7 +32,7 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         sigma2="numericOrMatrix",
                                         nu.0="numeric",
                                         sigma2.0="numeric",
-                                        pi="numericOrMatrix",
+                                        pi="numeric",
                                         mu="numericOrMatrix",
                                         tau2="numericOrMatrix",
                                         data="numeric",
@@ -44,7 +44,8 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         mcmc.chains="McmcChains",
                                         batch="vector",
                                         hwe="numeric",
-                                        modes="list"))
+                                        modes="list",
+                                        theta_order="numeric"))
 
 
 setClass("BatchModel", contains="MixtureModel")

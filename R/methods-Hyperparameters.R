@@ -1,21 +1,33 @@
+gammaShapeRate2 <- function(mn, sd){
+  ##1/2*a   = shape
+  ##1/2*a*b = rate
+  ##shape/rate   = mn (1)
+  ##shape/rate^2 = sd (2)
+  ##shape = mn * rate
+  ##mn * rate / rate^2 = sd
+  ##mn/rate = sd
+  ##mn/sd = rate
+  rate <- mn/sd
+  shape <- mn*rate
+  ##a=shape*2
+  ##1/2*(shape*2)*b = rate
+  ## shape*b=rate
+  ## b=rate/shape
+  a <- shape*2
+  b <- rate/shape
+  setNames(c(a, b), c("a", "b"))
+}
+
 #' @include AllClasses.R
 HyperparametersBatch <- function(k=0L,
                                  mu.0=0,
                                  tau2.0=1000,
-                                 eta.0,
-                                 m2.0,
+                                 eta.0=1,
+                                 m2.0=0.001,
                                  alpha,
                                  beta=0.1, ## mean is 1/10
                                  a=1.8,
                                  b=6){
-  if(missing(eta.0) || m2.0){
-    ab <- gammaShapeRate2(1, sqrt(1000))
-    eta.0 <- ab["a"]
-    m2.0 <- ab["b"]
-  } else {
-    eta.0 <- a
-    m2.0 <- b
-  }
   if(missing(alpha)) alpha <- rep(1, k)
   new("HyperparametersBatch",
       k=as.integer(k),
@@ -40,7 +52,7 @@ HyperparametersMarginal <- function(k=0L,
                                     beta=0.1, ## mean is 1/10
                                     a=1.8,
                                     b=6){
-  if(missing(eta.0) || m2.0){
+  if(missing(eta.0) || missing(m2.0)){
     ab <- gammaShapeRate2(1, sqrt(1000))
     eta.0 <- ab["a"]
     m2.0 <- ab["b"]

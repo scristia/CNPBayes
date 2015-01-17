@@ -154,17 +154,18 @@ setMethod("tablez", "MarginalModel", function(object) table(z(object)))
 setGeneric("updateMixProbs", function(object) standardGeneric("updateMixProbs"))
 
 setMethod("updateMixProbs", "MixtureModel", function(object){
-  alpha.n <- updateAlpha(post)
+  alpha.n <- updateAlpha(object)
   as.numeric(rdirichlet(1, alpha.n))
 })
 
 setMethod("updateMixProbs", "BatchModel", function(object){
+  ##With batch-specific, there's not any borrowing
+  ## of strength between batches even in the higher levels of the
+  ## model.  Unless we have a prior on the parameters for the
+  ## Dirichlet.
+  ##
   alpha.n <- updateAlpha(object)
-  pp <- p(object)
-  for(b in uniqueBatch(object)){
-    pp[b, ] <- rdirichlet(1, alpha.n[b, ])
-  }
-  pp
+  as.numeric(rdirichlet(1, alpha.n))
 })
 
 setMethod("alpha", "MixtureModel", function(object) alpha(hyperParams(object)))
@@ -172,7 +173,7 @@ setMethod("alpha", "MixtureModel", function(object) alpha(hyperParams(object)))
 ##setMethod("alpha", "MixtureModel", function(object) alpha(hyperParams(object)))
 
 setMethod("updateAlpha", "MixtureModel", function(object){
-  alpha(object) + tablez(object)
+  alpha(object) + table(z(object))
 })
 
 ##setMethod("updateAlpha", "BatchModel", function(object){
@@ -334,6 +335,7 @@ posteriorSimulation <- function(post, mcmcp){
   ##    ##
   ##    post <- runMcmc2(post, mcmcp, switch_labels=TRUE)
   ##  }
+  orderTheta(post) <- getThetaOrder(post)
   post
 }
 
@@ -608,22 +610,12 @@ setMethod("thetac", "MixtureModel", function(object) theta(mcmcChains(object)))
 
 setMethod("thetaMean", "MixtureModel", function(object) colMeans(thetac(object)))
 
-setMethod("thetaMean", "BatchModel", function(object) {
-  mns <- colMeans(thetac(object))
-  mns <- matrix(mns, nBatch(object), k(object))
-  rownames(mns) <- uniqueBatch(object)
-  mns
-})
 
 
 setMethod("sigmaMean", "MixtureModel", function(object) colMeans(sigmac(object)))
 
-setMethod("sigmaMean", "BatchModel", function(object) {
-  mns <- colMeans(sigmac(object))
-  mns <- matrix(mns, nBatch(object), k(object))
-  rownames(mns) <- uniqueBatch(object)
-  mns
-})
+
+
 
 logpotentialc <- function(object) logpotential(mcmcChains(object))
 
@@ -633,8 +625,9 @@ sigmac <- function(object) sigma(mcmcChains(object))
 #' @export
 pic <- function(object) p(mcmcChains(object))
 
-#' @export
-pMean <- function(object) colMeans(pic(object))
+setMethod("pMean", "MixtureModel", function(object){
+  colMeans(pic(object))
+})
 
 #' @export
 muc <- function(object) mu(mcmcChains(object))

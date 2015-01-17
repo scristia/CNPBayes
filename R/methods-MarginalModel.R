@@ -425,9 +425,10 @@ setMethod("bic", "MarginalModel", function(object, ...){
     object <- updateWithPosteriorMeans(object)
   }
   ## K: number of free parameters to be estimated
-  ##   - component-specific parameters:  theta, pi, sigma2   (3 x k(model))
+  ##   - component-specific parameters:  theta, sigma2   (3 x k(model))
+  ##   - mixing probabilities:  k-1
   ##   - length-one parameters: mu, tau2, sigma2.0, nu.0             +4
-  K <- 3*k(object) + 4
+  K <- 2*k(object) + (k(object)-1) + 4
   n <- length(y(object))
   -2*logpotential(object) + K*(log(n) - log(2*pi))
 })
