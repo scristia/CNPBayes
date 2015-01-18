@@ -1,30 +1,34 @@
 .test_label_switching <- function(){
   set.seed(1000)
   truth <- simulateData(N=2500,
-                        .k=3,
-                        means=c(-1, 0, 1), sds=c(0.1, 0.1, 0.1))
+                        theta=c(-0.4, 0, 0.3),
+                        sds=c(0.1, 0.05, 0.1),
+                        p=c(0.01, 0.98, 0.01))
+  plot(truth, use.current=TRUE)
   ##
   ## Start with default starting values
   ##
-  mcmcp <- McmcParams(iter=100, burnin=200)
-##  params <- ModelParams("marginal", y=y(truth), k=3)
-##  model2 <- initializeModel(params)
-##  model2 <- posteriorSimulation(model2, mcmcp, check_labels=TRUE)
+  mcmcp <- McmcParams(iter=1000, burnin=1000, nStarts=20, nStartIter=100)
+  params <- ModelParams("marginal", y=y(truth), k=3)
+  m <- initializeModel(params)
+  model <- posteriorSimulation(m, mcmcp)
+  pmns <- thetaMean(model)
+  j <- order(pmns)
+  pmix <- pMean(model)
+  checkEquals(pmix[j], p(truth), tolerance=0.02)
 
-  ## more likely to have label switching when k is too big
-  params <- ModelParams("marginal", y=y(truth), k=5)
-  model2 <- initializeModel(params)
-  model2 <- posteriorSimulation(model2, mcmcp, check_labels=FALSE)
-  model2 <- posteriorSimulation(model2, mcmcp, check_labels=TRUE)
-  ##checkException(posteriorSimulation(model2, mcmcp, check_labels=TRUE))
+  ##
+  ## Label switching in batch model
+  ##
+  batch <- rep(letters[1:7], c(1500, 300, 200, 250, 15, 50, 185))
+  batch <- sample(batch, 2500)
+  bparams <- ModelParams("batch", y=y(truth), k=3, batch=batch)
+  bmodel <- initializeBatchModel(bparams)
+  bmodel <- posteriorSimulation(bmodel, mcmcp)
+  mapz <- map(bmodel)
+  tab <- table(batch(bmodel), mapz)
+  table(batch(bmodel), z(truth))
 
-  ## label switching in batch model
-  mcmcp <- McmcParams(iter=10, burnin=0)
-  params <- ModelParams("batch", y=y(truth), k=3,
-                        batch=rep(letters[1:3], length.out=2500),
-                        mcmc.params=mcmcp)
-  bmodel <- initializeModel(params)
-  bmodel <- posteriorSimulation(bmodel, mcmcp, check_labels=TRUE)
 
   ## Next: Once modes have been identified, rerun the chain and
   ## reorder each update with respect to distance to the modal

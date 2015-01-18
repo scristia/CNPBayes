@@ -115,7 +115,7 @@ setGeneric("probz", function(object) standardGeneric("probz"))
 setGeneric("probz<-", function(object, value) standardGeneric("probz<-"))
 
 #' @export
-setGeneric("fitMixtureModels", function(object, mcmcp, K=1:5) standardGeneric("fitMixtureModels"))
+setGeneric("fitMixtureModels", function(object, mcmcp, K=1:5, batch) standardGeneric("fitMixtureModels"))
 
 #' @export
 setGeneric("nu.0", function(object) standardGeneric("nu.0"))
@@ -178,3 +178,8 @@ setGeneric("alpha", function(object) standardGeneric("alpha"))
 
 setGeneric("orderTheta<-", function(object, value) standardGeneric("orderTheta<-"))
 setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))
+
+setGeneric("logLik", function(object) standardGeneric("logLik"))
+setGeneric("logLik<-", function(object,value) standardGeneric("logLik<-"))
+
+setGeneric("computeLoglik", function(object, psi) standardGeneric("computeLoglik"))

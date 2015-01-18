@@ -1,8 +1,8 @@
 Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
-Version: 0.0.14
-Date: Sat Jan 17 18:12:28 EST 2015
+Version: 0.0.15
+Date: Sun Jan 18 15:01:49 EST 2015
 Author: S. Cristiano
 Depends:
     Rcpp (>= 0.10.4),
@@ -42,6 +42,7 @@ Collate:
     'inits.R'
     'loglik.normmix.R'
     'methods-BatchModel.R'
+    'methods-BatchModelP.R'
     'methods-Hyperparameters.R'
     'methods-MarginalModel.R'
     'methods-McmcChains.R'

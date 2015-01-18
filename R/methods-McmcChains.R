@@ -32,7 +32,8 @@
       tau2=vec,
       nu.0=vec,
       sigma2.0=vec,
-      logpotential=vec)
+      logpotential=vec,
+      loglik=vec)
 }
 
 setMethod("McmcChains", "Hyperparameters", function(object, mcmc.params){
@@ -65,7 +66,8 @@ setMethod("McmcChains", "MixtureModel", function(object, mcmc.params){
       tau2=mat,
       nu.0=vec,
       sigma2.0=vec,
-      logpotential=vec)
+      logpotential=vec,
+      loglik=vec)
 }
 
 setMethod("McmcChains", c("BatchModel", "missing"), function(object, mcmc.params){
@@ -102,6 +104,7 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@nu.0 <- x@nu.0[i]
     x@sigma2.0 <- x@sigma2.0[i]
     x@logpotential <- x@logpotential[i]
+    x@loglik <- x@loglik[i]
   }
   x
 })
@@ -148,6 +151,15 @@ setReplaceMethod("sigma2.0", "McmcChains", function(object, value){
 setReplaceMethod("logpotential", "McmcChains", function(object, value){
   object@logpotential <- value
   object
+})
+
+setReplaceMethod("logLik", "McmcChains", function(object, value){
+  object@loglik <- value
+  object
+})
+
+setMethod("logLik", "McmcChains", function(object){
+  object@loglik
 })
 
 setMethod("names", "McmcChains", function(x) slotNames(x))

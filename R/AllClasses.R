@@ -24,7 +24,8 @@ setClass("McmcChains", representation(theta="matrix",
                                       tau2="numericOrMatrix",
                                       nu.0="numeric",
                                       sigma2.0="numeric",
-                                      logpotential="numeric"))
+                                      logpotential="numeric",
+                                      loglik="numeric"))
 
 setClass("MixtureModel", representation("VIRTUAL",
                                         hyperparams="Hyperparameters",

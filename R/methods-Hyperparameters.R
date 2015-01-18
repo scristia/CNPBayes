@@ -21,7 +21,7 @@ gammaShapeRate2 <- function(mn, sd){
 #' @include AllClasses.R
 HyperparametersBatch <- function(k=0L,
                                  mu.0=0,
-                                 tau2.0=1000,
+                                 tau2.0=10,
                                  eta.0=1,
                                  m2.0=0.001,
                                  alpha,
@@ -45,21 +45,13 @@ HyperparametersMarginal <- function(k=0L,
                                     ##mu,
                                     ##tau2,
                                     mu.0=0,
-                                    tau2.0=100,
-                                    eta.0,
-                                    m2.0,
+                                    tau2.0=10,
+                                    eta.0=1,
+                                    m2.0=0.001,
                                     alpha,
                                     beta=0.1, ## mean is 1/10
                                     a=1.8,
                                     b=6){
-  if(missing(eta.0) || missing(m2.0)){
-    ab <- gammaShapeRate2(1, sqrt(1000))
-    eta.0 <- ab["a"]
-    m2.0 <- ab["b"]
-  } else {
-    eta.0 <- a
-    m2.0 <- b
-  }
   if(missing(alpha)) alpha <- rep(1, k)
   ##if(missing(mu)) mu <- initializeMu(k)
   ##if(missing(tau2)) tau2 <- rep(1, k)
@@ -147,7 +139,7 @@ setMethod("show", "Hyperparameters", function(object){
 })
 
 setMethod("initializeMu", "numeric", function(object){
-  rnorm(k(object), mu.0(object), tau2.0(object))
+  rnorm(k(object), mu.0(object), tau.0(object))
 ##  means <- switch(paste0("k", object),
 ##                  k1=0,
 ##                  k2=c(-0.5, 0),

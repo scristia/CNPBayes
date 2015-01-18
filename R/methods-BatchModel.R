@@ -82,8 +82,8 @@ UnivariateBatchModel <- function(data, k=1, batch){
       tau2=numeric(k),
       nu.0=numeric(1),
       sigma2.0=numeric(1),
-      ##pi=numeric(k),
-      pi=matrix(NA, B, 1),
+      pi=numeric(k),
+      ##pi=matrix(NA, B, 1),
       data=data,
       data.mean=matrix(NA, B, 1),
       data.prec=matrix(NA, B, 1),
@@ -172,8 +172,6 @@ setMethod("updateZ", "BatchModel", function(object){
 ##  }
 ##  return(plist)
 ##})
-
-
 setMethod("posteriorMultinomial", "UnivariateBatchModel", function(object) return(1))
 
 #' @export
@@ -264,9 +262,11 @@ setMethod("computePotential", "BatchModel", function(object){
   mus <- mu(object)
   tau2s <- tau2(object)
   pp <- p(object)
+
   p.mu <- dnorm(mus, mu.0(hypp), sqrt(tau2.0(hypp)))
   p.sigma2.0 <- dgamma(sigma2.0(object), a(hypp), b(hypp))
   p.nu.0 <- dgeom(as.integer(nu.0(object)), betas(hypp))
+
   p.theta <- matrix(NA, nrow(thetas), ncol(thetas))
   for(j in seq_len(ncol(p.theta))){
     p.theta[, j] <- dnorm(thetas[, j], mus[j], sqrt(tau2s[j]))
@@ -291,6 +291,8 @@ setMethod("computePotential", "BatchModel", function(object){
   total_pot <- sum(log(p.y)) + sum(log(p.theta)) + sum(log(p.sigma2)) + sum(log(p.mu)) + log(p.nu.0) + log(p.sigma2.0)
   total_pot
 })
+
+
 
 
 setMethod("show", "BatchModel", function(object){
@@ -415,14 +417,18 @@ setReplaceMethod("orderTheta", "MixtureModel", function(object, value) {
   if(!use.current){
     thetas <- thetaMean(object)
     sds <- sigmaMean(object)
-    sds <- orderCols(thetas, sds)
-    P <- pMean(object)
-    P <- orderCols(thetas, P)
-    thetas <- orderCols(thetas, thetas)
+    ##P <- pMean(object)  does not give the batch specific probabilities
+    mapz <- factor(map(object), levels=seq_len(k(object)))
+    tabz <- table(batch(object), mapz)
+    tabz <- tabz/rowSums(tabz)
+    tabz <- tabz[uniqueBatch(object), , drop=FALSE]
+    P <- tabz
+    ##P <- mapz/rowSums(mapz)
   } else {
     thetas <- theta(object)
     sds <- sigma(object)
     P <- p(object)
+    P <- matrix(P, nBatch(object), k(object), byrow=TRUE)
   }
   marginal <- matrix(NA, length(xx), nBatch(object)*k(object))
   cols <- brewer.pal(max(k(object), 3),  "Set1")
@@ -474,6 +480,7 @@ setMethod("moveChain", "BatchModel", function(object, s){
   nu.0(mcmc)[s] <- nu.0(object)
   sigma2.0(mcmc)[s] <- sigma2.0(object)
   logpotential(mcmc)[s] <- logpotential(object)
+  logLik(mcmc)[s] <- computeLoglik(object)
   mcmcChains(object) <- mcmc
   object
 })
@@ -872,7 +879,7 @@ setMethod("bic", "BatchModel", function(object, ...){
   ##   - mixing probabilities: (k-1)*nBatch
   ##   - component-specific parameters: mu, tau2                 2 x k(model)
   ##   - length-one parameters: sigma2.0, nu.0                   +2
-  K <- 2*k(object)*nBatch(object) + nBatch(object)*(k(object)-1) + 2*k(object) + 2
+  K <- 2*k(object)*nBatch(object) + (k(object)-1) + 2*k(object) + 2
   n <- length(y(object))
   bicstat <- -2*logpotential(object) + K*(log(n) - log(2*pi))
   bicstat
@@ -911,10 +918,11 @@ setReplaceMethod("theta", "BatchModel", function(object, value){
 })
 
 setReplaceMethod("p", "BatchModel", function(object, value){
-  ##rownames(value) <- uniqueBatch(object)
   object@pi <- value
   object
 })
+
+
 
 setReplaceMethod("sigma2", "BatchModel", function(object, value){
   rownames(value) <- uniqueBatch(object)
@@ -962,7 +970,7 @@ setMethod("updateWithPosteriorMeans", "BatchModel", function(object){
   mc <- mcmcChains(object)
   theta(object) <- matrix(colMeans(theta(mc)), nBatch(object), k(object))
   sigma2(object) <- matrix(colMeans(sigma2(mc)), nBatch(object), k(object))
-  p(object) <- matrix(colMeans(p(mc)), nBatch(object), k(object))
+  p(object) <- colMeans(p(mc))
   nu.0(object) <- median(nu.0(mc))
   mu(object) <- colMeans(mu(mc))
   tau2(object) <- colMeans(tau2(mc))
@@ -1180,10 +1188,8 @@ setMethod("tracePlot", "BatchModel", function(object, name, ...){
   }
   if(name=="p"){
     ##op <- par(mfrow=c(1, k(object)), las=1)
-    foreach(k=1:nBatch(object)) %do% {
-      plot.ts(pic(object)[, ilist[[k]]], ylab="", xlab="",
-              plot.type="single", main=uB[k], ...)
-    }
+    ##foreach(k=1:nBatch(object)) %do% {
+    plot.ts(pic(object),  ...)
     ##plot.ts(pic(object), col="gray", ...)
     ##par(op)
   }
@@ -1224,7 +1230,112 @@ setMethod("thetaMean", "BatchModel", function(object) {
 
 setMethod("pMean", "BatchModel", function(object) {
   mns <- colMeans(pic(object))
-  mns <- matrix(mns, nBatch(object), k(object))
-  rownames(mns) <- uniqueBatch(object)
   mns
 })
+
+
+
+setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
+  if(!missing(i)){
+    y(object) <- y(object)[i]
+    z(object) <- z(object)[i]
+    batch(objct) <- batch(object)[i]
+  }
+  object
+})
+
+setMethod("computeLoglik", c("BatchModel", "missing"), function(object, psi){
+  lik <- rep(NA, length(y(object)))
+  B <- batch(object)
+  ub <- unique(B)
+  mn <- theta(object)
+  ss <- sigma(object)
+  yy <- y(object)
+  zz <- as.integer(z(object))
+  pp <- p(object)
+  for(b in ub){
+    i <- B==b
+    m <- mn[b, ]
+    s <- ss[b, ]
+    z <- zz[i]
+    y <- yy[i]
+    lik[i] <- pp[z] * dnorm(y, m[z], s[z])
+  }
+  sum(log(lik))
+})
+
+setMethod("computeLoglik", c("BatchModel", "McmcChains"), function(object, psi){
+  lik <- rep(NA, length(y(object)))
+  B <- batch(object)
+  ub <- unique(B)
+  ## psi is fixed, but not z
+  mn <- theta(psi)
+  ss <- sigma(psi)
+  pp <- p(psi)
+  yy <- y(object)
+  zz <- as.integer(z(object))
+  for(b in ub){
+    i <- B==b
+    m <- mn[b, ]
+    s <- ss[b, ]
+    z <- zz[i]
+    y <- yy[i]
+    lik[i] <- pp[z]*dnorm(y, m[z], s[z])
+  }
+  log(lik)
+})
+
+logp1 <- function(object, psi){
+  hypp <- hyperParams(object)
+  ##mc <- mcmcChains(object)
+  mus <- mu(psi)
+  s2.0 <- sigma2.0(psi)
+  n.0 <- nu.0(psi)
+
+  p.mu <- dnorm(mus, mu.0(hypp), sqrt(tau2.0(hypp)))
+  p.sigma2.0 <- dgamma(s2.0, a(hypp), b(hypp))
+  p.nu.0 <- dgeom(as.integer(n.0), betas(hypp))
+  log(p.mu)+log(p.sigma2.0)+log(p.nu.0)
+}
+
+logp2 <- function(object, psi){
+  yy <- y(object)
+  zz <- z(object)
+  thetas <- theta(psi)
+  sigma2s <- sigma2(psi)
+  mus <- mu(psi)
+  tau2s <- tau2(psi)
+  pp <- p(psi)
+  p.theta <- matrix(NA, nrow(thetas), ncol(thetas))
+  for(j in seq_len(ncol(p.theta))){
+    p.theta[, j] <- dnorm(thetas[, j], mus[j], sqrt(tau2s[j]))
+  }
+  p.sigma2 <- dgamma(1/sigma2s, 1/2*nu.0(psi), 1/2*nu.0(psi)*sigma2.0(psi))
+  sum(log(p.theta)) + sum(log(p.sigma2))
+}
+
+##
+## Chib's Estimator of marginal likelihood
+##
+## m.k(x) = p.k(x | Psi*)*p.k(Psi*)/p.k(Psi*|x)
+## where Psi* = (theta, mu, sigma, ...) is an arbitrary value of Psi
+## or
+## marginal lik = likelihood|Psi * prior/ posterior
+##
+## 1. Choose a value of Psi* that maximizes the likelihood
+## 2. Compute p.k(Psi*|x) as 1/T sum_t  p.k(Psi*(t) | x, z_k(t))
+chibsEstimator <- function(object, mcmcp){
+  log.lik <- logLik(object)
+  star <- which.max(log.lik)
+  psi.star <- mcmcChains(object)[star]
+  T <- seq_len(iter(mcmcp))
+  log.lik <- rep(NA, T)
+  log_p_psi <- rep(NA,T)
+  log_p_psi_x <- rep(NA,T)
+  for(t in T){
+    object <- updateAll(object, TRUE, check_labels=FALSE)
+    log.lik[t] <- computeLoglik(object, psi.star)
+    log_p_psi[t] <- logp1(object, psi.star)
+    log_p_psi_x[t] <- logp2(object, psi.star)
+  }
+}

@@ -18,6 +18,10 @@ test_batchEasy <- function(){
                         mcmc.params=mcmcp)
   model <- initializeBatchModel(params)
   model <- posteriorSimulation(model, mcmcp)
+  trace(chibsEstimator, browser)
+  psi.star <- chibsEstimator(model)
+
+
   ##
   ## Start from true values
   ##
@@ -184,6 +188,8 @@ test_batch_moderate <- function(){
     plot.ts(sigmac(modelk), plot.type="single")
     abline(h=sigma(truth))
     op <- par(mfrow=c(1,2),las=1)
+    ##trace(.plotBatch, browser)
+    ##.plotBatch(truth, use.current=TRUE)
     CNPBayes::plot(truth, use.current=TRUE)
     CNPBayes::plot(modelk)
     par(op)
@@ -331,7 +337,7 @@ test_hard3 <- function(){
   ps <- sigmaMean(mmodel)[, j]
   pmix <- pMean(mmodel)[j]
 
-  checkEquals(pmns[, j], theta(truth), tolerance=0.02)
+  checkEquals(pmns[, j], theta(truth), tolerance=0.04)
   checkEquals(ps, sigma(truth), tolerance=0.15)
   checkEquals(pmix, p(truth), tolerance=0.04)
 }
@@ -370,9 +376,6 @@ test_hard3 <- function(){
   checkEquals(colMeans(sigma(mc)), as.numeric(sigma(truth)), tolerance=0.05)
   checkEquals(colMeans(p(mc)), as.numeric(p(truth)), tolerance=0.03)
 }
-
-
-
 
 test_chr4_locus <- function(){
   ##

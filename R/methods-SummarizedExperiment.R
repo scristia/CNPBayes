@@ -3,10 +3,11 @@ setMethod("copyNumber", "SummarizedExperiment", function(object, ...){
   assays(object)[["medr"]]/1000
 })
 
-setMethod("fitMixtureModels", "SummarizedExperiment", function(object, mcmcp, K=1:5){
+setMethod("fitMixtureModels", "SummarizedExperiment", function(object, mcmcp, K=1:5, batch){
   cn <- copyNumber(object)[1, ]
-  object$plate <- collapseBatch(object)
-  freq <- table(object$plate)
+  if(missing(batch)){
+    object$plate <- collapseBatch(object)
+  } else object$plate <- batch
   message("Fitting ", length(K), " mixture models")
   fit <- foreach(j = seq_along(K)) %do% {
     cat(".")
@@ -20,6 +21,20 @@ setMethod("fitMixtureModels", "SummarizedExperiment", function(object, mcmcp, K=
     modelk
   }
   fit
+})
+
+
+updateModel <- function(object, zz){
+  params <- ModelParams("batch", y=y(object), k=k(object),
+                        batch=batch(object),
+                        mcmc.params=mcmcp)
+  initializeBatchModel(params, zz=factor(zz, levels=seq_len(k(object))))
+}
+
+
+## K and batch ignored
+setMethod("fitMixtureModels", "BatchModel", function(object, mcmcp, K, batch){
+  posteriorSimulation(object, mcmcp)
 })
 
 

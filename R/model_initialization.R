@@ -38,9 +38,9 @@ initializeModel <- function(params){
   hypp <- hyperParams(object) <- Hyperparameters(type(params), k=k(params))
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
-  mu(object) <- rnorm(1, mu.0(object), sigma2.0(object))
+  mu(object) <- rnorm(1, mu.0(object), sigma.0(object))
   tau2(object) <- 1/rgamma(1, shape=1/2*eta.0(object), rate=1/2*eta.0(object)*m2.0(object))
-  theta(object) <- rnorm(k(object), mu(object), tau2(object))
+  theta(object) <- rnorm(k(object), mu(object), tau(object))
   sigma2(object) <- 1/rgamma(k(object), shape=1/2*nu.0(object), rate=1/2*nu.0(object)*sigma2.0(object))
   p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are platform, columns are components
   zz <- simulateZ(length(y(object)), p(object))
@@ -60,7 +60,7 @@ initializeBatchModel <- function(params, zz){
   hyperParams(object) <- hypp
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
-  mu(object) <- rnorm(k(object), mu.0(object), sigma2.0(object))
+  mu(object) <- rnorm(k(object), mu.0(object), sigma.0(object))
   tau2(object) <- 1/rgamma(k(object), shape=1/2*eta.0(object), rate=1/2*eta.0(object)*m2.0(object))
   nB <- nBatch(object)
   theta(object) <- initializeTheta(object)

@@ -29,6 +29,8 @@ setMethod("nu.0", "MixtureModel", function(object) object@nu.0)
 
 setMethod("sigma2.0", "MixtureModel", function(object) object@sigma2.0)
 
+sigma.0 <- function(object) sqrt(sigma2.0(object))
+
 setMethod("y", "MixtureModel", function(object) object@data)
 
 setMethod("z", "MixtureModel", function(object) object@z)
@@ -65,8 +67,6 @@ setReplaceMethod("p", "MixtureModel", function(object, value){
   object@pi <- value
   object
 })
-
-
 
 
 
@@ -401,6 +401,8 @@ setMethod("mu.0", "Hyperparameters", function(object) object@mu.0)
 setMethod("tau2.0", "MixtureModel", function(object) tau2.0(hyperParams(object)))
 setMethod("tau2.0", "Hyperparameters", function(object) object@tau2.0)
 
+tau.0 <- function(object) sqrt(tau2.0(object))
+
 setMethod("eta.0", "MixtureModel", function(object) eta.0(hyperParams(object)))
 setMethod("eta.0", "Hyperparameters", function(object) object@eta.0)
 
@@ -646,4 +648,12 @@ setMethod("modes", "MixtureModel", function(object) object@modes)
 setReplaceMethod("modes", "MixtureModel", function(object, value) {
   object@modes <- value
   object
+})
+
+setMethod("logLik", "MixtureModel", function(object){
+  mcmcChains(object)@loglik
+})
+
+setReplaceMethod("logLik", "MixtureModel", function(object){
+  mcmcChains(object)@loglik <- value
 })
