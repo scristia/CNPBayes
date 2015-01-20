@@ -4,7 +4,6 @@ TODO.org
 *.o
 *.rds
 *.sw?
-*.pdf
 *.log
 *.RDS
 *.csv
