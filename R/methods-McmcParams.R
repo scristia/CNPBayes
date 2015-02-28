@@ -5,10 +5,18 @@ McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1, nStartIter=200, c
       check_labels=checkLabels)
 }
 
-burnin <- function(object) object@burnin
+
+setMethod("burnin", "McmcParams", function(object)  object@burnin)
+
+setReplaceMethod("burnin", "McmcParams", function(object,value){
+  object@burnin <- value
+  object
+})
+
+
 thin <- function(object) object@thin
 iter <- function(object) object@iter
-savedIterations <- function(object)iter(object)/thin(object)
+savedIterations <- function(object)iter(object)/(max(thin(object), 1))
 
 
 setMethod("show", "McmcParams", function(object){

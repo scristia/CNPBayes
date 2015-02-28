@@ -20,6 +20,7 @@
 #' @importFrom HardyWeinberg HWChisq
 #' @importFrom oligoClasses copyNumber batch
 #' @importFrom coda effectiveSize
+#' @importFrom combinat permn
 #' @useDynLib CNPBayes
 NULL
 

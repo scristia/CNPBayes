@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/transitional.dtd">
-<html><head><title>RUNIT TEST PROTOCOL--Sat Jan 17 21:55:13 2015</title>
+<html><head><title>RUNIT TEST PROTOCOL--Mon Jan 19 18:44:55 2015</title>
 </head>
-<body><h1 TRUE>RUNIT TEST PROTOCOL--Sat Jan 17 21:55:13 2015</h1>
+<body><h1 TRUE>RUNIT TEST PROTOCOL--Mon Jan 19 18:44:55 2015</h1>
 <p>Number of test functions: 16</p>
 <p style=color:red>Number of errors: 3</p>
-<p style=color:red>Number of failures: 5</p>
+<p style=color:red>Number of failures: 4</p>
 <hr>
 <h3 TRUE>1 Test suite</h3>
 <table border="1" width="60%" >
@@ -17,7 +17,7 @@
 <tr><td><a href="#CNPBayes unit testing">CNPBayes unit testing</a></td>
 <td>16</td>
 <td bgcolor="red">3</td>
-<td bgcolor="red">5</td>
+<td bgcolor="red">4</td>
 </tr>
 </table>
 <hr>
@@ -26,14 +26,13 @@
 <tr><th width="30%">Test suite : test function</th>
 <th width="70%">message</th>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp472">CNPBayes unit testing : test_cnp472</a></td>
-<td>Error in { : 
-  task 1 failed - "invalid class “UnivariateBatchModel” object: invalid object for slot "pi" in class "UnivariateBatchModel": got class "matrix", should be or extend class "numeric""
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">CNPBayes unit testing : test_batchEasy</a></td>
+<td>Error in methods::.TraceWithMethods(chibsEstimator, browser, where = <environment>) : 
+  object 'chibsEstimator' not found
 </td>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy">CNPBayes unit testing : test_selectK_batch_easy</a></td>
-<td>Error in { : 
-  task 1 failed - "invalid class “UnivariateBatchModel” object: invalid object for slot "pi" in class "UnivariateBatchModel": got class "matrix", should be or extend class "numeric""
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_chr4_locus">CNPBayes unit testing : test_chr4_locus</a></td>
+<td>Error in pMean(bmodel)[, j] : incorrect number of dimensions
 </td>
 </tr>
 <tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_unequalp_across_batch">CNPBayes unit testing : test_unequalp_across_batch</a></td>
@@ -47,61 +46,43 @@
 <tr><th width="30%">Test suite : test function</th>
 <th width="70%">message</th>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">CNPBayes unit testing : test_batchEasy</a></td>
-<td>Error in checkEquals(pmix[, j], p(truth), tolerance = 0.02) : 
-  Lengths: 9, 3
-Attributes: < Modes: list, NULL >
-Attributes: < Lengths: 2, 0 >
-Attributes: < names for target but not for current >
-Attributes: < current is not list-like >
-target is matrix, current is numeric
-</td>
-</tr>
 <tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batch_moderate">CNPBayes unit testing : test_batch_moderate</a></td>
 <td>Error in checkEquals(pmns[, j], theta(truth), tolerance = 0.03) : 
-  Mean relative difference: 0.04025321
+  Mean relative difference: 0.03137779
 </td>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_chr4_locus">CNPBayes unit testing : test_chr4_locus</a></td>
-<td>Error in checkEquals(pmns[, j], theta(truth), tolerance = 0.02) : 
-  Mean relative difference: 3.077928
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp472">CNPBayes unit testing : test_cnp472</a></td>
+<td>Error in checkTrue(which.min(bicstat) == 1) : Test not TRUE
+
 </td>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">CNPBayes unit testing : test_hard3</a></td>
-<td>Error in checkEquals(pmns[, j], theta(truth), tolerance = 0.02) : 
-  Mean relative difference: 0.02178535
+<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy">CNPBayes unit testing : test_marginalEasy</a></td>
+<td>Error in checkEquals(sort(pmns), theta(truth), tolerance = 0.03) : 
+  Mean absolute difference: 0.6664698
 </td>
 </tr>
 <tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">CNPBayes unit testing : test_marginal_Moderate</a></td>
 <td>Error in checkEquals(pmix, pm_pmix[order(pmns)], tolerance = 0.1) : 
-  Mean relative difference: 0.1744719
+  Mean relative difference: 0.1830839
 </td>
 </tr>
 </table>
 <hr>
 <h3 TRUE>Details</h3>
 <p><a name="CNPBayes unit testing"><h5 TRUE>Test Suite: CNPBayes unit testing</h5>
-</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy"><u style=color:red>test_batchEasy: FAILURE !! (check number 3)  </u></a>Error in checkEquals(pmix[, j], p(truth), tolerance = 0.02) : 
-  Lengths: 9, 3
-Attributes: < Modes: list, NULL >
-Attributes: < Lengths: 2, 0 >
-Attributes: < names for target but not for current >
-Attributes: < current is not list-like >
-target is matrix, current is numeric
+</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy"><u style=color:red>test_batchEasy: ERROR !!  </u></a>Error in methods::.TraceWithMethods(chibsEstimator, browser, where = <environment>) : 
+  object 'chibsEstimator' not found
 <br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batch_moderate"><u style=color:red>test_batch_moderate: FAILURE !! (check number 1)  </u></a>Error in checkEquals(pmns[, j], theta(truth), tolerance = 0.03) : 
-  Mean relative difference: 0.04025321
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_chr4_locus"><u style=color:red>test_chr4_locus: FAILURE !! (check number 1)  </u></a>Error in checkEquals(pmns[, j], theta(truth), tolerance = 0.02) : 
-  Mean relative difference: 3.077928
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp472"><u style=color:red>test_cnp472: ERROR !!  </u></a>Error in { : 
-  task 1 failed - "invalid class “UnivariateBatchModel” object: invalid object for slot "pi" in class "UnivariateBatchModel": got class "matrix", should be or extend class "numeric""
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3"><u style=color:red>test_hard3: FAILURE !! (check number 1)  </u></a>Error in checkEquals(pmns[, j], theta(truth), tolerance = 0.02) : 
-  Mean relative difference: 0.02178535
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy"><u style=color:red>test_selectK_batch_easy: ERROR !!  </u></a>Error in { : 
-  task 1 failed - "invalid class “UnivariateBatchModel” object: invalid object for slot "pi" in class "UnivariateBatchModel": got class "matrix", should be or extend class "numeric""
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_unequalp_across_batch"><u style=color:red>test_unequalp_across_batch: ERROR !!  </u></a>Error in func() : could not find function "tablez"
-<br/></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (1 checks) ... OK (0.06 seconds)<br/></a></li></ul></li></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy">test_marginalEasy: (3 checks) ... OK (40.95 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (3 checks) ... OK (2357.84 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate"><u style=color:red>test_marginal_Moderate: FAILURE !! (check number 3)  </u></a>Error in checkEquals(pmix, pm_pmix[order(pmns)], tolerance = 0.1) : 
-  Mean relative difference: 0.1744719
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_normality_assumption">test_normality_assumption: (3 checks) ... OK (35.65 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">test_selectK_easy: (1 checks) ... OK (139.4 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_hard">test_selectK_hard: (1 checks) ... OK (4299.97 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_moderate">test_selectK_moderate: (1 checks) ... OK (1184.65 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (17 checks) ... OK (0.79 seconds)<br/></a></li></ul></li></li></ul><hr>
+  Mean relative difference: 0.03137779
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_chr4_locus"><u style=color:red>test_chr4_locus: ERROR !!  </u></a>Error in pMean(bmodel)[, j] : incorrect number of dimensions
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_cnp472"><u style=color:red>test_cnp472: FAILURE !! (check number 1)  </u></a>Error in checkTrue(which.min(bicstat) == 1) : Test not TRUE
+
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">test_hard3: (3 checks) ... OK (892.45 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy">test_selectK_batch_easy: (1 checks) ... OK (573.83 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_unequalp_across_batch"><u style=color:red>test_unequalp_across_batch: ERROR !!  </u></a>Error in func() : could not find function "tablez"
+<br/></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (1 checks) ... OK (0.06 seconds)<br/></a></li></ul></li></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy"><u style=color:red>test_marginalEasy: FAILURE !! (check number 1)  </u></a>Error in checkEquals(sort(pmns), theta(truth), tolerance = 0.03) : 
+  Mean absolute difference: 0.6664698
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (3 checks) ... OK (2263.85 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate"><u style=color:red>test_marginal_Moderate: FAILURE !! (check number 3)  </u></a>Error in checkEquals(pmix, pm_pmix[order(pmns)], tolerance = 0.1) : 
+  Mean relative difference: 0.1830839
+<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_normality_assumption">test_normality_assumption: (3 checks) ... OK (37.71 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">test_selectK_easy: (1 checks) ... OK (150.57 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_hard">test_selectK_hard: (1 checks) ... OK (4425.98 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_moderate">test_selectK_moderate: (1 checks) ... OK (1235.42 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (17 checks) ... OK (0.88 seconds)<br/></a></li></ul></li></li></ul><hr>
 <table border="0" width="80%" >
 <tr><th>Name</th>
 <th>Value</th>
@@ -134,22 +115,22 @@ target is matrix, current is numeric
 <td>01</td>
 </tr>
 <tr><td>day</td>
-<td>17</td>
+<td>18</td>
 </tr>
 <tr><td>svn rev</td>
-<td>67494</td>
+<td>67510</td>
 </tr>
 <tr><td>language</td>
 <td>R</td>
 </tr>
 <tr><td>version.string</td>
-<td>R Under development (unstable) (2015-01-17 r67494)</td>
+<td>R Under development (unstable) (2015-01-18 r67510)</td>
 </tr>
 <tr><td>nickname</td>
 <td>Unsuffered Consequences</td>
 </tr>
 <tr><td>host</td>
-<td>compute-036</td>
+<td>compute-081</td>
 </tr>
 <tr><td>compiler</td>
 <td>/usr/bin/g++</td>

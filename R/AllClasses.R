@@ -46,7 +46,8 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         batch="vector",
                                         hwe="numeric",
                                         modes="list",
-                                        theta_order="numeric"))
+                                        theta_order="numeric",
+                                        m.y="numeric"))
 
 
 setClass("BatchModel", contains="MixtureModel")
@@ -71,13 +72,16 @@ setClass("McmcParams", representation(thin="numeric",
                                       nstart_iter="numeric",
                                       check_labels="logical"))
 
-
-
-
-
-
 setClass("ModelParams", representation(type="character",
                                        k="numeric",
                                        data="numeric",
                                        batch="character",
                                        mcmc.params="McmcParams"))
+
+setClass("PosteriorFiles",
+         representation(
+             isMarginalModel="logical",
+             model="character",
+             post1="character",
+             post2="character",
+             post3="character"))

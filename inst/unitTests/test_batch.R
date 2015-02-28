@@ -18,17 +18,20 @@ test_batchEasy <- function(){
                         mcmc.params=mcmcp)
   model <- initializeBatchModel(params)
   model <- posteriorSimulation(model, mcmcp)
-  trace(chibsEstimator, browser)
-  psi.star <- chibsEstimator(model)
-
-
   ##
   ## Start from true values
   ##
+  ## check whether the argmax simulation is close to the mode
+  pot <- logpotential(mcmcChains(model))
+  am <- argMax(model)
+  th <- theta(mcmcChains(model))
+  th[am, ]
+
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth, use.current=T)
     plot(model)
+    abline(v=th, lwd=1)
     par(op)
   }
   pmns <- thetaMean(model)
@@ -39,13 +42,7 @@ test_batchEasy <- function(){
   checkEquals(ps[, j], sigma(truth), tolerance=0.1)
 
   pmix <- pMean(model)
-  checkEquals(pmix[,j], p(truth), tolerance=0.02)
-
-  ## initialize batch model with k=1
-  params <- ModelParams("batch", y=y(truth), k=1,
-                        batch=rep(letters[1:3], length.out=2500),
-                        mcmc.params=mcmcp)
-  model <- initializeBatchModel(params)
+  checkEquals(pmix[j], p(truth), tolerance=0.02)
 }
 
 test_unequalp_across_batch <- function(){
@@ -390,8 +387,7 @@ test_chr4_locus <- function(){
   params <- ModelParams("batch", y=y(truth), k=3,
                         batch=batch(truth),
                         mcmc.params=mcmcp)
-  bmod <- initializeBatchModel(params)
-  bmodel <- posteriorSimulation(bmod, mcmcp)
+  bmodel <- posteriorSimulation(params, mcmcp)
 
   pmns <- thetaMean(bmodel)
   j <- order(pmns[1, ])

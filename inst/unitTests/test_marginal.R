@@ -28,6 +28,9 @@ test_marginalEasy <- function(){
   checkEquals(pmix, pm_pmix[order(pmns)], tolerance=0.05)
 }
 
+
+
+
 .test_k_too_big <- function(){
   ## when k is too big, chains may have a greater likelihood of crossing
   set.seed(1)

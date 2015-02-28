@@ -30,11 +30,14 @@ setMethod("initializeSigma2", "BatchModel", function(object){
   s2
 })
 
-
-#' @export
-initializeModel <- function(params){
+setMethod("initializeModel", "ModelParams", function(params){
   object <- constructModel(type(params), data=y(params), k=k(params),
                            batch=batch(params))
+  object <- startingValues(object, params)
+  object
+})
+
+setMethod("startingValues", "MarginalModel", function(object, params){
   hypp <- hyperParams(object) <- Hyperparameters(type(params), k=k(params))
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
@@ -50,10 +53,9 @@ initializeModel <- function(params){
   logpotential(object) <- computePotential(object)
   mcmcChains(object) <- McmcChains(object, mcmcParams(params))
   object
-}
+})
 
-#' @export
-initializeBatchModel <- function(params, zz){
+setMethod("startingValues", "BatchModel", function(object, params, zz){
   object <- constructModel(type(params), data=y(params), k=k(params),
                            batch=batch(params))
   hypp <- hyperParams(object) <- Hyperparameters(type(params), k=k(params))
@@ -83,4 +85,12 @@ initializeBatchModel <- function(params, zz){
   logpotential(object) <- computePotential(object)
   mcmcChains(object) <- McmcChains(object, mcmcParams(params))
   object
+})
+
+
+#' @export
+initializeBatchModel <- function(params, zz){
+  object <- constructModel(type(params), data=y(params), k=k(params),
+                           batch=batch(params))
+  startingValues(object, params, zz)
 }

@@ -1,3 +1,26 @@
+setAs("BatchModel", "SummarizedExperiment", function(from, to){
+  cnmat <- matrix(y(from), 1, length(y(from)))
+  cnmat <- oligoClasses::integerMatrix(cnmat, 1000)
+  se <- SummarizedExperiment(assays=SimpleList(medr=cnmat),
+                             colData=DataFrame(plate=batch(from)))
+  se
+})
+
+
+setMethod("collapseBatch", "SummarizedExperiment", function(object){
+  N <- choose(length(unique(object$plate)), 2)
+  cond2 <- TRUE
+  while(N > 1 && cond2){
+    cat('.')
+    B <- object$plate
+    object$plate <- .collapseBatch(copyNumber(object)[1,], object$plate)
+    cond2 <- !identical(B, object$plate)
+    N <- choose(length(unique(object$plate)), 2)
+  }
+  makeUnique(object$plate)
+})
+
+
 #' @export
 setMethod("copyNumber", "SummarizedExperiment", function(object, ...){
   assays(object)[["medr"]]/1000
@@ -9,6 +32,7 @@ setMethod("fitMixtureModels", "SummarizedExperiment", function(object, mcmcp, K=
     object$plate <- collapseBatch(object)
   } else object$plate <- batch
   message("Fitting ", length(K), " mixture models")
+  j <- NULL
   fit <- foreach(j = seq_along(K)) %do% {
     cat(".")
     kk <- K[j]
@@ -24,7 +48,7 @@ setMethod("fitMixtureModels", "SummarizedExperiment", function(object, mcmcp, K=
 })
 
 
-updateModel <- function(object, zz){
+updateModel <- function(object, mcmcp, zz){
   params <- ModelParams("batch", y=y(object), k=k(object),
                         batch=batch(object),
                         mcmc.params=mcmcp)
