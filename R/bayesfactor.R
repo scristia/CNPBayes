@@ -317,7 +317,7 @@ partialGibbsSummary <- function(model, x){
   results <- setNames(c(log(p.priors),
                         log.lik,
                         log(mean(x[, "theta"])),
-                        mode.numeric(sum(x[, "sigma2"])),
+                        mode.numeric(x[, "sigma2"]),
                         log(mean(x[, "p"]))),
                       c("prior", "loglik", "theta", "sigma2", "pmix"))
   results
