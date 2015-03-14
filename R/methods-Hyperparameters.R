@@ -1,3 +1,5 @@
+#' @include AllClasses.R
+
 gammaShapeRate2 <- function(mn, sd){
   ##1/2*a   = shape
   ##1/2*a*b = rate
@@ -18,12 +20,12 @@ gammaShapeRate2 <- function(mn, sd){
   setNames(c(a, b), c("a", "b"))
 }
 
-#' @include AllClasses.R
+#' @export
 HyperparametersBatch <- function(k=0L,
                                  mu.0=0,
-                                 tau2.0=10,
+                                 tau2.0=100,
                                  eta.0=1,
-                                 m2.0=0.001,
+                                 m2.0=0.1,
                                  alpha,
                                  beta=0.1, ## mean is 1/10
                                  a=1.8,
@@ -41,13 +43,12 @@ HyperparametersBatch <- function(k=0L,
       b=b)
 }
 
+#' @export
 HyperparametersMarginal <- function(k=0L,
-                                    ##mu,
-                                    ##tau2,
                                     mu.0=0,
-                                    tau2.0=10,
+                                    tau2.0=100,
                                     eta.0=1,
-                                    m2.0=0.001,
+                                    m2.0=0.1,
                                     alpha,
                                     beta=0.1, ## mean is 1/10
                                     a=1.8,
@@ -57,10 +58,8 @@ HyperparametersMarginal <- function(k=0L,
   ##if(missing(tau2)) tau2 <- rep(1, k)
   new("HyperparametersMarginal",
       k=as.integer(k),
-      ##mu=mu,
-      ##tau2=tau2,
       mu.0=mu.0,
-      tau2.0=100,
+      tau2.0=tau2.0,
       eta.0=eta.0,
       m2.0=m2.0,
       alpha=alpha,
@@ -166,3 +165,46 @@ setMethod("initializeMu", "numeric", function(object){
 ##  if(is.null(means)) stop("k needs to be 1-7")
 ##  means
 ##})
+
+setMethod("HyperParameterList", "HyperparametersMarginal", function(hypp, K){
+  hyplist <- foreach(k = K) %do% {
+    HyperparametersMarginal(k=k, mu.0=mu.0(hypp),
+                            tau2.0=tau2.0(hypp),
+                            eta.0=eta.0(hypp),
+                            m2.0=m2.0(hypp),
+                            beta=betas(hypp),
+                            a=a(hypp),
+                            b=b(hypp))
+  }
+  hyplist
+})
+
+setMethod("HyperParameterList", "HyperparametersBatch", function(hypp, K){
+  hyplist <- foreach(k = K) %do% {
+    HyperparametersBatch(k=k, mu.0=mu.0(hypp),
+                         tau2.0=tau2.0(hypp),
+                         eta.0=eta.0(hypp),
+                         m2.0=m2.0(hypp),
+                         beta=betas(hypp),
+                         a=a(hypp),
+                         b=b(hypp))
+  }
+  hyplist
+})
+
+setMethod("ModelParamList", "HyperparametersMarginal", function(hypp, K, data, mcmcp, batch){
+  plist <- foreach(k=K) %do% {
+    ModelParams("marginal", y=data, k=k,
+                mcmc.params=mcmcp[k])
+  }
+  plist
+})
+
+setMethod("ModelParamList", "HyperparametersBatch", function(hypp, K, data, mcmcp, batch){
+  plist <- foreach(k=K) %do% {
+    ModelParams("batch", y=data, k=k,
+                batch=batch,
+                mcmc.params=mcmcp[k])
+  }
+  plist
+})

@@ -148,13 +148,15 @@ setGeneric("modes<-", function(object,value) standardGeneric("modes<-"))
 setGeneric("mu.0", function(object) standardGeneric("mu.0"))
 setGeneric("tau2.0", function(object) standardGeneric("tau2.0"))
 setGeneric("eta.0", function(object) standardGeneric("eta.0"))
+setGeneric("eta.0<-", function(object,value) standardGeneric("eta.0<-"))
 setGeneric("m2.0", function(object) standardGeneric("m2.0"))
+setGeneric("m2.0<-", function(object,value) standardGeneric("m2.0<-"))
 
 setGeneric("showMeans", function(object) standardGeneric("showMeans"))
 setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 
 #' @export
-setGeneric("collapseBatch", function(object) standardGeneric("collapseBatch"))
+setGeneric("collapseBatch", function(object, plate) standardGeneric("collapseBatch"))
 
 #' @export
 setGeneric("thetac", function(object) standardGeneric("thetac"))
@@ -171,6 +173,7 @@ setGeneric("pMean", function(object) standardGeneric("pMean"))
 #' @export
 setGeneric("tracePlot", function(object, name, ...) standardGeneric("tracePlot"))
 
+#' @export
 setGeneric("tablez", function(object) standardGeneric("tablez"))
 
 setGeneric("nStarts", function(object) standardGeneric("nStarts"))
@@ -198,7 +201,7 @@ setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 setGeneric("posteriorSimulation", function(object, mcmcp) standardGeneric("posteriorSimulation"))
 
 #' @export
-setGeneric("initializeModel", function(params) standardGeneric("initializeModel"))
+setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
 
 #' @export
 setGeneric("m.y", function(object) standardGeneric("m.y"))
@@ -229,3 +232,12 @@ setGeneric("computeLogLikxPrior", function(object) standardGeneric("computeLogLi
 
 #' @export
 setGeneric("postFiles", function(object) standardGeneric("postFiles"))
+
+#' @export
+setGeneric("relabel", function(object, zindex) standardGeneric("relabel"))
+
+#' @export
+setGeneric("HyperParameterList", function(hypp, K) standardGeneric("HyperParameterList"))
+
+#' @export
+setGeneric("ModelParamList", function(hypp, K, data, mcmcp, batch) standardGeneric("ModelParamList"))

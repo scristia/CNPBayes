@@ -14,7 +14,7 @@ setMethod("post3", "PosteriorFiles", function(object) object@post3)
 
 
 setMethod("postFiles", "PosteriorFiles", function(object) {
-  c(post1(object), post2(object), post3(object))
+  cbind(post1(object), post2(object), post3(object))
 })
 
 
@@ -83,20 +83,31 @@ getFiles <- function(outdir, cnpids, model){
        k4=k4)
 }
 
+#' @export
+topTwo <- function(m.y){
+  sort(m.y[is.finite(m.y)], decreasing=TRUE)[1:2]
+}
+
+#' @export
+bayesFactor <- function(m.y){
+  m.y <- topTwo(m.y)
+  setNames(abs(diff(m.y)), paste(names(m.y), collapse="-"))
+}
+
+modelAbbrv <- function(x) ifelse(isMarginalModel(x), "M", "B")
+
+#' @export
 getPosteriorStats <- function(object){
   if(length(object) > 1) {
     message("Only extracting posterior summaries for first CNP")
     object <- object[1]
   }
-  datlist <- vector("list", 3)
-  datlist[[1]] <- readRDS(post1(object))
-  datlist[[2]] <- readRDS(post2(object))
-  datlist[[3]] <- readRDS(post3(object))
-  if(isMarginalModel(object)){
-    stats <- .getPosteriorStatsMarginal(datlist)
-    return(stats)
-  }
-  stats <- .getPosteriorStatsBatch(datlist)
+  x <- readRDS(post1(object))
+  xx <- do.call(cbind, lapply(x, rowMeans))
+  post.range <- unlist(lapply(x, posteriorRange))
+  marginals <- setNames(computeMarginal(xx),
+                         paste0(modelAbbrv(object), 1:4))
+  marginals
 }
 
 summarizePost <- function(x, thr=5){
@@ -114,6 +125,7 @@ summarizePost <- function(x, thr=5){
   results
 }
 
+#' @export
 computeMarginal <- function(stats){
-  colSums(stats[c("prior", "loglik"), ]) - colSums(stats[c("theta", "sigma2", "pmix"), ])
+  colSums(stats[c("prior", "loglik"), , drop=FALSE]) - colSums(stats[c("theta", "sigma2", "pmix"), , drop=FALSE])
 }

@@ -331,7 +331,8 @@ marginalY <- function(x){
   x[["prior"]] + x[["loglik"]] - posteriorPsi(x)
 }
 
-bayesFactor <- function(m1, m2) exp(marginalY(m1) - marginalY(m2))
+##bayesFactor <- function(m1, m2) exp(marginalY(m1) - marginalY(m2))
+
 
 pairwiseModels <- function(nmodels){
   sapply(apply(combn(nmodels, 2), 2, list), "[", 1)
@@ -418,8 +419,6 @@ deltaPTheta <- function(x){
 
 
 avgMarginalTheta <- function(files){
-
-
   p_theta <- readPostTheta(files)
   D <- lapply(p_theta, deltaPTheta)
   D <- do.call(cbind, D)
@@ -442,4 +441,27 @@ avgMarginalTheta <- function(files){
     marginal_theta[, j] <- mns
   }
   marginal_theta
+}
+
+#' @export
+computeMarginalPr <- function(model, mcmcp){
+  kperm <- permn(seq_len(k(model)))
+  model <- useModes(model)
+  model.list <- lapply(kperm, function(zindex, model) relabel(model, zindex), model=model)
+  J <- min(3, length(model.list))
+  model.list <- model.list[seq_len(J)]
+  pg <- lapply(model.list, partialGibbs, mcmcp=mcmcp)
+  results <- foreach(model=model.list, x=pg, .combine="cbind") %do% {
+    partialGibbsSummary(model, x)
+  }
+  results <- as.matrix(results, 5, J)
+  colnames(results) <- paste0("M", k(model), "_", seq_len(J))
+  results
+}
+
+#' @export
+posteriorRange <- function(x, thr=5){
+  msg <- FALSE
+  post <- colSums(x[c("theta", "sigma2", "pmix"), , drop=FALSE])
+  diff(range(post))
 }

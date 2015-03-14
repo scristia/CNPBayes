@@ -1,6 +1,7 @@
-MarginalModel <- function(data, k, batch){
+MarginalModel <- function(data=numeric(), k=2, batch=character(), hypp){
+  if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
   new("MarginalModel",
-      hyperparams=HyperparametersMarginal(k=k),
+      hyperparams=hypp,
       theta=numeric(k),
       sigma2=numeric(k),
       mu=numeric(1),
@@ -14,6 +15,7 @@ MarginalModel <- function(data, k, batch){
       z=factor(numeric(k)),
       probz=matrix(0, length(data), k),
       logpotential=numeric(1),
+      loglik=numeric(1),
       mcmc.chains=McmcChains(),
       batch=batch,
       hwe=numeric(),
@@ -21,9 +23,10 @@ MarginalModel <- function(data, k, batch){
       m.y=numeric(1))
 }
 
-UnivariateMarginalModel <- function(data, k=1, batch){
+UnivariateMarginalModel <- function(data, k=1, batch, hypp){
+  if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
   new("UnivariateMarginalModel",
-      hyperparams=HyperparametersMarginal(k=k),
+      hyperparams=hypp,
       theta=numeric(k),
       sigma2=numeric(k),
       mu=numeric(1),
@@ -37,6 +40,7 @@ UnivariateMarginalModel <- function(data, k=1, batch){
       z=factor(numeric(k)),
       probz=matrix(1, length(data), 1),
       logpotential=numeric(1),
+      loglik=numeric(1),
       mcmc.chains=McmcChains(),
       batch=batch,
       hwe=numeric(),
@@ -79,7 +83,9 @@ setMethod("computePotential", "MarginalModel", function(object){
 ##  pot <- rowSums(pot)
 ##  total_pot <- sum(log(pot)) + sum(log(p.theta)) + sum(log(p.sigma2)) + log(p.nu.0) + log(p.sigma2.0)
   ##  total_pot
-  computeLogLikxPrior(object)
+  ll <- computeLogLikxPrior(object)
+  ll.phi <- .loglikPhiMarginal(object)
+  ll+ll.phi
 })
 
 ##
@@ -221,7 +227,7 @@ setMethod("moveChain", "MarginalModel", function(object, s){
   nu.0(mcmc)[s] <- nu.0(object)
   sigma2.0(mcmc)[s] <- sigma2.0(object)
   logpotential(mcmc)[s] <- logpotential(object)
-  logLik(mcmc)[s] <- computeLoglik(object)
+  logLik(mcmc)[s] <- logLik(object)
   mcmcChains(object) <- mcmc
   object
 })
@@ -370,7 +376,8 @@ setMethod("updateTau2", "MarginalModel", function(object){
   ##eta.0, m2.0, theta, mu, k){
   eta.k <- eta.0(hypp)+k(object)
   s2.k <- sum((theta(object)-mu(object))^2)
-  m2.k <- 1/eta.k*(eta.0(hypp) * m2.0(hypp) + s2.k)
+  m2.k <- 1/eta.k * (eta.0(hypp) * m2.0(hypp) + s2.k)
+
   tau2 <- 1/rgamma(1, shape=1/2 * eta.k, rate=1/2 * eta.k * m2.k)
   if(is.nan(tau2) || !is.finite(tau2)){
     tau2 <- 1/rgamma(1, shape=1/2*eta.0(hypp), rate=1/2*eta.0(hypp)*m2.0(hypp))
@@ -420,16 +427,48 @@ setMethod("theta", "MarginalModel", function(object) object@theta)
 setMethod("sigma2", "MarginalModel", function(object) object@sigma2)
 
 setMethod("reorderComponents", "MarginalModel", function(object){
+  ##
+  ## First, update the model so that the components are ordered by theta
+  ##
   ix <- order(theta(object))
   theta(object) <- sort(theta(object))
   sigma2(object) <- sigma2(object)[ix]
   p(object) <- p(object)[ix]
   zz <- z(object)
-  ## trick to reset the augmentation var
+  ##
+  ## Set the labels of the latent variable such that 1=first
+  ## components, 2= second component, ...
+  ##
   zz <- factor(as.integer(factor(zz, levels=ix)), levels=seq_len(k(object)))
   z(object) <- zz
   dataMean(object) <- dataMean(object)[ix]
   dataPrec(object) <- dataPrec(object)[ix]
+  object
+})
+
+setMethod("relabel", "MarginalModel", function(object, zindex){
+  if(identical(zindex, seq_len(k(object)))) return(object)
+  ##
+  ## Permute the latent variables
+  ##
+  zz <- factor(z(object), levels=zindex)
+  zz <- factor(as.integer(zz), levels=seq_len(k(object)))
+  z(object) <- zz
+  dataMean(object) <- dataMean(object)[zindex]
+  dataPrec(object) <- dataPrec(object)[zindex]
+  object
+})
+
+setMethod("relabel", "BatchModel", function(object, zindex){
+  if(identical(zindex, seq_len(k(object)))) return(object)
+  ##
+  ## Permute the latent variables
+  ##
+  zz <- factor(z(object), levels=zindex)
+  zz <- factor(as.integer(zz), levels=seq_len(k(object)))
+  z(object) <- zz
+  dataMean(object) <- dataMean(object)[, zindex, drop=FALSE]
+  dataPrec(object) <- dataPrec(object)[, zindex, drop=FALSE]
   object
 })
 
@@ -471,7 +510,6 @@ setMethod("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
 
   probz(x) <- probz(x)[, cn]
 
-
   zz <- as.integer(z(x))
   z(x) <- factor(as.integer(factor(zz, levels=cn)), levels=sort(unique(zz)))
   dataMean(x) <- dataMean(x)[cn]
@@ -499,7 +537,6 @@ setMethod("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
 setMethod("computeModes", "MarginalModel", function(object){
   .computeModesMarginal(object)
 })
-
 
 
 ##logLik(mcmc)[s] <- computeLoglik(object)
@@ -559,8 +596,9 @@ setMethod("computeLoglik", "MarginalModel", function(object){
 
 .computeLoglik <- function(object){
   ll.data <- .loglikMarginal(object)
-  ll.phi <- .loglikPhiMarginal(object)
-  ll.data + ll.phi
+  ##ll.phi <- .loglikPhiMarginal(object)
+  ##ll.data + ll.phi
+  ll.data
 }
 
 setMethod("computePrior", "MarginalModel", function(object){
@@ -591,3 +629,99 @@ setMethod("showSigmas", "MarginalModel", function(object){
 })
 
 setMethod("tablez", "MarginalModel", function(object) table(z(object)))
+
+#' @export
+mcmcpList <- function(test=FALSE){
+  if(test){
+    mcmcp.list <- list(McmcParams(iter=rep(2, 4),
+                                  burnin=rep(1,4),
+                                  thin=rep(1,4),
+                                  nStarts=2,
+                                  nStartIter=2),
+                       McmcParams(iter=2, burnin=1, thin=1))
+  } else {
+    mcmcp.list <- list(McmcParams(iter=c(500, 3000, 3000, 3000),
+                                  burnin=c(50, 1000, 1000, 1000),
+                                  thin=c(1, 3, 3, 3),
+                                  nStarts=20,
+                                  nStartIter=100),
+                       McmcParams(iter=1000, burnin=100, thin=1))
+  }
+  mcmcp.list
+}
+
+#' @export
+marginalModel <- function(object, hyp.list, data, mcmcp.list,
+                          save.it=FALSE, test=FALSE){
+  if(test){
+    message("Testing with just a few mcmc iterations")
+    mcmcp.list <- mcmcpList(TRUE)
+    save.it <- FALSE
+  }
+  mcmcp <- mcmcp.list[[1]]
+  mp.list <- ModelParamList(hyp.list[[1]],
+                            K=1:4,
+                            data=data,
+                            mcmcp=mcmcp)
+  modlist <- foreach(hypp=hyp.list, param=mp.list) %do% {
+    initializeModel(params=param, hypp=hypp)
+  }
+  models <- foreach(k=1:4, model=modlist) %do% posteriorSimulation(model, mcmcp[k])
+  file.out <- postFiles(object)[1]
+  x <- lapply(models, computeMarginalPr, mcmcp=mcmcp.list[[2]])
+  if(save.it)
+    saveRDS(x, file=file.out)
+  xx <- do.call(cbind, lapply(x, rowMeans))
+  post.range <- unlist(lapply(x, posteriorRange))
+  marginals <- computeMarginal(xx)
+  for(i in seq_along(models)){
+    m.y(models[[i]]) <- marginals[i]
+  }
+  if(save.it)
+    saveRDS(models, file=model(object)[i])
+  models
+}
+
+#' @export
+batchModel <- function(object, hyp.list, data, mcmcp.list,
+                       batch,
+                       save.it=FALSE, test=FALSE){
+  if(test){
+    message("Testing with just a few mcmc iterations")
+    mcmcp.list <- mcmcpList(TRUE)
+    save.it <- FALSE
+  }
+  mcmcp <- mcmcp.list[[1]]
+  mp.list <- ModelParamList(hyp.list[[1]],
+                            K=1:4,
+                            data=data,
+                            batch=batch,
+                            mcmcp=mcmcp)
+  modlist <- foreach(hypp=hyp.list, param=mp.list) %do% {
+    initializeBatchModel(params=param, hypp=hypp)
+  }
+  models <- foreach(k=1:4, model=modlist) %do% posteriorSimulation(model, mcmcp[k])
+  x <- lapply(models, computeMarginalPr, mcmcp=mcmcp.list[[2]])
+  if(save.it)
+    saveRDS(x, file=postFiles(object)[1])
+  xx <- do.call(cbind, lapply(x, rowMeans))
+  post.range <- unlist(lapply(x, posteriorRange))
+  marginals <- computeMarginal(xx)
+  for(i in seq_along(models)){
+    m.y(models[[i]]) <- marginals[i]
+  }
+  if(save.it)
+    saveRDS(models, file=model(object)[i])
+  models
+}
+
+#' @export
+saveBatch <- function(se, batch.file){
+  if(file.exists(batch.file)){
+    bt <- readRDS(batch.file)
+    return(bt)
+  }
+  bt <- collapseBatch(se)
+  saveRDS(bt, file=batch.file)
+  bt
+}

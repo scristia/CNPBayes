@@ -28,11 +28,12 @@ setMethod("batchCorrect", "BatchModel", function(object){
 })
 
 
-BatchModel <- function(data, k, batch){
+BatchModel <- function(data, k, batch, hypp){
   mcmc.chains <- McmcChains()
   B <- length(unique(batch))
+  if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
   new("BatchModel",
-      hyperparams=HyperparametersBatch(k=k),
+      hyperparams=hypp,
       theta=matrix(NA, B, k),
       sigma2=matrix(NA, B, k),
       mu=numeric(k),
@@ -46,6 +47,7 @@ BatchModel <- function(data, k, batch){
       z=factor(numeric(length(data))),
       probz=matrix(0, length(data), k),
       logpotential=numeric(1),
+      loglik=numeric(1),
       mcmc.chains=mcmc.chains,
       batch=batch,
       hwe=numeric(),
@@ -441,6 +443,8 @@ setMethod("show", "BatchModel", function(object){
   cat("     n. batches  :", nBatch(object), "\n")
   cat("     k           :", k(object), "\n")
   cat("     nobs/batch  :", table(batch(object)), "\n")
+  cat("     loglik (s)  :", round(logLik(object), 1), "\n")
+  cat("     loglik x prior:", round(logpotential(object), 1), "\n")
 })
 
 setMethod("simulateY", "BatchModel", function(object){
@@ -470,11 +474,12 @@ uniqueBatch <- function(object) unique(batch(object))
 ##
 ## Multiple batches, but only 1 component
 ##
-UnivariateBatchModel <- function(data, k=1, batch){
+UnivariateBatchModel <- function(data, k=1, batch, hypp){
   mcmc.chains <- McmcChains()
   B <- length(unique(batch))
+  if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
   new("UnivariateBatchModel",
-      hyperparams=HyperparametersBatch(k=1),
+      hyperparams=hypp,
       theta=matrix(NA, B, 1),
       sigma2=matrix(NA, B, 1),
       mu=numeric(k),

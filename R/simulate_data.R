@@ -48,6 +48,34 @@ simulateData <- function(N, p, theta, sds){
   theta(object) <- as.numeric(sapply(split(y(object), z(object)), mean))
   sigma2(object) <- as.numeric(sapply(split(y(object), z(object)), var))
   p(object) <- as.numeric(sapply(split(y(object), z(object)), length)/length(z(object)))
+  mu(object) <- mean(theta(object))
+  tau2(object) <- var(theta(object))
+  logLik(object) <- computeLoglik(object)
+  logpotential(object) <- computePotential(object)
   ##sigma2(object) <- sds^2
   object
+}
+
+simulateZ <- function(N, p){
+  P <- rdirichlet(N, p)
+  cumP <- t(apply(P, 1, cumsum))
+  u <- runif(N)
+  zz <- rep(NA, N)
+  zz[u < cumP[, 1]] <- 1
+  k <- 2
+  while(k <= ncol(P)){
+    zz[u < cumP[, k] & u >= cumP[, k-1]] <- k
+    k <- k+1
+  }
+  zz
+}
+
+cumProbs <- function(p, k){
+  pcum <- list()
+  cols <- 2:(k-1)
+  for(j in seq_along(cols)){
+    g <- cols[j]
+    pcum[[j]] <- rowSums(p[, 1:g, drop=FALSE])
+  }
+  pcum2 <- cbind(p[, 1], do.call(cbind, pcum), 1)
 }

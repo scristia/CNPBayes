@@ -6,18 +6,31 @@ setAs("BatchModel", "SummarizedExperiment", function(from, to){
   se
 })
 
-
-setMethod("collapseBatch", "SummarizedExperiment", function(object){
-  N <- choose(length(unique(object$plate)), 2)
+setMethod("collapseBatch", "numeric", function(object, plate){
+  N <- choose(length(unique(plate)), 2)
   cond2 <- TRUE
   while(N > 1 && cond2){
     cat('.')
-    B <- object$plate
-    object$plate <- .collapseBatch(copyNumber(object)[1,], object$plate)
-    cond2 <- !identical(B, object$plate)
-    N <- choose(length(unique(object$plate)), 2)
+    B <- plate
+    plate <- .collapseBatch(object, plate)
+    cond2 <- !identical(B, plate)
+    N <- choose(length(unique(plate)), 2)
   }
-  makeUnique(object$plate)
+  makeUnique(plate)
+})
+
+setMethod("collapseBatch", "SummarizedExperiment", function(object, plate){
+  collapseBatch(copyNumber(object)[1, ], object$plate)
+##  N <- choose(length(unique(object$plate)), 2)
+##  cond2 <- TRUE
+##  while(N > 1 && cond2){
+##    cat('.')
+##    B <- object$plate
+##    object$plate <- .collapseBatch(copyNumber(object)[1,], object$plate)
+##    cond2 <- !identical(B, object$plate)
+##    N <- choose(length(unique(object$plate)), 2)
+##  }
+##  makeUnique(object$plate)
 })
 
 

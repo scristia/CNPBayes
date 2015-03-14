@@ -12,7 +12,6 @@ setClass("Hyperparameters", representation(k="integer",
                                            beta="numeric",
                                            a="numeric",
                                            b="numeric"))
-
 setClass("HyperparametersMarginal", contains="Hyperparameters")
 
 setClass("HyperparametersBatch",  contains="Hyperparameters")
@@ -42,6 +41,7 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         z="factor",
                                         probz="matrix",
                                         logpotential="numeric",
+                                        loglik="numeric",
                                         mcmc.chains="McmcChains",
                                         batch="vector",
                                         hwe="numeric",

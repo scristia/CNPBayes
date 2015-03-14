@@ -1,16 +1,16 @@
-constructModel <- function(type, data, k, batch){
+constructModel <- function(type, data, k, batch, hypp){
   nbatch <- length(unique(batch))
   if(k > 1){
     if(type=="batch"){
-      object <- BatchModel(data, k, batch)
+      object <- BatchModel(data, k, batch, hypp)
     } else{
-      object <- MarginalModel(data, k, batch)
+      object <- MarginalModel(data, k, batch, hypp)
     }
   } else {
     if(type=="batch"){
-      object <- UnivariateBatchModel(data, 1, batch)
+      object <- UnivariateBatchModel(data, 1, batch, hypp)
     } else  {
-      object <- UnivariateMarginalModel(data, 1 , batch)
+      object <- UnivariateMarginalModel(data, 1 , batch, hypp)
     }
   }
   object
@@ -30,15 +30,27 @@ setMethod("initializeSigma2", "BatchModel", function(object){
   s2
 })
 
-setMethod("initializeModel", "ModelParams", function(params){
+setMethod("initializeModel", "ModelParams", function(params, hypp){
   object <- constructModel(type(params), data=y(params), k=k(params),
-                           batch=batch(params))
+                           batch=batch(params),
+                           hypp=hypp)
   object <- startingValues(object, params)
   object
 })
 
+#' @export
+initializeBatchModel <- function(params, zz, hypp){
+  object <- constructModel(type(params), data=y(params), k=k(params),
+                           batch=batch(params),
+                           hypp=hypp)
+  startingValues(object, params, zz)
+}
+
+
 setMethod("startingValues", "MarginalModel", function(object, params){
-  hypp <- hyperParams(object) <- Hyperparameters(type(params), k=k(params))
+  ##hypp <- hyperParams(object) <- Hyperparameters(type(params),
+  ##k=k(params))
+  hypp <- hyperParams(object)
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
   mu(object) <- rnorm(1, mu.0(object), sigma.0(object))
@@ -51,15 +63,17 @@ setMethod("startingValues", "MarginalModel", function(object, params){
   dataPrec(object) <- 1/computeVars(object)
   dataMean(object) <- computeMeans(object)
   logpotential(object) <- computePotential(object)
+  logLik(object) <- computeLoglik(object)
   mcmcChains(object) <- McmcChains(object, mcmcParams(params))
   object
 })
 
 setMethod("startingValues", "BatchModel", function(object, params, zz){
-  object <- constructModel(type(params), data=y(params), k=k(params),
-                           batch=batch(params))
-  hypp <- hyperParams(object) <- Hyperparameters(type(params), k=k(params))
-  hyperParams(object) <- hypp
+  ##  object <- constructModel(type(params), data=y(params), k=k(params),
+  ##                           batch=batch(params))
+  ##  hypp <- hyperParams(object) <- Hyperparameters(type(params), k=k(params))
+  ##  hyperParams(object) <- hypp
+  hypp <- hyperParams(object)
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
   mu(object) <- rnorm(k(object), mu.0(object), sigma.0(object))
@@ -86,11 +100,3 @@ setMethod("startingValues", "BatchModel", function(object, params, zz){
   mcmcChains(object) <- McmcChains(object, mcmcParams(params))
   object
 })
-
-
-#' @export
-initializeBatchModel <- function(params, zz){
-  object <- constructModel(type(params), data=y(params), k=k(params),
-                           batch=batch(params))
-  startingValues(object, params, zz)
-}

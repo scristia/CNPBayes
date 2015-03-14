@@ -106,7 +106,7 @@ test_marginal_Moderate <- function(){
                         sds=c(0.3, 0.15, 0.15),
                         p=c(0.05, 0.1, 0.8))
   if(FALSE) plot(truth, use.current=TRUE)
-  mcmcp <- McmcParams(iter=100000, thin=100, burnin=3000)
+  mcmcp <- McmcParams(iter=2000, thin=2, burnin=1000)
   params <- ModelParams("marginal", y=y(truth), k=3)
   model <- initializeModel(params)
   model <- posteriorSimulation(model, mcmcp)
@@ -130,7 +130,8 @@ test_marginal_Moderate <- function(){
   checkEquals(ps[order(pmns)], sigma(truth), tolerance=0.09)
 
   pmix <- p(truth)
-  pm_pmix <- colMeans(p(mc))
+
+  pm_pmix <- pic(model)[argMax(model), ]
   checkEquals(pmix, pm_pmix[order(pmns)], tolerance=0.1)
 }
 
@@ -151,8 +152,9 @@ test_marginal_hard <- function(){
                         p=c(0.005, 1/10, 1-0.005-1/10))
   if(FALSE) plot(truth, use.current=TRUE)
 
-  mcmcp <- McmcParams(iter=50000, thin=50, burnin=3000)
-  params <- ModelParams("marginal", y=y(truth), k=3, mcmc.params=mcmcp)
+  mcmcp <- McmcParams(iter=2000, thin=2, burnin=1000)
+  params <- ModelParams("marginal", y=y(truth), k=3,
+                        mcmc.params=mcmcp)
   modelk <- initializeModel(params)
   model <- posteriorSimulation(modelk, mcmcp)
   if(FALSE){
@@ -183,9 +185,6 @@ test_marginal_hard <- function(){
                         p=c(0.003, 1/10, 1-0.003-1/10))
   ## heavy-tailed
   ##y(truth)[z==1] <- rt
-
-
-
 }
 
 
@@ -206,10 +205,19 @@ test_selectK_moderate <- function(){
   ## Evaluate at different K.  models with fewer components
   ## (parameters) require fewer iterations to converge.
   ##
-  mcmcp <- McmcParams(iter=c(1000, 1000, 20000, 20000, 20000),
-                      burnin=c(100, 200, 2000, 2000, 2000),
-                      thin=c(1, 1, 10, 10, 10))
-  models <- fitMixtureModels(y(truth), mcmcp, K=1:4)
+  mcmcp <- McmcParams(iter=c(1000, 1000, 2000, 2000, 2000),
+                      burnin=c(100, 200, 1000, 1000, 1000),
+                      thin=c(1, 1, 2, 2, 2),
+                      nStart=20,
+                      nStartIter=150)
+  hypp <- HyperparametersMarginal()
+  hplist <- HyperParameterList(hypp, K=1:4)
+  mplist <- ModelParamList(hypp, K=1:4, data=y(truth),
+                           mcmcp=mcmcp)
+  modlist <- foreach(hypp=hplist, param=mplist) %do% {
+    initializeModel(params=param, hypp=hypp)
+  }
+  models <- foreach(k=1:4, model=modlist) %do% posteriorSimulation(model, mcmcp[k])
   bicstat <- sapply(models, bic)
   checkTrue(which.min(bicstat) == 3)
   if(FALSE){
@@ -224,21 +232,31 @@ test_selectK_moderate <- function(){
 
 test_selectK_hard <- function(){
   set.seed(1234)
-  mcmcp <- McmcParams(iter=c(1000, 1000, 100000, 100000, 100000),
-                      burnin=c(100, 200, 3000, 3000, 3000),
-                      thin=c(1, 1, 100, 100, 100))
+  mcmcp <- McmcParams(iter=c(1000, 1000, 2000, 2000, 2000),
+                      burnin=c(100, 200, 1000, 1000, 1000),
+                      thin=c(1, 1, 2, 2, 2),
+                      nStart=20,
+                      nStartIter=150)
   truth <- simulateData(2500,
                         theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
                         p=c(1/100, 1/10, 1-0.1-0.001))
+  hypp <- HyperparametersMarginal()
+  hplist <- HyperParameterList(hypp, K=1:4)
+  mplist <- ModelParamList(hypp, K=1:4, data=y(truth),
+                           mcmcp=mcmcp)
+  modlist <- foreach(hypp=hplist, param=mplist) %do% {
+    initializeModel(params=param, hypp=hypp)
+  }
+  fit <- foreach(k=1:4, model=modlist) %do% posteriorSimulation(model, mcmcp[k])
   ##
   ## Evaluate at different K
   ##
-  mcmcp <- McmcParams(iter=50000, thin=50, burnin=3000)
-  params <- ModelParams("marginal", y=y(truth), k=3, mcmc.params=mcmcp)
+  ##mcmcp <- McmcParams(iter=50000, thin=50, burnin=3000)
+  ##params <- ModelParams("marginal", y=y(truth), k=3, mcmc.params=mcmcp)
   ##modelk <- initializeModel(params)
   ##model <- posteriorSimulation(modelk, mcmcp)
-  fit <- fitMixtureModels(y(truth), mcmcp, K=1:4)
+  ##fit <- fitMixtureModels(y(truth), mcmcp, K=1:4)
   bicstat <- sapply(fit, bic)
   checkTrue(which.min(bicstat) == 3)
 }

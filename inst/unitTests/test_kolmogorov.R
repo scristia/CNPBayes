@@ -14,4 +14,18 @@ test_KolmogorovSmirnov <- function(){
                              p=c(1/3,1/3, 1/3))
   b <- collapseBatch(truth)
   checkIdentical(unique(b), c("a,b", "c"))
+
+  b2 <- collapseBatch(y(truth), oligoClasses::batch(truth))
+  checkIdentical(b, b2)
+  tmpfile <- tempfile()
+  saveBatch(truth, batch.file=tmpfile)
+  checkTrue(file.exists(tmpfile))
+
+  m <- matrix(y(truth), nrow=1)
+  colnames(m) <- paste0("s", seq_len(ncol(m)))
+  se <- SummarizedExperiment(assays=SimpleList(medr=m))
+  se$plate <- oligoClasses::batch(truth)
+  tmpfile <- tempfile()
+  saveBatch(se, batch.file=tmpfile)
+  checkTrue(file.exists(tmpfile))
 }

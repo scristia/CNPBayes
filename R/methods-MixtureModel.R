@@ -117,6 +117,7 @@ setMethod("show", "MixtureModel", function(object){
   ##cat("     tau2 (s)    :", round(tau2(object), 2),  "\n")
   ##cat("     mu (s)      :", round(mu(object), 2), "\n")
   cat("     potential(s):", round(logpotential(object), 2), "\n")
+  cat("     loglik (s)  :", round(logLik(object), 2), "\n")
 })
 
 setMethod("updateMixProbs", "MixtureModel", function(object){
@@ -163,6 +164,7 @@ updateAll <- function(post, move_chain){
   dataPrec(post) <- 1/computeVars(post)
   ##
   logpotential(post) <- computeLogLikxPrior(post)
+  logLik(post) <- computeLoglik(post)
   if(move_chain){
     probz(post) <- .computeProbZ(post)
   }
@@ -225,21 +227,23 @@ runMcmc <- function(object, mcmcp){
 multipleStarts <- function(object, mcmcp){
   if(k(object)==1) return(object)
   message("Running ", nStarts(mcmcp), " chains")
-  ##mp <- mcmcp[1]
-  ##if(is(object, "BatchModel")){
   mp <- McmcParams(burnin=0, iter=nStartIter(mcmcp))
-  mparams <- ModelParams("marginal", y=y(object), k=k(object),
-                         mcmc.params=mp)
-  mmod <- replicate(nStarts(mcmcp), initializeModel(mparams))
+  cl <- ifelse(is(object, "MarginalModel"), "marginal", "batch")
+  if(cl=="marginal"){
+    mparams <- ModelParams(cl, y=y(object), k=k(object), mcmc.params=mp)
+  } else mparams <- ModelParams(cl, y=y(object), k=k(object), mcmc.params=mp, batch=batch(object))
+  mmod <- replicate(nStarts(mcmcp), initializeModel(mparams, hyperParams(object)))
   mmodels <- suppressMessages(lapply(mmod, posteriorSimulation, mp))
   message("Selecting chain with largest log likelihood")
-  lp <- sapply(mmodels, function(x) max(logpotentialc(x)))
+  ##lp <- sapply(mmodels, function(x) max(logpotentialc(x)))
+  ##lp <- sapply(mmodels, function(x) max(logpotentialc(x)))
+  lp <- sapply(mmodels, function(x) max(logLikc(x)))
   mmodel <- mmodels[[which.max(lp)]]
   if(is(object, "MarginalModel")) return(mmodel)
   params <- ModelParams("batch", y=y(object), k=k(object),
                         batch=batch(object),
                         mcmc.params=mcmcp)
-  bmodel <- initializeBatchModel(params, z(mmodel))
+  bmodel <- initializeBatchModel(params, z(mmodel), hypp=hyperParams(mmodel))
   bmodel
 }
 
@@ -362,9 +366,29 @@ tau.0 <- function(object) sqrt(tau2.0(object))
 
 setMethod("eta.0", "MixtureModel", function(object) eta.0(hyperParams(object)))
 setMethod("eta.0", "Hyperparameters", function(object) object@eta.0)
-
 setMethod("m2.0", "MixtureModel", function(object) m2.0(hyperParams(object)))
 setMethod("m2.0", "Hyperparameters", function(object) object@m2.0)
+
+setReplaceMethod("eta.0", "MixtureModel", function(object, value){
+  eta.0(hyperParams(object)) <- value
+  object
+})
+
+setReplaceMethod("m2.0", "MixtureModel", function(object, value){
+  m2.0(hyperParams(object)) <- value
+  object
+})
+
+setReplaceMethod("eta.0", "Hyperparameters", function(object, value){
+  object@eta.0 <- value
+  object
+})
+
+setReplaceMethod("m2.0", "Hyperparameters", function(object, value){
+  object@m2.0 <- value
+  object
+})
+
 
 
 ##updateWithPosteriorMeans <- function(object){
@@ -381,29 +405,6 @@ setMethod("m2.0", "Hyperparameters", function(object) object@m2.0)
 ##  object
 ##}
 
-simulateZ <- function(N, p){
-  P <- rdirichlet(N, p)
-  cumP <- t(apply(P, 1, cumsum))
-  u <- runif(N)
-  zz <- rep(NA, N)
-  zz[u < cumP[, 1]] <- 1
-  k <- 2
-  while(k <= ncol(P)){
-    zz[u < cumP[, k] & u >= cumP[, k-1]] <- k
-    k <- k+1
-  }
-  zz
-}
-
-cumProbs <- function(p, k){
-  pcum <- list()
-  cols <- 2:(k-1)
-  for(j in seq_along(cols)){
-    g <- cols[j]
-    pcum[[j]] <- rowSums(p[, 1:g, drop=FALSE])
-  }
-  pcum2 <- cbind(p[, 1], do.call(cbind, pcum), 1)
-}
 
 .updateZ <- function(p){
   ## generalize to any k, k >= 1
@@ -546,8 +547,11 @@ setMethod("thetaMean", "MixtureModel", function(object) colMeans(thetac(object))
 
 setMethod("sigmaMean", "MixtureModel", function(object) colMeans(sigmac(object)))
 
-
+#' @export
 logpotentialc <- function(object) logpotential(mcmcChains(object))
+
+logLikc <- function(object) logLik(mcmcChains(object))
+
 
 #' @export
 sigmac <- function(object) sigma(mcmcChains(object))
@@ -579,11 +583,12 @@ setReplaceMethod("modes", "MixtureModel", function(object, value) {
 })
 
 setMethod("logLik", "MixtureModel", function(object){
-  mcmcChains(object)@loglik
+  object@loglik
 })
 
-setReplaceMethod("logLik", "MixtureModel", function(object){
-  mcmcChains(object)@loglik <- value
+setReplaceMethod("logLik", "MixtureModel", function(object, value){
+  object@loglik <- value
+  object
 })
 
 
@@ -611,6 +616,7 @@ argmaxLogLik <- function(object){
   which.max(logLik(x))
 }
 
+#' @export
 argMax <- function(object){
   x <- mcmcChains(object)
   i <- which.max(logpotential(x))
