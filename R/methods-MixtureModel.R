@@ -499,7 +499,8 @@ ksTest <- function(object){
 makeUnique <- function(x){
   ub <- unique(x)
   ##names(ub) <- ub
-  abbrv <- setNames(make.unique(substr(ub, 1, 8)), ub)
+  maxchar <- pmin(nchar(ub), 8)
+  abbrv <- setNames(make.unique(substr(ub, 1, maxchar)), ub)
   as.character(abbrv[x])
 }
 

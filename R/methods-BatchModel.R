@@ -591,3 +591,37 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp){
 ##  mns <- colMeans(pic(object))
 ##  mns
 ##})
+
+#' @export
+batchExperiment <- function(object, outdir, test=FALSE){
+  B <- getFiles(outdir, rownames(object), "batch")
+  batch.files <- paste0(dirname(model(B)), "/", colnames(object), "_batch.rds")
+  mcmcp.list <- mcmcpList()
+  hp.list <- HyperParameterList(K=1:4, HyperparametersBatch(tau2.0=1000))
+  J <- seq_len(nrow(object)); j <- NULL
+  x <- foreach(j = J, .packages=c("CNPBayes", "foreach")) %dopar% {
+    cn <- copyNumber(object)[j, ]
+    notna <- !is.na(cn)
+    bt <- saveBatch(object[j, notna], batch.files[j])
+    models <- batchModel(B[j], data=cn[notna],
+                         hyp.list=hp.list,
+                         mcmcp.list=mcmcp.list,
+                         batch=bt, save.it=TRUE, test=test)
+  }
+  TRUE
+}
+
+#' @export
+marginalExperiment <- function(object, outdir, test=FALSE){
+  M <- getFiles(outdir, rownames(object), "marginal")
+  mcmcp.list <- mcmcpList()
+  hp.list <- HyperParameterList(K=1:4, HyperparametersMarginal(tau2.0=1000))
+  cn <- copyNumber(object)
+  J <- seq_len(nrow(object)); j <- NULL
+  x <- foreach(j = J, .packages=c("CNPBayes", "foreach", "CNPAric")) %dopar% {
+    models <- marginalModel(M[j], data=cn[j, ],
+                            hyp.list=hp.list,
+                            mcmcp.list=mcmcp.list, save.it=TRUE)
+  }
+  TRUE
+}
