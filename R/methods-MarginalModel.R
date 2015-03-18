@@ -682,7 +682,7 @@ marginalModel <- function(object, hyp.list, data, mcmcp.list=mcmcpList(),
 }
 
 #' @export
-batchModel <- function(object, hyp.list, data, mcmcp.list,
+batchModel1 <- function(object, hyp.list, data, mcmcp.list,
                        batch,
                        save.it=FALSE, test=FALSE,
                        marginaly=TRUE){

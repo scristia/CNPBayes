@@ -88,6 +88,8 @@ setMethod("computeLoglik", c("BatchModel", "missing"), function(object, psi){
   .computeLoglikBatch(object)
 })
 
+batchLik <- function(x, p, mean, sd)  p*dnorm(x, mean, sd)
+
 logLikData <- function(object){
   lik <- rep(NA, length(y(object)))
   B <- batch(object)
@@ -100,12 +102,11 @@ logLikData <- function(object){
   tabz <- tabz[uniqueBatch(object), , drop=FALSE]
   P <- tabz
   lik <- matrix(NA, length(x), k(object))
-  browser()
   for(j in seq_len(k(object))){
-    for(b in ub){
-      p.x <- P[b, j] * dnorm(x[B==b], mean=mn[b, j], sd=ss[b, j])
-      lik[B==b, j] <- p.x
-    }
+    means <- mn[B, j]
+    sds <- ss[B, j]
+    p <- P[B, j]
+    lik[, j] <- p*dnorm(x, means, sds)
   }
   lik <- rowSums(lik)
   sum(log(lik))
@@ -605,11 +606,11 @@ batchExperiment <- function(object, outdir, marginaly=TRUE, test=FALSE){
     cn <- copyNumber(object)[j, ]
     notna <- !is.na(cn)
     bt <- saveBatch(object[j, notna], batch.files[j])
-    models <- batchModel(B[j], data=cn[notna],
-                         hyp.list=hp.list,
-                         mcmcp.list=mcmcp.list,
-                         batch=bt, save.it=TRUE, test=test,
-                         marginaly=marginaly)
+    models <- batchModel1(B[j], data=cn[notna],
+                          hyp.list=hp.list,
+                          mcmcp.list=mcmcp.list,
+                          batch=bt, save.it=TRUE, test=test,
+                          marginaly=marginaly)
   }
   TRUE
 }

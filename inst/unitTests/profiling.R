@@ -36,13 +36,13 @@ outdir <- tempdir()
 se472 <- readRDS("~/Software/CNPBayes/inst/extdata/se_cnp472_EA.rds")
 B <- getFiles(outdir, rownames(se472), "batch")
 
-batch.files <- paste0(dirname(model(B)), "/", colnames(se472), "_batch.rds")
-trace(BatchModel, browser)
-object <- BatchModel(copyNumber(se472)[1,], k=3, batch= )
+batch.files <- paste0(dirname(model(B)), "/", rownames(se472), "_batch.rds")
+object <- BatchModel(copyNumber(se472)[1,], k=3, batch= batch.files)
 
 Rprof()
 batchExperiment(se472, outdir, test=TRUE)
 Rprof(NULL)
+summaryRprof()
 
 
 
