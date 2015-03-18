@@ -82,6 +82,6 @@ setClass("PosteriorFiles",
          representation(
              isMarginalModel="logical",
              model="character",
-             post1="character",
-             post2="character",
-             post3="character"))
+             post1="character"))
+             ##post2="character",
+             ##post3="character"))

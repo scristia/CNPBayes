@@ -88,6 +88,7 @@ setMethod("plot", "BatchModel", function(x, y, use.current=FALSE, show.batch=TRU
 
 #' @export
 plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
+  browser()
   best.model <- substr(names(bayes.factor), 1, 2)
   se <- y
   object <- x
@@ -131,6 +132,7 @@ plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
   }
 }
 
+#' @export
 plotModel <- function(model.list, se, ...){
   options(digits=3)
   options(scipen=5)
@@ -145,6 +147,7 @@ plotModel <- function(model.list, se, ...){
                       breaks=150, main="",
                       yaxt="n",
                       use.current=TRUE)
+  if(length(model.list) == 1) return()
   plot.PosteriorFiles(model.list[[2]], se,
                       bayes.factor=bf, m.y=m.y,
                       ...,

@@ -100,6 +100,7 @@ logLikData <- function(object){
   tabz <- tabz[uniqueBatch(object), , drop=FALSE]
   P <- tabz
   lik <- matrix(NA, length(x), k(object))
+  browser()
   for(j in seq_len(k(object))){
     for(b in ub){
       p.x <- P[b, j] * dnorm(x[B==b], mean=mn[b, j], sd=ss[b, j])
@@ -593,9 +594,10 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp){
 ##})
 
 #' @export
-batchExperiment <- function(object, outdir, test=FALSE){
+batchExperiment <- function(object, outdir, marginaly=TRUE, test=FALSE){
   B <- getFiles(outdir, rownames(object), "batch")
-  batch.files <- paste0(dirname(model(B)), "/", colnames(object), "_batch.rds")
+  ## shouldn't batch files be named with respect to the rownames?
+  batch.files <- paste0(dirname(model(B)), "/", rownames(object), "_batch.rds")
   mcmcp.list <- mcmcpList()
   hp.list <- HyperParameterList(K=1:4, HyperparametersBatch(tau2.0=1000))
   J <- seq_len(nrow(object)); j <- NULL
@@ -606,7 +608,8 @@ batchExperiment <- function(object, outdir, test=FALSE){
     models <- batchModel(B[j], data=cn[notna],
                          hyp.list=hp.list,
                          mcmcp.list=mcmcp.list,
-                         batch=bt, save.it=TRUE, test=test)
+                         batch=bt, save.it=TRUE, test=test,
+                         marginaly=marginaly)
   }
   TRUE
 }
@@ -618,10 +621,11 @@ marginalExperiment <- function(object, outdir, test=FALSE){
   hp.list <- HyperParameterList(K=1:4, HyperparametersMarginal(tau2.0=1000))
   cn <- copyNumber(object)
   J <- seq_len(nrow(object)); j <- NULL
-  x <- foreach(j = J, .packages=c("CNPBayes", "foreach", "CNPAric")) %dopar% {
+  x <- foreach(j = J, .packages=c("CNPBayes", "foreach")) %dopar% {
     models <- marginalModel(M[j], data=cn[j, ],
                             hyp.list=hp.list,
-                            mcmcp.list=mcmcp.list, save.it=TRUE)
+                            mcmcp.list=mcmcp.list, save.it=TRUE,
+                            test=test)
   }
   TRUE
 }

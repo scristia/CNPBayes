@@ -1,30 +1,28 @@
 #' @include AllClasses.R
 
-PosteriorFiles <- function(model=character(), post1=character(), post2=character(), post3=character(), isMarginalModel=logical()){
-  new("PosteriorFiles", model=model, post1=post1, post2=post2, post3=post3,
+PosteriorFiles <- function(model=character(), post1=character(), ##post2=character(), post3=character(),
+                           isMarginalModel=logical()){
+  new("PosteriorFiles", model=model, post1=post1,##, post2=post2, post3=post3,
       isMarginalModel=isMarginalModel)
 }
 
 setMethod("isMarginalModel", "PosteriorFiles", function(object) object@isMarginalModel)
 setMethod("model", "PosteriorFiles", function(object) object@model)
 setMethod("post1", "PosteriorFiles", function(object) object@post1)
-setMethod("post2", "PosteriorFiles", function(object) object@post2)
-setMethod("post3", "PosteriorFiles", function(object) object@post3)
+##setMethod("post2", "PosteriorFiles", function(object) object@post2)
+##setMethod("post3", "PosteriorFiles", function(object) object@post3)
 
 
 
-setMethod("postFiles", "PosteriorFiles", function(object) {
-  cbind(post1(object), post2(object), post3(object))
-})
-
+setMethod("postFiles", "PosteriorFiles", function(object) post1(object))
 
 
 setMethod("[", "PosteriorFiles", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     x@model <- model(x)[i]
     x@post1 <- post1(x)[i]
-    x@post2 <- post2(x)[i]
-    x@post3 <- post3(x)[i]
+##    x@post2 <- post2(x)[i]
+##    x@post3 <- post3(x)[i]
   }
   x
 })
@@ -36,7 +34,7 @@ setMethod("show", "PosteriorFiles", function(object){
   cat("   number of models (CNP loci):", length(object), "\n")
   type <- ifelse(isMarginalModel(object), "marginal", "batch")
   cat("   type of model (marginal|batch):", type, "\n")
-  cat("   See model(), post1(), post2(), post3()\n")
+  cat("   See model(), postFiles()\n")
 })
 
 #' @export
@@ -46,16 +44,16 @@ getFiles <- function(outdir, cnpids, model){
   if(model=="batch"){
     batch <- PosteriorFiles(model=model.files[["batch"]],
                             post1=post.files$batch[, 1],
-                            post2=post.files$batch[, 2],
-                            post3=post.files$batch[, 3],
+                            ##post2=post.files$batch[, 2],
+                            ##post3=post.files$batch[, 3],
                             isMarginalModel=FALSE)
     return(batch)
   }
   if(model=="marginal"){
     marginal <- PosteriorFiles(model=model.files[["marginal"]],
                                post1=post.files$marginal[, 1],
-                               post2=post.files$marginal[, 2],
-                               post3=post.files$marginal[, 3],
+                               ##post2=post.files$marginal[, 2],
+                               ##post3=post.files$marginal[, 3],
                                isMarginalModel=TRUE)
     return(marginal)
   }

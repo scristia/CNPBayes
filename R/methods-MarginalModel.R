@@ -651,7 +651,7 @@ mcmcpList <- function(test=FALSE){
 }
 
 #' @export
-marginalModel <- function(object, hyp.list, data, mcmcp.list,
+marginalModel <- function(object, hyp.list, data, mcmcp.list=mcmcpList(),
                           save.it=FALSE, test=FALSE){
   if(test){
     message("Testing with just a few mcmc iterations")
@@ -669,23 +669,23 @@ marginalModel <- function(object, hyp.list, data, mcmcp.list,
   models <- foreach(k=1:4, model=modlist) %do% posteriorSimulation(model, mcmcp[k])
   file.out <- postFiles(object)[1]
   x <- lapply(models, computeMarginalPr, mcmcp=mcmcp.list[[2]])
-  if(save.it)
-    saveRDS(x, file=file.out)
+  if(save.it) saveRDS(x, file=file.out)
   xx <- do.call(cbind, lapply(x, rowMeans))
   post.range <- unlist(lapply(x, posteriorRange))
   marginals <- computeMarginal(xx)
   for(i in seq_along(models)){
     m.y(models[[i]]) <- marginals[i]
   }
-  if(save.it)
-    saveRDS(models, file=model(object)[i])
-  models
+  if(save.it) saveRDS(models, file=model(object))
+  ## important to return NULL -- otherwise memory will skyrocket
+  NULL
 }
 
 #' @export
 batchModel <- function(object, hyp.list, data, mcmcp.list,
                        batch,
-                       save.it=FALSE, test=FALSE){
+                       save.it=FALSE, test=FALSE,
+                       marginaly=TRUE){
   if(test){
     message("Testing with just a few mcmc iterations")
     mcmcp.list <- mcmcpList(TRUE)
@@ -701,18 +701,23 @@ batchModel <- function(object, hyp.list, data, mcmcp.list,
     initializeBatchModel(params=param, hypp=hypp)
   }
   models <- foreach(k=1:4, model=modlist) %do% posteriorSimulation(model, mcmcp[k])
-  x <- lapply(models, computeMarginalPr, mcmcp=mcmcp.list[[2]])
-  if(save.it)
-    saveRDS(x, file=postFiles(object)[1])
-  xx <- do.call(cbind, lapply(x, rowMeans))
-  post.range <- unlist(lapply(x, posteriorRange))
-  marginals <- computeMarginal(xx)
-  for(i in seq_along(models)){
-    m.y(models[[i]]) <- marginals[i]
+  if(marginaly){
+    x <- lapply(models, computeMarginalPr, mcmcp=mcmcp.list[[2]])
+    if(save.it) saveRDS(x, file=postFiles(object)[1])
   }
-  if(save.it)
-    saveRDS(models, file=model(object)[i])
-  models
+  marginaly.file <- postFiles(object)[1]
+  if(file.exists(marginaly.file)){
+    x <- readRDS(marginaly.file)
+    xx <- do.call(cbind, lapply(x, rowMeans))
+    post.range <- unlist(lapply(x, posteriorRange))
+    marginals <- computeMarginal(xx)
+    for(i in seq_along(models)){
+      m.y(models[[i]]) <- marginals[i]
+    }
+  }
+  if(save.it) saveRDS(models, file=model(object))
+  ## important to return NULL -- otherwise memory will skyrocket
+  NULL
 }
 
 #' @export
