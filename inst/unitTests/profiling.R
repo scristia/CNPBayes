@@ -32,17 +32,32 @@ posteriorSimulation(model, mcmcp)
 ##
 ## Batch model
 ##
-outdir <- tempdir()
+outdir <- '~/Software'
 se472 <- readRDS("~/Software/CNPBayes/inst/extdata/se_cnp472_EA.rds")
 B <- getFiles(outdir, rownames(se472), "batch")
 
 batch.files <- paste0(dirname(model(B)), "/", rownames(se472), "_batch.rds")
 object <- BatchModel(copyNumber(se472)[1,], k=3, batch= batch.files)
 
+load_all()
 Rprof()
 batchExperiment(se472, outdir, test=TRUE)
 Rprof(NULL)
 summaryRprof()
+prof <- summaryRprof()
+tot <- prof$by.total
+self <- prof$by.self
+
+load_all()
+batchExperiment(se472, outdir, test=TRUE)
+outdir <- tempdir()
+Rprof("marginal.prof", interval=0.1)
+marginalExperiment(se472, outdir)
+Rprof(NULL)
+mp2 <- summaryRprof("marginal.prof")
+
+load_all()
+marginalExperiment(se472, outdir, test=TRUE)
 
 
 

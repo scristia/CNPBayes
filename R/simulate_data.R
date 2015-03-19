@@ -1,17 +1,12 @@
 #' @export
 simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
-  if(missing(batch)) batch <- as.character(rep(1, N))
-##  if(is(p, "numeric")) p <- matrix(p, nrow=length(unique(batch)), ncol=ncol(theta),
-##                                   byrow=TRUE)
-##  rownames(p) <- unique(batch)
+  if(missing(batch)) {
+    batch <- factor(rep(1, N))
+  } else {
+    batch <- factor(batch, levels=unique(batch))
+  }
   if(missing(zz)) {
     zz <- simulateZ(N, p)
-##    zz <- rep(NA, N)
-##    nb <- table(batch)
-##    for(b in unique(batch)){
-##      zz[batch==b] <- simulateZ(nb[b], p[b, ])
-    ##    }
-
   }
   yy <- rep(NA, N)
   ub <- unique(batch)

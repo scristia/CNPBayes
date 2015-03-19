@@ -1,5 +1,8 @@
-MarginalModel <- function(data=numeric(), k=2, batch=character(), hypp){
+MarginalModel <- function(data=numeric(), k=2, batch=factor(), hypp){
   if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
+  if(!missing(batch)){
+    nbatch <- setNames(as.integer(table(batch)), levels(batch))
+  } else nbatch <- length(data)
   new("MarginalModel",
       hyperparams=hypp,
       theta=numeric(k),
@@ -18,6 +21,7 @@ MarginalModel <- function(data=numeric(), k=2, batch=character(), hypp){
       loglik=numeric(1),
       mcmc.chains=McmcChains(),
       batch=batch,
+      batchElements=nbatch,
       hwe=numeric(),
       modes=list(),
       m.y=numeric(1))
@@ -25,6 +29,9 @@ MarginalModel <- function(data=numeric(), k=2, batch=character(), hypp){
 
 UnivariateMarginalModel <- function(data, k=1, batch, hypp){
   if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
+  if(!missing(batch)){
+    nbatch <- setNames(as.integer(table(batch)), levels(batch))
+  } else nbatch <- length(data)
   new("UnivariateMarginalModel",
       hyperparams=hypp,
       theta=numeric(k),
@@ -43,6 +50,8 @@ UnivariateMarginalModel <- function(data, k=1, batch, hypp){
       loglik=numeric(1),
       mcmc.chains=McmcChains(),
       batch=batch,
+      ##uniqueBatch=unique(batch),
+      batchElements=nbatch,
       hwe=numeric(),
       modes=list(),
       m.y=numeric(1))
@@ -60,29 +69,6 @@ setMethod("updateZ", "UnivariateMarginalModel", function(object){
 
 ## compute p(theta) * p(y | theta)
 setMethod("computePotential", "MarginalModel", function(object){
-##  hypp <- hyperParams(object)
-##  K <- k(hypp)
-##  yy <- y(object)
-##  zz <- z(object)
-##  thetas <- theta(object)
-##  sigma2s <- sigma(object)
-##  mus <- mu(object)
-##  tau2s <- tau2(object)
-##  pp <- p(object)
-##  ##p.mu <- dnorm(mus, mu.0(hypp), sqrt(tau2.0(hypp)))
-##  ##p.mu <- 1
-##  p.sigma2.0 <- dgamma(sigma2.0(object), shape=a(hypp), rate=b(hypp))
-##  p.nu.0 <- dgeom(nu.0(object), betas(hypp))
-##  p.theta <- dnorm(thetas, mus, sqrt(tau2s))
-##  p.sigma2 <- dgamma(1/sigma2s, shape=1/2*nu.0(object), rate=1/2*nu.0(object)*sigma2.0(object))
-##  ##pot <- list()
-##  pot <- matrix(NA, length(yy), K)
-##  for(i in seq_len(K)){
-##    pot[, i] <- pp[i]*dnorm(yy, thetas[i], sqrt(sigma2s)[i])
-##  }
-##  pot <- rowSums(pot)
-##  total_pot <- sum(log(pot)) + sum(log(p.theta)) + sum(log(p.sigma2)) + log(p.nu.0) + log(p.sigma2.0)
-  ##  total_pot
   ll <- computeLogLikxPrior(object)
   ll.phi <- .loglikPhiMarginal(object)
   ll+ll.phi
@@ -93,11 +79,6 @@ setMethod("computePotential", "MarginalModel", function(object){
 ## no update.
 ##
 setMethod("updateMu", "MarginalModel", function(object){
-  ##tau2.0, tau2, eta.0, mu.0, thetas, k, nn){
-  ##hypp <- hyperParams(object)
-  ##  mu.k <- .updateMu(tau2.0(hypp), tau2(object), k(object), z(object),
-  ##                    theta(object), mu.0(hypp))
-  ##  mu.k
   .updateMu(object)
 })
 
@@ -545,16 +526,18 @@ setMethod("computeModes", "MarginalModel", function(object){
 ##})
 
 sumSquares <- function(object){
-  ss <- matrix(NA, nBatch(object), k(object))
-  rownames(ss) <- uniqueBatch(object)
   B <- batch(object)
   thetas <- theta(object)
   yy <- y(object)
   zz <- z(object)
+  ss <- matrix(NA, nBatch(object), k(object))
+  rownames(ss) <- uniqueBatch(object)
+  batch.index <- split(seq_len(length(yy)), B)
+  zz <- z(object)
   for(b in uniqueBatch(object)){
-    y <- yy[B==b]
-    cn <- zz[B==b]
-    ##nonzero <- nz[B==b]
+    k <- batch.index[[b]]
+    y <- yy[k]
+    cn <- zz[k]
     m <- thetas[b, ]
     ## This could be tricky in C.  It works in R because of the factor to an integer:
     ##  as.integer(factor(c(1, 3), levels=c("1", "2", "3"))) evaluates to 1,3
@@ -570,18 +553,17 @@ setMethod("computeLoglik", "MarginalModel", function(object){
 })
 
 .loglikMarginal <- function(object){
-  mn <- theta(object)
-  ss <- sigma(object)
-  yy <- y(object)
-  ##zz <- as.integer(z(object))
+  x <- y(object)
+  nr <- length(x)
   pp <- p(object)
   K <- k(object)
-  lik <- matrix(NA, length(yy), K)
-  for(j in seq_len(K)){
-    lik[, j] <- pp[j]*dnorm(yy, mn[j], ss[j])
-  }
-  lik <- rowSums(lik)
-  sum(log(lik))
+  x <- rep(x, K)
+  p <- rep(p(object), each=nr)
+  thetas <- rep(theta(object), each=nr)
+  sigmas <- rep(sigma(object), each=nr)
+  lik <- matrix(p*dnorm(x, thetas, sigmas),
+                nr, K)
+  sum(log(rowSums(lik)))
 }
 
 .loglikPhiMarginal <- function(object){
@@ -631,24 +613,6 @@ setMethod("showSigmas", "MarginalModel", function(object){
 setMethod("tablez", "MarginalModel", function(object) table(z(object)))
 
 #' @export
-mcmcpList <- function(test=FALSE){
-  if(test){
-    mcmcp.list <- list(McmcParams(iter=rep(2, 4),
-                                  burnin=rep(1,4),
-                                  thin=rep(1,4),
-                                  nStarts=2,
-                                  nStartIter=2),
-                       McmcParams(iter=2, burnin=1, thin=1))
-  } else {
-    mcmcp.list <- list(McmcParams(iter=c(500, 3000, 3000, 3000),
-                                  burnin=c(50, 1000, 1000, 1000),
-                                  thin=c(1, 3, 3, 3),
-                                  nStarts=20,
-                                  nStartIter=100),
-                       McmcParams(iter=1000, burnin=100, thin=1))
-  }
-  mcmcp.list
-}
 
 #' @export
 marginalModel <- function(object, hyp.list, data, mcmcp.list=mcmcpList(),
@@ -658,11 +622,10 @@ marginalModel <- function(object, hyp.list, data, mcmcp.list=mcmcpList(),
     mcmcp.list <- mcmcpList(TRUE)
     save.it <- FALSE
   }
-  mcmcp <- mcmcp.list[[1]]
   mp.list <- ModelParamList(hyp.list[[1]],
                             K=1:4,
                             data=data,
-                            mcmcp=mcmcp)
+                            mcmcp=mcmcp.list[[1]])
   modlist <- foreach(hypp=hyp.list, param=mp.list) %do% {
     initializeModel(params=param, hypp=hypp)
   }
@@ -682,51 +645,22 @@ marginalModel <- function(object, hyp.list, data, mcmcp.list=mcmcpList(),
 }
 
 #' @export
-batchModel1 <- function(object, hyp.list, data, mcmcp.list,
-                       batch,
-                       save.it=FALSE, test=FALSE,
-                       marginaly=TRUE){
-  if(test){
-    message("Testing with just a few mcmc iterations")
-    mcmcp.list <- mcmcpList(TRUE)
-    save.it <- FALSE
+marginalExperiment <- function(object, outdir, mcmcp.list=mcmcpList(),
+                               hypp, marginaly=TRUE,
+                               test=FALSE){
+  M <- getFiles(outdir, rownames(object), "marginal")
+  if(missing(hypp)){
+    hp.list <- HyperParameterList(K=1:4, HyperparametersMarginal(tau2.0=1000))
+  } else{
+    hp.list <- HyperParameterList(K=1:4, hypp)
   }
-  mcmcp <- mcmcp.list[[1]]
-  mp.list <- ModelParamList(hyp.list[[1]],
-                            K=1:4,
-                            data=data,
-                            batch=batch,
-                            mcmcp=mcmcp)
-  modlist <- foreach(hypp=hyp.list, param=mp.list) %do% {
-    initializeBatchModel(params=param, hypp=hypp)
+  cn <- copyNumber(object)
+  J <- seq_len(nrow(object)); j <- NULL
+  x <- foreach(j = J, .packages=c("CNPBayes", "foreach")) %dopar% {
+    models <- marginalModel(M[j], data=cn[j, ],
+                            hyp.list=hp.list,
+                            mcmcp.list=mcmcp.list, save.it=TRUE,
+                            test=test)
   }
-  models <- foreach(k=1:4, model=modlist) %do% posteriorSimulation(model, mcmcp[k])
-  if(marginaly){
-    x <- lapply(models, computeMarginalPr, mcmcp=mcmcp.list[[2]])
-    if(save.it) saveRDS(x, file=postFiles(object)[1])
-  }
-  marginaly.file <- postFiles(object)[1]
-  if(file.exists(marginaly.file)){
-    x <- readRDS(marginaly.file)
-    xx <- do.call(cbind, lapply(x, rowMeans))
-    post.range <- unlist(lapply(x, posteriorRange))
-    marginals <- computeMarginal(xx)
-    for(i in seq_along(models)){
-      m.y(models[[i]]) <- marginals[i]
-    }
-  }
-  if(save.it) saveRDS(models, file=model(object))
-  ## important to return NULL -- otherwise memory will skyrocket
-  NULL
-}
-
-#' @export
-saveBatch <- function(se, batch.file){
-  if(file.exists(batch.file)){
-    bt <- readRDS(batch.file)
-    return(bt)
-  }
-  bt <- collapseBatch(se)
-  saveRDS(bt, file=batch.file)
-  bt
+  TRUE
 }

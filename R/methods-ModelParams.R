@@ -3,12 +3,13 @@ ModelParams <- function(type=c("marginal", "batch"),
                         y=numeric(),
                         k,
                         batch,
-                        mcmc.params){
-  if(missing(mcmc.params)){
-    mcmc.params <- McmcParams(iter=1000, burnin=0)
+                        mcmc.params=McmcParams(iter=1000, burnin=0)){
+  ##y <- y[!is.na(y)]
+  if(missing(batch)){
+    batch <- factor(rep("A", length(y)))
+  } else {
+    batch <- factor(batch)
   }
-  y <- y[!is.na(y)]
-  if(missing(batch)) batch <- rep("A", length(y))
   new("ModelParams", type=match.arg(type), data=y, k=k, batch=batch, mcmc.params=mcmc.params)
 }
 

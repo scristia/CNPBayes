@@ -31,7 +31,9 @@ setMethod("initializeSigma2", "BatchModel", function(object){
 })
 
 setMethod("initializeModel", "ModelParams", function(params, hypp){
-  object <- constructModel(type(params), data=y(params), k=k(params),
+  object <- constructModel(type(params),
+                           data=y(params),
+                           k=k(params),
                            batch=batch(params),
                            hypp=hypp)
   object <- startingValues(object, params)
@@ -84,14 +86,7 @@ setMethod("startingValues", "BatchModel", function(object, params, zz){
   p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are platform, columns are components
   ##p(object) <- rdirichlet(nBatch(object), alpha(hypp))
   if(missing(zz)){
-    ##tab <- table(batch(params))
     zz <- simulateZ(length(y(params)), p(object))
-    ##    zz <- rep(NA, length(y(params)))
-    ##    tab <- table(batch(params))
-    ##    for(b in uniqueBatch(object)){
-    ##      zz[batch(params)==b] <- simulateZ(tab[b], p(object)[b, ])
-    ##      ##zz[batch(params)==b] <- simulateZ(tab[b], p(object))
-    ##    }
     z(object) <- factor(zz, levels=unique(sort(zz)))
   } else z(object) <- zz
   dataPrec(object) <- 1/computeVars(object)
@@ -99,4 +94,18 @@ setMethod("startingValues", "BatchModel", function(object, params, zz){
   logpotential(object) <- computePotential(object)
   mcmcChains(object) <- McmcChains(object, mcmcParams(params))
   object
+})
+
+setMethod("initializeTheta", "numeric", function(object){
+  means <- switch(paste0("k", object),
+                  k1=0,
+                  k2=c(-0.5, 0),
+                  k3=c(-2, -0.5, 0),
+                  k4=c(-2, -0.5, 0, 0.5),
+                  k5=c(-2, -0.5, 0, 0.5, 1),
+                  k6=c(-2, -0.5, -0.2, 0.2, 0.5, 1),
+                  k7=c(-2, -0.5, -0.2, 0, 0.2, 0.5, 1),
+                  NULL)
+  if(is.null(means)) stop("k needs to be 1-7")
+  means
 })

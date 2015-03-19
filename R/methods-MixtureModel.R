@@ -7,7 +7,7 @@ setReplaceMethod("hyperParams", c("MixtureModel", "Hyperparameters"),
                  })
 
 
-setMethod("batch", "MixtureModel", function(object) object@batch)
+
 
 setReplaceMethod("batch", "MixtureModel", function(object, value){
   object@batch <- value
@@ -31,9 +31,7 @@ setMethod("sigma2.0", "MixtureModel", function(object) object@sigma2.0)
 
 sigma.0 <- function(object) sqrt(sigma2.0(object))
 
-setMethod("y", "MixtureModel", function(object) object@data)
 
-setMethod("z", "MixtureModel", function(object) object@z)
 
 #' @export
 p <- function(object) object@pi
@@ -132,6 +130,9 @@ setMethod("updateAlpha", "MixtureModel", function(object){
   alpha(object) + table(z(object))
 })
 
+setMethod("y", "MixtureModel", function(object) object@data)
+setMethod("batch", "MixtureModel", function(object) object@batch)
+setMethod("z", "MixtureModel", function(object) object@z)
 
 updateAll <- function(post, move_chain){
   ##
@@ -140,26 +141,26 @@ updateAll <- function(post, move_chain){
   ##
   theta(post) <- updateTheta(post)
   sigma2(post) <- updateSigma2(post)
-  ##
-  ## update (mu, tau2)
-  ##
+#  ##
+#  ## update (mu, tau2)
+#  ##
   mu(post) <- updateMu(post)
   tau2(post) <- updateTau2(post)
-  #
-  ##
-  ##  update (nu.0, sigma2.0)
-  ##
+#  #
+#  ##
+#  ##  update (nu.0, sigma2.0)
+#  ##
   sigma2.0(post) <- updateSigma2.0(post)
   nu.0(post) <- updateNu.0(post)
-  ##
-  ## update pi
-  ##
+#  ##
+#  ## update pi
+#  ##
   p(post) <- updateMixProbs(post)
-  ##
-  ##  update auxillary variable
-  ##
+#  ##
+#  ##  update auxillary variable
+#  ##
   z(post) <- updateZ(post)
-  ##
+#  ##
   dataMean(post) <- computeMeans(post)
   dataPrec(post) <- 1/computeVars(post)
   ##
@@ -236,7 +237,6 @@ multipleStarts <- function(object, mcmcp){
   mmodels <- suppressMessages(lapply(mmod, posteriorSimulation, mp))
   message("Selecting chain with largest log likelihood")
   ##lp <- sapply(mmodels, function(x) max(logpotentialc(x)))
-  ##lp <- sapply(mmodels, function(x) max(logpotentialc(x)))
   lp <- sapply(mmodels, function(x) max(logLikc(x)))
   mmodel <- mmodels[[which.max(lp)]]
   if(is(object, "MarginalModel")) return(mmodel)
@@ -247,9 +247,13 @@ multipleStarts <- function(object, mcmcp){
   bmodel
 }
 
-##setMethod("posteriorSimulation", "MixtureModel", function(model, y, k, mcmcp){
-##
-##})
+#' @export
+computeLogLikForRandomStarts <- function(seed, params, hypp, return.model=FALSE){
+  set.seed(seed)
+  model <- initializeModel(params, hypp)
+  if(return.model) return(model)
+  logLikData(model)
+}
 
 setMethod("posteriorSimulation", "MixtureModel", function(object, mcmcp){
   .posteriorSimulation(object, mcmcp)
@@ -268,7 +272,6 @@ setMethod("posteriorSimulation", "ModelParams", function(object, mcmcp){
   ##
   ## Burn-in
   ##
-  ##browser()
   post2 <- post
   post <- runBurnin(post, mcmcp)
   if(niter==0) return(post)
@@ -279,52 +282,17 @@ setMethod("posteriorSimulation", "ModelParams", function(object, mcmcp){
   ##
   post <- moveChain(post, 1)
   ##
-  ## if the chain moves quickly from the burnin, it might be related
-  ## to the constrain imposed after burnin
+  ## If the chain moves quickly from the burnin, it might be related
+  ## to the constraint imposed after burnin
   ##
-  ##probz(post) <- .computeProbZ(post)
   ##
   ## Post burn-in
   ##
   post <- runMcmc(post, mcmcp)
   probz(post) <- probz(post)/(savedIterations(mcmcp)+1)
-  ##if(!check_labels){
-    ## compute the modes (otherwise, we have assume the modes are known)
   modes(post) <- computeModes(post)
-  ##}
-  ##  if(check_labels){
-  ##
-  ##  }
-  ##  if(check_labels){
-  ##    post <- switchLabels(post)
-  ##    ##
-  ##    ## We assume that computeModes provides estimates of the modes for the posterior
-  ##    ## - for each subsequent iteration, we order the updates to minimize the distance to the modal estimates
-  ##    ##
-  ##    post <- runMcmc2(post, mcmcp, switch_labels=TRUE)
-  ##  }
-  ##orderTheta(post) <- getThetaOrder(post)
   post
 }
-
-
-setMethod("hist", "MixtureModel", function(x, ...){
-  op <- par(las=1)
-  yy <- y(x)
-  ##if(rsample > 0) yy <- sample(yy, rsample)
-  args <- list(...)
-  if(!"breaks" %in% names(args)){
-    L <- length(yy)
-    hist(yy, breaks=L/10,
-         col="gray"
-       , border="gray",  xlab="y",
-         freq=FALSE, ...)
-  } else {
-    hist(yy, col="gray", border="gray", xlab="y",
-         freq=FALSE, ...)
-  }
-  par(op)
-})
 
 
 .class_constructor <- function(class, ...){
@@ -389,107 +357,6 @@ setReplaceMethod("m2.0", "Hyperparameters", function(object, value){
   object
 })
 
-
-
-##updateWithPosteriorMeans <- function(object){
-##  mc <- mcmcChains(object)
-##  theta(object) <- colMeans(theta(mc))
-##  sigma2(object) <- colMeans(sigma2(mc))
-##  p(object) <- colMeans(p(mc))
-##  mu(object) <- mean(mu(mc))
-##  tau2(object) <- mean(tau2(mc))
-##  nu.0(object) <- median(nu.0(mc))
-##  sigma2.0(object) <- mean(sigma2.0(object))
-##  ##...
-##  logpotential(object) <- computePotential(object)
-##  object
-##}
-
-
-.updateZ <- function(p){
-  ## generalize to any k, k >= 1
-  cumP <- t(apply(p, 1, function(x) cumsum(x)))
-  N <- nrow(p)
-  u <- runif(N)
-  zz <- rep(NA, N)
-  zz[u < cumP[, 1]] <- 1
-  k <- 2
-  while(k <= ncol(p)){
-    zz[u < cumP[, k] & u >= cumP[, k-1]] <- k
-    k <- k+1
-  }
-  if(any(is.na(zz))) stop("missing values in zz")
-  return(zz)
-}
-
-setMethod("updateZ", "MixtureModel", function(object){
-  p <- posteriorMultinomial(object)
-  ##zz <- simulateZ(length(y(object)), p)
-  zz <- .updateZ(p)
-  factor(zz, levels=seq_len(k(object)))
-})
-
-
-
-setMethod("initializeTheta", "numeric", function(object){
-  means <- switch(paste0("k", object),
-                  k1=0,
-                  k2=c(-0.5, 0),
-                  k3=c(-2, -0.5, 0),
-                  k4=c(-2, -0.5, 0, 0.5),
-                  k5=c(-2, -0.5, 0, 0.5, 1),
-                  k6=c(-2, -0.5, -0.2, 0.2, 0.5, 1),
-                  k7=c(-2, -0.5, -0.2, 0, 0.2, 0.5, 1),
-                  NULL)
-  if(is.null(means)) stop("k needs to be 1-7")
-  means
-})
-
-ksTest <- function(object){
-  B <- batch(object)
-  yy <- y(object)
-  ##ks <- rep(NA, choose(nBatch(object), 2))
-  ks <- matrix(NA, choose(nBatch(object), 2), 4)
-  i <- 1
-  uB <- unique(B)
-  for(j in seq_along(uB)){
-    for(k in seq_along(uB)){
-      if(k <= j) next()
-      ##cat(j, k, sep="")
-      ##cat(" ")
-      b1 <- uB[j]
-      b2 <- uB[k]
-      stat <- suppressWarnings(ks.test(yy[B==b1], yy[B==b2]))
-      ks[i, ] <- c(b1, b2, stat$statistic, stat$p.value)
-      i <- i+1
-    }
-  }
-  colnames(ks) <- c("batch1", "batch2", "stat", "pval")
-  ks
-}
-
-##.collapseBatch <- function(object){
-.collapseBatch <- function(yy, B){
-  #B <- batch(object)
-  uB <- unique(B)
-  #yy <- y(object)
-  ## One plate can pair with many other plates.
-  for(j in seq_along(uB)){
-    for(k in seq_along(uB)){
-      if(k <= j) next() ## next k
-      b1 <- uB[j]
-      b2 <- uB[k]
-      stat <- suppressWarnings(ks.test(yy[B==b1], yy[B==b2]))
-      if(stat$p.value < 0.1) next()
-      b <- paste(b1, b2, sep=",")
-      B[B %in% b1 | B %in% b2] <- b
-      ## once we've defined a new batch, return the new batch to the
-      ## calling function
-      return(B)
-    }
-  }
-  B
-}
 
 
 
@@ -628,3 +495,24 @@ setMethod("computeLogLikxPrior", "MixtureModel", function(object){
   loglik <- computeLoglik(object)
   loglik + log.prior
 })
+
+setMethod("isMarginalModel", "MarginalModel", function(object) TRUE)
+setMethod("isMarginalModel", "BatchModel", function(object) FALSE)
+
+#' @export
+startAtTrueValues <- function(model, truth){
+  theta(model) <- theta(truth)
+  sigma2(model) <- sigma2(truth)
+  p(model) <- p(truth)
+  z(model) <- z(truth)
+  if( isMarginalModel(truth) ){
+    mu(model) <- mean(theta(truth))
+    tau2(model) <- 1000
+  } else {
+    mu(model) <- colMeans(theta(truth))
+    tau2(model) <- rep(1000, k(truth))
+  }
+  dataMean(model) <- computeMeans(model)
+  dataPrec(model) <- 1/computeVars(model)
+  model
+}

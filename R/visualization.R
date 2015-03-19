@@ -42,6 +42,27 @@ setMethod("plot", "BatchModel", function(x, y, use.current=FALSE, show.batch=TRU
 })
 
 
+setMethod("hist", "MixtureModel", function(x, ...){
+  op <- par(las=1)
+  yy <- y(x)
+  ##if(rsample > 0) yy <- sample(yy, rsample)
+  args <- list(...)
+  if(!"breaks" %in% names(args)){
+    L <- length(yy)
+    hist(yy, breaks=L/10,
+         col="gray"
+       , border="gray",  xlab="y",
+         freq=FALSE, ...)
+  } else {
+    hist(yy, col="gray", border="gray", xlab="y",
+         freq=FALSE, ...)
+  }
+  par(op)
+})
+
+
+
+
 ##
 ##
 ## use empirical, batch=specific mixing probabilities
@@ -50,7 +71,7 @@ setMethod("plot", "BatchModel", function(x, y, use.current=FALSE, show.batch=TRU
 .plotBatch <- function(object, use.current=FALSE, show.batch=TRUE, ...){
   L <- length(y(object))
   hist(object, ...)
-  xx <- seq(min(observed(object)), max(observed(object)),  length.out=100)
+  xx <- seq(min(observed(object)), max(observed(object)),  length.out=250)
   if(!use.current){
     thetas <- thetaMean(object)
     sds <- sigmaMean(object)
@@ -58,7 +79,6 @@ setMethod("plot", "BatchModel", function(x, y, use.current=FALSE, show.batch=TRU
     mapz <- factor(map(object), levels=seq_len(k(object)))
     tabz <- table(batch(object), mapz)
     tabz <- tabz/rowSums(tabz)
-    tabz <- tabz[uniqueBatch(object), , drop=FALSE]
     P <- tabz
     ##P <- mapz/rowSums(mapz)
   } else {
@@ -70,7 +90,15 @@ setMethod("plot", "BatchModel", function(x, y, use.current=FALSE, show.batch=TRU
   }
   marginal <- matrix(NA, length(xx), nBatch(object)*k(object))
   cols <- brewer.pal(max(k(object), 3),  "Set1")
+  ## compute marginal density for each batch
+  ## weight the 'overall' curve by the batch frequencies
   batchPr <- table(batch(object))/length(y(object))
+#  th <- rep(as.numeric(thetas), each=length(xx))
+#  sds <- rep(as.numeric(sds), each=length(xx))
+#  P <- rep(as.numeric(P), each=length(xx))
+#  batchPr <- rep(rep(batchPr, k(object)), each=length(xx))
+#  p.x <-  batchPr*P*dnorm(xx, th, sds)
+  ##  p.x <- matrix
   m <- 1
   for(j in seq_len(k(object))){
     for(b in uniqueBatch(object)){
@@ -88,7 +116,6 @@ setMethod("plot", "BatchModel", function(x, y, use.current=FALSE, show.batch=TRU
 
 #' @export
 plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
-  browser()
   best.model <- substr(names(bayes.factor), 1, 2)
   se <- y
   object <- x
@@ -117,12 +144,14 @@ plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
            bty="n", title=names(model)[j],
            title.col="blue")
     if(j==1 && isMarginalModel(object)){
-      pos <- c(chromosome(se)[i],
-               paste0("start: ", prettyNum(start(se)[i], big.mark=",")),
-               paste0("end: ", prettyNum(end(se)[i], big.mark=",")),
-               paste0(rowData(se)$nSNPs_affy6[i], " / ",
-                      rowData(se)$nmarkers_affy6[i]),
-               paste0("source: ", rowData(se)$source[i]))
+      pos <- c(chromosome(se),
+               paste0("start: ", prettyNum(start(se), big.mark=",")),
+               paste0("end: ", prettyNum(end(se), big.mark=",")),
+               ##paste0(rowData(se)$nSNPs_affy6[i], " / ",
+               paste0(rowData(se)$nSNPs, " / ",
+                      ##rowData(se)$nmarkers_affy6[i]),
+                      rowData(se)$nmarkers),
+               paste0("source: ", rowData(se)$source))
       legend("left", legend=pos, bg="gray90", box.col="gray90")
     }
     if(idm==best.model){
@@ -134,21 +163,24 @@ plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
 
 #' @export
 plotModel <- function(model.list, se, ...){
+  ##model.list is a list of PosteriorFiles
   options(digits=3)
+  if(nrow(se) > 1) message("Using first row of SummarizedExperiment")
   options(scipen=5)
   m.y <- unlist(lapply(model.list, getPosteriorStats))
   bf <- bayesFactor(m.y)
   model1 <- model.list[[1]]
-  plot.PosteriorFiles(model.list[[1]], se,
+  if(length(model.list) > 1) xaxt <- "n" else xaxt="s"
+  plot.PosteriorFiles(model.list[[1]], se[1, ],
                       bayes.factor=bf, m.y=m.y,
                       ...,
                       ##xlim=xlim,
-                      xaxt="n",
+                      xaxt=xaxt,
                       breaks=150, main="",
                       yaxt="n",
                       use.current=TRUE)
   if(length(model.list) == 1) return()
-  plot.PosteriorFiles(model.list[[2]], se,
+  plot.PosteriorFiles(model.list[[2]], se[1, ],
                       bayes.factor=bf, m.y=m.y,
                       ...,
                       ##xlim=xlim,

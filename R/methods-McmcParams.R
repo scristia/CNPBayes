@@ -51,3 +51,23 @@ setValidity("McmcParams", function(object){
 setMethod("nStarts", "McmcParams", function(object) object@nstarts)
 setMethod("checkLabels", "McmcParams", function(object) object@check_labels)
 setMethod("nStartIter", "McmcParams", function(object) object@nstart_iter)
+
+mcmcpList <- function(test=FALSE, iter=c(500, 3000, 3000, 3000),
+                      nStarts=20, nStartIter=100){
+  if(test){
+    mcmcp.list <- list(McmcParams(iter=rep(2, 4),
+                                  burnin=rep(1,4),
+                                  thin=rep(1,4),
+                                  nStarts=2,
+                                  nStartIter=2),
+                       McmcParams(iter=2, burnin=1, thin=1))
+  } else {
+    mcmcp.list <- list(McmcParams(iter=iter,
+                                  burnin=as.integer(pmax(1, iter/10)),
+                                  thin=as.integer(pmax(1, iter/1000)),
+                                  nStarts=nStarts,
+                                  nStartIter=nStartIter),
+                       McmcParams(iter=1000, burnin=100, thin=1))
+  }
+  mcmcp.list
+}

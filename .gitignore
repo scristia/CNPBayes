@@ -1,4 +1,5 @@
 .Rprofile
+.Rhistory
 TODO.org
 *.so
 *.o

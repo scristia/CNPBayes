@@ -39,11 +39,17 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         data.mean="numericOrMatrix",
                                         data.prec="numericOrMatrix",
                                         z="factor",
+                                        z2="factor",
                                         probz="matrix",
                                         logpotential="numeric",
                                         loglik="numeric",
                                         mcmc.chains="McmcChains",
-                                        batch="vector",
+                                        ##batch="character",
+                                        batch="factor",
+                                        ##data2="numeric",
+                                        ##batch="character",
+                                        batchElements="integer",
+                                        ##uniqueBatch="character",
                                         hwe="numeric",
                                         modes="list",
                                         theta_order="numeric",
@@ -51,6 +57,7 @@ setClass("MixtureModel", representation("VIRTUAL",
 
 
 setClass("BatchModel", contains="MixtureModel")
+
 
 ##
 setClass("BatchModelPlusHom", contains="BatchModel")
@@ -75,7 +82,7 @@ setClass("McmcParams", representation(thin="numeric",
 setClass("ModelParams", representation(type="character",
                                        k="numeric",
                                        data="numeric",
-                                       batch="character",
+                                       batch="factor",
                                        mcmc.params="McmcParams"))
 
 setClass("PosteriorFiles",

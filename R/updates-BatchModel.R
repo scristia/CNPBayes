@@ -1,12 +1,74 @@
 
+.updateZ <- function(p){
+  ## generalize to any k, k >= 1
+  ##cumP <- t(apply(p, 1, function(x) cumsum(x)))
+  cumP <- rowCumsums(p)
+  N <- nrow(p)
+  u <- runif(N)
+  zz <- rep(NA, N)
+  zz[u < cumP[, 1]] <- 1
+  k <- 2
+  while(k <= ncol(p)){
+    zz[u < cumP[, k] & u >= cumP[, k-1]] <- k
+    k <- k+1
+  }
+  ##if(any(is.na(zz))) stop("missing values in zz")
+  return(zz)
+}
+
+setMethod("updateZ", "MixtureModel", function(object){
+  p <- posteriorMultinomial(object)
+  zz <- .updateZ(p)
+  factor(zz, levels=seq_len(k(object)))
+})
+
+
 setMethod("posteriorMultinomial", "UnivariateBatchModel",
           function(object) return(1))
 
+.multBatch <- function(object){
+  B <- batch(object)
+  pi <- p(object)
+  sds <- as.numeric(sigma(object))
+  thetas <- as.numeric(theta(object))
+  x <- y(object)
+  K <- k(object)
+  nb <- rep(batchElements(object), K)
+  xx <- rep(x, K)
+  thetas <- rep(thetas, nb)
+  sds <- rep(sds, nb)
+  nr <- length(x)
+  pi <- rep(pi, each=nr)
+  lik <- pi*dnorm(x, thetas, sds)
+  lik <- matrix(lik, nr, K)
+  lik/rowSums(lik)
+}
+
+.multBatch2 <- function(object){
+  B <- batch(object)
+  pi <- p(object)
+  sigmas <- sigma(object)
+  thetas <- theta(object)
+  x <- y(object)
+  K <- k(object)
+  lik <- matrix(NA, length(x), K)
+  for(j in seq_len(K)){
+    means <- thetas[B, j]
+    sds <- sigmas[B, j]
+    lik[, j] <- pi[j]*dnorm(x, means, sds)
+  }
+  lik/rowSums(lik)
+}
+
+
 setMethod("posteriorMultinomial", "BatchModel", function(object){
-  .multinomial_probs <- .multBatch(y(object),
-                                   theta(object),
-                                   sqrt(sigma2(object)),
-                                   p(object))
+  ##  .multBatch2(object)
+  .multBatch(object)
+#  y(object),
+#             theta(object),
+#             sqrt(sigma2(object)),
+#                                   p(object),
+#                                   batch(object))
 })
 
 
@@ -69,8 +131,6 @@ setMethod("updateMu", "BatchModel", function(object){
   sigma2.h
 }
 
-
-
 setMethod("updateSigma2", "BatchModel", function(object){
   .update_sigma2(object)
 })
@@ -85,8 +145,6 @@ setMethod("updateTheta", "BatchModel", function(object) {
 })
 
 .updateThetaBatch <- function(object){
-  ##  if(constrain==2) browser()
-  ##  if(constrain!=2) constrain <- TRUE
   tau2.tilde <- 1/tau2(object)
   sigma2.tilde <- 1/sigma2(object)
   K <- k(object)
