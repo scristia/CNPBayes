@@ -15,7 +15,7 @@ test_KolmogorovSmirnov <- function(){
   b <- collapseBatch(truth)
   checkIdentical(unique(b), c("a,b", "c"))
 
-  b2 <- collapseBatch(y(truth), oligoClasses::batch(truth))
+  b2 <- collapseBatch(y(truth), as.character(oligoClasses::batch(truth)))
   checkIdentical(b, b2)
   tmpfile <- tempfile()
   saveBatch(truth, batch.file=tmpfile)

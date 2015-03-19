@@ -548,51 +548,6 @@ sumSquares <- function(object){
   ss
 }
 
-setMethod("computeLoglik", "MarginalModel", function(object){
-  .computeLoglik(object)
-})
-
-.loglikMarginal <- function(object){
-  x <- y(object)
-  nr <- length(x)
-  pp <- p(object)
-  K <- k(object)
-  x <- rep(x, K)
-  p <- rep(p(object), each=nr)
-  thetas <- rep(theta(object), each=nr)
-  sigmas <- rep(sigma(object), each=nr)
-  lik <- matrix(p*dnorm(x, thetas, sigmas),
-                nr, K)
-  sum(log(rowSums(lik)))
-}
-
-.loglikPhiMarginal <- function(object){
-  thetas <- theta(object)
-  mus <- mu(object)
-  tau2s <- tau2(object)
-  sigma2s <- sigma2(object)
-  p.theta <- dnorm(thetas, mus, sqrt(tau2s))
-  p.sigma2 <- dgamma(1/sigma2s, shape=1/2*nu.0(object), rate=1/2*nu.0(object)*sigma2.0(object))
-  sum(log(p.theta)) + sum(log(p.sigma2))
-}
-
-.computeLoglik <- function(object){
-  ll.data <- .loglikMarginal(object)
-  ##ll.phi <- .loglikPhiMarginal(object)
-  ##ll.data + ll.phi
-  ll.data
-}
-
-setMethod("computePrior", "MarginalModel", function(object){
-  hypp <- hyperParams(object)
-  K <- k(hypp)
-  mus <- mu(object)
-  p.sigma2.0 <- dgamma(sigma2.0(object), shape=a(hypp), rate=b(hypp))
-  p.nu.0 <- dgeom(nu.0(object), betas(hypp))
-  p.mu <- dnorm(mus, mu.0(hypp), sqrt(tau2.0(hypp)))
-  log(p.mu) + log(p.sigma2.0) + log(p.nu.0)
-})
-
 
 permuteZ <- function(object){
   zz <- z(object)
@@ -613,8 +568,6 @@ setMethod("showSigmas", "MarginalModel", function(object){
 setMethod("tablez", "MarginalModel", function(object) table(z(object)))
 
 #' @export
-
-#' @export
 marginalModel <- function(object, hyp.list, data, mcmcp.list=mcmcpList(),
                           save.it=FALSE, test=FALSE){
   if(test){
@@ -622,10 +575,11 @@ marginalModel <- function(object, hyp.list, data, mcmcp.list=mcmcpList(),
     mcmcp.list <- mcmcpList(TRUE)
     save.it <- FALSE
   }
+  mcmcp <- mcmcp.list[[1]]
   mp.list <- ModelParamList(hyp.list[[1]],
                             K=1:4,
                             data=data,
-                            mcmcp=mcmcp.list[[1]])
+                            mcmcp=mcmcp)
   modlist <- foreach(hypp=hyp.list, param=mp.list) %do% {
     initializeModel(params=param, hypp=hypp)
   }

@@ -110,87 +110,12 @@ setMethod("bic", "BatchModel", function(object, ...){
 })
 
 setMethod("collapseBatch", "BatchModel", function(object){
-  N <- choose(nBatch(object), 2)
-  cond2 <- TRUE
-  while(N > 1 && cond2){
-    cat('.')
-    B <- batch(object)
-    batch(object) <- .collapseBatch(y(object), batch(object))
-    cond2 <- !identical(B, batch(object))
-    N <- nBatch(object)
-  }
-  makeUnique(batch(object))
+  collapseBatch(y(object), as.character(batch(object)))
 })
 
-
-setMethod("computeLoglik", c("BatchModel", "missing"), function(object, psi){
-  .computeLoglikBatch(object)
-})
 
 batchLik <- function(x, p, mean, sd)  p*dnorm(x, mean, sd)
 
-z2 <- function(object) object@z[object@ix]
-
-logLikData <- function(object){
-  B <- batch(object)
-  mn <- theta(object)
-  ss <- sigma(object)
-  x <- y(object)
-  tabz <- table(B, z(object))
-  P <- tabz/rowSums(tabz)
-  ## Vectorize
-  lk <- k(object)
-  xx <- rep(x, lk)
-  nb <- rep(batchElements(object), lk)
-  means <- rep(as.numeric(mn), nb)
-  sds <- rep(as.numeric(ss), nb)
-  p <- rep(as.numeric(P), nb)
-  lik <- p*dnorm(xx, means, sds)
-  lik <- matrix(lik, length(x), lk)
-  lik <- rowSums(lik)
-  sum(log(lik))
-}
-
-logLikPhi <- function(object){
-  thetas <- theta(object)
-  mus <- mu(object)
-  tau2s <- tau2(object)
-  sigma2s <- sigma2(object)
-  ##
-  ## Vectorize
-  ##
-  nr <- nrow(thetas)
-  nc <- ncol(thetas)
-  mus <- rep(mus, each=nr)
-  taus <- rep(sqrt(tau2s), each=nr)
-  thetas <- as.numeric(thetas)
-  p.theta <- dnorm(thetas, mus, taus)
-  p.theta <- matrix(p.theta, nr, nc)
-  rownames(p.theta) <- uniqueBatch(object)
-  p.sigma2 <- dgamma(1/sigma2s, shape=1/2*nu.0(object), rate=1/2*nu.0(object)*sigma2.0(object))
-  sum(log(p.theta)) + sum(log(p.sigma2))
-}
-
-.computeLoglikBatch <- function(object){
-  ll.data <- logLikData(object)
-  ll.phi <- logLikPhi(object)
-  ll.data + ll.phi
-}
-
-setMethod("computePrior", "BatchModel", function(object){
-  hypp <- hyperParams(object)
-  K <- k(hypp)
-  tau2s <- tau2(object)
-  mus <- mu(object)
-  p.mu <- dnorm(mus, mu.0(hypp), sqrt(tau2.0(hypp)))
-  p.sigma2.0 <- dgamma(sigma2.0(object), shape=a(hypp), rate=b(hypp))
-  p.nu.0 <- dgeom(as.integer(nu.0(object)), betas(hypp))
-  sum(log(p.mu)) + log(p.sigma2.0) + log(p.nu.0)
-})
-
-
-##y2 <- function(object) object@data2
-##b2 <- function(object) object@batch2
 
 setMethod("computeMeans", "BatchModel", function(object){
   B <- batch(object)
@@ -204,7 +129,6 @@ setMethod("computeMeans", "BatchModel", function(object){
   rownames(ymeans) <- names(ybatch)
   ymeans[ubatch, ]
 })
-
 
 .computeModesBatch <- function(object){
   i <- argMax(object)
@@ -246,10 +170,6 @@ setMethod("computeVars", "BatchModel", function(object){
 })
 
 
-setMethod("computePotential", "BatchModel", function(object){
-  computeLogLikxPrior(object)
-})
-
 setMethod("getThetaOrder", "MarginalModel", function(object) order(thetaMean(object)))
 setMethod("getThetaOrder", "BatchModel", function(object){
   .getThetaOrdering(object)
@@ -268,7 +188,6 @@ setMethod("getThetaOrder", "BatchModel", function(object){
   index <- as.numeric(index)
   index
 }
-
 
 
 setMethod("initializeSigma2.0", "BatchModel", function(object){

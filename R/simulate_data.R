@@ -27,6 +27,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
   theta(object) <- computeMeans(object)
   sigma2(object) <- computeVars(object)
   p(object) <- as.numeric(table(z(object))/N)
+  logLik(object) <- computeLoglik(object)
   object
 }
 

@@ -11,6 +11,12 @@ setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   se
 })
 
+
+setMethod("collapseBatch", "SummarizedExperiment", function(object, plate){
+  plate <- as.character(object$plate)
+  collapseBatch(copyNumber(object)[1, ], plate)
+})
+
 setMethod("collapseBatch", "numeric", function(object, plate){
   N <- choose(length(unique(plate)), 2)
   cond2 <- TRUE
@@ -78,20 +84,6 @@ saveBatch <- function(se, batch.file){
 }
 
 
-setMethod("collapseBatch", "SummarizedExperiment", function(object, plate){
-  plate <- as.character(object$plate)
-  collapseBatch(copyNumber(object)[1, ], plate)
-##  N <- choose(length(unique(object$plate)), 2)
-##  cond2 <- TRUE
-##  while(N > 1 && cond2){
-##    cat('.')
-##    B <- object$plate
-##    object$plate <- .collapseBatch(copyNumber(object)[1,], object$plate)
-##    cond2 <- !identical(B, object$plate)
-##    N <- choose(length(unique(object$plate)), 2)
-##  }
-##  makeUnique(object$plate)
-})
 
 
 #' @export

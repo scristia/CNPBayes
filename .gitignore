@@ -1,5 +1,6 @@
 .Rprofile
 .Rhistory
+*.out
 TODO.org
 *.so
 *.o

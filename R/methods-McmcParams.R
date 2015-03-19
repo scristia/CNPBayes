@@ -52,6 +52,7 @@ setMethod("nStarts", "McmcParams", function(object) object@nstarts)
 setMethod("checkLabels", "McmcParams", function(object) object@check_labels)
 setMethod("nStartIter", "McmcParams", function(object) object@nstart_iter)
 
+#' @export
 mcmcpList <- function(test=FALSE, iter=c(500, 3000, 3000, 3000),
                       nStarts=20, nStartIter=100){
   if(test){

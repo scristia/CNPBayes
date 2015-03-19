@@ -490,11 +490,7 @@ argMax <- function(object){
   i <- which.max(logpotential(x))
 }
 
-setMethod("computeLogLikxPrior", "MixtureModel", function(object){
-  log.prior <- computePrior(object)
-  loglik <- computeLoglik(object)
-  loglik + log.prior
-})
+
 
 setMethod("isMarginalModel", "MarginalModel", function(object) TRUE)
 setMethod("isMarginalModel", "BatchModel", function(object) FALSE)

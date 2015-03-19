@@ -186,9 +186,12 @@ setGeneric("alpha", function(object) standardGeneric("alpha"))
 setGeneric("orderTheta<-", function(object, value) standardGeneric("orderTheta<-"))
 setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))
 
+#' @export
 setGeneric("logLik", function(object) standardGeneric("logLik"))
+
 setGeneric("logLik<-", function(object,value) standardGeneric("logLik<-"))
 
+#' @export
 setGeneric("computeLoglik", function(object, psi) standardGeneric("computeLoglik"))
 
 #' @export
