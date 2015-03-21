@@ -3,15 +3,15 @@
 using namespace Rcpp;
 // Function to simulate from dirichlet distribution
 void rdirichlet(Rcpp::NumericVector a, Rcpp::NumericVector pr) {
-    double sample[a.size()];
-    double sample_sum = 0;
-    for(int i=0; i<a.size(); i++) {
-        sample[i] = as<double>(rgamma(1, a[i], 1));
-        sample_sum += sample[i];
-    }
-    for(int i = 0; i<a.size(); i++) {
-        pr[i] = sample[i] / sample_sum ;
-    }
+  double sample[a.size()];
+  double sample_sum = 0;
+  for(int i=0; i<a.size(); i++) {
+    sample[i] = as<double>(rgamma(1, a[i], 1));
+    sample_sum += sample[i];
+  }
+  for(int i = 0; i<a.size(); i++) {
+    pr[i] = sample[i] / sample_sum ;
+  }
 }
 
 

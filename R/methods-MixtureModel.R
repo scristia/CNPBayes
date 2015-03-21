@@ -119,8 +119,9 @@ setMethod("show", "MixtureModel", function(object){
 })
 
 setMethod("updateMixProbs", "MixtureModel", function(object){
-  alpha.n <- updateAlpha(object)
-  as.numeric(rdirichlet(1, alpha.n))
+  ##alpha.n <- updateAlpha(object)
+  ##as.numeric(rdirichlet(1, alpha.n))
+  .Call("update_p", object)
 })
 
 
@@ -134,42 +135,30 @@ setMethod("y", "MixtureModel", function(object) object@data)
 setMethod("batch", "MixtureModel", function(object) object@batch)
 setMethod("z", "MixtureModel", function(object) object@z)
 
-updateAll <- function(post, move_chain){
-  ##
-  ## sample new value of (theta_h, sigma2_h)
-  ##   - note these are independent in the prior
-  ##
+updateAll <- function(post, move_chain, is_burnin=FALSE){
   theta(post) <- updateTheta(post)
   sigma2(post) <- updateSigma2(post)
-#  ##
-#  ## update (mu, tau2)
-#  ##
   mu(post) <- updateMu(post)
   tau2(post) <- updateTau2(post)
-#  #
-#  ##
-#  ##  update (nu.0, sigma2.0)
-#  ##
   sigma2.0(post) <- updateSigma2.0(post)
   nu.0(post) <- updateNu.0(post)
-#  ##
-#  ## update pi
-#  ##
   p(post) <- updateMixProbs(post)
-#  ##
-#  ##  update auxillary variable
-#  ##
   z(post) <- updateZ(post)
-#  ##
   dataMean(post) <- computeMeans(post)
   dataPrec(post) <- 1/computeVars(post)
-  ##
-  logpotential(post) <- computeLogLikxPrior(post)
-  logLik(post) <- computeLoglik(post)
-  if(move_chain){
-    probz(post) <- .computeProbZ(post)
+  if(!is_burnin){
+    ## faster if we omit these steps during burnin
+    logpotential(post) <- computeLogLikxPrior(post)
+    logLik(post) <- computeLoglik(post)
   }
+##   if(move_chain){
+##     ##probz(post) <- .computeProbZ(post)
+##   }
   post
+}
+
+updateAllC <- function(post, move_chain, is_burnin=FALSE){
+  .Call("updateAllC", post, move_chain, is_burnin)
 }
 
 .computeProbZ <- function(object){
@@ -188,7 +177,24 @@ setReplaceMethod("probz", "MixtureModel", function(object, value){
 
 setMethod("probz", "MixtureModel", function(object) object@probz)
 
-runBurnin <- function(object, mcmcp){
+
+setMethod("runBurnin", "MarginalModel", function(object, mcmcp){
+  .Call("mcmc_marginal_burnin", object, mcmcp)
+})
+
+setMethod("runBurnin", "BatchModel", function(object, mcmcp){
+  .runBurnin(object, mcmcp)
+})
+
+setMethod("runMcmc", "MarginalModel", function(object, mcmcp){
+  .Call("mcmc_marginal", object, mcmcp)
+})
+
+setMethod("runMcmc", "BatchModel", function(object, mcmcp){
+  .runMcmc(object, mcmcp)
+})
+
+.runBurnin <- function(object, mcmcp){
   if(burnin(mcmcp)==0){
     object <- moveChain(object, 1)
     probz(object) <- .computeProbZ(object)
@@ -199,7 +205,7 @@ runBurnin <- function(object, mcmcp){
   mcmcChains(object) <- McmcChains(object, mcmc_burnin)
   object <- moveChain(object, 1)
   for(b in seq_len(burnin(mcmcp))){
-    object <- updateAll(object, move_chain=TRUE)
+    object <- updateAll(object, move_chain=TRUE, is_burnin=TRUE)
     object <- moveChain(object, b+1)
   }
   ## For recording prob(z) during the burnin, should we just use the
@@ -208,17 +214,17 @@ runBurnin <- function(object, mcmcp){
   object
 }
 
-runMcmc <- function(object, mcmcp){
+.runMcmc <- function(object, mcmcp){
   if(burnin(mcmcp) > 0) message("Burnin finished. Running additional MCMC simulations...")
   S <- 2:(savedIterations(mcmcp)+1)
   do_thin <- thin(mcmcp) > 1
   T <- seq_len(thin(mcmcp))
   for(s in S){
-    object <- updateAll(object, TRUE)
+    object <- updateAllC(object, TRUE, FALSE)
     object <- moveChain(object, s)
     ## update without moving chain
     if(do_thin){
-      for(t in T) object <- updateAll(object, FALSE)
+      for(t in T) object <- updateAll(object, FALSE, FALSE)
     }
   }
   object
@@ -228,16 +234,25 @@ runMcmc <- function(object, mcmcp){
 multipleStarts <- function(object, mcmcp){
   if(k(object)==1) return(object)
   message("Running ", nStarts(mcmcp), " chains")
-  mp <- McmcParams(burnin=0, iter=nStartIter(mcmcp))
+  mp <- mcmcp
+  ##mp <- McmcParams(burnin=0, iter=nStartIter(mcmcp))
   cl <- ifelse(is(object, "MarginalModel"), "marginal", "batch")
   if(cl=="marginal"){
     mparams <- ModelParams(cl, y=y(object), k=k(object), mcmc.params=mp)
-  } else mparams <- ModelParams(cl, y=y(object), k=k(object), mcmc.params=mp, batch=batch(object))
+  } else mparams <- ModelParams(cl, y=y(object), k=k(object), mcmc.params=mp,
+                                batch=batch(object))
+  ##
+  ## inefficient!
+  ##
   mmod <- replicate(nStarts(mcmcp), initializeModel(mparams, hyperParams(object)))
-  mmodels <- suppressMessages(lapply(mmod, posteriorSimulation, mp))
+  ##
+  ## TODO: This ignores nStartIter.  Perhaps remove nStartIter slot
+  ##
+  mmodels <- suppressMessages(lapply(mmod, runBurnin, mp))
   message("Selecting chain with largest log likelihood")
+  lp <- sapply(mmodels, logLik)
   ##lp <- sapply(mmodels, function(x) max(logpotentialc(x)))
-  lp <- sapply(mmodels, function(x) max(logLikc(x)))
+  ##lp <- sapply(mmodels, function(x) max(logLikc(x)))
   mmodel <- mmodels[[which.max(lp)]]
   if(is(object, "MarginalModel")) return(mmodel)
   params <- ModelParams("batch", y=y(object), k=k(object),
@@ -280,7 +295,7 @@ setMethod("posteriorSimulation", "ModelParams", function(object, mcmcp){
   ## Make the first iteration in the stored chain the last iteration
   ## from the mcmc
   ##
-  post <- moveChain(post, 1)
+  ## post <- moveChain(post, 1)
   ##
   ## If the chain moves quickly from the burnin, it might be related
   ## to the constraint imposed after burnin
@@ -289,7 +304,7 @@ setMethod("posteriorSimulation", "ModelParams", function(object, mcmcp){
   ## Post burn-in
   ##
   post <- runMcmc(post, mcmcp)
-  probz(post) <- probz(post)/(savedIterations(mcmcp)+1)
+  ##probz(post) <- probz(post)/(savedIterations(mcmcp)+1)
   modes(post) <- computeModes(post)
   post
 }
@@ -487,7 +502,10 @@ argmaxLogLik <- function(object){
 #' @export
 argMax <- function(object){
   x <- mcmcChains(object)
-  i <- which.max(logpotential(x))
+  ll <- logLik(x)
+  prior = computePrior(object)
+  prior.ll <- prior+ll
+  i <- which.max(prior.ll)
 }
 
 

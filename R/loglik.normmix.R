@@ -25,9 +25,10 @@ setMethod("computePotential", "BatchModel", function(object){
 })
 
 setMethod("computeLogLikxPrior", "MixtureModel", function(object){
-  log.prior <- computePrior(object)
-  loglik <- computeLoglik(object)
-  loglik + log.prior
+  ##   log.prior <- computePrior(object)
+  ##   loglik <- computeLoglik(object)
+  ##   loglik + log.prior
+  .Call("compute_llxprior", object)
 })
 
 
@@ -109,13 +110,17 @@ setMethod("computePrior", "BatchModel", function(object){
 }
 
 .computeLoglik <- function(object){
-  ll.data <- .loglikMarginal(object)
-  ##ll.phi <- .loglikPhiMarginal(object)
-  ##ll.data + ll.phi
+  ##ll.data <- .loglikMarginal(object)
+  ll.data <- .Call("loglik", object)
   ll.data
 }
 
 setMethod("computePrior", "MarginalModel", function(object){
+  ##  .compute_prior_marginal(object)
+  .Call("compute_priorPr", object)
+})
+
+.compute_prior_marginal <- function(object){
   hypp <- hyperParams(object)
   K <- k(hypp)
   mus <- mu(object)
@@ -123,4 +128,4 @@ setMethod("computePrior", "MarginalModel", function(object){
   p.nu.0 <- dgeom(nu.0(object), betas(hypp))
   p.mu <- dnorm(mus, mu.0(hypp), sqrt(tau2.0(hypp)))
   log(p.mu) + log(p.sigma2.0) + log(p.nu.0)
-})
+}

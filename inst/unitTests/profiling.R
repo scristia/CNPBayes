@@ -1,19 +1,38 @@
 ##
+## example (from test_marginal.R)
+##
+set.seed(1)
+truth <- simulateData(N=2500, p=rep(1/3, 3),
+                      theta=c(-1, 0, 1),
+                      sds=rep(0.1, 3))
+if(FALSE) plot(truth, use.current=TRUE)
+params <- ModelParams("marginal", y=y(truth), k=3)
+mcmcp <- McmcParams(iter=150, burnin=0)
+##trace(initializeModel, browser)
+model <- initializeModel(params)
+
+Rprof("m2.prof")
+model <- posteriorSimulation(model, mcmcp)
+Rprof(NULL)
+m1 <- summaryRprof("m1.prof")
+m2 <- summaryRprof("m2.prof")
+
+##
 ## example (from test_batch.R)
 ##
-set.seed(1234)
+set.seed(123)
 k <- 3
 nbatch <- 3
-means <- matrix(c(-1.9, -2, -1.85,
-                  -0.45, -0.4, -0.35,
-                  -0.1, 0, -0.05), nbatch, k, byrow=FALSE)
-sds <- matrix(0.3, nbatch, k)
-truth <- simulateBatchData(2500,
-                           means=means,
+means <- matrix(c(-1.2, -1.0, -0.8,
+                  -0.2, 0, 0.2,
+                  0.8, 1, 1.2), nbatch, k, byrow=FALSE)
+sds <- matrix(0.1, nbatch, k)
+truth <- simulateBatchData(N=2500,
+                           batch=rep(letters[1:3], length.out=2500),
+                           theta=means,
                            sds=sds,
-                           .batch=rep(letters[1:3], length.out=2500),
-                           .alpha=c(5, 500, 1000))
-mcmcp <- McmcParams(iter=1000, burnin=1000)
+                           p=c(1/5, 1/3, 1-1/3-1/5))
+mcmcp <- McmcParams(iter=100, burnin=0)
 ## use the true k
 k <- 3
 ## marginal

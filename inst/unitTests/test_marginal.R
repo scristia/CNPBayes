@@ -8,7 +8,6 @@ test_marginalEasy <- function(){
 
   params <- ModelParams("marginal", y=y(truth), k=3)
   mcmcp <- McmcParams(iter=150, burnin=50)
-  ##trace(initializeModel, browser)
   model <- initializeModel(params)
   model <- posteriorSimulation(model, mcmcp)
   if(FALSE){

@@ -17,8 +17,9 @@
 }
 
 setMethod("updateZ", "MixtureModel", function(object){
-  p <- posteriorMultinomial(object)
-  zz <- .updateZ(p)
+  ##   p <- posteriorMultinomial(object)
+  ##   zz <- .updateZ(p)
+  zz <- .Call("update_z", object)
   factor(zz, levels=seq_len(k(object)))
 })
 

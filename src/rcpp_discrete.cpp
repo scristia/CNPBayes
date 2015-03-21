@@ -25,13 +25,14 @@ RcppExport SEXP rcpp_discrete(SEXP grid, SEXP meangrid, SEXP precgrid,
 
     for(int g = 0; g < G; g++) {
         for(int h = 0; h < H; h++) {
-            tmp = dnorm(xy, xmeangrid[g], 1/(sqrt(xprecgrid[h])));
-            lik = 1;
-            for(int n = 0; n < N; n++) {
-                lik *= tmp[n];
-            }
-            xgrid(g, h) = xdtheta[g] * xdprec[h] * lik;
+          tmp = dnorm(xy, xmeangrid[g], 1/(sqrt(xprecgrid[h])));
+          lik = 1;
+          for(int n = 0; n < N; n++) {
+            lik *= tmp[n];
+          }
+          xgrid(g, h) = xdtheta[g] * xdprec[h] * lik;
         }
     }
     return xgrid;
 }
+

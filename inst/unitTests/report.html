@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/transitional.dtd">
-<html><head><title>RUNIT TEST PROTOCOL--Thu Mar 19 15:20:59 2015</title>
+<html><head><title>RUNIT TEST PROTOCOL--Fri Mar 20 12:25:05 2015</title>
 </head>
-<body><h1 TRUE>RUNIT TEST PROTOCOL--Thu Mar 19 15:20:59 2015</h1>
+<body><h1 TRUE>RUNIT TEST PROTOCOL--Fri Mar 20 12:25:05 2015</h1>
 <p>Number of test functions: 11</p>
 <p>Number of errors: 0</p>
-<p>Number of failures: 0</p>
+<p style=color:red>Number of failures: 1</p>
 <hr>
 <h3 TRUE>1 Test suite</h3>
 <table border="1" width="60%" >
@@ -17,13 +17,27 @@
 <tr><td><a href="#CNPBayes unit testing">CNPBayes unit testing</a></td>
 <td>11</td>
 <td>0</td>
-<td>0</td>
+<td bgcolor="red">1</td>
+</tr>
+</table>
+<hr>
+<h3 TRUE>Failures</h3>
+<table border="1" width="100%" >
+<tr><th width="30%">Test suite : test function</th>
+<th width="70%">message</th>
+</tr>
+<tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy">CNPBayes unit testing : test_marginalEasy</a></td>
+<td>Error in checkEquals(sort(pmns), theta(truth), tolerance = 0.03) : 
+  Mean relative difference: 0.04001254
+</td>
 </tr>
 </table>
 <hr>
 <h3 TRUE>Details</h3>
 <p><a name="CNPBayes unit testing"><h5 TRUE>Test Suite: CNPBayes unit testing</h5>
-</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batch_moderate">test_batch_moderate: (1 checks) ... OK (3.9 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">test_batchEasy: (11 checks) ... OK (1.13 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">test_hard3: (3 checks) ... OK (4.93 seconds)<br/></a></li></ul></li></li></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (4 checks) ... OK (0.06 seconds)<br/></a></li></ul></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_loglik.R">Test file: test_loglik.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_loglik.R_test_loglik">test_loglik: (2 checks) ... OK (0.07 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (9 checks) ... OK (19.03 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">test_marginal_Moderate: (3 checks) ... OK (3.31 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy">test_marginalEasy: (3 checks) ... OK (1.83 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">test_selectK_easy: (3 checks) ... OK (13.2 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (17 checks) ... OK (0.34 seconds)<br/></a></li></ul></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_summmarizedExperiment.R">Test file: test_summmarizedExperiment.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_summmarizedExperiment.R_test_SummarizedExperiment">test_SummarizedExperiment: (0 checks) ... OK (0.12 seconds)<br/></a></li></ul></li></ul><hr>
+</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batch_moderate">test_batch_moderate: (1 checks) ... OK (4.02 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">test_batchEasy: (11 checks) ... OK (1.12 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">test_hard3: (3 checks) ... OK (4.95 seconds)<br/></a></li></ul></li></li></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (4 checks) ... OK (0.06 seconds)<br/></a></li></ul></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_loglik.R">Test file: test_loglik.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_loglik.R_test_loglik">test_loglik: (2 checks) ... OK (0.06 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (9 checks) ... OK (14.13 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">test_marginal_Moderate: (3 checks) ... OK (1.39 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy"><u style=color:red>test_marginalEasy: FAILURE !! (check number 1)  </u></a>Error in checkEquals(sort(pmns), theta(truth), tolerance = 0.03) : 
+  Mean relative difference: 0.04001254
+<br/></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">test_selectK_easy: (3 checks) ... OK (6.68 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (17 checks) ... OK (0.26 seconds)<br/></a></li></ul></li></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_summmarizedExperiment.R">Test file: test_summmarizedExperiment.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_summmarizedExperiment.R_test_SummarizedExperiment">test_SummarizedExperiment: (0 checks) ... OK (0.13 seconds)<br/></a></li></ul></li></ul><hr>
 <table border="0" width="80%" >
 <tr><th>Name</th>
 <th>Value</th>

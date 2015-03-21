@@ -244,3 +244,6 @@ setGeneric("HyperParameterList", function(hypp, K) standardGeneric("HyperParamet
 
 #' @export
 setGeneric("ModelParamList", function(hypp, K, data, mcmcp, batch) standardGeneric("ModelParamList"))
+
+setGeneric("runBurnin", function(object, mcmcp) standardGeneric("runBurnin"))
+setGeneric("runMcmc", function(object, mcmcp) standardGeneric("runMcmc"))

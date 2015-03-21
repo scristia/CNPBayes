@@ -58,6 +58,12 @@ UnivariateMarginalModel <- function(data, k=1, batch, hypp){
 }
 
 #' @export
+getK <- function(object){
+  hypp <- hyperParams(object)
+  .Call("getK", hypp)
+}
+
+#' @export
 setMethod("mu", "MarginalModel", function(object) object@mu)
 
 #' @export
@@ -79,7 +85,8 @@ setMethod("computePotential", "MarginalModel", function(object){
 ## no update.
 ##
 setMethod("updateMu", "MarginalModel", function(object){
-  .updateMu(object)
+  .Call("update_mu", object)
+  ##.updateMu(object)
 })
 
 .updateMu <- function(object){
@@ -91,9 +98,9 @@ setMethod("updateMu", "MarginalModel", function(object){
   nn <- tablez(object)
   theta.bar <- sum(nn*theta(object))/sum(nn)
   mu.k <- tau2.0.tilde/(tau2.0.tilde + k(object)*tau2.tilde)*mu.0(hypp) +
-    k(object)*tau2.tilde/(tau2.0.tilde + k(object)*tau2.tilde)*theta.bar
-  if(any(is.na(mu.k))) stop("NAs in mu update")
-  if(length(mu.k) > 1) stop("length > 1")
+      k(object)*tau2.tilde/(tau2.0.tilde + k(object)*tau2.tilde)*theta.bar
+  ##if(any(is.na(mu.k))) stop("NAs in mu update")
+  ##if(length(mu.k) > 1) stop("length > 1")
   mu.k
 }
 
@@ -127,11 +134,12 @@ setMethod("initializeTau2", "MarginalModel", function(object)  1000)
 
 
 setMethod("posteriorMultinomial", "MarginalModel", function(object){
-  .multinomial_probs <- .posteriorMultinomial(y(object),
-                                              theta(object),
-                                              sqrt(sigma2(object)),
-                                              p(object))
-
+##    .multinomial_probs <- .posteriorMultinomial(y(object),
+##                                                theta(object),
+##                                                sqrt(sigma2(object)),
+##                                                p(object))
+##
+  .Call("update_multinomialPr", object)
 })
 
 .posteriorMultinomial <- function(y, theta, sd, pi){
@@ -148,19 +156,21 @@ setMethod("posteriorMultinomial", "MarginalModel", function(object){
 setMethod("show", "MarginalModel", function(object) callNextMethod())
 
 setMethod("computeMeans", "MarginalModel", function(object){
-  means <- sapply(split(y(object), z(object)), mean, na.rm=TRUE)
-  if(any(is.nan(means))) {
-    means[is.nan(means)] <- rnorm(sum(is.nan(means)), mu(object), tau(object))
-  }
-  means
+  .Call("compute_means", object)
+##   means <- sapply(split(y(object), z(object)), mean, na.rm=TRUE)
+##   if(any(is.nan(means))) {
+##     means[is.nan(means)] <- rnorm(sum(is.nan(means)), mu(object), tau(object))
+##   }
+##   means
 })
 
 setMethod("computeVars", "MarginalModel", function(object){
-  vars <- sapply(split(y(object), z(object)), var, na.rm=TRUE)
-  if(any(is.nan(vars))){
-    vars[is.nan(vars)] <- 1/rgamma(sum(is.nan(vars)), shape=1/2*nu.0(object), rate=1/2*nu.0(object)*sigma2.0(object))
-  }
-  vars
+##   vars <- sapply(split(y(object), z(object)), var, na.rm=TRUE)
+##   if(any(is.nan(vars))){
+##     vars[is.nan(vars)] <- 1/rgamma(sum(is.nan(vars)), shape=1/2*nu.0(object), rate=1/2*nu.0(object)*sigma2.0(object))
+##   }
+  ##   vars
+  .Call("compute_vars", object)
 })
 
 
@@ -216,6 +226,7 @@ setMethod("moveChain", "MarginalModel", function(object, s){
 setMethod("updateThetaCpp", "MarginalModel", function(object, constrain) {
   .Call("update_theta", object, constrain=constrain)
 })
+
 #
 #.updateThetaCpp <- function(obj, constrain=TRUE) {
 #    theta <- .Call("update", obj, constrain)
@@ -223,19 +234,24 @@ setMethod("updateThetaCpp", "MarginalModel", function(object, constrain) {
 #}
 
 
-setMethod("updateTheta", "MarginalModel", function(object) .updateTheta(object))
+setMethod("updateTheta", "MarginalModel", function(object) {
+  ##.updateTheta(object)
+  .Call("update_theta", object)
+})
 
 .updateTheta <- function(object){
+  browser()
   theta.last <- theta(object)
   tau2.tilde <- 1/tau2(object)
   sigma2.tilde <- 1/sigma2(object)
   n.h <- tablez(object)
   n.h <- pmax(n.h, 1)
-  tau2.n.tilde <- tau2.tilde + n.h*sigma2.tilde
-  tau2.n <- 1/tau2.n.tilde
-  denom <- tau2.tilde + n.h*sigma2.tilde
-  w1 <- tau2.tilde/denom
-  w2 <- n.h*sigma2.tilde/denom
+  ##tau2.n.tilde <- tau2.tilde + n.h*sigma2.tilde
+  post.prec <- tau2.tilde + n.h*sigma2.tilde
+  tau2.n <- 1/post.prec
+  ##denom <- tau2.tilde + n.h*sigma2.tilde
+  w1 <- tau2.tilde/post.prec
+  w2 <- n.h*sigma2.tilde/post.prec
   mu.n <- w1*mu(object) + w2*dataMean(object)
   thetas <- rnorm(k(object), mu.n, sqrt(tau2.n))
   if(any(is.na(thetas))) stop("NAs in theta update")
@@ -243,13 +259,13 @@ setMethod("updateTheta", "MarginalModel", function(object) .updateTheta(object))
   thetas
 }
 
-setMethod("updateSigma2Cpp", "MarginalModel", function(object) {
-  .Call("update_sigma2", object)
-})
+## setMethod("updateSigma2Cpp", "MarginalModel", function(object) {
+##   .Call("update_sigma2", object)
+## })
 
 setMethod("updateSigma2", "MarginalModel", function(object) {
-  .updateSigma2(object)
-  ##.updateSigma2_2(object)
+  ##.updateSigma2(object)
+  .Call("update_sigma2", object)
 })
 
 
@@ -311,9 +327,10 @@ setMethod("updateSigma2", "MarginalModel", function(object) {
 
 
 setMethod("updateSigma2.0", "MarginalModel", function(object){
-  hypp <- hyperParams(object)
-  .updateSigma2.0(a=a(hypp), b=b(hypp), nu.0=nu.0(object),
-                  sigma2.h=sigma2(object), k=k(hypp))
+  .Call("update_sigma2_0", object)
+##     hypp <- hyperParams(object)
+##     .updateSigma2.0(a=a(hypp), b=b(hypp), nu.0=nu.0(object),
+##                     sigma2.h=sigma2(object), k=k(hypp))
 })
 
 .updateSigma2.0 <- function(a, b, nu.0, sigma2.h, k){
@@ -325,9 +342,10 @@ setMethod("updateSigma2.0", "MarginalModel", function(object){
 }
 
 setMethod("updateNu.0", "MarginalModel", function(object){
-  hypp <- hyperParams(object)
-  .updateNu.0(beta=betas(hypp), sigma2.0=sigma2.0(object), sigma2.h=sigma2(object),
-              nu.0=nu.0(object), k=k(object))
+  .Call("update_nu0", object)
+##   hypp <- hyperParams(object)
+##   .updateNu.0(beta=betas(hypp), sigma2.0=sigma2.0(object), sigma2.h=sigma2(object),
+##               nu.0=nu.0(object), k=k(object))
 })
 
 .updateNu.0 <- function(NUMAX=100, beta, sigma2.0, sigma2.h, nu.0, k){
@@ -346,10 +364,8 @@ setMethod("updateNu.0", "MarginalModel", function(object){
 ## no update.
 ##
 setMethod("updateTau2", "MarginalModel", function(object){
-  ##hypp <- hyperParams(object)
-  ##.updateTau2(eta.0(hypp), m2.0(hypp), theta(object), mu(object), k(object))
-  ##tau2(object)
-  .updateTau2(object)
+  ##  .updateTau2(object)
+  .Call("update_tau2", object)
 })
 
 .updateTau2 <- function(object){
@@ -360,9 +376,9 @@ setMethod("updateTau2", "MarginalModel", function(object){
   m2.k <- 1/eta.k * (eta.0(hypp) * m2.0(hypp) + s2.k)
 
   tau2 <- 1/rgamma(1, shape=1/2 * eta.k, rate=1/2 * eta.k * m2.k)
-  if(is.nan(tau2) || !is.finite(tau2)){
-    tau2 <- 1/rgamma(1, shape=1/2*eta.0(hypp), rate=1/2*eta.0(hypp)*m2.0(hypp))
-  }
+##   if(is.nan(tau2) || !is.finite(tau2)){
+##     tau2 <- 1/rgamma(1, shape=1/2*eta.0(hypp), rate=1/2*eta.0(hypp)*m2.0(hypp))
+##   }
   if(length(tau2) > 1) stop("tau2 should have length 1")
   tau2
 }
