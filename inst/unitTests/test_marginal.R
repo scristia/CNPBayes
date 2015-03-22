@@ -6,10 +6,11 @@ test_marginalEasy <- function(){
                         sds=rep(0.1, 3))
   if(FALSE) plot(truth, use.current=TRUE)
 
-  params <- ModelParams("marginal", y=y(truth), k=3)
-  mcmcp <- McmcParams(iter=150, burnin=50)
-  model <- initializeModel(params)
-  model <- posteriorSimulation(model, mcmcp)
+
+  mp <- McmcParams(iter=1000, burnin=100)
+  model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
+  model <- posteriorSimulation(model)
+
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth, use.current=T)

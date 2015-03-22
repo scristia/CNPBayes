@@ -24,7 +24,16 @@ setClass("McmcChains", representation(theta="matrix",
                                       nu.0="numeric",
                                       sigma2.0="numeric",
                                       logpotential="numeric",
-                                      loglik="numeric"))
+                                      loglik="numeric",
+                                      zfreq="matrix"))
+
+setClass("McmcParams", representation(thin="numeric",
+                                      iter="numeric",
+                                      burnin="numeric",
+                                      nstarts="numeric",
+                                      nstart_iter="numeric",
+                                      check_labels="logical",
+                                      param_updates="integer"))
 
 setClass("MixtureModel", representation("VIRTUAL",
                                         hyperparams="Hyperparameters",
@@ -39,6 +48,7 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         data.mean="numericOrMatrix",
                                         data.prec="numericOrMatrix",
                                         z="factor",
+                                        zfreq="integer",
                                         probz="matrix",
                                         logpotential="numeric",
                                         loglik="numeric",
@@ -48,7 +58,9 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         hwe="numeric",
                                         modes="list",
                                         theta_order="numeric",
-                                        m.y="numeric"))
+                                        m.y="numeric",
+                                        mcmc.params="McmcParams"))
+
 
 
 setClass("BatchModel", contains="MixtureModel")
@@ -67,12 +79,7 @@ setClass("UnivariateMarginalModel", contains="MarginalModel")
 ## Better to have a field for each variable
 setClass("Posterior", contains="MixtureModel")
 
-setClass("McmcParams", representation(thin="numeric",
-                                      iter="numeric",
-                                      burnin="numeric",
-                                      nstarts="numeric",
-                                      nstart_iter="numeric",
-                                      check_labels="logical"))
+
 
 setClass("ModelParams", representation(type="character",
                                        k="numeric",

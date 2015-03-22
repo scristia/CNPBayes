@@ -1,7 +1,7 @@
 #' @export
 ModelParams <- function(type=c("marginal", "batch"),
                         y=numeric(),
-                        k,
+                        k=2L,
                         batch,
                         mcmc.params=McmcParams(iter=1000, burnin=0)){
   ##y <- y[!is.na(y)]
@@ -22,7 +22,7 @@ setMethod("y", "ModelParams", function(object) object@data)
 #' @export
 setMethod("batch", "ModelParams", function(object) object@batch)
 
-mcmcParams <- function(object) object@mcmc.params
+## mcmcParams <- function(object) object@mcmc.params
 
 N <- function(object) length(y(object))
 

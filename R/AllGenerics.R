@@ -247,3 +247,11 @@ setGeneric("ModelParamList", function(hypp, K, data, mcmcp, batch) standardGener
 
 setGeneric("runBurnin", function(object, mcmcp) standardGeneric("runBurnin"))
 setGeneric("runMcmc", function(object, mcmcp) standardGeneric("runMcmc"))
+
+setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"))
+
+setGeneric("zFreq", function(object) standardGeneric("zFreq"))
+setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
+
+setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
+setGeneric("mcmcParams<-", function(object, value) standardGeneric("mcmcParams<-"))

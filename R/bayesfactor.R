@@ -1,12 +1,33 @@
-fullGibbs <- function(post, move_chain){
-  theta(post) <- updateTheta(post)
-  sigma2(post) <- updateSigma2(post)
-  mu(post) <- updateMu(post)
-  tau2(post) <- updateTau2(post)
-  sigma2.0(post) <- updateSigma2.0(post)
-  nu.0(post) <- updateNu.0(post)
-  p(post) <- updateMixProbs(post)
-  z(post) <- updateZ(post)
+setGeneric("fullGibbs", function(object, mcmcp) standardGeneric("fullGibbs"))
+
+setMethod("fullGibbs", "MarginalModel", function(object, mcmcp){
+  object=.Call("mcmc_marginal_burnin", object, mcmcp)
+  object=.Call("mcmc_marginal", object, mcmcp)
+})
+
+setMethod("fullGibbs", "BatchModel", function(object, mcmcp){
+  .fullGibbs(object, mcmcp)
+})
+
+## TODO: change name to reducedGibbs
+.fullGibbs <- function(post, mcmcp){
+  up <- paramUpdates(mcmcp)
+  if(up["theta"] >= 1L)
+    theta(post) <- updateTheta(post)
+  if(up["sigma2"] >= 1L)
+    sigma2(post) <- updateSigma2(post)
+  if(up["mu"] >= 1L)
+    mu(post) <- updateMu(post)
+  if(up["tau2"] >= 1L)
+    tau2(post) <- updateTau2(post)
+  if(up["sigma2.0"] >= 1L)
+    sigma2.0(post) <- updateSigma2.0(post)
+  if(up["nu.0"] >= 1L)
+    nu.0(post) <- updateNu.0(post)
+  if(up["p"] >= 1L)
+    p(post) <- updateMixProbs(post)
+  if(up["z"] >= 1L)
+    z(post) <- updateZ(post)
   dataMean(post) <- computeMeans(post)
   dataPrec(post) <- 1/computeVars(post)
   logpotential(post) <- computePotential(post)
@@ -17,20 +38,20 @@ fullGibbs <- function(post, move_chain){
 ## p(sigma2 | y, theta*, z)
 ## and
 ## p(z | y, sigma2, theta*)
-reducedGibbsSigma2 <- function(post, move_chain){
-  ##theta(post) <- updateTheta(post)
-  sigma2(post) <- updateSigma2(post)
-  mu(post) <- updateMu(post)
-  tau2(post) <- updateTau2(post)
-  sigma2.0(post) <- updateSigma2.0(post)
-  nu.0(post) <- updateNu.0(post)
-  p(post) <- updateMixProbs(post)
-  z(post) <- updateZ(post)
-  dataMean(post) <- computeMeans(post)
-  dataPrec(post) <- 1/computeVars(post)
-  logpotential(post) <- computePotential(post)
-  post
-}
+## reducedGibbsSigma2 <- function(post, move_chain){
+##   ##theta(post) <- updateTheta(post)
+##   sigma2(post) <- updateSigma2(post)
+##   mu(post) <- updateMu(post)
+##   tau2(post) <- updateTau2(post)
+##   sigma2.0(post) <- updateSigma2.0(post)
+##   nu.0(post) <- updateNu.0(post)
+##   p(post) <- updateMixProbs(post)
+##   z(post) <- updateZ(post)
+##   dataMean(post) <- computeMeans(post)
+##   dataPrec(post) <- 1/computeVars(post)
+##   logpotential(post) <- computePotential(post)
+##   post
+## }
 
 reducedGibbsZ <- function(post, move_chain){
   theta(post) <- updateTheta(post)
@@ -64,7 +85,8 @@ reducedGibbsP <- function(post, move_chain){
 
 
 setMethod("posteriorTheta", "MarginalModel", function(object, mcmcp){
-  .posteriorTheta(object, mcmcp)
+  ##.posteriorTheta(object, mcmcp)
+  .Call("marginal_theta", object, mcmcp)
 })
 
 setMethod("posteriorTheta", "BatchModel", function(object, mcmcp){
@@ -72,33 +94,29 @@ setMethod("posteriorTheta", "BatchModel", function(object, mcmcp){
 })
 
 setMethod("posteriorSigma2", "MarginalModel", function(object, mcmcp){
-  .posteriorSigma2(object, mcmcp)
+  paramUpdates(mcmcp)["theta"] <- 0L
+  .Call("marginal_sigma2", object, mcmcp)
 })
 
 setMethod("posteriorSigma2", "BatchModel", function(object, mcmcp){
+  paramUpdates(mcmcp)["theta"] <- 0L
   .posteriorSigma2(object, mcmcp)
 })
 
-.posteriorTheta <- function(object, mcmcp){
-  ##object <- useModes(object)
-  thetastar <- modes(object)[["theta"]]
-  S <- 2:(savedIterations(mcmcp)+1)
-  message("Running an additional ", savedIterations(mcmcp), " simulations from full Gibbs to estimate p(theta*|y)")
-  do_thin <- thin(mcmcp) > 1
-  T <- seq_len(thin(mcmcp))
-  p.theta <- rep(NA, length(S))
-  p.theta[1] <- prod(dnorm(thetastar, mu(object), tau(object)))
-  for(s in S){
-    object <- fullGibbs(object, TRUE)
-    object <- moveChain(object, s)
-    p.theta[s] <- prod(dnorm(thetastar, mu(object), tau(object)))
-    ## update without moving chain
-    if(do_thin){
-      for(t in T) object <- fullGibbs(object, FALSE)
-    }
-  }
-  p.theta
-}
+## .posteriorTheta <- function(object, mcmcp){
+##   ##object <- useModes(object)
+##   thetastar <- modes(object)[["theta"]]
+##   S <- iter(mcmcp)
+##   object = .Call("mcmc_marginal", object, mcmcp)
+##   mus <- muc(object)
+##   taus <- tauc(object)
+##   K <- k(object)
+##   p.theta <- matrix(NA, S+1, K)
+##   for(k in seq_len(k(object))){
+##     p.theta[, k] <- dnorm(thetastar[k], mus, taus)
+##   }
+##   rowProds(p.theta)
+## }
 
 .posteriorThetaBatch <- function(object, mcmcp){
   ##object <- useModes(object)
@@ -139,54 +157,51 @@ mode.numeric <- function(x, na.rm=TRUE){
 }
 
 .posteriorSigma2 <- function(object, mcmcp){
-  ##object <- useModes(object)
-  isigma2star <- as.numeric(1/sigma2(object))
-  S <- 2:(savedIterations(mcmcp)+1)
-  message("Running an additional ", savedIterations(mcmcp), " simulations from reduced Gibbs to estimate p(sigma2*|y)")
-  do_thin <- thin(mcmcp) > 1
-  T <- seq_len(thin(mcmcp))
-  post <- rep(NA, length(S))
-  post[1] <- sum(log(dgamma(isigma2star, shape=0.5*nu.0(object), rate=0.5*nu.0(object)*sigma2.0(object))))
-  for(s in S){
-    object <- reducedGibbsSigma2(object, TRUE)
-    object <- moveChain(object, s)
-    shape.s <- 0.5*nu.0(object)
-    rate.s <- 0.5*nu.0(object)*sigma2.0(object)
-    post[s] <- sum(log(dgamma(isigma2star, shape=shape.s, rate=rate.s)))
-    if(do_thin){
-      for(t in T) object <- reducedGibbsSigma2(object, FALSE)
-    }
+  paramUpdates(mcmcp)["theta"] <- 0L
+  isigma2star <- 1/modes(object)[["sigma2"]]
+  object <- fullGibbs(object, mcmcp)
+  nuc <- nu.0(mcmcChains(object))
+  s20 <- sigma2.0(mcmcChains(object))
+  shape.s <- 0.5*nuc
+  rate.s <- 0.5*nuc*s20
+  K <- k(object)
+  post <- matrix(NA, length(nuc), K)
+  for(k in seq_len(K)){
+    post[, k] <- log(dgamma(isigma2star[k], shape=shape.s, rate=rate.s))
   }
-  post
+  rowSums(post)
 }
 
 posteriorP <- function(object, mcmcp){
   ##object <- useModes(object)
   x <- p(object)
-  S <- 2:(savedIterations(mcmcp)+1)
-  message("Running an additional ", savedIterations(mcmcp), " simulations from reduced Gibbs to estimate p(pi*|y)")
-  do_thin <- thin(mcmcp) > 1
-  T <- seq_len(thin(mcmcp))
-  post <- rep(NA, length(S))
+  ##S <- 2:(savedIterations(mcmcp)+1)
+  ##message("Running an additional ", savedIterations(mcmcp), " simulations from reduced Gibbs to estimate p(pi*|y)")
+  ##do_thin <- thin(mcmcp) > 1
+  ##T <- seq_len(thin(mcmcp))
+  ##post <- rep(NA, length(S))
   ##
   ## The ddirichlet function uses a very strict definition requires
   ## sum(p) ==1 instead of allowing a tolerance
   ##
-  if(length(x) > 1){
-    x[length(x)] <- 1-sum(x[-length(x)])
-  }
-  alpha.n <- updateAlpha(object)
-  post[1] <- ddirichlet(x, alpha.n)
-  for(s in S){
-    object <- reducedGibbsP(object, TRUE)
-    object <- moveChain(object, s)
-    alpha.n <- updateAlpha(object)
-    post[s] <- ddirichlet(x, alpha.n)
+##   if(length(x) > 1){
+##     x[length(x)] <- 1-sum(x[-length(x)])
+##   }
+##   alpha.n <- updateAlpha(object)
+##   post[1] <- ddirichlet(x, alpha.n)
+  ##  for(s in S){
+  updateParams(mcmcp)[c("theta", "sigma2")] <- 0L
+  object <- fullGibbs(object, mcmcp)
+  ##alphac <-
+  ##object <- reducedGibbsP(object, TRUE)
+  ##object <- moveChain(object, s)
+  ##alpha.n <- updateAlpha(object)
+  ##post[s] <- ddirichlet(x, alpha.n)
     ##if(post[s] > 10e3) browser()
-    if(do_thin){
-      for(t in T) object <- reducedGibbsP(object, FALSE)
-    }
-  }
+##     if(do_thin){
+##       for(t in T) object <- reducedGibbsP(object, FALSE)
+##     }
+##  }
   ## some values from dirichlet seem to be very extreme
   ##median(post)
   post
@@ -447,7 +462,7 @@ avgMarginalTheta <- function(files){
 computeMarginalPr <- function(model, mcmcp){
   kperm <- permn(seq_len(k(model)))
   model <- useModes(model)
-  model.list <- lapply(kperm, function(zindex, model) relabel(model, zindex), model=model)
+  xmodel.list <- lapply(kperm, function(zindex, model) relabel(model, zindex), model=model)
   J <- min(3, length(model.list))
   model.list <- model.list[seq_len(J)]
   pg <- lapply(model.list, partialGibbs, mcmcp=mcmcp)

@@ -17,6 +17,19 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// tableZ
+IntegerVector tableZ(double nu0, int K, IntegerVector z);
+RcppExport SEXP CNPBayes_tableZ(SEXP nu0SEXP, SEXP KSEXP, SEXP zSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< double >::type nu0(nu0SEXP);
+    Rcpp::traits::input_parameter< int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type z(zSEXP);
+    __result = Rcpp::wrap(tableZ(nu0, K, z));
+    return __result;
+END_RCPP
+}
 // loglik
 RcppExport SEXP loglik(SEXP xmod);
 RcppExport SEXP CNPBayes_loglik(SEXP xmodSEXP) {
@@ -192,6 +205,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
     Rcpp::traits::input_parameter< SEXP >::type mcmcp(mcmcpSEXP);
     __result = Rcpp::wrap(mcmc_marginal(xmod, mcmcp));
+    return __result;
+END_RCPP
+}
+// marginal_theta
+RcppExport SEXP marginal_theta(SEXP xmod, SEXP mcmcp);
+RcppExport SEXP CNPBayes_marginal_theta(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type mcmcp(mcmcpSEXP);
+    __result = Rcpp::wrap(marginal_theta(xmod, mcmcp));
     return __result;
 END_RCPP
 }

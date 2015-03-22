@@ -231,8 +231,9 @@ setMethod("runMcmc", "BatchModel", function(object, mcmcp){
 }
 
 
-multipleStarts <- function(object, mcmcp){
+multipleStarts <- function(object){
   if(k(object)==1) return(object)
+  mcmcp <- mcmcParams(object)
   message("Running ", nStarts(mcmcp), " chains")
   mp <- mcmcp
   ##mp <- McmcParams(burnin=0, iter=nStartIter(mcmcp))
@@ -251,8 +252,6 @@ multipleStarts <- function(object, mcmcp){
   mmodels <- suppressMessages(lapply(mmod, runBurnin, mp))
   message("Selecting chain with largest log likelihood")
   lp <- sapply(mmodels, logLik)
-  ##lp <- sapply(mmodels, function(x) max(logpotentialc(x)))
-  ##lp <- sapply(mmodels, function(x) max(logLikc(x)))
   mmodel <- mmodels[[which.max(lp)]]
   if(is(object, "MarginalModel")) return(mmodel)
   params <- ModelParams("batch", y=y(object), k=k(object),
@@ -270,41 +269,19 @@ computeLogLikForRandomStarts <- function(seed, params, hypp, return.model=FALSE)
   logLikData(model)
 }
 
-setMethod("posteriorSimulation", "MixtureModel", function(object, mcmcp){
-  .posteriorSimulation(object, mcmcp)
+setMethod("posteriorSimulation", "MixtureModel", function(object){
+  .posteriorSimulation(object)
 })
 
-setMethod("posteriorSimulation", "ModelParams", function(object, mcmcp){
-  model <- initializeModel(object)
-  .posteriorSimulation(model, mcmcp)
-})
-
-.posteriorSimulation <- function(post, mcmcp){
-  if(nStarts(mcmcp) > 1){
-    post <- multipleStarts(post, mcmcp)
+.posteriorSimulation <- function(post){
+  if(nStarts(post) > 1){
+    post <- multipleStarts(post)
   }
-  niter <- iter(mcmcp)
-  ##
-  ## Burn-in
-  ##
-  post2 <- post
-  post <- runBurnin(post, mcmcp)
-  if(niter==0) return(post)
-  mcmcChains(post) <- McmcChains(post, mcmcp)
-  ##
-  ## Make the first iteration in the stored chain the last iteration
-  ## from the mcmc
-  ##
-  ## post <- moveChain(post, 1)
-  ##
-  ## If the chain moves quickly from the burnin, it might be related
-  ## to the constraint imposed after burnin
-  ##
-  ##
-  ## Post burn-in
-  ##
-  post <- runMcmc(post, mcmcp)
-  ##probz(post) <- probz(post)/(savedIterations(mcmcp)+1)
+  post <- runBurnin(post, mcmcParams(post))
+  if( iter(post)==0 ) return(post)
+  ## is this still necessary?
+  mcmcChains(post) <- McmcChains(post, mcmcParams(post))
+  post <- runMcmc(post, mcmcParams(post))
   modes(post) <- computeModes(post)
   post
 }
@@ -530,3 +507,16 @@ startAtTrueValues <- function(model, truth){
   dataPrec(model) <- 1/computeVars(model)
   model
 }
+
+setMethod("zFreq", "MixtureModel", function(object) object@zfreq)
+setReplaceMethod("zFreq", "MixtureModel", function(object, value){
+  object@zfreq <- value
+  object
+})
+
+setMethod("mcmcParams", "MixtureModel", function(object) object@mcmc.params )
+
+setMethod("iter", "MixtureModel", function(object) iter(mcmcParams(object)))
+setMethod("nStarts", "MixtureModel", function(object) nStarts(mcmcParams(object)))
+setMethod("thin", "MixtureModel", function(object) thin(mcmcParams(object)))
+setMethod("burnin", "MixtureModel", function(object) burnin(mcmcParams(object)))

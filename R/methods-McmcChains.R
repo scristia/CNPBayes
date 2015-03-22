@@ -1,29 +1,11 @@
-##McmcChains <- function(mcmc.params, hyper.param){
-##  if(missing(mcmc.params)){
-##    return(new("McmcChains", theta=matrix(), sigma2=matrix(),
-##               pi=matrix(), mu=numeric(), tau2=numeric(),
-##               nu.0=numeric(), sigma2.0=numeric(),
-##               logpotential=numeric()))
-##  }
-##  nr <- iter(mcmc.params)/thin(mcmc.params)
-##  K <- k(hyper.param)
-##  mat <- matrix(NA, nr, K)
-##  vec <- numeric(nr)
-##  new("McmcChains", theta=mat,
-##      sigma2=mat,
-##      pi=mat,
-##      mu=vec,
-##      tau2=vec,
-##      nu.0=vec,
-##      sigma2.0=vec,
-##      logpotential=vec)
-##}
-
-.initializeMcmc <- function(object, mcmc.params){
-  ## add 1 for starting values (either the last run from the burnin, or default values if no burnin
-  nr <- iter(mcmc.params)/thin(mcmc.params) + 1
+.initializeMcmc <- function(object){
+  ## add 1 for starting values (either the last run from the burnin,
+  ## or default values if no burnin
+  mcmc.params <- mcmcParams(object)
+  nr <- iter(mcmc.params) + 1L
   K <- k(object)
   mat <- matrix(NA, nr, K)
+  mati <- matrix(as.integer(NA), nr, K)
   vec <- numeric(nr)
   new("McmcChains", theta=mat,
       sigma2=mat,
@@ -33,7 +15,8 @@
       nu.0=vec,
       sigma2.0=vec,
       logpotential=vec,
-      loglik=vec)
+      loglik=vec,
+      zfreq=mati)
 }
 
 setMethod("McmcChains", "Hyperparameters", function(object, mcmc.params){
@@ -48,7 +31,7 @@ setMethod("McmcChains", "missing", function(object, mcmc.params){
 })
 
 setMethod("McmcChains", "MixtureModel", function(object, mcmc.params){
-  .initializeMcmc(object, mcmc.params)
+  .initializeMcmc(object)
 })
 
 .initializeMcmcBatch <- function(object, mcmc.params){
@@ -57,6 +40,7 @@ setMethod("McmcChains", "MixtureModel", function(object, mcmc.params){
   B <- nBatch(object)
   mat_batch <- matrix(NA, nr, K*B)
   mat <- matrix(NA, nr, K)
+  mati <- matrix(as.integer(NA), nr, K)
   vec <- numeric(nr)
   new("McmcChains",
       theta=mat_batch,
@@ -67,7 +51,8 @@ setMethod("McmcChains", "MixtureModel", function(object, mcmc.params){
       nu.0=vec,
       sigma2.0=vec,
       logpotential=vec,
-      loglik=vec)
+      loglik=vec,
+      zfreq=mati)
 }
 
 setMethod("McmcChains", c("BatchModel", "missing"), function(object, mcmc.params){

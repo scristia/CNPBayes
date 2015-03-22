@@ -1,8 +1,15 @@
 #' @export
-McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1, nStartIter=200, checkLabels=FALSE){
+McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1,
+                       nStartIter=200, checkLabels=FALSE,
+                       param_updates=.param_updates()){
   if(missing(thin)) thin <- rep(1L, length(iter))
-  new("McmcParams", iter=iter, burnin=burnin, thin=thin, nstarts=nStarts, nstart_iter=nStartIter,
-      check_labels=checkLabels)
+  new("McmcParams", iter=as.integer(iter),
+      burnin=as.integer(burnin),
+      thin=as.integer(thin),
+      nstarts=as.integer(nStarts),
+      nstart_iter=as.integer(nStartIter),
+      check_labels=checkLabels,
+      param_updates=param_updates)
 }
 
 
@@ -45,7 +52,11 @@ setValidity("McmcParams", function(object){
     msg <- "thin, burnin, and iter vectors must be the same length"
     return(msg)
   }
-  msg
+  up <- paramUpdates(object)
+  if(!identical(names(up), names(.param_updates()))){
+    msg <- "vector for slot param_updates should have same names as .param_updates()"
+    return(msg)
+  }
 })
 
 setMethod("nStarts", "McmcParams", function(object) object@nstarts)
@@ -56,19 +67,32 @@ setMethod("nStartIter", "McmcParams", function(object) object@nstart_iter)
 mcmcpList <- function(test=FALSE, iter=c(500, 3000, 3000, 3000),
                       nStarts=20, nStartIter=100){
   if(test){
-    mcmcp.list <- list(McmcParams(iter=rep(2, 4),
-                                  burnin=rep(1,4),
-                                  thin=rep(1,4),
-                                  nStarts=2,
-                                  nStartIter=2),
-                       McmcParams(iter=2, burnin=1, thin=1))
+    mcmcp.list <- list(McmcParams(iter=rep(2L, 4),
+                                  burnin=rep(1L,4),
+                                  thin=rep(1L,4),
+                                  nStarts=2L,
+                                  nStartIter=2L),
+                       McmcParams(iter=2L, burnin=1L, thin=1L))
   } else {
-    mcmcp.list <- list(McmcParams(iter=iter,
+    mcmcp.list <- list(McmcParams(iter=as.integer(iter),
                                   burnin=as.integer(pmax(1, iter/10)),
                                   thin=as.integer(pmax(1, iter/1000)),
-                                  nStarts=nStarts,
-                                  nStartIter=nStartIter),
-                       McmcParams(iter=1000, burnin=100, thin=1))
+                                  nStarts=as.integer(nStarts),
+                                  nStartIter=as.integer(nStartIter)),
+                       McmcParams(iter=1000L, burnin=100L, thin=1L))
   }
   mcmcp.list
 }
+
+paramUpdates <- function(x) x@param_updates
+
+.param_updates <- function(x){
+  x <- setNames(rep(1L, 8),
+                c("theta", "sigma2", "p", "mu", "tau2", "nu.0", "sigma2.0", "z"))
+  x
+}
+
+setReplaceMethod("paramUpdates", "McmcParams", function(x, value){
+  x@param_updates <- value
+  x
+})

@@ -49,9 +49,7 @@ initializeBatchModel <- function(params, zz, hypp){
 }
 
 
-setMethod("startingValues", "MarginalModel", function(object, params){
-  ##hypp <- hyperParams(object) <- Hyperparameters(type(params),
-  ##k=k(params))
+setMethod("startingValues", "MarginalModel", function(object){
   hypp <- hyperParams(object)
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
@@ -62,11 +60,12 @@ setMethod("startingValues", "MarginalModel", function(object, params){
   p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are platform, columns are components
   zz <- simulateZ(length(y(object)), p(object))
   z(object) <- factor(zz, levels=unique(sort(zz)))
+  zFreq(object) <- as.integer(table(z(object)))
   dataPrec(object) <- 1/computeVars(object)
   dataMean(object) <- computeMeans(object)
-  logpotential(object) <- computePotential(object)
+  ##logpotential(object) <- computePotential(object)
   logLik(object) <- computeLoglik(object)
-  mcmcChains(object) <- McmcChains(object, mcmcParams(params))
+  mcmcChains(object) <- McmcChains(object)
   object
 })
 
@@ -89,6 +88,7 @@ setMethod("startingValues", "BatchModel", function(object, params, zz){
     zz <- simulateZ(length(y(params)), p(object))
     z(object) <- factor(zz, levels=unique(sort(zz)))
   } else z(object) <- zz
+  zFreq(object) <- as.integer(table(zz))
   dataPrec(object) <- 1/computeVars(object)
   dataMean(object) <- computeMeans(object)
   logpotential(object) <- computePotential(object)

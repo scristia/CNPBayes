@@ -1,30 +1,37 @@
-MarginalModel <- function(data=numeric(), k=2, batch=factor(), hypp){
+MarginalModel <- function(data=numeric(), k=2, batch, hypp, mcmc.params){
+  if(missing(batch)) batch <- factor(rep("a", length(data)))
+  if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
   if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
   if(!missing(batch)){
     nbatch <- setNames(as.integer(table(batch)), levels(batch))
   } else nbatch <- length(data)
-  new("MarginalModel",
-      hyperparams=hypp,
-      theta=numeric(k),
-      sigma2=numeric(k),
-      mu=numeric(1),
-      tau2=numeric(1),
-      nu.0=1L,
-      sigma2.0=1L,
-      pi=rep(1/k, k),
-      data=data,
-      data.mean=numeric(k),
-      data.prec=numeric(k),
-      z=factor(numeric(k)),
-      probz=matrix(0, length(data), k),
-      logpotential=numeric(1),
-      loglik=numeric(1),
-      mcmc.chains=McmcChains(),
-      batch=batch,
-      batchElements=nbatch,
-      hwe=numeric(),
-      modes=list(),
-      m.y=numeric(1))
+  zz <- factor(sample(seq_len(k), length(data), replace=TRUE), levels=seq_len(k))
+  zfreq <- as.integer(table(zz))
+  object <- new("MarginalModel",
+                hyperparams=hypp,
+                theta=numeric(k),
+                sigma2=numeric(k),
+                mu=numeric(1),
+                tau2=numeric(1),
+                nu.0=1L,
+                sigma2.0=1L,
+                pi=rep(1/k, k),
+                data=data,
+                data.mean=numeric(k),
+                data.prec=numeric(k),
+                z=zz,
+                zfreq=zfreq,
+                probz=matrix(0, length(data), k),
+                logpotential=numeric(1),
+                loglik=numeric(1),
+                mcmc.chains=McmcChains(),
+                batch=batch,
+                batchElements=nbatch,
+                hwe=numeric(),
+                modes=list(),
+                m.y=numeric(1),
+                mcmc.params=mcmc.params)
+  object <- startingValues(object)
 }
 
 UnivariateMarginalModel <- function(data, k=1, batch, hypp){
@@ -32,6 +39,8 @@ UnivariateMarginalModel <- function(data, k=1, batch, hypp){
   if(!missing(batch)){
     nbatch <- setNames(as.integer(table(batch)), levels(batch))
   } else nbatch <- length(data)
+  zz <- factor(numeric(K))
+  zfreq <- as.integer(table(zz))
   new("UnivariateMarginalModel",
       hyperparams=hypp,
       theta=numeric(k),
@@ -44,7 +53,8 @@ UnivariateMarginalModel <- function(data, k=1, batch, hypp){
       data=data,
       data.mean=numeric(k),
       data.prec=numeric(k),
-      z=factor(numeric(k)),
+      z=zz,
+      zfreq=zfreq,
       probz=matrix(1, length(data), 1),
       logpotential=numeric(1),
       loglik=numeric(1),
@@ -584,7 +594,8 @@ setMethod("showSigmas", "MarginalModel", function(object){
 setMethod("tablez", "MarginalModel", function(object) table(z(object)))
 
 #' @export
-marginalModel <- function(object, hyp.list, data, mcmcp.list=mcmcpList(),
+marginalModel <- function(object, hyp.list,
+                          data, mcmcp.list=mcmcpList(),
                           save.it=FALSE, test=FALSE){
   if(test){
     message("Testing with just a few mcmc iterations")
@@ -615,7 +626,8 @@ marginalModel <- function(object, hyp.list, data, mcmcp.list=mcmcpList(),
 }
 
 #' @export
-marginalExperiment <- function(object, outdir, mcmcp.list=mcmcpList(),
+marginalExperiment <- function(object, outdir,
+                               mcmcp.list=mcmcpList(),
                                hypp, marginaly=TRUE,
                                test=FALSE){
   M <- getFiles(outdir, rownames(object), "marginal")
@@ -634,3 +646,9 @@ marginalExperiment <- function(object, outdir, mcmcp.list=mcmcpList(),
   }
   TRUE
 }
+
+setReplaceMethod("mcmcParams", "MixtureModel", function(object, value){
+  object@mcmc.params <- value
+  mcmcChains(object) <- McmcChains(object)
+  object
+})

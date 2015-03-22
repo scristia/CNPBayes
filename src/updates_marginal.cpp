@@ -5,6 +5,22 @@
 
 using namespace Rcpp ;
 
+// RcppExport IntegerVector tableZ(double nu0, int K, NumericVector z){
+// [[Rcpp::export]]
+IntegerVector tableZ(double nu0, int K, IntegerVector z){
+  IntegerVector nn(K) ;
+  NumericVector nu_n(K) ;
+  for(int k = 0; k < K; k++){
+    nn[k] = sum(z == (k+1)) ;
+    if(nn[k] < 1) {
+      nn[k] = 1 ;
+    }
+    // nu_n[k] = nu0 + nn[k] ;
+  }
+  return nn ;
+}
+
+
 // [[Rcpp::export]]
 RcppExport SEXP loglik(SEXP xmod) {
     RNGScope scope ;
@@ -373,16 +389,15 @@ RcppExport SEXP update_sigma2(SEXP xmod){
   double sigma2_0 = model.slot("sigma2.0") ;
   int n = x.size() ;
   IntegerVector z = model.slot("z") ;
+  NumericVector nu_n(K) ;
   IntegerVector nn(K) ;
-  NumericVector nu_n(K) ;  
-  // replace with slot accessor
-  for(int k = 0; k < K; k++){
-    nn[k] = sum(z == (k+1)) ;
-    if(nn[k] < 1) {
-      nn[k] = 1 ;
-    }
+  nn = tableZ(nu_0, K, z) ;
+
+  for(int k = 0; k < K; ++k){
     nu_n[k] = nu_0 + nn[k] ;
   }
+  
+  //  return nn ;
   NumericVector ss(K) ;
   for(int i = 0; i < n; i++){
     int k = 0 ;
@@ -403,6 +418,7 @@ RcppExport SEXP update_sigma2(SEXP xmod){
   return sigma2_new ;
 }
 
+
 //
 // BURNIN: Don't move chains, no thinning, no need to compute loglik at each iteration
 //
@@ -411,16 +427,28 @@ RcppExport SEXP mcmc_marginal_burnin(SEXP xmod, SEXP mcmcp) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 params(mcmcp) ;
+  IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;
+  if( S == 0 ){
+    return xmod ;
+  }
   for(int s = 1; s < S; ++s){
-    model.slot("theta") = update_theta(xmod) ;
-    model.slot("sigma2") = update_sigma2(xmod) ;
-    model.slot("pi") = update_p(xmod) ;
-    model.slot("z") = update_z(xmod) ;
-    model.slot("mu") = update_mu(xmod) ;
-    model.slot("tau2") = update_tau2(xmod) ;
-    model.slot("nu.0") = update_nu0(xmod) ;
-    model.slot("sigma2.0") = update_sigma2_0(xmod) ;
+    if(up[0] > 0)
+      model.slot("theta") = update_theta(xmod) ;
+    if(up[1] > 0)
+      model.slot("sigma2") = update_sigma2(xmod) ;
+    if(up[2] > 0)
+      model.slot("pi") = update_p(xmod) ;
+    if(up[3] > 0)
+      model.slot("mu") = update_mu(xmod) ;
+    if(up[4] > 0)    
+      model.slot("tau2") = update_tau2(xmod) ;
+    if(up[5] > 0)    
+      model.slot("nu.0") = update_nu0(xmod) ;
+    if(up[6] > 0)        
+      model.slot("sigma2.0") = update_sigma2_0(xmod) ;
+    if(up[7] > 0)        
+      model.slot("z") = update_z(xmod) ;
     model.slot("data.mean") = compute_means(xmod) ;
     model.slot("data.prec") = compute_prec(xmod) ;
   }
@@ -440,6 +468,7 @@ RcppExport SEXP mcmc_marginal(SEXP xmod, SEXP mcmcp) {
   Rcpp::S4 chain(model.slot("mcmc.chains")) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   Rcpp::S4 params(mcmcp) ;
+  IntegerVector up = params.slot("param_updates") ;
   int K = getK(hypp) ;
   int T = params.slot("thin") ;
   int S = params.slot("iter") ;
@@ -488,50 +517,72 @@ RcppExport SEXP mcmc_marginal(SEXP xmod, SEXP mcmcp) {
   //
   // start at 1 instead of zero. Initial values are as above
   for(int s = 1; s < S+1; ++s){
-    th = update_theta(xmod) ;
-    for(int k = 0; k < K; k++){  // need update 'xmod' after each update
-      theta(s, k) = th[k] ;
-      model.slot("theta") = th ;      
+    if(up[0] > 0) {
+      th = update_theta(xmod) ;
+      for(int k = 0; k < K; k++){  // need update 'xmod' after each update
+        theta(s, k) = th[k] ;
+        model.slot("theta") = th ;      
+      }
     }
-    s2 = update_sigma2(xmod) ;
-    for(int k = 0; k < K; k++){    
-      sigma2(s, k) = s2[k] ;
-      model.slot("sigma2") = s2 ;
+    if(up[1] > 0){
+      s2 = update_sigma2(xmod) ;
+      for(int k = 0; k < K; k++){    
+        sigma2(s, k) = s2[k] ;
+        model.slot("sigma2") = s2 ;
+      }
     }
-    p = update_p(xmod) ;
-    for(int k = 0; k < K; k++){
-      pmix(s, k) = p[k] ;
-      model.slot("pi") = p ;      
+    if(up[2] > 0){
+      p = update_p(xmod) ;
+      for(int k = 0; k < K; k++){
+        pmix(s, k) = p[k] ;
+        model.slot("pi") = p ;      
+      }
     }
-    z = update_z(xmod) ;
-    model.slot("z") = update_z(xmod) ;
-    m = update_mu(xmod) ;
-    model.slot("mu") = m ;
-    t2 = update_tau2(xmod) ;
-    model.slot("tau2") = t2 ;
-    n0 = update_nu0(xmod) ;
-    model.slot("nu.0") = n0 ;
-    s20 = update_sigma2_0(xmod) ;
-    model.slot("sigma2.0") = s20 ;
+    if(up[3] > 0){
+      m = update_mu(xmod) ;
+      model.slot("mu") = m ;
+      mu[s] = m[0] ;
+    }
+    if(up[4] > 0){    
+      t2 = update_tau2(xmod) ;
+      model.slot("tau2") = t2 ;
+      tau2[s] = t2[0] ;
+    }
+    if(up[5] > 0){        
+      n0 = update_nu0(xmod) ;
+      model.slot("nu.0") = n0 ;
+      nu0[s] = n0[0] ;
+    }
+    if(up[6] > 0){        
+      s20 = update_sigma2_0(xmod) ;
+      model.slot("sigma2.0") = s20 ;
+      sigma2_0[s] = s20[0] ;
+    }
+    if(up[7] > 0){
+      z = update_z(xmod) ;
+      model.slot("z") = update_z(xmod) ;    
+    }
     model.slot("data.mean") = compute_means(xmod) ;
     model.slot("data.prec") = compute_prec(xmod) ;
     model.slot("loglik") = loglik(xmod) ;    
-    //
-    // move chains of scalar updates 
-    //
-    mu[s] = m[0] ;
-    tau2[s] = t2[0] ;
-    nu0[s] = n0[0] ;
-    sigma2_0[s] = s20[0] ;
     // Thinning
     for(int t = 0; t < T; ++t){
-      model.slot("theta") = update_theta(xmod) ;
-      model.slot("sigma2") = update_sigma2(xmod) ;
-      model.slot("mu") = update_mu(xmod) ;
-      model.slot("tau2") = update_tau2(xmod) ;
-      model.slot("nu.0") = update_nu0(xmod) ;
-      model.slot("pi") = update_p(xmod) ;
-      model.slot("z") = update_z(xmod) ;
+      if(up[0] > 0)
+        model.slot("theta") = update_theta(xmod) ;
+      if(up[1] > 0)      
+        model.slot("sigma2") = update_sigma2(xmod) ;
+      if(up[2] > 0)
+        model.slot("pi") = update_p(xmod) ;
+      if(up[3] > 0)      
+        model.slot("mu") = update_mu(xmod) ;
+      if(up[4] > 0)      
+        model.slot("tau2") = update_tau2(xmod) ;
+      if(up[5] > 0)
+        model.slot("nu.0") = update_nu0(xmod) ;
+      if(up[6] > 0)
+        model.slot("sigma2.0") = update_sigma2_0(xmod) ;
+      if(up[7] > 0)
+        model.slot("z") = update_z(xmod) ;
       model.slot("data.mean") = compute_means(xmod) ;
       model.slot("data.prec") = compute_prec(xmod) ;
     }
@@ -550,18 +601,78 @@ RcppExport SEXP mcmc_marginal(SEXP xmod, SEXP mcmcp) {
   return xmod ;
 }
 
-// // [[Rcpp::export]]
-// RcppExport SEXP mcmc_marginal(SEXP xmod, SEXP mcmcp) {
-//   Rcpp::S4 model(xmod) ;
-//   Rcpp::S4 mp(mcmcp) ;
-//   int S = mp.slot("iter") ;
-//   Rcpp::S4 object ;
-//   // not starting at s = 0 is intentional here
-//   for(int s = 1; s < S; ++s){
-//     model = updateAllC(xmod, TRUE, FALSE) ;
-//   }
-//   return model ;
-// }
+
+//
+// Estimating marginals
+//
+
+// [[Rcpp::export]]
+RcppExport SEXP marginal_theta(SEXP xmod, SEXP mcmcp) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 params(mcmcp) ;
+  int S = params.slot("iter") ;
+  List modes = model.slot("modes") ;
+  NumericVector thetastar = as<NumericVector>(modes["theta"]) ;
+  int K = thetastar.size() ;
+  NumericVector p_theta(S+1) ;
+  //
+  // Run the full Gibbs
+  //
+  xmod = mcmc_marginal_burnin(xmod, mcmcp) ;
+  xmod = mcmc_marginal(xmod, mcmcp) ;
+  Rcpp::S4 chains(model.slot("mcmc.chains")) ;
+  NumericVector muc = chains.slot("mu") ;
+  NumericVector tau2c = chains.slot("tau2") ;
+  NumericVector tauc = sqrt(tau2c) ;
+  NumericVector tmp(K) ;
+  //
+  // Compute p(theta* | mu[s], tau[s], ...)
+  //   - integrate out mu and tau
+  //
+  // dnorm works when mu and tau2 are double, but not when they are NumericVectors
+  //for(int s = 0; s < S+1; ++s){
+  for(int s=0; s < S+1; ++s){
+    tmp = dnorm(thetastar, muc[s], tauc[s]) ;
+    double prod = 1.0;
+    for(int k = 0; k < K; ++k) {
+      prod *= tmp[k] ;
+    }
+    p_theta[s] = prod ;
+  }
+  return p_theta ;
+}
+
+RcppExport SEXP marginal_sigma2(SEXP xmod, SEXP mcmcp) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 params(mcmcp) ;
+  int S = params.slot("iter") ;
+  List modes = model.slot("modes") ;
+  NumericVector sigma2star = as<NumericVector>(modes["sigma2"]) ;
+  NumericVector prec = pow(sigma2star, -1.0) ;
+  int K = prec.size() ;
+  NumericVector p_prec(S+1) ;
+  //
+  // Run the reduced Gibbs
+  //
+  xmod = mcmc_marginal_burnin(xmod, mcmcp) ;
+  xmod = mcmc_marginal(xmod, mcmcp) ;
+  //
+  Rcpp::S4 chains(model.slot("mcmc.chains")) ;
+  NumericVector tmp(K) ;
+  NumericVector nu0 = chains.slot("nu.0") ;
+  NumericVector s20 = chains.slot("sigma2.0") ;
+  for(int s=0; s < S+1; ++s){
+    tmp = dgamma(prec, 0.5*nu0[s], 2.0 / (nu0[s]*s20[s])) ;
+    double total = 0.0 ;
+    for(int k = 0; k < K; ++k){
+      total += log(tmp[k]) ;
+    }
+    p_prec[s] = total ;
+  }
+  return p_prec ;
+}
 
 
 

@@ -68,7 +68,7 @@ HyperparametersMarginal <- function(k=0L,
       b=b)
 }
 
-Hyperparameters <- function(type, k){
+Hyperparameters <- function(type="batch", k=2L){
   if(type=="marginal") return(HyperparametersMarginal(k))
   if(type=="batch") return(HyperparametersBatch(k))
 }

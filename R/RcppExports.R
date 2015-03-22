@@ -5,6 +5,10 @@ getK <- function(hyperparams) {
     .Call('CNPBayes_getK', PACKAGE = 'CNPBayes', hyperparams)
 }
 
+tableZ <- function(nu0, K, z) {
+    .Call('CNPBayes_tableZ', PACKAGE = 'CNPBayes', nu0, K, z)
+}
+
 loglik <- function(xmod) {
     .Call('CNPBayes_loglik', PACKAGE = 'CNPBayes', xmod)
 }
@@ -67,5 +71,9 @@ mcmc_marginal_burnin <- function(xmod, mcmcp) {
 
 mcmc_marginal <- function(xmod, mcmcp) {
     .Call('CNPBayes_mcmc_marginal', PACKAGE = 'CNPBayes', xmod, mcmcp)
+}
+
+marginal_theta <- function(xmod, mcmcp) {
+    .Call('CNPBayes_marginal_theta', PACKAGE = 'CNPBayes', xmod, mcmcp)
 }
 

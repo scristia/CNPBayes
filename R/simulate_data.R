@@ -36,9 +36,9 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
 simulateData <- function(N, p, theta, sds){
   zz <- simulateZ(N, p)
   y <- rnorm(N, theta[zz], sds[zz])
-  params <- ModelParams("marginal", y=y, k=length(theta))
-  object <- initializeModel(params)
-  dat(object) <- y
+  ##params <- ModelParams("marginal", y=y, k=length(theta))
+  ##object <- initializeModel(params)
+  object <- MarginalModel(data=y, k=length(theta))
   z(object) <- factor(zz, levels=unique(sort(zz)))
   p(object) <- p
   theta(object) <- as.numeric(sapply(split(y(object), z(object)), mean))
@@ -47,8 +47,7 @@ simulateData <- function(N, p, theta, sds){
   mu(object) <- mean(theta(object))
   tau2(object) <- var(theta(object))
   logLik(object) <- computeLoglik(object)
-  logpotential(object) <- computePotential(object)
-  ##sigma2(object) <- sds^2
+  ##logpotential(object) <- computePotential(object)
   object
 }
 

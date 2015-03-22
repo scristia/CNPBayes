@@ -1,4 +1,5 @@
-BatchModel <- function(data, k, batch, hypp){
+BatchModel <- function(data=numeric(), k=2L, batch, hypp){
+  if(missing(batch)) batch <- factor(rep("a", length(data)))
   mcmc.chains <- McmcChains()
   batch <- factor(batch)
   ix <- order(batch)
@@ -6,6 +7,8 @@ BatchModel <- function(data, k, batch, hypp){
   nbatch <- setNames(as.integer(table(batch)), levels(batch))
   B <- length(ub)
   if(B==1){
+    zz <- factor(numeric(k))
+    zfreq <- as.integer(table(zz))
     ## instantiate a marginal model instead
     obj <- new("MarginalModel",
                hyperparams=hypp,
@@ -19,7 +22,8 @@ BatchModel <- function(data, k, batch, hypp){
                data=data,
                data.mean=numeric(k),
                data.prec=numeric(k),
-               z=factor(numeric(k)),
+               z=zz,
+               zfreq=zfreq,
                probz=matrix(0, length(data), k),
                logpotential=numeric(1),
                loglik=numeric(1),
@@ -33,6 +37,8 @@ BatchModel <- function(data, k, batch, hypp){
   }
   ##B <- length(ub)
   if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
+  zz <- factor(numeric(length(data)))
+  zfreq <- as.integer(table(zz))
   new("BatchModel",
       hyperparams=hypp,
       theta=matrix(NA, B, k),
@@ -42,24 +48,20 @@ BatchModel <- function(data, k, batch, hypp){
       nu.0=numeric(1),
       sigma2.0=numeric(1),
       pi=numeric(k),
-      ##data2=data[ix],
       data=data[ix],
       data.mean=matrix(NA, B, k),
       data.prec=matrix(NA, B, k),
-      z=factor(numeric(length(data))),
+      z=zz,
+      zfreq=zfreq,
       probz=matrix(0, length(data), k),
       logpotential=numeric(1),
       loglik=numeric(1),
       mcmc.chains=mcmc.chains,
-      ##batch=as.character(batch),
       batch=batch[ix],
-      ##batch=batch,
-      ##uniqueBatch=ub,
       batchElements=nbatch,
       hwe=numeric(),
       theta_order=numeric(B*k),
       m.y=numeric(1))
-      ##ix=ix)
 }
 
 setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
