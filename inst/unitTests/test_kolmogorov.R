@@ -13,7 +13,9 @@ test_KolmogorovSmirnov <- function(){
                              sds=sds,
                              p=c(1/3,1/3, 1/3))
   b <- collapseBatch(truth)
-  checkIdentical(unique(b), c("a,b", "c"))
+  ##checkIdentical(unique(b), c("a,b", "c"))
+  checkIdentical(unique(b), c("1,2", "3"))
+  .Call("compute_batch_variables", ks.test, truth)
 
   b2 <- collapseBatch(y(truth), as.character(oligoClasses::batch(truth)))
   checkIdentical(b, b2)

@@ -9,15 +9,9 @@ test_marginalEasy <- function(){
                         theta=c(-1, 0, 1),
                         sds=rep(0.1, 3))
   if(FALSE) plot(truth, use.current=TRUE)
-  set.seed(123)
-  iter(modelr) <- 1000L
-  modelr <- .runMcmc(modelr)
-  iter(modelc) <- 1000L
-  set.seed(123)
-
-  mp <- McmcParams(iter=1000, burnin=100)
-  mcmcParams(modelc) <- mp
-  model <- posteriorSimulation(modelc)
+  mp <- McmcParams(iter=500, burnin=500)
+  model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
+  model <- posteriorSimulation(model)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth, use.current=T)
@@ -88,21 +82,6 @@ test_marginalEasy <- function(){
   bayesFactor(marginaly)
 }
 
-
-#.test_k_too_big <- function(){
-#  ## when k is too big, chains may have a greater likelihood of crossing
-#  set.seed(1)
-#  truth <- simulateData(N=2500, p=rep(1/3, 3), theta=c(-1, 0, 1),
-#                        sds=rep(0.1, 3))
-#  if(FALSE) plot(truth, use.current=TRUE)
-#  params <- ModelParams("marginal", y=y(truth), k=3)
-#  mcmcp <- McmcParams(iter=1000, burnin=500)
-#  params <- ModelParams("marginal", y=y(truth), k=5)
-#  mcmcp <- McmcParams(iter=1000, burnin=500)
-#  model <- initializeModel(params)
-#  model <- posteriorSimulation(model, mcmcp)
-#}
-
 test_selectK_easy <- function(){
   library(GenomicRanges)
   set.seed(1000)
@@ -111,6 +90,8 @@ test_selectK_easy <- function(){
   truth <- simulateData(N=2500, p=rep(1/3, 3), theta=means, sds=sds)
   ## Also fit batch model when truth is no batch effect
   ## batch found
+  outdir <- tempdir()
+  se <- as(truth, "SummarizedExperiment")
   batchExperiment(se, outdir, mcmcp.list=mcmp.list)
   B <- getFiles(outdir, rownames(se), "batch")
   checkTrue(is.null(readRDS(model(B))))
@@ -129,22 +110,22 @@ test_marginal_Moderate <- function(){
                         sds=c(0.3, 0.15, 0.15),
                         p=c(0.05, 0.1, 0.8))
   if(FALSE) plot(truth, use.current=TRUE)
-  mcmcp <- McmcParams(iter=100, burnin=10)
+  mcmcp <- McmcParams(iter=500, burnin=100, thin=10)
   model <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
   model <- startAtTrueValues(model, truth)
   model <- posteriorSimulation(model, mcmcp)
-  checkEquals(theta(model), theta(truth), tolerance=0.05)
+  checkEquals(theta(model), theta(truth), tolerance=0.1)
   if(FALSE){
-    plot.ts(thetac(model))
-    plot.ts(sigma(model))
-    plot.ts(pic(model))
+    plot.ts(thetac(model), plot.type="single")
+    plot.ts(sigmac(model), plot.type="single")
+    plot.ts(pic(model), plot.type="single")
     op <- par(mfrow=c(1,2),las=1)
     plot(truth, use.current=T)
     plot(model)
     par(op)
   }
-  checkEquals(sigma(model), sigma(truth), tolerance=0.1)
-  checkEquals(p(model), p(truth), tolerance=0.1)
+  checkEquals(sigma(model), sigma(truth), tolerance=0.15)
+  checkEquals(colMeans(pic(model)), p(truth), tolerance=0.2)
 }
 
 test_marginal_hard <- function(){

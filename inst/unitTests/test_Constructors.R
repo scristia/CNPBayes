@@ -67,7 +67,4 @@ test_constructor <- function(){
 
   iter(bmod) <- 10
   checkTrue(nrow(thetac(bmod))==10)
-
-
-
 }

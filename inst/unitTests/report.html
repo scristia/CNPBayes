@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/transitional.dtd">
-<html><head><title>RUNIT TEST PROTOCOL--Wed Mar 25 20:30:29 2015</title>
+<html><head><title>RUNIT TEST PROTOCOL--Wed Mar 25 21:45:05 2015</title>
 </head>
-<body><h1 TRUE>RUNIT TEST PROTOCOL--Wed Mar 25 20:30:29 2015</h1>
+<body><h1 TRUE>RUNIT TEST PROTOCOL--Wed Mar 25 21:45:05 2015</h1>
 <p>Number of test functions: 13</p>
-<p style=color:red>Number of errors: 7</p>
-<p style=color:red>Number of failures: 3</p>
+<p style=color:red>Number of errors: 4</p>
+<p style=color:red>Number of failures: 1</p>
 <hr>
 <h3 TRUE>1 Test suite</h3>
 <table border="1" width="60%" >
@@ -16,8 +16,8 @@
 </tr>
 <tr><td><a href="#CNPBayes unit testing">CNPBayes unit testing</a></td>
 <td>13</td>
-<td bgcolor="red">7</td>
-<td bgcolor="red">3</td>
+<td bgcolor="red">4</td>
+<td bgcolor="red">1</td>
 </tr>
 </table>
 <hr>
@@ -31,28 +31,16 @@
 </td>
 </tr>
 <tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">CNPBayes unit testing : test_batchEasy</a></td>
-<td>Error in func() : could not find function "BatchModel"
+<td>Error in func() : could not find function ".runMcmc"
 </td>
 </tr>
 <tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">CNPBayes unit testing : test_hard3</a></td>
 <td>Error in func() : could not find function "initializeBatchModel"
 </td>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_Constructors.R_test_constructor">CNPBayes unit testing : test_constructor</a></td>
-<td>Error in func() : could not find function "Hyperparameters"
-</td>
-</tr>
 <tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy">CNPBayes unit testing : test_marginalEasy</a></td>
-<td>Error in iter(modelr) <- 1000L : object 'modelr' not found
-</td>
-</tr>
-<tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">CNPBayes unit testing : test_selectK_easy</a></td>
-<td>Error in file.path(outdir, paste0("mm_batch_", cnpids, ".rds")) : 
-  object 'outdir' not found
-</td>
-</tr>
-<tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">CNPBayes unit testing : test_mcmc_restart</a></td>
-<td>Error in func() : could not find function "mcmcChains"
+<td>Error in all.equal(target, current, tolerance = tolerance, ...) : 
+  could not find function "zFreq"
 </td>
 </tr>
 </table>
@@ -62,18 +50,9 @@
 <tr><th width="30%">Test suite : test function</th>
 <th width="70%">message</th>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">CNPBayes unit testing : test_KolmogorovSmirnov</a></td>
-<td>Error in checkIdentical(unique(b), c("a,b", "c")) : FALSE 
-</td>
-</tr>
 <tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">CNPBayes unit testing : test_marginal_hard</a></td>
 <td>Error in checkEquals(sigma(model)[order(theta(model))], sigma(truth),  : 
   Mean relative difference: 0.1897754
-</td>
-</tr>
-<tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">CNPBayes unit testing : test_marginal_Moderate</a></td>
-<td>Error in checkEquals(theta(model), theta(truth), tolerance = 0.05) : 
-  Mean relative difference: 0.09003917
 </td>
 </tr>
 </table>
@@ -81,19 +60,13 @@
 <h3 TRUE>Details</h3>
 <p><a name="CNPBayes unit testing"><h5 TRUE>Test Suite: CNPBayes unit testing</h5>
 </a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batch_moderate"><u style=color:red>test_batch_moderate: ERROR !!  </u></a>Error in func() : could not find function "initializeBatchModel"
-<br/></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy"><u style=color:red>test_batchEasy: ERROR !!  </u></a>Error in func() : could not find function "BatchModel"
+<br/></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy"><u style=color:red>test_batchEasy: ERROR !!  </u></a>Error in func() : could not find function ".runMcmc"
 <br/></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3"><u style=color:red>test_hard3: ERROR !!  </u></a>Error in func() : could not find function "initializeBatchModel"
-<br/></li></ul></li></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_Constructors.R">Test file: test_Constructors.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_Constructors.R_test_constructor"><u style=color:red>test_constructor: ERROR !!  </u></a>Error in func() : could not find function "Hyperparameters"
-<br/></li></ul></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov"><u style=color:red>test_KolmogorovSmirnov: FAILURE !! (check number 1)  </u></a>Error in checkIdentical(unique(b), c("a,b", "c")) : FALSE 
-<br/></li></ul></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_loglik.R">Test file: test_loglik.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_loglik.R_test_loglik">test_loglik: (2 checks) ... OK (0.07 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal_density.R">Test file: test_marginal_density.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal_density.R_test_marginal_density">test_marginal_density: (0 checks) ... OK (0 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard"><u style=color:red>test_marginal_hard: FAILURE !! (check number 2)  </u></a>Error in checkEquals(sigma(model)[order(theta(model))], sigma(truth),  : 
+<br/></li></ul></li></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_Constructors.R">Test file: test_Constructors.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_Constructors.R_test_constructor">test_constructor: (22 checks) ... OK (0.15 seconds)<br/></a></li></ul></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (4 checks) ... OK (0.08 seconds)<br/></a></li></ul></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_loglik.R">Test file: test_loglik.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_loglik.R_test_loglik">test_loglik: (2 checks) ... OK (0.06 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal_density.R">Test file: test_marginal_density.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal_density.R_test_marginal_density">test_marginal_density: (0 checks) ... OK (0 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard"><u style=color:red>test_marginal_hard: FAILURE !! (check number 2)  </u></a>Error in checkEquals(sigma(model)[order(theta(model))], sigma(truth),  : 
   Mean relative difference: 0.1897754
-<br/></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate"><u style=color:red>test_marginal_Moderate: FAILURE !! (check number 1)  </u></a>Error in checkEquals(theta(model), theta(truth), tolerance = 0.05) : 
-  Mean relative difference: 0.09003917
-<br/></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy"><u style=color:red>test_marginalEasy: ERROR !!  </u></a>Error in iter(modelr) <- 1000L : object 'modelr' not found
-<br/></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy"><u style=color:red>test_selectK_easy: ERROR !!  </u></a>Error in file.path(outdir, paste0("mm_batch_", cnpids, ".rds")) : 
-  object 'outdir' not found
-<br/></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart"><u style=color:red>test_mcmc_restart: ERROR !!  </u></a>Error in func() : could not find function "mcmcChains"
-<br/></li></ul></li></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_summmarizedExperiment.R">Test file: test_summmarizedExperiment.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_summmarizedExperiment.R_test_SummarizedExperiment">test_SummarizedExperiment: (0 checks) ... OK (0.15 seconds)<br/></a></li></ul></li></ul><hr>
+<br/></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">test_marginal_Moderate: (3 checks) ... OK (3.75 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy"><u style=color:red>test_marginalEasy: ERROR !!  </u></a>Error in all.equal(target, current, tolerance = tolerance, ...) : 
+  could not find function "zFreq"
+<br/></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">test_selectK_easy: (2 checks) ... OK (0.12 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (11 checks) ... OK (0.11 seconds)<br/></a></li></ul></li></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_summmarizedExperiment.R">Test file: test_summmarizedExperiment.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_summmarizedExperiment.R_test_SummarizedExperiment">test_SummarizedExperiment: (0 checks) ... OK (0.13 seconds)<br/></a></li></ul></li></ul><hr>
 <table border="0" width="80%" >
 <tr><th>Name</th>
 <th>Value</th>

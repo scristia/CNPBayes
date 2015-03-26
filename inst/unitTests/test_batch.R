@@ -22,10 +22,27 @@ test_batchEasy <- function(){
   ##  checkIdentical(batch(params), batch(truth))
   model <- BatchModel(y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp)
   model <- startAtTrueValues(model, truth)
-  iter(model) <- 200
+  iter(model) <- 50
   model2 <- .runMcmc(model)
+  checkEquals(theta(model2), theta(truth), tolerance=0.1)
 
-  model3 <- .Call("mcmc_batch", model, mcmcParams(model))
+  set.seed(123)
+  model <- BatchModel(y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp)
+  set.seed(123)
+  model2 <- BatchModel(y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp)
+  model <- startAtTrueValues(model, truth)
+  model2 <- startAtTrueValues(model2, truth)
+  iter(model) <- 50
+  iter(model2) <- 50
+  ##paramUpdates(model)[c("nu.0", "sigma2.0")] <- 0L
+  ##paramUpdates(model)[c("sigma2.0")] <- 0L
+  model <- .Call("mcmc_batch", model, mcmcParams(model))
+
+  set.seed(123)
+  .Call("update_sigma20_batch", model)
+  set.seed(123)
+  .updateSigma2.0Batch(model2)
+  ## problem lies with nu.0 or sigma2.0...
 
 
   model <- posteriorSimulation(model)

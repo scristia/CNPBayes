@@ -1,3 +1,4 @@
+#' @export
 BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
   if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
   if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)

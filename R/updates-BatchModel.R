@@ -237,6 +237,7 @@ setMethod("updateSigma2.0", "BatchModel", function(object){
   hypp <- hyperParams(object)
   P <- nBatch(object)
   sigma2s <- as.numeric(sigma2(object))
+  prec <- sum(1/sigma2s)
   a.k <- a(hypp) + 1/2 * (k(object) * P) * nu.0(object)
   b.k <- b(hypp) + 1/2 * sum(1/sigma2s)
   sigma2.0 <- rgamma(1, shape=a.k, rate=b.k)

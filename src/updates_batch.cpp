@@ -197,21 +197,25 @@ RcppExport SEXP update_sigma20_batch(SEXP xmod){
   IntegerVector ub = unique(batch) ;
   // ub = rev(ub) ;  
   int B = ub.size() ;
-  double a = hypp.slot("a") ;
-  double b = hypp.slot("b") ;
-  double nu_0 = model.slot("nu.0") ;  
-
+  NumericVector a = hypp.slot("a") ;
+  NumericVector b = hypp.slot("b") ;
+  NumericVector nu_0 = model.slot("nu.0") ;  
   NumericMatrix sigma2 = model.slot("sigma2") ;
-  double prec ;
+  NumericVector prec(1) ;
   for(int i = 0; i < B; ++i){
     for(int k = 0; k < K; ++k){
-      prec += 1.0/sigma2(i, k) ;
+      prec[0] += 1.0/sigma2(i, k) ;
     }
   }
-  double a_k = a + 0.5*(K * B)*nu_0 ;
-  double b_k = b + 0.5*prec ;
+  NumericVector a_k(1) ;
+  NumericVector b_k(1) ;
+  a_k[0] = a[0] + 0.5*(K * B)*nu_0[0] ;
+  b_k[0] = b[0] + 0.5*prec[0] ;
+  double rate ;
+  rate = 1.0/b_k[0] ;
+  //return b_k ;
   NumericVector sigma2_0(1) ;
-  sigma2_0[0] = as<double>(rgamma(1, a_k, 1.0/b_k)) ;
+  sigma2_0[0] = as<double>(rgamma(1, a_k[0], rate)) ;
   return sigma2_0 ;
 }
 

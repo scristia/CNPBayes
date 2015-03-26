@@ -30,8 +30,9 @@ setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 #' @export
 setGeneric("mcmcChains<-", function(object, value) standardGeneric("mcmcChains<-"))
 
-
+#' @export
 setGeneric("mcmcChains", function(object) standardGeneric("mcmcChains"))
+
 #' @export
 setGeneric("chains", function(object) standardGeneric("chains"))
 
@@ -178,6 +179,7 @@ setGeneric("tracePlot", function(object, name, ...) standardGeneric("tracePlot")
 #' @export
 setGeneric("tablez", function(object) standardGeneric("tablez"))
 
+#' @export
 setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 setGeneric("checkLabels", function(object) standardGeneric("checkLabels"))
 setGeneric("nStartIter", function(object) standardGeneric("nStartIter"))
@@ -204,6 +206,9 @@ setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 
 #' @export
 setGeneric("iter<-", function(object, value) standardGeneric("iter<-"))
+#' @export
+setGeneric("iter", function(object) standardGeneric("iter"))
+
 
 #' @export
 setGeneric("posteriorSimulation", function(object, mcmcp) standardGeneric("posteriorSimulation"))
@@ -258,9 +263,12 @@ setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"
 setGeneric("zFreq", function(object) standardGeneric("zFreq"))
 setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 
+#' @export
 setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
+#' @export
 setGeneric("mcmcParams<-", function(object, value) standardGeneric("mcmcParams<-"))
 
+#' @export
 setGeneric("logPrior", function(object) standardGeneric("logPrior"))
 
 setGeneric("logPrior<-", function(object,value) standardGeneric("logPrior<-"))
