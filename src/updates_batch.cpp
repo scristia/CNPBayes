@@ -581,8 +581,6 @@ RcppExport SEXP mcmc_batch_burnin(SEXP xmod, SEXP mcmcp) {
   Rcpp::S4 params(mcmcp) ;
   IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;
-  // NumericMatrix prec = model.slot("data.prec") ;
-  // NumericMatrix vars(prec.nrow(), prec.ncol()) ;
   if( S == 0 ){
     return xmod ;
   }
@@ -680,46 +678,62 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
   for(int s = 1; s < S; ++s){
     if(up[0] > 0) {
       th = update_theta_batch(xmod) ;
-      theta(s, _) = th ;
       model.slot("theta") = th ;
+    } else {
+      th = model.slot("theta") ;
     }
+    theta(s, _) = th ;
     if(up[1] > 0){
       s2 = update_sigma2_batch(xmod) ;
-      sigma2(s, _) = s2 ;
       model.slot("sigma2") = s2 ;
+    } else {
+      s2 = model.slot("sigma2") ;
     }
+    sigma2(s, _) = s2 ;
     if(up[2] > 0){
       p = update_p_batch(xmod) ;
-      pmix(s, _) = p ;
       model.slot("pi") = p ;      
+    } else {
+      p = model.slot("pi") ;
     }
+    pmix(s, _) = p ;
     if(up[3] > 0){
       m = update_mu_batch(xmod) ;
-      mu(s, _) = m ;
       model.slot("mu") = m ;
+    } else {
+      m = model.slot("mu") ;
     }
+    mu(s, _) = m ;
     if(up[4] > 0){    
       t2 = update_tau2_batch(xmod) ;
-      tau2(s, _) = t2 ;
       model.slot("tau2") = t2 ;
+    } else {
+      t2 = model.slot("tau2") ;
     }
+    tau2(s, _) = t2 ;
     if(up[5] > 0){        
       n0 = update_nu0_batch(xmod) ;
       model.slot("nu.0") = n0 ;
-      nu0[s] = n0[0] ;
+    } else {
+      n0 = model.slot("nu.0") ;
     }
+    nu0[s] = n0[0] ;
     if(up[6] > 0){        
       s20 = update_sigma20_batch(xmod) ;
       model.slot("sigma2.0") = s20 ;
-      sigma2_0[s] = s20[0] ;
+    } else {
+      s20 = model.slot("sigma2.0") ;
     }
+    sigma2_0[s] = s20[0] ;
     if(up[7] > 0){
       z = update_z_batch(xmod) ;
       model.slot("z") = z ;
       tmp = tableZ(K, z) ;
       model.slot("zfreq") = tmp ;
-      zfreq(s, _) = tmp ;
+    } else {
+      tmp = model.slot("zfreq") ;
     }
+    zfreq(s, _) = tmp ;    
     model.slot("data.mean") = compute_means_batch(xmod) ;
     model.slot("data.prec") = compute_prec_batch(xmod) ;
     ll = compute_loglik_batch(xmod) ;
