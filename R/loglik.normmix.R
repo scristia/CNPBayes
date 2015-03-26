@@ -5,18 +5,20 @@ loglik.normmix <-
   }
 
 
-.computeLoglikBatch <- function(object){
-  ll.data <- logLikData(object)
-  ll.data
-}
+## .computeLoglikBatch <- function(object){
+##   ll.data <- logLikData(object)
+##   ll.data
+## }
 
 setMethod("computeLoglik", "BatchModel", function(object){
-  .computeLoglikBatch(object)
+  ##logLikData(object)
+  .Call("compute_loglik_batch", object)
 })
 
 
 setMethod("computeLoglik", "MarginalModel", function(object){
-  .computeLoglik(object)
+  ##.computeLoglik(object)
+  .Call("loglik", object)
 })
 
 
@@ -52,6 +54,37 @@ logLikData <- function(object){
   sum(log(lik))
 }
 
+logLikData2 <- function(object){
+  b <- batch(object)
+  mn <- theta(object)
+  ss <- sigma(object)
+  x <- y(object)
+  tabz <- table(b, z(object))
+  P <- tabz/rowSums(tabz)
+  B <- nBatch(object)
+  K <- k(object)
+  lik <- matrix(NA, length(b), K)
+  for(i in 1:B){
+    index <- b == i
+    for(k in 1:K){
+      lik[index, k] <-  P[i, k] * dnorm(x[index], mn[i, k], ss[i, k])
+    }
+  }
+  lik <- rowSums(lik)
+  sum(log(lik))
+  ## Vectorize
+##   lk <- k(object)
+##   xx <- rep(x, lk)
+##   nb <- rep(batchElements(object), lk)
+##   means <- rep(as.numeric(mn), nb)
+##   sds <- rep(as.numeric(ss), nb)
+##   p <- rep(as.numeric(P), nb)
+##   lik <- p*dnorm(xx, means, sds)
+##   lik <- matrix(lik, length(x), lk)
+##   lik <- rowSums(lik)
+##   sum(log(lik))
+}
+
 logLikPhi <- function(object){
   thetas <- theta(object)
   mus <- mu(object)
@@ -73,14 +106,15 @@ logLikPhi <- function(object){
 }
 
 setMethod("computePrior", "BatchModel", function(object){
-  hypp <- hyperParams(object)
-  K <- k(hypp)
-  tau2s <- tau2(object)
-  mus <- mu(object)
-  p.mu <- dnorm(mus, mu.0(hypp), sqrt(tau2.0(hypp)))
-  p.sigma2.0 <- dgamma(sigma2.0(object), shape=a(hypp), rate=b(hypp))
-  p.nu.0 <- dgeom(as.integer(nu.0(object)), betas(hypp))
-  sum(log(p.mu)) + log(p.sigma2.0) + log(p.nu.0)
+  .Call("compute_logprior_batch", object)
+##   hypp <- hyperParams(object)
+##   K <- k(hypp)
+##   tau2s <- tau2(object)
+##   mus <- mu(object)
+##   p.mu <- dnorm(mus, mu.0(hypp), sqrt(tau2.0(hypp)))
+##   p.sigma2.0 <- dgamma(sigma2.0(object), shape=a(hypp), rate=b(hypp))
+##   p.nu.0 <- dgeom(as.integer(nu.0(object)), betas(hypp))
+##   sum(log(p.mu)) + log(p.sigma2.0) + log(p.nu.0)
 })
 
 
@@ -117,7 +151,7 @@ setMethod("computePrior", "BatchModel", function(object){
 
 setMethod("computePrior", "MarginalModel", function(object){
   ##  .compute_prior_marginal(object)
-  .Call("compute_priorPr", object)
+  .Call("compute_logprior", object)
 })
 
 .compute_prior_marginal <- function(object){

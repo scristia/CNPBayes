@@ -1,9 +1,9 @@
 #' @export
 simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
   if(missing(batch)) {
-    batch <- factor(rep(1, N))
+    batch <- rep(1L, N)
   } else {
-    batch <- factor(batch, levels=unique(batch))
+    batch <- as.integer(factor(batch))
   }
   if(missing(zz)) {
     zz <- simulateZ(N, p)
@@ -19,13 +19,18 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
     s <- sds[b, ]
     yy[index] <- rnorm(nn, mu[cn], s[cn])
   }
-  params <- ModelParams("batch", y=yy, k=ncol(theta), batch=batch)
-  object <- constructModel(type(params), data=y(params),
-                           k=k(params), batch=batch(params))
-  dat(object) <- yy
-  z(object) <- factor(zz, levels=unique(sort(zz)))
+  ##browser()
+  ix <- order(batch)
+  object <- BatchModel(yy, batch=batch, k=ncol(theta))
+  z(object) <- as.integer(factor(zz))[ix]
+  ##
+  ## Must initialize the slots independently (must point to different
+  ## locations in memory)
+  ##
   theta(object) <- computeMeans(object)
+  dataMean(object) <- computeMeans(object)
   sigma2(object) <- computeVars(object)
+  dataPrec(object) <- 1/computeVars(object)
   p(object) <- as.numeric(table(z(object))/N)
   logLik(object) <- computeLoglik(object)
   object
@@ -39,7 +44,7 @@ simulateData <- function(N, p, theta, sds){
   ##params <- ModelParams("marginal", y=y, k=length(theta))
   ##object <- initializeModel(params)
   object <- MarginalModel(data=y, k=length(theta))
-  z(object) <- factor(zz, levels=unique(sort(zz)))
+  z(object) <- as.integer(factor(zz, levels=unique(sort(zz))))
   p(object) <- p
   theta(object) <- as.numeric(sapply(split(y(object), z(object)), mean))
   sigma2(object) <- as.numeric(sapply(split(y(object), z(object)), var))
@@ -47,6 +52,7 @@ simulateData <- function(N, p, theta, sds){
   mu(object) <- mean(theta(object))
   tau2(object) <- var(theta(object))
   logLik(object) <- computeLoglik(object)
+  logPrior(object) <- computePrior(object)
   ##logpotential(object) <- computePotential(object)
   object
 }

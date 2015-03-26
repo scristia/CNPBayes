@@ -1,4 +1,5 @@
 test_batchEasy <- function(){
+  library(oligoClasses)
   set.seed(123)
   k <- 3
   nbatch <- 3
@@ -11,26 +12,34 @@ test_batchEasy <- function(){
                              theta=means,
                              sds=sds,
                              p=c(1/5, 1/3, 1-1/3-1/5))
-  checkTrue(is.factor(batch(truth)))
+  ##checkTrue(oligoClasses::batch(truth))
   yy <- y(truth)
   checkIdentical(yy, yy[order(batch(truth))])
   mcmcp <- McmcParams(iter=50, burnin=0)
-  params <- ModelParams("batch", y=y(truth), k=3,
-                        batch=batch(truth),
-                        mcmc.params=mcmcp)
-  checkIdentical(y(params), y(truth))
-  checkIdentical(batch(params), batch(truth))
+  ##   params <- ModelParams("batch", y=y(truth), k=3,
+  ##                         batch=batch(truth),
+  ##                         mcmc.params=mcmcp)
+  ##  checkIdentical(batch(params), batch(truth))
+  model <- BatchModel(y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp)
+  model <- startAtTrueValues(model, truth)
+  iter(model) <- 200
+  model2 <- .runMcmc(model)
 
-  model <- initializeBatchModel(params)
+  model3 <- .Call("mcmc_batch", model, mcmcParams(model))
+
+
+  model <- posteriorSimulation(model)
+  ##model <- initializeBatchModel(params)
   checkIdentical(batch(model), batch(truth))
   checkIdentical(y(model), y(truth))
-
   model <- startAtTrueValues(model, truth)
   checkIdentical(theta(model), theta(truth))
   checkIdentical(sigma(model), sigma(truth))
   checkIdentical(p(model), p(truth))
   checkIdentical(z(model), z(truth))
-  model <- posteriorSimulation(model, mcmcp)
+
+  iter(model) <- 200
+  model <- posteriorSimulation(model)
   ## Parameters should not stray far from the true values after a
   ## small number of iterations
   checkEquals(theta(model), theta(truth), tolerance=0.1)

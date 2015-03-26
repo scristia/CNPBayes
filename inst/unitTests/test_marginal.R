@@ -1,16 +1,23 @@
-## no reason to test if the other tests are working
+checkEquals2 <- function(target, ..., order){
+  checkEquals(target[order], ...)
+}
+
+  ## no reason to test if the other tests are working
 test_marginalEasy <- function(){
   set.seed(1)
   truth <- simulateData(N=2500, p=rep(1/3, 3),
                         theta=c(-1, 0, 1),
                         sds=rep(0.1, 3))
   if(FALSE) plot(truth, use.current=TRUE)
-
+  set.seed(123)
+  iter(modelr) <- 1000L
+  modelr <- .runMcmc(modelr)
+  iter(modelc) <- 1000L
+  set.seed(123)
 
   mp <- McmcParams(iter=1000, burnin=100)
-  model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
-  model <- posteriorSimulation(model)
-
+  mcmcParams(modelc) <- mp
+  model <- posteriorSimulation(modelc)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth, use.current=T)
@@ -19,15 +26,68 @@ test_marginalEasy <- function(){
   }
   mc <- mcmcChains(model)
   pmns <- colMeans(theta(mc))
-  checkEquals(sort(pmns), theta(truth), tolerance=0.03)
+  i <- order(pmns)
+  checkEquals2(pmns, theta(truth), order=i, tolerance=0.03)
 
   ps <- colMeans(sigma(mc))
-  checkEquals(ps[order(pmns)], sigma(truth), tolerance=0.1)
+  checkEquals2(ps, sigma(truth), tolerance=0.11, order=i)
 
   pmix <- p(truth)
-  pm_pmix <- colMeans(p(mc))
-  checkEquals(pmix, pm_pmix[order(pmns)], tolerance=0.05)
+  pp <- colMeans(p(mc))
+  checkEquals2(pp, pmix, tolerance=0.05, order=i)
+
+  ##
+  ## Update slots with the mode of loglik + logprior
+  ##
+  i <- argMax(model)
+  checkTrue(i == which.max(logPrior(chains(model)) + logLik(chains(model))))
+  ## Check the modes
+  checkIdentical(modes(model)[["theta"]], thetac(model)[i, ])
+  checkIdentical(sqrt(modes(model)[["sigma2"]]), sigmac(model)[i, ])
+
+  ##
+  ## Explore another mode by switching the labels
+  ##
+  model2 <- relabel(model, zindex=3:1)
+  checkEquals(zFreq(model2), zFreq(model)[3:1])
+  mcmcParams(model2) <- mp
+  burnin(model2) <- 0
+  model2 <- posteriorSimulation(model2)
+  if(FALSE){
+    par(mfrow=c(2,1), las=1)
+    plot.ts(thetac(model), col=1:3, plot.type="single")
+    plot.ts(thetac(model2), col=1:3, plot.type="single")
+  }
+  pmns2 <- colMeans(thetac(model2))
+  checkEquals(pmns, pmns2[3:1], tolerance=0.05)
+
+  ##
+  ## Create a model for each of the possible modes
+  ##
+  mmod <- useModes(model)
+  burnin(mmod) <- 500
+  K <- k(model)
+  checkIdentical(thetac(model)[argMax(model), ], theta(mmod))
+  model.list <- ModelEachMode(mmod, maxperm=5)
+  zlist <- lapply(model.list, zFreq)
+  ztab <- zFreq(mmod)
+  ## the first model is in the same order
+  permutations <- combinat::permn(1:3)
+  checkTrue(all(foreach(zfreq=zlist, i=permutations, .combine="c") %do% identical(zfreq, ztab[i])))
+  model <- startAtTrueValues(model, truth)
+  m.y(model) <- computeMarginalProbs(model, iter=500, burnin=200)
+  checkTrue(diff(range(m.y(model))) < 10 )
+
+  ##
+  ## compute marginal density for other K
+  ##
+  marginaly <- computeMarginalEachK(y(truth), K=1:4,
+                                    mcmcp=McmcParams(iter=200, burnin=100),
+                                    MAX.RANGE=10)
+  checkTrue(which.max(marginaly)==3)
+  bayesFactor(marginaly)
 }
+
 
 #.test_k_too_big <- function(){
 #  ## when k is too big, chains may have a greater likelihood of crossing
@@ -44,42 +104,11 @@ test_marginalEasy <- function(){
 #}
 
 test_selectK_easy <- function(){
-  ## Need to replace setParallelization with source code
-  ## -investigate BiocParallel
+  library(GenomicRanges)
   set.seed(1000)
   means <- c(-1, 0, 1)
   sds <- c(0.1, 0.2, 0.2)
   truth <- simulateData(N=2500, p=rep(1/3, 3), theta=means, sds=sds)
-  if(FALSE) plot(truth, use.current=TRUE)
-  ##
-  ## Evaluate at different K
-  ##
-  se <- as(truth, "SummarizedExperiment")
-  outdir <- tempdir()
-  mcmp.list <- mcmcpList(iter=rep(50, 4), nStarts=5, nStartIter=10)
-  mcmp.list[[2]]@iter <- 50
-  mcmp.list[[2]]@burnin <- 10
-  marginalExperiment(se, outdir, mcmcp.list=mcmp.list)
-  M <- getFiles(outdir, rownames(se), "marginal")
-  checkTrue(file.exists(model(M)))
-
-  if(FALSE){
-    ## Needs more MCMC iterations
-    m.y <- getPosteriorStats(M)
-    bf <- bayesFactor(m.y)
-    checkIdentical(substr(names(bf), 1, 2), "M3")
-  }
-
-  ## metadata fields for plotting legend
-  if(FALSE){
-    rowRanges(se)$source <- "simulation"
-    rowRanges(se)$nSNPs <- 10
-    rowRanges(se)$nmarkers <- 15
-    load_all()
-    par(mfrow=c(1,4))
-    plotModel(list(M), se)
-  }
-
   ## Also fit batch model when truth is no batch effect
   ## batch found
   batchExperiment(se, outdir, mcmcp.list=mcmp.list)
@@ -100,17 +129,11 @@ test_marginal_Moderate <- function(){
                         sds=c(0.3, 0.15, 0.15),
                         p=c(0.05, 0.1, 0.8))
   if(FALSE) plot(truth, use.current=TRUE)
-  mcmcp <- McmcParams(iter=150, burnin=25)
-  params <- ModelParams("marginal", y=y(truth), k=3)
-  model <- initializeModel(params)
+  mcmcp <- McmcParams(iter=100, burnin=10)
+  model <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
   model <- startAtTrueValues(model, truth)
   model <- posteriorSimulation(model, mcmcp)
   checkEquals(theta(model), theta(truth), tolerance=0.05)
-
-  model <- initializeModel(params)
-  model <- posteriorSimulation(model, mcmcp)
-  checkEquals(sort(theta(model)), theta(truth), tolerance=0.1)
-  ix <- order(theta(model))
   if(FALSE){
     plot.ts(thetac(model))
     plot.ts(sigma(model))
@@ -120,10 +143,8 @@ test_marginal_Moderate <- function(){
     plot(model)
     par(op)
   }
-  checkEquals(sigma(model)[ix], sigma(truth), tolerance=0.15)
-  ## check mixing proportions ... FAILS
-  ##i <- argMax(model)
-  ##checkEquals(pMean(model)[ix], p(truth), tolerance=0.2)
+  checkEquals(sigma(model), sigma(truth), tolerance=0.1)
+  checkEquals(p(model), p(truth), tolerance=0.1)
 }
 
 test_marginal_hard <- function(){
@@ -142,45 +163,18 @@ test_marginal_hard <- function(){
   if(FALSE) plot(truth, use.current=TRUE)
 
   mcmcp <- McmcParams(iter=150, burnin=25)
-  params <- ModelParams("marginal", y=y(truth), k=3,
-                        mcmc.params=mcmcp)
-  modelk <- initializeModel(params)
+  modelk <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
   modelk <- startAtTrueValues(modelk, truth)
   model <- posteriorSimulation(modelk, mcmcp)
-  checkEquals(theta(model), theta(truth), tolerance=0.1)
-  checkEquals(sigma(model), sigma(truth), tolerance=0.1)
-  checkEquals(p(model), p(truth), tolerance=0.1)
+  checkEquals(sort(theta(model)), theta(truth), tolerance=0.1)
+  checkEquals(sigma(model)[order(theta(model))], sigma(truth), tolerance=0.1)
+  checkEquals(p(model)[order(theta(model))], p(truth), tolerance=0.1)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth, use.current=T)
     plot(model)
     par(op)
   }
-  ll.truth <- logLik(truth)
-  set.seed(123)
-  seeds <- sample(seq(1e6), 500)
-  ll <- sapply(seeds, computeLogLikForRandomStarts, params=params, hypp=hyperParams(model))
-  ll2 <- computeLogLikForRandomStarts(seeds[which.max(ll)], params, hyperParams(model))
-  checkIdentical(max(ll), ll2)
-  model <- computeLogLikForRandomStarts(seeds[which.max(ll)], params, hyperParams(model),
-                                        return.model=TRUE)
-  mcmcp <- McmcParams(iter=250, burnin=50)
-  model <- posteriorSimulation(model, mcmcp)
-  checkEquals(sort(theta(model)), theta(truth), tolerance=0.2)
-  ##plot.ts(thetac(model), plot.type="single", col=1:3)
-  ##
-  ## Have to increase the tolerance a bit
-  ##
-  pmns <- thetaMean(model)
-  checkEquals(sort(pmns), theta(truth), tolerance=0.2)
-
-  ps <- sigmaMean(model)
-  checkEquals(ps[order(pmns)], sigma(truth), tolerance=0.2)
-
-  pmix <- pMean(model)
-  exc <- tryCatch(checkEquals(p(truth), pmix[order(pmns)], tolerance=0.2), error=function(e)NULL)
-  checkTrue(is.null(exc))
-  ##min(effectiveSize::p(mc)) ## is very low
 }
 
 

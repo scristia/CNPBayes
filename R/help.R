@@ -5,8 +5,7 @@
 #' @import methods
 #' @import GenomicRanges
 #' @import S4Vectors
-#' @import mixtools
-#' @importFrom gtools rdirichlet
+#' @importFrom gtools rdirichlet ddirichlet
 #' @importFrom msm rtnorm
 #' @importFrom truncnorm rtruncnorm
 #' @importFrom Hmisc rMultinom
@@ -26,6 +25,7 @@ NULL
 
 ## what are we iimporting in gtools?
 ## HMisc rMultinom
-## gtools rdirichlet
+## gtools rdirichlet ddirichlet
 
 ## S4Vectors is needed for the  SimpleList constructor
+# @import mixtools

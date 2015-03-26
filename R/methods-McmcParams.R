@@ -84,7 +84,11 @@ mcmcpList <- function(test=FALSE, iter=c(500, 3000, 3000, 3000),
   mcmcp.list
 }
 
-paramUpdates <- function(x) x@param_updates
+
+setMethod("paramUpdates", "McmcParams", function(x){
+  x@param_updates
+})
+
 
 .param_updates <- function(x){
   x <- setNames(rep(1L, 8),
@@ -95,4 +99,9 @@ paramUpdates <- function(x) x@param_updates
 setReplaceMethod("paramUpdates", "McmcParams", function(x, value){
   x@param_updates <- value
   x
+})
+
+setReplaceMethod("iter", "McmcParams", function(object, value){
+  object@iter <- value
+  object
 })

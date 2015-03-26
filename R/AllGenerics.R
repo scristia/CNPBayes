@@ -30,8 +30,10 @@ setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 #' @export
 setGeneric("mcmcChains<-", function(object, value) standardGeneric("mcmcChains<-"))
 
-#' @export
+
 setGeneric("mcmcChains", function(object) standardGeneric("mcmcChains"))
+#' @export
+setGeneric("chains", function(object) standardGeneric("chains"))
 
 #' @export
 setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
@@ -201,6 +203,9 @@ setGeneric("burnin", function(object) standardGeneric("burnin"))
 setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 
 #' @export
+setGeneric("iter<-", function(object, value) standardGeneric("iter<-"))
+
+#' @export
 setGeneric("posteriorSimulation", function(object, mcmcp) standardGeneric("posteriorSimulation"))
 
 #' @export
@@ -255,3 +260,13 @@ setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 
 setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
 setGeneric("mcmcParams<-", function(object, value) standardGeneric("mcmcParams<-"))
+
+setGeneric("logPrior", function(object) standardGeneric("logPrior"))
+
+setGeneric("logPrior<-", function(object,value) standardGeneric("logPrior<-"))
+
+setGeneric("fullGibbs", function(object, mcmcp) standardGeneric("fullGibbs"))
+
+setGeneric("paramUpdates", function(x) standardGeneric("paramUpdates"))
+
+setGeneric("computePrec", function(object) standardGeneric("computePrec"))

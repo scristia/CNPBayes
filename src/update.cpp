@@ -24,14 +24,8 @@ RcppExport SEXP update_theta(SEXP xmod) {
     // Initialize nn, vector of component-wise sample size
     // TODO: abstract this and check for zero's
     //
-    IntegerVector nn(K) ;
-    for(int k = 0; k < K; k++){
-      nn[k] = sum(z == (k+1)) ;
-      if(nn[k] < 1) {
-        nn[k] = 1 ;
-      }
-    }
-  
+    // IntegerVector nn = model.slot("zfreq") ;
+    IntegerVector nn = tableZ(K, z) ;
     double post_prec;
     double tau_n;
     double mu_n;
@@ -87,8 +81,8 @@ Rcpp::NumericVector getData(Rcpp::S4 model) {
 // FUNCTIONS FOR ACCESSING HYPERPARAMETERS
 // [[Rcpp::export]]
 int getK(Rcpp::S4 hyperparams) {
-    int k = hyperparams.slot("k");
-    return k;
+  int k = hyperparams.slot("k");
+  return k;
 }
 
 Rcpp::NumericVector getMu(Rcpp::S4 hyperparams) {

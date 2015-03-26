@@ -1,5 +1,3 @@
-setGeneric("fullGibbs", function(object, mcmcp) standardGeneric("fullGibbs"))
-
 setMethod("fullGibbs", "MarginalModel", function(object, mcmcp){
   object=.Call("mcmc_marginal_burnin", object, mcmcp)
   object=.Call("mcmc_marginal", object, mcmcp)
@@ -175,36 +173,14 @@ mode.numeric <- function(x, na.rm=TRUE){
 posteriorP <- function(object, mcmcp){
   ##object <- useModes(object)
   x <- p(object)
-  ##S <- 2:(savedIterations(mcmcp)+1)
-  ##message("Running an additional ", savedIterations(mcmcp), " simulations from reduced Gibbs to estimate p(pi*|y)")
-  ##do_thin <- thin(mcmcp) > 1
-  ##T <- seq_len(thin(mcmcp))
-  ##post <- rep(NA, length(S))
-  ##
-  ## The ddirichlet function uses a very strict definition requires
-  ## sum(p) ==1 instead of allowing a tolerance
-  ##
-##   if(length(x) > 1){
-##     x[length(x)] <- 1-sum(x[-length(x)])
-##   }
-##   alpha.n <- updateAlpha(object)
-##   post[1] <- ddirichlet(x, alpha.n)
-  ##  for(s in S){
-  updateParams(mcmcp)[c("theta", "sigma2")] <- 0L
+  paramUpdates(mcmcp)[c("theta", "sigma2")] <- 0L
   object <- fullGibbs(object, mcmcp)
-  ##alphac <-
-  ##object <- reducedGibbsP(object, TRUE)
-  ##object <- moveChain(object, s)
-  ##alpha.n <- updateAlpha(object)
-  ##post[s] <- ddirichlet(x, alpha.n)
-    ##if(post[s] > 10e3) browser()
-##     if(do_thin){
-##       for(t in T) object <- reducedGibbsP(object, FALSE)
-##     }
-##  }
-  ## some values from dirichlet seem to be very extreme
-  ##median(post)
-  post
+  ztab <- zFreq(mcmcChains(object))
+  ztab <- ztab + alpha(object)
+  probs <- apply(ztab, 1, function(alpha, x){
+    ddirichlet(x, alpha)
+  }, x=x)
+  log(probs)
 }
 
 .priorProbsBatch <- function(object){
@@ -276,64 +252,42 @@ setMethod("priorProbs", "BatchModel", function(object) {
   p.theta*p.sigma2*p.mu*p.tau2*p.nu0*p.sigma2.0
 }
 
-##computeLoglik2 <- function(object){
-##  thetastar <- modes(object)[["theta"]]
-##  sigmastar <- sqrt(modes(object)[["sigma2"]])
-##  yy <- y(object)
-##  pp <- modes(object)[["mixprob"]]
-##  ## We should keep the z-values for the MCMC iteration that has the
-##  ## highest likelihood.  Here, I use the maximum a posteriori
-##  ## estimate as a plug-in, but this is not quite correct
-##  zz <- map(object)
-##  lik <- pp[zz]*dnorm(yy, thetastar[zz], sigmastar[zz])
-##  sum(log(lik))
-##}
-
 useModes <- function(object){
   m2 <- object
   theta(m2) <- modes(object)[["theta"]]
   sigma2(m2) <- modes(object)[["sigma2"]]
-  z(m2) <- factor(map(object), levels=seq_len(k(object)))
   tau2(m2) <- modes(object)[["tau2"]]
   nu.0(m2) <- modes(object)[["nu0"]]
   sigma2.0(m2) <- modes(object)[["sigma2.0"]]
   p(m2) <- modes(object)[["mixprob"]]
+  zFreq(m2) <- as.integer(modes(object)[["zfreq"]])
+  ##
+  ## update z with using the modal values from above
+  ##
+  z(m2) <- .Call("update_z", m2)
   m2
 }
 
-
-##computeBayesFactor <- function(model1, model2, mcmcp){
-##  log.m.y1 <- marginalY(model1, mcmcp)
-##  log.m.y2 <- marginalY(model2, mcmcp)
-##  exp(log.m.y1-log.m.y2)
-##}
-
 #' @export
-partialGibbs <- function(model, mcmcp){
-  m <- useModes(model)
-  mcmcChains(m) <- McmcChains(m, mcmcp)
-  ptheta <- posteriorTheta(m, mcmcp)
-  modes(m) <- modes(model)
-  lpsigma2 <- posteriorSigma2(m, mcmcp)
-  modes(m) <- modes(model)
-  pmix <- posteriorP(m, mcmcp)
-  results <- cbind(ptheta, lpsigma2, pmix)
-  colnames(results) <- c("theta", "sigma2", "p")
+partialGibbs <- function(object, mcmcp){
+  log_ptheta <- posteriorTheta(object, mcmcp)
+  log_psigma2 <- posteriorSigma2(object, mcmcp)
+  log_pmix <- posteriorP(object, mcmcp)
+  results <- cbind(log_ptheta, log_psigma2, log_pmix)
+  colnames(results) <- c("logtheta", "logsigma2", "logp")
   results
 }
 
 
 #' @export
 partialGibbsSummary <- function(model, x){
-  p.priors <- priorProbs(model)
-  ll <- logLik(mcmcChains(model))
-  ll <- ll[is.finite(ll)]
-  log.lik <- mean(ll)
-  results <- setNames(c(log(p.priors),
+  log.prior <- modes(model)[["logprior"]]
+  log.lik <- modes(model)[["loglik"]]
+  results <- setNames(c(log.prior,
                         log.lik,
-                        log(mean(x[, "theta"])),
-                        mode.numeric(x[, "sigma2"]),
-                        log(mean(x[, "p"]))),
+                        mean(x[, "logtheta"]),
+                        mean(x[, "logsigma2"]),
+                        mean(x[, "logp"])),
                       c("prior", "loglik", "theta", "sigma2", "pmix"))
   results
 }
@@ -458,13 +412,59 @@ avgMarginalTheta <- function(files){
   marginal_theta
 }
 
+computeMarginalProbs <- function(model, maxperm=5, iter=1000, burnin=100){
+  mmod <- useModes(model)
+  iter(mmod) <- iter
+  burnin(mmod) <- burnin
+  K <- k(model)
+  model.list <- ModelEachMode(mmod, maxperm)
+  ##
+  ## Run partial Gibbs sampler for each mode
+  ##
+  results <- matrix(NA, length(model.list), 5)
+  for(i in seq_along(model.list)){
+    model1 <- model.list[[i]]
+    pg <- partialGibbs(model1, mcmcParams(model1))
+    results[i, ] <- partialGibbsSummary(model1, pg)
+  }
+  colnames(results) <- c("logprior", "loglik", "logtheta", "logsigma2", "logp")
+  marginal.y <- results[, "logprior"] + results[, "loglik"] - results[, "logtheta"] -
+      results[, "logsigma2"] - results[, "logp"]
+  as.numeric(marginal.y)
+}
+
+#' @export
+computeMarginalEachK <- function(data, K=1:4, hypp, mcmcp=McmcParams(), MAX.RANGE=5){
+  j <- 1
+  marginaly <- setNames(rep(NA, length(K)), paste0("M", K))
+  for(k in K){
+    if(k == 1){
+      mp <- McmcParams(iter=min(iter(mcmcp), 500), burnin=min(burnin(mcmcp), 100))
+    } else mp <- mp <- mcmcp
+    kmod <- MarginalModel(data, k=k, mcmc.params=mp)
+    kmod <- posteriorSimulation(kmod)
+    m.y(kmod) <- computeMarginalProbs(kmod, iter=iter(mcmcp), burnin=burnin(mcmcp))
+    my <- m.y(kmod)
+    if( diff(range(my)) < MAX.RANGE ){
+      marginaly[j] <- mean(my)
+    }
+    j <- j+1
+  }
+  marginaly
+}
+
+ModelEachMode <- function(model, maxperm=5){
+  kperm <- permn(seq_len(k(model)))
+  kperm <- kperm[1:min(maxperm, length(kperm))]
+  model.list <- lapply(kperm, function(zindex, model) relabel(model, zindex), model=model)
+  model.list
+}
+
 #' @export
 computeMarginalPr <- function(model, mcmcp){
-  kperm <- permn(seq_len(k(model)))
-  model <- useModes(model)
-  xmodel.list <- lapply(kperm, function(zindex, model) relabel(model, zindex), model=model)
-  J <- min(3, length(model.list))
-  model.list <- model.list[seq_len(J)]
+  model.list <- ModelEachMode(model)
+  ##J <- min(3, length(model.list))
+  ##model.list <- model.list[seq_len(J)]
   pg <- lapply(model.list, partialGibbs, mcmcp=mcmcp)
   results <- foreach(model=model.list, x=pg, .combine="cbind") %do% {
     partialGibbsSummary(model, x)

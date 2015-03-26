@@ -1,67 +1,51 @@
-BatchModel <- function(data=numeric(), k=2L, batch, hypp){
-  if(missing(batch)) batch <- factor(rep("a", length(data)))
+BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
+  if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
+  if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
   mcmc.chains <- McmcChains()
-  batch <- factor(batch)
+  bf <- factor(batch)
+  batch <- as.integer(bf)
+  ub <- unique(batch)
   ix <- order(batch)
-  ub <- levels(batch)
-  nbatch <- setNames(as.integer(table(batch)), levels(batch))
+  nbatch <- setNames(as.integer(table(batch)), levels(bf))
   B <- length(ub)
-  if(B==1){
-    zz <- factor(numeric(k))
+  if(B==1 && length(data) > 0){
+    if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
+    zz <- as.integer(factor(numeric(k)))
     zfreq <- as.integer(table(zz))
-    ## instantiate a marginal model instead
-    obj <- new("MarginalModel",
-               hyperparams=hypp,
-               theta=numeric(k),
-               sigma2=numeric(k),
-               mu=numeric(1),
-               tau2=numeric(1),
-               nu.0=1L,
-               sigma2.0=1L,
-               pi=rep(1/k, k),
-               data=data,
-               data.mean=numeric(k),
-               data.prec=numeric(k),
-               z=zz,
-               zfreq=zfreq,
-               probz=matrix(0, length(data), k),
-               logpotential=numeric(1),
-               loglik=numeric(1),
-               mcmc.chains=McmcChains(),
-               batch=batch,
-               batchElements=length(ub),
-               hwe=numeric(),
-               modes=list(),
-               m.y=numeric(1))
+    obj <- MarginalModel(data, k, batch, hypp, mcmc.params)
     return(obj)
   }
+  ##browser()
   ##B <- length(ub)
   if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
-  zz <- factor(numeric(length(data)))
+  zz <- integer(length(data))
   zfreq <- as.integer(table(zz))
-  new("BatchModel",
-      hyperparams=hypp,
-      theta=matrix(NA, B, k),
-      sigma2=matrix(NA, B, k),
-      mu=numeric(k),
-      tau2=numeric(k),
-      nu.0=numeric(1),
-      sigma2.0=numeric(1),
-      pi=numeric(k),
-      data=data[ix],
-      data.mean=matrix(NA, B, k),
-      data.prec=matrix(NA, B, k),
-      z=zz,
-      zfreq=zfreq,
-      probz=matrix(0, length(data), k),
-      logpotential=numeric(1),
-      loglik=numeric(1),
-      mcmc.chains=mcmc.chains,
-      batch=batch[ix],
-      batchElements=nbatch,
-      hwe=numeric(),
-      theta_order=numeric(B*k),
-      m.y=numeric(1))
+  obj <- new("BatchModel",
+             hyperparams=hypp,
+             theta=matrix(NA, B, k),
+             sigma2=matrix(NA, B, k),
+             mu=numeric(k),
+             tau2=numeric(k),
+             nu.0=numeric(1),
+             sigma2.0=numeric(1),
+             pi=numeric(k),
+             data=data[ix],
+             data.mean=matrix(NA, B, k),
+             data.prec=matrix(NA, B, k),
+             z=zz,
+             zfreq=zfreq,
+             probz=matrix(0, length(data), k),
+             logprior=numeric(1),
+             loglik=numeric(1),
+             mcmc.chains=mcmc.chains,
+             mcmc.params=mcmc.params,
+             batch=batch[ix],
+             batchElements=nbatch,
+             hwe=numeric(),
+             theta_order=numeric(B*k),
+             m.y=numeric(1))
+  obj <- startingValues(obj)
+  obj
 }
 
 setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
@@ -120,17 +104,27 @@ batchLik <- function(x, p, mean, sd)  p*dnorm(x, mean, sd)
 
 
 setMethod("computeMeans", "BatchModel", function(object){
-  B <- batch(object)
-  ubatch <- uniqueBatch(object)
-  ybatch <- split(y(object), B)
-  zbatch <- split(z(object), B)
-  ymeans <- foreach(y=ybatch, z=zbatch, .combine='rbind') %do%{
-    mns <- sapply(split(y, z), mean, na.rm=TRUE)
-    mns
-  }
-  rownames(ymeans) <- names(ybatch)
-  ymeans[ubatch, ]
+  .Call("compute_means_batch", object)
+
 })
+
+setMethod("computePrec", "BatchModel", function(object){
+  .Call("compute_prec_batch", object)
+})
+
+.computeMeansBatch <- function(object){
+   if(length(y(object))==0) return(numeric())
+   B <- batch(object)
+   ubatch <- uniqueBatch(object)
+   ybatch <- split(y(object), B)
+   zbatch <- split(z(object), B)
+   ymeans <- foreach(y=ybatch, z=zbatch, .combine='rbind') %do%{
+     mns <- sapply(split(y, z), mean, na.rm=TRUE)
+     mns
+   }
+   rownames(ymeans) <- names(ybatch)
+   ymeans[ubatch, ]
+ }
 
 .computeModesBatch <- function(object){
   i <- argMax(object)
@@ -159,17 +153,21 @@ setMethod("computeModes", "BatchModel", function(object){
 componentVariances <- function(y, z)  v <- sapply(split(y, z), var)
 
 setMethod("computeVars", "BatchModel", function(object){
-  ubatch <- uniqueBatch(object)
-  B <- batch(object)
-  ybatch <- split(y(object), B)
-  zbatch <- split(z(object), B)
-  s2.0 <- sigma2.0(object)
-  yvars <- foreach(y=ybatch, z=zbatch, .combine='rbind') %do%{
-    componentVariances(y, z)
-  }
-  rownames(yvars) <- names(ybatch)
-  yvars[ubatch, ]
+  .Call("compute_vars_batch", object)
 })
+
+.computeVarsBatch <- function(object){
+   if(length(y(object))==0) return(numeric())
+   ubatch <- uniqueBatch(object)
+   B <- batch(object)
+   ybatch <- split(y(object), B)
+   zbatch <- split(z(object), B)
+   yvars <- foreach(y=ybatch, z=zbatch, .combine='rbind') %do%{
+     componentVariances(y, z)
+   }
+   rownames(yvars) <- names(ybatch)
+   yvars[ubatch, ]
+}
 
 
 setMethod("getThetaOrder", "MarginalModel", function(object) order(thetaMean(object)))
@@ -207,7 +205,8 @@ setMethod("moveChain", "BatchModel", function(object, s){
   tau2(mcmc)[s, ] <- tau2(object)
   nu.0(mcmc)[s] <- nu.0(object)
   sigma2.0(mcmc)[s] <- sigma2.0(object)
-  logpotential(mcmc)[s] <- computeLogLikxPrior(object)
+  ##logpotential(mcmc)[s] <- computeLogLikxPrior(object)
+  logPrior(mcmc)[s] <- computePrior(object)
   logLik(mcmc)[s] <- computeLoglik(object)
   mcmcChains(object) <- mcmc
   object
@@ -343,7 +342,7 @@ setMethod("show", "BatchModel", function(object){
   cat("     k           :", k(object), "\n")
   cat("     nobs/batch  :", table(batch(object)), "\n")
   cat("     loglik (s)  :", round(logLik(object), 1), "\n")
-  cat("     loglik x prior:", round(logpotential(object), 1), "\n")
+  cat("     logprior (s):", round(logPrior(object), 1), "\n")
 })
 
 setMethod("simulateY", "BatchModel", function(object){
@@ -369,7 +368,7 @@ setMethod("tablez", "BatchModel", function(object){
 })
 
 #' @export
-uniqueBatch <- function(object) levels(batch(object))
+uniqueBatch <- function(object) unique(batch(object))
 
 ##
 ## Multiple batches, but only 1 component
