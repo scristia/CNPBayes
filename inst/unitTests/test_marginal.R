@@ -58,20 +58,23 @@ test_marginalEasy <- function(){
   ##
   ## Create a model for each of the possible modes
   ##
-  mmod <- useModes(model)
-  burnin(mmod) <- 500
-  K <- k(model)
-  checkIdentical(thetac(model)[argMax(model), ], theta(mmod))
-  model.list <- ModelEachMode(mmod, maxperm=5)
-  zlist <- lapply(model.list, zFreq)
-  ztab <- zFreq(mmod)
-  ## the first model is in the same order
-  permutations <- combinat::permn(1:3)
-  checkTrue(all(foreach(zfreq=zlist, i=permutations, .combine="c") %do% identical(zfreq, ztab[i])))
-  model <- startAtTrueValues(model, truth)
-  m.y(model) <- computeMarginalProbs(model, iter=500, burnin=200)
-  checkTrue(diff(range(m.y(model))) < 10 )
-
+  if (FALSE) {
+    mmod <- CNPBayes:::useModes(model)
+    burnin(mmod) <- 500
+    K <- k(model)
+    checkIdentical(thetac(model)[argMax(model), ], theta(mmod))
+    model.list <- ModelEachMode(mmod, maxperm=5)
+    zlist <- lapply(model.list, zFreq)
+    ztab <- zFreq(mmod)
+    ## the first model is in the same order
+    permutations <- combinat::permn(1:3)
+    checkTrue(all(foreach(zfreq=zlist,
+                          i=permutations, .combine="c") %do%
+                  identical(zfreq, ztab[i])))
+    model <- startAtTrueValues(model, truth)
+    m.y(model) <- computeMarginalProbs(model, iter=500, burnin=200)
+    checkTrue(diff(range(m.y(model))) < 10 )
+  }
   ##
   ## compute marginal density for other K
   ##
@@ -142,19 +145,19 @@ test_marginal_hard <- function(){
                         sds=c(0.3, 0.15, 0.15),
                         p=c(0.005, 1/10, 1-0.005-1/10))
   if(FALSE) plot(truth, use.current=TRUE)
-
-  mcmcp <- McmcParams(iter=150, burnin=25)
+  mcmcp <- McmcParams(iter=1000, burnin=100, thin=10)
   modelk <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
-  modelk <- startAtTrueValues(modelk, truth)
   model <- posteriorSimulation(modelk, mcmcp)
-  checkEquals(sort(theta(model)), theta(truth), tolerance=0.1)
-  checkEquals(sigma(model)[order(theta(model))], sigma(truth), tolerance=0.1)
-  checkEquals(p(model)[order(theta(model))], p(truth), tolerance=0.1)
+  i <- order(theta(model))
+  checkEquals(theta(model)[i], theta(truth), tolerance=0.1)
+  checkEquals(colMeans(sigmac(model))[i], sigma(truth), tolerance=0.1)
+  checkEquals(colMeans(pic(model))[i], p(truth), tolerance=0.15)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth, use.current=T)
     plot(model)
     par(op)
+    plot.ts(sigmac(model), col=1:3, plot.type="single")
   }
 }
 

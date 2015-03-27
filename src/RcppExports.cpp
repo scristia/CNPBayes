@@ -206,6 +206,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// compute_probz_batch
+RcppExport SEXP compute_probz_batch(SEXP xmod);
+RcppExport SEXP CNPBayes_compute_probz_batch(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(compute_probz_batch(xmod));
+    return __result;
+END_RCPP
+}
 // mcmc_batch_burnin
 RcppExport SEXP mcmc_batch_burnin(SEXP xmod, SEXP mcmcp);
 RcppExport SEXP CNPBayes_mcmc_batch_burnin(SEXP xmodSEXP, SEXP mcmcpSEXP) {

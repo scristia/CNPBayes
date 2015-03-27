@@ -260,6 +260,7 @@ setGeneric("runMcmc", function(object, mcmcp) standardGeneric("runMcmc"))
 
 setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"))
 
+#' @export
 setGeneric("zFreq", function(object) standardGeneric("zFreq"))
 setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 

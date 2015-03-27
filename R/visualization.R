@@ -75,12 +75,12 @@ setMethod("hist", "MixtureModel", function(x, ...){
   if(!use.current){
     thetas <- thetaMean(object)
     sds <- sigmaMean(object)
-    ##P <- pMean(object)  does not give the batch specific probabilities
-    mapz <- factor(map(object), levels=seq_len(k(object)))
+    pz <- probz(object)
+    mapz <- apply(pz, 1, which.max)
+    mapz <- factor(mapz, levels=seq_len(k(object)))
     tabz <- table(batch(object), mapz)
     tabz <- tabz/rowSums(tabz)
     P <- tabz
-    ##P <- mapz/rowSums(mapz)
   } else {
     thetas <- theta(object)
     sds <- sigma(object)
@@ -93,26 +93,36 @@ setMethod("hist", "MixtureModel", function(x, ...){
   ## compute marginal density for each batch
   ## weight the 'overall' curve by the batch frequencies
   batchPr <- table(batch(object))/length(y(object))
-#  th <- rep(as.numeric(thetas), each=length(xx))
-#  sds <- rep(as.numeric(sds), each=length(xx))
-#  P <- rep(as.numeric(P), each=length(xx))
-#  batchPr <- rep(rep(batchPr, k(object)), each=length(xx))
-#  p.x <-  batchPr*P*dnorm(xx, th, sds)
-  ##  p.x <- matrix
-  m <- 1
-  for(j in seq_len(k(object))){
-    for(b in uniqueBatch(object)){
-      p.x <- dnorm(xx, mean=thetas[b, j], sd=sds[b, j])
-      p.x <- batchPr[b] * P[b, j] * p.x
-      if(show.batch) lines(xx, p.x, col=cols[j], lwd=2)
-      marginal[, m] <- p.x
-      m <- m+1
-    }
-  }
+  marginal <- drawEachComponent(xx, uniqueBatch(object), thetas, sds, P, batchPr, cols)
   marginal.cum.prob <- rowSums(marginal)
   limits <- list(range(y(object), na.rm=TRUE), range(marginal.cum.prob, na.rm=TRUE))
   lines(xx, marginal.cum.prob, col="black", lwd=2)
 }
+
+drawdens <- function(x, mean, sd, p1, p2, col){
+  p.x <- p1*p2*dnorm(x, mean, sd)
+  lines(x, p.x, col=col, lwd=2)
+  p.x
+}
+
+drawEachComponent <- function(x, batches, thetas, sds, P, batchPr, cols){
+  mlist <- list()
+  for(j in seq_len(ncol(thetas))){
+    mlist[[j]] <- drawEachBatch(x, batches, thetas[, j], sds[, j], P[, j], batchPr, cols[j])
+  }
+  marginal <- do.call(cbind, mlist)
+}
+
+drawEachBatch <- function(x, batches, thetas, sds, p1, p2, col){
+  marginal <- matrix(NA, length(x), length(batches))
+  for(b in seq_along(batches)){
+    marginal[, b] <- drawdens(x, thetas[b], sds[b], p1[b], p2[b], col)
+  }
+  marginal
+}
+
+
+
 
 #' @export
 plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){

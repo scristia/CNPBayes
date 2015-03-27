@@ -16,56 +16,70 @@ test_batchEasy <- function(){
   yy <- y(truth)
   checkIdentical(yy, yy[order(batch(truth))])
   mcmcp <- McmcParams(iter=50, burnin=0)
-  ##   params <- ModelParams("batch", y=y(truth), k=3,
-  ##                         batch=batch(truth),
-  ##                         mcmc.params=mcmcp)
-  ##  checkIdentical(batch(params), batch(truth))
-  model <- BatchModel(y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp)
-  model <- startAtTrueValues(model, truth)
-  iter(model) <- 50
-  model2 <- .runMcmc(model)
-  checkEquals(theta(model2), theta(truth), tolerance=0.1)
-
   set.seed(123)
   model <- BatchModel(y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp)
-  set.seed(123)
-  model2 <- BatchModel(y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp)
   model <- startAtTrueValues(model, truth)
-  model2 <- startAtTrueValues(model2, truth)
-  iter(model) <- 50
-  iter(model2) <- 50
-  ##paramUpdates(model)[c("nu.0", "sigma2.0")] <- 0L
-  ##paramUpdates(model)[c("sigma2.0")] <- 0L
-  model <- .Call("mcmc_batch", model, mcmcParams(model))
-
-  set.seed(123)
-  .Call("update_sigma20_batch", model)
-  set.seed(123)
-  .updateSigma2.0Batch(model2)
-  ## problem lies with nu.0 or sigma2.0...
-
-
-  model <- posteriorSimulation(model)
-  ##model <- initializeBatchModel(params)
   checkIdentical(batch(model), batch(truth))
   checkIdentical(y(model), y(truth))
-  model <- startAtTrueValues(model, truth)
   checkIdentical(theta(model), theta(truth))
   checkIdentical(sigma(model), sigma(truth))
   checkIdentical(p(model), p(truth))
   checkIdentical(z(model), z(truth))
+  iter(model) <- 50
+  model2 <- CNPBayes:::.runMcmc(model)
+  checkEquals(theta(model2), theta(truth), tolerance=0.1)
 
-  iter(model) <- 200
+  if(FALSE){
+    iter(model) <- 500
+    model2 <- CNPBayes:::.runMcmc(model)
+    checkEquals(theta(model2), theta(truth), tolerance=0.1)
+  }
+  ##paramUpdates(model)[c("nu.0", "sigma2.0")] <- 0L
+  ##paramUpdates(model)[c("sigma2.0")] <- 0L
+  if(FALSE){
+    model <- .Call("mcmc_batch", model, mcmcParams(model))
+    set.seed(123)
+    .Call("update_sigma20_batch", model)
+    set.seed(123)
+    .updateSigma2.0Batch(model2)
+    ## problem lies with nu.0 or sigma2.0...
+  }
+  eta.0 <- 100
+  m2.0 <- 1/10
+  a <- 0.5*eta.0
+  b <- 0.5*eta.0*m2.0
+  x <- rgamma(1000, a, rate=1/b)
+  ix <- 1/x
+  hist(sqrt(1/x), breaks=100)
+  s <- mean(sqrt(1/x))
+  theta <- rnorm(1000, -1, s)
+  hist(theta, breaks=100, xlim=c(-2, 1.5))
+
+  eta.0 <- 1800
+  m2.0 <- 1/60
+  a <- 0.5*eta.0
+  b <- 0.5*eta.0*m2.0
+  x <- rgamma(1000, a, rate=1/b)
+  ix <- 1/x
+  hist(sqrt(1/x), breaks=100)
+  s <- mean(sqrt(1/x))
+  theta <- rnorm(1000, -1, s)
+  hist(theta, breaks=100, xlim=c(-2, 1.5))
+
+  mcmcp <- McmcParams(iter=2000, burnin=0)
+  model <- BatchModel(y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp,
+                      HyperparametersBatch(m2.0=1/60, eta.0=1800, k=3))
   model <- posteriorSimulation(model)
-  ## Parameters should not stray far from the true values after a
-  ## small number of iterations
-  checkEquals(theta(model), theta(truth), tolerance=0.1)
+  i <- order(theta(model)[1, ])
+  checkEquals(theta(model)[, i], theta(truth), tolerance=0.1)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth, use.current=T)
     plot(model)
-    ##abline(v=th, lwd=1)
     par(op)
+    par(mfrow=c(1,3))
+    tracePlot(model, "theta", col=1:3)
+    plot.ts(muc(model), col=1:3)
   }
 }
 
@@ -78,20 +92,28 @@ test_batch_moderate <- function(){
                     -0.41, -0.4, -.395,
                     -0.1, 0, 0.05), nbatch, k, byrow=FALSE)
   sds <- matrix(0.15, nbatch, k)
-  sds[,1] <- 0.3
+  sds[, 1] <- 0.3
   truth <- simulateBatchData(N=2500,
                              batch=rep(letters[1:3], length.out=2500),
                              p=c(1/10, 1/5, 1-0.1-0.2),
                              theta=means,
                              sds=sds)
   mcmcp <- McmcParams(iter=150, burnin=0)
-  params <- ModelParams("batch", y=y(truth), k=3,
-                        batch=batch(truth),
-                        mcmc.params=mcmcp)
-  model <- initializeBatchModel(params)
+  hypp <- HyperparametersBatch(m2.0=1/60, eta.0=1800, k=3)
+  model <- BatchModel(data=y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp,
+                      hypp=hypp)
   model <- startAtTrueValues(model, truth)
   model <- posteriorSimulation(model, mcmcp)
-  checkEquals(theta(model), theta(truth), tolerance=0.1) ## fails
+  i <- order(theta(model)[1, ])
+  checkEquals(theta(model)[, i], theta(truth), tolerance=0.1)
+  ## random starts
+  mcmcp <- McmcParams(iter=100, burnin=100, nStarts=20)
+  model <- BatchModel(data=y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp,
+                      hypp=hypp)
+  model <- posteriorSimulation(model)
+  i <- order(theta(model)[1, ])
+  checkEquals(theta(model)[, i], theta(truth), tolerance=0.1)
+  checkEquals(mu(model)[i], mu(truth), tolerance=0.15)
   if(FALSE){
     zz <- as.integer(z(truth))
     ps <- c(mean(zz==1), mean(zz==2), mean(zz==3))
@@ -101,7 +123,6 @@ test_batch_moderate <- function(){
     par(mfrow=c(1,3))
     tracePlot(modelk, "theta", col=1:3)
     abline(h=theta(truth))
-
     plot.ts(sigmac(modelk), plot.type="single")
     abline(h=sigma(truth))
     op <- par(mfrow=c(1,2),las=1)
@@ -151,23 +172,45 @@ test_hard3 <- function(){
   ## Use defaults
   ##
   mcmcp <- McmcParams(iter=100, burnin=0)
-  params <- ModelParams("batch", y=y(truth), k=3,
-                        batch=batch(truth),
-                        mcmc.params=mcmcp)
-  modelk <- initializeBatchModel(params)
+  modelk <- BatchModel(data=y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp,
+                       HyperparametersBatch(k=3, m2.0=1/60, eta.0=1800))
   modelk <- startAtTrueValues(modelk, truth)
   mmodel <- posteriorSimulation(modelk, mcmcp)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     CNPBayes::plot(truth, use.current=TRUE)
-    CNPBayes::plot(mmodel)
+    ##trace(.plotBatch, browser)
+    .plotBatch(mmodel)
     par(op)
+    i <- order(theta(mmodel)[1, ])
+    theta(mmodel)[, i]
+    theta(truth)
+    sigma(model)[, i]
+    sigma(truth)
     mc <- mcmcChains(mmodel)
-    plot.ts(sigma(mc), col="gray")
+    par(mfrow=c(1,3))
+    tracePlot(mmodel, "sigma", col=1:3)
+    tracePlot(mmodel, "theta", col=1:3)
+    plot.ts(sigma(mc), col="gray", )
     plot.ts(theta(mc), col="gray")
+    plot.ts(mu(mc), plot.type="single", col=1:3)
     cbind(colMeans(sigma(mc)), as.numeric(sigma(truth)))
   }
   ##mc <- mcmcChains(mmodel)
+  pmns <- thetaMean(mmodel)
+  j <- order(pmns[1,])
+  ps <- sigmaMean(mmodel)[, j]
+  pmix <- pMean(mmodel)[j]
+  checkEquals(pmns[, j], theta(truth), tolerance=0.04)
+  checkEquals(ps, sigma(truth), tolerance=0.15)
+  checkEquals(pmix, p(truth), tolerance=0.04)
+  ##
+  ## With multiple starts we can find the mode
+  ##
+  mcmcp <- McmcParams(iter=200, burnin=100, nStarts=20)
+  modelk <- BatchModel(data=y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp,
+                       HyperparametersBatch(k=3, m2.0=1/60, eta.0=1800, tau2.0=1000))
+  mmodel <- posteriorSimulation(modelk, mcmcp)
   pmns <- thetaMean(mmodel)
   j <- order(pmns[1,])
   ps <- sigmaMean(mmodel)[, j]

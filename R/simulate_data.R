@@ -29,6 +29,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
   ##
   theta(object) <- computeMeans(object)
   dataMean(object) <- computeMeans(object)
+  mu(object) <- colMeans(dataMean(object))
   sigma2(object) <- computeVars(object)
   dataPrec(object) <- 1/computeVars(object)
   p(object) <- as.numeric(table(z(object))/N)

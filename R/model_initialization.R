@@ -53,7 +53,7 @@ setMethod("startingValues", "MarginalModel", function(object){
   hypp <- hyperParams(object)
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
-  mu(object) <- rnorm(1, mu.0(object), sigma.0(object))
+  mu(object) <- rnorm(1, mu.0(object), tau.0(object))
   tau2(object) <- 1/rgamma(1, shape=1/2*eta.0(object), rate=1/2*eta.0(object)*m2.0(object))
   theta(object) <- rnorm(k(object), mu(object), tau(object))
   sigma2(object) <- 1/rgamma(k(object), shape=1/2*nu.0(object), rate=1/2*nu.0(object)*sigma2.0(object))
@@ -76,7 +76,7 @@ setMethod("startingValues", "BatchModel", function(object){
   hypp <- hyperParams(object)
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
-  mu(object) <- rnorm(k(object), mu.0(object), sigma.0(object))
+  mu(object) <- rnorm(k(object), mu.0(object), tau.0(object))
   tau2(object) <- 1/rgamma(k(object), shape=1/2*eta.0(object), rate=1/2*eta.0(object)*m2.0(object))
   nB <- nBatch(object)
   th <- initializeTheta(object)
@@ -97,6 +97,7 @@ setMethod("startingValues", "BatchModel", function(object){
     logLik(object) <- computeLoglik(object)
     logPrior(object) <- computePrior(object)
   }
+  probz(object) <- .computeProbZ(object)
   mcmcChains(object) <- McmcChains(object)
   object
 })

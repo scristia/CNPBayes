@@ -177,8 +177,6 @@ updateAll <- function(post, is_burnin=FALSE){
 }
 
 
-
-
 setMethod("computePrec", "MarginalModel", function(object){
   .Call("compute_prec", object)
 })
@@ -249,20 +247,20 @@ multipleStarts <- function(object){
   if(k(object)==1) return(object)
   mcmcp <- mcmcParams(object)
   message("Running ", nStarts(mcmcp), " chains")
-  mmod <- replicate(nStarts(mcmcp), initializeModel(mparams, hyperParams(object)))
+  if(is(object, "BatchModel")){
+    mmod <- replicate(nStarts(mcmcp), BatchModel(y(object), mcmc.params=mcmcp,
+                                                 hypp=hyperParams(object), k=k(object),
+                                                 batch=batch(object)))
+  } else {
+    mmod <- replicate(nStarts(mcmcp), MarginalModel(y(object), mcmc.params=mcmcp,
+                                                    hypp=hyperParams(object), k=k(object)))
+  }
   ##
   ## TODO: This ignores nStartIter.  Perhaps remove nStartIter slot
   ##
   models <- suppressMessages(lapply(mmod, runBurnin))
-  ##   message("Selecting chain with largest log likelihood")
-  lp <- sapply(mmodels, logLik)
+  lp <- sapply(models, logLik)
   model <- models[[which.max(lp)]]
-  ##   if(is(object, "MarginalModel")) return(mmodel)
-  ##   params <- ModelParams("batch", y=y(object), k=k(object),
-  ##                         batch=batch(object),
-  ##                         mcmc.params=mcmcp)
-  ##   bmodel <- initializeBatchModel(params, z(mmodel), hypp=hyperParams(mmodel))
-  ##   bmodel
   model
 }
 

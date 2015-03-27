@@ -178,9 +178,9 @@ RcppExport SEXP update_tau2_batch(SEXP xmod){
       s2_k[k] += pow(theta(i, k) - mu[k], 2) ;
     }
   }
-  double m2_k ;
   NumericVector tau2(K) ;
   for(int k = 0; k < K; ++k) {
+    double m2_k = 0.0 ;
     m2_k = 1.0/eta_B*(eta_0*m2_0 + s2_k[k]) ;
     tau2[k] = 1.0/as<double>(rgamma(1, 0.5*eta_B, 2.0/(eta_B*m2_k))) ;
   }
@@ -244,7 +244,7 @@ RcppExport SEXP update_nu0_batch(SEXP xmod){
   NumericVector y2(100) ;
   NumericVector y3(100) ;
   NumericVector prob(100) ;
-  y1 = K*(0.5*x*log(sigma2_0*0.5*x) - lgamma(x*0.5)) ;
+  y1 = (B*K)*(0.5*x*log(sigma2_0*0.5*x) - lgamma(x*0.5)) ;
   y2 = (0.5*x - 1.0) * lprec ;
   y3 = x*(betas + 0.5*sigma2_0*prec) ;
   lpnu0 =  y1 + y2 - y3 ;
@@ -577,6 +577,28 @@ RcppExport SEXP update_sigma2_batch(SEXP xmod){
 
 
 // [[Rcpp::export]]
+RcppExport SEXP compute_probz_batch(SEXP xmod){
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = hypp.slot("k") ;
+  IntegerVector z = model.slot("z") ;
+  int N = z.size() ;
+  IntegerMatrix pZ = model.slot("probz") ;
+  //NumericMatrix freq(pZ.nrow(), pZ.ncol()) ;
+  for(int i = 0; i < N; ++i){
+    for(int k = 0; k < K; ++k){
+      if(z[i] == (k + 1)){
+        pZ(i, k) += + 1;
+      }
+    }
+  }
+  return pZ ;
+}
+
+
+
+// [[Rcpp::export]]
 RcppExport SEXP mcmc_batch_burnin(SEXP xmod, SEXP mcmcp) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
@@ -733,6 +755,7 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
       z = update_z_batch(xmod) ;
       model.slot("z") = z ;
       tmp = tableZ(K, z) ;
+      model.slot("probz") = compute_probz_batch(xmod) ;    
       model.slot("zfreq") = tmp ;
     } else {
       tmp = model.slot("zfreq") ;
@@ -786,3 +809,4 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
   model.slot("mcmc.chains") = chain ;
   return xmod ;
 }
+

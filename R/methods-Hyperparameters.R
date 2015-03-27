@@ -24,8 +24,8 @@ gammaShapeRate2 <- function(mn, sd){
 HyperparametersBatch <- function(k=0L,
                                  mu.0=0,
                                  tau2.0=100,
-                                 eta.0=1,
-                                 m2.0=0.1,
+                                 eta.0=1800,
+                                 m2.0=1/60,
                                  alpha,
                                  beta=0.1, ## mean is 1/10
                                  a=1.8,
