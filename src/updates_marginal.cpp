@@ -237,25 +237,26 @@ RcppExport SEXP update_z(SEXP xmod) {
   //return cumP ;
   NumericVector u = runif(n) ;
   IntegerVector zz(n) ;
+  IntegerVector freq(K) ;
   for(int i = 0; i < n; i++){
     int k = 0 ;
-    while(k <= K) {
-      if( u[i] < cumP(i, k) + 0.00001 ){
+    while(k < K) {
+      if( u[i] < cumP(i, k)){
         zz[i] = k + 1 ;
+        freq[k] += 1 ;
         break ;
       }
-      //if(k == K) zz[i] = k + 1 ;
       k += 1 ;
     }
+    cumP(i, K-1) = 1.00001 ;  // just to be certain
   }
-  // To prevent 0 frequencies, arbitrarily switch the labels for the first few markers
-  IntegerVector nn(K) ;
-  nn = tableZ(K, zz) ;
-  int iter = 0 ;
-  for(int k = 0; k < K; ++k){
-    if(nn[k] == 0){
-      zz[iter] = k + 1 ;
-      iter += 1 ;
+  // To prevent 0 frequencies, arbitrarily switch the label
+  if(is_true(any(freq == 0))){
+    for(int k = 0; k < K; ++k){
+      NumericVector r(1) ;
+      r[0] = as<double>(runif(1, 0, 1)) * n ;
+      r = round(r, 0) ;
+      zz[r[0]] = k + 1 ;
     }
   }
   return zz ;

@@ -16,6 +16,11 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
     obj <- MarginalModel(data, k, batch, hypp, mcmc.params)
     return(obj)
   }
+  if(k == 1) {
+    if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
+    obj <- UnivariateBatchModel(data, k, batch, hypp, mcmc.params)
+    return(obj)
+  }
   ##browser()
   ##B <- length(ub)
   if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
@@ -48,6 +53,49 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
   obj <- startingValues(obj)
   obj
 }
+
+
+##
+## Multiple batches, but only 1 component
+##
+UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
+  mcmc.chains <- McmcChains()
+  batch <- factor(batch)
+  ix <- order(batch)
+  B <- length(levels(batch))
+  nbatch <- elementLengths(split(batch, batch))
+  zz <- integer(length(data))
+  zfreq <- as.integer(table(zz))
+  if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
+  obj <- new("UnivariateBatchModel",
+             hyperparams=hypp,
+             theta=matrix(NA, B, 1),
+             sigma2=matrix(NA, B, 1),
+             mu=numeric(k),
+             tau2=numeric(k),
+             nu.0=numeric(1),
+             sigma2.0=numeric(1),
+             pi=numeric(k),
+             ##pi=matrix(NA, B, 1),
+             data=data[ix],
+             data.mean=matrix(NA, B, 1),
+             data.prec=matrix(NA, B, 1),
+             z=factor(numeric(length(data))),
+             zfreq=zfreq,
+             probz=matrix(1, length(data), 1),
+             logprior=numeric(1),
+             loglik=numeric(1),
+             mcmc.chains=mcmc.chains,
+             mcmc.params=mcmc.params,
+             batch=batch[ix],
+             batchElements=nbatch,
+             hwe=numeric(),
+             m.y=numeric(1))
+  obj <- startingValues(obj)
+  obj
+}
+
+
 
 setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
@@ -143,7 +191,10 @@ setMethod("computePrec", "BatchModel", function(object){
                 mu=mumax,
                 tau2=tau2max,
                 nu0=nu.0(mc)[i],
-                sigma2.0=sigma2.0(mc)[i])
+                sigma2.0=sigma2.0(mc)[i],
+                zfreq=zFreq(mc)[i, ],
+                loglik=logLik(mc)[i],
+                logprior=logPrior(mc)[i])
   modes
 }
 
@@ -337,7 +388,8 @@ setMethod("thetaMean", "BatchModel", function(object) {
 
 setMethod("show", "BatchModel", function(object){
   ##callNextMethod()
-  cat("An object of class 'BatchModel'\n")
+  cls <- class(object)
+  cat(paste0("An object of class ", cls), "\n")
   cat("     n. obs      :", length(y(object)), "\n")
   cat("     n. batches  :", nBatch(object), "\n")
   cat("     k           :", k(object), "\n")
@@ -371,68 +423,6 @@ setMethod("tablez", "BatchModel", function(object){
 #' @export
 uniqueBatch <- function(object) unique(batch(object))
 
-##
-## Multiple batches, but only 1 component
-##
-UnivariateBatchModel <- function(data, k=1, batch, hypp){
-  mcmc.chains <- McmcChains()
-  batch <- factor(batch)
-  ix <- order(batch)
-  ##ub <- unique(batch)
-  ##B <- length(ub)
-  B <- length(levels(batch))
-  if(B==1){
-    obj <- new("UnivariateMarginalModel",
-               hyperparams=hypp,
-               theta=numeric(k),
-               sigma2=numeric(k),
-               mu=numeric(1),
-               tau2=numeric(1),
-               nu.0=1L,
-               sigma2.0=1L,
-               pi=rep(1/k, k),
-               data=data,
-               data.mean=numeric(k),
-               data.prec=numeric(k),
-               z=factor(numeric(k)),
-               probz=matrix(1, length(data), 1),
-               logpotential=numeric(1),
-               loglik=numeric(1),
-               mcmc.chains=McmcChains(),
-               batch=batch,
-               ##uniqueBatch=unique(batch),
-               batchElements=nbatch,
-               hwe=numeric(),
-               modes=list(),
-               m.y=numeric(1))
-    return(obj)
-  }
-  nbatch <- elementLengths(split(batch, batch))
-  if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
-  new("UnivariateBatchModel",
-      hyperparams=hypp,
-      theta=matrix(NA, B, 1),
-      sigma2=matrix(NA, B, 1),
-      mu=numeric(k),
-      tau2=numeric(k),
-      nu.0=numeric(1),
-      sigma2.0=numeric(1),
-      pi=numeric(k),
-      ##pi=matrix(NA, B, 1),
-      data=data[ix],
-      data.mean=matrix(NA, B, 1),
-      data.prec=matrix(NA, B, 1),
-      z=factor(numeric(length(data))),
-      probz=matrix(1, length(data), 1),
-      logpotential=numeric(1),
-      mcmc.chains=mcmc.chains,
-      batch=batch[ix],
-      batchElements=nbatch,
-      hwe=numeric(),
-      m.y=numeric(1))
-}
-
-
 #' @export
 batchExperiment <- function(object, outdir, mcmcp.list=mcmcpList(),
                             hypp, marginaly=TRUE, test=FALSE){
@@ -455,11 +445,8 @@ batchExperiment <- function(object, outdir, mcmcp.list=mcmcpList(),
       saveRDS(NULL, model(B)[j])
       return(NULL)
     }
-    models <- batchModel1(B[j], data=cn[notna],
-                          hyp.list=hp.list,
-                          mcmcp.list=mcmcp.list,
-                          batch=bt, save.it=TRUE, test=test,
-                          marginaly=marginaly)
+    batch=bt, save.it=TRUE, test=test,
+    marginaly=marginaly)
   }
   TRUE
 }

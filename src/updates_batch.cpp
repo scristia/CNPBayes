@@ -28,9 +28,9 @@ RcppExport SEXP tableBatchZ(SEXP xmod){
   for(int j = 0; j < B; ++j){
     for(int k = 0; k < K; k++){
       nn(j, k) = sum(z == (k+1) & batch == ub[j] ) ;
-      if(nn(j, k) < 1) {
-        nn(j, k) = 1 ;
-      }
+      //if(nn(j, k) < 1) {
+      //nn(j, k) = 1 ;
+      // }
     }
   }  
   return nn ;  
@@ -172,7 +172,7 @@ RcppExport SEXP update_tau2_batch(SEXP xmod){
   int B = ub.size() ;
   double eta_B = eta_0 + B ;
   
-  NumericVector s2_k(B) ;
+  NumericVector s2_k(K) ;
   for(int k = 0; k < K; ++k){
     for(int i = 0; i < B; ++i){
       s2_k[k] += pow(theta(i, k) - mu[k], 2) ;
@@ -291,10 +291,12 @@ RcppExport SEXP update_multinomialPr_batch(SEXP xmod) {
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
       tmp = p[k] * dnorm(x, theta(b, k), sqrt(sigma2(b, k))) * this_batch ;
-      dens = dens + tmp ;
+      // if(is_true(any(tmp < 1e-10))) tmp[tmp < 1e-10] = 1e-10 ;
+      dens += tmp ;
     }
     lik(_, k) = dens ;
   }
+  //return lik ;
   NumericMatrix P(N, K) ;
   for(int i = 0; i < N; ++i){
     double rowsum = 0.0 ;
@@ -336,10 +338,14 @@ RcppExport SEXP update_z_batch(SEXP xmod) {
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector x = model.slot("data") ;
+  NumericMatrix theta = model.slot("theta") ;
+  IntegerVector batch = model.slot("batch") ;
+  int B = theta.nrow() ;
   int n = x.size() ;
   NumericMatrix p(n, K);
   p = update_multinomialPr_batch(xmod) ;
   NumericMatrix cumP(n, K);
+  //  Make more efficient?
   for(int i=0; i < n; i++){
     for(int k = 0; k < K; k++){
       if(k > 0){
@@ -348,17 +354,52 @@ RcppExport SEXP update_z_batch(SEXP xmod) {
         cumP(i, k) = p(i, k) ;
       }
     }
+    cumP(i, K-1) = 1.00001 ;
   }
+
+  //return cumP ;
   NumericVector u = runif(n) ;
   IntegerVector zz(n) ;
+  IntegerMatrix freq(B, K) ;
+  int b ;
   for(int i = 0; i < n; i++){
     int k = 0 ;
-    while(k <= K) {
+    while(k < K) {
       if( u[i] < cumP(i, k) ){
         zz[i] = k + 1 ;
+        b = batch[i] - 1 ;
+        freq(b, k) += 1 ;
         break ;
       }
       k++ ;
+    }
+  }
+  if(is_true(all(freq > 0))){
+    return zz ;
+  }
+  //return zz ;
+  IntegerVector index = seq_len(n) ;
+  NumericVector r(1) ;
+  LogicalVector is_batch (n) ;
+  IntegerVector S = model.slot("batchElements") ;
+  IntegerVector w(1) ;
+  int start = 0 ;
+  //IntegerVector J()
+  for(int k = 0; k < K; ++k){
+    //
+    // for zero frequency states, switch label of a random sample
+    //
+    for(int b = 0; b < B; ++b){
+      if(freq(b, k) > 0) continue ;
+      if(b > 0) start = S[b-1] ;
+      IntegerVector J(S[b]) ;
+      //int b = 1 ;
+      is_batch = batch == (b + 1) ;
+      J = zz [ is_batch ] ;
+      r[0] = as<double>(runif(1, 0, 1)) * (S[b] - 1) ;
+      w = round(r, 0) ;
+      J[w] = (k + 1) ;
+      zz[is_batch] = J ;
     }
   }
   return zz ;
@@ -409,13 +450,19 @@ RcppExport SEXP compute_prec_batch(SEXP xmod){
   NumericMatrix vars(B, K) ;
   NumericMatrix prec(B, K) ;
   NumericMatrix tabz = tableBatchZ(xmod) ;
-  NumericMatrix mn = model.slot("data.mean") ;
+  //NumericMatrix mn = model.slot("data.mean") ;
+  NumericMatrix mn = model.slot("theta") ;
   for(int i = 0; i < n; ++i){
     for(int b = 0; b < B; ++b){
       if(batch[i] != ub[b]) continue ;
       for(int k = 0; k < K; ++k){
         if(z[i] == k+1){
-          vars(b, k) += pow(x[i] - mn(b, k), 2.0)/(tabz(b, k)-1) ;
+          vars(b, k) += pow(x[i] - mn(b, k), 2.0)/(tabz(b, k)) ;
+          //
+          // if there is only one observation, the sample mean is the
+          // data point and the variance is 0
+          //
+          if(vars(b, k) < 0.00001) vars(b, k) = 1000 ;
         }
         prec(b, k) = 1.0/vars(b, k) ;
       }
@@ -500,7 +547,7 @@ RcppExport SEXP update_theta_batch(SEXP xmod){
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector x = model.slot("data") ;
-  NumericMatrix theta = model.slot("theta") ;
+  // NumericMatrix theta = model.slot("theta") ;
   NumericVector tau2 = model.slot("tau2") ;
   NumericMatrix sigma2 = model.slot("sigma2") ;
   NumericMatrix n_hb = tableBatchZ(xmod) ;
@@ -523,6 +570,7 @@ RcppExport SEXP update_theta_batch(SEXP xmod){
       theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
     }
   }
+  // if(is_true(any(is_nan(theta_new)))) stop("missing values in theta") ;
   return theta_new ;
 }
 
@@ -783,7 +831,7 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
         model.slot("tau2") = update_tau2_batch(xmod) ;
       if(up[5] > 0)
         model.slot("nu.0") = update_nu0_batch(xmod) ;
-      if(up[6] > 0)
+     if(up[6] > 0)
         model.slot("sigma2.0") = update_sigma20_batch(xmod) ;
       if(up[7] > 0){
         model.slot("z") = update_z_batch(xmod) ;

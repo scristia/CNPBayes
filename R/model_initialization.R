@@ -80,7 +80,11 @@ setMethod("startingValues", "BatchModel", function(object){
   tau2(object) <- 1/rgamma(k(object), shape=1/2*eta.0(object), rate=1/2*eta.0(object)*m2.0(object))
   nB <- nBatch(object)
   th <- initializeTheta(object)
-  theta(object) <- t(apply(th, 1, sort))
+  if(is(object, "UnivariateBatchModel")){
+    theta(object) <- th
+  } else {
+    theta(object) <- t(apply(th, 1, sort))
+  }
   sigma2(object) <- initializeSigma2(object)
   p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are platform, columns are components
   ##p(object) <- rdirichlet(nBatch(object), alpha(hypp))
@@ -91,9 +95,8 @@ setMethod("startingValues", "BatchModel", function(object){
   } else zz <- as.integer(factor(levels=seq_len(k(hypp))))
   zFreq(object) <- as.integer(table(zz))
   if(length(y(object)) > 0){
-    dataPrec(object) <- 1/computeVars(object)
     dataMean(object) <- computeMeans(object)
-    ##logpotential(object) <- computePotential(object)
+    dataPrec(object) <- computePrec(object)
     logLik(object) <- computeLoglik(object)
     logPrior(object) <- computePrior(object)
   }

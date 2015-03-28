@@ -4,7 +4,9 @@ setMethod("fullGibbs", "MarginalModel", function(object, mcmcp){
 })
 
 setMethod("fullGibbs", "BatchModel", function(object, mcmcp){
-  .fullGibbs(object, mcmcp)
+  ##.fullGibbs(object, mcmcp)
+  object=.Call("mcmc_batch_burnin", object, mcmcp)
+  object=.Call("mcmc_batch", object, mcmcp)
 })
 
 ## TODO: change name to reducedGibbs
@@ -82,23 +84,24 @@ reducedGibbsP <- function(post, move_chain){
 }
 
 
-setMethod("posteriorTheta", "MarginalModel", function(object, mcmcp){
+setMethod("posteriorTheta", "MarginalModel", function(object){
   ##.posteriorTheta(object, mcmcp)
-  .Call("marginal_theta", object, mcmcp)
+  .Call("marginal_theta", object, mcmcParams(object))
 })
 
-setMethod("posteriorTheta", "BatchModel", function(object, mcmcp){
-  .posteriorThetaBatch(object, mcmcp)
+setMethod("posteriorTheta", "BatchModel", function(object){
+  .posteriorThetaBatch(object)
 })
 
-setMethod("posteriorSigma2", "MarginalModel", function(object, mcmcp){
+setMethod("posteriorSigma2", "MarginalModel", function(object){
+  mcmcp <- mcmcParams(object)
   paramUpdates(mcmcp)["theta"] <- 0L
-  .Call("marginal_sigma2", object, mcmcp)
+  .Call("marginal_sigma2", object, mcmcParams(object))
 })
 
-setMethod("posteriorSigma2", "BatchModel", function(object, mcmcp){
-  paramUpdates(mcmcp)["theta"] <- 0L
-  .posteriorSigma2(object, mcmcp)
+setMethod("posteriorSigma2", "BatchModel", function(object){
+  paramUpdates(object)["theta"] <- 0L
+  .posteriorSigma2(object)
 })
 
 ## .posteriorTheta <- function(object, mcmcp){
@@ -116,29 +119,27 @@ setMethod("posteriorSigma2", "BatchModel", function(object, mcmcp){
 ##   rowProds(p.theta)
 ## }
 
-.posteriorThetaBatch <- function(object, mcmcp){
-  ##object <- useModes(object)
+.posteriorThetaBatch <- function(object){
+  mcmcp <- mcmcParams(object)
   thetastar <- as.numeric(modes(object)[["theta"]])
-  S <- 2:(savedIterations(mcmcp)+1)
-  message("Running an additional ", savedIterations(mcmcp), " simulations from full Gibbs to estimate p(theta*|y)")
-  do_thin <- thin(mcmcp) > 1
-  T <- seq_len(thin(mcmcp))
-  p.theta <- rep(NA, length(S))
-  mus <- as.numeric(matrix(mu(object), nBatch(object), k(object), byrow=TRUE))
-  taus <- as.numeric(matrix(tau(object), nBatch(object), k(object), byrow=TRUE))
-  p.theta[1] <- prod(dnorm(thetastar, mus, taus))
-  for(s in S){
-    object <- fullGibbs(object, TRUE)
-    object <- moveChain(object, s)
-    mus <- as.numeric(matrix(mu(object), nBatch(object), k(object), byrow=TRUE))
-    taus <- as.numeric(matrix(tau(object), nBatch(object), k(object), byrow=TRUE))
-    p.theta[s] <- prod(dnorm(thetastar, mu(object), tau(object)))
-    ## update without moving chain
-    if(do_thin){
-      for(t in T) object <- fullGibbs(object, FALSE)
+  S <- iter(mcmcp)
+  ##message("Running an additional ", savedIterations(mcmcp), " simulations from full Gibbs to estimate p(theta*|y)")
+  object <- .Call("mcmc_batch", object, mcmcp)
+  mus <- muc(object)
+  taus <- tauc(object)
+  thetas <- thetac(object)
+  K <- k(object)
+  B <- nBatch(object)
+  p.theta <- matrix(NA, S, B*K)
+  j <- 1
+  for(k in 1:K){
+    for(b in 1:B){
+      p.theta[, j] <- dnorm(thetastar[j], mus[, k], taus[, k])
+      j <- j+1
     }
   }
-  p.theta
+  lp.theta <- rowSums(log(p.theta))
+  lp.theta
 }
 
 mode.numeric <- function(x, na.rm=TRUE){
@@ -154,8 +155,9 @@ mode.numeric <- function(x, na.rm=TRUE){
   return(x_mode)
 }
 
-.posteriorSigma2 <- function(object, mcmcp){
-  paramUpdates(mcmcp)["theta"] <- 0L
+.posteriorSigma2 <- function(object){
+  mcmcp <- mcmcParams(object)
+  ##paramUpdates(mcmcp)["theta"] <- 0L
   isigma2star <- 1/modes(object)[["sigma2"]]
   object <- fullGibbs(object, mcmcp)
   nuc <- nu.0(mcmcChains(object))
@@ -170,11 +172,17 @@ mode.numeric <- function(x, na.rm=TRUE){
   rowSums(post)
 }
 
-posteriorP <- function(object, mcmcp){
-  ##object <- useModes(object)
+posteriorP <- function(object){
+  mcmcp <- mcmcParams(object)
   x <- p(object)
   paramUpdates(mcmcp)[c("theta", "sigma2")] <- 0L
-  object <- fullGibbs(object, mcmcp)
+  if(is(object, "MarginalModel")){
+    object=.Call("mcmc_marginal_burnin", object, mcmcp)
+    object=.Call("mcmc_marginal", object, mcmcp)
+  } else {
+    object=.Call("mcmc_batch_burnin", object, mcmcp)
+    object=.Call("mcmc_batch", object, mcmcp)
+  }
   ztab <- zFreq(mcmcChains(object))
   ztab <- ztab + alpha(object)
   probs <- apply(ztab, 1, function(alpha, x){
@@ -269,10 +277,10 @@ useModes <- function(object){
 }
 
 #' @export
-partialGibbs <- function(object, mcmcp){
-  log_ptheta <- posteriorTheta(object, mcmcp)
-  log_psigma2 <- posteriorSigma2(object, mcmcp)
-  log_pmix <- posteriorP(object, mcmcp)
+partialGibbs <- function(object){
+  log_ptheta <- posteriorTheta(object)
+  log_psigma2 <- posteriorSigma2(object)
+  log_pmix <- posteriorP(object)
   results <- cbind(log_ptheta, log_psigma2, log_pmix)
   colnames(results) <- c("logtheta", "logsigma2", "logp")
   results
@@ -424,7 +432,7 @@ computeMarginalProbs <- function(model, maxperm=5, iter=1000, burnin=100){
   results <- matrix(NA, length(model.list), 5)
   for(i in seq_along(model.list)){
     model1 <- model.list[[i]]
-    pg <- partialGibbs(model1, mcmcParams(model1))
+    pg <- partialGibbs(model1)
     results[i, ] <- partialGibbsSummary(model1, pg)
   }
   colnames(results) <- c("logprior", "loglik", "logtheta", "logsigma2", "logp")
@@ -452,6 +460,29 @@ computeMarginalEachK <- function(data, K=1:4, hypp, mcmcp=McmcParams(), MAX.RANG
   }
   marginaly
 }
+
+#' @export
+computeMarginalEachK2 <- function(data, batch, K=1:4, hypp, mcmcp=McmcParams(), MAX.RANGE=5){
+  j <- 1
+  marginaly <- setNames(rep(NA, length(K)), paste0("B", K))
+  for(k in K){
+    if(k == 1){
+      mp <- McmcParams(iter=min(iter(mcmcp), 500), burnin=min(burnin(mcmcp), 100))
+    } else mp <- mp <- mcmcp
+    ##kmod <- MarginalModel(data, k=k, mcmc.params=mp)
+    kmod <- BatchModel(data, batch, k=k, mcmc.params=mp)
+    kmod <- posteriorSimulation(kmod)
+    m.y(kmod) <- computeMarginalProbs(kmod, iter=iter(mcmcp), burnin=burnin(mcmcp))
+    my <- m.y(kmod)
+    my <- my[!is.nan(my)]
+    if( diff(range(my)) < MAX.RANGE ){
+      marginaly[j] <- mean(my)
+    }
+    j <- j+1
+  }
+  marginaly
+}
+
 
 ModelEachMode <- function(model, maxperm=5){
   kperm <- permn(seq_len(k(model)))

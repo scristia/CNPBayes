@@ -11,7 +11,6 @@ setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   se
 })
 
-
 setMethod("collapseBatch", "SummarizedExperiment", function(object, plate){
   plate <- as.character(object$plate)
   collapseBatch(copyNumber(object)[1, ], plate)
