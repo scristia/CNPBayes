@@ -36,6 +36,7 @@ setClass("McmcParams", representation(thin="numeric",
                                       param_updates="integer"))
 
 setClass("MixtureModel", representation("VIRTUAL",
+                                        k = "integer",
                                         hyperparams="Hyperparameters",
                                         theta="numericOrMatrix",
                                         sigma2="numericOrMatrix",

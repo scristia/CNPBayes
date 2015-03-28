@@ -27,6 +27,7 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
   zz <- integer(length(data))
   zfreq <- as.integer(table(zz))
   obj <- new("BatchModel",
+             k=as.integer(k),
              hyperparams=hypp,
              theta=matrix(NA, B, k),
              sigma2=matrix(NA, B, k),
@@ -68,6 +69,7 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
   zfreq <- as.integer(table(zz))
   if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
   obj <- new("UnivariateBatchModel",
+             k=as.integer(k),
              hyperparams=hypp,
              theta=matrix(NA, B, 1),
              sigma2=matrix(NA, B, 1),

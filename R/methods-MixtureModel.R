@@ -1,3 +1,41 @@
+setValidity("MixtureModel", function(object){
+  msg <- TRUE
+  if(length(p(object)) != k(object)){
+    msg <- "Mixture probability vector must be the same length as k"
+    return(msg)
+  }
+  msg
+})
+
+setValidity("BatchModel", function(object){
+  msg <- TRUE
+  if(length(p(object)) != k(object)){
+    msg <- "Mixture probability vector must be the same length as k"
+    return(msg)
+  }
+  if(ncol(theta(object)) != k(object)){
+    msg <- "theta matrix must have k columns"
+    return(msg)
+  }
+  if(ncol(sigma(object)) != k(object)){
+    msg <- "sigma matrix must have k columns"
+    return(msg)
+  }
+  if(length(mu(object)) != k(object)){
+    msg <- "mu vector must be length k "
+    return(msg)
+  }
+  if(length(tau(object)) != k(object)){
+    msg <- "tau vector must be length k "
+    return(msg)
+  }
+  if(k(object) != k(hyperParams(object))){
+    msg <- "k must be the same in the hyperparameters and in the model object"
+    return(msg)
+  }
+  msg
+})
+
 setMethod("hyperParams", "MixtureModel", function(object) object@hyperparams)
 
 setReplaceMethod("hyperParams", c("MixtureModel", "Hyperparameters"),
@@ -44,7 +82,7 @@ dataSd <- function(object) sqrt(1/dataPrec(object))
 #' @export
 logpotential <- function(object) object@logpotential
 
-setMethod("k", "MixtureModel", function(object) k(hyperParams(object)))
+setMethod("k", "MixtureModel", function(object) object@k)
 
 setReplaceMethod("z", "MixtureModel", function(object, value){
   ##object@z <- factor(value, levels=seq_len(k(object)))
@@ -518,6 +556,11 @@ setMethod("mcmcParams", "MixtureModel", function(object) object@mcmc.params )
 
 setMethod("iter", "MixtureModel", function(object) iter(mcmcParams(object)))
 setMethod("nStarts", "MixtureModel", function(object) nStarts(mcmcParams(object)))
+setReplaceMethod("nStarts", "MixtureModel", function(object, value){
+  mcmcParams(object)@nstarts <- as.integer(value)
+  object
+})
+
 setMethod("thin", "MixtureModel", function(object) thin(mcmcParams(object)))
 setMethod("burnin", "MixtureModel", function(object) burnin(mcmcParams(object)))
 

@@ -89,29 +89,25 @@ test_batchEasy <- function(){
     tracePlot(model, "theta", col=1:3)
     plot.ts(muc(model), col=1:3)
   }
+
+  ##
+  ## check that the marginal density estimates are consistent for the
+  ## K=3 model
+  ##
+  model <- BatchModel(y(truth), batch(truth), k=3,
+                      mcmc.params=McmcParams(iter=200, burnin=200, nStarts=20) )
+  model <- posteriorSimulation(model)
+  marginaly_k3 <- computeMarginalProbs(model, mcmcp)
+  spread <- diff(range(marginaly_k3))
+  checkTrue(spread < 20)
   ##
   ## Select K
   ##
-  model <- BatchModel(y(truth), batch(truth), k=4, mcmc.params=McmcParams(iter=1000, burnin=0) )
-  model <- posteriorSimulation(model)
-
-  model <- BatchModel(y(truth), batch(truth), k=2, mcmc.params=McmcParams(iter=1000, burnin=0) )
-  model <- posteriorSimulation(model)
   marginaly <- computeMarginalEachK2(y(truth), batch(truth), K=1:4,
-                                     mcmcp=McmcParams(iter=500, burnin=200, nStarts=20),
+                                     mcmcp=McmcParams(iter=500, burnin=100, nStarts=20),
                                      MAX.RANGE=100)
-
-  hypp <- Hyperparameters("batch")
-  mp <- McmcParams(iter=500, burnin=200, nStarts=20)
-  k <- 2
-  k(hypp) <- k
-  my <- .computeMarginal(y(truth), batch(truth), mp, hypp)
-
-  kmod <- BatchModel(y(truth), batch(truth), k=k, mcmc.params=mp)
-  kmod <- posteriorSimulation(kmod)
-  my <- .computeMarginal(y(truth), batch(truth), k, mcmcp)
-
-
+  K <- which.max(marginaly)
+  checkIdentical(K, 3L)
 }
 
 test_batch_moderate <- function(){

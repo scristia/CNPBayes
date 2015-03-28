@@ -182,6 +182,8 @@ setGeneric("tablez", function(object) standardGeneric("tablez"))
 
 #' @export
 setGeneric("nStarts", function(object) standardGeneric("nStarts"))
+setGeneric("nStarts<-", function(object, value) standardGeneric("nStarts<-"))
+
 setGeneric("checkLabels", function(object) standardGeneric("checkLabels"))
 setGeneric("nStartIter", function(object) standardGeneric("nStartIter"))
 

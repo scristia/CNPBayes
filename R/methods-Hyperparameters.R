@@ -68,6 +68,15 @@ HyperparametersMarginal <- function(k=0L,
       b=b)
 }
 
+setValidity("Hyperparameters", function(object){
+  msg <- TRUE
+  if(k(object) != alpha(object)){
+    msg <- "alpha vector must be the same length as k"
+    return(msg)
+  }
+  msg
+})
+
 ##setGeneric("Hyperparameters", function(object, k, ...) standardGeneric("Hyperparameters"))
 ##
 ##setMethod("Hyperparameters", "character", function(object, k, ...){
@@ -88,6 +97,7 @@ Hyperparameters <- function(type="batch", k=2L, ...){
 
 setReplaceMethod("k", "Hyperparameters", function(object, value){
   object@k <- as.integer(value)
+  object@alpha <- rep(1L, value)
   object
 })
 

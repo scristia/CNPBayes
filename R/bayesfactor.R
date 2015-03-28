@@ -123,7 +123,7 @@ setMethod("posteriorSigma2", "BatchModel", function(object){
   mcmcp <- mcmcParams(object)
   thetastar <- as.numeric(modes(object)[["theta"]])
   S <- iter(mcmcp)
-  ##message("Running an additional ", savedIterations(mcmcp), " simulations from full Gibbs to estimate p(theta*|y)")
+  object <- .Call("mcmc_batch_burnin", object, mcmcp)
   object <- .Call("mcmc_batch", object, mcmcp)
   mus <- muc(object)
   taus <- tauc(object)
@@ -269,10 +269,16 @@ useModes <- function(object){
   sigma2.0(m2) <- modes(object)[["sigma2.0"]]
   p(m2) <- modes(object)[["mixprob"]]
   zFreq(m2) <- as.integer(modes(object)[["zfreq"]])
+  logLik(m2) <- modes(object)[["loglik"]]
+  logPrior(m2) <- modes(object)[["logprior"]]
   ##
-  ## update z with using the modal values from above
+  ## update z using the modal values from above
   ##
-  z(m2) <- .Call("update_z", m2)
+  if(is(object, "MarginalModel")){
+    z(m2) <- .Call("update_z", m2)
+  } else {
+    z(m2) <- .Call("update_z_batch", m2)
+  }
   m2
 }
 
@@ -420,10 +426,12 @@ avgMarginalTheta <- function(files){
   marginal_theta
 }
 
+#' @export
 computeMarginalProbs <- function(model, mcmcp, maxperm=5){
   mmod <- useModes(model)
   iter(mmod) <- iter(mcmcp)
   burnin(mmod) <- burnin(mcmcp)
+  nStarts(mmod) <- 1L
   K <- k(model)
   model.list <- ModelEachMode(mmod, maxperm)
   ##
@@ -487,6 +495,7 @@ computeMarginalEachK2 <- function(data, batch, K=1:4, mcmcp=McmcParams(),
     mp <- McmcParams(iter=min(iter(mcmcp), 500), burnin=min(burnin(mcmcp), 100), nStarts=1)
   } else mp <- mcmcp
   kmod <- BatchModel(data, batch, k=k(hypp), mcmc.params=mp, hypp=hypp)
+  ##if(k(kmod) == 3) browser()
   kmod <- posteriorSimulation(kmod)
   m.y(kmod) <- computeMarginalProbs(kmod, mp)
   my <- m.y(kmod)
@@ -497,7 +506,24 @@ computeMarginalEachK2 <- function(data, batch, K=1:4, mcmcp=McmcParams(),
 ModelEachMode <- function(model, maxperm=5){
   kperm <- permn(seq_len(k(model)))
   kperm <- kperm[1:min(maxperm, length(kperm))]
+  ##
+  ##  Reorder the z's
+  ##
   model.list <- lapply(kperm, function(zindex, model) relabel(model, zindex), model=model)
+  ##
+  ## Reorder the modal values from the original model according to z
+  ##
+  if(length(model.list) == 1) return(model.list)
+  for(i in 2:length(model.list)){
+    index <- kperm[[i]]
+    modal.values <- modes(model.list[[i]])
+    modal.values[["theta"]] <- modal.values[["theta"]][, index]
+    modal.values[["sigma2"]] <- modal.values[["sigma2"]][, index]
+    modal.values[["p"]] <- modal.values[["p"]][index]
+    modal.values[["mu"]] <- modal.values[["mu"]][index]
+    modal.values[["tau2"]] <- modal.values[["tau2"]][index]
+    modes(model.list[[i]]) <- modal.values
+  }
   model.list
 }
 

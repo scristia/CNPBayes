@@ -2,6 +2,12 @@ test_constructor <- function(){
   mcmc.params <- McmcParams()
   checkTrue(validObject(mcmc.params))
 
+  hypp <- Hyperparameters()
+  checkTrue(validObject(hypp))
+
+  hypp <- Hyperparameters("batch")
+  checkTrue(validObject(hypp))
+
   mmod <- MarginalModel()
   checkTrue(validObject(mmod))
 
@@ -49,7 +55,7 @@ test_constructor <- function(){
                              theta=means,
                              sds=sds,
                              p=c(1/5, 1/3, 1-1/3-1/5))
-  validObject(truth)
+  checkTrue(validObject(truth))
   ## If batch is not specified, we assume there is not batch and a
   ## MarginalModel is generated
   bmod <- BatchModel(data=y(truth), k=3)
@@ -67,4 +73,8 @@ test_constructor <- function(){
 
   iter(bmod) <- 10
   checkTrue(nrow(thetac(bmod))==10)
+
+  model.list <- ModelEachMode(bmod)
+  checkTrue(all(sapply(model.list, validObject)))
+
 }

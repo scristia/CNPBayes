@@ -60,6 +60,12 @@ setValidity("McmcParams", function(object){
 })
 
 setMethod("nStarts", "McmcParams", function(object) object@nstarts)
+
+setReplaceMethod("nStarts", "McmcParams", function(object, value){
+  object@nstarts <- as.integer(value)
+  object
+})
+
 setMethod("checkLabels", "McmcParams", function(object) object@check_labels)
 setMethod("nStartIter", "McmcParams", function(object) object@nstart_iter)
 

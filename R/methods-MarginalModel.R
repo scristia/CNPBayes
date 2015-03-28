@@ -6,11 +6,10 @@ MarginalModel <- function(data=numeric(), k=2, batch, hypp, mcmc.params){
   if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
   if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
   nbatch <- setNames(as.integer(table(batch)), levels(batch))
-  ##zz <- as.integer(factor(sample(seq_len(k), length(data),
-  ##replace=TRUE), levels=seq_len(k)))
   zz <- sample(seq_len(k), length(data), replace=TRUE)
   zfreq <- as.integer(table(zz))
   object <- new("MarginalModel",
+                k=as.integer(k),
                 hyperparams=hypp,
                 theta=numeric(k),
                 sigma2=numeric(k),
