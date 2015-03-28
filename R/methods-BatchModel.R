@@ -445,8 +445,11 @@ batchExperiment <- function(object, outdir, mcmcp.list=mcmcpList(),
       saveRDS(NULL, model(B)[j])
       return(NULL)
     }
-    batch=bt, save.it=TRUE, test=test,
-    marginaly=marginaly)
+    models <- batchModel1(B[j], data=cn[notna],
+                          hyp.list=hp.list,
+                          mcmcp.list=mcmcp.list,
+                          batch=bt, save.it=TRUE, test=test,
+                          marginaly=marginaly)
   }
   TRUE
 }
