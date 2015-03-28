@@ -157,11 +157,11 @@ plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
       pos <- c(chromosome(se),
                paste0("start: ", prettyNum(start(se), big.mark=",")),
                paste0("end: ", prettyNum(end(se), big.mark=",")),
-               ##paste0(rowData(se)$nSNPs_affy6[i], " / ",
-               paste0(rowData(se)$nSNPs, " / ",
-                      ##rowData(se)$nmarkers_affy6[i]),
-                      rowData(se)$nmarkers),
-               paste0("source: ", rowData(se)$source))
+               ##paste0(rowRanges(se)$nSNPs_affy6[i], " / ",
+               paste0(rowRanges(se)$nSNPs, " / ",
+                      ##rowRanges(se)$nmarkers_affy6[i]),
+                      rowRanges(se)$nmarkers),
+               paste0("source: ", rowRanges(se)$source))
       legend("left", legend=pos, bg="gray90", box.col="gray90")
     }
     if(idm==best.model){

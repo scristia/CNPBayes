@@ -6,7 +6,7 @@ setAs("MixtureModel", "SummarizedExperiment", function(from, to){
                 IRanges(seq_len(nrow(cnmat)), width=1L))
   names(rr) <- paste0("CNP", seq_len(nrow(cnmat)))
   se <- SummarizedExperiment(assays=SimpleList(medr=cnmat),
-                             rowData=rr,
+                             rowRanges=rr,
                              colData=DataFrame(plate=batch(from)))
   se
 })
