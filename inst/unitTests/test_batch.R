@@ -97,54 +97,21 @@ test_batchEasy <- function(){
 
   model <- BatchModel(y(truth), batch(truth), k=2, mcmc.params=McmcParams(iter=1000, burnin=0) )
   model <- posteriorSimulation(model)
-  ##zz <- .Call('update_z_batch', model)
-  ##
-  ##model <- BatchModel(y(truth), batch(truth), k=3, mcmc.params=McmcParams(iter=100, burnin=200) )
-  ##posteriorSimulation(model)
   marginaly <- computeMarginalEachK2(y(truth), batch(truth), K=1:4,
-                                     mcmcp=McmcParams(iter=100, burnin=200),
+                                     mcmcp=McmcParams(iter=500, burnin=200, nStarts=20),
                                      MAX.RANGE=100)
-##  marginaly <- computeMarginalEachK2(y(truth), batch(truth), K=4,
-##                                     mcmcp=McmcParams(iter=10, burnin=200),
-##                                     MAX.RANGE=100)
 
-##   cppFunction('RcppExport IntegerVector zfrequency(IntegerVector z) {
-##       using namespace Rcpp ;
-##       double u=0.0 ;
-##       r = IntegerVector(1) ;
-##       int n = 1000 ;
-##       u = as<double>(runif(1, 0, 1)) * n ;
-##       r = round(u, 0) ;
-##       return r ;
-## }')
-  iter <- 100; burnin=100; maxperm=5
-  library(devtools)
-  load_all()
-  mmod <- useModes(model)
-  iter(mmod) <- iter
-  burnin(mmod) <- burnin
-  K <- k(model)
-  model.list <- ModelEachMode(mmod, maxperm)
-  ##
-  ## Run partial Gibbs sampler for each mode
-  ##
-  results <- matrix(NA, length(model.list), 5)
-  for(i in seq_along(model.list)){
-    model1 <- model.list[[i]]
-    pg <- partialGibbs(model1)
-    ##trace(partialGibbsSummary, browser)
-    results[i, ] <- partialGibbsSummary(model1, pg)
-  }
-  colnames(results) <- c("logprior", "loglik", "logtheta", "logsigma2", "logp")
-  marginal.y <- results[, "logprior"] + results[, "loglik"] - results[, "logtheta"] -
-      results[, "logsigma2"] - results[, "logp"]
+  hypp <- Hyperparameters("batch")
+  mp <- McmcParams(iter=500, burnin=200, nStarts=20)
+  k <- 2
+  k(hypp) <- k
+  my <- .computeMarginal(y(truth), batch(truth), mp, hypp)
+
+  kmod <- BatchModel(y(truth), batch(truth), k=k, mcmc.params=mp)
+  kmod <- posteriorSimulation(kmod)
+  my <- .computeMarginal(y(truth), batch(truth), k, mcmcp)
 
 
-
-##   marginaly <- computeMarginalEachK(y(truth), K=1:4,
-##                                     mcmcp=McmcParams(iter=200, burnin=100),
-##                                     MAX.RANGE=10)
-##
 }
 
 test_batch_moderate <- function(){
