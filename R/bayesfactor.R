@@ -510,6 +510,7 @@ ModelEachMode <- function(model, maxperm=5){
   ##  Reorder the z's
   ##
   model.list <- lapply(kperm, function(zindex, model) relabel(model, zindex), model=model)
+  is_marginal <- is(model.list[[1]], "MarginalModel")
   ##
   ## Reorder the modal values from the original model according to z
   ##
@@ -517,11 +518,16 @@ ModelEachMode <- function(model, maxperm=5){
   for(i in 2:length(model.list)){
     index <- kperm[[i]]
     modal.values <- modes(model.list[[i]])
-    modal.values[["theta"]] <- modal.values[["theta"]][, index]
-    modal.values[["sigma2"]] <- modal.values[["sigma2"]][, index]
+    if(is_marginal){
+      modal.values[["theta"]] <- modal.values[["theta"]][index]
+      modal.values[["sigma2"]] <- modal.values[["sigma2"]][index]
+    } else {
+      modal.values[["theta"]] <- modal.values[["theta"]][, index]
+      modal.values[["sigma2"]] <- modal.values[["sigma2"]][, index]
+      modal.values[["mu"]] <- modal.values[["mu"]][index]
+      modal.values[["tau2"]] <- modal.values[["tau2"]][index]
+    }
     modal.values[["p"]] <- modal.values[["p"]][index]
-    modal.values[["mu"]] <- modal.values[["mu"]][index]
-    modal.values[["tau2"]] <- modal.values[["tau2"]][index]
     modes(model.list[[i]]) <- modal.values
   }
   model.list
