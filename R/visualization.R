@@ -39,6 +39,7 @@ setMethod("tracePlot", "BatchModel", function(object, name, ...){
 
 setMethod("plot", "BatchModel", function(x, y, use.current=FALSE, show.batch=TRUE, ...){
   .plotBatch(x, use.current, show.batch, ...)
+  TRUE
 })
 
 
@@ -126,6 +127,7 @@ drawEachBatch <- function(x, batches, thetas, sds, p1, p2, col){
 
 #' @export
 plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
+  browser()
   best.model <- substr(names(bayes.factor), 1, 2)
   se <- y
   object <- x
@@ -199,6 +201,8 @@ plotModel <- function(model.list, se, ...){
                       yaxt="n",
                       use.current=TRUE)
   mtext(rownames(se), 3, line=0, outer=TRUE)
+  ## return true for unit testing
+  TRUE
   ##    plot.PosteriorFiles(B[i], se.ea,
   ##                        bayes.factor=bf, m.y=m.y, xlim=xlim,
   ##                        breaks=150, main="",

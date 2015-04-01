@@ -196,9 +196,6 @@ IntegerVector tableZ(int K, IntegerVector z){
   NumericVector nu_n(K) ;
   for(int k = 0; k < K; k++){
     nn[k] = sum(z == (k+1)) ;
-//     if(nn[k] < 1) {
-//       nn[k] = 1 ;
-//     }
   }
   return nn ;
 }

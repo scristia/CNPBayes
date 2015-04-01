@@ -450,9 +450,11 @@ computeMarginalProbs <- function(model, mcmcp, maxperm=5){
 }
 
 #' @export
-computeMarginalEachK <- function(data, K=1:4, hypp, mcmcp=McmcParams(), MAX.RANGE=5){
+computeMarginalEachK <- function(data, K=1:4, hypp, mcmcp=McmcParams(), MAX.RANGE=5,
+                                 returnModel=FALSE){
   j <- 1
   marginaly <- setNames(rep(NA, length(K)), paste0("M", K))
+  model.list <- list()
   if(missing(hypp)) hypp <- Hyperparameters("marginal")
   for(k in K){
     k(hypp) <- k
@@ -461,13 +463,19 @@ computeMarginalEachK <- function(data, K=1:4, hypp, mcmcp=McmcParams(), MAX.RANG
     } else mp <- mcmcp
     kmod <- MarginalModel(data, k=k, mcmc.params=mp, hypp=hypp)
     kmod <- posteriorSimulation(kmod)
-    m.y(kmod) <- computeMarginalProbs(kmod, mp)
-    my <- m.y(kmod)
-    if( diff(range(my)) < MAX.RANGE ){
-      marginaly[j] <- mean(my)
+    if(!any(is.nan(theta(kmod)))){
+      my <- computeMarginalProbs(kmod, mp)
+      if(!returnModel){
+        if( diff(range(my, na.rm=TRUE)) < MAX.RANGE ){
+          marginaly[j] <- mean(my)
+        }
+      }
+      j <- j+1
+      m.y(kmod) <- my
     }
-    j <- j+1
+    model.list[[k]] <- kmod
   }
+  if(returnModel) return(model.list)
   marginaly
 }
 

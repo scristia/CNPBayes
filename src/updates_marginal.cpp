@@ -43,8 +43,11 @@ RcppExport SEXP update_mu(SEXP xmod) {
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   double tau2_0 = hypp.slot("tau2.0") ;
   double tau20_tilde = 1.0/tau2_0 ;
-  double tau2 = model.slot("tau2") ;
-  double tau2_tilde = 1.0/tau2 ;
+  //double tau2 = model.slot("tau2") ;
+  NumericVector tau2 = model.slot("tau2") ;
+  // double tau2_tilde = 1.0/tau2 ;
+  NumericVector tau2_tilde = 1.0/tau2 ;
+  //if(is_true(any(is_nan(tau2_tilde)))) tau2_tilde[0] = 1.0 ;
   double mu_0 = hypp.slot("mu.0") ;
   double K = getK(hypp) ;
   NumericVector theta = model.slot("theta") ;
@@ -52,19 +55,22 @@ RcppExport SEXP update_mu(SEXP xmod) {
   IntegerVector z = model.slot("z") ;
   IntegerVector nn = tableZ(K, z) ;
   double thetabar ;
-  double total ;
+  double total = 0.0 ;
   for(int k = 0; k < K; k++) total += nn[k] ;
   for(int k = 0; k < K; k++) thetabar += nn[k] * theta[k] / total ;
   double mu_K ;
-  double post_prec = 1.0/tau2_0 + K*tau2_tilde ;
+  double post_prec = 1.0/tau2_0 + K*tau2_tilde[0] ;
   double w1 ;
   double w2 ;
   w1 = tau20_tilde/post_prec ;
-  w2 = K*tau2_tilde/post_prec ;
+  w2 = K*tau2_tilde[0]/post_prec ;
   mu_K =  w1*mu_0 +  w2*thetabar ;
   NumericVector mu_new(1);
   double tau_k = sqrt(1.0/post_prec) ;
   mu_new[0] = as<double>(rnorm(1, mu_K, tau_k)) ;
+  if(is_true(any(is_nan(mu_new)))){
+    mu_new[0] = as<double>(rnorm(1, mu_0, sqrt(tau2_0))) ;
+  }
   return mu_new ;
   //return mu_K ;
 }
@@ -88,7 +94,10 @@ RcppExport SEXP update_tau2(SEXP xmod) {
 
   NumericVector tau2(1) ;
   //  rgamma is parameterized by scale.  In R, I've parameterized by rate
-  tau2[0] = 1/as<double>(rgamma(1, 0.5*eta_k, 1.0/(0.5*eta_k*m2_k[0]))) ;
+  tau2[0] = 1.0/as<double>(rgamma(1, 0.5*eta_k, 1.0/(0.5*eta_k*m2_k[0]))) ;
+  if(is_true(any(is_nan(tau2)))){
+    tau2[0] = 1.0/as<double>(rgamma(1, 0.5*eta_0, 1.0/(0.5*eta_0*m2_0))) ;
+  }
   //   tau2[0] = 1/as<double>(rgamma(1, 1/2*eta_k, (1/2*eta_k*m2_k[0]))) ;
   // In R, I check that this is valid and simulate from the prior if not
   return tau2 ;
@@ -134,9 +143,7 @@ RcppExport SEXP update_nu0(SEXP xmod) {
   double lprec = 0.0 ;
   for(int k = 0; k < K; k++) prec += 1.0/sigma2[k] ;
   for(int k = 0; k < K; k++) lprec += log(1.0/sigma2[k]) ;
-  for(int i = 0; i < 100; i++){
-    x[i] = i+1 ;
-  }
+  x = seq_len(100) ;
   NumericVector y1(100) ;
   NumericVector y2(100) ;
   NumericVector y3(100) ;
@@ -161,8 +168,8 @@ RcppExport SEXP update_nu0(SEXP xmod) {
       break ;
     }
   }
+  if(nu0[0] < 1) nu0[0] = 1 ;
   return nu0 ;
-  //nu0 = max(1, nu0)  // is this needed??
 }
 
 // [[Rcpp::export]]
@@ -233,6 +240,7 @@ RcppExport SEXP update_z(SEXP xmod) {
         cumP(i, k) = p(i, k) ;
       }
     }
+    cumP(i, K-1) = 1.000001 ;
   }
   //return cumP ;
   NumericVector u = runif(n) ;
@@ -250,14 +258,22 @@ RcppExport SEXP update_z(SEXP xmod) {
     }
     cumP(i, K-1) = 1.00001 ;  // just to be certain
   }
+  if(is_true(all(freq > 1))){
+    return zz ;
+  }
   // To prevent 0 frequencies, arbitrarily switch the label
-  if(is_true(any(freq == 0))){
-    for(int k = 0; k < K; ++k){
-      NumericVector r(1) ;
-      r[0] = as<double>(runif(1, 0, 1)) * n ;
-      r = round(r, 0) ;
-      zz[r[0]] = k + 1 ;
+  //while(!is_true(all(freq > 0))){
+  for(int k = 0; k < K; ++k){
+    if( freq[k] >= 2 ) continue ;
+    NumericVector r(2) ;
+    IntegerVector i(2) ;
+    r = runif(2, 0, 1) * n ;
+    for(int j = 0; j < 2; ++j){
+      // cast as integer
+      i = (int) r[j] ;
+      zz[i] = k + 1 ;
     }
+    freq[k] = sum(zz == (k+1)) ;
   }
   return zz ;
 }
@@ -300,6 +316,9 @@ RcppExport SEXP compute_vars(SEXP xmod) {
   IntegerVector nn ;
   nn = tableZ(K, z) ;
   NumericVector mn = model.slot("theta") ;
+  if(is_true(any(is_nan(mn)))){
+    mn = compute_means(xmod) ;
+  }
   //NumericVector mn = model.slot("data.mean") ;
   NumericVector vars(K) ;
   for(int i = 0; i < n; i++){
@@ -311,6 +330,16 @@ RcppExport SEXP compute_vars(SEXP xmod) {
   }
   for(int k = 0; k < K; k++){
     vars[k] /= nn[k] ;
+    if(nn[k] <= 2 ) vars[k] = 1000 ;
+  }
+  //
+  // if there is only one observation, the sample mean is the
+  // data point and the variance is 0
+  //
+  if(is_true(any(vars < 0.0001))){
+    for(int k = 0; k < K; ++k){
+      if(vars[k] < 0.0001) vars[k] = 1000 ;
+    }
   }
   return vars ;
 }
@@ -381,7 +410,7 @@ RcppExport SEXP update_sigma2(SEXP xmod){
   IntegerVector z = model.slot("z") ;
   NumericVector nu_n(K) ;
   IntegerVector nn = model.slot("zfreq") ;
-
+  
   for(int k = 0; k < K; ++k){
     nu_n[k] = nu_0 + nn[k] ;
   }
@@ -403,6 +432,7 @@ RcppExport SEXP update_sigma2(SEXP xmod){
   for (int k = 0; k < K; k++){
     sigma2_n = 1.0/nu_n[k]*(nu_0*sigma2_0 + ss[k]) ;
     sigma2_new[k] = 1.0/as<double>(rgamma(1, 0.5*nu_n[k], 1.0/(0.5*nu_n[k]*sigma2_n))) ;
+    //if(sigma2_new[k] < 0.001) sigma2_new[k] = 0.001 ;
   }
   return sigma2_new ;
 }

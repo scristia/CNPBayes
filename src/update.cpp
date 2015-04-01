@@ -15,7 +15,7 @@ RcppExport SEXP update_theta(SEXP xmod) {
     double tau2_tilde = 1/tau2;
     NumericVector sigma2 = model.slot("sigma2");
     NumericVector data_mean = model.slot("data.mean");
-    NumericVector sigma2_tilde = 1/sigma2;
+    NumericVector sigma2_tilde = 1.0/sigma2;
     IntegerVector z = model.slot("z");
     int K = getK(model.slot("hyperparams"));
     //NumericVector mu_prior = getMu(model.slot("hyperparams"));
@@ -32,7 +32,7 @@ RcppExport SEXP update_theta(SEXP xmod) {
     double w1;
     double w2;
     NumericVector thetas(K);
-    for(int k = 0; k < K; k++) {
+    for(int k = 0; k < K; ++k) {
       post_prec = tau2_tilde + sigma2_tilde[k] * nn[k];
       tau_n = sqrt(1/post_prec);
       w1 = tau2_tilde/post_prec;

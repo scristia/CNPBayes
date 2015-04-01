@@ -4,6 +4,10 @@ setValidity("MixtureModel", function(object){
     msg <- "Mixture probability vector must be the same length as k"
     return(msg)
   }
+  if(k(object)!=k(hyperParams(object))){
+    msg <- "disagreement of k in hyperparams and model"
+    return(msg)
+  }
   msg
 })
 

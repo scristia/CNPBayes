@@ -38,7 +38,6 @@ setMethod("McmcChains", "MixtureModel", function(object){
 
 .initializeMcmcBatch <- function(object){
   mcmc.params <- mcmcParams(object)
-  ##nr <- iter(mcmc.params[1])/thin(mcmc.params)[1] + 1
   nr <- iter(mcmc.params)[1]
   K <- k(object)
   B <- nBatch(object)
