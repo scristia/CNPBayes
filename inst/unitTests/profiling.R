@@ -29,7 +29,7 @@ updateTheta(model, constrain=FALSE)
 updateThetaCpp(model, constrain=TRUE)
 
 updateSigma2Cpp(model)
-## Need to profile posteriorSimulation.  
+## Need to profile posteriorSimulation.
 Rprof()
 posteriorSimulation(model, mcmcp)
 
