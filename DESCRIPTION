@@ -1,16 +1,18 @@
 Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
-Version: 0.0.10
-Date: Fri Jan  9 19:30:09 EST 2015
-Author: S. Cristiano
+Version: 0.0.30
+Date: Tue Jan 20 20:41:00 EST 2015
+Author: Stephen Cristiano and Robert Scharpf
 Depends:
     Rcpp (>= 0.10.4),
     RcppArmadillo (>= 0.2.0),
-    foreach,
-    BiocGenerics
+    BiocGenerics,
+    S4Vectors,
+    foreach
 Imports:
     Hmisc,
+    IRanges,
     GenomicRanges,
     truncnorm,
     methods,
@@ -22,7 +24,8 @@ Imports:
     msm,
     HardyWeinberg,
     oligoClasses,
-    S4Vectors
+    coda,
+    combinat
 Suggests:
     RUnit
 Collate:
@@ -30,6 +33,7 @@ Collate:
     'AllGenerics.R'
     'AllClasses.R'
     'RcppExports.R'
+    'bayesfactor.R'
     'constr.draw.R'
     'dnormmix.R'
     'dppgbbs.R'
@@ -40,8 +44,10 @@ Collate:
     'gibbs.mix.R'
     'icl.R'
     'inits.R'
+    'labelSwitching.R'
     'loglik.normmix.R'
     'methods-BatchModel.R'
+    'methods-BatchModelP.R'
     'methods-Hyperparameters.R'
     'methods-MarginalModel.R'
     'methods-McmcChains.R'
@@ -49,20 +55,24 @@ Collate:
     'methods-MixtureModel.R'
     'methods-ModelParams.R'
     'methods-Posterior.R'
+    'methods-PosteriorFiles.R'
     'methods-SummarizedExperiment.R'
     'mixture.R'
+    'model_initialization.R'
     'plotPosts.R'
     'sampleranges.R'
     'segplots.R'
+    'simulate_data.R'
     'sn.gibbs.mix.R'
     'sntest.R'
-    'test_rcpp.R'
+    'updates-BatchModel.R'
+    'visualization.R'
 Maintainer: Stephen Cristiano <scristia@jhu.edu>
 Description: More about what it does (maybe more than one line)
 License: Artistic-2.0
 LinkingTo: Rcpp, RcppArmadillo
 biocViews: CopyNumberVariation
 Roxygen: list(wrap=FALSE)
-## Local Variables:
+## Local Variables: 
 ## time-stamp-pattern: "8/Date: %3a %3b %2d %02H:%02M:%02S %Z %:y\n"
-## End:
+## End: 

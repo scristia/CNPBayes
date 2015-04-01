@@ -1,38 +1,22 @@
-##McmcChains <- function(mcmc.params, hyper.param){
-##  if(missing(mcmc.params)){
-##    return(new("McmcChains", theta=matrix(), sigma2=matrix(),
-##               pi=matrix(), mu=numeric(), tau2=numeric(),
-##               nu.0=numeric(), sigma2.0=numeric(),
-##               logpotential=numeric()))
-##  }
-##  nr <- iter(mcmc.params)/thin(mcmc.params)
-##  K <- k(hyper.param)
-##  mat <- matrix(NA, nr, K)
-##  vec <- numeric(nr)
-##  new("McmcChains", theta=mat,
-##      sigma2=mat,
-##      pi=mat,
-##      mu=vec,
-##      tau2=vec,
-##      nu.0=vec,
-##      sigma2.0=vec,
-##      logpotential=vec)
-##}
-
-.initializeMcmc <- function(object, mcmc.params){
-  ## add 1 for starting values (either the last run from the burnin, or default values if no burnin
-  nr <- iter(mcmc.params)/thin(mcmc.params) + 1
+.initializeMcmc <- function(object){
+  ## add 1 for starting values (either the last run from the burnin,
+  ## or default values if no burnin
+  mcmc.params <- mcmcParams(object)
+  nr <- iter(mcmc.params)
   K <- k(object)
-  mat <- matrix(NA, nr, K)
+  mati <- matrix(as.integer(NA), nr, K)
   vec <- numeric(nr)
-  new("McmcChains", theta=mat,
-      sigma2=mat,
-      pi=mat,
-      mu=vec,
-      tau2=vec,
-      nu.0=vec,
-      sigma2.0=vec,
-      logpotential=vec)
+  new("McmcChains",
+      theta=matrix(NA, nr, K),
+      sigma2=matrix(NA, nr, K),
+      pi=matrix(NA, nr, K),
+      mu=numeric(nr),
+      tau2=numeric(nr),
+      nu.0=numeric(nr),
+      sigma2.0=numeric(nr),
+      logprior=numeric(nr),
+      loglik=numeric(nr),
+      zfreq=mati)
 }
 
 setMethod("McmcChains", "Hyperparameters", function(object, mcmc.params){
@@ -43,45 +27,46 @@ setMethod("McmcChains", "missing", function(object, mcmc.params){
   new("McmcChains", theta=matrix(), sigma2=matrix(),
       pi=matrix(), mu=numeric(), tau2=numeric(),
       nu.0=numeric(), sigma2.0=numeric(),
-      logpotential=numeric())
+      zfreq=matrix(),
+      logprior=numeric(),
+      loglik=numeric())
 })
 
-setMethod("McmcChains", "MixtureModel", function(object, mcmc.params){
-  .initializeMcmc(object, mcmc.params)
+setMethod("McmcChains", "MixtureModel", function(object){
+  .initializeMcmc(object)
 })
 
-.initializeMcmcBatch <- function(object, mcmc.params){
-  nr <- iter(mcmc.params)/thin(mcmc.params) + 1
+.initializeMcmcBatch <- function(object){
+  mcmc.params <- mcmcParams(object)
+  ##nr <- iter(mcmc.params[1])/thin(mcmc.params)[1] + 1
+  nr <- iter(mcmc.params)[1]
   K <- k(object)
   B <- nBatch(object)
-  mat_batch <- matrix(NA, nr, K*B)
-  mat <- matrix(NA, nr, K)
-  vec <- numeric(nr)
+  ##mat_batch <- matrix(NA, nr, K*B)
+  ##mat <- matrix(NA, nr, K)
+  mati <- matrix(as.integer(NA), nr, K)
+  ##vec <- numeric(nr)
   new("McmcChains",
-      theta=mat_batch,
-      sigma2=mat_batch,
-      pi=mat,
-      mu=mat,
-      tau2=mat,
-      nu.0=vec,
-      sigma2.0=vec,
-      logpotential=vec)
+      theta=matrix(NA, nr, K*B),
+      sigma2=matrix(NA, nr, K*B),
+      pi=matrix(NA, nr, K),
+      mu=matrix(NA, nr, K),
+      tau2=matrix(NA, nr, K),
+      nu.0=numeric(nr),
+      sigma2.0=numeric(nr),
+      logprior=numeric(nr),
+      loglik=numeric(nr),
+      zfreq=mati)
 }
 
-setMethod("McmcChains", c("BatchModel", "missing"), function(object, mcmc.params){
-  .initializeMcmcBatch(object, mcmc.params)
-})
-
-setMethod("McmcChains", c("BatchModel", "McmcParams"), function(object, mcmc.params){
-  .initializeMcmcBatch(object, mcmc.params)
+setMethod("McmcChains", "BatchModel", function(object){
+  .initializeMcmcBatch(object)
 })
 
 setMethod("mu", "McmcChains", function(object) object@mu)
 setMethod("tau2", "McmcChains", function(object) object@tau2)
 setMethod("theta", "McmcChains", function(object) object@theta)
 setMethod("sigma2", "McmcChains", function(object) object@sigma2)
-
-
 
 
 ##posteriorMean <- function(object) object@mean
@@ -103,7 +88,9 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@tau2 <- x@tau2[i]
     x@nu.0 <- x@nu.0[i]
     x@sigma2.0 <- x@sigma2.0[i]
-    x@logpotential <- x@logpotential[i]
+    x@logprior <- x@logprior[i]
+    x@loglik <- x@loglik[i]
+    x@zfreq <- x@zfreq[i, ]
   }
   x
 })
@@ -147,7 +134,32 @@ setReplaceMethod("sigma2.0", "McmcChains", function(object, value){
   object
 })
 
-setReplaceMethod("logpotential", "McmcChains", function(object, value){
-  object@logpotential <- value
+## setReplaceMethod("logpotential", "McmcChains", function(object, value){
+##   object@logpotential <- value
+##   object
+## })
+
+setReplaceMethod("logLik", "McmcChains", function(object, value){
+  object@loglik <- value
+  object
+})
+
+setMethod("logLik", "McmcChains", function(object){
+  object@loglik
+})
+
+setMethod("names", "McmcChains", function(x) slotNames(x))
+
+setMethod("zFreq", "McmcChains", function(object) object@zfreq )
+
+setMethod("logPrior", "McmcChains", function(object) object@logprior)
+
+setReplaceMethod("logPrior", "McmcChains", function(object, value) {
+  object@logprior <- value
+  object
+})
+
+setReplaceMethod("zFreq", "McmcChains", function(object, value){
+  object@zfreq <- value
   object
 })

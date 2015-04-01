@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/transitional.dtd">
-<html><head><title>RUNIT TEST PROTOCOL--Fri Jan  9 15:41:13 2015</title>
+<html><head><title>RUNIT TEST PROTOCOL--Sat Mar 28 16:41:28 2015</title>
 </head>
-<body><h1 TRUE>RUNIT TEST PROTOCOL--Fri Jan  9 15:41:13 2015</h1>
+<body><h1 TRUE>RUNIT TEST PROTOCOL--Sat Mar 28 16:41:28 2015</h1>
 <p>Number of test functions: 13</p>
-<p>Number of errors: 0</p>
-<p style=color:red>Number of failures: 2</p>
+<p style=color:red>Number of errors: 1</p>
+<p>Number of failures: 0</p>
 <hr>
 <h3 TRUE>1 Test suite</h3>
 <table border="1" width="60%" >
@@ -16,48 +16,43 @@
 </tr>
 <tr><td><a href="#CNPBayes unit testing">CNPBayes unit testing</a></td>
 <td>13</td>
+<td bgcolor="red">1</td>
 <td>0</td>
-<td bgcolor="red">2</td>
 </tr>
 </table>
 <hr>
-<h3 TRUE>Failures</h3>
+<h3 TRUE>Errors</h3>
 <table border="1" width="100%" >
 <tr><th width="30%">Test suite : test function</th>
 <th width="70%">message</th>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_bad_starts">CNPBayes unit testing : test_bad_starts</a></td>
-<td>Error in checkEquals(pmns, theta(truth), tolerance = 0.09) : 
-  Mean relative difference: 0.5429221
-</td>
-</tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">CNPBayes unit testing : test_selectK_easy</a></td>
-<td>Error in checkIdentical(which.min(bicstat), 3L) : FALSE 
+<tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy">CNPBayes unit testing : test_marginalEasy</a></td>
+<td>Error in modal.values[["theta"]][, index] : 
+  incorrect number of dimensions
 </td>
 </tr>
 </table>
 <hr>
 <h3 TRUE>Details</h3>
 <p><a name="CNPBayes unit testing"><h5 TRUE>Test Suite: CNPBayes unit testing</h5>
-</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">test_batchEasy: (3 checks) ... OK (60.23 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">test_hard3: (3 checks) ... OK (221.99 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_easy">test_selectK_batch_easy: (1 checks) ... OK (383.26 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_selectK_batch_moderate">test_selectK_batch_moderate: (3 checks) ... OK (111.61 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (1 checks) ... OK (0.09 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_bad_starts"><u style=color:red>test_bad_starts: FAILURE !! (check number 1)  </u></a>Error in checkEquals(pmns, theta(truth), tolerance = 0.09) : 
-  Mean relative difference: 0.5429221
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy_default_starts">test_marginalEasy_default_starts: (3 checks) ... OK (17.37 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (3 checks) ... OK (23.4 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">test_marginal_Moderate: (3 checks) ... OK (30.75 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy"><u style=color:red>test_selectK_easy: FAILURE !! (check number 1)  </u></a>Error in checkIdentical(which.min(bicstat), 3L) : FALSE 
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_hard">test_selectK_hard: (1 checks) ... OK (92.46 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_moderate">test_selectK_moderate: (1 checks) ... OK (124.23 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (13 checks) ... OK (0.74 seconds)<br/></a></li></ul></li></li></ul><hr>
+</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batch_moderate">test_batch_moderate: (3 checks) ... OK (7.94 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">test_batchEasy: (11 checks) ... OK (218.93 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">test_hard3: (6 checks) ... OK (23.1 seconds)<br/></a></li></ul></li></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_Constructors.R">Test file: test_Constructors.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_Constructors.R_test_constructor">test_constructor: (26 checks) ... OK (0.12 seconds)<br/></a></li></ul></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (4 checks) ... OK (0.07 seconds)<br/></a></li></ul></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_loglik.R">Test file: test_loglik.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_loglik.R_test_loglik">test_loglik: (2 checks) ... OK (0.06 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal_density.R">Test file: test_marginal_density.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal_density.R_test_marginal_density">test_marginal_density: (0 checks) ... OK (0 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (3 checks) ... OK (13.02 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">test_marginal_Moderate: (3 checks) ... OK (3.32 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy"><u style=color:red>test_marginalEasy: ERROR !!  </u></a>Error in modal.values[["theta"]][, index] : 
+  incorrect number of dimensions
+<br/></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_selectK_easy">test_selectK_easy: (2 checks) ... OK (0.12 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (11 checks) ... OK (0.11 seconds)<br/></a></li></ul></li></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_summmarizedExperiment.R">Test file: test_summmarizedExperiment.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_summmarizedExperiment.R_test_SummarizedExperiment">test_SummarizedExperiment: (0 checks) ... OK (0.12 seconds)<br/></a></li></ul></li></ul><hr>
 <table border="0" width="80%" >
 <tr><th>Name</th>
 <th>Value</th>
 </tr>
 <tr><td>platform</td>
-<td>x86_64-unknown-linux-gnu</td>
+<td>x86_64-apple-darwin14.1.0</td>
 </tr>
 <tr><td>arch</td>
 <td>x86_64</td>
 </tr>
 <tr><td>os</td>
-<td>linux-gnu</td>
+<td>darwin14.1.0</td>
 </tr>
 <tr><td>system</td>
-<td>x86_64, linux-gnu</td>
+<td>x86_64, darwin14.1.0</td>
 </tr>
 <tr><td>status</td>
 <td>Under development (unstable)</td>
@@ -75,25 +70,25 @@
 <td>01</td>
 </tr>
 <tr><td>day</td>
-<td>09</td>
+<td>27</td>
 </tr>
 <tr><td>svn rev</td>
-<td>67382</td>
+<td>67637</td>
 </tr>
 <tr><td>language</td>
 <td>R</td>
 </tr>
 <tr><td>version.string</td>
-<td>R Under development (unstable) (2015-01-09 r67382)</td>
+<td>R Under development (unstable) (2015-01-27 r67637)</td>
 </tr>
 <tr><td>nickname</td>
 <td>Unsuffered Consequences</td>
 </tr>
 <tr><td>host</td>
-<td>compute-047</td>
+<td>Roberts-MacBook-Pro.local</td>
 </tr>
 <tr><td>compiler</td>
-<td>/usr/bin/g++</td>
+<td>clang++</td>
 </tr>
 </table>
 </body>

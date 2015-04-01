@@ -5,8 +5,7 @@
 #' @import methods
 #' @import GenomicRanges
 #' @import S4Vectors
-#' @import mixtools
-#' @importFrom gtools rdirichlet
+#' @importFrom gtools rdirichlet ddirichlet
 #' @importFrom msm rtnorm
 #' @importFrom truncnorm rtruncnorm
 #' @importFrom Hmisc rMultinom
@@ -16,14 +15,17 @@
 #' @import BiocGenerics
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% %dopar% foreach
-#' @importFrom matrixStats colSds
+#' @importFrom matrixStats colSds colMedians rowCumsums rowProds
 #' @importFrom HardyWeinberg HWChisq
-#' @importFrom oligoClasses copyNumber
+#' @importFrom oligoClasses copyNumber batch chromosome integerMatrix
+#' @importFrom coda effectiveSize
+#' @importFrom combinat permn
 #' @useDynLib CNPBayes
 NULL
 
 ## what are we iimporting in gtools?
 ## HMisc rMultinom
-## gtools rdirichlet
+## gtools rdirichlet ddirichlet
 
 ## S4Vectors is needed for the  SimpleList constructor
+# @import mixtools

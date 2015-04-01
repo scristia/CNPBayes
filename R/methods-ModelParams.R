@@ -1,14 +1,15 @@
 #' @export
 ModelParams <- function(type=c("marginal", "batch"),
                         y=numeric(),
-                        k,
+                        k=2L,
                         batch,
-                        mcmc.params){
-  if(missing(mcmc.params)){
-    mcmc.params <- McmcParams(iter=1000, burnin=0)
+                        mcmc.params=McmcParams(iter=1000, burnin=0)){
+  ##y <- y[!is.na(y)]
+  if(missing(batch)){
+    batch <- factor(rep("A", length(y)))
+  } else {
+    batch <- factor(batch)
   }
-  y <- y[!is.na(y)]
-  if(missing(batch)) batch <- rep("A", length(y))
   new("ModelParams", type=match.arg(type), data=y, k=k, batch=batch, mcmc.params=mcmc.params)
 }
 
@@ -18,9 +19,10 @@ setMethod("k", "ModelParams", function(object) object@k)
 
 setMethod("y", "ModelParams", function(object) object@data)
 
+#' @export
 setMethod("batch", "ModelParams", function(object) object@batch)
 
-mcmcParams <- function(object) object@mcmc.params
+## mcmcParams <- function(object) object@mcmc.params
 
 N <- function(object) length(y(object))
 

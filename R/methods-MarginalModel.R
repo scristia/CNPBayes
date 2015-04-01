@@ -1,83 +1,96 @@
-MarginalModel <- function(data, k, batch){
-  new("MarginalModel",
-      hyperparams=HyperparametersMarginal(k=k),
-      theta=numeric(k),
-      sigma2=numeric(k),
-      ##mu=numeric(k),
-      ##tau2=numeric(k),
-      nu.0=1L,
-      sigma2.0=1L,
-      pi=rep(1/k, k),
-      data=data,
-      data.mean=numeric(k),
-      data.prec=numeric(k),
-      z=factor(numeric(k)),
-      probz=matrix(0, length(data), k),
-      logpotential=numeric(1),
-      mcmc.chains=McmcChains(),
-      batch=batch,
-      hwe=numeric())
+#' @export
+MarginalModel <- function(data=numeric(), k=2, batch, hypp, mcmc.params){
+  if(missing(batch)){
+    batch <- as.integer(factor(rep("a", length(data))))
+  }
+  if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
+  if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
+  nbatch <- setNames(as.integer(table(batch)), levels(batch))
+  zz <- sample(seq_len(k), length(data), replace=TRUE)
+  zfreq <- as.integer(table(zz))
+  object <- new("MarginalModel",
+                k=as.integer(k),
+                hyperparams=hypp,
+                theta=numeric(k),
+                sigma2=numeric(k),
+                mu=numeric(1),
+                tau2=numeric(1),
+                nu.0=1L,
+                sigma2.0=1L,
+                pi=rep(1/k, k),
+                data=data,
+                data.mean=numeric(k),
+                data.prec=numeric(k),
+                z=zz,
+                zfreq=zfreq,
+                probz=matrix(0, length(data), k),
+                logprior=numeric(1),
+                loglik=numeric(1),
+                mcmc.chains=McmcChains(),
+                batch=batch,
+                batchElements=nbatch,
+                hwe=numeric(),
+                modes=list(),
+                m.y=numeric(1),
+                mcmc.params=mcmc.params)
+  object <- startingValues(object)
 }
 
-UnivariateMarginalModel <- function(data, k=1, batch){
+#' @export
+UnivariateMarginalModel <- function(data, k=1, batch, hypp){
+  if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
+  if(!missing(batch)){
+    nbatch <- setNames(as.integer(table(batch)), levels(batch))
+  } else nbatch <- length(data)
+  zz <- as.integer(factor(numeric(K)))
+  zfreq <- as.integer(table(zz))
   new("UnivariateMarginalModel",
-      hyperparams=HyperparametersMarginal(k=k),
+      hyperparams=hypp,
       theta=numeric(k),
       sigma2=numeric(k),
-      ##mu=numeric(1),
-      ##tau2=numeric(1),
+      mu=numeric(1),
+      tau2=numeric(1),
       nu.0=1L,
       sigma2.0=1L,
       pi=rep(1/k, k),
       data=data,
       data.mean=numeric(k),
       data.prec=numeric(k),
-      z=factor(numeric(k)),
+      z=zz,
+      zfreq=zfreq,
       probz=matrix(1, length(data), 1),
-      logpotential=numeric(1),
+      logprior=numeric(1),
+      loglik=numeric(1),
       mcmc.chains=McmcChains(),
       batch=batch,
-      hwe=numeric())
+      ##uniqueBatch=unique(batch),
+      batchElements=nbatch,
+      hwe=numeric(),
+      modes=list(),
+      m.y=numeric(1))
 }
 
 #' @export
-setMethod("mu", "MarginalModel", function(object) mu(hyperParams(object)))
+getK <- function(object){
+  hypp <- hyperParams(object)
+  .Call("getK", hypp)
+}
 
 #' @export
-setMethod("tau2", "MarginalModel", function(object) tau2(hyperParams(object)))
+setMethod("mu", "MarginalModel", function(object) object@mu)
+
+#' @export
+setMethod("tau2", "MarginalModel", function(object) object@tau2)
 
 setMethod("updateZ", "UnivariateMarginalModel", function(object){
   factor(rep(1, length(y(object))))
 })
 
-setMethod("updateZ", "UnivariateBatchModel", function(object){
-  factor(rep(1, length(y(object))))
-})
-
+## compute p(theta) * p(y | theta)
 setMethod("computePotential", "MarginalModel", function(object){
-  hypp <- hyperParams(object)
-  K <- k(hypp)
-  yy <- y(object)
-  zz <- z(object)
-  thetas <- theta(object)
-  sigma2s <- sigma2(object)
-  mus <- mu(object)
-  tau2s <- tau2(object)
-  pp <- p(object)
-  ##p.mu <- dnorm(mus, mu.0(hypp), sqrt(tau2.0(hypp)))
-  ##p.mu <- 1
-  p.sigma2.0 <- dgamma(sigma2.0(object), a(hypp), b(hypp))
-  p.nu.0 <- dgeom(nu.0(object), betas(hypp))
-  p.theta <- dnorm(thetas, mus, sqrt(tau2s))
-  p.sigma2 <- dgamma(1/sigma2s, 1/2*nu.0(object), 1/2*nu.0(object)*sigma2.0(object))
-  pot <- list()
-  for(i in seq_len(K)){
-    pot[[i]] <- pp[i]*dnorm(yy, thetas[i], sqrt(sigma2s)[i])
-  }
-  pot <- do.call("cbind", pot)
-  pot <- rowSums(pot)
-  total_pot <- sum(log(pot)) + sum(log(p.theta)) + sum(log(p.sigma2)) + log(p.nu.0) + log(p.sigma2.0)
-  total_pot
+  ll <- computeLogLikxPrior(object)
+  ll.phi <- .loglikPhiMarginal(object)
+  ll+ll.phi
 })
 
 ##
@@ -85,53 +98,26 @@ setMethod("computePotential", "MarginalModel", function(object){
 ## no update.
 ##
 setMethod("updateMu", "MarginalModel", function(object){
-  ##tau2.0, tau2, eta.0, mu.0, thetas, k, nn){
-  hypp <- hyperParams(object)
-  ##  mu.k <- .updateMu(tau2.0(hypp), tau2(object), k(object), z(object),
-  ##                    theta(object), mu.0(hypp))
-  ##  mu.k
-  mu(object)
+  .Call("update_mu", object)
+  ##.updateMu(object)
 })
 
-.updateMu <- function(tau2.0, tau2, k, z, theta, mu.0){
-  tau2.0.tilde <- 1/tau2.0
-  tau2.tilde <- 1/tau2
-  tau2.k.tilde <- tau2.0.tilde + k*tau2.tilde
-  nn <- table(z)
-  theta.bar <- sum(nn*theta)/sum(nn)
-  mu.k <- tau2.0.tilde/(tau2.0.tilde + k*tau2.tilde)*mu.0 +
-    k*tau2.tilde/(tau2.0.tilde + k*tau2.tilde)*theta.bar
-  mu.k
-}
-
-setMethod("startingValues", "MarginalModel", function(object){
+.updateMu <- function(object){
   hypp <- hyperParams(object)
-  tmp.file <- tempfile()
-  sink(tmp.file)
-  mmfit <- normalmixEM(y(object), arbvar = FALSE,
-                       epsilon = 1e-03, k=k(hypp), maxit=2000)
-  sink()
-  unlink(tmp.file)
-  mus <- mmfit$mu
-  vars <- (mmfit$sigma[order(mmfit$mu)])^2
-  if(FALSE){
-  if(k(object) >= 3 && any(y(object) < - 1.5)) {
-    ## set first component to be near the expected mean for homozygous deletions
-    mus[1] <- median(y(object)[y(object) < -1.5])
-    ## set first component to be near the expected mean for hemizygous deletions
-    mus[2] <- median(y(object)[y(object) > -1.5 & y(object) < -0.15])
-    ##
-    ## the variance may be overestimated
-    vars[1] <- var(y(object)[y(object) < -1.5])
-    vars[2:k(object)] <- var(y(object)[y(object) > -1.5 & y(object) < -0.15])
-
-    ## initialize using the posterior
-  }
+  tau2.0.tilde <- 1/tau2.0(hypp)
+  tau2.tilde <- 1/tau2(object)
+  tau2.k.tilde <- tau2.0.tilde + k(object)*tau2.tilde
+  nn <- zFreq(object)
+  theta.bar <- sum(nn*theta(object))/sum(nn)
+  w1 <- tau2.0.tilde/tau2.k.tilde
+  w2 <- k(object)*tau2.tilde/tau2.k.tilde
+  mu.k <- w1*mu.0(hypp) + w2*theta.bar
+  sd <- sqrt(1/tau2.k.tilde)
+  mu_new <- rnorm(1, mu.k, sd)
+  mu_new
 }
-  theta(object) <- mus
-  sigma2(object) <- vars
-  object
-})
+
+
 
 
 
@@ -140,14 +126,10 @@ setMethod("initializeSigma2.0", "MarginalModel", function(object){
   sum(alpha(hypp)*sigma2(object))/sum(alpha(hypp))
 })
 
-## 0 + 3sd = 0.4
-setMethod("initializeTau2", "MarginalModel", function(object){
-  ##hypp <- hyperParams(object)
-  ##1/rgamma(1, shape=1/2*eta.0(hypp), rate=1/2*eta.0(hypp)*m2.0(hypp))
-  ##rep(0.67, k(object))
-  ##rep((0.4/3)^2, k(object))
-  rep(0.68^2, k(object))
-})
+
+## just choose a big number
+setMethod("initializeTau2", "MarginalModel", function(object)  1000)
+
 
 ##setMethod("initializeMu", "MarginalModel", function(object){
 ##  means <- switch(paste0("k", k(object)),
@@ -165,11 +147,12 @@ setMethod("initializeTau2", "MarginalModel", function(object){
 
 
 setMethod("posteriorMultinomial", "MarginalModel", function(object){
-  .multinomial_probs <- .posteriorMultinomial(y(object),
-                                              theta(object),
-                                              sqrt(sigma2(object)),
-                                              p(object))
-
+##    .multinomial_probs <- .posteriorMultinomial(y(object),
+##                                                theta(object),
+##                                                sqrt(sigma2(object)),
+##                                                p(object))
+##
+  .Call("update_multinomialPr", object)
 })
 
 .posteriorMultinomial <- function(y, theta, sd, pi){
@@ -186,54 +169,80 @@ setMethod("posteriorMultinomial", "MarginalModel", function(object){
 setMethod("show", "MarginalModel", function(object) callNextMethod())
 
 setMethod("computeMeans", "MarginalModel", function(object){
-  means <- sapply(split(y(object), z(object)), mean, na.rm=TRUE)
-  means[is.nan(means)] <- mu(object)[is.nan(means)]
-  means
+  .Call("compute_means", object)
+
 })
+
+.computeMeans <- function(object){
+  means <- sapply(split(y(object), z(object)), mean, na.rm=TRUE)
+  if(any(is.nan(means))) {
+    means[is.nan(means)] <- rnorm(sum(is.nan(means)), mu(object), tau(object))
+  }
+  means
+}
+
+setMethod("computeVars", "MarginalModel", function(object){
+
+  .Call("compute_vars", object)
+})
+
+.computeVars <- function(object){
+  vars <- sapply(split(y(object), z(object)), var, na.rm=TRUE)
+  if(any(is.nan(vars))){
+    vars[is.nan(vars)] <- 1/rgamma(sum(is.nan(vars)), shape=1/2*nu.0(object), rate=1/2*nu.0(object)*sigma2.0(object))
+  }
+  vars
+}
 
 
 
 #' @export
 setMethod("plot", "MarginalModel", function(x, y, use.current=FALSE, ...){
-  hist(x)
+  hist(x, ...)
   pi <- p(x)
-  xx <- seq(min(observed(x)), max(observed(x)),  length.out=10e3)
+  ##xx <- seq(min(observed(x)), max(observed(x)),  length.out=10e3)
+  xx <- seq(min(observed(x)), max(observed(x)),  length.out=100)
   mc <- mcmcChains(x)
   if(!use.current){
     thetas <- colMeans(theta(mc))
-    sds <- colMeans(sqrt(sigma2(mc)))
+    sds <- colMeans(sigma(mc))
   } else {
     ## use current value
     thetas <- theta(x)
-    sds <- sqrt(sigma2(x))
+    sds <- sigma(x)
   }
   cols <- brewer.pal(max(length(pi), 3),  "Set1")
+  marginal <- matrix(NA, length(xx), k(x))
   for(j in seq_along(pi)){
-    lines(xx, pi[j]*dnorm(xx,
-                          mean=thetas[j],
-                          sd=sds[j]),
-          col=cols[j], lwd=2)
+    p.x <- pi[j]*dnorm(xx, mean=thetas[j], sd=sds[j])
+    lines(xx, p.x, col=cols[j], lwd=2)
+    marginal[, j] <- p.x
   }
+  marginal.cum.prob <- rowSums(marginal)
+  lines(xx, marginal.cum.prob, col="black", lwd=2)
 })
 
 setMethod("simulateY", "MarginalModel", function(object){
   zz <- z(object)
-  yy <- rnorm(length(zz), mean=theta(object)[zz], sd=sqrt(sigma2(object)[zz]))
+  yy <- rnorm(length(zz), mean=theta(object)[zz], sd=sigma(object)[zz])
 })
 
 setMethod("moveChain", "MarginalModel", function(object, s){
   mcmc <- mcmcChains(object)
+  K <- k(object)
   theta(mcmc)[s, ] <- as.numeric(theta(object))
   sigma2(mcmc)[s, ] <- as.numeric(sigma2(object))
   p(mcmc)[s, ] <- p(object)
   ##
-  ## mu and tau2 are now hyper-parameters
-  ##mu(mcmc)[s] <- mu(object)
-  ##tau2(mcmc)[s] <- tau2(object)
+  mu(mcmc)[s] <- mu(object)
+  tau2(mcmc)[s] <- tau2(object)
   ##
   nu.0(mcmc)[s] <- nu.0(object)
   sigma2.0(mcmc)[s] <- sigma2.0(object)
-  logpotential(mcmc)[s] <- logpotential(object)
+  ##logpotential(mcmc)[s] <- logpotential(object)
+  logLik(mcmc)[s] <- logLik(object)
+  ##zz <- factor(z(object), levels=seq_len(K))
+  zFreq(mcmc)[s, ] <- as.integer(table(z(object)))
   mcmcChains(object) <- mcmc
   object
 })
@@ -241,6 +250,7 @@ setMethod("moveChain", "MarginalModel", function(object, s){
 setMethod("updateThetaCpp", "MarginalModel", function(object, constrain) {
   .Call("update_theta", object, constrain=constrain)
 })
+
 #
 #.updateThetaCpp <- function(obj, constrain=TRUE) {
 #    theta <- .Call("update", obj, constrain)
@@ -248,66 +258,37 @@ setMethod("updateThetaCpp", "MarginalModel", function(object, constrain) {
 #}
 
 
-setMethod("updateTheta", "MarginalModel", function(object, constrain) {
-  .updateTheta(mu(object), tau2(object),
-               sigma2(object),
-               dataMean(object),
-               n.h=table(z(object)),
-               theta.last=theta(object),
-               constrain=constrain)
+setMethod("updateTheta", "MarginalModel", function(object) {
+  ##.updateTheta(object)
+  .Call("update_theta", object)
 })
 
-.updateTheta <- function(mu, tau2,
-                         sigma2,
-                         data.mean,
-                         n.h,
-                         theta.last,
-                         constrain=TRUE){
-  tau2.tilde <- 1/tau2
-  sigma2.tilde <- 1/sigma2
-  tau2.n.tilde <- tau2.tilde + n.h*sigma2.tilde
-  ##tau2.n.tilde <- posteriorPrecisionConjugateNormal(tau2.tilde, data.precision)
-  tau2.n <- 1/tau2.n.tilde
-  denom <- tau2.tilde + n.h*sigma2.tilde
-  w1 <- tau2.tilde/denom
-  w2 <- n.h*sigma2.tilde/denom
-  mu.n <- w1*mu + w2*data.mean
-  k <- length(tau2.n)
-  thetas <- rnorm(k, mu.n, sqrt(tau2.n))
-  stopif(any(is.na(thetas)))
-  ##
-  ## Do not constrain the thetas during burnin
-  ##
-  if(!constrain) return(thetas)
-  if(identical(thetas, sort(thetas)))  return(thetas)
-  ##
-  ## sorted thetas are not the same
-  ##
-  ## - constrain updates according to theta.last
-  epsilon <- 0.01
-  thetas[1] <- rtruncnorm(1, a=-Inf, b=theta.last[2]-epsilon,
-                          mean=theta.last[1], sd=sqrt(tau2.n[1]))
-  for(i in 2:k){
-    a <- thetas[i-1] + epsilon
-    ##if(i==4) stop()
-    if(i < k){
-      ##b <- theta.last[i+1] - epsilon
-      b <- max(mu.n[i] + min(3*sqrt(tau2.n[i]), 0.1), a+0.2)
-    } else b <- 5
-    thetas[i] <- rtruncnorm(1, a=a, b=b,
-                            mean=mu.n[i], sd=sqrt(tau2.n[i]))
-  }
-  stopif(any(is.na(thetas)))
+.updateTheta <- function(object){
+  theta.last <- theta(object)
+  tau2.tilde <- 1/tau2(object)
+  sigma2.tilde <- 1/sigma2(object)
+  n.h <- tablez(object)
+  n.h <- pmax(n.h, 1)
+  ##tau2.n.tilde <- tau2.tilde + n.h*sigma2.tilde
+  post.prec <- tau2.tilde + n.h*sigma2.tilde
+  tau2.n <- 1/post.prec
+  ##denom <- tau2.tilde + n.h*sigma2.tilde
+  w1 <- tau2.tilde/post.prec
+  w2 <- n.h*sigma2.tilde/post.prec
+  mu.n <- w1*mu(object) + w2*dataMean(object)
+  thetas <- rnorm(k(object), mu.n, sqrt(tau2.n))
+  if(any(is.na(thetas))) stop("NAs in theta update")
+  if(length(thetas) != length(theta.last)) stop("check thetas")
   thetas
 }
 
-setMethod("updateSigma2Cpp", "MarginalModel", function(object) {
-  .Call("update_sigma2", object)
-})
+## setMethod("updateSigma2Cpp", "MarginalModel", function(object) {
+##   .Call("update_sigma2", object)
+## })
 
 setMethod("updateSigma2", "MarginalModel", function(object) {
   ##.updateSigma2(object)
-  .updateSigma2_2(object)
+  .Call("update_sigma2", object)
 })
 
 
@@ -317,16 +298,21 @@ setMethod("updateSigma2", "MarginalModel", function(object) {
   thetas <- theta(object)
   nu.0 <- nu.0(object)
   sigma2.0 <- sigma2.0(object)
+  n.h <- tablez(object)
+  n.h <- pmax(n.h, 1)
 
   nu.n <- nu.0+n.h
-  k <- length(nu.n)
-  ss <- sumOfSquares(data.list, thetas)
+
+  zz <- z(object)
+  m <- thetas[as.integer(zz)]
+  squares <- (y(object) - m)^2
+  ss <- sapply(split(squares, zz), sum)
+
   ## weighted average of sums of squares
   sigma2.nh <- 1/nu.n*(nu.0*sigma2.0 + ss)
   shape <- 1/2*nu.n
   rate <- shape*sigma2.nh
-  sigma2.h.tilde <- rgamma(k, shape=shape, rate=rate)
-  ##tmp <- rgamma(1000, shape=1/2*nu.n[1], rate=1/2*nu.n[1]*sigma2.nh[1])
+  sigma2.h.tilde <- rgamma(k(object), shape=shape, rate=rate)
   sigma2.h <- 1/sigma2.h.tilde
   stopif(any(is.nan(sigma2.h)))
   sigma2.h
@@ -364,9 +350,10 @@ setMethod("updateSigma2", "MarginalModel", function(object) {
 
 
 setMethod("updateSigma2.0", "MarginalModel", function(object){
-  hypp <- hyperParams(object)
-  .updateSigma2.0(a=a(hypp), b=b(hypp), nu.0=nu.0(object),
-                  sigma2.h=sigma2(object), k=k(hypp))
+  .Call("update_sigma2_0", object)
+##     hypp <- hyperParams(object)
+##     .updateSigma2.0(a=a(hypp), b=b(hypp), nu.0=nu.0(object),
+##                     sigma2.h=sigma2(object), k=k(hypp))
 })
 
 .updateSigma2.0 <- function(a, b, nu.0, sigma2.h, k){
@@ -378,9 +365,10 @@ setMethod("updateSigma2.0", "MarginalModel", function(object){
 }
 
 setMethod("updateNu.0", "MarginalModel", function(object){
-  hypp <- hyperParams(object)
-  .updateNu.0(beta=betas(hypp), sigma2.0=sigma2.0(object), sigma2.h=sigma2(object),
-              nu.0=nu.0(object), k=k(object))
+  .Call("update_nu0", object)
+##   hypp <- hyperParams(object)
+##   .updateNu.0(beta=betas(hypp), sigma2.0=sigma2.0(object), sigma2.h=sigma2(object),
+##               nu.0=nu.0(object), k=k(object))
 })
 
 .updateNu.0 <- function(NUMAX=100, beta, sigma2.0, sigma2.h, nu.0, k){
@@ -399,28 +387,35 @@ setMethod("updateNu.0", "MarginalModel", function(object){
 ## no update.
 ##
 setMethod("updateTau2", "MarginalModel", function(object){
-  hypp <- hyperParams(object)
-  ##.updateTau2(eta.0(hypp), m2.0(hypp), theta(object), mu(object), k(object))
-  tau2(object)
+  ##  .updateTau2(object)
+  .Call("update_tau2", object)
 })
 
-.updateTau2 <- function(eta.0, m2.0, theta, mu, k){
-  eta.k <- eta.0+k
-  s2.k <- sum((theta-mu)^2)
-  m2.k <- 1/eta.k*(eta.0 * m2.0 + s2.k)
+.updateTau2 <- function(object){
+  hypp <- hyperParams(object)
+  ##eta.0, m2.0, theta, mu, k){
+  eta.k <- eta.0(hypp)+k(object)
+  s2.k <- sum((theta(object)-mu(object))^2)
+  m2.k <- 1/eta.k * (eta.0(hypp) * m2.0(hypp) + s2.k)
+
   tau2 <- 1/rgamma(1, shape=1/2 * eta.k, rate=1/2 * eta.k * m2.k)
-  stopif(is.nan(tau2))
+##   if(is.nan(tau2) || !is.finite(tau2)){
+##     tau2 <- 1/rgamma(1, shape=1/2*eta.0(hypp), rate=1/2*eta.0(hypp)*m2.0(hypp))
+##   }
+  if(length(tau2) > 1) stop("tau2 should have length 1")
   tau2
 }
 
 
 setReplaceMethod("tau2", "MarginalModel", function(object, value){
-  hyperParams(object)@tau2 <- value
+  ##hyperParams(object)@tau2 <- value
+  object@tau2 <- value
   object
 })
 
 setReplaceMethod("mu", "MarginalModel", function(object, value){
-  hyperParams(object)@mu <- value
+  ##hyperParams(object)@mu <- value
+  object@mu <- value
   object
 })
 
@@ -435,10 +430,10 @@ setMethod("bic", "MarginalModel", function(object, ...){
     object <- updateWithPosteriorMeans(object)
   }
   ## K: number of free parameters to be estimated
-  ##   - component-specific parameters:  theta, pi  (2 x k(model))
-  ##   - 2 variance estimates (non-zero  components assumed to be the same) +2
-  ##   - length-one parameters: sigma2.0, nu.0             +2
-  K <- 2*k(object) + 2 + 2
+  ##   - component-specific parameters:  theta, sigma2   (3 x k(model))
+  ##   - mixing probabilities:  k-1
+  ##   - length-one parameters: mu, tau2, sigma2.0, nu.0             +4
+  K <- 2*k(object) + (k(object)-1) + 4
   n <- length(y(object))
   -2*logpotential(object) + K*(log(n) - log(2*pi))
 })
@@ -452,16 +447,49 @@ setMethod("theta", "MarginalModel", function(object) object@theta)
 setMethod("sigma2", "MarginalModel", function(object) object@sigma2)
 
 setMethod("reorderComponents", "MarginalModel", function(object){
+  ##
+  ## First, update the model so that the components are ordered by theta
+  ##
   ix <- order(theta(object))
   theta(object) <- sort(theta(object))
   sigma2(object) <- sigma2(object)[ix]
   p(object) <- p(object)[ix]
   zz <- z(object)
-  ## trick to reset the augmentation var
+  ##
+  ## Set the labels of the latent variable such that 1=first
+  ## components, 2= second component, ...
+  ##
   zz <- factor(as.integer(factor(zz, levels=ix)), levels=seq_len(k(object)))
   z(object) <- zz
   dataMean(object) <- dataMean(object)[ix]
   dataPrec(object) <- dataPrec(object)[ix]
+  object
+})
+
+setMethod("relabel", "MarginalModel", function(object, zindex){
+  if(identical(zindex, seq_len(k(object)))) return(object)
+  ##
+  ## Permute the latent variables
+  ##
+  zz <- factor(z(object), levels=zindex)
+  zz <- factor(as.integer(zz), levels=seq_len(k(object)))
+  z(object) <- zz
+  zFreq(object) <- as.integer(table(zz))
+  dataMean(object) <- dataMean(object)[zindex]
+  dataPrec(object) <- dataPrec(object)[zindex]
+  object
+})
+
+setMethod("relabel", "BatchModel", function(object, zindex){
+  if(identical(zindex, seq_len(k(object)))) return(object)
+  ##
+  ## Permute the latent variables
+  ##
+  zz <- factor(z(object), levels=zindex)
+  zz <- factor(as.integer(zz), levels=seq_len(k(object)))
+  z(object) <- zz
+  dataMean(object) <- dataMean(object)[, zindex, drop=FALSE]
+  dataPrec(object) <- dataPrec(object)[, zindex, drop=FALSE]
   object
 })
 
@@ -471,6 +499,8 @@ setMethod("updateWithPosteriorMeans", "MarginalModel", function(object){
   sigma2(object) <- colMeans(sigma2(mc))
   p(object) <- colMeans(p(mc))
   nu.0(object) <- median(nu.0(mc))
+  mu(object) <- mean(mu(object))
+  tau2(object) <- mean(tau2(object))
   sigma2.0(object) <- mean(sigma2.0(object))
   logpotential(object) <- computePotential(object)
   z(object) <- factor(map(object), levels=seq_len(k(object)))
@@ -501,11 +531,144 @@ setMethod("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
 
   probz(x) <- probz(x)[, cn]
 
-
   zz <- as.integer(z(x))
   z(x) <- factor(as.integer(factor(zz, levels=cn)), levels=sort(unique(zz)))
   dataMean(x) <- dataMean(x)[cn]
   dataPrec(x) <- dataPrec(x)[cn]
   mcmcChains(x) <- mc
   x
+})
+
+.computeModesMarginal <- function(object){
+  i <- argMax(object)
+  mc <- mcmcChains(object)
+  thetamax <- theta(mc)[i, ]
+  sigma2max <- sigma2(mc)[i,]
+  pmax <- p(mc)[i, ]
+  modes <- list(theta=thetamax,
+                sigma2=sigma2max,
+                mixprob=pmax,
+                mu=mu(mc)[i],
+                tau2=tau2(mc)[i],
+                nu0=nu.0(mc)[i],
+                sigma2.0=sigma2.0(mc)[i],
+                zfreq=zFreq(mc)[i, ],
+                loglik=logLik(mc)[i],
+                logprior=logPrior(mc)[i])
+  modes
+}
+
+setMethod("computeModes", "MarginalModel", function(object){
+  .computeModesMarginal(object)
+})
+
+
+##logLik(mcmc)[s] <- computeLoglik(object)
+##  mcmcChains(object) <- mcmc
+##  object
+##})
+
+sumSquares <- function(object){
+  B <- batch(object)
+  thetas <- theta(object)
+  yy <- y(object)
+  K <- k(object)
+  zz <- z(object)
+  ss <- matrix(NA, nBatch(object), k(object))
+  rownames(ss) <- uniqueBatch(object)
+  batch.index <- split(seq_len(length(yy)), B)
+  zz <- z(object)
+  for(b in uniqueBatch(object)){
+    k <- batch.index[[b]]
+    y <- yy[k]
+    cn <- zz[k]
+    m <- thetas[b, ]
+    ## This could be tricky in C.  It works in R because of the factor to an integer:
+    ##  as.integer(factor(c(1, 3), levels=c("1", "2", "3"))) evaluates to 1,3
+    m <- m[as.integer(cn)]
+    squares <- (y - m)^2
+    ss[b, ] <- sapply(split(squares, factor(cn, levels=seq_len(K))), sum)
+  }
+  ss
+}
+
+
+permuteZ <- function(object){
+  zz <- z(object)
+  i <- permn(seq_len(k(object)))[[2]]
+  zz <- factor(as.integer(factor(zz, levels=i)), levels=seq_len(k(object)))
+  z(object) <- zz
+  object
+}
+
+setMethod("showMeans", "MarginalModel", function(object){
+  paste(round(theta(object), 2), collapse=", ")
+})
+
+setMethod("showSigmas", "MarginalModel", function(object){
+  paste(round(sqrt(sigma2(object)), 2), collapse=", ")
+})
+
+setMethod("tablez", "MarginalModel", function(object) table(z(object)))
+
+#' @export
+marginalModel1 <- function(object, hyp.list,
+                           data, mcmcp.list=mcmcpList(),
+                           save.it=FALSE, test=FALSE){
+  if(test){
+    message("Testing with just a few mcmc iterations")
+    mcmcp.list <- mcmcpList(TRUE)
+    save.it <- FALSE
+  }
+  mcmcp <- mcmcp.list[[1]]
+##   mp.list <- ModelParamList(hyp.list[[1]],
+##                             K=1:4,
+##                             data=data,
+##                             mcmcp=mcmcp)
+  modlist <- foreach(hypp=hyp.list) %do% {
+    MarginalModel(data=y(truth), hypp=hypp, mcmc.params=mcmcp)
+    ##initializeModel(params=param, hypp=hypp)
+  }
+  models <- foreach(k=1:4, model=modlist) %do% posteriorSimulation(model, mcmcp[k])
+  file.out <- postFiles(object)[1]
+  x <- lapply(models, computeMarginalPr, mcmcp=mcmcp.list[[2]])
+  if(save.it) saveRDS(x, file=file.out)
+  xx <- do.call(cbind, lapply(x, rowMeans))
+  post.range <- unlist(lapply(x, posteriorRange))
+  marginals <- computeMarginal(xx)
+  for(i in seq_along(models)){
+    m.y(models[[i]]) <- marginals[i]
+  }
+  if(save.it) saveRDS(models, file=model(object))
+  ## important to return NULL -- otherwise memory will skyrocket
+  NULL
+}
+
+#' @export
+marginalExperiment <- function(object,
+                               outdir,
+                               mcmcp.list=mcmcpList(),
+                               hypp, marginaly=TRUE,
+                               test=FALSE){
+  M <- getFiles(outdir, rownames(object), "marginal")
+  if(missing(hypp)){
+    hp.list <- HyperParameterList(K=1:4, HyperparametersMarginal(tau2.0=1000))
+  } else{
+    hp.list <- HyperParameterList(K=1:4, hypp)
+  }
+  cn <- copyNumber(object)
+  J <- seq_len(nrow(object)); j <- NULL
+  x <- foreach(j = J, .packages=c("CNPBayes", "foreach")) %dopar% {
+    models <- marginalModel1(M[j], data=cn[j, ],
+                             hyp.list=hp.list,
+                             mcmcp.list=mcmcp.list, save.it=TRUE,
+                             test=test)
+  }
+  TRUE
+}
+
+setReplaceMethod("mcmcParams", "MixtureModel", function(object, value){
+  object@mcmc.params <- value
+  mcmcChains(object) <- McmcChains(object)
+  object
 })

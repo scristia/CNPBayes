@@ -12,12 +12,9 @@ setClass("Hyperparameters", representation(k="integer",
                                            beta="numeric",
                                            a="numeric",
                                            b="numeric"))
+setClass("HyperparametersMarginal", contains="Hyperparameters")
 
-setClass("HyperparametersMarginal", representation(mu="numeric", tau2="numeric"),
-         contains="Hyperparameters")
-
-setClass("HyperparametersBatch", representation(mu.0="numeric", tau2.0="numeric"),
-         contains="Hyperparameters")
+setClass("HyperparametersBatch",  contains="Hyperparameters")
 
 setClass("McmcChains", representation(theta="matrix",
                                       sigma2="matrix",
@@ -26,27 +23,54 @@ setClass("McmcChains", representation(theta="matrix",
                                       tau2="numericOrMatrix",
                                       nu.0="numeric",
                                       sigma2.0="numeric",
-                                      logpotential="numeric"))
+                                      logprior="numeric",
+                                      loglik="numeric",
+                                      zfreq="matrix"))
+
+setClass("McmcParams", representation(thin="numeric",
+                                      iter="numeric",
+                                      burnin="numeric",
+                                      nstarts="numeric",
+                                      nstart_iter="numeric",
+                                      check_labels="logical",
+                                      param_updates="integer"))
 
 setClass("MixtureModel", representation("VIRTUAL",
+                                        k = "integer",
                                         hyperparams="Hyperparameters",
                                         theta="numericOrMatrix",
                                         sigma2="numericOrMatrix",
                                         nu.0="numeric",
                                         sigma2.0="numeric",
                                         pi="numeric",
+                                        mu="numericOrMatrix",
+                                        tau2="numericOrMatrix",
                                         data="numeric",
                                         data.mean="numericOrMatrix",
                                         data.prec="numericOrMatrix",
-                                        z="factor",
+                                        z="integer",
+                                        zfreq="integer",
                                         probz="matrix",
-                                        logpotential="numeric",
+                                        ##logpotential="numeric",
+                                        logprior="numeric",
+                                        loglik="numeric",
                                         mcmc.chains="McmcChains",
-                                        batch="vector",
-                                        hwe="numeric"))
+                                        batch="integer",
+                                        batchElements="integer",
+                                        hwe="numeric",
+                                        modes="list",
+                                        theta_order="numeric",
+                                        m.y="numeric",
+                                        mcmc.params="McmcParams"))
 
 
-setClass("BatchModel", contains="MixtureModel", representation(mu="numericOrMatrix", tau2="numericOrMatrix"))
+
+setClass("BatchModel", contains="MixtureModel")
+
+
+##
+setClass("BatchModelPlusHom", contains="BatchModel")
+setClass("BatchModelNoHom", contains="BatchModel")
 
 setClass("MarginalModel", contains="MixtureModel")
 
@@ -57,17 +81,18 @@ setClass("UnivariateMarginalModel", contains="MarginalModel")
 ## Better to have a field for each variable
 setClass("Posterior", contains="MixtureModel")
 
-setClass("McmcParams", representation(thin="numeric",
-                                      iter="numeric",
-                                      burnin="numeric",
-                                      ## whether to constrain theta after the burnin
-                                      constrainTheta="logical"))
-
-
 
 
 setClass("ModelParams", representation(type="character",
                                        k="numeric",
                                        data="numeric",
-                                       batch="character",
+                                       batch="factor",
                                        mcmc.params="McmcParams"))
+
+setClass("PosteriorFiles",
+         representation(
+             isMarginalModel="logical",
+             model="character",
+             post1="character"))
+             ##post2="character",
+             ##post3="character"))

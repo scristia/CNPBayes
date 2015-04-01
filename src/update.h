@@ -2,7 +2,7 @@
 #define _update_H
 #include <RcppArmadillo.h>
 
-RcppExport SEXP update_theta(SEXP xmod, SEXP constraint);
+RcppExport SEXP update_theta(SEXP xmod);
 RcppExport SEXP update_sigma2(SEXP xmod);
 
 // Access model values

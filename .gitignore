@@ -1,8 +1,11 @@
+.Rprofile
+.Rhistory
+*.out
+TODO.org
 *.so
 *.o
 *.rds
 *.sw?
-*.pdf
 *.log
 *.RDS
 *.csv

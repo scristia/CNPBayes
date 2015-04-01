@@ -4,6 +4,7 @@
 
 #' @export
 setGeneric("k", function(object) standardGeneric("k"))
+setGeneric("k<-", function(object, value) standardGeneric("k<-"))
 ##setGeneric("params", function(object) standardGeneric("params"))
 
 ##setGeneric("posteriorMean", function(object) standardGeneric("posteriorMean"))
@@ -34,6 +35,9 @@ setGeneric("mcmcChains<-", function(object, value) standardGeneric("mcmcChains<-
 setGeneric("mcmcChains", function(object) standardGeneric("mcmcChains"))
 
 #' @export
+setGeneric("chains", function(object) standardGeneric("chains"))
+
+#' @export
 setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 
 #' @export
@@ -47,11 +51,12 @@ setGeneric("plot")
 
 ##setGeneric("BatchModel", function(object, ncomp, batch) standardGeneric("BatchModel"))
 
-#' @export
-setGeneric("batch", function(object) standardGeneric("batch"))
+
+##setGeneric("batch", function(object) standardGeneric("batch"))
+
 setGeneric("batch<-", function(object,value) standardGeneric("batch<-"))
 
-setGeneric("startingValues", function(object) standardGeneric("startingValues"))
+setGeneric("startingValues", function(object, params, zz) standardGeneric("startingValues"))
 
 setGeneric("computeMeans", function(object) standardGeneric("computeMeans"))
 setGeneric("computeVars", function(object) standardGeneric("computeVars"))
@@ -66,6 +71,8 @@ setGeneric("dat<-", function(object,value) standardGeneric("dat<-"))
 setGeneric("updateMu", function(object) standardGeneric("updateMu"))
 
 setGeneric("initializeSigma2.0", function(object) standardGeneric("initializeSigma2.0"))
+
+setGeneric("initializeSigma2", function(object) standardGeneric("initializeSigma2"))
 
 setGeneric("initializeMu", function(object) standardGeneric("initializeMu"))
 
@@ -101,7 +108,7 @@ setGeneric("theta", function(object) standardGeneric("theta"))
 #' @export
 setGeneric("sigma2", function(object) standardGeneric("sigma2"))
 
-setGeneric("reorderComponents", function(object) standardGeneric("reorderComponents"))
+setGeneric("reorderComponents", function(object, new_levels) standardGeneric("reorderComponents"))
 
 #' @export
 setGeneric("hwe", function(object) standardGeneric("hwe"))
@@ -112,7 +119,7 @@ setGeneric("probz", function(object) standardGeneric("probz"))
 setGeneric("probz<-", function(object, value) standardGeneric("probz<-"))
 
 #' @export
-setGeneric("fitMixtureModels", function(object, mcmcp, K=1:5) standardGeneric("fitMixtureModels"))
+setGeneric("fitMixtureModels", function(object, mcmcp, K=1:5, batch) standardGeneric("fitMixtureModels"))
 
 #' @export
 setGeneric("nu.0", function(object) standardGeneric("nu.0"))
@@ -125,3 +132,153 @@ setGeneric("y", function(object) standardGeneric("y"))
 
 #' @export
 setGeneric("z", function(object) standardGeneric("z"))
+
+setGeneric("modalParameters", function(object) standardGeneric("modalParameters"))
+
+#' @export
+setGeneric("computeModes", function(object) standardGeneric("computeModes"))
+
+setGeneric("switchLabels", function(object) standardGeneric("switchLabels"))
+
+setGeneric("computeDistance", function(object) standardGeneric("computeDistance"))
+
+#' @export
+setGeneric("modes", function(object) standardGeneric("modes"))
+
+#' @export
+setGeneric("modes<-", function(object,value) standardGeneric("modes<-"))
+
+
+setGeneric("mu.0", function(object) standardGeneric("mu.0"))
+setGeneric("tau2.0", function(object) standardGeneric("tau2.0"))
+setGeneric("eta.0", function(object) standardGeneric("eta.0"))
+setGeneric("eta.0<-", function(object,value) standardGeneric("eta.0<-"))
+setGeneric("m2.0", function(object) standardGeneric("m2.0"))
+setGeneric("m2.0<-", function(object,value) standardGeneric("m2.0<-"))
+
+setGeneric("showMeans", function(object) standardGeneric("showMeans"))
+setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
+
+#' @export
+setGeneric("collapseBatch", function(object, plate) standardGeneric("collapseBatch"))
+
+#' @export
+setGeneric("thetac", function(object) standardGeneric("thetac"))
+
+#' @export
+setGeneric("thetaMean", function(object) standardGeneric("thetaMean"))
+
+#' @export
+setGeneric("sigmaMean", function(object) standardGeneric("sigmaMean"))
+
+#' @export
+setGeneric("pMean", function(object) standardGeneric("pMean"))
+
+#' @export
+setGeneric("tracePlot", function(object, name, ...) standardGeneric("tracePlot"))
+
+#' @export
+setGeneric("tablez", function(object) standardGeneric("tablez"))
+
+#' @export
+setGeneric("nStarts", function(object) standardGeneric("nStarts"))
+setGeneric("nStarts<-", function(object, value) standardGeneric("nStarts<-"))
+
+setGeneric("checkLabels", function(object) standardGeneric("checkLabels"))
+setGeneric("nStartIter", function(object) standardGeneric("nStartIter"))
+
+setGeneric("updateAlpha", function(object) standardGeneric("updateAlpha"))
+setGeneric("alpha", function(object) standardGeneric("alpha"))
+
+setGeneric("orderTheta<-", function(object, value) standardGeneric("orderTheta<-"))
+setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))
+
+#' @export
+setGeneric("logLik", function(object) standardGeneric("logLik"))
+
+setGeneric("logLik<-", function(object,value) standardGeneric("logLik<-"))
+
+#' @export
+setGeneric("computeLoglik", function(object, psi) standardGeneric("computeLoglik"))
+
+#' @export
+setGeneric("burnin", function(object) standardGeneric("burnin"))
+
+#' @export
+setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
+
+#' @export
+setGeneric("iter<-", function(object, value) standardGeneric("iter<-"))
+#' @export
+setGeneric("iter", function(object) standardGeneric("iter"))
+
+
+#' @export
+setGeneric("posteriorSimulation", function(object, mcmcp) standardGeneric("posteriorSimulation"))
+
+#' @export
+setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
+
+#' @export
+setGeneric("m.y", function(object) standardGeneric("m.y"))
+#' @export
+setGeneric("m.y<-", function(object,value) standardGeneric("m.y<-"))
+
+setGeneric("getThetaOrder", function(object) standardGeneric("getThetaOrder"))
+
+setGeneric("updateLabels", function(object) standardGeneric("updateLabels"))
+
+setGeneric("updateMixProbs", function(object) standardGeneric("updateMixProbs"))
+
+#' @export
+setGeneric("priorProbs", function(object) standardGeneric("priorProbs"))
+
+setGeneric("posteriorTheta", function(object, mcmcp) standardGeneric("posteriorTheta"))
+setGeneric("posteriorSigma2", function(object, mcmcp) standardGeneric("posteriorSigma2"))
+
+#' @export
+setGeneric("model", function(object) standardGeneric("model"))
+setGeneric("post1", function(object) standardGeneric("post1"))
+setGeneric("post2", function(object) standardGeneric("post2"))
+setGeneric("post3", function(object) standardGeneric("post3"))
+setGeneric("isMarginalModel", function(object) standardGeneric("isMarginalModel"))
+
+setGeneric("computePrior", function(object) standardGeneric("computePrior"))
+setGeneric("computeLogLikxPrior", function(object) standardGeneric("computeLogLikxPrior"))
+
+#' @export
+setGeneric("postFiles", function(object) standardGeneric("postFiles"))
+
+#' @export
+setGeneric("relabel", function(object, zindex) standardGeneric("relabel"))
+
+#' @export
+setGeneric("HyperParameterList", function(hypp, K) standardGeneric("HyperParameterList"))
+
+#' @export
+setGeneric("ModelParamList", function(hypp, K, data, mcmcp, batch) standardGeneric("ModelParamList"))
+
+setGeneric("runBurnin", function(object, mcmcp) standardGeneric("runBurnin"))
+setGeneric("runMcmc", function(object, mcmcp) standardGeneric("runMcmc"))
+
+setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"))
+
+#' @export
+setGeneric("zFreq", function(object) standardGeneric("zFreq"))
+setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
+
+#' @export
+setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
+#' @export
+setGeneric("mcmcParams<-", function(object, value) standardGeneric("mcmcParams<-"))
+
+#' @export
+setGeneric("logPrior", function(object) standardGeneric("logPrior"))
+
+setGeneric("logPrior<-", function(object,value) standardGeneric("logPrior<-"))
+
+setGeneric("fullGibbs", function(object, mcmcp) standardGeneric("fullGibbs"))
+
+setGeneric("paramUpdates", function(x) standardGeneric("paramUpdates"))
+
+setGeneric("computePrec", function(object) standardGeneric("computePrec"))
