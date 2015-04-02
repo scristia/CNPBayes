@@ -127,14 +127,9 @@ drawEachBatch <- function(x, batches, thetas, sds, p1, p2, col){
 
 #' @export
 plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
-  browser()
   best.model <- substr(names(bayes.factor), 1, 2)
   se <- y
   object <- x
-  if(length(object) > 1){
-    message("More than one CNP in model file; only plotting first CNP")
-    object <- object[1]
-  }
   model <- readRDS(model(object)[1])
   if(isMarginalModel(object)){
     names(model) <- paste0("M", 1:4)
@@ -170,6 +165,10 @@ plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
       lgnd <- bquote(.(names(bayes.factor))==.(bayes.factor))
       legend("topright", legend=as.expression(lgnd), bg="white", bty="n")
     }
+    if(!isMarginalModel(object)){
+      at <- pretty(c(-3,1), n=6)
+      axis(1, at=at, labels=at, cex.axis=0.9)
+    }
   }
 }
 
@@ -179,7 +178,14 @@ plotModel <- function(model.list, se, ...){
   options(digits=3)
   if(nrow(se) > 1) message("Using first row of SummarizedExperiment")
   options(scipen=5)
-  m.y <- unlist(lapply(model.list, getPosteriorStats))
+  ##m.y <- unlist(lapply(model.list, getPosteriorStats))
+  ##bf <- bayesFactor(m.y)
+  m.models <- readRDS(model(model.list[[1]]))
+  b.models <- readRDS(model(model.list[[2]]))
+  m.y1 <- lapply(m.models, m.y)
+  m.y1 <- setNames(sapply(m.y1, mean), paste0("M", 1:4))
+  m.y2 <- setNames(sapply(lapply(b.models, m.y), mean), paste0("B", 1:4))
+  m.y <- c(m.y1, m.y2)
   bf <- bayesFactor(m.y)
   model1 <- model.list[[1]]
   if(length(model.list) > 1) xaxt <- "n" else xaxt="s"
