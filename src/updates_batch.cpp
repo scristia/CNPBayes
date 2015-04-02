@@ -122,17 +122,7 @@ RcppExport SEXP update_mu_batch(SEXP xmod){
   NumericMatrix n_b = tableBatchZ(xmod) ;
   NumericVector theta_bar(K) ;
   NumericVector th(K) ;
-  //
-  // sort the rows of theta
-  //
-//  NumericMatrix thetas = clone(theta) ;
-//  for(int b=0; b < B; ++b){
-//    th = theta(b, _) ;
-//    //NumericVector ts = clone(th) ;
-//    //std::sort(ts.begin(), ts.end()) ;
-//    theta(b, _) = ts ;
-//  }
-  
+
   for(int k = 0; k < K; ++k){
     double n_k = 0.0 ; // number of observations for component k
     double colsumtheta = 0.0;
@@ -150,7 +140,12 @@ RcppExport SEXP update_mu_batch(SEXP xmod){
     mu_n[k] = w1[k]*mu_0 + w2[k]*theta_bar[k] ;
     mu_new[k] = as<double>(rnorm(1, mu_n[k], post_prec)) ;
   }
-  //return mu_n ;
+  // simulate from prior if NAs
+  if(is_true(any(is_nan(mu_new)))){
+    for(int k = 0; k < K; ++k){
+      mu_new[k] = as<double>(rnorm(1, mu_0, sqrt(tau2_0))) ;
+    }
+  }  
   return mu_new ;
 }
 
@@ -184,6 +179,11 @@ RcppExport SEXP update_tau2_batch(SEXP xmod){
     m2_k = 1.0/eta_B*(eta_0*m2_0 + s2_k[k]) ;
     tau2[k] = 1.0/as<double>(rgamma(1, 0.5*eta_B, 2.0/(eta_B*m2_k))) ;
   }
+  if(is_true(any(is_nan(tau2)))){
+    for(int k = 0; k < K; ++k){
+      tau2[k] = 1.0/as<double>(rgamma(1, 0.5*eta_0, 1.0/(0.5*eta_0*m2_0))) ;
+    }
+  }  
   return tau2 ;
 }
 
@@ -374,15 +374,15 @@ RcppExport SEXP update_z_batch(SEXP xmod) {
       k++ ;
     }
   }
-  if(is_true(all(freq > 0))){
+  if(is_true(all(freq > 1))){
     return zz ;
   }
   //return zz ;
   IntegerVector index = seq_len(n) ;
-  NumericVector r(1) ;
+  NumericVector r(2) ;
   LogicalVector is_batch (n) ;
   IntegerVector S = model.slot("batchElements") ;
-  IntegerVector w(1) ;
+  int w ;
   int start = 0 ;
   //IntegerVector J()
   for(int k = 0; k < K; ++k){
@@ -390,16 +390,18 @@ RcppExport SEXP update_z_batch(SEXP xmod) {
     // for zero frequency states, switch label of a random sample
     //
     for(int b = 0; b < B; ++b){
-      if(freq(b, k) > 0) continue ;
+      if(freq(b, k) > 1) continue ;
       if(b > 0) start = S[b-1] ;
       IntegerVector J(S[b]) ;
       //int b = 1 ;
       is_batch = batch == (b + 1) ;
       J = zz [ is_batch ] ;
-      r[0] = as<double>(runif(1, 0, 1)) * (S[b] - 1) ;
-      w = round(r, 0) ;
-      J[w] = (k + 1) ;
-      zz[is_batch] = J ;
+      r = runif(2, 0, 1) * (S[b] - 1) ;
+      for(int j = 0; j < 2; ++j){
+        w = (int) r[j] ;
+        J[w] = (k + 1) ;
+        zz[is_batch] = J ;
+      }
     }
   }
   return zz ;
@@ -434,45 +436,6 @@ RcppExport SEXP compute_means_batch(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP compute_prec_batch(SEXP xmod){
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  NumericVector x = model.slot("data") ;
-  int n = x.size() ;
-  IntegerVector z = model.slot("z") ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;  
-  IntegerVector nn = model.slot("zfreq") ;
-  IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique(batch) ;
-  ub = rev(ub) ;
-  int B = ub.size() ;
-  NumericMatrix vars(B, K) ;
-  NumericMatrix prec(B, K) ;
-  NumericMatrix tabz = tableBatchZ(xmod) ;
-  //NumericMatrix mn = model.slot("data.mean") ;
-  NumericMatrix mn = model.slot("theta") ;
-  for(int i = 0; i < n; ++i){
-    for(int b = 0; b < B; ++b){
-      if(batch[i] != ub[b]) continue ;
-      for(int k = 0; k < K; ++k){
-        if(z[i] == k+1){
-          vars(b, k) += pow(x[i] - mn(b, k), 2.0)/(tabz(b, k)) ;
-          //
-          // if there is only one observation, the sample mean is the
-          // data point and the variance is 0
-          //
-          if(vars(b, k) < 0.00001) vars(b, k) = 1000 ;
-        }
-        prec(b, k) = 1.0/vars(b, k) ;
-      }
-    }
-  }
-  return prec ;
-}
-
-
-// [[Rcpp::export]]
 RcppExport SEXP compute_vars_batch(SEXP xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
@@ -500,17 +463,36 @@ RcppExport SEXP compute_vars_batch(SEXP xmod) {
       }
     }
   }
-//   for(int b = 0; b < B; ++b){
-//     for(int k = 0; k < K; ++k){
-//       prec(b, k) = 1.0/vars(b, k) ;
-//     }
-//   }
-//   model.slot("data.prec") = prec ;
-//  prec = compute_prec_batch(vars) ;
-  //return vars ;
-  //  return prec ;
+  if(is_true(any(vars < 0.0001))){
+    for(int b = 0; b < B; ++b){
+      for(int k = 0; k < K; ++k){
+        if(vars(b, k) > 0.0001) continue ;
+        vars(b, k) = 1000 ;
+      }
+    }
+  }  
   return vars ;
 }
+
+
+// [[Rcpp::export]]
+RcppExport SEXP compute_prec_batch(SEXP xmod){
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  NumericMatrix vars = compute_vars_batch(xmod) ;
+  int B = vars.nrow() ;
+  int K = vars.ncol() ;
+  NumericMatrix prec(B, K) ;
+  for(int b = 0; b < B; ++b){
+    for(int k = 0; k < K; ++k){
+      prec(b, k) = 1.0/vars(b, k) ;
+    }
+  }
+  return prec ;
+}
+
+
+
 
 // [[Rcpp::export]]
 RcppExport SEXP compute_logprior_batch(SEXP xmod){

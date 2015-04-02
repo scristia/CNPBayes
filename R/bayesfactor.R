@@ -482,19 +482,24 @@ computeMarginalEachK <- function(data, K=1:4, hypp, mcmcp=McmcParams(), MAX.RANG
 #' @export
 computeMarginalEachK2 <- function(data, batch, K=1:4, mcmcp=McmcParams(),
                                   MAX.RANGE=5,
-                                  hypp){
+                                  hypp, returnModel=FALSE){
   if(missing(hypp)) hypp <- Hyperparameters("batch")
   j <- 1
   marginaly <- setNames(rep(NA, length(K)), paste0("B", K))
+  model.list <- vector("list", length(K))
   for(k in K){
     k(hypp) <- k
-    my <- .computeMarginal(data, batch, mcmcp, hypp)
-    my <- my[!is.nan(my)]
-    if( diff(range(my)) < MAX.RANGE ){
-      marginaly[j] <- mean(my)
+    model.list[[k]] <- .computeMarginal(data, batch, mcmcp, hypp)
+    if(!returnModel){
+      my <- m.y(model.list[[k]])
+      my <- my[!is.nan(my)]
+      if( diff(range(my)) < MAX.RANGE ){
+        marginaly[j] <- mean(my)
+      }
+      j <- j+1
     }
-    j <- j+1
   }
+  if(returnModel) return(model.list)
   marginaly
 }
 
@@ -506,8 +511,7 @@ computeMarginalEachK2 <- function(data, batch, K=1:4, mcmcp=McmcParams(),
   ##if(k(kmod) == 3) browser()
   kmod <- posteriorSimulation(kmod)
   m.y(kmod) <- computeMarginalProbs(kmod, mp)
-  my <- m.y(kmod)
-  my
+  kmod
 }
 
 

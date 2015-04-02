@@ -151,17 +151,6 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// compute_prec_batch
-RcppExport SEXP compute_prec_batch(SEXP xmod);
-RcppExport SEXP CNPBayes_compute_prec_batch(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(compute_prec_batch(xmod));
-    return __result;
-END_RCPP
-}
 // compute_vars_batch
 RcppExport SEXP compute_vars_batch(SEXP xmod);
 RcppExport SEXP CNPBayes_compute_vars_batch(SEXP xmodSEXP) {
@@ -170,6 +159,17 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
     __result = Rcpp::wrap(compute_vars_batch(xmod));
+    return __result;
+END_RCPP
+}
+// compute_prec_batch
+RcppExport SEXP compute_prec_batch(SEXP xmod);
+RcppExport SEXP CNPBayes_compute_prec_batch(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(compute_prec_batch(xmod));
     return __result;
 END_RCPP
 }

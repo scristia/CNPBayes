@@ -53,12 +53,12 @@ compute_means_batch <- function(xmod) {
     .Call('CNPBayes_compute_means_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-compute_prec_batch <- function(xmod) {
-    .Call('CNPBayes_compute_prec_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
 compute_vars_batch <- function(xmod) {
     .Call('CNPBayes_compute_vars_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+compute_prec_batch <- function(xmod) {
+    .Call('CNPBayes_compute_prec_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 compute_logprior_batch <- function(xmod) {

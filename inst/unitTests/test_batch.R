@@ -241,5 +241,6 @@ test_hard3 <- function(){
   pmix <- pMean(mmodel)[j]
   checkEquals(pmns[, j], theta(truth), tolerance=0.04)
   checkEquals(ps, sigma(truth), tolerance=0.15)
+
   checkEquals(pmix, p(truth), tolerance=0.04)
 }

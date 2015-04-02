@@ -16,11 +16,11 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
     obj <- MarginalModel(data, k, batch, hypp, mcmc.params)
     return(obj)
   }
-  if(k == 1) {
-    if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
-    obj <- UnivariateBatchModel(data, k, batch, hypp, mcmc.params)
-    return(obj)
-  }
+   if(k == 1) {
+     if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
+     obj <- UnivariateBatchModel(data, k, batch, hypp, mcmc.params)
+     return(obj)
+   }
   ##browser()
   ##B <- length(ub)
   if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
@@ -61,12 +61,14 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
 ##
 UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
   mcmc.chains <- McmcChains()
-  batch <- factor(batch)
-  ix <- order(batch)
-  B <- length(levels(batch))
-  nbatch <- elementLengths(split(batch, batch))
   zz <- integer(length(data))
   zfreq <- as.integer(table(zz))
+  bf <- factor(batch)
+  batch <- as.integer(bf)
+  ix <- order(bf)
+  ##B <- length(levels(batch))
+  nbatch <- elementLengths(split(batch, batch))
+  B <- length(nbatch)
   if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
   obj <- new("UnivariateBatchModel",
              k=as.integer(k),
@@ -82,7 +84,7 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
              data=data[ix],
              data.mean=matrix(NA, B, 1),
              data.prec=matrix(NA, B, 1),
-             z=factor(numeric(length(data))),
+             z=integer(length(data)),
              zfreq=zfreq,
              probz=matrix(1, length(data), 1),
              logprior=numeric(1),
@@ -496,4 +498,25 @@ batchModel1 <- function(object, hyp.list, data, mcmcp.list,
   if(save.it) saveRDS(models, file=model(object))
   ## important to return NULL -- otherwise memory will skyrocket
   NULL
+}
+
+## marginal y given K
+#' @export
+m_yGivenK <- function(object, mcmc.params, batch.file, ...){
+  cn <- copyNumber(object)[1, ]
+  notna <- !is.na(cn)
+  bt <- saveBatch(object[1, notna], batch.file)
+  cn <- cn[ notna ]
+  mlist <- computeMarginalEachK2(cn, bt, K=1:4,
+                                 mcmcp=mcmc.params,
+                                 returnModel=TRUE, ...)
+  mlist
+}
+
+#' @export
+rowM_yGivenK <- function(object, mcmc.params, batch.files, model.files){
+  for(i in 1:nrow(object)){
+    models <- m_yGivenK(object[i, ], mcmc.params=mcmc.params, batch.files[i])
+    saveRDS(models, file=model.files[i])
+  }
 }
