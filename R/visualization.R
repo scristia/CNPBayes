@@ -122,9 +122,6 @@ drawEachBatch <- function(x, batches, thetas, sds, p1, p2, col){
   marginal
 }
 
-
-
-
 #' @export
 plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
   best.model <- substr(names(bayes.factor), 1, 2)
@@ -150,14 +147,16 @@ plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
            legend=as.expression(lgnd), bg="white",
            bty="n", title=names(model)[j],
            title.col="blue")
+    rr <- tryCatch(rowRanges(se), error=function(e) NULL)
+    if(is.null(rr)) rr <- rowData(se)
     if(j==1 && isMarginalModel(object)){
       pos <- c(chromosome(se),
                paste0("start: ", prettyNum(start(se), big.mark=",")),
                paste0("end: ", prettyNum(end(se), big.mark=",")),
                ##paste0(rowRanges(se)$nSNPs_affy6[i], " / ",
-               paste0(rowRanges(se)$nSNPs, " / ",
+               paste0(rr$nSNPs, " / ",
                       ##rowRanges(se)$nmarkers_affy6[i]),
-                      rowRanges(se)$nmarkers),
+                      rr$nmarkers),
                paste0("source: ", rowRanges(se)$source))
       legend("left", legend=pos, bg="gray90", box.col="gray90")
     }
@@ -171,6 +170,7 @@ plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
     }
   }
 }
+
 
 #' @export
 plotModel <- function(model.list, se, ...){
