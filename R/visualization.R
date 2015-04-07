@@ -157,7 +157,7 @@ plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
                paste0(rr$nSNPs, " / ",
                       ##rowRanges(se)$nmarkers_affy6[i]),
                       rr$nmarkers),
-               paste0("source: ", rowRanges(se)$source))
+               paste0("source: ", rr$source))
       legend("left", legend=pos, bg="gray90", box.col="gray90")
     }
     if(idm==best.model){
