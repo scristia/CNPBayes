@@ -11,18 +11,18 @@ setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   se
 })
 
-setMethod("collapseBatch", "SummarizedExperiment", function(object, plate){
+setMethod("collapseBatch", "SummarizedExperiment", function(object, plate, THR=0.1){
   plate <- as.character(object$plate)
-  collapseBatch(copyNumber(object)[1, ], plate)
+  collapseBatch(copyNumber(object)[1, ], plate, THR=THR)
 })
 
-setMethod("collapseBatch", "numeric", function(object, plate){
+setMethod("collapseBatch", "numeric", function(object, plate, THR=0.1){
   N <- choose(length(unique(plate)), 2)
   cond2 <- TRUE
   while(N > 1 && cond2){
     cat('.')
     B <- plate
-    plate <- .collapseBatch(object, plate)
+    plate <- .collapseBatch(object, plate, THR=THR)
     cond2 <- !identical(B, plate)
     N <- choose(length(unique(plate)), 2)
   }
@@ -50,7 +50,7 @@ ksTest <- function(object){
   ks
 }
 
-.collapseBatch <- function(yy, B){
+.collapseBatch <- function(yy, B, THR=0.1){
   uB <- unique(B)
   ## One plate can pair with many other plates.
   for(j in seq_along(uB)){
@@ -59,7 +59,7 @@ ksTest <- function(object){
       b1 <- uB[j]
       b2 <- uB[k]
       stat <- suppressWarnings(ks.test(yy[B==b1], yy[B==b2]))
-      if(stat$p.value < 0.1) next()
+      if(stat$p.value < THR) next()
       b <- paste(b1, b2, sep=",")
       B[B %in% b1 | B %in% b2] <- b
       ## once we've defined a new batch, return the new batch to the
@@ -72,12 +72,12 @@ ksTest <- function(object){
 
 
 #' @export
-saveBatch <- function(se, batch.file){
+saveBatch <- function(se, batch.file, THR=0.1){
   if(file.exists(batch.file)){
     bt <- readRDS(batch.file)
     return(bt)
   }
-  bt <- collapseBatch(se)
+  bt <- collapseBatch(se, THR=THR)
   saveRDS(bt, file=batch.file)
   bt
 }

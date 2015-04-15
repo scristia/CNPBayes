@@ -286,6 +286,7 @@ RcppExport SEXP update_multinomialPr_batch(SEXP xmod) {
   NumericMatrix lik(N, K) ;
   NumericVector this_batch(N) ;
   NumericVector tmp(N) ;
+  NumericVector rowtotal(N) ;
   for(int k = 0; k < K; ++k){
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
@@ -295,19 +296,14 @@ RcppExport SEXP update_multinomialPr_batch(SEXP xmod) {
       dens += tmp ;
     }
     lik(_, k) = dens ;
+    rowtotal += dens ;
   }
   //return lik ;
   NumericMatrix P(N, K) ;
-  for(int i = 0; i < N; ++i){
-    double rowsum = 0.0 ;
-    for(int k = 0; k < K; ++k) {
-      rowsum += lik(i, k) ;
-    }
-    P(i, _) = lik(i, _)/rowsum ;
+  for(int k=0; k<K; ++k){
+    P(_, k) = lik(_, k)/rowtotal ;
   }
   return P ;
-  // return this_batch ;
-  //return lik ;
 }
 
 //
@@ -344,47 +340,53 @@ RcppExport SEXP update_z_batch(SEXP xmod) {
   int n = x.size() ;
   NumericMatrix p(n, K);
   p = update_multinomialPr_batch(xmod) ;
-  NumericMatrix cumP(n, K);
+  //NumericMatrix cumP(n, K) ;
   //  Make more efficient?
-  for(int i=0; i < n; i++){
-    for(int k = 0; k < K; k++){
-      if(k > 0){
-        cumP(i, k) = cumP(i, k-1) + p(i, k) ;
-      } else {
-        cumP(i, k) = p(i, k) ;
-      }
-    }
-    cumP(i, K-1) = 1.00001 ;
-  }
-
   //return cumP ;
   NumericVector u = runif(n) ;
   IntegerVector zz(n) ;
   IntegerMatrix freq(B, K) ;
-  int b ;
-  for(int i = 0; i < n; i++){
-    int k = 0 ;
-    while(k < K) {
-      if( u[i] < cumP(i, k) ){
+  int b ;  
+  for(int i=0; i < n; i++){
+    //initialize accumulator ;
+    double acc = 0 ;
+    for(int k = 0; k < K; k++){
+      acc += p(i, k) ;
+      if( u[i] < acc ) {
         zz[i] = k + 1 ;
         b = batch[i] - 1 ;
         freq(b, k) += 1 ;
         break ;
       }
-      k++ ;
+      //cumP(i, k) = acc ;
     }
   }
+//   for(int i = 0; i < n; i++){
+//     int k = 0 ;
+//     while(k < K) {
+//       if( u[i] < cumP(i, k) ){
+//         zz[i] = k + 1 ;
+//         b = batch[i] - 1 ;
+//         freq(b, k) += 1 ;
+//         break ;
+//       }
+//       k++ ;
+//     }
+//   }
   if(is_true(all(freq > 1))){
     return zz ;
   }
-  //return zz ;
+  // what about not updating z if there are any states with zero frequency
+  return model.slot("z") ;
+  //
+  // Code below is no longer evaluated
+  //
   IntegerVector index = seq_len(n) ;
   NumericVector r(2) ;
   LogicalVector is_batch (n) ;
   IntegerVector S = model.slot("batchElements") ;
   int w ;
   int start = 0 ;
-  //IntegerVector J()
   for(int k = 0; k < K; ++k){
     //
     // for zero frequency states, switch label of a random sample

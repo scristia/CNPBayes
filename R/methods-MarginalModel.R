@@ -647,8 +647,10 @@ marginalModel1 <- function(object, hyp.list,
 #' @export
 marginalExperiment <- function(object,
                                outdir,
-                               mcmcp.list=mcmcpList(),
-                               hypp, marginaly=TRUE,
+                               ##mcmcp.list=mcmcpList(),
+                               mcmcp=McmcParams(iter=1000, burnin=200, nStarts=20),
+                               hypp,
+                               marginaly=TRUE,
                                test=FALSE){
   M <- getFiles(outdir, rownames(object), "marginal")
   if(missing(hypp)){

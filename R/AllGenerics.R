@@ -160,7 +160,7 @@ setGeneric("showMeans", function(object) standardGeneric("showMeans"))
 setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 
 #' @export
-setGeneric("collapseBatch", function(object, plate) standardGeneric("collapseBatch"))
+setGeneric("collapseBatch", function(object, plate, THR=0.1) standardGeneric("collapseBatch"))
 
 #' @export
 setGeneric("thetac", function(object) standardGeneric("thetac"))

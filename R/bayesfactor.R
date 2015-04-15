@@ -489,7 +489,10 @@ computeMarginalEachK2 <- function(data, batch, K=1:4, mcmcp=McmcParams(),
   model.list <- vector("list", length(K))
   for(k in K){
     k(hypp) <- k
-    model.list[[k]] <- .computeMarginal(data, batch, mcmcp, hypp)
+    if(k == 1){
+      mp <- McmcParams(iter=min(iter(mcmcp), 500), burnin=min(burnin(mcmcp), 100))
+    } else mp <- mcmcp
+    model.list[[k]] <- .computeMarginal(data, batch, mp, hypp)
     if(!returnModel){
       my <- m.y(model.list[[k]])
       my <- my[!is.nan(my)]

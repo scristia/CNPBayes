@@ -244,3 +244,109 @@ test_hard3 <- function(){
 
   checkEquals(pmix, p(truth), tolerance=0.04)
 }
+
+.test_number_batches <- function(){
+  library(foreach)
+  library(GenomicRanges)
+  library(devtools)
+  library(oligoClasses)
+  library(matrixStats)
+  library(CNPAric)
+  library(CNPBayes)
+  se.ea <- readRDS("~/Labs/ARIC/AricCNPData/data/se_medr_EA.rds")
+  cnpids <- rownames(se.ea)
+  library(HopkinsHPC)
+  NW <- setParallelization(1)
+  if(is.null(tryCatch(se.ea[1, ], error=function(e) return(NULL)))) stop()
+  se <- se.ea
+  outdir <- tempdir()
+  B <- getFiles(outdir, rownames(se), model="batch")
+  saved.date <- file.info(model(B))$mtime
+  d <- difftime(Sys.time(), saved.date, unit="days")
+  ##index <- which(d > 1.75)
+  index <- 18
+  ##index <- seq_len(nrow(se))
+  se <- se[index, ]
+  B <- B[index]
+  model.files <- model(B)
+  batch.files <- paste0(dirname(model(B)), "/", rownames(se), "_batch.rds")
+  mcmcp <- McmcParams(iter=1000, thin=1, nStarts=20, burnin=200)
+  ##bt <- readRDS(batch.files)
+  ##unique(bt)
+  cn <- copyNumber(se)[1, ]
+  if(FALSE){
+    bt <- collapseBatch(cn, se$plate)
+    bt2 <- collapseBatch(cn, se$plate, THR=0.2)
+    bt3 <- collapseBatch(cn, se$plate, THR=0.05)
+  }
+  bt4 <- collapseBatch(cn, se$plate, THR=0.005)
+  mcmcp <- McmcParams(iter=50, thin=1, nStarts=1, burnin=0)
+  hypp <- Hyperparameters("batch", k=3)
+  bm <- BatchModel(data=cn, k=3, batch=bt4, mcmc.params=mcmcp)
+  if(FALSE){
+    system.time(tmp <- posteriorSimulation(bm))
+    bm2 <- BatchModel(data=cn, k=3, batch=bt3, mcmc.params=mcmcp)
+    system.time(tmp2 <- posteriorSimulation(bm2))
+    bm3 <- BatchModel(data=cn, k=3, batch=bt4, mcmc.params=mcmcp)
+    system.time(tmp3 <- posteriorSimulation(bm3))
+    bm3 <- BatchModel(data=cn, k=3, batch=bt4, mcmc.params=mcmcp)
+    system.time(tmp4 <- posteriorSimulation(bm3))
+  }
+  ##
+  ## Alternative. Find modes with marginal model
+  ##
+  ##   - use these to initialize batch model in region of high
+  ##   posterior probability
+  ##
+  ##
+  ## what updates are the most time consuming
+  ##
+  u <- paramUpdates(mcmcp)
+  u[1:7] <- 0L
+  paramUpdates(bm) <- u
+  ## updating only z
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 2.25
+  tz <- table(z(tmp4))
+
+
+  system.time(tmp <- .Call("update_z_batch", bm))
+  set.seed(123)
+  p <- .Call("update_z_batch", bm)
+
+  p2 <- .Call("update_z_batch", bm)
+
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 2.25
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 3.13
+
+
+  ## updating only theta
+  u[1:8] <- 0L
+  u["theta"] <- 1L
+  paramUpdates(bm) <- u
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 18.89
+  u[1:8] <- 0L
+  u["sigma2"] <- 1L
+  paramUpdates(bm) <- u
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 19
+  u[1:8] <- 0L
+  u["p"] <- 1L
+  paramUpdates(bm) <- u
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 15.5
+  u[1:8] <- 0L
+  u["mu"] <- 1L
+  paramUpdates(bm) <- u
+  system.time(tmp4 <- posteriorSimulation(bm)) ##18
+  u[1:8] <- 0L
+  u["tau2"] <- 1L
+  paramUpdates(bm) <- u
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 15.5
+  u[1:8] <- 0L
+  u["nu.0"] <- 1L
+  paramUpdates(bm) <- u
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 15.5
+  u[1:8] <- 0L
+  u["sigma2.0"] <- 1L
+  paramUpdates(bm) <- u
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 15.1
+
+}
