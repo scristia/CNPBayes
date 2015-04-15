@@ -317,36 +317,57 @@ test_hard3 <- function(){
 
   system.time(tmp4 <- posteriorSimulation(bm)) ## 2.25
   system.time(tmp4 <- posteriorSimulation(bm)) ## 3.13
+  u[1:8] <- 0L
+  paramUpdates(bm) <- u
+  ## an entire second even if 0 updates
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 3.13
 
+  ##
+  ## Timings with 50 iterations, no burnin
+  ##
+  ## no updates
+  u <- paramUpdates(mcmcp)
+  u[1:8] <- 0L
+  paramUpdates(bm) <- u
+  system.time(tmp4 <- posteriorSimulation(bm)) ##  1.1
+  system.time(tmp4 <- .Call("mcmc_batch", bm, mcmcParams(bm))) ##  1.09  0.746 when mean/prec not updated
 
+  ## updating only z
+  u <- paramUpdates(mcmcp)
+  u[1:7] <- 0L
+  paramUpdates(bm) <- u
+  system.time(tmp4 <- posteriorSimulation(bm)) ##  1.75
+  system.time(tmp4 <- posteriorSimulation(bm)) ##  1.75
+  .Call("compute_means_batch", bm)
+  system.time(tmp4 <- posteriorSimulation(bm)) ##  1.47
   ## updating only theta
   u[1:8] <- 0L
   u["theta"] <- 1L
   paramUpdates(bm) <- u
-  system.time(tmp4 <- posteriorSimulation(bm)) ## 18.89
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 1.38
   u[1:8] <- 0L
   u["sigma2"] <- 1L
   paramUpdates(bm) <- u
-  system.time(tmp4 <- posteriorSimulation(bm)) ## 19
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 1.38
   u[1:8] <- 0L
   u["p"] <- 1L
   paramUpdates(bm) <- u
-  system.time(tmp4 <- posteriorSimulation(bm)) ## 15.5
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 1.1
   u[1:8] <- 0L
   u["mu"] <- 1L
   paramUpdates(bm) <- u
-  system.time(tmp4 <- posteriorSimulation(bm)) ##18
+  system.time(tmp4 <- posteriorSimulation(bm)) ##1.35
   u[1:8] <- 0L
   u["tau2"] <- 1L
   paramUpdates(bm) <- u
-  system.time(tmp4 <- posteriorSimulation(bm)) ## 15.5
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 1.1
   u[1:8] <- 0L
   u["nu.0"] <- 1L
   paramUpdates(bm) <- u
-  system.time(tmp4 <- posteriorSimulation(bm)) ## 15.5
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 1.1
   u[1:8] <- 0L
   u["sigma2.0"] <- 1L
   paramUpdates(bm) <- u
-  system.time(tmp4 <- posteriorSimulation(bm)) ## 15.1
+  system.time(tmp4 <- posteriorSimulation(bm)) ## 1.1
 
 }

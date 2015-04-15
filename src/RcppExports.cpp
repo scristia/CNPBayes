@@ -206,6 +206,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// order_
+IntegerVector order_(NumericVector x);
+RcppExport SEXP CNPBayes_order_(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    __result = Rcpp::wrap(order_(x));
+    return __result;
+END_RCPP
+}
 // compute_probz_batch
 RcppExport SEXP compute_probz_batch(SEXP xmod);
 RcppExport SEXP CNPBayes_compute_probz_batch(SEXP xmodSEXP) {

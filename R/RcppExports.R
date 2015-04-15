@@ -73,6 +73,10 @@ update_sigma2_batch <- function(xmod) {
     .Call('CNPBayes_update_sigma2_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
+order_ <- function(x) {
+    .Call('CNPBayes_order_', PACKAGE = 'CNPBayes', x)
+}
+
 compute_probz_batch <- function(xmod) {
     .Call('CNPBayes_compute_probz_batch', PACKAGE = 'CNPBayes', xmod)
 }

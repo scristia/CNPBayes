@@ -358,21 +358,8 @@ RcppExport SEXP update_z_batch(SEXP xmod) {
         freq(b, k) += 1 ;
         break ;
       }
-      //cumP(i, k) = acc ;
     }
   }
-//   for(int i = 0; i < n; i++){
-//     int k = 0 ;
-//     while(k < K) {
-//       if( u[i] < cumP(i, k) ){
-//         zz[i] = k + 1 ;
-//         b = batch[i] - 1 ;
-//         freq(b, k) += 1 ;
-//         break ;
-//       }
-//       k++ ;
-//     }
-//   }
   if(is_true(all(freq > 1))){
     return zz ;
   }
@@ -424,14 +411,15 @@ RcppExport SEXP compute_means_batch(SEXP xmod) {
   ub = rev(ub) ;
   int B = ub.size() ;
   NumericMatrix means(B, K) ;
-  NumericMatrix tabz = tableBatchZ(xmod) ;
   NumericVector is_z(n) ;
-  NumericVector this_batch(n) ;  
+  NumericVector this_batch(n) ;
+  IntegerVector total(1) ;
   for(int b = 0; b < B; ++b){
     this_batch = batch == ub[b] ;
     for(int k = 0; k < K; ++k){
       is_z = z == (k + 1) ;
-      means(b, k) = sum(x * this_batch * is_z) / tabz(b, k) ;
+      total[0] = sum(is_z * this_batch) ;
+      means(b, k) = sum(x * this_batch * is_z)/total[0] ;
     }
   }
   return means ;
@@ -607,6 +595,13 @@ RcppExport SEXP update_sigma2_batch(SEXP xmod){
   return sigma2_ ;
 }
 
+// From stackoverflow http://stackoverflow.com/questions/21609934/ordering-permutation-in-rcpp-i-e-baseorder
+
+// [[Rcpp::export]]
+IntegerVector order_(NumericVector x) {
+  NumericVector sorted = clone(x).sort();
+  return match(sorted, x);
+}
 
 // [[Rcpp::export]]
 RcppExport SEXP compute_probz_batch(SEXP xmod){
@@ -615,9 +610,20 @@ RcppExport SEXP compute_probz_batch(SEXP xmod){
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = hypp.slot("k") ;
   IntegerVector z = model.slot("z") ;
+  NumericMatrix theta = model.slot("theta") ;
   int N = z.size() ;
   IntegerMatrix pZ = model.slot("probz") ;
-  //NumericMatrix freq(pZ.nrow(), pZ.ncol()) ;
+  //
+  // update probz such that the z value corresponding to the lowest
+  // mean is 1, the second lowest mean is 2, etc.
+  //
+  // Assume that all batches have the same ordering and so here we
+  // just use the first batch
+  //
+  NumericVector means(K) ;
+  NumericVector ordering(K) ;
+  // means = theta(0, _) ;
+  // ordering = order_(means) ;
   for(int i = 0; i < N; ++i){
     for(int k = 0; k < K; ++k){
       if(z[i] == (k + 1)){
@@ -683,6 +689,7 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
   int K = getK(hypp) ;
   int T = params.slot("thin") ;
   int S = params.slot("iter") ;
+  if( S < 1 ) return xmod ;
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
   NumericMatrix theta = chain.slot("theta") ;
@@ -732,6 +739,13 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
   sigma2(0, _) = s2 ;
   pmix(0, _) = p ;
   zfreq(0, _) = zf ;
+
+  // Is accessing a slot in an object expensive?
+  
+  // Currently, there is no alternative as the current values are
+  // stored in the object.  Hence, the entire object has to be passed
+  // to the updating functions.
+  
   // start at 1 instead of zero. Initial values are as above
   for(int s = 1; s < S; ++s){
     if(up[0] > 0) {
@@ -789,12 +803,13 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
       tmp = tableZ(K, z) ;
       model.slot("probz") = compute_probz_batch(xmod) ;    
       model.slot("zfreq") = tmp ;
+      // mean and prec only change if z is updated
+      model.slot("data.mean") = compute_means_batch(xmod) ;
+      model.slot("data.prec") = compute_prec_batch(xmod) ;      
     } else {
       tmp = model.slot("zfreq") ;
     }
     zfreq(s, _) = tmp ;    
-    model.slot("data.mean") = compute_means_batch(xmod) ;
-    model.slot("data.prec") = compute_prec_batch(xmod) ;
     ll = compute_loglik_batch(xmod) ;
     loglik_[s] = ll[0] ;
     model.slot("loglik") = ll ;
