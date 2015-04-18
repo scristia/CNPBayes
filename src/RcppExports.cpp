@@ -140,6 +140,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// uniqueBatch
+IntegerVector uniqueBatch(IntegerVector x);
+RcppExport SEXP CNPBayes_uniqueBatch(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
+    __result = Rcpp::wrap(uniqueBatch(x));
+    return __result;
+END_RCPP
+}
 // compute_means_batch
 RcppExport SEXP compute_means_batch(SEXP xmod);
 RcppExport SEXP CNPBayes_compute_means_batch(SEXP xmodSEXP) {

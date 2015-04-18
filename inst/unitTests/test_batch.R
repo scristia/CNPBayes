@@ -1,3 +1,12 @@
+test_computemeans <- function(){
+  dir <- system.file("unitTests", package="CNPBayes")
+  testdat <- readRDS(file.path(dir, "test_data.rds"))
+  model <- BatchModel(data=testdat$y, batch=testdat$b)
+  mns <- CNPBayes:::computeMeans(model)
+  mns2 <- matrix(as.numeric(CNPBayes:::.computeMeansBatch(model)), 4, 2)
+  checkEquals(mns, mns2)
+}
+
 test_batchEasy <- function(){
   library(oligoClasses)
   set.seed(123)
@@ -8,7 +17,7 @@ test_batchEasy <- function(){
                     0.8, 1, 1.2), nbatch, k, byrow=FALSE)
   sds <- matrix(0.1, nbatch, k)
   truth <- simulateBatchData(N=2500,
-                             batch=rep(letters[1:3], length.out=2500),
+                             batch=rep(letters[3:1], length.out=2500),
                              theta=means,
                              sds=sds,
                              p=c(1/5, 1/3, 1-1/3-1/5))

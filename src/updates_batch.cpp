@@ -5,13 +5,22 @@
 
 using namespace Rcpp ;
 
-IntegerVector rev(IntegerVector ub){
-  int B = ub.size() ;
-  IntegerVector unique_batch(B);
-  // for some reason unique is 
-  for(int b = 0; b < B; ++b) unique_batch[b] = ub[ B-b-1 ] ;
-  return unique_batch ;
+// [[Rcpp::export]]
+IntegerVector uniqueBatch(IntegerVector x) {
+  IntegerVector tmp = unique(x) ;
+  IntegerVector b = clone(tmp) ;
+  std::sort(b.begin(), b.end()) ;
+  return b ;
 }
+
+// 
+// IntegerVector rev(IntegerVector ub){
+//   int B = ub.size() ;
+//   IntegerVector unique_batch(B);
+//   // for some reason unique is 
+//   for(int b = 0; b < B; ++b) unique_batch[b] = ub[ B-b-1 ] ;
+//   return unique_batch ;
+// }
 
 // [[Rcpp::export]]
 RcppExport SEXP tableBatchZ(SEXP xmod){
@@ -20,8 +29,7 @@ RcppExport SEXP tableBatchZ(SEXP xmod){
   int K = getK(model.slot("hyperparams")) ;
   // int N = x.size() ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique(batch) ;
-  ub = rev(ub) ;
+  IntegerVector ub = uniqueBatch(batch) ;
   int B = ub.size() ;
   IntegerVector z = model.slot("z") ;
   NumericMatrix nn(B, K) ;
@@ -45,7 +53,7 @@ RcppExport SEXP compute_loglik_batch(SEXP xmod){
   int N = x.size() ;  
   NumericVector p = model.slot("pi") ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique(batch);
+  IntegerVector ub = uniqueBatch(batch);
   NumericMatrix theta = model.slot("theta") ;
   NumericMatrix sigma2 = model.slot("sigma2") ;
   IntegerVector batch_freq = model.slot("batchElements") ;
@@ -54,7 +62,6 @@ RcppExport SEXP compute_loglik_batch(SEXP xmod){
   int B = ub.size() ;
   NumericMatrix P(B, K) ;
   NumericMatrix sigma(B, K) ;
-  ub = rev(ub) ;
   // component probabilities for each batch
   for(int b = 0; b < B; ++b){
     int rowsum = 0 ;
@@ -106,8 +113,7 @@ RcppExport SEXP update_mu_batch(SEXP xmod){
   IntegerVector nn = model.slot("zfreq") ;
 
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique(batch) ;
-  ub = rev(ub) ;  
+  IntegerVector ub = uniqueBatch(batch) ;
   int B = ub.size() ;
   
   NumericVector tau2_B_tilde(K) ;;
@@ -162,8 +168,7 @@ RcppExport SEXP update_tau2_batch(SEXP xmod){
   NumericMatrix theta = model.slot("theta") ;
   
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique(batch) ;
-  // ub = rev(ub) ;  
+  IntegerVector ub = uniqueBatch(batch) ;
   int B = ub.size() ;
   double eta_B = eta_0 + B ;
   
@@ -194,8 +199,7 @@ RcppExport SEXP update_sigma20_batch(SEXP xmod){
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique(batch) ;
-  // ub = rev(ub) ;  
+  IntegerVector ub = uniqueBatch(batch) ;
   int B = ub.size() ;
   NumericVector a = hypp.slot("a") ;
   NumericVector b = hypp.slot("b") ;
@@ -273,12 +277,10 @@ RcppExport SEXP update_multinomialPr_batch(SEXP xmod) {
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique(batch) ;
-  ub = rev(ub) ;
+  IntegerVector ub = uniqueBatch(batch) ;
   NumericVector p = model.slot("pi") ;
   NumericMatrix sigma2 = model.slot("sigma2") ;
   NumericMatrix theta = model.slot("theta") ;
-  // ub = rev(ub) ;  
   int B = sigma2.nrow() ;
   NumericVector x = model.slot("data") ;
   IntegerVector nb = model.slot("batchElements") ;
@@ -396,6 +398,7 @@ RcppExport SEXP update_z_batch(SEXP xmod) {
   return zz ;
 }
 
+
 // [[Rcpp::export]]
 RcppExport SEXP compute_means_batch(SEXP xmod) {
   RNGScope scope ;
@@ -407,8 +410,7 @@ RcppExport SEXP compute_means_batch(SEXP xmod) {
   int K = getK(hypp) ;  
   IntegerVector nn = model.slot("zfreq") ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique(batch) ;
-  ub = rev(ub) ;
+  IntegerVector ub = uniqueBatch(batch) ;
   int B = ub.size() ;
   NumericMatrix means(B, K) ;
   NumericVector is_z(n) ;
@@ -436,8 +438,7 @@ RcppExport SEXP compute_vars_batch(SEXP xmod) {
   int K = getK(hypp) ;  
   IntegerVector nn = model.slot("zfreq") ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique(batch) ;
-  ub = rev(ub) ;
+  IntegerVector ub = uniqueBatch(batch) ;
   int B = ub.size() ;
   NumericMatrix prec(B, K) ;
   NumericMatrix vars(B, K) ;
@@ -491,7 +492,7 @@ RcppExport SEXP compute_logprior_batch(SEXP xmod){
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique(batch) ;
+  IntegerVector ub = uniqueBatch(batch) ;
   NumericVector tau2 = model.slot("tau2") ;
   NumericVector mu = model.slot("mu") ;
   double mu_0 = hypp.slot("mu.0") ;
@@ -562,8 +563,7 @@ RcppExport SEXP update_sigma2_batch(SEXP xmod){
   //IntegerVector nn = model.slot("zfreq") ;
   NumericMatrix tabz = tableBatchZ(xmod) ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub(K) ;
-  ub = rev(unique(batch)) ;
+  IntegerVector ub = uniqueBatch(batch) ;
   NumericMatrix ss(B, K) ;
   for(int i = 0; i < n; ++i){
     for(int b = 0; b < B; ++b){

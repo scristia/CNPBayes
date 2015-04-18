@@ -502,21 +502,24 @@ batchModel1 <- function(object, hyp.list, data, mcmcp.list,
 
 ## marginal y given K
 #' @export
-m_yGivenK <- function(object, mcmc.params, batch.file, ...){
+m_yGivenK <- function(object, mcmc.params, batch.file, K=1:4, ...){
   cn <- copyNumber(object)[1, ]
   notna <- !is.na(cn)
   bt <- saveBatch(object[1, notna], batch.file)
   cn <- cn[ notna ]
-  mlist <- computeMarginalEachK2(cn, bt, K=1:4,
+  mlist <- computeMarginalEachK2(data=cn, batch=bt, K=K,
                                  mcmcp=mcmc.params,
                                  returnModel=TRUE, ...)
   mlist
 }
 
 #' @export
-rowM_yGivenK <- function(object, mcmc.params, batch.files, model.files){
+rowM_yGivenK <- function(object, mcmc.params, batch.files, model.files, K=1:4, ...){
   for(i in 1:nrow(object)){
-    models <- m_yGivenK(object[i, ], mcmc.params=mcmc.params, batch.files[i])
+    models <- m_yGivenK(object=object[i, ],
+                        mcmc.params=mcmc.params,
+                        batch.file=batch.files[i],
+                        K=K, ...)
     saveRDS(models, file=model.files[i])
   }
 }

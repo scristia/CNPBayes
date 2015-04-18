@@ -49,6 +49,10 @@ update_z_batch <- function(xmod) {
     .Call('CNPBayes_update_z_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
+uniqueBatch <- function(x) {
+    .Call('CNPBayes_uniqueBatch', PACKAGE = 'CNPBayes', x)
+}
+
 compute_means_batch <- function(xmod) {
     .Call('CNPBayes_compute_means_batch', PACKAGE = 'CNPBayes', xmod)
 }
