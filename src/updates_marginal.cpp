@@ -437,6 +437,40 @@ RcppExport SEXP update_sigma2(SEXP xmod){
   return sigma2_new ;
 }
 
+// From stackoverflow http://stackoverflow.com/questions/21609934/ordering-permutation-in-rcpp-i-e-baseorder
+
+// [[Rcpp::export]]
+IntegerVector ordertheta_(NumericVector x) {
+  NumericVector sorted = clone(x).sort();
+  return match(sorted, x);
+}
+
+// [[Rcpp::export]]
+RcppExport SEXP compute_probz(SEXP xmod){
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = hypp.slot("k") ;
+  IntegerVector z = model.slot("z") ;
+  int N = z.size() ;
+  IntegerMatrix pZ = model.slot("probz") ;
+  NumericVector theta = model.slot("theta") ;
+  NumericVector cn(K) ;
+  NumericVector ordering(K) ;
+  cn = ordertheta_(theta) ;
+  for(int k = 0; k < K; ++k) cn[k] = cn[k] - 1 ;
+  
+  NumericVector is_z(N) ;
+  for(int i = 0; i < N; ++i){
+    for(int k = 0; k < K; ++k){
+      if(z[i] == (k + 1)){
+        pZ(i, cn[k]) += 1;
+      }
+    }
+  }
+  return pZ ;
+}
+  
+
 
 //
 // BURNIN: Don't move chains, no thinning, no need to compute loglik at each iteration
@@ -509,6 +543,9 @@ RcppExport SEXP mcmc_marginal(SEXP xmod, SEXP mcmcp) {
   NumericVector sigma2_0 = chain.slot("sigma2.0") ;
   NumericVector loglik_ = chain.slot("loglik") ;
   NumericVector logprior_ = chain.slot("logprior") ;
+  IntegerMatrix pz(N, K) ;
+  // initialize probabilities to zero
+  model.slot("probz") = pz ;
   NumericVector th(K) ;
   NumericVector s2(K) ;
   NumericVector p(K) ;
@@ -605,6 +642,7 @@ RcppExport SEXP mcmc_marginal(SEXP xmod, SEXP mcmcp) {
       model.slot("z") = z ;
       tmp = tableZ(K, z) ;
       model.slot("zfreq") = tmp ;
+      model.slot("probz") = compute_probz(xmod) ;          
     } else {
       z = model.slot("z") ;
       tmp = model.slot("zfreq") ;

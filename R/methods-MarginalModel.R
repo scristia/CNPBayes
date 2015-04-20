@@ -197,30 +197,6 @@ setMethod("computeVars", "MarginalModel", function(object){
 
 
 #' @export
-setMethod("plot", "MarginalModel", function(x, y, use.current=FALSE, ...){
-  hist(x, ...)
-  pi <- p(x)
-  ##xx <- seq(min(observed(x)), max(observed(x)),  length.out=10e3)
-  xx <- seq(min(observed(x)), max(observed(x)),  length.out=100)
-  mc <- mcmcChains(x)
-  if(!use.current){
-    thetas <- colMeans(theta(mc))
-    sds <- colMeans(sigma(mc))
-  } else {
-    ## use current value
-    thetas <- theta(x)
-    sds <- sigma(x)
-  }
-  cols <- brewer.pal(max(length(pi), 3),  "Set1")
-  marginal <- matrix(NA, length(xx), k(x))
-  for(j in seq_along(pi)){
-    p.x <- pi[j]*dnorm(xx, mean=thetas[j], sd=sds[j])
-    lines(xx, p.x, col=cols[j], lwd=2)
-    marginal[, j] <- p.x
-  }
-  marginal.cum.prob <- rowSums(marginal)
-  lines(xx, marginal.cum.prob, col="black", lwd=2)
-})
 
 setMethod("simulateY", "MarginalModel", function(object){
   zz <- z(object)
@@ -674,3 +650,22 @@ setReplaceMethod("mcmcParams", "MixtureModel", function(object, value){
   mcmcChains(object) <- McmcChains(object)
   object
 })
+
+
+setMethod("marginal", c("SummarizedExperiment", "missing"),
+          function(object, batch, mcmc.params, K=1:4, maxperm=5, ...){
+            cn <- copyNumber(object)[1, ]
+            notna <- !is.na(cn)
+            cn <- cn[ notna ]
+            mlist <- computeMarginalEachK(data=cn, K=K,
+                                          mcmcp=mcmc.params,
+                                          returnModel=TRUE,
+                                          maxperm=maxperm, ...)
+            mlist
+          })
+
+setMethod("rowMarginal", c("SummarizedExperiment", "missing"),
+          function(object, batch, mcmc.params, model.files, K=1:4, maxperm=5, ...){
+            rowM_yGivenK(object=object,  mcmc.params=mcmc.params,
+                         K=K, maxperm=maxperm, ...)
+          })

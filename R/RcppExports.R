@@ -13,6 +13,10 @@ getK <- function(hyperparams) {
     .Call('CNPBayes_getK', PACKAGE = 'CNPBayes', hyperparams)
 }
 
+uniqueBatch <- function(x) {
+    .Call('CNPBayes_uniqueBatch', PACKAGE = 'CNPBayes', x)
+}
+
 tableBatchZ <- function(xmod) {
     .Call('CNPBayes_tableBatchZ', PACKAGE = 'CNPBayes', xmod)
 }
@@ -49,10 +53,6 @@ update_z_batch <- function(xmod) {
     .Call('CNPBayes_update_z_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-uniqueBatch <- function(x) {
-    .Call('CNPBayes_uniqueBatch', PACKAGE = 'CNPBayes', x)
-}
-
 compute_means_batch <- function(xmod) {
     .Call('CNPBayes_compute_means_batch', PACKAGE = 'CNPBayes', xmod)
 }
@@ -81,8 +81,8 @@ order_ <- function(x) {
     .Call('CNPBayes_order_', PACKAGE = 'CNPBayes', x)
 }
 
-compute_probz_batch <- function(xmod) {
-    .Call('CNPBayes_compute_probz_batch', PACKAGE = 'CNPBayes', xmod)
+update_probz_batch <- function(xmod) {
+    .Call('CNPBayes_update_probz_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 mcmc_batch_burnin <- function(xmod, mcmcp) {
@@ -143,6 +143,14 @@ compute_logprior <- function(xmod) {
 
 update_sigma2 <- function(xmod) {
     .Call('CNPBayes_update_sigma2', PACKAGE = 'CNPBayes', xmod)
+}
+
+ordertheta_ <- function(x) {
+    .Call('CNPBayes_ordertheta_', PACKAGE = 'CNPBayes', x)
+}
+
+compute_probz <- function(xmod) {
+    .Call('CNPBayes_compute_probz', PACKAGE = 'CNPBayes', xmod)
 }
 
 mcmc_marginal_burnin <- function(xmod, mcmcp) {

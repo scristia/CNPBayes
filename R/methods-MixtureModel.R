@@ -284,26 +284,70 @@ setMethod("runMcmc", "BatchModel", function(object){
   object
 }
 
-
 multipleStarts <- function(object){
   if(k(object)==1) return(object)
   mcmcp <- mcmcParams(object)
   message("Running ", nStarts(mcmcp), " chains")
-  if(is(object, "BatchModel")){
-    mmod <- replicate(nStarts(mcmcp), BatchModel(y(object), mcmc.params=mcmcp,
-                                                 hypp=hyperParams(object), k=k(object),
-                                                 batch=batch(object)))
-  } else {
-    mmod <- replicate(nStarts(mcmcp), MarginalModel(y(object), mcmc.params=mcmcp,
-                                                    hypp=hyperParams(object), k=k(object)))
+  ##  if(is(object, "BatchModel")){
+  ##    mmod <- replicate(nStarts(mcmcp), BatchModel(y(object), mcmc.params=mcmcp,
+  ##                                                 hypp=hyperParams(object), k=k(object),
+  ##                                                 batch=batch(object)))
+  ##  } else {
+  mmod <- replicate(nStarts(mcmcp), MarginalModel(y(object), mcmc.params=mcmcp,
+                                                  hypp=hyperParams(object), k=k(object)))
+  model1 <- mmod[[1]]
+  K <- k(object)
+  if(K==2){
+    x <- MarginalModel(y(object), k=2)
+    z(model1)[y(model1) < -0.4] <- 1L
+    z(model1)[y(model1) >= -0.4] <- 2L
+    zFreq(model1) <- as.integer(table(z(model1)))
+    dataMean(model1) <- computeMeans(model1)
+    dataPrec(model1) <- computePrec(model1)
+    mmod[[1]] <- model1
   }
+  if(K >= 3){
+    if(isMarginalModel(object)){
+      hypp <- hyperParams(object)
+    } else{
+      ## use defaults for marginal model
+      hypp <- Hyperparameters("marginal", k=K)
+    }
+    x <- MarginalModel(y(object), k=K, hypp=hypp)
+    z(x)[y(x) < -1] <- 1L
+    z(x)[y(x) > -1 & y(x) <=-0.2] <- 2L
+    z(x)[y(x) > -0.2] <- 3L
+    if(K == 4){
+      z(x)[y(x) > 0.2] <- 4L
+    }
+    zFreq(x) <- as.integer(table(z(x)))
+    theta(x) <- dataMean(x) <- computeMeans(x)
+    dataPrec(x) <- 1/computeVars(x)
+    sigma2(x) <- 1/dataPrec(x)
+    computeLoglik(x)
+    mcmcParams(x) <- mcmcParams(object)
+    mmod[[1]] <- x
+  }
+  ##}
   ##
-  ## TODO: This ignores nStartIter.  Perhaps remove nStartIter slot
+  ## TODO: Remove nStartIter slot
   ##
   models <- suppressMessages(lapply(mmod, runBurnin))
   lp <- sapply(models, logLik)
   model <- models[[which.max(lp)]]
-  model
+  if(isMarginalModel(object)) return(model)
+  ##
+  ##  initialize batch model
+  ##
+  bmodel <- BatchModel(data=y(model), batch=batch(object), k=k(object), hypp=hyperParams(object))
+  mcmcParams(bmodel) <- mcmcParams(object)
+  theta(bmodel) <- matrix(theta(model), nBatch(object), k(object), byrow=TRUE)
+  mu(bmodel) <- theta(model)
+  z(bmodel) <- z(model)
+  zFreq(bmodel) <- as.integer(table(z(bmodel)))
+  dataMean(bmodel) <- computeMeans(bmodel)
+  dataPrec(bmodel) <- computePrec(bmodel)
+  bmodel
 }
 
 #' @export
@@ -427,6 +471,7 @@ HardyWeinberg <- function(object){
 
 setMethod("hwe", "MixtureModel", function(object) object@hwe)
 
+#' @export
 map <- function(object) apply(probz(object), 1, which.max)
 
 setMethod("fitMixtureModels", "numeric", function(object, mcmcp, K=1:5){

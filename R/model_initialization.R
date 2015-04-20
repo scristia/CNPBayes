@@ -104,17 +104,3 @@ setMethod("startingValues", "BatchModel", function(object){
   mcmcChains(object) <- McmcChains(object)
   object
 })
-
-setMethod("initializeTheta", "numeric", function(object){
-  means <- switch(paste0("k", object),
-                  k1=0,
-                  k2=c(-0.5, 0),
-                  k3=c(-2, -0.5, 0),
-                  k4=c(-2, -0.5, 0, 0.5),
-                  k5=c(-2, -0.5, 0, 0.5, 1),
-                  k6=c(-2, -0.5, -0.2, 0.2, 0.5, 1),
-                  k7=c(-2, -0.5, -0.2, 0, 0.2, 0.5, 1),
-                  NULL)
-  if(is.null(means)) stop("k needs to be 1-7")
-  means
-})

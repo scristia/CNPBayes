@@ -502,24 +502,40 @@ batchModel1 <- function(object, hyp.list, data, mcmcp.list,
 
 ## marginal y given K
 #' @export
-m_yGivenK <- function(object, mcmc.params, batch.file, K=1:4, ...){
+m_yGivenK <- function(object, mcmc.params, batch.file, K=1:4, maxperm=5, ...){
   cn <- copyNumber(object)[1, ]
   notna <- !is.na(cn)
-  bt <- saveBatch(object[1, notna], batch.file)
+  if(length(batch.file) != length(cn)){
+    ## compute batch and save
+    bt <- saveBatch(object[1, notna], batch.file)
+  } else bt <- batch.file
   cn <- cn[ notna ]
   mlist <- computeMarginalEachK2(data=cn, batch=bt, K=K,
                                  mcmcp=mcmc.params,
-                                 returnModel=TRUE, ...)
+                                 returnModel=TRUE, maxperm=maxperm, ...)
   mlist
 }
 
+setMethod("marginal", c("SummarizedExperiment", "vector"),
+          function(object, batch, mcmc.params, K=1:4, maxperm=5, ...){
+            m_yGivenK(object=object, batch.file=batch, mcmc.params=mcmc.params, K=K,
+                      maxperm=maxperm, ...)
+          })
+
+setMethod("rowMarginal", c("SummarizedExperiment", "vector"),
+          function(object, batch, mcmc.params, model.files, K=1:4, maxperm=5, ...){
+            rowM_yGivenK(object=object, batch.file=batch, mcmc.params=mcmc.params,
+                         K=K, maxperm=maxperm, ...)
+          })
+
+
 #' @export
-rowM_yGivenK <- function(object, mcmc.params, batch.files, model.files, K=1:4, ...){
+rowM_yGivenK <- function(object, mcmc.params, batch.files, model.files, K=1:4, maxperm=5, ...){
   for(i in 1:nrow(object)){
     models <- m_yGivenK(object=object[i, ],
                         mcmc.params=mcmc.params,
                         batch.file=batch.files[i],
-                        K=K, ...)
+                        K=K, maxperm=maxperm, ...)
     saveRDS(models, file=model.files[i])
   }
 }

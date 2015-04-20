@@ -17,7 +17,7 @@ test_batchEasy <- function(){
                     0.8, 1, 1.2), nbatch, k, byrow=FALSE)
   sds <- matrix(0.1, nbatch, k)
   truth <- simulateBatchData(N=2500,
-                             batch=rep(letters[3:1], length.out=2500),
+                             batch=rep(letters[1:3], length.out=2500),
                              theta=means,
                              sds=sds,
                              p=c(1/5, 1/3, 1-1/3-1/5))
@@ -56,8 +56,8 @@ test_batchEasy <- function(){
   checkIdentical(p(model), p(truth))
   checkIdentical(z(model), z(truth))
   iter(model) <- 50
-  model2 <- CNPBayes:::.runMcmc(model)
-  checkEquals(theta(model2), theta(truth), tolerance=0.1)
+  ##model2 <- CNPBayes:::.runMcmc(model)
+  ##checkEquals(theta(model2), theta(truth), tolerance=0.1)
   if(FALSE){
     iter(model) <- 500
     model2 <- CNPBayes:::.runMcmc(model)
@@ -98,11 +98,9 @@ test_batchEasy <- function(){
     tracePlot(model, "theta", col=1:3)
     plot.ts(muc(model), col=1:3)
   }
-
   ##
   ## check that the marginal density estimates are consistent for the
   ## K=3 model
-  ##
   marginaly_k3 <- computeMarginalProbs(model, mcmcp)
   spread <- diff(range(marginaly_k3))
   checkTrue(spread < 50)
@@ -110,8 +108,8 @@ test_batchEasy <- function(){
   ## Select K
   ##
   marginaly <- computeMarginalEachK2(y(truth), batch(truth), K=1:4,
-                                     mcmcp=McmcParams(iter=500, burnin=100, nStarts=20),
-                                     MAX.RANGE=100)
+                                     mcmcp=McmcParams(iter=250, burnin=100, nStarts=10),
+                                     maxperm=3)
   K <- which.max(marginaly)
   checkIdentical(as.integer(K), 3L)
 }
@@ -254,6 +252,140 @@ test_hard3 <- function(){
   checkEquals(pmix, p(truth), tolerance=0.04)
 }
 
+##
+## Good example of heterogeneity in batch means, and some batches do
+## not have the homozygous deletion because it is rare
+##
+test_missingcomponent <- function(){
+  dir <- system.file("unitTests/data", package="CNPBayes")
+  testdat <- readRDS(file.path(dir, "ea992.rds"))
+  x <- BatchModel(data=testdat$cn, batch=testdat$batch, k=3)
+  ##
+  ## Design test to throw exception
+  ##
+  true_theta <- matrix(c(rep(-1.6, 7),
+                         c(-0.5, -0.5, -0.5, -0.55, -0.42, -0.43, -0.43),
+                         c(0, -0.02, 0, -0.01, 0.1, 0.1, 0.07)),
+                       7, 3)
+  truemu <- c(-1.6, -0.5, 0.1)
+  truez <- z(x)
+  truez[y(x) < -1] <- 1L
+  truez[y(x) > -1 & y(x) <=-0.2] <- 2L
+  truez[y(x) > -0.2] <- 3L
+  truep <- as.numeric(table(truez)/length(truez))
+
+  if(FALSE){
+    xx <- posteriorSimulation(x)
+    th <- theta(xx)
+    th <- th[, order(th[1,])]
+    dimnames(th) <- NULL
+    checkEquals(th, true_theta, tolerance=0.5)
+    checkEquals(truemu, sort(mu(xx)), tolerance=0.15)
+    library(lattice)
+    df <- data.frame(y=y(x), batch=batch(x))
+    histogram(~y|batch, df, breaks=100, col="gray", border="gray", as.table=TRUE,
+              panel=function(x, truth, ...){
+                ##panel.abline(v=c(-1.5, -1, -0.5, 0, 0.5),
+                ##col="gray")
+                panel.histogram(x, ...)
+                panel.abline(v=truth[panel.number(), ])
+              }, truth=true_theta)
+
+
+    zz <- as.integer(factor(z(x), levels=order(theta(x)[1,])))
+    checkEquals(truez, zz, tolerance=0.1)
+
+
+    checkEquals(truep, p(x), tolerance=0.3)
+
+    ##
+    ## start at truth
+    ##
+    z(x) <- truez
+    zFreq(x) <- as.integer(table(truez))
+    p(x) <- truep
+    mu(x) <- truemu
+    theta(x) <- true_theta
+    sigma2(x)[, ] <- 0.06^2
+
+    plot(x, use.current=TRUE)
+    ##
+    ## Note the zeros for some components
+    ##
+    table(batch(x), z(x))
+    ##
+    ## update mean with mu if no observations
+    ##
+    mns <- .Call("compute_means_batch", x)
+    checkTrue(!any(is.nan(mns)))
+    checkEquals(mns, true_theta, tolerance=0.1)
+    dataMean(x) <- mns
+    ##
+    ## update variance with tau2 if no observations
+    ##
+    vars <- .Call("compute_vars_batch", x)
+    checkTrue(!any(is.nan(vars)))
+    prec <- .Call("compute_prec_batch", x)
+    dataPrec(x) <- prec
+
+    ##
+    ## update theta
+    ##
+    th <- .Call("update_theta_batch", x)
+    checkEquals(th, true_theta, tolerance=0.1)
+    theta(x) <- th
+    ##
+    ## update mu
+    ##
+    mus <- .Call("update_mu_batch", x)
+    checkEquals(mus, truemu, tolerance=0.1)
+    mu(x) <- mus
+
+    tau2s <- .Call("update_tau2_batch", x)
+    tau2(x) <- tau2s
+
+    set.seed(123) ;
+    ps <- .Call("update_p_batch", x)
+    checkEquals(ps, p(x), tolerance=0.05)
+
+    iter(x) <- 500
+    burnin(x) <- 0
+    x2 <- posteriorSimulation(x)
+    th <- theta(x2)
+    dimnames(th) <- NULL
+    checkEquals(th, true_theta, tolerance=0.1)
+    checkEquals(mu(x2), truemu, tolerance=0.05)
+    checkEquals(p(x2), truep, tolerance=0.05)
+    if(FALSE){
+      plot(x2, use.current=TRUE)
+    }
+  }
+  ##
+  ## Now test with random starting values
+  ##
+  ##load_all()
+  xx <- BatchModel(data=testdat$cn, batch=testdat$batch, k=3)
+  nStarts(xx) <- 10
+  iter(xx) <- 250
+  burnin(xx) <- 200
+  xx <- posteriorSimulation(xx)
+  if(FALSE){
+    plot(xx, use.current=TRUE)
+    par(mfrow=c(4,3), las=1)
+    tracePlot(xx, "theta")
+  }
+  th <- theta(xx)
+  dimnames(th) <- NULL
+  ix <- order(th[1, ])
+  checkEquals(th, true_theta, tolerance=0.1)
+  mus <- mu(xx)[ix]
+  checkEquals(mus, truemu, tolerance=0.15)
+  ps <- p(xx)[ix]
+  checkEquals(ps, truep, tolerance=0.05)
+}
+
+
+
 .test_number_batches <- function(){
   library(foreach)
   library(GenomicRanges)
@@ -379,4 +511,53 @@ test_hard3 <- function(){
   paramUpdates(bm) <- u
   system.time(tmp4 <- posteriorSimulation(bm)) ## 1.1
 
+}
+
+test_twocomponent_with_substantial_overlap <- function(){
+  se.aric <- readRDS("~/Labs/ARIC/AricCNPData/data/se_medr_EA.rds")
+  set.seed(100)
+  dir <- system.file("unitTests/data", package="CNPBayes")
+  testdat <- readRDS(file.path(dir, "ea1.rds"))
+  x <- BatchModel(data=testdat$cn, batch=testdat$batch)
+  se <- as(x, "SummarizedExperiment")
+  mcmcp <- McmcParams(iter=250, burnin=250, nStarts=5)
+  m <- marginal(se, mcmc.params=mcmcp, maxperm=2)
+  if(FALSE) plot(m[[1]], use.current=TRUE)
+
+  b <- marginal(se, batch=testdat$batch, mcmc.params=mcmcp, maxperm=2)
+  my <- rbind(summarizeMarginal(m),
+              summarizeMarginal(b))
+  bf <- bayesFactor(my)
+  calls <- names(bf)
+  ## check that a 2-component model is the best fit
+  checkTrue(substr(calls, 2, 2) == 2)
+  if(FALSE){
+    par(mfrow=c(1,2), las=1)
+    plot(b[[1]], use.current=TRUE)
+    plot(b[[2]], use.current=TRUE)
+    sapply(b, m.y)
+  }
+}
+
+.test_hard_fourcomp <- function(){
+  set.seed(123)
+  dir <- system.file("unitTests/data", package="CNPBayes")
+  testdat <- readRDS(file.path(dir, "ea2.rds"))
+  x <- BatchModel(data=testdat$cn, batch=testdat$batch)
+  se <- as(x, "SummarizedExperiment")
+  mcmcp <- McmcParams(iter=250, burnin=250, nStarts=5)
+  m <- marginal(se, mcmc.params=mcmcp, maxperm=2)
+  if(FALSE) plot(m[[1]], use.current=TRUE)
+
+  b <- marginal(se, batch=testdat$batch, mcmc.params=mcmcp, maxperm=2)
+  my <- rbind(summarizeMarginal(m),
+              summarizeMarginal(b))
+  bf <- bayesFactor(my)
+  calls <- names(bf)
+  ## check 4-component model is called
+  checkTrue(substr(calls, 2, 2) == 4)
+  if(FALSE){
+    par(mfrow=c(1,3), las=1)
+    plot(b[[4]], use.current=TRUE)
+  }
 }

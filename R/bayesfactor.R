@@ -451,7 +451,7 @@ computeMarginalProbs <- function(model, mcmcp, maxperm=5){
 
 #' @export
 computeMarginalEachK <- function(data, K=1:4, hypp, mcmcp=McmcParams(), MAX.RANGE=5,
-                                 returnModel=FALSE){
+                                 returnModel=FALSE, maxperm=5){
   j <- 1
   marginaly <- setNames(rep(NA, length(K)), paste0("M", K))
   model.list <- list()
@@ -464,7 +464,7 @@ computeMarginalEachK <- function(data, K=1:4, hypp, mcmcp=McmcParams(), MAX.RANG
     kmod <- MarginalModel(data, k=k, mcmc.params=mp, hypp=hypp)
     kmod <- posteriorSimulation(kmod)
     if(!any(is.nan(theta(kmod)))){
-      my <- computeMarginalProbs(kmod, mp)
+      my <- computeMarginalProbs(kmod, mp, maxperm=maxperm)
       if(!returnModel){
         if( diff(range(my, na.rm=TRUE)) < MAX.RANGE ){
           marginaly[j] <- mean(my)
@@ -482,7 +482,8 @@ computeMarginalEachK <- function(data, K=1:4, hypp, mcmcp=McmcParams(), MAX.RANG
 #' @export
 computeMarginalEachK2 <- function(data, batch, K=1:4, mcmcp=McmcParams(),
                                   MAX.RANGE=5,
-                                  hypp, returnModel=FALSE){
+                                  hypp, returnModel=FALSE,
+                                  maxperm=5){
   if(missing(hypp)) hypp <- Hyperparameters("batch")
   j <- 1
   marginaly <- setNames(rep(NA, length(K)), paste0("B", K))
@@ -492,7 +493,7 @@ computeMarginalEachK2 <- function(data, batch, K=1:4, mcmcp=McmcParams(),
     if(k == 1){
       mp <- McmcParams(iter=min(iter(mcmcp), 500), burnin=min(burnin(mcmcp), 100))
     } else mp <- mcmcp
-    model.list[[k]] <- .computeMarginal(data, batch, mp, hypp)
+    model.list[[k]] <- .computeMarginal(data, batch, mp, hypp, maxperm=maxperm)
     if(!returnModel){
       my <- m.y(model.list[[k]])
       my <- my[!is.nan(my)]
@@ -506,14 +507,14 @@ computeMarginalEachK2 <- function(data, batch, K=1:4, mcmcp=McmcParams(),
   marginaly
 }
 
-.computeMarginal <- function(data, batch, mcmcp, hypp){
+.computeMarginal <- function(data, batch, mcmcp, hypp, maxperm=5){
   if(k(hypp) == 1){
     mp <- McmcParams(iter=min(iter(mcmcp), 500), burnin=min(burnin(mcmcp), 100), nStarts=1)
   } else mp <- mcmcp
   kmod <- BatchModel(data, batch, k=k(hypp), mcmc.params=mp, hypp=hypp)
   ##if(k(kmod) == 3) browser()
   kmod <- posteriorSimulation(kmod)
-  m.y(kmod) <- computeMarginalProbs(kmod, mp)
+  m.y(kmod) <- computeMarginalProbs(kmod, mp, maxperm=maxperm)
   kmod
 }
 

@@ -36,6 +36,35 @@ setMethod("tracePlot", "BatchModel", function(object, name, ...){
   }
 })
 
+.plotMarginal <- function(x, y, use.current=FALSE, ...){
+  hist(x, ...)
+  pi <- p(x)
+  ##xx <- seq(min(observed(x)), max(observed(x)),  length.out=10e3)
+  xx <- seq(min(observed(x)), max(observed(x)),  length.out=100)
+  mc <- mcmcChains(x)
+  if(!use.current){
+    thetas <- colMeans(theta(mc))
+    sds <- colMeans(sigma(mc))
+  } else {
+    ## use current value
+    thetas <- theta(x)
+    sds <- sigma(x)
+  }
+  cols <- brewer.pal(max(length(pi), 3),  "Set1")
+  marginal <- matrix(NA, length(xx), k(x))
+  for(j in seq_along(pi)){
+    p.x <- pi[j]*dnorm(xx, mean=thetas[j], sd=sds[j])
+    lines(xx, p.x, col=cols[j], lwd=2)
+    marginal[, j] <- p.x
+  }
+  marginal.cum.prob <- rowSums(marginal)
+  lines(xx, marginal.cum.prob, col="black", lwd=2)
+}
+
+setMethod("plot", "MarginalModel", function(x, y, use.current=FALSE, ...){
+  .plotMarginal(x, y, use.current=use.current, ...)
+})
+
 
 setMethod("plot", "BatchModel", function(x, y, use.current=FALSE, show.batch=TRUE, ...){
   .plotBatch(x, use.current, show.batch, ...)
@@ -51,8 +80,8 @@ setMethod("hist", "MixtureModel", function(x, ...){
   if(!"breaks" %in% names(args)){
     L <- length(yy)
     hist(yy, breaks=L/10,
-         col="gray"
-       , border="gray",  xlab="y",
+         col="gray",
+         border="gray",  xlab="y",
          freq=FALSE, ...)
   } else {
     hist(yy, col="gray", border="gray", xlab="y",
@@ -171,6 +200,32 @@ plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
   }
 }
 
+#' @export
+summarizeMarginal <- function(model.list){
+  xlist <- lapply(model.list, m.y)
+  if(isMarginalModel(model.list[[1]])){
+    nms <- paste0("M", seq_along(model.list))
+  } else nms <- paste0("B", seq_along(model.list))
+  mns <- sapply(xlist, mean)
+  rg <- sapply(xlist, function(x) diff(range(x)))
+  df <- data.frame(mean=mns, range=rg)
+  rownames(df) <- nms
+  df
+}
+
+
+topTwo <- function(m.y){
+  sort(m.y[is.finite(m.y)], decreasing=TRUE)[1:2]
+}
+
+#' @export
+bayesFactor <- function(x, thr=5){
+  mns <- setNames(x$mean, rownames(x))
+  mns <- mns[x$range < thr]
+  mns <- topTwo(mns)
+  setNames(abs(diff(mns)), paste(names(mns), collapse="-"))
+}
+
 
 #' @export
 plotModel <- function(model.list, se, ...){
@@ -182,15 +237,20 @@ plotModel <- function(model.list, se, ...){
   ##bf <- bayesFactor(m.y)
   m.models <- readRDS(model(model.list[[1]]))
   b.models <- readRDS(model(model.list[[2]]))
-  m.y1 <- lapply(m.models, m.y)
-  m.y1 <- setNames(sapply(m.y1, mean), paste0("M", 1:4))
-  m.y2 <- setNames(sapply(lapply(b.models, m.y), mean), paste0("B", 1:4))
-  m.y <- c(m.y1, m.y2)
-  bf <- bayesFactor(m.y)
+  m.y1 <- summarizeMarginal(m.models)
+  m.y2 <- summarizeMarginal(b.models)
+  my <- rbind(m.y1, m.y2)
+  bf <- bayesFactor(my)
+  my$mean[my$range > 5] <- NA
+##  m.y1 <- lapply(m.models, m.y)
+##  m.y1 <- setNames(sapply(m.y1, mean), paste0("M", 1:4))
+##  m.y2 <- setNames(sapply(lapply(b.models, m.y), mean), paste0("B", 1:4))
+##  m.y <- c(m.y1, m.y2)
+  ##bf <- bayesFactor(m.y)
   model1 <- model.list[[1]]
   if(length(model.list) > 1) xaxt <- "n" else xaxt="s"
   plot.PosteriorFiles(model.list[[1]], se[1, ],
-                      bayes.factor=bf, m.y=m.y,
+                      bayes.factor=bf, m.y=my$mean,
                       ...,
                       ##xlim=xlim,
                       xaxt=xaxt,

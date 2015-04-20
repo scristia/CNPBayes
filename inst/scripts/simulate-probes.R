@@ -10,11 +10,15 @@ arguments <- list("sl.good" = 6.25, ## separation parameter for "good" probes
                   "n" = 0.2, ## background noise
                   "prvar" = c(19.92985, 0.06272) ## probe variance gamma parameters (shape,scale)
                   )
+
+easy.sim <- simulateProbeLevel(samples=2000, cnvs=200, arguments=arguments, qual="easy")
+
 easy.sim <- simulate.probes(samples=2000, cnvs=200, arguments=arguments, qual="easy")
 
 saveRDS(easy.sim, file="easy-simulations.rds")
+
 hist(rowMeans(easy.sim[[1]][,,15,3]), col="gray", breaks=80)
-hist(rowMeans(x[[1]][,,15,2])/10, col="gray", breaks=80)
+hist(rowMeans(easy.sim[[1]][,,15,2])/10, col="gray", breaks=80)
 
 
 ### this moved to simulate_data.R
@@ -73,4 +77,3 @@ simulate.probes <- function(samples=2000, cnvs=200, K=4, probes=10, arguments, q
     }
     return(list("measurements"=A, "assignments"=Z))
 }
-

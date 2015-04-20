@@ -182,6 +182,7 @@ setGeneric("tablez", function(object) standardGeneric("tablez"))
 
 #' @export
 setGeneric("nStarts", function(object) standardGeneric("nStarts"))
+#' @export
 setGeneric("nStarts<-", function(object, value) standardGeneric("nStarts<-"))
 
 setGeneric("checkLabels", function(object) standardGeneric("checkLabels"))
@@ -282,3 +283,12 @@ setGeneric("fullGibbs", function(object, mcmcp) standardGeneric("fullGibbs"))
 setGeneric("paramUpdates", function(x) standardGeneric("paramUpdates"))
 
 setGeneric("computePrec", function(object) standardGeneric("computePrec"))
+
+#' @export
+setGeneric("marginal", function(object, batch, mcmc.params, K=1:4, maxperm=5, ...)
+  standardGeneric("marginal"))
+
+#' @export
+setGeneric("rowMarginal", function(object, batch, mcmc.params,
+                                   model.files, K=1:4, maxperm=5, ...)
+  standardGeneric("rowMarginal"))

@@ -41,6 +41,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// uniqueBatch
+IntegerVector uniqueBatch(IntegerVector x);
+RcppExport SEXP CNPBayes_uniqueBatch(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
+    __result = Rcpp::wrap(uniqueBatch(x));
+    return __result;
+END_RCPP
+}
 // tableBatchZ
 RcppExport SEXP tableBatchZ(SEXP xmod);
 RcppExport SEXP CNPBayes_tableBatchZ(SEXP xmodSEXP) {
@@ -140,17 +151,6 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// uniqueBatch
-IntegerVector uniqueBatch(IntegerVector x);
-RcppExport SEXP CNPBayes_uniqueBatch(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
-    __result = Rcpp::wrap(uniqueBatch(x));
-    return __result;
-END_RCPP
-}
 // compute_means_batch
 RcppExport SEXP compute_means_batch(SEXP xmod);
 RcppExport SEXP CNPBayes_compute_means_batch(SEXP xmodSEXP) {
@@ -228,14 +228,14 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// compute_probz_batch
-RcppExport SEXP compute_probz_batch(SEXP xmod);
-RcppExport SEXP CNPBayes_compute_probz_batch(SEXP xmodSEXP) {
+// update_probz_batch
+RcppExport SEXP update_probz_batch(SEXP xmod);
+RcppExport SEXP CNPBayes_update_probz_batch(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(compute_probz_batch(xmod));
+    __result = Rcpp::wrap(update_probz_batch(xmod));
     return __result;
 END_RCPP
 }
@@ -403,6 +403,28 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
     __result = Rcpp::wrap(update_sigma2(xmod));
+    return __result;
+END_RCPP
+}
+// ordertheta_
+IntegerVector ordertheta_(NumericVector x);
+RcppExport SEXP CNPBayes_ordertheta_(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    __result = Rcpp::wrap(ordertheta_(x));
+    return __result;
+END_RCPP
+}
+// compute_probz
+RcppExport SEXP compute_probz(SEXP xmod);
+RcppExport SEXP CNPBayes_compute_probz(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(compute_probz(xmod));
     return __result;
 END_RCPP
 }

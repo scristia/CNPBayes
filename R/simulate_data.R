@@ -82,7 +82,11 @@ cumProbs <- function(p, k){
   pcum2 <- cbind(p[, 1], do.call(cbind, pcum), 1)
 }
 
-simulate.probes <- function(samples=2000, cnvs=200, K=4, probes=10, arguments, qual="easy") {
+#' @export
+simulateProbeLevel <- function(samples=2000,
+                               cnvs=200, K=4,
+                               probes=10,
+                               arguments, qual="easy") {
   l <- probes
   sl.good <- arguments$sl.good
   sl.bad <- arguments$sl.bad
@@ -118,7 +122,7 @@ simulate.probes <- function(samples=2000, cnvs=200, K=4, probes=10, arguments, q
   for(i in 1:nrow(Pb)) Pb[i,] <- rnorm(l, 0, prbias)
   for(i in 1:nrow(Pb)) Pv[i,]   <- rgamma(l, shape = prvar[1], scale = prvar[2])
 
-  corrupted <- sample(samples, ceil(0.004*samples))
+  corrupted <- sample(samples, ceiling(0.004*samples))
   for(k in 1:K) {
     for(j in 1:cnvs) {
       for(i in 1:samples) {

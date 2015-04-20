@@ -81,16 +81,6 @@ getFiles <- function(outdir, cnpids, model){
        k4=k4)
 }
 
-#' @export
-topTwo <- function(m.y){
-  sort(m.y[is.finite(m.y)], decreasing=TRUE)[1:2]
-}
-
-#' @export
-bayesFactor <- function(m.y){
-  m.y <- topTwo(m.y)
-  setNames(abs(diff(m.y)), paste(names(m.y), collapse="-"))
-}
 
 modelAbbrv <- function(x) ifelse(isMarginalModel(x), "M", "B")
 

@@ -13,21 +13,11 @@ IntegerVector uniqueBatch(IntegerVector x) {
   return b ;
 }
 
-// 
-// IntegerVector rev(IntegerVector ub){
-//   int B = ub.size() ;
-//   IntegerVector unique_batch(B);
-//   // for some reason unique is 
-//   for(int b = 0; b < B; ++b) unique_batch[b] = ub[ B-b-1 ] ;
-//   return unique_batch ;
-// }
-
 // [[Rcpp::export]]
 RcppExport SEXP tableBatchZ(SEXP xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   int K = getK(model.slot("hyperparams")) ;
-  // int N = x.size() ;
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = uniqueBatch(batch) ;
   int B = ub.size() ;
@@ -36,9 +26,6 @@ RcppExport SEXP tableBatchZ(SEXP xmod){
   for(int j = 0; j < B; ++j){
     for(int k = 0; k < K; k++){
       nn(j, k) = sum(z == (k+1) & batch == ub[j] ) ;
-      //if(nn(j, k) < 1) {
-      //nn(j, k) = 1 ;
-      // }
     }
   }  
   return nn ;  
@@ -147,11 +134,14 @@ RcppExport SEXP update_mu_batch(SEXP xmod){
     mu_new[k] = as<double>(rnorm(1, mu_n[k], post_prec)) ;
   }
   // simulate from prior if NAs
-  if(is_true(any(is_nan(mu_new)))){
-    for(int k = 0; k < K; ++k){
+  LogicalVector isnan = is_nan(mu_new) ;
+  if(!is_true(any(isnan)))
+    return mu_new ;
+  
+  for(int k = 0; k < K; ++k){
+    if(isnan[k])
       mu_new[k] = as<double>(rnorm(1, mu_0, sqrt(tau2_0))) ;
-    }
-  }  
+  }
   return mu_new ;
 }
 
@@ -184,10 +174,13 @@ RcppExport SEXP update_tau2_batch(SEXP xmod){
     m2_k = 1.0/eta_B*(eta_0*m2_0 + s2_k[k]) ;
     tau2[k] = 1.0/as<double>(rgamma(1, 0.5*eta_B, 2.0/(eta_B*m2_k))) ;
   }
-  if(is_true(any(is_nan(tau2)))){
-    for(int k = 0; k < K; ++k){
+  LogicalVector isnan = is_nan(tau2) ;
+  if(!is_true(any(isnan)))
+    return tau2 ;
+  
+  for(int k = 0; k < K; ++k){
+    if(isnan[k])
       tau2[k] = 1.0/as<double>(rgamma(1, 0.5*eta_0, 1.0/(0.5*eta_0*m2_0))) ;
-    }
   }  
   return tau2 ;
 }
@@ -365,7 +358,10 @@ RcppExport SEXP update_z_batch(SEXP xmod) {
   if(is_true(all(freq > 1))){
     return zz ;
   }
-  // what about not updating z if there are any states with zero frequency
+  //
+  // Don't update z if there are states with zero frequency.  Note
+  // that we do not require each batch to have K states.
+  //
   return model.slot("z") ;
   //
   // Code below is no longer evaluated
@@ -404,6 +400,7 @@ RcppExport SEXP compute_means_batch(SEXP xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   NumericVector x = model.slot("data") ;
+  NumericVector mu = model.slot("mu") ;
   int n = x.size() ;
   IntegerVector z = model.slot("z") ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -421,7 +418,11 @@ RcppExport SEXP compute_means_batch(SEXP xmod) {
     for(int k = 0; k < K; ++k){
       is_z = z == (k + 1) ;
       total[0] = sum(is_z * this_batch) ;
-      means(b, k) = sum(x * this_batch * is_z)/total[0] ;
+      if(total[0] == 0){
+        means(b, k) = mu[k] ;
+      } else {
+        means(b, k) = sum(x * this_batch * is_z)/total[0] ;
+      }
     }
   }
   return means ;
@@ -440,29 +441,47 @@ RcppExport SEXP compute_vars_batch(SEXP xmod) {
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = uniqueBatch(batch) ;
   int B = ub.size() ;
-  NumericMatrix prec(B, K) ;
   NumericMatrix vars(B, K) ;
   NumericMatrix tabz = tableBatchZ(xmod) ;
   NumericMatrix mn = model.slot("data.mean") ;
-  for(int i = 0; i < n; ++i){
-    for(int b = 0; b < B; ++b){
-      if(batch[i] != ub[b]) continue ;
-      for(int k = 0; k < K; ++k){
-        if(z[i] == k+1){
-          vars(b, k) += (pow(x[i] - mn(b, k), 2.0)/(tabz(b, k)-1)) ;
-        }
+  
+  NumericVector this_batch(n) ;
+  NumericVector is_z(n) ;
+  NumericVector tau2 = model.slot("tau2") ;
+  NumericVector total(1) ;
+  for(int b = 0; b < B; ++b){
+    this_batch = batch == ub[b] ;
+    for(int k = 0; k < K; ++k){
+      is_z = z == (k + 1) ;
+      total[0] = sum(is_z * this_batch) ;
+      if(total[0] <= 1){
+        vars(b, k) = tau2[k] ;
+      } else {
+        vars(b, k) = sum(pow(x - mn(b,k), 2.0) * this_batch * is_z) / (tabz(b,k)-1) ;
       }
     }
   }
-  if(is_true(any(vars < 0.0001))){
-    for(int b = 0; b < B; ++b){
-      for(int k = 0; k < K; ++k){
-        if(vars(b, k) > 0.0001) continue ;
-        vars(b, k) = 1000 ;
-      }
-    }
-  }  
   return vars ;
+    
+//   for(int i = 0; i < n; ++i){
+//     for(int b = 0; b < B; ++b){
+//       if(batch[i] != ub[b]) continue ;
+//       for(int k = 0; k < K; ++k){
+//         if(z[i] == k+1){
+//           vars(b, k) += (pow(x[i] - mn(b, k), 2.0)/(tabz(b, k)-1)) ;
+//         }
+//       }
+//     }
+//   }
+//   if(is_true(any(vars < 0.0001))){
+//     for(int b = 0; b < B; ++b){
+//       for(int k = 0; k < K; ++k){
+//         if(vars(b, k) > 0.0001) continue ;
+//         vars(b, k) = 1000 ;
+//       }
+//     }
+//   }  
+//   return vars ;
 }
 
 
@@ -481,9 +500,6 @@ RcppExport SEXP compute_prec_batch(SEXP xmod){
   }
   return prec ;
 }
-
-
-
 
 // [[Rcpp::export]]
 RcppExport SEXP compute_logprior_batch(SEXP xmod){
@@ -604,7 +620,7 @@ IntegerVector order_(NumericVector x) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP compute_probz_batch(SEXP xmod){
+RcppExport SEXP update_probz_batch(SEXP xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -620,14 +636,13 @@ RcppExport SEXP compute_probz_batch(SEXP xmod){
   // Assume that all batches have the same ordering and so here we
   // just use the first batch
   //
-  NumericVector means(K) ;
+  NumericVector cn(K) ;
   NumericVector ordering(K) ;
-  // means = theta(0, _) ;
-  // ordering = order_(means) ;
+  cn = theta(0, _) ;
   for(int i = 0; i < N; ++i){
     for(int k = 0; k < K; ++k){
       if(z[i] == (k + 1)){
-        pZ(i, k) += + 1;
+        pZ(i, cn[k]) += 1;
       }
     }
   }
@@ -801,7 +816,7 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
       z = update_z_batch(xmod) ;
       model.slot("z") = z ;
       tmp = tableZ(K, z) ;
-      model.slot("probz") = compute_probz_batch(xmod) ;    
+      model.slot("probz") = update_probz_batch(xmod) ;    
       model.slot("zfreq") = tmp ;
       // mean and prec only change if z is updated
       model.slot("data.mean") = compute_means_batch(xmod) ;
