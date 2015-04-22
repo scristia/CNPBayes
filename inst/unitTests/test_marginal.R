@@ -78,14 +78,16 @@ test_marginalEasy <- function(){
   ##
   ## compute marginal density for other K
   ##
-  marginaly <- computeMarginalEachK(y(truth), K=1:4,
-                                    mcmcp=McmcParams(iter=200, burnin=100),
-                                    MAX.RANGE=10)
-  checkTrue(which.max(marginaly)==3)
-  bayesFactor(marginaly)
+  mp <- McmcParams(iter=200, burnin=100)
+  se <- as(model, "SummarizedExperiment")
+  m <- marginal(se, mcmc.params=mp, maxperm=2)
+  ##my <- summary(m)
+  ##bf <- bayesFactor(summary(m))
+  checkTrue(best(m) == 3)
 }
 
-test_selectK_easy <- function(){
+
+.test_selectK_easy <- function(){
   library(GenomicRanges)
   set.seed(1000)
   means <- c(-1, 0, 1)
@@ -113,11 +115,11 @@ test_marginal_Moderate <- function(){
                         sds=c(0.3, 0.15, 0.15),
                         p=c(0.05, 0.1, 0.8))
   if(FALSE) plot(truth, use.current=TRUE)
-  mcmcp <- McmcParams(iter=500, burnin=100, thin=10)
+  mcmcp <- McmcParams(iter=500, burnin=500, thin=2)
   model <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
   model <- startAtTrueValues(model, truth)
   model <- posteriorSimulation(model, mcmcp)
-  checkEquals(theta(model), theta(truth), tolerance=0.1)
+  checkEquals(sort(theta(model)), theta(truth), tolerance=0.15)
   if(FALSE){
     plot.ts(thetac(model), plot.type="single")
     plot.ts(sigmac(model), plot.type="single")
@@ -127,8 +129,8 @@ test_marginal_Moderate <- function(){
     plot(model)
     par(op)
   }
-  checkEquals(sigma(model), sigma(truth), tolerance=0.15)
-  checkEquals(colMeans(pic(model)), p(truth), tolerance=0.2)
+  checkEquals(sigma(model)[order(theta(model))], sigma(truth), tolerance=0.15)
+  checkEquals(colMeans(pic(model))[order(theta(model))], p(truth), tolerance=0.2)
 }
 
 test_marginal_hard <- function(){

@@ -42,14 +42,18 @@ test_mcmc_restart <- function(){
   ##
   ## Burnin iterations are not included in the chain
   ##
+  ##  - setting iter to 0 does not trigger an update to the chains
+  ##  (by default, the chains are initialized to length 1000 vectors)
+  ##
   model <- truth
   mcmcParams(model) <- McmcParams(iter=0, burnin=1)
   model <- posteriorSimulation(model, mcmcp)
   mc <- mcmcChains(model)
-  checkIdentical(nrow(theta(mc)), 0L)
+  checkIdentical(nrow(theta(mc)), 1000L)
+  checkTrue(all(is.na(theta(mc)[1, ])))
 
   ##
-  ## Burnin =0, 0 iterations
+  ## Burnin 0, 0 iterations
   ##
   ## The chains will be a length-one vector containing the initial
   ## values
@@ -57,15 +61,17 @@ test_mcmc_restart <- function(){
   mcmcParams(model) <- McmcParams(iter=0, burnin=0)
   model <- posteriorSimulation(model, mcmcp)
   mc <- mcmcChains(model)
-  checkIdentical(nrow(theta(mc)), 0L)
+  checkIdentical(nrow(theta(mc)), 1000L)
 
   ##
   ## Restarting
   ##
   ## Restarting a chain will resume at the last saved iteration.
+  ##  -- a postive value for iter triggers an update of the chains
   mcmcParams(model) <- McmcParams(iter=10, burnin=0)
   model <- posteriorSimulation(model, mcmcp)
   mc <- mcmcChains(model)
+  checkIdentical(nrow(theta(mc)), 10L)
   checkIdentical(theta(mc)[1, ], as.numeric(theta(truth)))
   ## restart
   th <- theta(model)

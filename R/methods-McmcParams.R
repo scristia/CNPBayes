@@ -20,11 +20,8 @@ setReplaceMethod("burnin", "McmcParams", function(object,value){
   object
 })
 
-
-thin <- function(object) object@thin
-iter <- function(object) object@iter
-savedIterations <- function(object)iter(object)/(max(thin(object), 1))
-
+setMethod("thin", "McmcParams", function(object) object@thin)
+setMethod("iter", "McmcParams", function(object) object@iter)
 
 setMethod("show", "McmcParams", function(object){
   cat("An object of class 'McmcParams'\n")

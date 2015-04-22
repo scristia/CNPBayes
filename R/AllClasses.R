@@ -81,8 +81,6 @@ setClass("UnivariateMarginalModel", contains="MarginalModel")
 ## Better to have a field for each variable
 setClass("Posterior", contains="MixtureModel")
 
-
-
 setClass("ModelParams", representation(type="character",
                                        k="numeric",
                                        data="numeric",
@@ -94,5 +92,13 @@ setClass("PosteriorFiles",
              isMarginalModel="logical",
              model="character",
              post1="character"))
-             ##post2="character",
-             ##post3="character"))
+
+
+setClass("ModelList", representation(model_list="list",
+                                     elementType="character",
+                                     names="character",
+                                     mode_index="list",
+                                     mode_list="list",
+                                     maxperm="numeric"))
+setClass("MarginalModelList", contains="ModelList")
+setClass("BatchModelList", contains="ModelList")

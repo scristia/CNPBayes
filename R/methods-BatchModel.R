@@ -518,8 +518,22 @@ m_yGivenK <- function(object, mcmc.params, batch.file, K=1:4, maxperm=5, ...){
 
 setMethod("marginal", c("SummarizedExperiment", "vector"),
           function(object, batch, mcmc.params, K=1:4, maxperm=5, ...){
-            m_yGivenK(object=object, batch.file=batch, mcmc.params=mcmc.params, K=K,
-                      maxperm=maxperm, ...)
+            cn <- copyNumber(object)[1, ]
+            notna <- !is.na(cn)
+            if(length(batch) != length(cn)){
+              ## compute batch and save
+              batch <- saveBatch(object[1, notna], batch.file)
+            }
+            cn <- cn[ notna ]
+            mlist <- computeMarginalEachK2(cn, batch=batch, K=K,
+                                           mcmcp=mcmc.params,
+                                           maxperm=maxperm, ...)
+            mlist
+          })
+
+setMethod("marginal", "BatchModelList",
+          function(object, ...){
+            mlist <- computeMarginalEachK2(object, ...)
           })
 
 setMethod("rowMarginal", c("SummarizedExperiment", "vector"),

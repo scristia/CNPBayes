@@ -212,6 +212,8 @@ setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 setGeneric("iter<-", function(object, value) standardGeneric("iter<-"))
 #' @export
 setGeneric("iter", function(object) standardGeneric("iter"))
+#' @export
+setGeneric("thin", function(object) standardGeneric("thin"))
 
 
 #' @export
@@ -292,3 +294,19 @@ setGeneric("marginal", function(object, batch, mcmc.params, K=1:4, maxperm=5, ..
 setGeneric("rowMarginal", function(object, batch, mcmc.params,
                                    model.files, K=1:4, maxperm=5, ...)
   standardGeneric("rowMarginal"))
+
+setGeneric("modelList", function(object) standardGeneric("modelList"))
+
+setGeneric("modelList<-", function(object, value) standardGeneric("modelList<-"))
+
+
+setGeneric("computeMarginalEachK", function(object, K=1:4, hypp, mcmcp=McmcParams(), maxperm=5)
+  standardGeneric("computeMarginalEachK"))
+
+setGeneric("computeMarginalEachK2",
+           function(object, batch, maxperm=3,
+                    K=1:4, mcmcp=McmcParams(),
+                    hypp) standardGeneric("computeMarginalEachK2"))
+
+#' @export
+setGeneric("best", function(object) standardGeneric("best"))

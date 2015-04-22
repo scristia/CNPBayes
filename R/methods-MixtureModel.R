@@ -596,6 +596,7 @@ startAtTrueValues <- function(model, truth){
 }
 
 setMethod("zFreq", "MixtureModel", function(object) object@zfreq)
+
 setReplaceMethod("zFreq", "MixtureModel", function(object, value){
   object@zfreq <- value
   object
@@ -638,3 +639,19 @@ setReplaceMethod("paramUpdates", "MixtureModel", function(x, value){
 
 nu0c <- function(object) nu.0(chains(object))
 sigma20c <- function(object) sigma2.0(chains(object))
+
+##
+## Any update of the mcmc parameters triggers an update of the chains.
+## This is important because it initializes the chains to be of the
+## right size. **An important exception: setting iter to zero or a
+## negative value -does not- trigger an update of the chains -- chains
+## are kept as is
+##
+setReplaceMethod("mcmcParams", "MixtureModel", function(object, value){
+  object@mcmc.params <- value
+  if(iter(object) > 0){
+    ## make the chains the right size
+    mcmcChains(object) <- McmcChains(object)
+  }
+  object
+})

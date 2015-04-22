@@ -214,19 +214,6 @@ summarizeMarginal <- function(model.list){
 }
 
 
-topTwo <- function(m.y){
-  sort(m.y[is.finite(m.y)], decreasing=TRUE)[1:2]
-}
-
-#' @export
-bayesFactor <- function(x, thr=5){
-  mns <- setNames(x$mean, rownames(x))
-  mns <- mns[x$range < thr]
-  mns <- topTwo(mns)
-  setNames(abs(diff(mns)), paste(names(mns), collapse="-"))
-}
-
-
 #' @export
 plotModel <- function(model.list, se, ...){
   ##model.list is a list of PosteriorFiles

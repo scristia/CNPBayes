@@ -448,11 +448,12 @@ setMethod("relabel", "MarginalModel", function(object, zindex){
   ## Permute the latent variables
   ##
   zz <- factor(z(object), levels=zindex)
-  zz <- factor(as.integer(zz), levels=seq_len(k(object)))
+  zz <- as.integer(zz)
   z(object) <- zz
   zFreq(object) <- as.integer(table(zz))
   dataMean(object) <- dataMean(object)[zindex]
   dataPrec(object) <- dataPrec(object)[zindex]
+  ##p(object) <- p(object)[zindex]
   object
 })
 
@@ -462,8 +463,9 @@ setMethod("relabel", "BatchModel", function(object, zindex){
   ## Permute the latent variables
   ##
   zz <- factor(z(object), levels=zindex)
-  zz <- factor(as.integer(zz), levels=seq_len(k(object)))
+  zz <- as.integer(zz)
   z(object) <- zz
+  zFreq(object) <- as.integer(table(zz))
   dataMean(object) <- dataMean(object)[, zindex, drop=FALSE]
   dataPrec(object) <- dataPrec(object)[, zindex, drop=FALSE]
   object
@@ -645,23 +647,20 @@ marginalExperiment <- function(object,
   TRUE
 }
 
-setReplaceMethod("mcmcParams", "MixtureModel", function(object, value){
-  object@mcmc.params <- value
-  mcmcChains(object) <- McmcChains(object)
-  object
-})
-
-
 setMethod("marginal", c("SummarizedExperiment", "missing"),
           function(object, batch, mcmc.params, K=1:4, maxperm=5, ...){
             cn <- copyNumber(object)[1, ]
             notna <- !is.na(cn)
             cn <- cn[ notna ]
-            mlist <- computeMarginalEachK(data=cn, K=K,
+            mlist <- computeMarginalEachK(cn, K=K,
                                           mcmcp=mcmc.params,
-                                          returnModel=TRUE,
                                           maxperm=maxperm, ...)
             mlist
+          })
+
+setMethod("marginal", "MarginalModelList", ## a ModelList
+          function(object, batch, mcmc.params, K=1:4, maxperm=5, ...){
+            mlist <- computeMarginalEachK(object, maxperm=maxperm)
           })
 
 setMethod("rowMarginal", c("SummarizedExperiment", "missing"),

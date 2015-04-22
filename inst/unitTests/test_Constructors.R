@@ -74,7 +74,6 @@ test_constructor <- function(){
   iter(bmod) <- 10
   checkTrue(nrow(thetac(bmod))==10)
 
-  model.list <- CNPBayes:::ModelEachMode(bmod)
+  model.list <- CNPBayes:::modelEachMode(bmod)
   checkTrue(all(sapply(model.list, validObject)))
-
 }

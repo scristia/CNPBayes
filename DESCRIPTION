@@ -1,7 +1,7 @@
 Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
-Version: 0.0.38
+Version: 0.0.39
 Date: Tue Jan 20 20:41:00 EST 2015
 Author: Stephen Cristiano and Robert Scharpf
 Depends:
@@ -53,6 +53,7 @@ Collate:
     'methods-McmcChains.R'
     'methods-McmcParams.R'
     'methods-MixtureModel.R'
+    'methods-ModelList.R'
     'methods-ModelParams.R'
     'methods-Posterior.R'
     'methods-PosteriorFiles.R'
@@ -65,6 +66,7 @@ Collate:
     'simulate_data.R'
     'sn.gibbs.mix.R'
     'sntest.R'
+    'test_ModelList.R'
     'updates-BatchModel.R'
     'visualization.R'
 Maintainer: Stephen Cristiano <scristia@jhu.edu>

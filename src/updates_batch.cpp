@@ -616,7 +616,7 @@ RcppExport SEXP update_sigma2_batch(SEXP xmod){
 // [[Rcpp::export]]
 IntegerVector order_(NumericVector x) {
   NumericVector sorted = clone(x).sort();
-  return match(sorted, x);
+  return match(x, sorted);
 }
 
 // [[Rcpp::export]]
@@ -636,9 +636,12 @@ RcppExport SEXP update_probz_batch(SEXP xmod){
   // Assume that all batches have the same ordering and so here we
   // just use the first batch
   //
+  NumericVector means(K) ;
+  means = theta(0, _) ;
   NumericVector cn(K) ;
-  NumericVector ordering(K) ;
-  cn = theta(0, _) ;
+  cn = order_(means) ;
+  for(int k = 0; k < K; ++k) cn[k] = cn[k] - 1 ;
+  
   for(int i = 0; i < N; ++i){
     for(int k = 0; k < K; ++k){
       if(z[i] == (k + 1)){
@@ -660,7 +663,7 @@ RcppExport SEXP mcmc_batch_burnin(SEXP xmod, SEXP mcmcp) {
   Rcpp::S4 params(mcmcp) ;
   IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;
-  if( S == 0 ){
+  if( S < 1 ){
     return xmod ;
   }
   for(int s = 0; s < S; ++s){

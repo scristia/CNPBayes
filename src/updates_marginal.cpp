@@ -442,7 +442,8 @@ RcppExport SEXP update_sigma2(SEXP xmod){
 // [[Rcpp::export]]
 IntegerVector ordertheta_(NumericVector x) {
   NumericVector sorted = clone(x).sort();
-  return match(sorted, x);
+  //return match(sorted, x);
+  return match(x, sorted) ;
 }
 
 // [[Rcpp::export]]
@@ -484,7 +485,7 @@ RcppExport SEXP mcmc_marginal_burnin(SEXP xmod, SEXP mcmcp) {
   Rcpp::S4 params(mcmcp) ;
   IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;
-  if( S == 0 ){
+  if( S < 1 ){
     return xmod ;
   }
   for(int s = 0; s < S; ++s){
@@ -531,6 +532,7 @@ RcppExport SEXP mcmc_marginal(SEXP xmod, SEXP mcmcp) {
   int K = getK(hypp) ;
   int T = params.slot("thin") ;
   int S = params.slot("iter") ;
+  if( S < 1 ) return xmod ;
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
   NumericMatrix theta = chain.slot("theta") ;

@@ -50,19 +50,18 @@ test_loglik <- function(){
   mp <- mcmcParams(model)
   iter(mp) <- 250
   m1 <- marginal(se, mcmc.params=mp, maxperm=2)
-  my <- summarizeMarginal(m1)
+  my <- summary(m1)
   ## Check that 4 component model is unstable
   checkTrue(my["M4", "range"] > 5)
   ## Check marginal for 3 component model is consistent
   checkTrue(my["M3", "range"] < 5)
-
+  set.seed(123)
   m2 <- marginal(se, batch=batch(model), mcmc.params=mp, maxperm=2)
-  by <- summarizeMarginal(m2)
+  by <- summary(m2)
   ## Check that 4 component model is unstable
   checkTrue(by["B4", "range"] > 5)
   ## Check marginal for 3 component model is consistent
   checkTrue(by["B3", "range"] < 5)
-  load_all()
   my <- rbind(my, by)
   ##trace(bayesFactor, browser)
   bf <- bayesFactor(my)
