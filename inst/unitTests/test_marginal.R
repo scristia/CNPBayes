@@ -57,7 +57,7 @@ test_marginalEasy <- function(){
   ##
   ## compute marginal density for other K
   ##
-  mp <- McmcParams(iter=200, burnin=200)
+  mp <- McmcParams(iter=200, burnin=300)
   se <- as(model, "SummarizedExperiment")
   m <- marginal(se, mcmc.params=mp, maxperm=2)
   checkTrue(best(m) == 3)

@@ -464,11 +464,34 @@ newMarginalModel <- function(object){
   object2
 }
 
+newBatchModel <- function(object){
+  mp <- mcmcParams(object)
+  object2 <- BatchModel(y(object), batch=batch(object),
+                        k=k(object), mcmc.params=mp,
+                        hypp=hyperParams(object))
+  theta(object2) <- theta(object)
+  sigma2(object2) <- sigma2(object)
+  p(object2) <- p(object)
+  z(object2) <- z(object)
+  nu.0(object2) <- nu.0(object)
+  mu(object2) <- mu(object)
+  tau2(object2) <- tau2(object)
+  zFreq(object2) <- zFreq(object)
+  probz(object2) <- probz(object)
+  sigma2.0(object2) <- sigma2.0(object)
+  dataMean(object2) <- dataMean(object)
+  dataPrec(object2) <- dataPrec(object)
+  logLik(object2) <- logLik(object)
+  logPrior(object2) <- logPrior(object)
+  modes(object2) <- modes(object)
+  object2
+}
+
 setMethod("relabel", "MarginalModel", function(object, zindex){
   object <- newMarginalModel(object)
   if(identical(zindex, seq_len(k(object)))) return(object)
   ##
-  ## Permute the latent variables
+  ## Permute only the latent variables
   ##
   zz <- factor(z(object), levels=zindex)
   zz <- as.integer(zz)
@@ -476,14 +499,17 @@ setMethod("relabel", "MarginalModel", function(object, zindex){
   zFreq(object) <- as.integer(table(zz))
   dataMean(object) <- dataMean(object)[zindex]
   dataPrec(object) <- dataPrec(object)[zindex]
+##  theta(object) <- theta(object)[zindex]
+##  sigma2(object) <- sigma2(object)[zindex]
   ##p(object) <- p(object)[zindex]
   object
 })
 
 setMethod("relabel", "BatchModel", function(object, zindex){
+  object <- newBatchModel(object)
   if(identical(zindex, seq_len(k(object)))) return(object)
   ##
-  ## Permute the latent variables
+  ## Permute only the latent variables
   ##
   zz <- factor(z(object), levels=zindex)
   zz <- as.integer(zz)
@@ -491,6 +517,9 @@ setMethod("relabel", "BatchModel", function(object, zindex){
   zFreq(object) <- as.integer(table(zz))
   dataMean(object) <- dataMean(object)[, zindex, drop=FALSE]
   dataPrec(object) <- dataPrec(object)[, zindex, drop=FALSE]
+##  theta(object) <- theta(object)[, zindex, drop=FALSE]
+##  sigma2(object) <- sigma2(object)[, zindex, drop=FALSE]
+##  mu(object) <- mu(object)[zindex]
   object
 })
 

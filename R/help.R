@@ -15,7 +15,7 @@
 #' @import BiocGenerics
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% %dopar% foreach
-#' @importFrom matrixStats colSds colMedians rowCumsums rowProds
+#' @importFrom matrixStats colSds colMedians rowCumsums rowProds colMaxs
 #' @importFrom HardyWeinberg HWChisq
 #' @importFrom oligoClasses copyNumber batch chromosome integerMatrix
 #' @importFrom coda effectiveSize

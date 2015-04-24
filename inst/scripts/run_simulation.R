@@ -79,7 +79,15 @@ q('no')
 ##results <- readRDS("~/Software/CNPData/data/simulation_summary.rds")
 results <- readRDS("~/Software/CNPData/data/simulation_summary_maxperm3.rds")
 calledK <- do.call(rbind, lapply(results, "[[", 1))
-nIncorrect <- do.call(rbind, lapply(results, "[[", 2))
+truth <- matrix(1:4, nrow=10, ncol=4, byrow=TRUE)
+nIncorrectCalls <- sum(truth != calledK)
+## thresholds
+## maxperm
+
+
+#nIncorrect <- do.call(rbind, lapply(results, "[[", 2))
+
+
 
 outdir <- "~/Software/CNPData/data"
 model.files <- file.path(outdir, paste0("simulation", seq_len(10 * 4), ".rds"))

@@ -298,13 +298,15 @@ partialGibbsSummary <- function(model, x){
   log.prior <- modes(model)[["logprior"]]
   log.lik <- modes(model)[["loglik"]]
   is_finite <- is.finite(x[, "logtheta"]) & is.finite(x[, "logsigma2"]) & is.finite(x[, "logp"])
-  results <- setNames(c(log.prior,
-                        log.lik,
-                        mean(x[is_finite, "logtheta"], trim=0.01),
-                        mean(x[is_finite, "logsigma2"], trim=0.01),
-                        mean(x[is_finite, "logp"], trim=0.01)),
-                      c("prior", "loglik", "theta", "sigma2", "pmix"))
-  results
+  results <- cbind(theta=exp(x[is_finite, "logtheta"]),
+                   sigma2=exp(x[is_finite, "logsigma2"]),
+                   p=exp(x[is_finite, "logp"]))
+  mns <- colMeans(results)
+  x <- setNames(c(log.prior,
+                  log.lik,
+                  log(mns)),
+                  c("prior", "loglik", "theta", "sigma2", "pmix"))
+  x
 }
 
 posteriorPsi <- function(x) sum(x[["theta"]] + x[["sigma2"]] + x[["pmix"]])
@@ -434,7 +436,7 @@ computeMarginalProbs <- function(model, mcmcp, maxperm=5){
   burnin(mmod) <- burnin(mcmcp)
   nStarts(mmod) <- 1L
   K <- k(model)
-  model.list <- modelEachMode(mmod, maxperm)
+  model.list <- modelOtherModes(mmod, maxperm)
   ##
   ## Run partial Gibbs sampler for each mode
   ##
@@ -453,11 +455,15 @@ computeMarginalProbs <- function(model, mcmcp, maxperm=5){
 
 
 permnK <- function(k, maxperm){
+  if(k < 2) return(matrix(1,1,1))
   kperm <- permn(seq_len(k))
   kperm <- do.call("rbind", kperm)
-  neq <- apply(kperm, 1, function(x, y) sum(x != y), y=kperm[1, ])
+  kperm.identity <- kperm[1, , drop=FALSE]
+  kperm <- kperm[-1, , drop=FALSE]
+  neq <- apply(kperm, 1, function(x, y) sum(x != y), y=kperm.identity)
   kperm <- kperm[order(neq, decreasing=TRUE), , drop=FALSE]
-  kperm <- kperm[1:min(maxperm, nrow(kperm)), , drop=FALSE]
+  N <- min(maxperm-1, nrow(kperm))
+  kperm <- rbind(kperm.identity, kperm[seq_len(N), ])
   kperm
 }
 
@@ -504,7 +510,7 @@ setMethod("computeMarginalEachK", "MarginalModelList",
               ##
               ##
               ##
-              mode_models <- modelEachMode(kmod, maxperm(object))
+              mode_models <- modelOtherModes(kmod, maxperm(object))
               results <- matrix(NA, length(mode_models), 5)
               nms <- c("logprior", "loglik", "logtheta", "logsigma2", "logp")
               colnames(results) <- nms
@@ -519,7 +525,6 @@ setMethod("computeMarginalEachK", "MarginalModelList",
                 ix <- mode_index[[k]][i, ]
                 orig_modes <- theta(kmod)[ix]
                 mode_list[[k]][i, ] <- new_modes-orig_modes
-                ##}
               }
               marginal.y <- results[, "logprior"] + results[, "loglik"] - results[, "logtheta"] -
                   results[, "logsigma2"] - results[, "logp"]
@@ -551,7 +556,7 @@ setMethod("computeMarginalEachK", "numeric",
               if(any(is.nan(theta(kmod)))) stop("NA's in theta")
               kmod <- useModes(kmod)
               mode_list[[k]][1, ] <- theta(kmod)
-              mode_models <- modelEachMode(kmod, maxperm)
+              mode_models <- modelOtherModes(kmod, maxperm)
               results <- matrix(NA, length(mode_models), 5)
               nms <- c("logprior", "loglik", "logtheta", "logsigma2", "logp")
               colnames(results) <- nms
@@ -610,12 +615,12 @@ setMethod("computeMarginalEachK2", "numeric",
               ##
               ##
               orig_modes <- theta(kmod)
-              mode_models <- modelEachMode(kmod, maxperm)
+              mode_models <- modelOtherModes(kmod, maxperm)
+              ## partial gibbs sampler
+              ## - integrate out theta, sigma2, p
               results <- matrix(NA, length(mode_models), 5)
               nms <- c("logprior", "loglik", "logtheta", "logsigma2", "logp")
               colnames(results) <- nms
-              ## partial gibbs sampler
-              ## - integrate out theta, sigma2, p
               for(i in seq_along(mode_models)){
                 model1 <- mode_models[[i]]
                 pg <- partialGibbs(model1)
@@ -625,7 +630,7 @@ setMethod("computeMarginalEachK2", "numeric",
                 ix <- mode_index[[k]][i, ]
                 reorder.orig <- orig_modes[, ix]
                 d <- new_modes-reorder.orig
-                mode_list[[k]][i, ] <- colMeans(d)
+                mode_list[[k]][i, ] <- colMaxs(d)
               }
               marginal.y <- results[, "logprior"] + results[, "loglik"] - results[, "logtheta"] -
                   results[, "logsigma2"] - results[, "logp"]
@@ -652,16 +657,26 @@ setMethod("computeMarginalEachK2", "BatchModelList",
                 model_list[[k]] <- object[[k]]
                 next()
               }
+              ##if(k == 3) browser()
               kmod <- posteriorSimulation(modelList(object)[[k]])
               kmod <- useModes(kmod)
               ##
               ##
               ##
               orig_modes <- theta(kmod)
-              mode_models <- modelEachMode(kmod, maxperm(object))
+              mode_models <- modelOtherModes(kmod, maxperm(object))
               results <- matrix(NA, length(mode_models), 5)
               nms <- c("logprior", "loglik", "logtheta", "logsigma2", "logp")
               colnames(results) <- nms
+
+              if(FALSE){
+                identical(table(z(mode_models[[1]])),
+                          table(z(kmod)))
+                !identical(table(z(mode_models[[2]])),
+                           table(z(kmod)))
+                tmp <- posteriorSimulation(mode_models[[1]])
+                !identical(head(thetac(tmp)), head(thetac(kmod)))
+              }
               ## partial gibbs sampler
               ## - integrate out theta, sigma2, p
               ##if(k==3) browser()
@@ -674,7 +689,7 @@ setMethod("computeMarginalEachK2", "BatchModelList",
                 ix <- mode_index[[k]][i, ]
                 reorder.orig <- orig_modes[, ix]
                 d <- new_modes-reorder.orig
-                mode_list[[k]][i, ] <- colMeans(d)
+                mode_list[[k]][i, ] <- colMaxs(d)
               }
               marginal.y <- results[, "logprior"] + results[, "loglik"] - results[, "logtheta"] -
                   results[, "logsigma2"] - results[, "logp"]
@@ -697,7 +712,7 @@ setMethod("computeMarginalEachK2", "BatchModelList",
 
 
 
-modelEachMode <- function(model, maxperm=5){
+modelOtherModes <- function(model, maxperm=5){
   kperm <- permnK(k(model), maxperm)
   ##
   ##  Reorder the z's
@@ -732,7 +747,7 @@ modelEachMode <- function(model, maxperm=5){
 
 #' @export
 computeMarginalPr <- function(model, mcmcp){
-  model.list <- modelEachMode(model)
+  model.list <- modelOtherModes(model)
   ##J <- min(3, length(model.list))
   ##model.list <- model.list[seq_len(J)]
   pg <- lapply(model.list, partialGibbs, mcmcp=mcmcp)
@@ -757,7 +772,7 @@ topTwo <- function(m.y){
 }
 
 #' @export
-bayesFactor <- function(x, thr=c(1, 3, 7, 10)){
+bayesFactor <- function(x, thr=c(1, 4, 7, 10)){
   x$thr <- thr[x$k]
   mns <- setNames(x$mean, rownames(x))
   mns <- mns[x$range < x$thr & x$max_delta_mode < 0.5]

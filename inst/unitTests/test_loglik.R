@@ -50,7 +50,12 @@ test_loglik <- function(){
   se <- as(truth, "SummarizedExperiment")
   mp <- mcmcParams(model)
   iter(mp) <- 250
-  m1 <- marginal(se, mcmc.params=mp, maxperm=2)
+  nStarts(mp) <- 10
+  set.seed(123)
+  m1 <- marginal(se, mcmc.params=mp, maxperm=3)
+  if(FALSE){
+    plot.ts(thetac(m1[[4]]), plot.type="single", col=1:4)
+  }
   iter(m1) <- c(0, 250, 300, 300)
   burnin(m1) <- c(0, 250, 350, 350)
   nStarts(m1) <- 1
@@ -58,11 +63,22 @@ test_loglik <- function(){
   my <- summary(m1)
   checkTrue(best(m1) == "3")
   set.seed(123)
-  m2 <- marginal(se, batch=batch(model), mcmc.params=mp, maxperm=2)
+  mp <- McmcParams(iter=300, burnin=300, nStarts=10)
+  m2 <- marginal(se, batch=batch(model), mcmc.params=mp, maxperm=3)
+  if(FALSE){
+    ##pc <- prcomp(yy, center=TRUE, scale.=TRUE)$x[, 1]
+    ##if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
+    plot(m2[[3]])
+    par(mfrow=c(1, 3), las=1)
+    tracePlot(m2[[3]], "theta", col=1:3)
+    tracePlot(kmod, "theta", col=1:3, ylim=c(-3,2))
+    tmp <- thetac(m2[[3]])
+  }
   by <- summary(m2)
   iter(m2) <- c(0, 200, 500, 500)
-  burnin(m2) <- c(0, 200, 500, 350)
+  burnin(m2) <- c(0, 200, 500, 500)
   nStarts(m2) <- 1
+  load_all()
   m2 <- marginal(m2)
   by <- summary(m2)
   ## Check that 4 component model is unstable

@@ -540,12 +540,13 @@ test_twocomponent_with_substantial_overlap <- function(){
   if(FALSE) plot(m[[1]], use.current=TRUE)
 
   set.seed(123)
+  mcmcp <- McmcParams(iter=300, burnin=500, nStarts=5)
   b <- marginal(se, batch=testdat$batch, mcmc.params=mcmcp, maxperm=3)
   my <- rbind(summary(m), summary(b))
   bf <- bayesFactor(my)
-  calls <- substr(names(bf), 1, 2)
+  call <- as.integer(substr(names(bf), 2, 2))
   ## check that a 2-component model is the best fit
-  checkTrue(calls == "M3" || calls == "B2")
+  checkTrue(call <= 2)
   ##checkTrue(substr(calls, 2, 2) == 2 || substr(calls, 2, 2) == 3)
   if(FALSE){
     par(mfrow=c(1,2), las=1)
