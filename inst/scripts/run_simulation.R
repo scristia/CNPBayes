@@ -22,7 +22,7 @@ if(FALSE){
 x <- dat[[1]]
 cn <- dat[[2]]
 outdir <- "~/Software/CNPData/data"
-model.files <- file.path(outdir, paste0("simulation", seq_len(10 * 4), ".rds"))
+model.files <- file.path(outdir, paste0("simulation_easy", seq_len(10 * 4), ".rds"))
 ##calledK <- matrix(NA, 10, 4)
 ##nIncorrect <- matrix(NA, 10, 4)
 mp <- McmcParams(iter=500, burnin=500, nStarts=10)
@@ -54,9 +54,9 @@ results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
       ## repeating with more burnin/iterations
       m <- readRDS(model.files[it])
       m2 <- m
-      iter(m2) <- c(200, 500, 500, 500)
+      iter(m2) <- c(200, 500, 1000, 1000)
       nStarts(m2) <- 1
-      burnin(m2) <- c(50, 300, 500, 750)
+      burnin(m2) <- c(50, 300, 500, 500)
       m2 <- marginal(m2)
       saveRDS(m2, file=model.files[it])
       m <- m2
@@ -73,6 +73,7 @@ results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
 ##saveRDS(simulation_summary,
 ##file="~/Software/CNPData/data/simulation_summary.rds")
 saveRDS(results, file="~/Software/CNPData/data/simulation_summary_maxperm3.rds")
+
 
 q('no')
 ##results <- readRDS("~/Software/CNPData/data/simulation_summary.rds")

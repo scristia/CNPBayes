@@ -5,7 +5,7 @@ MarginalModelList <- function(model_list=list(), names=character(),
     type <- unique(sapply(model_list, class))
   } else type="MarginalModel"
   new("MarginalModelList", model_list=model_list, elementType=type,
-      names=names, maxperm=3L, mode_index=mode_index,
+      names=names, maxperm=maxperm, mode_index=mode_index,
       mode_list=mode_list)
 }
 

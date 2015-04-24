@@ -22,49 +22,40 @@ x <- dat[[1]]
 cn <- dat[[2]]
 outdir <- "~/Software/CNPData/data"
 model.files <- file.path(outdir, paste0("simulation", seq_len(10 * 4), ".rds"))
-##calledK <- matrix(NA, 10, 4)
-##nIncorrect <- matrix(NA, 10, 4)
 mp <- McmcParams(iter=500, burnin=500, nStarts=10)
+##mp <- McmcParams(iter=10, burnin=5, nStarts=3)
 
 results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
   calledK <- rep(NA, 4)
   nIncorrect <- rep(NA, 4)
   cat(".")
-  for(K in 1:4){
-    it <- (i-1)*4 + K
-    ##if(K < 3) next()
-    ##    if(!file.exists(model.files[it])){
-    if(TRUE){
-      xx <- x[, , i, K]
-      mns <- rowMeans(xx)
-      pc <- prcomp(xx, center=TRUE, scale.=TRUE)$x[, 1]
-      if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
-      model <- MarginalModel(data=pc)
-      se <- as(model, "SummarizedExperiment")
-      m <- marginal(se, mcmc.params=mp, maxperm=3, K=1:4)
-      m2 <- m
-      iter(m2) <- c(200, 500, 500, 500)
-      nStarts(m2) <- 1
-      ## need burnin for switching components
-      burnin(m2) <- c(50, 300, 500, 750)
-      saveRDS(m2, file=model.files[it])
-    } else {
-      ## if range for k=4 is in the 10-20 range, probably worth
-      ## repeating with more burnin/iterations
-      m <- readRDS(model.files[it])
-      m2 <- m
-      iter(m2) <- c(200, 500, 500, 500)
-      nStarts(m2) <- 1
-      burnin(m2) <- c(50, 300, 500, 750)
-      m2 <- marginal(m2)
-      saveRDS(m2, file=model.files[it])
-      m <- m2
-    }
-    calledK[K] <- best(m)
-    true_cn <- cn[i, , K]
-    zz <- map(m[[K]])
-    nIncorrect[K] <- sum(zz != true_cn)
+  for(k in 1:4){
+    it <- (i-1)*4 + k
+    xx <- x[, , i, k]
+    mns <- rowMeans(xx)
+    pc <- prcomp(xx, center=TRUE, scale.=TRUE)$x[, 1]
+    if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
+    model <- MarginalModel(data=pc)
+    se <- as(model, "SummarizedExperiment")
+    m <- marginal(se, mcmc.params=mp, maxperm=2, K=1:4)
+    m2 <- m
+    iter(m2) <- c(200, 500, 500, 500)
+    ##iter(m2) <- iter(m2)/100
+    nStarts(m2) <- 1
+    ## need burnin for switching components
+    burnin(m2) <- c(50, 300, 500, 750)
+    ##burnin(m2) <- burnin(m2)/10
+    m2 <- marginal(m2)
+    saveRDS(m2, file=model.files[it])
+    calledK[k] <- best(m)
+    true_cn <- cn[i, , k]
+    zz <- map(m[[k]])
+    nIncorrect[k] <- sum(zz != true_cn)
   }
   list(calledK=calledK, nIncorrect=nIncorrect)
 }
 saveRDS(results, file="~/Software/CNPData/data/simulation_summary_hard_maxperm3.rds")
+
+results <- readRDS("~/Software/CNPData/data/simulation_summary_hard_maxperm3.rds")
+calledK <- do.call(rbind, lapply(results, "[[", 1))
+nIncorrect <- do.call(rbind, lapply(results, "[[", 2))

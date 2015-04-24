@@ -19,7 +19,7 @@ test_probz <- function(){
   checkEquals(zz, true_z, tolerance=0.5)
 
   ## intentionally reorder z's
-  model2 <- CNPBayes:::ModelEachMode(model, maxperm=2)[[2]]
+  model2 <- CNPBayes:::modelEachMode(model, maxperm=2)[[2]]
   z2 <- zz <- z(model2)
   checkTrue(sum(zz != true_z) > 500)
   ## zz is still ordered, but MAP should be correct after running 2
@@ -29,7 +29,7 @@ test_probz <- function(){
   zz <- map(model2)
   checkEquals(zz, true_z, tolerance=0.5)
 
-  model3 <- CNPBayes:::ModelEachMode(model, maxperm=3)[[3]]
+  model3 <- CNPBayes:::modelEachMode(model, maxperm=3)[[3]]
   z3 <- z(model3)
   checkTrue(sum(z3 != true_z) > 500)
   checkTrue(sum(z2 != z3) > 500)

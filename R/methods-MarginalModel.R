@@ -442,7 +442,30 @@ setMethod("reorderComponents", "MarginalModel", function(object){
   object
 })
 
+newMarginalModel <- function(object){
+  mp <- mcmcParams(object)
+  object2 <- MarginalModel(y(object), k=k(object), mcmc.params=mp,
+                           hypp=hyperParams(object))
+  theta(object2) <- theta(object)
+  sigma2(object2) <- sigma2(object)
+  p(object2) <- p(object)
+  z(object2) <- z(object)
+  nu.0(object2) <- nu.0(object)
+  mu(object2) <- mu(object)
+  tau2(object2) <- tau2(object)
+  zFreq(object2) <- zFreq(object)
+  probz(object2) <- probz(object)
+  sigma2.0(object2) <- sigma2.0(object)
+  dataMean(object2) <- dataMean(object)
+  dataPrec(object2) <- dataPrec(object)
+  logLik(object2) <- logLik(object)
+  logPrior(object2) <- logPrior(object)
+  modes(object2) <- modes(object)
+  object2
+}
+
 setMethod("relabel", "MarginalModel", function(object, zindex){
+  object <- newMarginalModel(object)
   if(identical(zindex, seq_len(k(object)))) return(object)
   ##
   ## Permute the latent variables

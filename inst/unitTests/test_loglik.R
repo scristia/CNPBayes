@@ -1,5 +1,6 @@
 test_loglik <- function(){
   set.seed(2000)
+  library(oligoClasses)
   truth <- simulateData(N=5e3,
                         theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
@@ -50,18 +51,24 @@ test_loglik <- function(){
   mp <- mcmcParams(model)
   iter(mp) <- 250
   m1 <- marginal(se, mcmc.params=mp, maxperm=2)
+  iter(m1) <- c(0, 250, 300, 300)
+  burnin(m1) <- c(0, 250, 350, 350)
+  nStarts(m1) <- 1
+  m1 <- marginal(m1)
   my <- summary(m1)
-  ## Check that 4 component model is unstable
-  checkTrue(my["M4", "range"] > 5)
-  ## Check marginal for 3 component model is consistent
-  checkTrue(my["M3", "range"] < 5)
+  checkTrue(best(m1) == "3")
   set.seed(123)
   m2 <- marginal(se, batch=batch(model), mcmc.params=mp, maxperm=2)
   by <- summary(m2)
+  iter(m2) <- c(0, 200, 500, 500)
+  burnin(m2) <- c(0, 200, 500, 350)
+  nStarts(m2) <- 1
+  m2 <- marginal(m2)
+  by <- summary(m2)
   ## Check that 4 component model is unstable
-  checkTrue(by["B4", "range"] > 5)
+  checkTrue(by["B4", "range"] > 10)
   ## Check marginal for 3 component model is consistent
-  checkTrue(by["B3", "range"] < 5)
+  checkTrue(by["B3", "range"] < 7)
   my <- rbind(my, by)
   ##trace(bayesFactor, browser)
   bf <- bayesFactor(my)

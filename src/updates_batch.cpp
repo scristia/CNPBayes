@@ -359,8 +359,7 @@ RcppExport SEXP update_z_batch(SEXP xmod) {
     return zz ;
   }
   //
-  // Don't update z if there are states with zero frequency.  Note
-  // that we do not require each batch to have K states.
+  // Don't update z if there are states with zero frequency.  
   //
   return model.slot("z") ;
   //

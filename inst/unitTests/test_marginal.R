@@ -54,35 +54,12 @@ test_marginalEasy <- function(){
   }
   pmns2 <- colMeans(thetac(model2))
   checkEquals(pmns, pmns2[3:1], tolerance=0.05)
-
-  ##
-  ## Create a model for each of the possible modes
-  ##
-  if (FALSE) {
-    mmod <- CNPBayes:::useModes(model)
-    burnin(mmod) <- 500
-    K <- k(model)
-    checkIdentical(thetac(model)[argMax(model), ], theta(mmod))
-    model.list <- ModelEachMode(mmod, maxperm=5)
-    zlist <- lapply(model.list, zFreq)
-    ztab <- zFreq(mmod)
-    ## the first model is in the same order
-    permutations <- combinat::permn(1:3)
-    checkTrue(all(foreach(zfreq=zlist,
-                          i=permutations, .combine="c") %do%
-                  identical(zfreq, ztab[i])))
-    model <- startAtTrueValues(model, truth)
-    m.y(model) <- computeMarginalProbs(model, iter=500, burnin=200)
-    checkTrue(diff(range(m.y(model))) < 10 )
-  }
   ##
   ## compute marginal density for other K
   ##
-  mp <- McmcParams(iter=200, burnin=100)
+  mp <- McmcParams(iter=200, burnin=200)
   se <- as(model, "SummarizedExperiment")
   m <- marginal(se, mcmc.params=mp, maxperm=2)
-  ##my <- summary(m)
-  ##bf <- bayesFactor(summary(m))
   checkTrue(best(m) == 3)
 }
 

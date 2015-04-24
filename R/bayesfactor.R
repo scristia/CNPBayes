@@ -300,9 +300,9 @@ partialGibbsSummary <- function(model, x){
   is_finite <- is.finite(x[, "logtheta"]) & is.finite(x[, "logsigma2"]) & is.finite(x[, "logp"])
   results <- setNames(c(log.prior,
                         log.lik,
-                        mean(x[is_finite, "logtheta"], trim=0.02),
-                        mean(x[is_finite, "logsigma2"], trim=0.02),
-                        mean(x[is_finite, "logp"], trim=0.02)),
+                        mean(x[is_finite, "logtheta"], trim=0.01),
+                        mean(x[is_finite, "logsigma2"], trim=0.01),
+                        mean(x[is_finite, "logp"], trim=0.01)),
                       c("prior", "loglik", "theta", "sigma2", "pmix"))
   results
 }
@@ -548,7 +548,6 @@ setMethod("computeMarginalEachK", "numeric",
               } else mp <- mcmcp
               kmod <- MarginalModel(object, k=k, mcmc.params=mp, hypp=hypp)
               kmod <- posteriorSimulation(kmod)
-
               if(any(is.nan(theta(kmod)))) stop("NA's in theta")
               kmod <- useModes(kmod)
               mode_list[[k]][1, ] <- theta(kmod)
@@ -566,7 +565,6 @@ setMethod("computeMarginalEachK", "numeric",
                 ix <- mode_index[[k]][i, ]
                 orig_modes <- theta(kmod)[ix]
                 mode_list[[k]][i, ] <- new_modes-orig_modes
-
               }
               marginal.y <- results[, "logprior"] + results[, "loglik"] - results[, "logtheta"] -
                   results[, "logsigma2"] - results[, "logp"]
@@ -647,9 +645,8 @@ setMethod("computeMarginalEachK2", "BatchModelList",
                    K=1:4, mcmcp=McmcParams(),
                    hypp){
             model_list <- vector("list", length(object))
-            mode.info <- trackModes(K, maxperm)
-            mode_list <- mode.info$mode_list
-            mode_index <- mode.info$mode_index
+            mode_list <- modeList(object)
+            mode_index <- modeIndex(object)
             for(k in seq_along(object)){
               if(iter(object)[k] < 1) {
                 model_list[[k]] <- object[[k]]

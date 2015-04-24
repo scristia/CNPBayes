@@ -261,6 +261,10 @@ RcppExport SEXP update_z(SEXP xmod) {
   if(is_true(all(freq > 1))){
     return zz ;
   }
+  //
+  // Don't update z if there are states with zero frequency
+  //
+  return model.slot("z") ;  
   // To prevent 0 frequencies, arbitrarily switch the label
   //while(!is_true(all(freq > 0))){
   for(int k = 0; k < K; ++k){
@@ -315,32 +319,37 @@ RcppExport SEXP compute_vars(SEXP xmod) {
   // IntegerVector nn = model.slot("zfreq") ;
   IntegerVector nn ;
   nn = tableZ(K, z) ;
+  //  return nn ;
   NumericVector mn = model.slot("theta") ;
   if(is_true(any(is_nan(mn)))){
     mn = compute_means(xmod) ;
   }
   //NumericVector mn = model.slot("data.mean") ;
   NumericVector vars(K) ;
-  for(int i = 0; i < n; i++){
-    for(int k = 0; k < K; k++){
-      if(z[i] == k+1){
-        vars[k] += pow(x[i] - mn[k], 2) ;
-      }
-    }
-  }
+  NumericVector tau2 = model.slot("tau2") ;
+  NumericVector is_z(n) ;
+  //  for(int i = 0; i < n; i++){
   for(int k = 0; k < K; k++){
-    vars[k] /= nn[k] ;
-    if(nn[k] <= 2 ) vars[k] = 1000 ;
+    is_z = z == (k + 1) ;
+    if(nn[k] <= 1){
+      vars[k] = tau2[0] ;
+    } else {
+      vars[k] = sum(pow(x - mn[k], 2.0) * is_z) / (nn[k]-1) ;
+    }      
   }
-  //
-  // if there is only one observation, the sample mean is the
-  // data point and the variance is 0
-  //
-  if(is_true(any(vars < 0.0001))){
-    for(int k = 0; k < K; ++k){
-      if(vars[k] < 0.0001) vars[k] = 1000 ;
-    }
-  }
+  //  for(int k = 0; k < K; k++){
+  //    vars[k] /= nn[k] ;
+  //    if(nn[k] <= 2 ) vars[k] = 1000 ;
+  //  }
+  //  //
+  //  // if there is only one observation, the sample mean is the
+  //  // data point and the variance is 0
+  //  //
+  //  if(is_true(any(vars < 0.0001))){
+  //    for(int k = 0; k < K; ++k){
+  //      if(vars[k] < 0.0001) vars[k] = 1000 ;
+  //    }
+  //  }
   return vars ;
 }
 
@@ -446,6 +455,10 @@ IntegerVector ordertheta_(NumericVector x) {
   return match(x, sorted) ;
 }
 
+//
+// For the posterior probability of a copy number state, order the z
+// labels by theta
+//
 // [[Rcpp::export]]
 RcppExport SEXP compute_probz(SEXP xmod){
   Rcpp::S4 model(xmod) ;
