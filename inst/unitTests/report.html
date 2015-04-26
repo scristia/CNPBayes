@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/transitional.dtd">
-<html><head><title>RUNIT TEST PROTOCOL--Thu Apr 23 22:10:21 2015</title>
+<html><head><title>RUNIT TEST PROTOCOL--Sat Apr 25 21:19:36 2015</title>
 </head>
-<body><h1 TRUE>RUNIT TEST PROTOCOL--Thu Apr 23 22:10:21 2015</h1>
-<p>Number of test functions: 21</p>
+<body><h1 TRUE>RUNIT TEST PROTOCOL--Sat Apr 25 21:19:36 2015</h1>
+<p>Number of test functions: 23</p>
 <p style=color:red>Number of errors: 1</p>
-<p style=color:red>Number of failures: 4</p>
+<p style=color:red>Number of failures: 2</p>
 <hr>
 <h3 TRUE>1 Test suite</h3>
 <table border="1" width="60%" >
@@ -15,9 +15,9 @@
 <th width="20%">Failures</th>
 </tr>
 <tr><td><a href="#CNPBayes unit testing">CNPBayes unit testing</a></td>
-<td>21</td>
+<td>23</td>
 <td bgcolor="red">1</td>
-<td bgcolor="red">4</td>
+<td bgcolor="red">2</td>
 </tr>
 </table>
 <hr>
@@ -26,9 +26,8 @@
 <tr><th width="30%">Test suite : test function</th>
 <th width="70%">message</th>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_summmarizedExperiment.R_test_SummarizedExperiment">CNPBayes unit testing : test_SummarizedExperiment</a></td>
-<td>Error in (function (classes, fdef, mtable)  : 
-  unable to find an inherited method for function ‘Rle’ for signature ‘"factor", "numeric"’
+<tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_relabel.R_test_relabel_marginal">CNPBayes unit testing : test_relabel_marginal</a></td>
+<td>Error in identical(target, current) : could not find function "dataMean"
 </td>
 </tr>
 </table>
@@ -38,23 +37,13 @@
 <tr><th width="30%">Test suite : test function</th>
 <th width="70%">message</th>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_twocomponent_with_substantial_overlap">CNPBayes unit testing : test_twocomponent_with_substantial_overlap</a></td>
-<td>Error in checkTrue(calls == "M3" || calls == "B2") : Test not TRUE
+<tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_loglik.R_test_senseless_batch">CNPBayes unit testing : test_senseless_batch</a></td>
+<td>Error in checkTrue(best(m1) == 3) : Test not TRUE
 
 </td>
 </tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_loglik.R_test_loglik">CNPBayes unit testing : test_loglik</a></td>
-<td>Error in checkTrue(by["B3", "range"] < 7) : Test not TRUE
-
-</td>
-</tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy">CNPBayes unit testing : test_marginalEasy</a></td>
-<td>Error in checkTrue(best(m) == 3) : Test not TRUE
-
-</td>
-</tr>
-<tr><td><a href="#CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_simulation.R_test_simulation_batch">CNPBayes unit testing : test_simulation_batch</a></td>
-<td>Error in checkTrue(best(m) == 3) : Test not TRUE
+<tr><td><a href="#CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_simulation.R_test_simulation_moderate">CNPBayes unit testing : test_simulation_moderate</a></td>
+<td>Error in checkTrue(best(m) == K) : Test not TRUE
 
 </td>
 </tr>
@@ -62,32 +51,27 @@
 <hr>
 <h3 TRUE>Details</h3>
 <p><a name="CNPBayes unit testing"><h5 TRUE>Test Suite: CNPBayes unit testing</h5>
-</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">test_batchEasy: (9 checks) ... OK (391.8 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batch_moderate">test_batch_moderate: (3 checks) ... OK (12.31 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_computemeans">test_computemeans: (1 checks) ... OK (4.76 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">test_hard3: (6 checks) ... OK (39.4 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_missingcomponent">test_missingcomponent: (3 checks) ... OK (81.9 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_twocomponent_with_substantial_overlap"><u style=color:red>test_twocomponent_with_substantial_overlap: FAILURE !! (check number 1)  </u></a>Error in checkTrue(calls == "M3" || calls == "B2") : Test not TRUE
+</a>Test function regexp: ^test.+<br/>Test file regexp: ^test.+\.[rR]$<br/>Involved directory:<br/>/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests<br/><ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_batch.R">Test file: test_batch.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batch_moderate">test_batch_moderate: (3 checks) ... OK (3.81 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_batchEasy">test_batchEasy: (8 checks) ... OK (1.95 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_computemeans">test_computemeans: (1 checks) ... OK (0.08 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_hard3">test_hard3: (6 checks) ... OK (11.77 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_kbatch">test_kbatch: (2 checks) ... OK (42.7 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_batch.R_test_missingcomponent">test_missingcomponent: (3 checks) ... OK (22.17 seconds)<br/></a></li></ul></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_cnpRegions.R">Test file: test_cnpRegions.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_cnpRegions.R_test_cnpRegions">test_cnpRegions: (1 checks) ... OK (0.32 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_Constructors.R">Test file: test_Constructors.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_Constructors.R_test_constructor">test_constructor: (26 checks) ... OK (0.16 seconds)<br/></a></li></ul></li></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (4 checks) ... OK (0.07 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_loglik.R">Test file: test_loglik.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_loglik.R_test_loglik">test_loglik: (4 checks) ... OK (4.3 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_loglik.R_test_senseless_batch"><u style=color:red>test_senseless_batch: FAILURE !! (check number 1)  </u></a>Error in checkTrue(best(m1) == 3) : Test not TRUE
 
-<br/></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_cnpRegions.R">Test file: test_cnpRegions.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_cnpRegions.R_test_cnpRegions">test_cnpRegions: (1 checks) ... OK (0.81 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_Constructors.R">Test file: test_Constructors.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_Constructors.R_test_constructor">test_constructor: (26 checks) ... OK (0.33 seconds)<br/></a></li></ul></li></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_kolmogorov.R">Test file: test_kolmogorov.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_kolmogorov.R_test_KolmogorovSmirnov">test_KolmogorovSmirnov: (4 checks) ... OK (0.16 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_loglik.R">Test file: test_loglik.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_loglik.R_test_loglik"><u style=color:red>test_loglik: FAILURE !! (check number 7)  </u></a>Error in checkTrue(by["B3", "range"] < 7) : Test not TRUE
+<br/></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (3 checks) ... OK (12.75 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">test_marginal_Moderate: (3 checks) ... OK (1.34 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy">test_marginalEasy: (8 checks) ... OK (2.13 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (13 checks) ... OK (0.11 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_plotting.R">Test file: test_plotting.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_plotting.R_test_plot">test_plot: (0 checks) ... OK (1.49 seconds)<br/></a></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_probz.R">Test file: test_probz.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_probz.R_test_probz">test_probz: (8 checks) ... OK (0.11 seconds)<br/></a></li></ul></li></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_relabel.R">Test file: test_relabel.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_relabel.R_test_relabel_marginal"><u style=color:red>test_relabel_marginal: ERROR !!  </u></a>Error in identical(target, current) : could not find function "dataMean"
+<br/></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_simulation.R">Test file: test_simulation.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_simulation.R_test_simulation">test_simulation: (10 checks) ... OK (35.12 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_simulation.R_test_simulation_batch">test_simulation_batch: (0 checks) ... OK (0 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_simulation.R_test_simulation_difficult">test_simulation_difficult: (0 checks) ... OK (0 seconds)<br/></a></li><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_simulation.R_test_simulation_moderate"><u style=color:red>test_simulation_moderate: FAILURE !! (check number 1)  </u></a>Error in checkTrue(best(m) == K) : Test not TRUE
 
-<br/></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_marginal.R">Test file: test_marginal.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginalEasy"><u style=color:red>test_marginalEasy: FAILURE !! (check number 9)  </u></a>Error in checkTrue(best(m) == 3) : Test not TRUE
-
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_hard">test_marginal_hard: (3 checks) ... OK (55.94 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_marginal.R_test_marginal_Moderate">test_marginal_Moderate: (3 checks) ... OK (5.88 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_mcmc_restart.R">Test file: test_mcmc_restart.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_mcmc_restart.R_test_mcmc_restart">test_mcmc_restart: (13 checks) ... OK (0.33 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_plotting.R">Test file: test_plotting.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_plotting.R_test_plot">test_plot: (0 checks) ... OK (5.59 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_probz.R">Test file: test_probz.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_probz.R_test_probz">test_probz: (8 checks) ... OK (0.34 seconds)<br/></a></li></ul></li></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_simulation.R">Test file: test_simulation.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_simulation.R_test_simulation">test_simulation: (10 checks) ... OK (187.97 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_simulation.R_test_simulation_batch"><u style=color:red>test_simulation_batch: FAILURE !! (check number 1)  </u></a>Error in checkTrue(best(m) == 3) : Test not TRUE
-
-<br/></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_simulation.R_test_simulation_difficult">test_simulation_difficult: (1 checks) ... OK (91.56 seconds)<br/></a></li><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_simulation.R_test_simulation_moderate">test_simulation_moderate: (1 checks) ... OK (92.25 seconds)<br/></a></li></ul></li><li><a href="/home/bst/student/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_summmarizedExperiment.R">Test file: test_summmarizedExperiment.R</a><ul><li><a name="CNPBayes unit testing__home_bst_student_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_summmarizedExperiment.R_test_SummarizedExperiment"><u style=color:red>test_SummarizedExperiment: ERROR !!  </u></a>Error in (function (classes, fdef, mtable)  : 
-  unable to find an inherited method for function ‘Rle’ for signature ‘"factor", "numeric"’
-<br/></li></ul></li></ul><hr>
+<br/></li></ul></li><li><a href="/Users/rscharpf/Software/CNPBayes/tests/../inst/unitTests/test_summmarizedExperiment.R">Test file: test_summmarizedExperiment.R</a><ul><li><a name="CNPBayes unit testing__Users_rscharpf_Software_CNPBayes_tests_.._inst_unitTests_test_summmarizedExperiment.R_test_SummarizedExperiment">test_SummarizedExperiment: (0 checks) ... OK (0 seconds)<br/></a></li></ul></li></ul><hr>
 <table border="0" width="80%" >
 <tr><th>Name</th>
 <th>Value</th>
 </tr>
 <tr><td>platform</td>
-<td>x86_64-unknown-linux-gnu</td>
+<td>x86_64-apple-darwin14.1.0</td>
 </tr>
 <tr><td>arch</td>
 <td>x86_64</td>
 </tr>
 <tr><td>os</td>
-<td>linux-gnu</td>
+<td>darwin14.1.0</td>
 </tr>
 <tr><td>system</td>
-<td>x86_64, linux-gnu</td>
+<td>x86_64, darwin14.1.0</td>
 </tr>
 <tr><td>status</td>
 <td>Under development (unstable)</td>
@@ -96,34 +80,34 @@
 <td>3</td>
 </tr>
 <tr><td>minor</td>
-<td>3.0</td>
+<td>2.0</td>
 </tr>
 <tr><td>year</td>
 <td>2015</td>
 </tr>
 <tr><td>month</td>
-<td>04</td>
+<td>01</td>
 </tr>
 <tr><td>day</td>
-<td>23</td>
+<td>27</td>
 </tr>
 <tr><td>svn rev</td>
-<td>68240</td>
+<td>67637</td>
 </tr>
 <tr><td>language</td>
 <td>R</td>
 </tr>
 <tr><td>version.string</td>
-<td>R Under development (unstable) (2015-04-23 r68240)</td>
+<td>R Under development (unstable) (2015-01-27 r67637)</td>
 </tr>
 <tr><td>nickname</td>
 <td>Unsuffered Consequences</td>
 </tr>
 <tr><td>host</td>
-<td>compute-051</td>
+<td>Roberts-MacBook-Pro.local</td>
 </tr>
 <tr><td>compiler</td>
-<td>/usr/bin/g++</td>
+<td>clang++</td>
 </tr>
 </table>
 </body>

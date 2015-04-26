@@ -101,15 +101,32 @@ setReplaceMethod("modelList", c("ModelList", "MixtureModel"),
                    object
                  })
 
+minThetaSep <- function(object){
+  x <- colMeans(thetac(object))
+  if(!isMarginalModel(object)){
+    x <- matrix(x, nBatch(object), k(object))
+    x <- colMeans(x)
+  }
+  x <- sort(x)
+  if(length(x) > 1){
+    d <- min(diff(x))
+  } else d <- 0
+  d
+}
 
 setMethod("summary", "ModelList", function(object, ...){
   my <- m.y(object)
   mns <- sapply(my, mean)
   rg <- sapply(my, function(x) diff(range(x)))
+  max_delta_mode <- sapply(modeDifference(object), max)
+  min_theta_sep <- sapply(modelList(object), minThetaSep)
+  ##min_delta_thetas <-
   df <- data.frame(k=k(object),
                    mean=mns,
                    range=rg,
-                   max_delta_mode=sapply(modeDifference(object), max))
+                   max_delta_mode=max_delta_mode,
+                   min_theta_sep=min_theta_sep)
+  df$flag <- df$max_delta_mode > df$min_theta_sep
   rownames(df) <- names(object)
   df
 })

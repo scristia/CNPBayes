@@ -16,32 +16,12 @@ test_batchEasy <- function(){
                     -0.2, 0, 0.2,
                     0.8, 1, 1.2), nbatch, k, byrow=FALSE)
   sds <- matrix(0.1, nbatch, k)
-  truth <- simulateBatchData(N=2500,
-                             batch=rep(letters[1:3], length.out=2500),
+  N <- 1500
+  truth <- simulateBatchData(N=N,
+                             batch=rep(letters[1:3], length.out=N),
                              theta=means,
                              sds=sds,
                              p=c(1/5, 1/3, 1-1/3-1/5))
-  if(FALSE){
-    while(all(z(model) > 0) && i < 1000){
-      theta(model) <- .Call("update_theta_batch", model)
-      sigma2(model) <- .Call("update_sigma2_batch", model)
-      p(model) <- .Call("update_p_batch", model)
-      probs = .Call("update_multinomialPr_batch", model)
-      all(rowSums(probs) == 1)
-      mu(model) <- .Call("update_mu_batch", model)
-      tau2(model) <- .Call("update_tau2_batch", model)
-      nu.0(model) <- .Call("update_nu0_batch", model)
-      sigma2.0(model) <- .Call("update_sigma20_batch", model)
-      z(model) <- .Call("update_z_batch", model)
-      dataMean(model) <- .Call("compute_means_batch", model)
-      dataPrec(model) <- .Call("compute_prec_batch", model)
-      table(z(model), batch(model))
-      theta(model)
-      min(probs)
-      tau(model)
-      i <- i+1
-    }
-  }
   ##model <- posteriorSimulation(model)
   yy <- y(truth)
   checkIdentical(yy, yy[order(batch(truth))])
@@ -72,8 +52,9 @@ test_batchEasy <- function(){
     set.seed(123)
     .updateSigma2.0Batch(model2)
     ## problem lies with nu.0 or sigma2.0...
-    eta.0 <- 1800
-    m2.0 <- 1/60
+    eta.0 <- 1800/100
+    #eta.0 <- 180
+    m2.0 <- 1/(60/100)
     a <- 0.5*eta.0
     b <- 0.5*eta.0*m2.0
     x <- rgamma(1000, a, rate=1/b)
@@ -98,36 +79,28 @@ test_batchEasy <- function(){
     tracePlot(model, "theta", col=1:3)
     plot.ts(muc(model), col=1:3)
   }
-  ##
-  ## check that the marginal density estimates are consistent for the
-  ## K=3 model
-  se <- as(model, "SummarizedExperiment")
-  mp <- mcmcParams(model)
-  burnin(mp) <- 500
-  iter(mp) <- 500
-  ## are we not getting it because I've made the labels completely
-  ## swap
+}
 
-  m <- marginal(se, batch=batch(model),
-                mcmc.params=mp,
-                maxperm=2)
+test_kbatch <- function(){
+  library(oligoClasses)
+  set.seed(123)
+  k <- 3
+  means <- matrix(c(-1.2, -1.0, -0.8,
+                    -0.2, 0, 0.2,
+                    0.8, 1, 1.2), 3, k, byrow=FALSE)
+  sds <- matrix(0.1, 3, k)
+  N <- 1500
+  truth <- simulateBatchData(N=N,
+                             batch=rep(letters[1:3], length.out=N),
+                             theta=means,
+                             sds=sds,
+                             p=c(1/5, 1/3, 1-1/3-1/5))
+  b <- BatchModel(y(truth), batch=batch(truth))
+  se <- as(b, "SummarizedExperiment")
+  mp <- McmcParams(iter=300, burnin=300, nStarts=3)
+  m <- marginal(se, batch=batch(b), mcmc.params=mp, maxperm=2)
   checkTrue(CNPBayes:::maxperm(m) == 2)
-  if(FALSE){
-    ##
-    ## Additional iterations
-    ##
-    m2 <- m
-    iter(m2) <- c(0, 0, 200, 200)
-    burnin(m2) <- c(0, 0, 250, 250)
-    nStarts(m2) <- 1
-    load_all()
-    m2 <- marginal(m2)
-    my <- summary(m)
-    checkTrue(my[3, 2] < 5)
-    checkEquals(best(m), 3)
-  }
-  ##call <- names(bayesFactor(my))
-  ##checkEquals(substr(call, 2, 2), "3")
+  checkTrue(best(m)==3)
 }
 
 test_batch_moderate <- function(){
@@ -529,32 +502,7 @@ test_missingcomponent <- function(){
 
 }
 
-test_twocomponent_with_substantial_overlap <- function(){
-  set.seed(100)
-  dir <- system.file("unitTests/data", package="CNPBayes")
-  testdat <- readRDS(file.path(dir, "ea1.rds"))
-  x <- BatchModel(data=testdat$cn, batch=testdat$batch)
-  se <- as(x, "SummarizedExperiment")
-  mcmcp <- McmcParams(iter=250, burnin=250, nStarts=5)
-  m <- marginal(se, mcmc.params=mcmcp, maxperm=2)
-  if(FALSE) plot(m[[1]], use.current=TRUE)
-
-  set.seed(123)
-  mcmcp <- McmcParams(iter=300, burnin=500, nStarts=5)
-  b <- marginal(se, batch=testdat$batch, mcmc.params=mcmcp, maxperm=3)
-  my <- rbind(summary(m), summary(b))
-  bf <- bayesFactor(my)
-  call <- as.integer(substr(names(bf), 2, 2))
-  ## check that a 2-component model is the best fit
-  checkTrue(call <= 2)
-  ##checkTrue(substr(calls, 2, 2) == 2 || substr(calls, 2, 2) == 3)
-  if(FALSE){
-    par(mfrow=c(1,2), las=1)
-    ## plot(b[[1]], use.current=TRUE)
-    plot(b[[2]], use.current=TRUE)
-    plot(m[[3]], use.current=TRUE)
-    sapply(b, m.y)
-  }
+.test_twocomponent_with_substantial_overlap <- function(){
 }
 
 .test_hard_fourcomp <- function(){

@@ -628,7 +628,9 @@ setMethod("computeMarginalEachK2", "numeric",
                 ##if(i > 1){
                 new_modes <- theta(model1)
                 ix <- mode_index[[k]][i, ]
-                reorder.orig <- orig_modes[, ix]
+                if(k > 1){
+                  reorder.orig <- orig_modes[, ix]
+                } else reorder.orig <- orig_modes
                 d <- new_modes-reorder.orig
                 mode_list[[k]][i, ] <- colMaxs(d)
               }
@@ -681,6 +683,7 @@ setMethod("computeMarginalEachK2", "BatchModelList",
               ## - integrate out theta, sigma2, p
               ##if(k==3) browser()
               for(i in seq_along(mode_models)){
+                burnin(model1) <- 0
                 model1 <- mode_models[[i]]
                 pg <- partialGibbs(model1)
                 results[i, ] <- partialGibbsSummary(model1, pg)
@@ -771,11 +774,14 @@ topTwo <- function(m.y){
   sort(m.y[is.finite(m.y)], decreasing=TRUE)[1:2]
 }
 
+
 #' @export
 bayesFactor <- function(x, thr=c(1, 4, 7, 10)){
   x$thr <- thr[x$k]
   mns <- setNames(x$mean, rownames(x))
-  mns <- mns[x$range < x$thr & x$max_delta_mode < 0.5]
+  min_sep <- x$min_theta_sep > 0.01
+  min_sep[1] <- TRUE
+  mns <- mns[x$range < x$thr & x$max_delta_mode < 0.5 &  min_sep]
   if(length(mns) < 1) {
     stop("criteria not satisfied for bayes factor.  Longer burnin likely needed. ")
   }

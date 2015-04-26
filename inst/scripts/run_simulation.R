@@ -25,46 +25,44 @@ outdir <- "~/Software/CNPData/data"
 model.files <- file.path(outdir, paste0("simulation_easy", seq_len(10 * 4), ".rds"))
 ##calledK <- matrix(NA, 10, 4)
 ##nIncorrect <- matrix(NA, 10, 4)
-mp <- McmcParams(iter=500, burnin=500, nStarts=10)
-
+thr <- sapply(1:4, function(x) log(factorial(x)))
+##thr[1] <- 0.5
+##thr <- thr*3
+thr <- c(0.5, 3, 6, 8)
+mp <- McmcParams(iter=1000, burnin=500, nStarts=10)
 results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
   calledK <- rep(NA, 4)
   nIncorrect <- rep(NA, 4)
   cat(".")
-  for(K in 1:4){
-    it <- (i-1)*4 + K
-    ##if(K < 3) next()
+  for(k in 1:4){
+    it <- (i-1)*4 + k
+    ##if(k < 3) next()
     ##    if(!file.exists(model.files[it])){
-    if(TRUE){
-      xx <- x[, , i, K]
-      mns <- rowMeans(xx)
-      pc <- prcomp(xx, center=TRUE, scale.=TRUE)$x[, 1]
-      if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
-      model <- MarginalModel(data=pc)
-      se <- as(model, "SummarizedExperiment")
-      m <- marginal(se, mcmc.params=mp, maxperm=3, K=1:4)
-      m2 <- m
-      iter(m2) <- c(200, 500, 500, 500)
-      nStarts(m2) <- 1
-      ## need burnin for switching components
-      burnin(m2) <- c(50, 300, 500, 750)
-      saveRDS(m2, file=model.files[it])
-    } else {
+    xx <- x[, , i, k]
+    mns <- rowMeans(xx)
+    pc <- prcomp(xx, center=TRUE, scale.=TRUE)$x[, 1]
+    if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
+    model <- MarginalModel(data=pc)
+    se <- as(model, "SummarizedExperiment")
+    m <- marginal(se, mcmc.params=mp, maxperm=1, K=1:4)
+    saveRDS(m, file=model.files[it])
+    if(FALSE){
       ## if range for k=4 is in the 10-20 range, probably worth
       ## repeating with more burnin/iterations
       m <- readRDS(model.files[it])
       m2 <- m
-      iter(m2) <- c(200, 500, 1000, 1000)
+      iter(m2) <- c(300, 600, 1000, 1000)
       nStarts(m2) <- 1
-      burnin(m2) <- c(50, 300, 500, 500)
+      burnin(m2) <- c(100, 400, 500, 500)
       m2 <- marginal(m2)
       saveRDS(m2, file=model.files[it])
       m <- m2
     }
-    calledK[K] <- best(m)
-    true_cn <- cn[i, , K]
-    zz <- map(m[[K]])
-    nIncorrect[K] <- sum(zz != true_cn)
+    bf <- bayesFactor(summary(m), thr=thr)
+    calledK[k] <- as.integer(substr(names(bf), 2, 2))
+    true_cn <- cn[i, , k]
+    zz <- map(m[[k]])
+    nIncorrect[k] <- sum(zz != true_cn)
   }
   list(calledK=calledK, nIncorrect=nIncorrect)
 }
@@ -79,22 +77,44 @@ q('no')
 ##results <- readRDS("~/Software/CNPData/data/simulation_summary.rds")
 results <- readRDS("~/Software/CNPData/data/simulation_summary_maxperm3.rds")
 calledK <- do.call(rbind, lapply(results, "[[", 1))
+write.table(calledK, file="~/calledK2.txt", sep="\t")
+write.csv(calledK, "")
 truth <- matrix(1:4, nrow=10, ncol=4, byrow=TRUE)
 nIncorrectCalls <- sum(truth != calledK)
 ## thresholds
 ## maxperm
-
-
 #nIncorrect <- do.call(rbind, lapply(results, "[[", 2))
 
 
-
+thr <- sapply(1:4, function(x) log(factorial(x)))
+thr[1] <- 0.5
+thr <- thr*3
+calledK <- matrix(NA, 10, 4)
 outdir <- "~/Software/CNPData/data"
 model.files <- file.path(outdir, paste0("simulation", seq_len(10 * 4), ".rds"))
-k <- 4
-i <- 6
-it <- (i-1)*4 + k
-m <- readRDS(model.files[it])
+for(i in 1:10){
+  for(k in 1:4){
+    it <- (i-1)*4 + k
+    m <- readRDS(model.files[it])
+##    m2 <- m
+##    iter(m2) <- c(0, 300, 300, 300)
+##    burnin(m2) <- c(0, 400, 400, 400)
+##    nStarts(m2) <- 1
+##    m2 <- marginal(m2)
+##    m3 <- modelOtherModes(m2[[2]])
+##
+##    mp <- mcmcParams(m2[[2]])
+##    burnin(mp) <- 0
+##    mcmcParams(m2[[2]]) <- mp
+##    sim <- posteriorSimulation(m3[[2]])
+##    plot.ts(thetac(sim), plot.type="single", col=1:2)
+    bf <- bayesFactor(summary(m), thr=thr)
+    calledK[i, k] <- as.integer(substr(names(bf), 2, 2))
+  }
+}
+k <- 1
+i <- 2
+
 if(FALSE){
   plot(m[[1]])
   plot(m[[2]])

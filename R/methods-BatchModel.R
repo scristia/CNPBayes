@@ -525,6 +525,12 @@ setMethod("marginal", c("SummarizedExperiment", "vector"),
               batch <- saveBatch(object[1, notna], batch.file)
             }
             cn <- cn[ notna ]
+            if(length(unique(batch))==1){
+              mlist <- computeMarginalEachK(cn, K=K,
+                                            mcmcp=mcmc.params,
+                                            maxperm=maxperm, ...)
+              return(mlist)
+            }
             mlist <- computeMarginalEachK2(cn, batch=batch, K=K,
                                            mcmcp=mcmc.params,
                                            maxperm=maxperm, ...)

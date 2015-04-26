@@ -54,13 +54,6 @@ test_marginalEasy <- function(){
   }
   pmns2 <- colMeans(thetac(model2))
   checkEquals(pmns, pmns2[3:1], tolerance=0.05)
-  ##
-  ## compute marginal density for other K
-  ##
-  mp <- McmcParams(iter=200, burnin=300)
-  se <- as(model, "SummarizedExperiment")
-  m <- marginal(se, mcmc.params=mp, maxperm=2)
-  checkTrue(best(m) == 3)
 }
 
 
