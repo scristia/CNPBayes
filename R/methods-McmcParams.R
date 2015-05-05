@@ -104,7 +104,7 @@ setReplaceMethod("paramUpdates", "McmcParams", function(x, value){
   x
 })
 
-setReplaceMethod("iter", "McmcParams", function(object, value){
+setReplaceMethod("iter", "McmcParams", function(object, value, force=FALSE){
   object@iter <- value
   object
 })

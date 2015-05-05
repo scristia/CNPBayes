@@ -441,26 +441,125 @@ BEGIN_RCPP
 END_RCPP
 }
 // mcmc_marginal
-RcppExport SEXP mcmc_marginal(SEXP xmod, SEXP mcmcp);
-RcppExport SEXP CNPBayes_mcmc_marginal(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp);
+RcppExport SEXP CNPBayes_mcmc_marginal(SEXP objectSEXP, SEXP mcmcpSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type object(objectSEXP);
     Rcpp::traits::input_parameter< SEXP >::type mcmcp(mcmcpSEXP);
-    __result = Rcpp::wrap(mcmc_marginal(xmod, mcmcp));
+    __result = Rcpp::wrap(mcmc_marginal(object, mcmcp));
     return __result;
 END_RCPP
 }
 // marginal_theta
-RcppExport SEXP marginal_theta(SEXP xmod, SEXP mcmcp);
-RcppExport SEXP CNPBayes_marginal_theta(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+RcppExport SEXP marginal_theta(SEXP xmod);
+RcppExport SEXP CNPBayes_marginal_theta(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type mcmcp(mcmcpSEXP);
-    __result = Rcpp::wrap(marginal_theta(xmod, mcmcp));
+    __result = Rcpp::wrap(marginal_theta(xmod));
+    return __result;
+END_RCPP
+}
+// p_theta_zpermuted
+RcppExport SEXP p_theta_zpermuted(SEXP xmod);
+RcppExport SEXP CNPBayes_p_theta_zpermuted(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(p_theta_zpermuted(xmod));
+    return __result;
+END_RCPP
+}
+// simulate_z_reduced1
+RcppExport SEXP simulate_z_reduced1(SEXP xmod);
+RcppExport SEXP CNPBayes_simulate_z_reduced1(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(simulate_z_reduced1(xmod));
+    return __result;
+END_RCPP
+}
+// simulate_z_reduced2
+RcppExport SEXP simulate_z_reduced2(SEXP xmod);
+RcppExport SEXP CNPBayes_simulate_z_reduced2(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(simulate_z_reduced2(xmod));
+    return __result;
+END_RCPP
+}
+// permutedz_reduced1
+RcppExport SEXP permutedz_reduced1(SEXP xmod);
+RcppExport SEXP CNPBayes_permutedz_reduced1(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(permutedz_reduced1(xmod));
+    return __result;
+END_RCPP
+}
+// permutedz_reduced2
+RcppExport SEXP permutedz_reduced2(SEXP xmod);
+RcppExport SEXP CNPBayes_permutedz_reduced2(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(permutedz_reduced2(xmod));
+    return __result;
+END_RCPP
+}
+// p_sigma2_zpermuted
+RcppExport SEXP p_sigma2_zpermuted(SEXP xmod);
+RcppExport SEXP CNPBayes_p_sigma2_zpermuted(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(p_sigma2_zpermuted(xmod));
+    return __result;
+END_RCPP
+}
+// log_ddirichlet_
+NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_);
+RcppExport SEXP CNPBayes_log_ddirichlet_(SEXP x_SEXP, SEXP alpha_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericVector >::type x_(x_SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type alpha_(alpha_SEXP);
+    __result = Rcpp::wrap(log_ddirichlet_(x_, alpha_));
+    return __result;
+END_RCPP
+}
+// p_pmix_reduced
+RcppExport SEXP p_pmix_reduced(SEXP xmod);
+RcppExport SEXP CNPBayes_p_pmix_reduced(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(p_pmix_reduced(xmod));
+    return __result;
+END_RCPP
+}
+// test_clone
+RcppExport SEXP test_clone(SEXP xmod);
+RcppExport SEXP CNPBayes_test_clone(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(test_clone(xmod));
     return __result;
 END_RCPP
 }

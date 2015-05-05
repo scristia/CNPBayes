@@ -53,8 +53,11 @@ setMethod("startingValues", "MarginalModel", function(object){
   hypp <- hyperParams(object)
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
-  mu(object) <- rnorm(1, mu.0(object), tau.0(object))
-  tau2(object) <- 1/rgamma(1, shape=1/2*eta.0(object), rate=1/2*eta.0(object)*m2.0(object))
+  ##mu(object) <- rnorm(1, mu.0(object), tau.0(object))
+  mu(object) <- mean(y(object))
+  ##tau2(object) <- 1/rgamma(1, shape=1/2*eta.0(object),
+  ##rate=1/2*eta.0(object)*m2.0(object))
+  tau2(object) <- var(y(object))*10
   theta(object) <- rnorm(k(object), mu(object), tau(object))
   sigma2(object) <- 1/rgamma(k(object), shape=1/2*nu.0(object), rate=1/2*nu.0(object)*sigma2.0(object))
   p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are

@@ -157,11 +157,47 @@ mcmc_marginal_burnin <- function(xmod, mcmcp) {
     .Call('CNPBayes_mcmc_marginal_burnin', PACKAGE = 'CNPBayes', xmod, mcmcp)
 }
 
-mcmc_marginal <- function(xmod, mcmcp) {
-    .Call('CNPBayes_mcmc_marginal', PACKAGE = 'CNPBayes', xmod, mcmcp)
+mcmc_marginal <- function(object, mcmcp) {
+    .Call('CNPBayes_mcmc_marginal', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
-marginal_theta <- function(xmod, mcmcp) {
-    .Call('CNPBayes_marginal_theta', PACKAGE = 'CNPBayes', xmod, mcmcp)
+marginal_theta <- function(xmod) {
+    .Call('CNPBayes_marginal_theta', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_theta_zpermuted <- function(xmod) {
+    .Call('CNPBayes_p_theta_zpermuted', PACKAGE = 'CNPBayes', xmod)
+}
+
+simulate_z_reduced1 <- function(xmod) {
+    .Call('CNPBayes_simulate_z_reduced1', PACKAGE = 'CNPBayes', xmod)
+}
+
+simulate_z_reduced2 <- function(xmod) {
+    .Call('CNPBayes_simulate_z_reduced2', PACKAGE = 'CNPBayes', xmod)
+}
+
+permutedz_reduced1 <- function(xmod) {
+    .Call('CNPBayes_permutedz_reduced1', PACKAGE = 'CNPBayes', xmod)
+}
+
+permutedz_reduced2 <- function(xmod) {
+    .Call('CNPBayes_permutedz_reduced2', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_sigma2_zpermuted <- function(xmod) {
+    .Call('CNPBayes_p_sigma2_zpermuted', PACKAGE = 'CNPBayes', xmod)
+}
+
+log_ddirichlet_ <- function(x_, alpha_) {
+    .Call('CNPBayes_log_ddirichlet_', PACKAGE = 'CNPBayes', x_, alpha_)
+}
+
+p_pmix_reduced <- function(xmod) {
+    .Call('CNPBayes_p_pmix_reduced', PACKAGE = 'CNPBayes', xmod)
+}
+
+test_clone <- function(xmod) {
+    .Call('CNPBayes_test_clone', PACKAGE = 'CNPBayes', xmod)
 }
 

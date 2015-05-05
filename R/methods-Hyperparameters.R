@@ -20,6 +20,25 @@ gammaShapeRate2 <- function(mn, sd){
   setNames(c(a, b), c("a", "b"))
 }
 
+gammaShapeRate3 <- function(eta.0, m2.0){
+  eta.0 <- 1800/100
+  ##eta.0 <- 180
+  m2.0 <- 1/(60/100)
+  a <- 0.5*eta.0
+  b <- 0.5*eta.0*m2.0
+  x <- rgamma(1000, a, rate=1/b)
+  ##  ##shape/rate   = mn (1)
+  ##  ##shape/rate^2 = sd (2)
+  ##  ##shape = mn * rate
+  ##  ##mn * rate / rate^2 = sd
+  ##  ##mn/rate = sd
+  ##  ##mn/sd = rate
+  ##  rate <- mn/sd
+  ##  shape <- mn*rate
+  ##  setNames(c(shape, rate), c("shape", "rate"))
+  x
+}
+
 #' @export
 HyperparametersBatch <- function(k=0L,
                                  mu.0=0,

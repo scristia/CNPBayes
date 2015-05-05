@@ -20,6 +20,7 @@
 #' @importFrom oligoClasses copyNumber batch chromosome integerMatrix
 #' @importFrom coda effectiveSize
 #' @importFrom combinat permn
+#' @importFrom dplyr ntile
 #' @useDynLib CNPBayes
 NULL
 

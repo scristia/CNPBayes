@@ -96,7 +96,8 @@ setMethod("posteriorTheta", "BatchModel", function(object){
 setMethod("posteriorSigma2", "MarginalModel", function(object){
   mcmcp <- mcmcParams(object)
   paramUpdates(mcmcp)["theta"] <- 0L
-  .Call("marginal_sigma2", object, mcmcParams(object))
+  object <- .Call("marginal_sigma2", object, mcmcp)
+  object
 })
 
 setMethod("posteriorSigma2", "BatchModel", function(object){
@@ -172,24 +173,65 @@ mode.numeric <- function(x, na.rm=TRUE){
   rowSums(post)
 }
 
-posteriorP <- function(object){
+setMethod("posteriorP", "MixtureModel", function(object){
   mcmcp <- mcmcParams(object)
   x <- p(object)
   paramUpdates(mcmcp)[c("theta", "sigma2")] <- 0L
-  if(is(object, "MarginalModel")){
-    object=.Call("mcmc_marginal_burnin", object, mcmcp)
-    object=.Call("mcmc_marginal", object, mcmcp)
-  } else {
-    object=.Call("mcmc_batch_burnin", object, mcmcp)
-    object=.Call("mcmc_batch", object, mcmcp)
-  }
+  object@mcmc.params <- mcmcp
+  object <- runMcmc(object)
   ztab <- zFreq(chains(object))
   ztab <- ztab + alpha(object)
   probs <- apply(ztab, 1, function(alpha, x){
     ddirichlet(x, alpha)
   }, x=x)
-  log(probs)
-}
+  probs
+})
+
+##
+##setMethod("posteriorP", "MarginalModel", function(object){
+##  mcmcp <- mcmcParams(object)
+##  x <- p(object)
+##  paramUpdates(mcmcp)[c("theta", "sigma2")] <- 0L
+##  object=.Call("mcmc_marginal", object, mcmcp)
+##  ztab <- zFreq(chains(object))
+##  ztab <- ztab + alpha(object)
+##  probs <- apply(ztab, 1, function(alpha, x){
+##    ddirichlet(x, alpha)
+##  }, x=x)
+##  probs
+##})
+##
+##setMethod("posteriorP", "BatchModel", function(object){
+##  mcmcp <- mcmcParams(object)
+##  x <- p(object)
+##  paramUpdates(mcmcp)[c("theta", "sigma2")] <- 0L
+##  object=.Call("mcmc_batch", object, mcmcp)
+##  ztab <- zFreq(chains(object))
+##  ztab <- ztab + alpha(object)
+##  probs <- apply(ztab, 1, function(alpha, x){
+##    ddirichlet(x, alpha)
+##  }, x=x)
+##  log(probs)
+##})
+
+##posteriorP <- function(object){
+##  mcmcp <- mcmcParams(object)
+##  x <- p(object)
+##  paramUpdates(mcmcp)[c("theta", "sigma2")] <- 0L
+##  if(is(object, "MarginalModel")){
+##    ##object=.Call("mcmc_marginal_burnin", object, mcmcp)
+##    object=.Call("mcmc_marginal", object, mcmcp)
+##  } else {
+##    ##object=.Call("mcmc_batch_burnin", object, mcmcp)
+##    object=.Call("mcmc_batch", object, mcmcp)
+##  }
+##  ztab <- zFreq(chains(object))
+##  ztab <- ztab + alpha(object)
+##  probs <- apply(ztab, 1, function(alpha, x){
+##    ddirichlet(x, alpha)
+##  }, x=x)
+##  log(probs)
+##}
 
 .priorProbsBatch <- function(object){
   ## evaluate the prior probabilities at the modal values
@@ -518,6 +560,7 @@ setMethod("computeMarginalEachK", "MarginalModelList",
               ## - integrate out theta, sigma2, p
               for(i in seq_along(mode_models)){
                 model1 <- mode_models[[i]]
+                burnin(model1) <- 0
                 pg <- partialGibbs(model1)
                 results[i, ] <- partialGibbsSummary(model1, pg)
                 ##if(i > 1){
@@ -537,6 +580,15 @@ setMethod("computeMarginalEachK", "MarginalModelList",
                               mode_index=mode_index)
           })
 
+cloneMarginalModel <- function(object){
+  object2 <- newMarginalModel(object)
+  ch.new <- chains(object2)
+  ch.orig <- chains(object)
+  ch.new@theta <- ch.orig@theta
+  mcmcChains(object2) <- ch.new
+  object2
+}
+
 setMethod("computeMarginalEachK", "numeric",
           function(object, K=1:4, hypp, mcmcp=McmcParams(),
                    maxperm=5){
@@ -545,6 +597,7 @@ setMethod("computeMarginalEachK", "numeric",
             mode_list <- mode.info$mode_list
             mode_index <- mode.info$mode_index
             if(missing(hypp)) hypp <- Hyperparameters("marginal")
+            iter <- 1
             for(k in K){
               k(hypp) <- k
               if(k == 1){
@@ -553,28 +606,71 @@ setMethod("computeMarginalEachK", "numeric",
               } else mp <- mcmcp
               kmod <- MarginalModel(object, k=k, mcmc.params=mp, hypp=hypp)
               kmod <- posteriorSimulation(kmod)
-              if(any(is.nan(theta(kmod)))) stop("NA's in theta")
               kmod <- useModes(kmod)
               mode_list[[k]][1, ] <- theta(kmod)
-              mode_models <- modelOtherModes(kmod, maxperm)
-              results <- matrix(NA, length(mode_models), 5)
-              nms <- c("logprior", "loglik", "logtheta", "logsigma2", "logp")
-              colnames(results) <- nms
-              ## partial gibbs sampler
-              ## - integrate out theta, sigma2, p
-              for(i in seq_along(mode_models)){
-                model1 <- mode_models[[i]]
-                pg <- partialGibbs(model1)
-                results[i, ] <- partialGibbsSummary(model1, pg)
-                new_modes <- theta(model1)
-                ix <- mode_index[[k]][i, ]
-                orig_modes <- theta(kmod)[ix]
-                mode_list[[k]][i, ] <- new_modes-orig_modes
+              ##mode_models <- modelOtherModes(kmod, maxperm)
+              nr <- min(maxperm, factorial(k))
+              results <- matrix(NA, nr, 3,
+                                dimnames=list(paste0("perm", 1:nr),
+                                    c("logtheta", "logsigma2", "logp")))
+              ##up_orig <- up <- paramUpdates(kmod)
+              permutations <- permnK(k, nr)
+              ##
+              ## Find marginal likelihood, integrating out theta,
+              ## sigma2, p
+              ##
+              for(i in seq_len(nr)){
+                kmod2 <- kmod
+                burnin(kmod2) <- 0
+                mp <- mcmcParams(kmod2)
+                ## for(i in seq_along(mode_models)){
+                ## model1 <- mode_models[[i]]
+                ## burnin(model1) <- 0
+
+##                if(i > 1){
+                  ##
+                  ## should we permute the modes as well ?
+                  ##
+                  thetas <- theta(kmod)
+                  sigma2s <- sigma2(kmod)
+                  ps <- p(kmod)
+                  ix <- permutations[i, ]
+                  thetas <- thetas[ix]
+                  sigma2s <- sigma2s[ix]
+                  ps <- ps[ix]
+                  modes(kmod2)[["theta"]] <- thetas
+                  modes(kmod2)[["sigma2"]] <- sigma2s
+                  modes(kmod2)[["mixprob"]] <- ps
+                  zChain(kmod2) <- permuteZ(kmod2, ix)
+                  x <- .Call("p_theta_zpermuted", kmod2, mp)
+                  log_ptheta <- log(mean(exp(x)))
+                  x <- .Call("p_sigma2_zpermuted", kmod2, mp)
+                  log_psigma2 <- log(mean(exp(x)))
+                  x <- .Call("p_p_unpermuted", kmod2)
+                  log_pmix <- mean(x)
+                ##                } else {
+                ##                  ## Use previously simulated values from full gibbs
+                ##                  log_ptheta <- .Call("marginal_theta", kmod2, mcmcParams(kmod2))
+                ##                  log_ptheta <- log(mean(exp(log_ptheta)))
+                ##                  log_psigma2 <- posteriorSigma2(kmod2)
+                ##                  log_psigma2 <- log(mean(exp(log_psigma2)))
+                ##                  log_p <- .Call("p_p_unpermuted", kmod2)
+                ##                  log_pmix <- mean(log_p)
+                ##                  ##pmix <- posteriorP(kmod2)
+                ##                  ##log_pmix <- log(mean(pmix))
+                ##                }
+                results[i, ] <- c(log_ptheta, log_psigma2, log_pmix)
+                ##new_modes <- modes(kmod2)[["theta"]]
+                ##ix <- mode_index[[k]][i, ]
+                ##orig_modes <- theta(kmod)[ix]
+                ##mode_list[[k]][i, ] <- new_modes-orig_modes
               }
-              marginal.y <- results[, "logprior"] + results[, "loglik"] - results[, "logtheta"] -
-                  results[, "logsigma2"] - results[, "logp"]
+              marginal.y <- modes(kmod)[["logprior"]] + modes(kmod)[["loglik"]] -
+                  rowSums(results)
               m.y(kmod) <- as.numeric(marginal.y)
-              model.list[[k]] <- kmod
+              ##paramUpdates(kmod) <- up_orig
+              model.list[[iter]] <- kmod
+              iter <- iter+1
             }
             MarginalModelList(model_list=model.list,
                               names=paste0("M", K),
@@ -623,6 +719,7 @@ setMethod("computeMarginalEachK2", "numeric",
               colnames(results) <- nms
               for(i in seq_along(mode_models)){
                 model1 <- mode_models[[i]]
+                burnin(model1) <- 0
                 pg <- partialGibbs(model1)
                 results[i, ] <- partialGibbsSummary(model1, pg)
                 ##if(i > 1){
@@ -787,4 +884,11 @@ bayesFactor <- function(x, thr=c(1, 4, 7, 10)){
   }
   mns <- topTwo(mns)
   setNames(abs(diff(mns)), paste(names(mns), collapse="-"))
+}
+
+logBayesFactor <- function(x){
+  my <- sapply(x, "[[", "marginal")
+  names(my) <- names(x)
+  my <- my[!is.nan(my)]
+  topTwo(my)
 }

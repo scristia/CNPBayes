@@ -209,9 +209,11 @@ setGeneric("burnin", function(object) standardGeneric("burnin"))
 setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 
 #' @export
-setGeneric("iter<-", function(object, value) standardGeneric("iter<-"))
+setGeneric("iter<-", function(object, value, force=FALSE) standardGeneric("iter<-"))
+
 #' @export
 setGeneric("iter", function(object) standardGeneric("iter"))
+
 #' @export
 setGeneric("thin", function(object) standardGeneric("thin"))
 
@@ -273,7 +275,7 @@ setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 #' @export
 setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
 #' @export
-setGeneric("mcmcParams<-", function(object, value) standardGeneric("mcmcParams<-"))
+setGeneric("mcmcParams<-", function(object, value, force=FALSE) standardGeneric("mcmcParams<-"))
 
 #' @export
 setGeneric("logPrior", function(object) standardGeneric("logPrior"))
@@ -310,3 +312,8 @@ setGeneric("computeMarginalEachK2",
 
 #' @export
 setGeneric("best", function(object) standardGeneric("best"))
+
+setGeneric("posteriorP", function(object) standardGeneric("posteriorP"))
+
+setGeneric("zChain", function(object) standardGeneric("zChain"))
+setGeneric("zChain<-", function(object,value) standardGeneric("zChain<-"))

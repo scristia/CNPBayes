@@ -713,6 +713,7 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
   NumericMatrix sigma2 = chain.slot("sigma2") ;
   NumericMatrix pmix = chain.slot("pi") ;
   NumericMatrix zfreq = chain.slot("zfreq") ;
+  IntegerMatrix Z = chain.slot("z") ;
   NumericMatrix mu = chain.slot("mu") ;  
   NumericMatrix tau2 = chain.slot("tau2") ;
   NumericVector nu0 = chain.slot("nu.0") ;
@@ -742,6 +743,7 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
   n0 = model.slot("nu.0") ;
   s20 = model.slot("sigma2.0") ;
   zf = model.slot("zfreq") ;
+  z = model.slot("z") ;
   ll = model.slot("loglik") ;
   lp = model.slot("logprior") ;
   // Record initial values in chains
@@ -756,6 +758,7 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
   sigma2(0, _) = s2 ;
   pmix(0, _) = p ;
   zfreq(0, _) = zf ;
+  Z(0, _) = z ;
 
   // Is accessing a slot in an object expensive?
   
@@ -826,6 +829,7 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
     } else {
       tmp = model.slot("zfreq") ;
     }
+    Z(s, _) = z ;
     zfreq(s, _) = tmp ;    
     ll = compute_loglik_batch(xmod) ;
     loglik_[s] = ll[0] ;
@@ -868,6 +872,7 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
   chain.slot("nu.0") = nu0 ;
   chain.slot("sigma2.0") = sigma2_0 ;
   chain.slot("zfreq") = zfreq ;
+  chain.slot("z") = Z ;
   chain.slot("loglik") = loglik_ ;
   chain.slot("logprior") = logprior_ ;
   model.slot("mcmc.chains") = chain ;

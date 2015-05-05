@@ -29,7 +29,7 @@ thr <- sapply(1:4, function(x) log(factorial(x)))
 ##thr[1] <- 0.5
 ##thr <- thr*3
 thr <- c(0.5, 3, 6, 8)
-mp <- McmcParams(iter=1000, burnin=500, nStarts=10)
+mp <- McmcParams(iter=500, burnin=300, nStarts=10)
 results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
   calledK <- rep(NA, 4)
   nIncorrect <- rep(NA, 4)
@@ -44,7 +44,7 @@ results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
     if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
     model <- MarginalModel(data=pc)
     se <- as(model, "SummarizedExperiment")
-    m <- marginal(se, mcmc.params=mp, maxperm=1, K=1:4)
+    m <- marginal(se, mcmc.params=mp, maxperm=3, K=1:4)
     saveRDS(m, file=model.files[it])
     if(FALSE){
       ## if range for k=4 is in the 10-20 range, probably worth
@@ -96,6 +96,14 @@ for(i in 1:10){
   for(k in 1:4){
     it <- (i-1)*4 + k
     m <- readRDS(model.files[it])
+    s <- summary(m)
+    s <- s[ s[, "range"] < 5, ]
+    mns <- s[ , "mean"]
+    ix <- order(mns, decreasing=TRUE)
+    sel <- c(0, cumsum(abs(diff(mns[ix])) > 1))
+    kk <- s[ix, "k"]
+    kk <- min(kk[sel == 0])
+    calledK[i, k] <- kk
 ##    m2 <- m
 ##    iter(m2) <- c(0, 300, 300, 300)
 ##    burnin(m2) <- c(0, 400, 400, 400)
@@ -108,8 +116,8 @@ for(i in 1:10){
 ##    mcmcParams(m2[[2]]) <- mp
 ##    sim <- posteriorSimulation(m3[[2]])
 ##    plot.ts(thetac(sim), plot.type="single", col=1:2)
-    bf <- bayesFactor(summary(m), thr=thr)
-    calledK[i, k] <- as.integer(substr(names(bf), 2, 2))
+##    bf <- bayesFactor(summary(m), thr=thr)
+##    calledK[i, k] <- as.integer(substr(names(bf), 2, 2))
   }
 }
 k <- 1

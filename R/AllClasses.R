@@ -25,7 +25,8 @@ setClass("McmcChains", representation(theta="matrix",
                                       sigma2.0="numeric",
                                       logprior="numeric",
                                       loglik="numeric",
-                                      zfreq="matrix"))
+                                      zfreq="matrix",
+                                      z="matrix"))
 
 setClass("McmcParams", representation(thin="numeric",
                                       iter="numeric",
@@ -94,11 +95,16 @@ setClass("PosteriorFiles",
              post1="character"))
 
 
-setClass("ModelList", representation(model_list="list",
-                                     elementType="character",
-                                     names="character",
-                                     mode_index="list",
-                                     mode_list="list",
-                                     maxperm="numeric"))
+setClass("ModelList", representation(model_list="list", names="character"))
+##                                     ##elementType="character",
+##                                     names="character")
+##                                     ##mode_index="list",
+##                                     ##mode_list="list",
+##                                     ##maxperm="numeric"))
 setClass("MarginalModelList", contains="ModelList")
 setClass("BatchModelList", contains="ModelList")
+
+setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", berkhof="numeric",
+                                            marginal="numeric", delta_marginal="numeric"))
+
+setClass("PosteriorSummaryList", representation(data="list", names="character"))

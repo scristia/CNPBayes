@@ -3,6 +3,7 @@
   ## or default values if no burnin
   mcmc.params <- mcmcParams(object)
   nr <- iter(mcmc.params)
+  ns <- length(y(object))
   K <- k(object)
   mati <- matrix(as.integer(NA), nr, K)
   vec <- numeric(nr)
@@ -16,12 +17,13 @@
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati)
+      zfreq=mati,
+      z=matrix(NA, nr, ns))
 }
-
-setMethod("McmcChains", "Hyperparameters", function(object, mcmc.params){
-  .initializeMcmc(object, mcmc.params)
-})
+##
+##setMethod("McmcChains", "Hyperparameters", function(object, mcmc.params){
+##  .initializeMcmc(object, mcmc.params)
+##})
 
 setMethod("McmcChains", "missing", function(object, mcmc.params){
   new("McmcChains", theta=matrix(), sigma2=matrix(),
@@ -29,7 +31,8 @@ setMethod("McmcChains", "missing", function(object, mcmc.params){
       nu.0=numeric(), sigma2.0=numeric(),
       zfreq=matrix(),
       logprior=numeric(),
-      loglik=numeric())
+      loglik=numeric(),
+      z=matrix())
 })
 
 setMethod("McmcChains", "MixtureModel", function(object){
@@ -39,6 +42,7 @@ setMethod("McmcChains", "MixtureModel", function(object){
 .initializeMcmcBatch <- function(object){
   mcmc.params <- mcmcParams(object)
   nr <- iter(mcmc.params)[1]
+  ns <- length(y(object))
   K <- k(object)
   B <- nBatch(object)
   ##mat_batch <- matrix(NA, nr, K*B)
@@ -55,7 +59,8 @@ setMethod("McmcChains", "MixtureModel", function(object){
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati)
+      zfreq=mati,
+      z=matrix(NA, nr, ns))
 }
 
 setMethod("McmcChains", "BatchModel", function(object){
@@ -90,6 +95,7 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@logprior <- x@logprior[i]
     x@loglik <- x@loglik[i]
     x@zfreq <- x@zfreq[i, ]
+    x@z <- x@z[i, ]
   }
   x
 })
@@ -150,6 +156,8 @@ setMethod("logLik", "McmcChains", function(object){
 setMethod("names", "McmcChains", function(x) slotNames(x))
 
 setMethod("zFreq", "McmcChains", function(object) object@zfreq )
+
+setMethod("z", "McmcChains", function(object) object@z )
 
 setMethod("logPrior", "McmcChains", function(object) object@logprior)
 

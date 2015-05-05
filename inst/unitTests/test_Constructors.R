@@ -26,17 +26,29 @@ test_constructor <- function(){
   mmod <- MarginalModel(data=y(truth))
   checkTrue(validObject(mmod))
   ## default n. of iterations
+
+
   checkTrue(iter(mmod) == 1000)
+  ## this works because we are not changing the size of the chains
+  iter(mmod) <- 1000
+
+  ## this should fail
+  checkException(iter(mmod) <- 1001)
+  ## this should work
+  iter(mmod, force=TRUE) <- 1001
+  checkTrue(iter(mmod)==1001)
+  ## burnin does not affect  the chains
   checkTrue(burnin(mmod) == 100)
   checkTrue(nStarts(mmod) == 1)
-  checkTrue(nrow(thetac(mmod))==1000)
+  checkTrue(nrow(thetac(mmod))==1001)
 
   mp <- McmcParams(iter=10, thin=10, burnin=100)
   ## replacement method triggers a change in the size of the chains
-  mcmcParams(mmod) <- mp
+  checkException(mcmcParams(mmod) <- mp)
+  mcmcParams(mmod, force=TRUE) <- mp
   checkTrue(nrow(thetac(mmod)) == 10)
 
-  iter(mmod) <- 1000
+  iter(mmod, force=TRUE) <- 1000
   checkTrue(nrow(thetac(mmod)) == 1000)
 
   ##
@@ -71,9 +83,21 @@ test_constructor <- function(){
   checkTrue(nStarts(bmod) == 1)
   checkTrue(nrow(thetac(bmod))==1000)
 
-  iter(bmod) <- 10
+  checkException(iter(bmod) <- 10)
+  iter(bmod, force=TRUE) <- 10
   checkTrue(nrow(thetac(bmod))==10)
+  ##model.list <- CNPBayes:::modelOtherModes(bmod)
+  ##checkTrue(all(sapply(model.list, validObject)))
 
-  model.list <- CNPBayes:::modelOtherModes(bmod)
-  checkTrue(all(sapply(model.list, validObject)))
+  ##
+  ## check pass by value semantics
+  ##
+  iter(mmod, force=TRUE) <- 5
+  burnin(mmod) <- 0
+  mmod2 <- posteriorSimulation(mmod)
+  checkTrue(!identical(thetac(mmod), thetac(mmod2)))
+  checkTrue(all(is.na(thetac(mmod))))
+  ## changing the burnin should not reinitialize the chains
+  burnin(mmod2) <- 2
+  checkTrue(!all(is.na(thetac(mmod2))))
 }

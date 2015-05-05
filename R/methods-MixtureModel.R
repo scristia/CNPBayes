@@ -237,7 +237,9 @@ setReplaceMethod("probz", "MixtureModel", function(object, value){
   object
 })
 
-setMethod("probz", "MixtureModel", function(object) object@probz)
+setMethod("probz", "MixtureModel", function(object) {
+  object@probz/iter(object)
+})
 
 
 setMethod("runBurnin", "MarginalModel", function(object){
@@ -325,7 +327,7 @@ multipleStarts <- function(object){
     dataPrec(x) <- 1/computeVars(x)
     sigma2(x) <- 1/dataPrec(x)
     computeLoglik(x)
-    mcmcParams(x) <- mcmcParams(object)
+    mcmcParams(x, force=TRUE) <- mcmcParams(object)
     mmod[[1]] <- x
   }
   ##}
@@ -340,7 +342,7 @@ multipleStarts <- function(object){
   ##  initialize batch model
   ##
   bmodel <- BatchModel(data=y(model), batch=batch(object), k=k(object), hypp=hyperParams(object))
-  mcmcParams(bmodel) <- mcmcParams(object)
+  mcmcParams(bmodel, force=TRUE) <- mcmcParams(object)
   theta(bmodel) <- matrix(theta(model), nBatch(object), k(object), byrow=TRUE)
   mu(bmodel) <- theta(model)
   z(bmodel) <- z(model)
@@ -619,8 +621,10 @@ setReplaceMethod("burnin", "MixtureModel", function(object, value){
   object
 })
 
-setReplaceMethod("iter", "MixtureModel", function(object, value){
-  iter(mcmcParams(object)) <- value
+setReplaceMethod("iter", "MixtureModel", function(object, value, force=FALSE){
+  mp <- mcmcParams(object)
+  iter(mp) <- value
+  mcmcParams(object, force=force) <- mp
   object
 })
 
@@ -647,11 +651,38 @@ sigma20c <- function(object) sigma2.0(chains(object))
 ## negative value -does not- trigger an update of the chains -- chains
 ## are kept as is
 ##
-setReplaceMethod("mcmcParams", "MixtureModel", function(object, value){
-  object@mcmc.params <- value
-  if(iter(object) > 0){
-    ## make the chains the right size
-    mcmcChains(object) <- McmcChains(object)
+setReplaceMethod("mcmcParams", "MixtureModel", function(object, value, force=FALSE){
+  it <- iter(object)
+  if(it != iter(value)){
+    if(!force){
+      msg <- "Replacement will change the size of the elements in mcmc.chains slot."
+      msg2 <- "Force=TRUE will allow the replacement"
+      stop(paste(msg, msg2, sep="\n"))
+    } else {
+      ## force is TRUE
+      if(iter(value) > iter(object)){
+        object@mcmc.params <- value
+        ## create a new chain
+        mcmc_chains <- McmcChains(object)
+      } else {
+        object@mcmc.params <- value
+        index <- seq_len(iter(value))
+        mcmc_chains <- mcmcChains(object)[index, ]
+      }
+      mcmcChains(object) <- mcmc_chains
+      return(object)
+    }
   }
+  ## if we've got to this point, it must be safe to update mcmc.params
+  ## (i.e., size of chains is not effected)
+  object@mcmc.params <- value
+  object
+})
+
+
+
+setMethod("zChain", "MixtureModel", function(object) chains(object)@z)
+setReplaceMethod("zChain", "MixtureModel", function(object, value){
+  mcmcChains(object)@z <- value
   object
 })

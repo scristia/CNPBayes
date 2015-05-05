@@ -56,6 +56,7 @@ RcppExport SEXP update_theta(SEXP xmod) {
 //     // initialize objects that are passed from R
 //     RNGScope scope;
 //     Rcpp::S4 model(xmod);
+
 //     NumericVector y = getData(model);
 //     //int K = getK(model.slot("hyperparams"));
 //     IntegerVector z = getZ(model);

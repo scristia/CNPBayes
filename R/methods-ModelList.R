@@ -1,12 +1,13 @@
-MarginalModelList <- function(model_list=list(), names=character(),
-                              maxperm=3L, mode_index=list(),
-                              mode_list=list()){
-  if(length(model_list) > 0){
-    type <- unique(sapply(model_list, class))
-  } else type="MarginalModel"
-  new("MarginalModelList", model_list=model_list, elementType=type,
-      names=names, maxperm=maxperm, mode_index=mode_index,
-      mode_list=mode_list)
+MarginalModelList <- function(model_list=list(),
+                              names=character()){
+                              ##maxperm=3L, mode_index=list(),
+                              ##mode_list=list()){
+##  if(length(model_list) > 0){
+##    type <- unique(sapply(model_list, class))
+##  } else type="MarginalModel"
+  new("MarginalModelList", model_list=model_list, names=names) ##elementType=type,
+##      names=names, maxperm=maxperm, mode_index=mode_index,
+##      mode_list=mode_list)
 }
 
 
@@ -27,11 +28,10 @@ elementType <- function(object) object@elementType
 
 setValidity("MarginalModelList", function(object){
   msg <- TRUE
-  type <- elementType(object)
-  if(type != "MarginalModel") {
-    msg <- "Elements of MarginalModelList must be of class 'MarginalModel'"
-    return(msg)
-  }
+##  if(!all(sapply(modelList(object)) == "MarginalModel")){
+##    msg <- "Elements of MarginalModelList must be of class 'MarginalModel'"
+##    return(msg)
+  ##  }
   msg
 })
 
@@ -59,9 +59,11 @@ setMethod("show", "ModelList", function(object){
     return()
   }
   cat(" K               : ", paste(k(object), collapse=", "), "\n")
-  bf <- bayesFactor(summary(object))
-  cat(" top two         : ", names(bf), "\n")
-  cat(" log bayes factor: ", round(bf, 1), "\n")
+  if(length(object) > 2){
+##    bf <- bayesFactor(summary(object))
+##    cat(" top two         : ", names(bf), "\n")
+##    cat(" log bayes factor: ", round(bf, 1), "\n")
+  }
   cat(" see summary(), modelList()\n")
 })
 

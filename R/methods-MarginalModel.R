@@ -1,8 +1,6 @@
 #' @export
-MarginalModel <- function(data=numeric(), k=2, batch, hypp, mcmc.params){
-  if(missing(batch)){
-    batch <- as.integer(factor(rep("a", length(data))))
-  }
+MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
+  batch <- rep(1L, length(data))
   if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
   if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
   nbatch <- setNames(as.integer(table(batch)), levels(batch))
@@ -623,13 +621,13 @@ sumSquares <- function(object){
 }
 
 
-permuteZ <- function(object){
-  zz <- z(object)
-  i <- permn(seq_len(k(object)))[[2]]
-  zz <- factor(as.integer(factor(zz, levels=i)), levels=seq_len(k(object)))
-  z(object) <- zz
-  object
-}
+##permuteZ <- function(object){
+##  zz <- z(object)
+##  i <- permn(seq_len(k(object)))[[2]]
+##  zz <- factor(as.integer(factor(zz, levels=i)), levels=seq_len(k(object)))
+##  z(object) <- zz
+##  object
+##}
 
 setMethod("showMeans", "MarginalModel", function(object){
   paste(round(theta(object), 2), collapse=", ")
@@ -720,3 +718,170 @@ setMethod("rowMarginal", c("SummarizedExperiment", "missing"),
             rowM_yGivenK(object=object,  mcmc.params=mcmc.params,
                          K=K, maxperm=maxperm, ...)
           })
+
+permuteZ <- function(object, ix){
+  zz <- zChain(object)
+  zz2 <- zz
+  for(i in seq_along(ix)){
+    zz2[zz == ix[i]] <- i
+  }
+  zz2
+}
+
+permuteModes <- function(object, ix){
+  modes(object)[["theta"]] <- modes(object)[["theta"]][ix]
+  modes(object)[["sigma2"]] <- modes(object)[["sigma2"]][ix]
+  modes(object)[["mixprob"]] <- modes(object)[["mixprob"]][ix]
+  object
+}
+
+pThetaStar <- function(kmod, maxperm=5, T2=1/10*iter(kmod)){
+  burnin(kmod) <- 0
+  nStarts(kmod) <- 1
+  permutations <- permnK(k(kmod), Inf)
+  if(nrow(permutations) > maxperm){
+    index <- sample(2:nrow(permutations), maxperm)
+    permutations <- permutations[c(1, index), ]
+  }
+  NP <- nrow(permutations)
+  results <- matrix(NA, NP, 3)
+  colnames(results) <- c("p(theta*|y)", "p(sigma2*|theta*, y)", "p(p*|theta*, sigma2*, y)")
+  ## run the reduced Gibbs' with theta* fixed
+  kmodZ1 <- .Call("simulate_z_reduced1", kmod)
+  ## run the reduced Gibbs' with theta* and sigma2* fixed
+  kmodZ2 <- .Call("simulate_z_reduced2", kmod)
+  for(i in seq_len(nrow(permutations))){
+    kmod_ <- kmod
+    kmodZ1_ <- kmodZ1
+    kmodZ2_ <- kmodZ2
+    if(i > 1){
+      iter(kmod_, force=TRUE) <- T2
+      iter(kmodZ1_, force=TRUE) <- T2
+      iter(kmodZ2_, force=TRUE) <- T2
+      ix <- permutations[i, ]
+      zChain(kmod_) <- permuteZ(kmod_, ix)
+      zChain(kmodZ1_) <- permuteZ(kmodZ1_, ix)
+      zChain(kmodZ2_) <- permuteZ(kmodZ2_, ix)
+      kmod_ <- permuteModes(kmod_, ix)
+      kmodZ1_ <- permuteModes(kmodZ1_, ix)
+      kmodZ2_ <- permuteModes(kmodZ2_, ix)
+      ## update the nu0, sigma20 chains for the permuted Z models (Z fixed)
+      kmodZ1_ <- .Call("permutedz_reduced1", kmodZ1_)
+      p_theta.z <- exp(.Call("p_theta_zpermuted", kmod_))  ## use permuted
+    } else {
+      p_theta.z <- exp(.Call("marginal_theta", kmod_))
+    }
+    if(FALSE){
+      truth <- as.numeric(table(zChain(kmodZ2_)[1, ])/2500)
+      result <- modes(kmodZ2_)[["mixprob"]]
+      ## truth and results should be in the same ballpark
+      pstar <- result
+      zz <- as.numeric(table(zChain(kmodZ2_)[1, ]))
+      gtools::ddirichlet(pstar, zz+1)
+
+    }
+    ## for i = 1, results is a sum of T terms
+    ## for i > 1, results is a sum of T2 terms
+    p_sigma2.z <- exp(.Call("p_sigma2_zpermuted", kmodZ1_))
+    p_pmix.z <- exp(.Call("p_pmix_reduced", kmodZ2_))
+    ## integrate out z
+    p_theta <- sum(p_theta.z)/iter(kmod_)
+    p_sigma2 <- sum(p_sigma2.z)/iter(kmod_)
+    p_pmix <- sum(p_pmix.z)/iter(kmod_)
+    results[i, ] <- c(p_theta, p_sigma2, p_pmix)
+  }
+  results
+}
+
+.berkhof <- function(x, model, T2){
+  if(missing(T2)) stop("must specify T2")
+  NP <- nrow(x)
+  p.I <- prod(x[1, ])  ## Chib's estimate
+  if(k(model) == 1 ){
+    p.V <- p.I
+  } else {
+    p.IV <- 1/(NP-1)*sum(rowProds(x[-1, , drop=FALSE]))
+    p.V <- 1/NP * p.I + (NP-1)/NP * p.IV
+  }
+  list(p_theta=x,
+       chib=log(p.I),
+       berkhof=log(p.V),
+       marginal=modes(model)[["loglik"]] + modes(model)[["logprior"]] - log(p.V))
+}
+
+berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5, nchains=2){
+  x <- pThetaStar(model, T2=T2, maxperm=maxperm)
+  results <- .berkhof(x, model=model, T2=T2)
+  PosteriorSummary(p_theta=results$p_theta,
+                   chib=results$chib,
+                   berkhof=results$berkhof,
+                   marginal=results$marginal)
+}
+
+summarizeMarginalEstimates <- function(x){
+  chibs <- round(sapply(x, chib), 2)
+  berk <- round(sapply(x, berkhof), 2)
+  my <- round(sapply(x, marginal), 2)
+  xx <- cbind(chibs, berk, my)
+  colnames(xx) <- c("chib", "berkhof", "marginal")
+  xx
+}
+
+#' @export
+computeMarginalLik <- function(y, K=1:4, T=1000, burnin=200,
+                               T2=200, maxperm=5, nchains=2){
+  my <- vector("list", length(K))
+  mlist <- vector("list", length(K))
+  mp <- McmcParams(iter=T, nStarts=1, burnin=burnin)
+  modalLoglik <- function(x) modes(x)[["loglik"]]
+  for(i in seq_along(K)){
+    k <- K[i]
+    kmod <- MarginalModel(y, k=k, mcmc.params=mp)
+    ##kmod <- posteriorSimulation(kmod)
+    if( k == 1 ) ns <- 1 else ns <- nchains
+    kmodlist <- replicate(ns, posteriorSimulation(kmod))
+    mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
+    ll <- sapply(kmodlist, modalLoglik)
+    mlist[[i]] <- kmodlist[[which.max(ll)]]
+    xx <- summarizeMarginalEstimates(mlik)
+    my[[i]] <- xx
+  }
+  nms <- paste0("M", K)
+  names(my) <- nms
+  results <- list(models=MarginalModelList(model_list=mlist,
+                      names=nms),
+                  marginal=my)
+  results
+}
+
+#' @export
+orderModels <- function(x){
+  models <- x$models
+  K <- k(models)
+  ##maxdev <- sapply(K, function(x) log(factorial(x))) + 0.5
+  maxdev <- 5
+  marginal.est.list <- x$marginal
+  m <- lapply(marginal.est.list, function(x) x[, "marginal"])
+  my <- sapply(m, max)
+  d <- sapply(m, function(x) diff(range(x)))
+  if(sum(d < maxdev, na.rm=TRUE) >= 1){
+    K <- K[ d < maxdev ]
+  } else {
+    warning("Marginal likelihood estimates are dissimilar for all models.  More iterations are needed")
+    return(NULL)
+  }
+  K <- K[order(my[K], decreasing=TRUE)]
+  models[ K ]
+}
+
+#' @export
+logBayesFactor <- function(x){
+  models <- x$models
+  if(length(models) <= 1) {
+    return(NA)
+  }
+  K <- k(models)
+  ml <- sapply(x$marginal[K], function(x) mean(x[, "marginal"]))
+  bf <- setNames(ml[1]-ml[2], paste0(names(ml[1:2]), collapse="-"))
+  bf
+}
