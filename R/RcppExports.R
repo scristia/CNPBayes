@@ -89,8 +89,32 @@ mcmc_batch_burnin <- function(xmod, mcmcp) {
     .Call('CNPBayes_mcmc_batch_burnin', PACKAGE = 'CNPBayes', xmod, mcmcp)
 }
 
-mcmc_batch <- function(xmod, mcmcp) {
-    .Call('CNPBayes_mcmc_batch', PACKAGE = 'CNPBayes', xmod, mcmcp)
+mcmc_batch <- function(object, mcmcp) {
+    .Call('CNPBayes_mcmc_batch', PACKAGE = 'CNPBayes', object, mcmcp)
+}
+
+p_theta_batch <- function(xmod) {
+    .Call('CNPBayes_p_theta_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_theta_zfixed_batch <- function(xmod) {
+    .Call('CNPBayes_p_theta_zfixed_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+simulate_z_reduced1_batch <- function(object) {
+    .Call('CNPBayes_simulate_z_reduced1_batch', PACKAGE = 'CNPBayes', object)
+}
+
+reduced_z_theta_fixed <- function(object) {
+    .Call('CNPBayes_reduced_z_theta_fixed', PACKAGE = 'CNPBayes', object)
+}
+
+simulate_z_reduced2_batch <- function(object) {
+    .Call('CNPBayes_simulate_z_reduced2_batch', PACKAGE = 'CNPBayes', object)
+}
+
+p_sigma2_batch <- function(xmod) {
+    .Call('CNPBayes_p_sigma2_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 loglik <- function(xmod) {
@@ -169,12 +193,12 @@ p_theta_zpermuted <- function(xmod) {
     .Call('CNPBayes_p_theta_zpermuted', PACKAGE = 'CNPBayes', xmod)
 }
 
-simulate_z_reduced1 <- function(xmod) {
-    .Call('CNPBayes_simulate_z_reduced1', PACKAGE = 'CNPBayes', xmod)
+simulate_z_reduced1 <- function(object) {
+    .Call('CNPBayes_simulate_z_reduced1', PACKAGE = 'CNPBayes', object)
 }
 
-simulate_z_reduced2 <- function(xmod) {
-    .Call('CNPBayes_simulate_z_reduced2', PACKAGE = 'CNPBayes', xmod)
+simulate_z_reduced2 <- function(object) {
+    .Call('CNPBayes_simulate_z_reduced2', PACKAGE = 'CNPBayes', object)
 }
 
 permutedz_reduced1 <- function(xmod) {
@@ -195,9 +219,5 @@ log_ddirichlet_ <- function(x_, alpha_) {
 
 p_pmix_reduced <- function(xmod) {
     .Call('CNPBayes_p_pmix_reduced', PACKAGE = 'CNPBayes', xmod)
-}
-
-test_clone <- function(xmod) {
-    .Call('CNPBayes_test_clone', PACKAGE = 'CNPBayes', xmod)
 }
 

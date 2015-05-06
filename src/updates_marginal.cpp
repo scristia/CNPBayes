@@ -735,9 +735,7 @@ RcppExport SEXP marginal_theta(SEXP xmod) {
   // List modes = model.slot("modes") ;
   // NumericVector thetastar = as<NumericVector>(modes["theta"]) ;
   List modes = model.slot("modes") ;
-  NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
-  NumericVector sigma2star=clone(sigma2_) ;
   NumericVector thetastar=clone(theta_) ;
   int K = thetastar.size() ;
   NumericVector p_theta(S) ;
@@ -782,15 +780,15 @@ RcppExport SEXP p_theta_zpermuted(SEXP xmod) {
   for(int s=0; s < S; ++s){
     h = Z(s, _ ) ;
     model.slot("z") = h ;
-    model.slot("data.mean") = compute_means(xmod) ;
-    model.slot("data.prec") = compute_prec(xmod) ;
-    model.slot("theta") = update_theta(xmod) ;
-    model.slot("sigma2") = update_sigma2(xmod) ;
-    model.slot("pi") = update_p(xmod) ;
-    model.slot("mu") = update_mu(xmod) ;
-    model.slot("tau2") = update_tau2(xmod) ;
-    model.slot("nu.0") = update_nu0(xmod) ;
-    model.slot("sigma2.0") = update_sigma2_0(xmod) ;
+    model.slot("data.mean") = compute_means(model) ;
+    model.slot("data.prec") = compute_prec(model) ;
+    model.slot("theta") = update_theta(model) ;
+    model.slot("sigma2") = update_sigma2(model) ;
+    model.slot("pi") = update_p(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("sigma2.0") = update_sigma2_0(model) ;
     mu = model.slot("mu") ;
     tau2 = model.slot("tau2") ;
     tau = sqrt(tau2) ;
@@ -806,7 +804,8 @@ RcppExport SEXP p_theta_zpermuted(SEXP xmod) {
 
 RcppExport SEXP marginal_sigma2(SEXP xmod, SEXP mcmcp) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model_(xmod) ;
+  Rcpp::S4 model = clone(model_) ;  
   Rcpp::S4 params(mcmcp) ;
   int S = params.slot("iter") ;
   // Assume current values are the modes (in R, useModes(object) ensures this)
@@ -827,16 +826,16 @@ RcppExport SEXP marginal_sigma2(SEXP xmod, SEXP mcmcp) {
   NumericVector nu0 = chains.slot("nu.0") ;
   NumericVector s20 = chains.slot("sigma2.0") ;
   for(int s=0; s < S; ++s){
-    model.slot("z") = update_z(xmod) ;
-    model.slot("data.mean") = compute_means(xmod) ;
-    model.slot("data.prec") = compute_prec(xmod) ;
-    // model.slot("theta") = update_theta(xmod) ;  Do not update theta!
-    model.slot("sigma2") = update_sigma2(xmod) ;
-    model.slot("pi") = update_p(xmod) ;
-    model.slot("mu") = update_mu(xmod) ;
-    model.slot("tau2") = update_tau2(xmod) ;
-    model.slot("nu.0") = update_nu0(xmod) ;
-    model.slot("sigma2.0") = update_sigma2_0(xmod) ;
+    model.slot("z") = update_z(model) ;
+    model.slot("data.mean") = compute_means(model) ;
+    model.slot("data.prec") = compute_prec(model) ;
+    // model.slot("theta") = update_theta(model) ;  Do not update theta!
+    model.slot("sigma2") = update_sigma2(model) ;
+    model.slot("pi") = update_p(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("sigma2.0") = update_sigma2_0(model) ;
     nu0 = model.slot("nu.0") ;
     s20 = model.slot("sigma2.0") ;
     tmp = dgamma(prec, 0.5*nu0[0], 2.0 / (nu0[0]*s20[0])) ;
@@ -850,9 +849,9 @@ RcppExport SEXP marginal_sigma2(SEXP xmod, SEXP mcmcp) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP simulate_z_reduced1(SEXP xmod) {
+RcppExport SEXP simulate_z_reduced1(SEXP object) {
   RNGScope scope ;
-  Rcpp::S4 model_(xmod) ;
+  Rcpp::S4 model_(object) ;
   Rcpp::S4 model = clone(model_) ;
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
@@ -884,16 +883,16 @@ RcppExport SEXP simulate_z_reduced1(SEXP xmod) {
   // Run reduced Gibbs  -- theta is fixed at modal ordinate
   //  
   for(int s=0; s < S; ++s){
-    model.slot("z") = update_z(xmod) ;
-    model.slot("data.mean") = compute_means(xmod) ;
-    model.slot("data.prec") = compute_prec(xmod) ;
-    //model.slot("theta") = update_theta(xmod) ; Do not update theta !
-    model.slot("sigma2") = update_sigma2(xmod) ;
-    model.slot("pi") = update_p(xmod) ;
-    model.slot("mu") = update_mu(xmod) ;
-    model.slot("tau2") = update_tau2(xmod) ;
-    model.slot("nu.0") = update_nu0(xmod) ;
-    model.slot("sigma2.0") = update_sigma2_0(xmod) ;
+    model.slot("z") = update_z(model) ;
+    model.slot("data.mean") = compute_means(model) ;
+    model.slot("data.prec") = compute_prec(model) ;
+    //model.slot("theta") = update_theta(model) ; Do not update theta !
+    model.slot("sigma2") = update_sigma2(model) ;
+    model.slot("pi") = update_p(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("sigma2.0") = update_sigma2_0(model) ;
     nu0chain[s] = model.slot("nu.0") ;
     s20chain[s] = model.slot("sigma2.0") ;
     h = model.slot("z") ;
@@ -909,9 +908,9 @@ RcppExport SEXP simulate_z_reduced1(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP simulate_z_reduced2(SEXP xmod) {
+RcppExport SEXP simulate_z_reduced2(SEXP object) {
   RNGScope scope ;
-  Rcpp::S4 model_(xmod) ;
+  Rcpp::S4 model_(object) ;
   Rcpp::S4 model = clone(model_) ;
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
@@ -944,16 +943,16 @@ RcppExport SEXP simulate_z_reduced2(SEXP xmod) {
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
   for(int s=0; s < S; ++s){
-    model.slot("z") = update_z(xmod) ;
-    model.slot("data.mean") = compute_means(xmod) ;
-    model.slot("data.prec") = compute_prec(xmod) ;
-    // model.slot("theta") = update_theta(xmod) ; Do not update theta !
-    // model.slot("sigma2") = update_sigma2(xmod) ;
-    model.slot("pi") = update_p(xmod) ;
-    model.slot("mu") = update_mu(xmod) ;
-    model.slot("tau2") = update_tau2(xmod) ;
-    model.slot("nu.0") = update_nu0(xmod) ;
-    model.slot("sigma2.0") = update_sigma2_0(xmod) ;
+    model.slot("z") = update_z(model) ;
+    model.slot("data.mean") = compute_means(model) ;
+    model.slot("data.prec") = compute_prec(model) ;
+    // model.slot("theta") = update_theta(model) ; Do not update theta !
+    // model.slot("sigma2") = update_sigma2(model) ;
+    model.slot("pi") = update_p(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("sigma2.0") = update_sigma2_0(model) ;
     // nu0chain[s] = model.slot("nu.0") ;
     // s20chain[s] = model.slot("sigma2.0") ;
     h = model.slot("z") ;
@@ -1006,15 +1005,15 @@ RcppExport SEXP permutedz_reduced1(SEXP xmod) {
     h = Z(s, _) ;
     //model.slot("z") = update_z(xmod) ;
     model.slot("z") = h ;
-    model.slot("data.mean") = compute_means(xmod) ;
-    model.slot("data.prec") = compute_prec(xmod) ;
-    //model.slot("theta") = update_theta(xmod) ; Do not update theta !
-    model.slot("sigma2") = update_sigma2(xmod) ;
-    model.slot("pi") = update_p(xmod) ;
-    model.slot("mu") = update_mu(xmod) ;
-    model.slot("tau2") = update_tau2(xmod) ;
-    model.slot("nu.0") = update_nu0(xmod) ;
-    model.slot("sigma2.0") = update_sigma2_0(xmod) ;
+    model.slot("data.mean") = compute_means(model) ;
+    model.slot("data.prec") = compute_prec(model) ;
+    //model.slot("theta") = update_theta(model) ; Do not update theta !
+    model.slot("sigma2") = update_sigma2(model) ;
+    model.slot("pi") = update_p(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("sigma2.0") = update_sigma2_0(model) ;
     nu0chain[s] = model.slot("nu.0") ;
     s20chain[s] = model.slot("sigma2.0") ;
   }
@@ -1068,15 +1067,15 @@ RcppExport SEXP permutedz_reduced2(SEXP xmod) {
     h = Z(s, _) ;
     //model.slot("z") = update_z(xmod) ;
     model.slot("z") = h ;
-    model.slot("data.mean") = compute_means(xmod) ;
-    model.slot("data.prec") = compute_prec(xmod) ;
-    // model.slot("theta") = update_theta(xmod) ; Do not update theta !
-    // model.slot("sigma2") = update_sigma2(xmod) ;
-    model.slot("pi") = update_p(xmod) ;
-    model.slot("mu") = update_mu(xmod) ;
-    model.slot("tau2") = update_tau2(xmod) ;
-    model.slot("nu.0") = update_nu0(xmod) ;
-    model.slot("sigma2.0") = update_sigma2_0(xmod) ;
+    model.slot("data.mean") = compute_means(model) ;
+    model.slot("data.prec") = compute_prec(model) ;
+    // model.slot("theta") = update_theta(model) ; Do not update theta !
+    // model.slot("sigma2") = update_sigma2(model) ;
+    model.slot("pi") = update_p(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("sigma2.0") = update_sigma2_0(model) ;
     nu0chain[s] = model.slot("nu.0") ;
     s20chain[s] = model.slot("sigma2.0") ;
   }
@@ -1115,11 +1114,11 @@ RcppExport SEXP p_sigma2_zpermuted(SEXP xmod) {
   NumericVector s20chain = chains.slot("sigma2.0") ;
   //
   // Run reduced Gibbs  -- theta is fixed at modal ordinate
-  //  
+  //
+  prec = 1.0/sigma2star ;
   for(int s=0; s < S; ++s){
     s20 = s20chain[s] ;
     nu0 = nu0chain[s] ;
-    prec = 1.0/sigma2star ;
     tmp = dgamma(prec, 0.5*nu0[0], 2.0 / (nu0[0]*s20[0])) ;
     double total = 0.0 ;
     for(int k = 0; k < K; ++k){
@@ -1152,6 +1151,7 @@ NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
   return result ;
 }
 
+
 // [[Rcpp::export]]
 RcppExport SEXP p_pmix_reduced(SEXP xmod) {
   RNGScope scope ;
@@ -1161,17 +1161,11 @@ RcppExport SEXP p_pmix_reduced(SEXP xmod) {
   Rcpp::S4 hypp = model.slot("hyperparams") ;
   int S = mcmcp.slot("iter") ;
   List modes = model.slot("modes") ;
-  NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
-  int K = sigma2_.size() ;
-  NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
-  NumericVector sigma2star=clone(sigma2_) ;
-  NumericVector thetastar=clone(theta_) ;
+  int K = hypp.slot("k") ;
   NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
   NumericVector pstar = clone(p_) ;
   IntegerMatrix Z = chains.slot("z") ;
   NumericVector alpha = hypp.slot("alpha") ;
-  model.slot("theta") = theta_ ;
-  model.slot("sigma2") = sigma2_ ;
   NumericVector log_pmix(S) ;
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
@@ -1193,18 +1187,6 @@ RcppExport SEXP p_pmix_reduced(SEXP xmod) {
 }
 
 
-// [[Rcpp::export]]
-RcppExport SEXP test_clone(SEXP xmod) {
-  Rcpp::S4 model_ = clone(xmod) ;
-  Rcpp::S4 model(model_) ;
-  NumericVector x = model.slot("x") ;
-  int n = x.size() ;
-  for(int i = 0; i < n; ++i){
-    x[i] = 1.0 ;
-  }
-  model.slot("x") = x ;
-  return model_ ;
-}
 
 
 

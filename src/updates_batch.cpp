@@ -696,8 +696,9 @@ RcppExport SEXP mcmc_batch_burnin(SEXP xmod, SEXP mcmcp) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
+RcppExport SEXP mcmc_batch(SEXP object, SEXP mcmcp) {
   RNGScope scope ;
+  Rcpp::S4 xmod = clone(object) ;  
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 chain(model.slot("mcmc.chains")) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -878,4 +879,306 @@ RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp) {
   model.slot("mcmc.chains") = chain ;
   return xmod ;
 }
+
+
+// [[Rcpp::export]]
+RcppExport SEXP p_theta_batch(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model_(xmod) ;
+  Rcpp::S4 model = clone(model_) ;
+  Rcpp::S4 params=model.slot("mcmc.params") ;
+  Rcpp::S4 chains(model.slot("mcmc.chains")) ;  
+  int S = params.slot("iter") ;
+  // Assume current values are the modes (in R, useModes(object) ensures this)
+  // List modes = model.slot("modes") ;
+  // NumericVector thetastar = as<NumericVector>(modes["theta"]) ;
+  List modes = model.slot("modes") ;
+  NumericMatrix theta_ = as<NumericMatrix>(modes["theta"]) ;
+  NumericMatrix thetastar=clone(theta_) ;
+  int K = thetastar.ncol() ;
+  int B = thetastar.nrow() ;
+  NumericVector p_theta(S) ;
+  NumericMatrix muc = chains.slot("mu") ;
+  NumericMatrix tau2c = chains.slot("tau2") ;
+  NumericVector theta(1) ;
+  NumericVector tmp(1) ;
+  NumericVector d(1) ;  
+  double tau ;
+  double mu ;  
+  for(int s = 0; s < S; ++s){
+    d = 1.0 ;
+    for(int k = 0; k < K; ++k){
+      tau = sqrt(tau2c(s, k)) ;
+      mu = muc(s, k) ;
+      for(int b = 0; b < B; ++b){
+        theta[0] = thetastar(b, k) ;
+        tmp = dnorm(theta, mu, tau) ;      
+        d = d * tmp[0] ;
+      }
+    }
+    p_theta[s] = d[0] ;
+  }
+  return p_theta ;
+}
+
+// [[Rcpp::export]]
+RcppExport SEXP p_theta_zfixed_batch(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model_(xmod) ;
+  Rcpp::S4 model = clone(model_) ;
+  Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
+  //Rcpp::S4 params(mcmcp) ;
+  int S = mcmcp.slot("iter") ;
+  List modes = model.slot("modes") ;
+  NumericMatrix sigma2_ = as<NumericMatrix>(modes["sigma2"]) ;
+  NumericMatrix theta_ = as<NumericMatrix>(modes["theta"]) ;
+  NumericMatrix sigma2star=clone(sigma2_) ;
+  NumericMatrix thetastar=clone(theta_) ;
+  int K = thetastar.ncol() ;
+  int B = thetastar.nrow() ;
+  NumericVector p_theta(S) ;
+  Rcpp::S4 chains(model.slot("mcmc.chains")) ;
+  //double mu ;
+  NumericVector tau(K) ;
+  NumericVector tmp(K) ;
+  IntegerMatrix Z = chains.slot("z") ;
+  int N = Z.ncol() ;
+  IntegerVector h (N) ;
+  NumericVector tau2(K) ;
+  NumericVector mu(K) ;
+  NumericVector theta(1) ;
+  NumericVector d(1) ;
+  for(int s=0; s < S; ++s){
+    h = Z(s, _ ) ;
+    model.slot("z") = h ;
+    model.slot("data.mean") = compute_means_batch(model) ;
+    model.slot("data.prec") = compute_prec_batch(model) ;
+    model.slot("theta") = update_theta_batch(model) ;
+    model.slot("sigma2") = update_sigma2_batch(model) ;
+    model.slot("pi") = update_p_batch(model) ;
+    model.slot("mu") = update_mu_batch(model) ;
+    model.slot("tau2") = update_tau2_batch(model) ;
+    model.slot("nu.0") = update_nu0_batch(model) ;
+    model.slot("sigma2.0") = update_sigma20_batch(model) ;
+    mu = model.slot("mu") ;
+    tau2 = model.slot("tau2") ;
+    tau = sqrt(tau2) ;
+    // tmp = dnorm(thetastar, mu, tau[0]) ;
+    // double prod = 0.0;
+    // for(int k = 0; k < K; ++k) {
+    // prod += log(tmp[k]) ;
+    // }
+    d[0] = 1.0 ;
+    for(int k = 0; k < K; ++k){
+      for(int b = 0; b < B; ++b){
+        theta[0] = thetastar(b, k) ;
+        tmp = dnorm(theta, mu[k], tau[k]) ;      
+        d = d * tmp[0] ;
+      }
+    }
+    p_theta[s] = d[0] ;
+    //logp_theta[s] = prod ;
+  }
+  return p_theta ;
+}
+
+
+// [[Rcpp::export]]
+RcppExport SEXP simulate_z_reduced1_batch(SEXP object) {
+  RNGScope scope ;
+  Rcpp::S4 model_(object) ;
+  Rcpp::S4 model = clone(model_) ;
+  Rcpp::S4 params=model.slot("mcmc.params") ;
+  Rcpp::S4 chains=model.slot("mcmc.chains") ;
+  int S = params.slot("iter") ;
+  List modes = model.slot("modes") ;
+  NumericMatrix theta_ = as<NumericMatrix>(modes["theta"]) ;
+  NumericMatrix thetastar=clone(theta_) ;
+  int K = thetastar.ncol() ;
+  NumericVector y = model.slot("data") ;
+  int N = y.size() ;
+  //
+  // We need to keep the Z|y,theta* chain
+  //
+  IntegerMatrix Z = chains.slot("z") ;
+  NumericVector nu0chain = chains.slot("nu.0") ;
+  NumericVector s20chain = chains.slot("sigma2.0") ;
+  IntegerVector h(N) ;
+  model.slot("theta") = thetastar ;
+  //
+  // Run reduced Gibbs  -- theta is fixed at modal ordinate
+  //  
+  for(int s=0; s < S; ++s){
+    model.slot("z") = update_z_batch(model) ;
+    model.slot("data.mean") = compute_means_batch(model) ;
+    model.slot("data.prec") = compute_prec_batch(model) ;
+    //model.slot("theta") = update_theta(model) ; Do not update theta !
+    model.slot("sigma2") = update_sigma2_batch(model) ;
+    model.slot("pi") = update_p_batch(model) ;
+    model.slot("mu") = update_mu_batch(model) ;
+    model.slot("tau2") = update_tau2_batch(model) ;
+    model.slot("nu.0") = update_nu0_batch(model) ;
+    model.slot("sigma2.0") = update_sigma20_batch(model) ;
+    nu0chain[s] = model.slot("nu.0") ;
+    s20chain[s] = model.slot("sigma2.0") ;
+    h = model.slot("z") ;
+    Z(s, _) = h ;
+  }
+  //return logp_prec ;
+  chains.slot("z") = Z ;
+  chains.slot("nu.0") = nu0chain ;
+  chains.slot("sigma2.0") = s20chain ;
+  model.slot("mcmc.chains") = chains ;
+  return model ;
+}
+
+// [[Rcpp::export]]
+RcppExport SEXP reduced_z_theta_fixed(SEXP object) {
+  RNGScope scope ;
+  Rcpp::S4 model_(object) ;
+  Rcpp::S4 model = clone(model_) ;
+  Rcpp::S4 params=model.slot("mcmc.params") ;
+  Rcpp::S4 chains=model.slot("mcmc.chains") ;
+  int S = params.slot("iter") ;
+  List modes = model.slot("modes") ;
+  NumericMatrix theta_ = as<NumericMatrix>(modes["theta"]) ;
+  NumericMatrix thetastar=clone(theta_) ;
+  int K = thetastar.ncol() ;
+  NumericVector y = model.slot("data") ;
+  int N = y.size() ;
+  //
+  // We need to keep the Z|y,theta* chain
+  //
+  IntegerMatrix Z = chains.slot("z") ;
+  NumericVector nu0chain = chains.slot("nu.0") ;
+  NumericVector s20chain = chains.slot("sigma2.0") ;
+  IntegerVector h(N) ;
+  model.slot("theta") = thetastar ;
+  //
+  // Run reduced Gibbs  -- theta is fixed at modal ordinate
+  //  
+  for(int s=0; s < S; ++s){
+    h = Z(s, _) ;
+    model.slot("z") = h ;
+    model.slot("data.mean") = compute_means_batch(model) ;
+    model.slot("data.prec") = compute_prec_batch(model) ;
+    //model.slot("theta") = update_theta(model) ; Do not update theta !
+    model.slot("sigma2") = update_sigma2_batch(model) ;
+    model.slot("pi") = update_p_batch(model) ;
+    model.slot("mu") = update_mu_batch(model) ;
+    model.slot("tau2") = update_tau2_batch(model) ;
+    model.slot("nu.0") = update_nu0_batch(model) ;
+    model.slot("sigma2.0") = update_sigma20_batch(model) ;
+    nu0chain[s] = model.slot("nu.0") ;
+    s20chain[s] = model.slot("sigma2.0") ;
+  }
+  //return logp_prec ;
+  chains.slot("z") = Z ;
+  chains.slot("nu.0") = nu0chain ;
+  chains.slot("sigma2.0") = s20chain ;
+  model.slot("mcmc.chains") = chains ;
+  return model ;
+}
+
+
+// [[Rcpp::export]]
+RcppExport SEXP simulate_z_reduced2_batch(SEXP object) {
+  RNGScope scope ;
+  Rcpp::S4 model_(object) ;
+  Rcpp::S4 model = clone(model_) ;
+  Rcpp::S4 params=model.slot("mcmc.params") ;
+  Rcpp::S4 chains=model.slot("mcmc.chains") ;
+  int S = params.slot("iter") ;
+  List modes = model.slot("modes") ;
+  NumericMatrix theta_ = as<NumericMatrix>(modes["theta"]) ;
+  NumericMatrix thetastar=clone(theta_) ;
+
+  NumericMatrix sigma2_ = as<NumericMatrix>(modes["sigma2"]) ;
+  NumericMatrix sigma2star = clone(sigma2_) ;
+  
+  int K = thetastar.ncol() ;
+  NumericVector y = model.slot("data") ;
+  int N = y.size() ;
+  //
+  // We need to keep the Z|y,theta* chain
+  //
+  IntegerMatrix Z = chains.slot("z") ;
+  IntegerVector h(N) ;
+  model.slot("theta") = thetastar ;
+  model.slot("sigma2") = sigma2star ;
+  
+  //
+  // Run reduced Gibbs  -- theta is fixed at modal ordinate
+  //  
+  for(int s=0; s < S; ++s){
+    model.slot("z") = update_z_batch(model) ;
+    model.slot("data.mean") = compute_means_batch(model) ;
+    model.slot("data.prec") = compute_prec_batch(model) ;
+    //model.slot("theta") = update_theta(model) ; Do not update theta !
+    //model.slot("sigma2") = update_sigma2_batch(model) ;
+    model.slot("pi") = update_p_batch(model) ;
+    model.slot("mu") = update_mu_batch(model) ;
+    model.slot("tau2") = update_tau2_batch(model) ;
+    model.slot("nu.0") = update_nu0_batch(model) ;
+    model.slot("sigma2.0") = update_sigma20_batch(model) ;
+    h = model.slot("z") ;
+    Z(s, _) = h ;
+  }
+  //return logp_prec ;
+  chains.slot("z") = Z ;
+  model.slot("mcmc.chains") = chains ;
+  return model ;
+}
+
+// [[Rcpp::export]]
+RcppExport SEXP p_sigma2_batch(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model_(xmod) ;
+  Rcpp::S4 model = clone(model_) ;
+  Rcpp::S4 chains=model.slot("mcmc.chains") ;
+  Rcpp::S4 params=model.slot("mcmc.params") ;
+  int S = params.slot("iter") ;
+  List modes = model.slot("modes") ;
+  NumericMatrix sigma2_ = as<NumericMatrix>(modes["sigma2"]) ;
+  NumericMatrix theta_ = as<NumericMatrix>(modes["theta"]) ;
+  NumericMatrix sigma2star=clone(sigma2_) ;
+  NumericMatrix thetastar=clone(theta_) ;
+  int K = thetastar.ncol() ;
+  int B = thetastar.nrow() ;
+  NumericMatrix prec(B, K) ;
+  NumericVector p_prec(S) ;
+  NumericVector tmp(K) ;
+  NumericVector nu0 (1) ;
+  NumericVector s20 (1) ;
+  //
+  // These chains have already been updated
+  //
+  NumericVector nu0chain = chains.slot("nu.0") ;
+  NumericVector s20chain = chains.slot("sigma2.0") ;
+  NumericVector d(1) ;
+  //
+  // Run reduced Gibbs  -- theta is fixed at modal ordinate
+  //
+  for(int k=0; k < K; ++k){
+    prec(_, k) = 1.0/sigma2star(_, k) ;
+  }  
+  for(int s=0; s < S; ++s){
+    s20 = s20chain[s] ;
+    nu0 = nu0chain[s] ;
+    double total = 1.0 ;
+    for(int b=0; b < B; ++b) {
+      tmp = dgamma(prec(b, _), 0.5*nu0[0], 2.0 / (nu0[0]*s20[0])) ;
+      for(int k = 0; k < K; ++k){
+        //total = log(tmp[k]) ;
+        total = total * tmp[k] ;
+      }
+    }
+    p_prec[s] = total ;
+  }
+  return p_prec ;
+}
+
+
+
+
 

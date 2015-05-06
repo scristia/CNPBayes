@@ -13,7 +13,7 @@ test_probz <- function(){
   pz <- probz(model)
   checkTrue(all(pz==0))
 
-  iter(model) <- 2
+  iter(model, force=TRUE) <- 2
   burnin(model) <- 0
   zz <- map(posteriorSimulation(model))
   checkEquals(zz, true_z, tolerance=0.5)

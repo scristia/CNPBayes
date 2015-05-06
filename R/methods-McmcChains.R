@@ -88,14 +88,18 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@theta <- x@theta[i, , drop=FALSE]
     x@sigma2 <- x@sigma2[i, , drop=FALSE]
     x@pi <- x@pi[i, , drop=FALSE]
-    x@mu <- x@mu[i]
-    x@tau2 <- x@tau2[i]
+    if(is.matrix(x@mu)){
+      x@mu <- x@mu[i, , drop=FALSE]
+    } else x@mu <- x@mu[i]
+    if(is.matrix(x@tau2)){
+      x@tau2 <- x@tau2[i, , drop=FALSE]
+    } else  x@tau2 <- x@tau2[i]
     x@nu.0 <- x@nu.0[i]
     x@sigma2.0 <- x@sigma2.0[i]
     x@logprior <- x@logprior[i]
     x@loglik <- x@loglik[i]
-    x@zfreq <- x@zfreq[i, ]
-    x@z <- x@z[i, ]
+    x@zfreq <- x@zfreq[i, , drop=FALSE]
+    x@z <- x@z[i, , drop=FALSE]
   }
   x
 })

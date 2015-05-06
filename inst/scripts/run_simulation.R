@@ -36,19 +36,16 @@ results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
   cat(".")
   for(k in 1:4){
     it <- (i-1)*4 + k
-    ##if(k < 3) next()
-    ##    if(!file.exists(model.files[it])){
     xx <- x[, , i, k]
     mns <- rowMeans(xx)
     pc <- prcomp(xx, center=TRUE, scale.=TRUE)$x[, 1]
     if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
-    model <- MarginalModel(data=pc)
-    se <- as(model, "SummarizedExperiment")
-    m <- marginal(se, mcmc.params=mp, maxperm=3, K=1:4)
-    saveRDS(m, file=model.files[it])
+    x <- computeMarginalLik(pc, nchains=3,
+                            T=1000, T2=500,
+                            burnin=200,
+                            K=1:4)
+    saveRDS(x, file=model.files[it])
     if(FALSE){
-      ## if range for k=4 is in the 10-20 range, probably worth
-      ## repeating with more burnin/iterations
       m <- readRDS(model.files[it])
       m2 <- m
       iter(m2) <- c(300, 600, 1000, 1000)
@@ -58,22 +55,25 @@ results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
       saveRDS(m2, file=model.files[it])
       m <- m2
     }
-    bf <- bayesFactor(summary(m), thr=thr)
-    calledK[k] <- as.integer(substr(names(bf), 2, 2))
-    true_cn <- cn[i, , k]
-    zz <- map(m[[k]])
-    nIncorrect[k] <- sum(zz != true_cn)
+    models <- orderModels(x)
+    if(length(models) == 0){
+      nc <- NA
+    } else {
+      nc <- k(models[[1]])
+    }
+    calledK[k] <- nc
   }
-  list(calledK=calledK, nIncorrect=nIncorrect)
+  ##list(calledK=calledK, nIncorrect=nIncorrect)
+  return(calledK)
 }
 ##simulation_summary <- list(K=calledK,
 ##                           nIncorrect=nIncorrect)
 ##saveRDS(simulation_summary,
 ##file="~/Software/CNPData/data/simulation_summary.rds")
-saveRDS(results, file="~/Software/CNPData/data/simulation_summary_maxperm3.rds")
-
-
+dt <- Sys.Date()
+saveRDS(results, file=paste0("~/Software/CNPData/data/simulation_easy_", dt, ".rds"))
 q('no')
+
 ##results <- readRDS("~/Software/CNPData/data/simulation_summary.rds")
 results <- readRDS("~/Software/CNPData/data/simulation_summary_maxperm3.rds")
 calledK <- do.call(rbind, lapply(results, "[[", 1))

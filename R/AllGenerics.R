@@ -219,7 +219,7 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 
 
 #' @export
-setGeneric("posteriorSimulation", function(object, mcmcp) standardGeneric("posteriorSimulation"))
+setGeneric("posteriorSimulation", function(object) standardGeneric("posteriorSimulation"))
 
 #' @export
 setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
@@ -317,3 +317,23 @@ setGeneric("posteriorP", function(object) standardGeneric("posteriorP"))
 
 setGeneric("zChain", function(object) standardGeneric("zChain"))
 setGeneric("zChain<-", function(object,value) standardGeneric("zChain<-"))
+
+setGeneric("permuteModes", function(object, ix) standardGeneric("permuteModes"))
+
+setGeneric("pThetaStar", function(kmod, maxperm=5, T2) standardGeneric("pThetaStar"))
+
+setGeneric("pSigma2", function(object) standardGeneric("pSigma2"))
+
+setGeneric("pMixProb", function(object) standardGeneric("pMixProb"))
+
+setGeneric("reducedGibbsThetaFixed", function(object)
+  standardGeneric("reducedGibbsThetaFixed"))
+
+setGeneric("reducedGibbsThetaSigmaFixed", function(object)
+  standardGeneric("reducedGibbsThetaSigmaFixed"))
+
+setGeneric("reducedGibbsZThetaFixed", function(object) standardGeneric("reducedGibbsZThetaFixed"))
+
+setGeneric("pTheta_Zfixed", function(object) standardGeneric("pTheta_Zfixed"))
+
+setGeneric("pTheta", function(object) standardGeneric("pTheta"))

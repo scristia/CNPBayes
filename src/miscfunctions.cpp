@@ -15,6 +15,8 @@ void rdirichlet(Rcpp::NumericVector a, Rcpp::NumericVector pr) {
 }
 
 
+
+
 // Function for drawing from contrained normal distribution for theta
 double cons_normal(double mean, double var, double a, double b) {
     double p = R::pnorm(a, mean, sqrt(var), 1, 0) + as<double>(runif(1)) *

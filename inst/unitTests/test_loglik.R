@@ -22,7 +22,7 @@ test_loglik <- function(){
   model <- BatchModel(data=y(truth),
                       batch=rep(letters[1:3], length.out=length(y(truth))),
                       k=3)
-  iter(model) <- 250
+  iter(model, force=TRUE) <- 250
   burnin(model) <- 100
   nStarts(model) <- 5
   model <- posteriorSimulation(model)
@@ -55,18 +55,15 @@ test_senseless_batch <- function(){
                         theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
                         p=c(0.005, 1/10, 1-0.005-1/10))
-  se <- as(truth, "SummarizedExperiment")
-  mp <- McmcParams(iter=250, nStarts=10, burnin=250)
   set.seed(123)
-  m1 <- marginal(se, mcmc.params=mp, maxperm=3)
-  checkTrue(best(m1) == 3)
-  if(FALSE){
-    plot.ts(thetac(m1[[4]]), plot.type="single", col=1:4)
-    iter(m1) <- c(0, 250, 300, 300)
-    burnin(m1) <- c(0, 250, 350, 350)
-    nStarts(m1) <- 1
-  }
+  m1 <- computeMarginalLik(y(truth))
+  models <- orderModels(m1)
+  checkTrue(k(models[[1]]) == 3)
   set.seed(123)
+
+  ##
+  ## TODO: fix batch model
+  ##
   mp <- McmcParams(iter=10, burnin=10, nStarts=1)
   b <- marginal(object=se, batch=batch(truth), mcmc.params=mp, maxperm=3)
   checkTrue(is(b, "MarginalModelList"))

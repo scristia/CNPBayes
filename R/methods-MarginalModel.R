@@ -497,9 +497,9 @@ setMethod("relabel", "MarginalModel", function(object, zindex){
   zFreq(object) <- as.integer(table(zz))
   dataMean(object) <- dataMean(object)[zindex]
   dataPrec(object) <- dataPrec(object)[zindex]
-##  theta(object) <- theta(object)[zindex]
-##  sigma2(object) <- sigma2(object)[zindex]
-  ##p(object) <- p(object)[zindex]
+  ##  theta(object) <- theta(object)[zindex]
+  ##  sigma2(object) <- sigma2(object)[zindex]
+  ##  p(object) <- p(object)[zindex]
   object
 })
 
@@ -728,73 +728,136 @@ permuteZ <- function(object, ix){
   zz2
 }
 
-permuteModes <- function(object, ix){
+
+setMethod("permuteModes", "MarginalModel", function(object, ix){
   modes(object)[["theta"]] <- modes(object)[["theta"]][ix]
   modes(object)[["sigma2"]] <- modes(object)[["sigma2"]][ix]
   modes(object)[["mixprob"]] <- modes(object)[["mixprob"]][ix]
   object
+})
+
+permuteZandModes <- function(kmod, ix){
+  zChain(kmod) <- permuteZ(kmod, ix)
+  kmod <- permuteModes(kmod, ix)
+  kmod
 }
 
-pThetaStar <- function(kmod, maxperm=5, T2=1/10*iter(kmod)){
-  burnin(kmod) <- 0
-  nStarts(kmod) <- 1
-  permutations <- permnK(k(kmod), Inf)
-  if(nrow(permutations) > maxperm){
-    index <- sample(2:nrow(permutations), maxperm)
-    permutations <- permutations[c(1, index), ]
-  }
-  NP <- nrow(permutations)
-  results <- matrix(NA, NP, 3)
-  colnames(results) <- c("p(theta*|y)", "p(sigma2*|theta*, y)", "p(p*|theta*, sigma2*, y)")
-  ## run the reduced Gibbs' with theta* fixed
-  kmodZ1 <- .Call("simulate_z_reduced1", kmod)
-  ## run the reduced Gibbs' with theta* and sigma2* fixed
-  kmodZ2 <- .Call("simulate_z_reduced2", kmod)
-  for(i in seq_len(nrow(permutations))){
-    kmod_ <- kmod
-    kmodZ1_ <- kmodZ1
-    kmodZ2_ <- kmodZ2
-    if(i > 1){
-      iter(kmod_, force=TRUE) <- T2
-      iter(kmodZ1_, force=TRUE) <- T2
-      iter(kmodZ2_, force=TRUE) <- T2
-      ix <- permutations[i, ]
-      zChain(kmod_) <- permuteZ(kmod_, ix)
-      zChain(kmodZ1_) <- permuteZ(kmodZ1_, ix)
-      zChain(kmodZ2_) <- permuteZ(kmodZ2_, ix)
-      kmod_ <- permuteModes(kmod_, ix)
-      kmodZ1_ <- permuteModes(kmodZ1_, ix)
-      kmodZ2_ <- permuteModes(kmodZ2_, ix)
-      ## update the nu0, sigma20 chains for the permuted Z models (Z fixed)
-      kmodZ1_ <- .Call("permutedz_reduced1", kmodZ1_)
-      p_theta.z <- exp(.Call("p_theta_zpermuted", kmod_))  ## use permuted
-    } else {
-      p_theta.z <- exp(.Call("marginal_theta", kmod_))
-    }
-    if(FALSE){
-      truth <- as.numeric(table(zChain(kmodZ2_)[1, ])/2500)
-      result <- modes(kmodZ2_)[["mixprob"]]
-      ## truth and results should be in the same ballpark
-      pstar <- result
-      zz <- as.numeric(table(zChain(kmodZ2_)[1, ]))
-      gtools::ddirichlet(pstar, zz+1)
+setMethod("pTheta", "MarginalModel", function(object){
+  exp(.Call("marginal_theta", object))
+})
 
-    }
-    ## for i = 1, results is a sum of T terms
-    ## for i > 1, results is a sum of T2 terms
-    p_sigma2.z <- exp(.Call("p_sigma2_zpermuted", kmodZ1_))
-    p_pmix.z <- exp(.Call("p_pmix_reduced", kmodZ2_))
-    ## integrate out z
-    p_theta <- sum(p_theta.z)/iter(kmod_)
-    p_sigma2 <- sum(p_sigma2.z)/iter(kmod_)
-    p_pmix <- sum(p_pmix.z)/iter(kmod_)
-    results[i, ] <- c(p_theta, p_sigma2, p_pmix)
+setMethod("pTheta", "BatchModel", function(object){
+  .Call("p_theta_batch", object)
+})
+
+setMethod("pTheta_Zfixed", "MarginalModel", function(object){
+  exp(.Call("p_theta_zpermuted", object))  ## use permuted
+})
+
+setMethod("pTheta_Zfixed", "BatchModel", function(object){
+  .Call("p_theta_zfixed_batch", object)  ## use permuted
+})
+
+setMethod("reducedGibbsZThetaFixed", "MarginalModel", function(object){
+  .Call("permutedz_reduced1", object)
+})
+
+##setMethod("reducedGibbsZThetaSigmaFixed", "MarginalModel", function(object){
+##  .Call("permutedz_reduced2", object)
+##})
+
+setMethod("reducedGibbsZThetaFixed", "BatchModel", function(object){
+  .Call("reduced_z_theta_fixed", object)
+})
+
+setMethod("pSigma2", "MarginalModel", function(object) {
+  exp(.Call("p_sigma2_zpermuted", object))
+})
+
+setMethod("pSigma2", "BatchModel", function(object) {
+  .Call("p_sigma2_batch", object)
+})
+
+## same for marginal and batch models
+setMethod("pMixProb", "MixtureModel", function(object) {
+  exp(.Call("p_pmix_reduced", object))
+})
+
+setMethod("reducedGibbsThetaFixed", "MarginalModel", function(object){
+  .Call("simulate_z_reduced1", object)
+})
+
+setMethod("reducedGibbsThetaFixed", "BatchModel", function(object){
+  .Call("simulate_z_reduced1_batch", object)
+})
+
+setMethod("reducedGibbsThetaSigmaFixed", "MarginalModel", function(object){
+  .Call("simulate_z_reduced2", object)
+})
+
+setMethod("reducedGibbsThetaSigmaFixed", "BatchModel", function(object){
+  .Call("simulate_z_reduced2_batch", object)
+})
+
+
+.pthetastar <- function(kmod, kmodZ1, kmodZ2, T2, ix){
+  K <- k(kmod)
+  if(identical(ix, seq_len(K))){
+    ##
+    ## Non-permuted modes
+    ## estimate p_theta from existing chain
+    ##
+    p_theta.z <- pTheta(kmod)
+  } else {
+    ## one of the K! - 1 other modes
+    iter(kmod, force=TRUE) <- T2
+    iter(kmodZ1, force=TRUE) <- T2
+    iter(kmodZ2, force=TRUE) <- T2
+    kmod <- permuteZandModes(kmod, ix)
+    kmodZ1 <- permuteZandModes(kmodZ1, ix)
+    kmodZ2 <- permuteZandModes(kmodZ2, ix)
+    kmodZ1 <- reducedGibbsZThetaFixed(kmodZ1)
+    p_theta.z <- pTheta_Zfixed(kmod)
   }
-  results
+  if(FALSE){
+    browser()
+    truth <- as.numeric(table(zChain(kmodZ2)[1, ])/2500)
+    result <- modes(kmodZ2)[["mixprob"]]
+    ## truth and results should be in the same ballpark
+    pstar <- result
+    zz <- as.numeric(table(zChain(kmodZ2)[1, ]))
+  }
+  p_sigma2.z <- pSigma2(kmodZ1)
+  p_pmix.z <- pMixProb(kmodZ2)
+  p_theta <- mean(p_theta.z)
+  p_sigma2 <- mean(p_sigma2.z)
+  p_pmix <- mean(p_pmix.z)
+  c(p_theta, p_sigma2, p_pmix)
 }
 
-.berkhof <- function(x, model, T2){
-  if(missing(T2)) stop("must specify T2")
+
+setMethod("pThetaStar", "MarginalModel",
+          function(kmod, maxperm=5, T2=1/10*iter(kmod)){
+            burnin(kmod) <- 0
+            nStarts(kmod) <- 1
+            permutations <- permnK(k(kmod), Inf)
+            if(nrow(permutations) > maxperm){
+              index <- sample(2:nrow(permutations), maxperm)
+              permutations <- permutations[c(1, index), ]
+            }
+            NP <- nrow(permutations)
+            results <- matrix(NA, NP, 3)
+            nms <- c("p(theta*|y)", "p(sigma2*|theta*, y)", "p(p*|theta*, sigma2*, y)")
+            colnames(results) <- nms
+            kmodZ1 <- reducedGibbsThetaFixed(kmod)
+            kmodZ2 <- reducedGibbsThetaSigmaFixed(kmod)
+            for(i in seq_len(nrow(permutations))){
+              results[i, ] <- .pthetastar(kmod, kmodZ1, kmodZ2, T2, permutations[i, ])
+            }
+            results
+          })
+
+.berkhof <- function(x, model){
   NP <- nrow(x)
   p.I <- prod(x[1, ])  ## Chib's estimate
   if(k(model) == 1 ){
@@ -811,7 +874,7 @@ pThetaStar <- function(kmod, maxperm=5, T2=1/10*iter(kmod)){
 
 berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5, nchains=2){
   x <- pThetaStar(model, T2=T2, maxperm=maxperm)
-  results <- .berkhof(x, model=model, T2=T2)
+  results <- .berkhof(x, model=model)
   PosteriorSummary(p_theta=results$p_theta,
                    chib=results$chib,
                    berkhof=results$berkhof,
@@ -836,10 +899,12 @@ computeMarginalLik <- function(y, K=1:4, T=1000, burnin=200,
   modalLoglik <- function(x) modes(x)[["loglik"]]
   for(i in seq_along(K)){
     k <- K[i]
-    kmod <- MarginalModel(y, k=k, mcmc.params=mp)
     ##kmod <- posteriorSimulation(kmod)
     if( k == 1 ) ns <- 1 else ns <- nchains
-    kmodlist <- replicate(ns, posteriorSimulation(kmod))
+    kmodlist <- replicate(ns, {
+      kmod <- MarginalModel(y, k=k, mcmc.params=mp)
+      posteriorSimulation(kmod)
+    })
     mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
     ll <- sapply(kmodlist, modalLoglik)
     mlist[[i]] <- kmodlist[[which.max(ll)]]
@@ -876,7 +941,7 @@ orderModels <- function(x){
 
 #' @export
 logBayesFactor <- function(x){
-  models <- x$models
+  models <- orderModels(x)
   if(length(models) <= 1) {
     return(NA)
   }

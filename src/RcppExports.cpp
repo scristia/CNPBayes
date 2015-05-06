@@ -252,14 +252,80 @@ BEGIN_RCPP
 END_RCPP
 }
 // mcmc_batch
-RcppExport SEXP mcmc_batch(SEXP xmod, SEXP mcmcp);
-RcppExport SEXP CNPBayes_mcmc_batch(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+RcppExport SEXP mcmc_batch(SEXP object, SEXP mcmcp);
+RcppExport SEXP CNPBayes_mcmc_batch(SEXP objectSEXP, SEXP mcmcpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type object(objectSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type mcmcp(mcmcpSEXP);
+    __result = Rcpp::wrap(mcmc_batch(object, mcmcp));
+    return __result;
+END_RCPP
+}
+// p_theta_batch
+RcppExport SEXP p_theta_batch(SEXP xmod);
+RcppExport SEXP CNPBayes_p_theta_batch(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type mcmcp(mcmcpSEXP);
-    __result = Rcpp::wrap(mcmc_batch(xmod, mcmcp));
+    __result = Rcpp::wrap(p_theta_batch(xmod));
+    return __result;
+END_RCPP
+}
+// p_theta_zfixed_batch
+RcppExport SEXP p_theta_zfixed_batch(SEXP xmod);
+RcppExport SEXP CNPBayes_p_theta_zfixed_batch(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(p_theta_zfixed_batch(xmod));
+    return __result;
+END_RCPP
+}
+// simulate_z_reduced1_batch
+RcppExport SEXP simulate_z_reduced1_batch(SEXP object);
+RcppExport SEXP CNPBayes_simulate_z_reduced1_batch(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type object(objectSEXP);
+    __result = Rcpp::wrap(simulate_z_reduced1_batch(object));
+    return __result;
+END_RCPP
+}
+// reduced_z_theta_fixed
+RcppExport SEXP reduced_z_theta_fixed(SEXP object);
+RcppExport SEXP CNPBayes_reduced_z_theta_fixed(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type object(objectSEXP);
+    __result = Rcpp::wrap(reduced_z_theta_fixed(object));
+    return __result;
+END_RCPP
+}
+// simulate_z_reduced2_batch
+RcppExport SEXP simulate_z_reduced2_batch(SEXP object);
+RcppExport SEXP CNPBayes_simulate_z_reduced2_batch(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type object(objectSEXP);
+    __result = Rcpp::wrap(simulate_z_reduced2_batch(object));
+    return __result;
+END_RCPP
+}
+// p_sigma2_batch
+RcppExport SEXP p_sigma2_batch(SEXP xmod);
+RcppExport SEXP CNPBayes_p_sigma2_batch(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(p_sigma2_batch(xmod));
     return __result;
 END_RCPP
 }
@@ -475,24 +541,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // simulate_z_reduced1
-RcppExport SEXP simulate_z_reduced1(SEXP xmod);
-RcppExport SEXP CNPBayes_simulate_z_reduced1(SEXP xmodSEXP) {
+RcppExport SEXP simulate_z_reduced1(SEXP object);
+RcppExport SEXP CNPBayes_simulate_z_reduced1(SEXP objectSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(simulate_z_reduced1(xmod));
+    Rcpp::traits::input_parameter< SEXP >::type object(objectSEXP);
+    __result = Rcpp::wrap(simulate_z_reduced1(object));
     return __result;
 END_RCPP
 }
 // simulate_z_reduced2
-RcppExport SEXP simulate_z_reduced2(SEXP xmod);
-RcppExport SEXP CNPBayes_simulate_z_reduced2(SEXP xmodSEXP) {
+RcppExport SEXP simulate_z_reduced2(SEXP object);
+RcppExport SEXP CNPBayes_simulate_z_reduced2(SEXP objectSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(simulate_z_reduced2(xmod));
+    Rcpp::traits::input_parameter< SEXP >::type object(objectSEXP);
+    __result = Rcpp::wrap(simulate_z_reduced2(object));
     return __result;
 END_RCPP
 }
@@ -549,17 +615,6 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
     __result = Rcpp::wrap(p_pmix_reduced(xmod));
-    return __result;
-END_RCPP
-}
-// test_clone
-RcppExport SEXP test_clone(SEXP xmod);
-RcppExport SEXP CNPBayes_test_clone(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(test_clone(xmod));
     return __result;
 END_RCPP
 }

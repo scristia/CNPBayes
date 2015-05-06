@@ -8,7 +8,7 @@ test_mcmc_restart <- function(){
   ##
   ## with no burnin, the first element stored in the mcmc chains should be the initial values
   ##
-  mcmcParams(model) <- McmcParams(iter=1, burnin=0)
+  mcmcParams(model, force=TRUE) <- McmcParams(iter=1, burnin=0)
   model <- posteriorSimulation(model, mcmcp)
   mc <- mcmcChains(model)
   checkIdentical(theta(mc)[1, ], theta(truth))
@@ -31,7 +31,7 @@ test_mcmc_restart <- function(){
   ## With a burnin of 1 or more, the first element of the chain will
   ## differ from the starting values
   model <- truth
-  mcmcParams(model) <- McmcParams(iter=1, burnin=1)
+  mcmcParams(model, force=TRUE) <- McmcParams(iter=1, burnin=1)
   model <- posteriorSimulation(model, mcmcp)
   mc <- mcmcChains(model)
   checkTrue(!identical(theta(mc)[1, ], theta(truth)))
@@ -39,36 +39,25 @@ test_mcmc_restart <- function(){
   checkEquals(theta(mc)[1, ], as.numeric(theta(model)))
   ##checkEquals(rowSums(probz(model)), rep(1.0, length(y(model))))
 
-  ##
-  ## Burnin iterations are not included in the chain
-  ##
-  ##  - setting iter to 0 does not trigger an update to the chains
-  ##  (by default, the chains are initialized to length 1000 vectors)
-  ##
   model <- truth
-  mcmcParams(model) <- McmcParams(iter=0, burnin=1)
+  mcmcParams(model, force=TRUE) <- McmcParams(iter=0, burnin=1)
   model <- posteriorSimulation(model, mcmcp)
   mc <- mcmcChains(model)
-  checkIdentical(nrow(theta(mc)), 1000L)
-  checkTrue(all(is.na(theta(mc)[1, ])))
+  checkIdentical(nrow(theta(mc)), 0L)
+  ##
+  ## Burnin 0, 1 iteration
+  ##
+  model <- truth
+  mcmcParams(model, force=TRUE) <- McmcParams(iter=1, burnin=0)
+  model <- posteriorSimulation(model, mcmcp)
 
-  ##
-  ## Burnin 0, 0 iterations
-  ##
-  ## The chains will be a length-one vector containing the initial
-  ## values
-  model <- truth
-  mcmcParams(model) <- McmcParams(iter=0, burnin=0)
-  model <- posteriorSimulation(model, mcmcp)
-  mc <- mcmcChains(model)
-  checkIdentical(nrow(theta(mc)), 1000L)
 
   ##
   ## Restarting
   ##
   ## Restarting a chain will resume at the last saved iteration.
   ##  -- a postive value for iter triggers an update of the chains
-  mcmcParams(model) <- McmcParams(iter=10, burnin=0)
+  mcmcParams(model, force=TRUE) <- McmcParams(iter=10, burnin=0)
   model <- posteriorSimulation(model, mcmcp)
   mc <- mcmcChains(model)
   checkIdentical(nrow(theta(mc)), 10L)

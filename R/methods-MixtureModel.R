@@ -360,6 +360,8 @@ computeLogLikForRandomStarts <- function(seed, params, hypp, return.model=FALSE)
   logLikData(model)
 }
 
+
+
 setMethod("posteriorSimulation", "MixtureModel", function(object){
   .posteriorSimulation(object)
 })
@@ -608,6 +610,7 @@ setMethod("mcmcParams", "MixtureModel", function(object) object@mcmc.params )
 
 setMethod("iter", "MixtureModel", function(object) iter(mcmcParams(object)))
 setMethod("nStarts", "MixtureModel", function(object) nStarts(mcmcParams(object)))
+
 setReplaceMethod("nStarts", "MixtureModel", function(object, value){
   mcmcParams(object)@nstarts <- as.integer(value)
   object

@@ -559,3 +559,10 @@ rowM_yGivenK <- function(object, mcmc.params, batch.files, model.files, K=1:4, m
     saveRDS(models, file=model.files[i])
   }
 }
+
+setMethod("permuteModes", "BatchModel", function(object, ix){
+  modes(object)[["theta"]] <- modes(object)[["theta"]][ , ix, drop=FALSE]
+  modes(object)[["sigma2"]] <- modes(object)[["sigma2"]][ , ix, drop=FALSE]
+  modes(object)[["mixprob"]] <- modes(object)[["mixprob"]][ix]
+  object
+})
