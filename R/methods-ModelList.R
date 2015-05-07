@@ -1,13 +1,6 @@
 MarginalModelList <- function(model_list=list(),
                               names=character()){
-                              ##maxperm=3L, mode_index=list(),
-                              ##mode_list=list()){
-##  if(length(model_list) > 0){
-##    type <- unique(sapply(model_list, class))
-##  } else type="MarginalModel"
   new("MarginalModelList", model_list=model_list, names=names) ##elementType=type,
-##      names=names, maxperm=maxperm, mode_index=mode_index,
-##      mode_list=mode_list)
 }
 
 
@@ -16,32 +9,20 @@ modeIndex <- function(object) object@mode_index
 modeList <- function(object) object@mode_list
 modeDifference <- function(object) object@mode_list
 
-BatchModelList <- function(model_list=list(), names=character(),
-                           maxperm=3L, mode_index=list(),
-                           mode_list=list()){
-  new("BatchModelList", model_list=model_list, elementType="BatchModel",
-      names=names, maxperm=maxperm, mode_index=mode_index,
-      mode_list=mode_list)
+BatchModelList <- function(model_list=list(), names=character()){
+  new("BatchModelList", model_list=model_list, names=names)
 }
 
 elementType <- function(object) object@elementType
 
 setValidity("MarginalModelList", function(object){
+  ## todo; validity methods
   msg <- TRUE
-##  if(!all(sapply(modelList(object)) == "MarginalModel")){
-##    msg <- "Elements of MarginalModelList must be of class 'MarginalModel'"
-##    return(msg)
-  ##  }
   msg
 })
 
 setValidity("BatchModelList", function(object){
   msg <- TRUE
-  type <- elementType(object)
-  if(type != "BatchModel") {
-    msg <- "Elements of BatchModelList must be of class 'BatchModel'"
-    return(msg)
-  }
   msg
 })
 
@@ -51,26 +32,15 @@ setMethod("length", "ModelList", function(x) length(modelList(x)))
 setMethod("k", "ModelList", function(object) sapply(object@model_list, k))
 
 setMethod("show", "ModelList", function(object){
-  cat("Object of class 'MarginalModelList'\n")
-  if(length(object) == 0){
-    cat("  K           : 0\n")
-    cat("  top two     : NA \n")
-    cat("  bayes factor: NA \n")
-    return()
-  }
-  cat(" K               : ", paste(k(object), collapse=", "), "\n")
-  if(length(object) > 2){
-##    bf <- bayesFactor(summary(object))
-##    cat(" top two         : ", names(bf), "\n")
-##    cat(" log bayes factor: ", round(bf, 1), "\n")
-  }
+  cat("Object of class ", class(object), "\n")
+  cat(" K: ", paste(k(object), collapse=", "), "\n")
   cat(" see summary(), modelList()\n")
 })
 
-setMethod("m.y", "ModelList", function(object){
-  mylist <- setNames(lapply(modelList(object), m.y), names(object))
-  mylist
-})
+## setMethod("m.y", "ModelList", function(object){
+##   mylist <- setNames(lapply(modelList(object), m.y), names(object))
+##   mylist
+## })
 
 ## returns another ModelList
 setMethod("[", "ModelList", function(x, i, j, ..., drop=FALSE){
@@ -103,35 +73,36 @@ setReplaceMethod("modelList", c("ModelList", "MixtureModel"),
                    object
                  })
 
-minThetaSep <- function(object){
-  x <- colMeans(thetac(object))
-  if(!isMarginalModel(object)){
-    x <- matrix(x, nBatch(object), k(object))
-    x <- colMeans(x)
-  }
-  x <- sort(x)
-  if(length(x) > 1){
-    d <- min(diff(x))
-  } else d <- 0
-  d
-}
+## minThetaSep <- function(object){
+##   x <- colMeans(thetac(object))
+##   if(!isMarginalModel(object)){
+##     x <- matrix(x, nBatch(object), k(object))
+##     x <- colMeans(x)
+##   }
+##   x <- sort(x)
+##   if(length(x) > 1){
+##     d <- min(diff(x))
+##   } else d <- 0
+##   d
+## }
 
-setMethod("summary", "ModelList", function(object, ...){
-  my <- m.y(object)
-  mns <- sapply(my, mean)
-  rg <- sapply(my, function(x) diff(range(x)))
-  max_delta_mode <- sapply(modeDifference(object), max)
-  min_theta_sep <- sapply(modelList(object), minThetaSep)
-  ##min_delta_thetas <-
-  df <- data.frame(k=k(object),
-                   mean=mns,
-                   range=rg,
-                   max_delta_mode=max_delta_mode,
-                   min_theta_sep=min_theta_sep)
-  df$flag <- df$max_delta_mode > df$min_theta_sep
-  rownames(df) <- names(object)
-  df
-})
+## setMethod("summary", "ModelList", function(object, ...){
+##   my <- m.y(object)
+##   mns <- sapply(my, mean)
+##   rg <- sapply(my, function(x) diff(range(x)))
+##   max_delta_mode <- sapply(modeDifference(object), max)
+##   min_theta_sep <- sapply(modelList(object), minThetaSep)
+##   ##min_delta_thetas <-
+##   df <- data.frame(k=k(object),
+##                    mean=mns,
+##                    range=rg,
+##                    max_delta_mode=max_delta_mode,
+##                    min_theta_sep=min_theta_sep)
+##   df$flag <- df$max_delta_mode > df$min_theta_sep
+##   rownames(df) <- names(object)
+##   df
+## })
+##
 
 setReplaceMethod("mcmcParams", "ModelList", function(object, value){
   for(i in seq_along(object)){
@@ -143,7 +114,6 @@ setReplaceMethod("mcmcParams", "ModelList", function(object, value){
 setMethod("iter", "ModelList", function(object) sapply(modelList(object), iter))
 setMethod("burnin", "ModelList", function(object) sapply(modelList(object), burnin))
 setMethod("nStarts", "ModelList", function(object) sapply(modelList(object), nStarts))
-
 
 setReplaceMethod("iter", "ModelList", function(object, value){
   if(length(value) == length(object)){
@@ -184,11 +154,11 @@ setReplaceMethod("nStarts", "ModelList", function(object, value){
   object
 })
 
-setMethod("best", "ModelList", function(object){
-  bf <- bayesFactor(summary(object))
-  ##paste0("k = ", substr(names(bf), 2, 2))
-  as.integer(substr(names(bf), 2, 2))
-})
+## setMethod("best", "ModelList", function(object){
+##   bf <- bayesFactor(summary(object))
+##   ##paste0("k = ", substr(names(bf), 2, 2))
+##   as.integer(substr(names(bf), 2, 2))
+## })
 
 setMethod("lapply", "ModelList", function(X, FUN, ...){
   results <- vector("list", length(X))

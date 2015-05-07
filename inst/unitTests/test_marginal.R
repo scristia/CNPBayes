@@ -9,11 +9,11 @@ test_marginalEasy <- function(){
                         theta=c(-1, 0, 1),
                         sds=rep(0.1, 3))
   if(FALSE) plot(truth, use.current=TRUE)
-  mp <- McmcParams(iter=500, burnin=500)
-  mp <- McmcParams(iter=5, burnin=5)
+  ##mp <- McmcParams(iter=500, burnin=500)
+  mp <- McmcParams(iter=5, burnin=5, nStarts=1)
   model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
   model <- startAtTrueValues(model, truth)
-  model <- posteriorSimulation(model)a
+  model <- posteriorSimulation(model)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth, use.current=T)
@@ -63,9 +63,16 @@ test_selectK_easy <- function(){
   means <- c(-1, 0, 1)
   sds <- c(0.1, 0.2, 0.2)
   truth <- simulateData(N=2500, p=rep(1/3, 3), theta=means, sds=sds)
-  x <- computeMarginalLik(y(truth), nchains=3)
-  models <- orderModels(x)
-  checkTrue(k(models)[1]==3)
+  ## When the proportion of observations in each state is the same, we
+  ## tend to over fit
+  x1 <- computeMarginalLik(y(truth), nchains=3, K=1:4)
+  m1 <- orderModels(x1)
+  checkTrue(k(m1)[1] > 3)
+
+  truth <- simulateData(N=2500, p=c(1/4, 1/2, 1-1/2-1/4), theta=means, sds=sds)
+  x2 <- computeMarginalLik(y(truth), nchains=3, K=1:4)
+  m2 <- orderModels(x2)
+  checkTrue(k(m2)[1]==3)
 }
 
 .test_selectK_nobatchEffect <- function(){
@@ -161,7 +168,7 @@ test_marginal_Moderate <- function(){
   mcmcp <- McmcParams(iter=500, burnin=500, thin=2)
   model <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
   model <- startAtTrueValues(model, truth)
-  model <- posteriorSimulation(model, mcmcp)
+  model <- posteriorSimulation(model)
   checkEquals(sort(theta(model)), theta(truth), tolerance=0.15)
   if(FALSE){
     plot.ts(thetac(model), plot.type="single")
@@ -192,7 +199,7 @@ test_marginal_hard <- function(){
   if(FALSE) plot(truth, use.current=TRUE)
   mcmcp <- McmcParams(iter=1000, burnin=100, thin=10)
   modelk <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
-  model <- posteriorSimulation(modelk, mcmcp)
+  model <- posteriorSimulation(modelk)
   i <- order(theta(model))
   checkEquals(theta(model)[i], theta(truth), tolerance=0.1)
   checkEquals(colMeans(sigmac(model))[i], sigma(truth), tolerance=0.1)

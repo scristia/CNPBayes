@@ -4,6 +4,7 @@
 
 #' @export
 setGeneric("k", function(object) standardGeneric("k"))
+
 setGeneric("k<-", function(object, value) standardGeneric("k<-"))
 ##setGeneric("params", function(object) standardGeneric("params"))
 

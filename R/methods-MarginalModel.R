@@ -820,7 +820,6 @@ setMethod("reducedGibbsThetaSigmaFixed", "BatchModel", function(object){
     p_theta.z <- pTheta_Zfixed(kmod)
   }
   if(FALSE){
-    browser()
     truth <- as.numeric(table(zChain(kmodZ2)[1, ])/2500)
     result <- modes(kmodZ2)[["mixprob"]]
     ## truth and results should be in the same ballpark
@@ -836,7 +835,7 @@ setMethod("reducedGibbsThetaSigmaFixed", "BatchModel", function(object){
 }
 
 
-setMethod("pThetaStar", "MarginalModel",
+setMethod("pThetaStar", "MixtureModel",
           function(kmod, maxperm=5, T2=1/10*iter(kmod)){
             burnin(kmod) <- 0
             nStarts(kmod) <- 1
@@ -872,7 +871,7 @@ setMethod("pThetaStar", "MarginalModel",
        marginal=modes(model)[["loglik"]] + modes(model)[["logprior"]] - log(p.V))
 }
 
-berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5, nchains=2){
+berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5){
   x <- pThetaStar(model, T2=T2, maxperm=maxperm)
   results <- .berkhof(x, model=model)
   PosteriorSummary(p_theta=results$p_theta,
@@ -890,34 +889,85 @@ summarizeMarginalEstimates <- function(x){
   xx
 }
 
+simulateMultipleChains <- function(nchains, y, batch, k, mp){
+  if(k==1) nchains <- 1
+  if(missing(batch)){
+    kmodlist <- replicate(nchains, {
+      kmod <- MarginalModel(y, k=k, mcmc.params=mp)
+      posteriorSimulation(kmod)
+    })
+    return(kmodlist)
+  }
+  ## batch not missing
+  kmodlist <- replicate(nchains, {
+    kmod <- BatchModel(y, batch=batch, k=k, mcmc.params=mp)
+    posteriorSimulation(kmod)
+  })
+  return(kmodlist)
+}
+
 #' @export
-computeMarginalLik <- function(y, K=1:4, T=1000, burnin=200,
-                               T2=200, maxperm=5, nchains=2){
+computeMarginalLik <- function(y, batch, K=1:4,
+                               T=1000, burnin=200,
+                               T2=200,
+                               maxperm=5,
+                               nchains=2){
   my <- vector("list", length(K))
   mlist <- vector("list", length(K))
   mp <- McmcParams(iter=T, nStarts=1, burnin=burnin)
   modalLoglik <- function(x) modes(x)[["loglik"]]
   for(i in seq_along(K)){
     k <- K[i]
-    ##kmod <- posteriorSimulation(kmod)
-    if( k == 1 ) ns <- 1 else ns <- nchains
-    kmodlist <- replicate(ns, {
-      kmod <- MarginalModel(y, k=k, mcmc.params=mp)
-      posteriorSimulation(kmod)
-    })
+    kmodlist <- simulateMultipleChains(nchains, y, batch, k, mp)
     mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
     ll <- sapply(kmodlist, modalLoglik)
     mlist[[i]] <- kmodlist[[which.max(ll)]]
     xx <- summarizeMarginalEstimates(mlik)
     my[[i]] <- xx
   }
-  nms <- paste0("M", K)
+  if(is(mlist[[1]], "MarginalModel")){
+    nms <- paste0("M", K)
+    mlist <- MarginalModelList(mlist, names=nms)
+  } else {
+    nms <- paste0("B", K)
+    mlist <- BatchModelList(mlist, names=nms)
+  }
   names(my) <- nms
-  results <- list(models=MarginalModelList(model_list=mlist,
-                      names=nms),
-                  marginal=my)
+  results <- list(models=mlist, marginal=my)
   results
 }
+
+## setMethod("computeMarginalLik", c("numeric", "vector"),
+##           function(y, batch, K=1:4,
+##                    T=1000, burnin=200,
+##                    T2=200,
+##                    maxperm=5,
+##                    nchains=2){
+##             my <- vector("list", length(K))
+##             mlist <- vector("list", length(K))
+##             mp <- McmcParams(iter=T, nStarts=1, burnin=burnin)
+##             modalLoglik <- function(x) modes(x)[["loglik"]]
+##             for(i in seq_along(K)){
+##               k <- K[i]
+##               ##kmod <- posteriorSimulation(kmod)
+##               if( k == 1 ) ns <- 1 else ns <- nchains
+##               kmodlist <- replicate(ns, {
+##                 kmod <- MarginalModel(y, k=k, mcmc.params=mp)
+##                 posteriorSimulation(kmod)
+##               })
+##               mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
+##               ll <- sapply(kmodlist, modalLoglik)
+##               mlist[[i]] <- kmodlist[[which.max(ll)]]
+##               xx <- summarizeMarginalEstimates(mlik)
+##               my[[i]] <- xx
+##             }
+##             nms <- paste0("M", K)
+##             names(my) <- nms
+##             results <- list(models=MarginalModelList(model_list=mlist,
+##                                 names=nms),
+##                             marginal=my)
+##             results
+##           })
 
 #' @export
 orderModels <- function(x){

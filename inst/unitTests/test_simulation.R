@@ -31,6 +31,8 @@ test_simulation <- function(){
   models <- orderModels(x)
   checkTrue(k(models[[1]]) == 3)
   bf <- logBayesFactor(x)
+  checkTrue(names(bf) == "M3-M2")
+  checkTrue(bf > 100)
   if(FALSE){
     mcmcParams(model) <- mp
     model <- posteriorSimulation(model)

@@ -20,16 +20,10 @@ if(FALSE){
 
 ## dimensions are samples x probes x cnp x components
 x <- dat[[1]]
-cn <- dat[[2]]
 outdir <- "~/Software/CNPData/data"
 model.files <- file.path(outdir, paste0("simulation_easy", seq_len(10 * 4), ".rds"))
-##calledK <- matrix(NA, 10, 4)
-##nIncorrect <- matrix(NA, 10, 4)
-thr <- sapply(1:4, function(x) log(factorial(x)))
-##thr[1] <- 0.5
-##thr <- thr*3
-thr <- c(0.5, 3, 6, 8)
-mp <- McmcParams(iter=500, burnin=300, nStarts=10)
+mp <- McmcParams(iter=500, burnin=300, nStarts=1)
+mp <- McmcParams(iter=10, burnin=5, nStarts=1)
 results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
   calledK <- rep(NA, 4)
   nIncorrect <- rep(NA, 4)
@@ -40,11 +34,18 @@ results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
     mns <- rowMeans(xx)
     pc <- prcomp(xx, center=TRUE, scale.=TRUE)$x[, 1]
     if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
-    x <- computeMarginalLik(pc, nchains=3,
-                            T=1000, T2=500,
-                            burnin=200,
-                            K=1:4)
-    saveRDS(x, file=model.files[it])
+    fit <- computeMarginalLik(pc, nchains=3,
+                              T=1000, T2=500,
+                              burnin=200,
+                              K=1:4)
+    ## strip data
+    mods <- fit$models
+    modlist <- lapply(mods, function(x){
+      x@data <- numeric()
+      x
+    })
+    fit$models <- CNPBayes:::MarginalModelList(modlist)
+    saveRDS(fit, file=model.files[it])
     if(FALSE){
       m <- readRDS(model.files[it])
       m2 <- m
@@ -55,11 +56,11 @@ results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
       saveRDS(m2, file=model.files[it])
       m <- m2
     }
-    models <- orderModels(x)
+    models <- orderModels(fit)
     if(length(models) == 0){
       nc <- NA
     } else {
-      nc <- k(models[[1]])
+      nc <- k(models)[1]
     }
     calledK[k] <- nc
   }

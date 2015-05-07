@@ -9,7 +9,7 @@ test_mcmc_restart <- function(){
   ## with no burnin, the first element stored in the mcmc chains should be the initial values
   ##
   mcmcParams(model, force=TRUE) <- McmcParams(iter=1, burnin=0)
-  model <- posteriorSimulation(model, mcmcp)
+  model <- posteriorSimulation(model)
   mc <- mcmcChains(model)
   checkIdentical(theta(mc)[1, ], theta(truth))
   checkIdentical(sigma(mc)[1, ], sigma(truth))
@@ -23,7 +23,7 @@ test_mcmc_restart <- function(){
   ##
   mcmcParams(model) <- McmcParams(iter=1, burnin=10)
   ##trace(posteriorSimulation, browser)
-  model <- posteriorSimulation(model, mcmcp)
+  model <- posteriorSimulation(model)
   ##checkEquals(rowSums(probz(model)), rep(1.0, length(y(model))))
   ##
   ## Burnin of >=1, >=1 iterations
@@ -32,7 +32,7 @@ test_mcmc_restart <- function(){
   ## differ from the starting values
   model <- truth
   mcmcParams(model, force=TRUE) <- McmcParams(iter=1, burnin=1)
-  model <- posteriorSimulation(model, mcmcp)
+  model <- posteriorSimulation(model)
   mc <- mcmcChains(model)
   checkTrue(!identical(theta(mc)[1, ], theta(truth)))
   checkTrue(!identical(sigma(mc)[1, ], sigma(truth)))
@@ -41,7 +41,7 @@ test_mcmc_restart <- function(){
 
   model <- truth
   mcmcParams(model, force=TRUE) <- McmcParams(iter=0, burnin=1)
-  model <- posteriorSimulation(model, mcmcp)
+  model <- posteriorSimulation(model)
   mc <- mcmcChains(model)
   checkIdentical(nrow(theta(mc)), 0L)
   ##
@@ -49,7 +49,7 @@ test_mcmc_restart <- function(){
   ##
   model <- truth
   mcmcParams(model, force=TRUE) <- McmcParams(iter=1, burnin=0)
-  model <- posteriorSimulation(model, mcmcp)
+  model <- posteriorSimulation(model)
 
 
   ##
@@ -58,14 +58,14 @@ test_mcmc_restart <- function(){
   ## Restarting a chain will resume at the last saved iteration.
   ##  -- a postive value for iter triggers an update of the chains
   mcmcParams(model, force=TRUE) <- McmcParams(iter=10, burnin=0)
-  model <- posteriorSimulation(model, mcmcp)
+  model <- posteriorSimulation(model)
   mc <- mcmcChains(model)
   checkIdentical(nrow(theta(mc)), 10L)
   checkIdentical(theta(mc)[1, ], as.numeric(theta(truth)))
   ## restart
   th <- theta(model)
   s <- sigma(model)
-  model2 <- posteriorSimulation(model, mcmcp)
+  model2 <- posteriorSimulation(model)
   mc <- mcmcChains(model2)
   checkIdentical(theta(mc)[1, ], as.numeric(th))
   checkIdentical(sigma(mc)[1, ], as.numeric(s))
@@ -93,7 +93,7 @@ test_mcmc_restart <- function(){
   modelk1 <- BatchModel(data=y(truth), k=3, mcmc.params=mcmcp,
                         batch=batch(truth))
   th1 <- as.numeric(theta(modelk1))
-  modelk <- posteriorSimulation(modelk1, mcmcp)
+  modelk <- posteriorSimulation(modelk1)
   th2 <- thetac(modelk)[1,]
   checkIdentical(th1, th2)
 }

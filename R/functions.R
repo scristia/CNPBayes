@@ -159,12 +159,16 @@ computeLRRMedians <- function(views, regions){
 
 #' @export
 cnProbability <- function(prob, K){
-  pz2 <- prob[, 1]
-  for(i in seq_along(2:K)){
-    nonzero.prob <- prob[, i + 1] > 0
-    pz2[ nonzero.prob ] <- (prob[, i + 1] + i)[ nonzero.prob ]
+  pz <- prob[, 1]
+  if( K == 1 ) return(pz)
+  K <- (seq_len(K))[-1]
+  for(i in seq_along(K)){
+    ## nonzero probabilities for k'th component
+    k <- K[i]
+    nonzero.prob <- prob[, k] > 0
+    pz[ nonzero.prob ] <- prob[nonzero.prob, k] + i
   }
-  pz2
+  pz
 }
 
 #' @export
@@ -209,3 +213,5 @@ imputeFromSampledData <-  function(model, data, index){
   df2 <- df2[rownames(df), ]
   df2
 }
+
+stripData <- function(x) y(x) <- NULL

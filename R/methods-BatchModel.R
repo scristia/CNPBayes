@@ -13,7 +13,7 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
     if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
     zz <- as.integer(factor(numeric(k)))
     zfreq <- as.integer(table(zz))
-    obj <- MarginalModel(data, k, batch, hypp, mcmc.params)
+    obj <- MarginalModel(data, k, hypp, mcmc.params)
     return(obj)
   }
    if(k == 1) {

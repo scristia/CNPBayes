@@ -599,6 +599,39 @@ startAtTrueValues <- function(model, truth){
   model
 }
 
+restartAtChainIndex <- function(model, index){
+  ch <- chains(model)
+  if(!isMarginalModel(model) ){
+    B <- nBatch(model)
+    K <- k(model)
+    theta(model) <- matrix(theta(ch)[i, ], B, K)
+    sigma2(model) <- matrix(sigma2(ch)[i, ], B, K)
+    p(model) <- p(ch)[i, ]
+    z(model) <- z(ch)[i, ]
+    mu(model) <- mu(ch)[i, ]
+    tau2(model) <- tau2(ch)[i, ]
+    sigma2.0(model) <- sigma2.0(ch)[i]
+    nu.0(model) <- nu.0(ch)[i]
+    zFreq(model) <- as.integer(table(z(model)))
+    dataMean(model) <- computeMeans(model)
+    dataPrec(model) <- 1/computeVars(model)
+    return(model)
+  }
+  theta(model) <- theta(ch)[i, ]
+  sigma2(model) <- sigma2(ch)[i, ]
+  p(model) <- p(ch)[i, ]
+  z(model) <- z(ch)[i, ]
+  mu(model) <- mu(ch)[i]
+  tau2(model) <- tau2(ch)[i]
+  sigma2.0(model) <- sigma2.0(ch)[i]
+  nu.0(model) <- nu.0(ch)[i]
+  zFreq(model) <- as.integer(table(z(model)))
+  dataMean(model) <- computeMeans(model)
+  dataPrec(model) <- 1/computeVars(model)
+  model
+}
+
+
 setMethod("zFreq", "MixtureModel", function(object) object@zfreq)
 
 setReplaceMethod("zFreq", "MixtureModel", function(object, value){
