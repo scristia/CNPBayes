@@ -1133,7 +1133,7 @@ RcppExport SEXP p_sigma2_zpermuted(SEXP xmod) {
 NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
   NumericVector x = x_ ;
   int K = x.size() ;
-  NumericVector alpha = alpha_ ;
+  NumericVector alpha = clone(alpha_) ;
   NumericVector total_lg(1) ;
   NumericVector tmp(1);
   NumericVector total_lalpha(1) ;
@@ -1145,8 +1145,8 @@ NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
     tmp[0] += alpha[k] ;
     s += (alpha[k] - 1.0) * log(x[k]) ;
   }
-  total_lalpha = lgamma(tmp) ;
-  logD = total_lg - total_lalpha ;
+  total_lalpha = lgamma(tmp[0]) ;
+  logD[0] = total_lg[0] - total_lalpha[0] ;
   result[0] = s - logD[0] ;
   return result ;
 }
@@ -1183,6 +1183,7 @@ RcppExport SEXP p_pmix_reduced(SEXP xmod) {
     tmp = log_ddirichlet_(pstar, alpha_n) ;
     log_pmix[s] = tmp[0] ;
   }
+  // return tmp ;
   return log_pmix ;
 }
 

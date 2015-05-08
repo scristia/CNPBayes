@@ -22,9 +22,7 @@ if(FALSE){
 x <- dat[[1]]
 outdir <- "~/Software/CNPData/data"
 model.files <- file.path(outdir, paste0("simulation_easy", seq_len(10 * 4), ".rds"))
-mp <- McmcParams(iter=500, burnin=300, nStarts=1)
-mp <- McmcParams(iter=10, burnin=5, nStarts=1)
-results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %do%{
+results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
   calledK <- rep(NA, 4)
   nIncorrect <- rep(NA, 4)
   cat(".")
@@ -35,27 +33,10 @@ results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %do%{
     pc <- prcomp(xx, center=TRUE, scale.=TRUE)$x[, 1]
     if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
     fit <- computeMarginalLik(pc, nchains=3,
-                              T=1000, T2=500,
-                              burnin=200,
+                              T=100, T2=10,
+                              burnin=10,
                               K=1:4)
-    ## strip data
-    mods <- fit$models
-    modlist <- lapply(mods, function(x){
-      x@data <- numeric()
-      x
-    })
-    fit$models <- CNPBayes:::MarginalModelList(modlist)
-    saveRDS(fit, file=model.files[it])
-    if(FALSE){
-      m <- readRDS(model.files[it])
-      m2 <- m
-      iter(m2) <- c(300, 600, 1000, 1000)
-      nStarts(m2) <- 1
-      burnin(m2) <- c(100, 400, 500, 500)
-      m2 <- marginal(m2)
-      saveRDS(m2, file=model.files[it])
-      m <- m2
-    }
+    ##saveRDS(fit, file=model.files[it])
     models <- orderModels(fit)
     if(length(models) == 0){
       nc <- NA
@@ -64,16 +45,14 @@ results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %do%{
     }
     calledK[k] <- nc
   }
-  ##list(calledK=calledK, nIncorrect=nIncorrect)
   return(calledK)
 }
-##simulation_summary <- list(K=calledK,
-##                           nIncorrect=nIncorrect)
-##saveRDS(simulation_summary,
-##file="~/Software/CNPData/data/simulation_summary.rds")
 dt <- Sys.Date()
 saveRDS(results, file=paste0("~/Software/CNPData/data/simulation_easy_", dt, ".rds"))
 q('no')
+
+dt <- Sys.Date()
+results <- readRDS(paste0("~/Software/CNPData/data/simulation_easy_", dt, ".rds"))
 
 ##results <- readRDS("~/Software/CNPData/data/simulation_summary.rds")
 results <- readRDS("~/Software/CNPData/data/simulation_summary_maxperm3.rds")

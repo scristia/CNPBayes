@@ -52,7 +52,7 @@ test_selectK_easy <- function(){
   ## tend to over fit
   x1 <- computeMarginalLik(y(truth), nchains=3, K=1:4)
   m1 <- orderModels(x1)
-  checkTrue(k(m1)[1] > 3)
+  checkTrue(k(m1)[1] >= 3)
 
   truth <- simulateData(N=2500, p=c(1/4, 1/2, 1-1/2-1/4), theta=means, sds=sds)
   x2 <- computeMarginalLik(y(truth), nchains=3, K=1:4)
