@@ -338,3 +338,5 @@ setGeneric("reducedGibbsZThetaFixed", function(object) standardGeneric("reducedG
 setGeneric("pTheta_Zfixed", function(object) standardGeneric("pTheta_Zfixed"))
 
 setGeneric("pTheta", function(object) standardGeneric("pTheta"))
+
+setGeneric("updateMultinomialProb", function(object) standardGeneric("updateMultinomialProb"))

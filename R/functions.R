@@ -157,19 +157,7 @@ computeLRRMedians <- function(views, regions){
   se
 }
 
-#' @export
-cnProbability <- function(prob, K){
-  pz <- prob[, 1]
-  if( K == 1 ) return(pz)
-  K <- (seq_len(K))[-1]
-  for(i in seq_along(K)){
-    ## nonzero probabilities for k'th component
-    k <- K[i]
-    nonzero.prob <- prob[, k] > 0
-    pz[ nonzero.prob ] <- prob[nonzero.prob, k] + i
-  }
-  pz
-}
+
 
 #' @export
 imputeFromSampledData <-  function(model, data, index){
@@ -214,4 +202,24 @@ imputeFromSampledData <-  function(model, data, index){
   df2
 }
 
-stripData <- function(x) y(x) <- NULL
+stripData <- function(object){
+  modlist <- lapply(object, function(x){
+    x@data <- numeric()
+    x
+  })
+  modlist
+}
+
+
+permnK <- function(k, maxperm){
+  if(k < 2) return(matrix(1,1,1))
+  kperm <- permn(seq_len(k))
+  kperm <- do.call("rbind", kperm)
+  kperm.identity <- kperm[1, , drop=FALSE]
+  kperm <- kperm[-1, , drop=FALSE]
+  neq <- apply(kperm, 1, function(x, y) sum(x != y), y=kperm.identity)
+  kperm <- kperm[order(neq, decreasing=TRUE), , drop=FALSE]
+  N <- min(maxperm-1, nrow(kperm))
+  kperm <- rbind(kperm.identity, kperm[seq_len(N), ])
+  kperm
+}

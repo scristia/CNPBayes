@@ -24,7 +24,7 @@ outdir <- "~/Software/CNPData/data"
 model.files <- file.path(outdir, paste0("simulation_easy", seq_len(10 * 4), ".rds"))
 mp <- McmcParams(iter=500, burnin=300, nStarts=1)
 mp <- McmcParams(iter=10, burnin=5, nStarts=1)
-results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
+results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %do%{
   calledK <- rep(NA, 4)
   nIncorrect <- rep(NA, 4)
   cat(".")

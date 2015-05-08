@@ -489,7 +489,7 @@ setMethod("relabel", "MarginalModel", function(object, zindex){
   object <- newMarginalModel(object)
   if(identical(zindex, seq_len(k(object)))) return(object)
   ##
-  ## Permute only the latent variables
+  ## Permute the labels for the components
   ##
   zz <- factor(z(object), levels=zindex)
   zz <- as.integer(zz)
@@ -497,9 +497,6 @@ setMethod("relabel", "MarginalModel", function(object, zindex){
   zFreq(object) <- as.integer(table(zz))
   dataMean(object) <- dataMean(object)[zindex]
   dataPrec(object) <- dataPrec(object)[zindex]
-  ##  theta(object) <- theta(object)[zindex]
-  ##  sigma2(object) <- sigma2(object)[zindex]
-  ##  p(object) <- p(object)[zindex]
   object
 })
 
@@ -906,6 +903,25 @@ simulateMultipleChains <- function(nchains, y, batch, k, mp){
   return(kmodlist)
 }
 
+updateMultipleChains <- function(nchains, modellist, mp){
+  if(k==1) nchains <- 1
+  if(missing(batch)){
+    kmodlist <- replicate(nchains, {
+      kmod <- MarginalModel(y, k=k, mcmc.params=mp)
+      posteriorSimulation(kmod)
+    })
+    return(kmodlist)
+  }
+  ## batch not missing
+  kmodlist <- replicate(nchains, {
+    kmod <- BatchModel(y, batch=batch, k=k, mcmc.params=mp)
+    posteriorSimulation(kmod)
+  })
+  return(kmodlist)
+}
+
+modalLoglik <- function(x) modes(x)[["loglik"]]
+
 #' @export
 computeMarginalLik <- function(y, batch, K=1:4,
                                T=1000, burnin=200,
@@ -915,7 +931,6 @@ computeMarginalLik <- function(y, batch, K=1:4,
   my <- vector("list", length(K))
   mlist <- vector("list", length(K))
   mp <- McmcParams(iter=T, nStarts=1, burnin=burnin)
-  modalLoglik <- function(x) modes(x)[["loglik"]]
   for(i in seq_along(K)){
     k <- K[i]
     kmodlist <- simulateMultipleChains(nchains, y, batch, k, mp)
@@ -934,6 +949,29 @@ computeMarginalLik <- function(y, batch, K=1:4,
   }
   names(my) <- nms
   results <- list(models=mlist, marginal=my)
+  results
+}
+
+
+updateMarginalLik <- function(modellist, T=1000, burnin=200,
+                              T2=200,
+                              maxperm=5,
+                              nchains=2){
+  my <- vector("list", length(modellist))
+  mp <- McmcParams(iter=T, nStarts=1, burnin=burnin)
+  for(i in seq_along(modellist)){
+    model <- modellist[[i]]
+    mcmcParams(model, force=TRUE) <- mp
+    kmodlist <- modelOtherModes(model, nchains)
+    kmodlist <- lapply(kmodlist, posteriorSimulation)
+    mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
+    ll <- sapply(kmodlist, modalLoglik)
+    modellist[[i]] <- kmodlist[[which.max(ll)]]
+    xx <- summarizeMarginalEstimates(mlik)
+    my[[i]] <- xx
+  }
+  names(my) <- names(modellist)
+  results <- list(models=modellist, marginal=my)
   results
 }
 
@@ -1000,3 +1038,11 @@ logBayesFactor <- function(x){
   bf <- setNames(ml[1]-ml[2], paste0(names(ml[1:2]), collapse="-"))
   bf
 }
+
+setMethod("updateMultinomialProb", "MarginalModel", function(object){
+  .Call("update_multinomialPr", object)
+})
+
+setMethod("updateMultinomialProb", "BatchModel", function(object){
+  .Call("update_multinomialPr_batch", object)
+})

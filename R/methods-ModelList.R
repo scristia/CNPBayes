@@ -1,6 +1,12 @@
 MarginalModelList <- function(model_list=list(),
-                              names=character()){
-  new("MarginalModelList", model_list=model_list, names=names) ##elementType=type,
+                              names=character(),
+                              data=numeric()){
+  if(length(model_list) > 0){
+    data <- y(model_list[[1]])
+    model_list <- stripData(model_list)
+  }
+  new("MarginalModelList", model_list=model_list, names=names,
+      data=data)
 }
 
 
@@ -9,8 +15,12 @@ modeIndex <- function(object) object@mode_index
 modeList <- function(object) object@mode_list
 modeDifference <- function(object) object@mode_list
 
-BatchModelList <- function(model_list=list(), names=character()){
-  new("BatchModelList", model_list=model_list, names=names)
+BatchModelList <- function(model_list=list(), names=character(), data=numeric()){
+  if(length(model_list) > 0){
+    data <- y(model_list[[1]])
+    model_list <- stripData(model_list)
+  }
+  new("BatchModelList", model_list=model_list, names=names, data=data)
 }
 
 elementType <- function(object) object@elementType
@@ -51,10 +61,14 @@ setMethod("[", "ModelList", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+setMethod("y", "ModelList", function(object)  object@data )
+
+
 ## returns MarginalModel or BatchModel
 setMethod("[[", "ModelList", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     x <- modelList(x)[[i]]
+    x@data <- y(x)
   }
   x
 })
@@ -159,6 +173,18 @@ setReplaceMethod("nStarts", "ModelList", function(object, value){
 ##   ##paste0("k = ", substr(names(bf), 2, 2))
 ##   as.integer(substr(names(bf), 2, 2))
 ## })
+
+setMethod("sapply", "ModelList", function(X, FUN, ...,
+                                          simplify=TRUE,
+                                          USE.NAMES=TRUE){
+  FUN <- match.fun(FUN)
+  answer <- lapply(X, FUN, ...)
+  if (USE.NAMES && is.character(X) && is.null(names(answer)))
+    names(answer) <- X
+  if (!identical(simplify, FALSE) && length(answer))
+    simplify2array(answer, higher = (simplify == "array"))
+  else answer
+})
 
 setMethod("lapply", "ModelList", function(X, FUN, ...){
   results <- vector("list", length(X))

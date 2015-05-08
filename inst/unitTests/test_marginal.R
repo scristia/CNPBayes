@@ -39,21 +39,6 @@ test_marginalEasy <- function(){
   ## Check the modes
   checkIdentical(modes(model)[["theta"]], thetac(model)[i, ])
   checkIdentical(sqrt(modes(model)[["sigma2"]]), sigmac(model)[i, ])
-  ##
-  ## Explore another mode by switching the labels
-  ##
-##  model2 <- relabel(model, zindex=3:1)
-##  checkEquals(zFreq(model2), zFreq(model)[3:1])
-##  mcmcParams(model2) <- mp
-##  burnin(model2) <- 0
-##  model2 <- posteriorSimulation(model2)
-##  if(FALSE){
-##    par(mfrow=c(2,1), las=1)
-##    plot.ts(thetac(model), col=1:3, plot.type="single")
-##    plot.ts(thetac(model2), col=1:3, plot.type="single")
-##  }
-##  pmns2 <- colMeans(thetac(model2))
-##  checkEquals(pmns, pmns2[3:1], tolerance=0.05)
 }
 
 
@@ -72,7 +57,9 @@ test_selectK_easy <- function(){
   truth <- simulateData(N=2500, p=c(1/4, 1/2, 1-1/2-1/4), theta=means, sds=sds)
   x2 <- computeMarginalLik(y(truth), nchains=3, K=1:4)
   m2 <- orderModels(x2)
-  checkTrue(k(m2)[1]==3)
+  zz <- map(m2[[1]])
+  tab <- table(zz)
+  checkTrue(length(tab)==3)
 }
 
 .test_selectK_nobatchEffect <- function(){

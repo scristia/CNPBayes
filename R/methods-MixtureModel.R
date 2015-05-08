@@ -604,27 +604,27 @@ restartAtChainIndex <- function(model, index){
   if(!isMarginalModel(model) ){
     B <- nBatch(model)
     K <- k(model)
-    theta(model) <- matrix(theta(ch)[i, ], B, K)
-    sigma2(model) <- matrix(sigma2(ch)[i, ], B, K)
-    p(model) <- p(ch)[i, ]
-    z(model) <- z(ch)[i, ]
-    mu(model) <- mu(ch)[i, ]
-    tau2(model) <- tau2(ch)[i, ]
-    sigma2.0(model) <- sigma2.0(ch)[i]
-    nu.0(model) <- nu.0(ch)[i]
+    theta(model) <- matrix(theta(ch)[index, ], B, K)
+    sigma2(model) <- matrix(sigma2(ch)[index, ], B, K)
+    p(model) <- p(ch)[index, ]
+    z(model) <- z(ch)[index, ]
+    mu(model) <- mu(ch)[index, ]
+    tau2(model) <- tau2(ch)[index, ]
+    sigma2.0(model) <- sigma2.0(ch)[index]
+    nu.0(model) <- nu.0(ch)[index]
     zFreq(model) <- as.integer(table(z(model)))
     dataMean(model) <- computeMeans(model)
     dataPrec(model) <- 1/computeVars(model)
     return(model)
   }
-  theta(model) <- theta(ch)[i, ]
-  sigma2(model) <- sigma2(ch)[i, ]
-  p(model) <- p(ch)[i, ]
-  z(model) <- z(ch)[i, ]
-  mu(model) <- mu(ch)[i]
-  tau2(model) <- tau2(ch)[i]
-  sigma2.0(model) <- sigma2.0(ch)[i]
-  nu.0(model) <- nu.0(ch)[i]
+  theta(model) <- theta(ch)[index, ]
+  sigma2(model) <- sigma2(ch)[index, ]
+  p(model) <- p(ch)[index, ]
+  z(model) <- z(ch)[index, ]
+  mu(model) <- mu(ch)[index]
+  tau2(model) <- tau2(ch)[index]
+  sigma2.0(model) <- sigma2.0(ch)[index]
+  nu.0(model) <- nu.0(ch)[index]
   zFreq(model) <- as.integer(table(z(model)))
   dataMean(model) <- computeMeans(model)
   dataPrec(model) <- 1/computeVars(model)
@@ -722,3 +722,48 @@ setReplaceMethod("zChain", "MixtureModel", function(object, value){
   mcmcChains(object)@z <- value
   object
 })
+
+useModes <- function(object){
+  m2 <- object
+  theta(m2) <- modes(object)[["theta"]]
+  sigma2(m2) <- modes(object)[["sigma2"]]
+  tau2(m2) <- modes(object)[["tau2"]]
+  nu.0(m2) <- modes(object)[["nu0"]]
+  sigma2.0(m2) <- modes(object)[["sigma2.0"]]
+  p(m2) <- modes(object)[["mixprob"]]
+  zFreq(m2) <- as.integer(modes(object)[["zfreq"]])
+  logLik(m2) <- modes(object)[["loglik"]]
+  logPrior(m2) <- modes(object)[["logprior"]]
+  ##
+  ## update z using the modal values from above
+  ##
+  if(is(object, "MarginalModel")){
+    z(m2) <- .Call("update_z", m2)
+  } else {
+    z(m2) <- .Call("update_z_batch", m2)
+  }
+  m2
+}
+
+
+mapModel <- function(model){
+  model2 <- restartAtChainIndex(model, argMax(model))
+  model2
+}
+
+
+
+#' @export
+mapCnProbability <- function(model){
+  ## Cardin et al. : calculate probabilistic copy number assignments
+  ## using Bayes Rule applied at the MAP estimates of the cluster
+  ## mean, variance, and class proportion parameters
+  map_model <- mapModel(model)
+  p <- updateMultinomialProb(map_model)
+  if(isMarginalModel(model)){
+    p <- p[, order(theta(map_model))]
+  } else {
+    p <- p[, order(mu(map_model))]
+  }
+  return(p)
+}

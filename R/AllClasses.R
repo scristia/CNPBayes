@@ -95,7 +95,8 @@ setClass("PosteriorFiles",
              post1="character"))
 
 
-setClass("ModelList", representation(model_list="list", names="character"))
+setClass("ModelList", representation(model_list="list", names="character",
+                                     data="numeric"))
 ##                                     ##elementType="character",
 ##                                     names="character")
 ##                                     ##mode_index="list",
