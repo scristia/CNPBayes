@@ -938,6 +938,7 @@ RcppExport SEXP simulate_z_reduced2(SEXP object) {
   NumericVector s20chain = chains.slot("sigma2.0") ;
   IntegerVector h(N) ;
   model.slot("theta") = thetastar ;
+  model.slot("sigma2") = sigma2star ;  
   //
   // Run reduced Gibbs:
   //   -- theta is fixed at modal ordinate
@@ -953,8 +954,6 @@ RcppExport SEXP simulate_z_reduced2(SEXP object) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma2_0(model) ;
-    // nu0chain[s] = model.slot("nu.0") ;
-    // s20chain[s] = model.slot("sigma2.0") ;
     h = model.slot("z") ;
     Z(s, _) = h ;
   }
@@ -1129,11 +1128,18 @@ RcppExport SEXP p_sigma2_zpermuted(SEXP xmod) {
   return logp_prec ;
 }
 
+
+
+// 
+// RcppExport SEXP log_ddirichlet_(SEXP x_, SEXP alpha_) {
+
 // [[Rcpp::export]]
 NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
-  NumericVector x = x_ ;
+  // NumericVector x = as<NumericVector>(x_) ;
+  NumericVector x = clone(x_) ;
   int K = x.size() ;
   NumericVector alpha = clone(alpha_) ;
+  // NumericVector alpha = as<NumericVector>(alpha_) ;
   NumericVector total_lg(1) ;
   NumericVector tmp(1);
   NumericVector total_lalpha(1) ;
@@ -1159,16 +1165,19 @@ RcppExport SEXP p_pmix_reduced(SEXP xmod) {
   Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
   Rcpp::S4 chains = model.slot("mcmc.chains") ;
   Rcpp::S4 hypp = model.slot("hyperparams") ;
-  int S = mcmcp.slot("iter") ;
   List modes = model.slot("modes") ;
+  //
+  //
+  NumericVector x = model.slot("data") ;    
   int K = hypp.slot("k") ;
+  int S = mcmcp.slot("iter") ;  
+  int N = x.size() ;
+  //
   NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
   NumericVector pstar = clone(p_) ;
-  IntegerMatrix Z = chains.slot("z") ;
+  NumericMatrix Z = chains.slot("z") ;
   NumericVector alpha = hypp.slot("alpha") ;
   NumericVector log_pmix(S) ;
-  NumericVector x = model.slot("data") ;
-  int N = x.size() ;
   //
   // Run reduced Gibbs  -- theta,sigma2 fixed at modal ordinates
   //

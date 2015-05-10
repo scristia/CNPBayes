@@ -67,8 +67,9 @@ setMethod("y", "ModelList", function(object)  object@data )
 ## returns MarginalModel or BatchModel
 setMethod("[[", "ModelList", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
+    yy <- y(x)
     x <- modelList(x)[[i]]
-    x@data <- y(x)
+    x@data <- yy
   }
   x
 })

@@ -776,6 +776,7 @@ setMethod("pSigma2", "BatchModel", function(object) {
 })
 
 ## same for marginal and batch models
+
 setMethod("pMixProb", "MixtureModel", function(object) {
   exp(.Call("p_pmix_reduced", object))
 })
@@ -822,13 +823,29 @@ setMethod("reducedGibbsThetaSigmaFixed", "BatchModel", function(object){
     ## truth and results should be in the same ballpark
     pstar <- result
     zz <- as.numeric(table(zChain(kmodZ2)[1, ]))
+    gtools::ddirichlet(pstar, zz)
+
+    ptab <- matrix(NA, nrow(zChain(kmodZ2)), 3)
+    Z <- zChain(kmodZ2)
+    NN <- length(y(kmodZ2))
+    ptab <- t(apply(Z, 1, function(x, NN) table(x)/NN, NN=NN))
+    plot.ts(ptab, plot.type="single", col=1:3)
+    abline(h=modes(kmodZ2)[["mixprob"]], col=1:3)
+    i <- argMax(kmod)
+    pic(kmod)[i,]
+    modes(kmodZ2)[["mixprob"]]
+    Z2 <- table(zChain(kmod)[i, ])
   }
   p_sigma2.z <- pSigma2(kmodZ1)
   p_pmix.z <- pMixProb(kmodZ2)
   p_theta <- mean(p_theta.z)
   p_sigma2 <- mean(p_sigma2.z)
   p_pmix <- mean(p_pmix.z)
-  c(p_theta, p_sigma2, p_pmix)
+  pstar <- c(p_theta, p_sigma2, p_pmix)
+  if(any(is.na(pstar)) || any(!is.finite(pstar))) browser()
+  lpstar <- log(pstar)
+  if(any(is.na(lpstar)) || any(!is.finite(lpstar))) browser()
+  pstar
 }
 
 
@@ -856,6 +873,7 @@ setMethod("pThetaStar", "MixtureModel",
 .berkhof <- function(x, model){
   NP <- nrow(x)
   p.I <- prod(x[1, ])  ## Chib's estimate
+  if(is.na(log(p.I))) browser()
   if(k(model) == 1 ){
     p.V <- p.I
   } else {
@@ -880,7 +898,13 @@ berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5){
 summarizeMarginalEstimates <- function(x){
   chibs <- round(sapply(x, chib), 2)
   berk <- round(sapply(x, berkhof), 2)
-  my <- round(sapply(x, marginal), 2)
+  my <- sapply(x, marginal)
+  ly <- sapply(my, length)
+  if(any(ly == 0)){
+    my[[which(ly==0)]] <- NA
+    my <- unlist(my)
+  }
+  my <- round(my, 2)
   xx <- cbind(chibs, berk, my)
   colnames(xx) <- c("chib", "berkhof", "marginal")
   xx
@@ -1009,6 +1033,7 @@ updateMarginalLik <- function(modellist, T=1000, burnin=200,
 
 #' @export
 orderModels <- function(x){
+  x <- .trimNA(x)
   models <- x$models
   K <- k(models)
   ##maxdev <- sapply(K, function(x) log(factorial(x))) + 0.5
@@ -1025,6 +1050,13 @@ orderModels <- function(x){
   }
   K <- K[order(my[K], decreasing=TRUE)]
   models[ K ]
+}
+
+.trimNA <- function(object){
+  mm <- object$marginal
+  mm <- lapply(mm, function(x) x[rowSums(is.na(x)) == 0, , drop=FALSE] )
+  object$marginal <- mm
+  object
 }
 
 #' @export
