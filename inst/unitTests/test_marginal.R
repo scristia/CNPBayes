@@ -54,12 +54,17 @@ test_selectK_easy <- function(){
   m1 <- orderModels(x1)
   checkTrue(k(m1)[1] >= 3)
 
+  set.seed(1000)
   truth <- simulateData(N=2500, p=c(1/4, 1/2, 1-1/2-1/4), theta=means, sds=sds)
-  x2 <- computeMarginalLik(y(truth), nchains=3, K=1:4)
+  x2 <- computeMarginalLik(y(truth), nchains=3, K=1:4, T=5000, T2=1000, burnin=1000)
   m2 <- orderModels(x2)
-  zz <- map(m2[[1]])
-  tab <- table(zz)
-  checkTrue(length(tab)==3)
+  checkTrue(k(m2)[1] >= 3)
+
+  ## T must be >= T2
+  checkException(computeMarginalLik(y(truth),
+                                    nchains=3,
+                                    K=1:4,
+                                    T=10, T2=20, burnin=1000))
 }
 
 .test_selectK_nobatchEffect <- function(){
@@ -215,6 +220,12 @@ test_marginal_hard <- function(){
   freq_hem <- mean(cn==1)
   ## get homozygous post-hoc
   cn[ r < -4 ] <- 0
+
+
+  probs <- seq(0, 1, 0.001)
+  rgrid <- cut(r, breaks=quantile(r, probs=probs), label=FALSE,
+               include.lowest=TRUE)
+  rcenters <- sapply(split(r, rgrid), mean)
 
   ##
   ## Computationally not feasible to explore all K models adequately

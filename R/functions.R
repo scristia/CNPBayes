@@ -162,15 +162,15 @@ computeLRRMedians <- function(views, regions){
 #' @export
 imputeFromSampledData <-  function(model, data, index){
   if(is.null(names(data))) stop("data must be a named vector")
-  pz <- probz(model)
+  pz2 <- probz(model)
   cn <- map(model)
-  pz2 <- cnProbability(pz, k(model))
+  ##pz2 <- mapCnProbability(pz, k(model))
   ##r2 <- quantile(data, probs=seq(0, 1, by=0.01))
   df <- data.frame(r=data,
                    cn=rep(NA, length(data)),
-                   p=rep(NA, length(data)),
+                   ##p=rep(NA, length(data)),
                    row.names=names(data))
-  df$p[index] <- pz2
+  ##df$p[index] <- pz2
   df$cn[index] <- cn
   tmp <- ntile(df$r, 1000)
   df$quantiles <- ntile(df$r, 1000)
@@ -189,14 +189,13 @@ imputeFromSampledData <-  function(model, data, index){
   nearest_quantiles2[is.na(nearest_quantiles2)] <- df$quantiles[ is.na(nearest_quantiles2) ]
   df$quantiles2 <- nearest_quantiles2
   ##df[df$quantiles != df$quantiles2, ]
-
   df.complete <- df[!is.na(df$cn), ]
   df.incomplete <- df[is.na(df$cn), ]
   ## now any missing cn/prob can be 'imputed'
   cn <- setNames(df.complete$cn, df.complete$quantiles2)
   df.incomplete$cn <- cn[as.character(df.incomplete$quantiles2)]
-  p <- setNames(df.complete$p, df.complete$quantiles2)
-  df.incomplete$p <- p[as.character(df.incomplete$quantiles2)]
+  ##p <- setNames(df.complete$p, df.complete$quantiles2)
+  ##df.incomplete$p <- p[as.character(df.incomplete$quantiles2)]
   df2 <- rbind(df.incomplete, df.complete)
   df2 <- df2[rownames(df), ]
   df2

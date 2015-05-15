@@ -21,13 +21,14 @@ if(FALSE){
 x <- dat[[1]]
 outdir <- "~/Software/CNPData/data"
 model.files <- file.path(outdir, paste0("simulation_easy", seq_len(10 * 4), ".rds"))
-set.seed(1100)
-##results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
-for(i in 1:10){
-##  for(i in 5:10){
+##set.seed(1100)
+T <- 2000; T2=1000; burnin=1000
+results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
+##for(i in 1:10){
+  set.seed(i)
   calledK <- rep(NA, 4)
   nIncorrect <- rep(NA, 4)
-  cat(".")
+  cat(i, " ")
   for(k in 1:4){
     it <- (i-1)*4 + k
     xx <- x[, , i, k]
@@ -35,8 +36,8 @@ for(i in 1:10){
     pc <- prcomp(xx, center=TRUE, scale.=TRUE)$x[, 1]
     if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
     fit <- computeMarginalLik(pc, nchains=3,
-                              T=2000, T2=1000,
-                              burnin=1000,
+                              T=T, T2=T2,
+                              burnin=burnin,
                               K=1:4)
     models <- orderModels(fit)
     if(length(models) == 0){
@@ -46,13 +47,14 @@ for(i in 1:10){
     }
     calledK[k] <- nc
   }
-##  return(calledK)
+  return(calledK)
 }
 dt <- Sys.Date()
 saveRDS(results, file=paste0("~/Software/CNPData/data/simulation_easy_", dt, ".rds"))
 q('no')
 
 dt <- Sys.Date()
+dt <- "2015-05-12"
 results <- readRDS(paste0("~/Software/CNPData/data/simulation_easy_", dt, ".rds"))
 
 ##results <- readRDS("~/Software/CNPData/data/simulation_summary.rds")

@@ -1,3 +1,13 @@
+ModelList <- function(model_list=list(),
+                      names=character(),
+                      data=numeric()){
+  if(length(model_list) > 0){
+    data <- y(model_list[[1]])
+    model_list <- stripData(model_list)
+  }
+  new("ModelList", model_list=model_list, names=names, data=data)
+}
+
 MarginalModelList <- function(model_list=list(),
                               names=character(),
                               data=numeric()){

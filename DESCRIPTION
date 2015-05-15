@@ -9,13 +9,13 @@ Depends:
     RcppArmadillo (>= 0.2.0),
     BiocGenerics,
     foreach,
-    GenomicRanges
+    GenomicRanges,
+    methods
 Imports:
     Hmisc,
     IRanges,
     S4Vectors,
     truncnorm,
-    methods,
     matrixStats,
     mixtools,
     RColorBrewer,

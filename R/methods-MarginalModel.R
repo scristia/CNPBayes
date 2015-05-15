@@ -825,16 +825,28 @@ setMethod("reducedGibbsThetaSigmaFixed", "BatchModel", function(object){
     zz <- as.numeric(table(zChain(kmodZ2)[1, ]))
     gtools::ddirichlet(pstar, zz)
 
-    ptab <- matrix(NA, nrow(zChain(kmodZ2)), 3)
     Z <- zChain(kmodZ2)
     NN <- length(y(kmodZ2))
     ptab <- t(apply(Z, 1, function(x, NN) table(x)/NN, NN=NN))
-    plot.ts(ptab, plot.type="single", col=1:3)
-    abline(h=modes(kmodZ2)[["mixprob"]], col=1:3)
-    i <- argMax(kmod)
-    pic(kmod)[i,]
-    modes(kmodZ2)[["mixprob"]]
-    Z2 <- table(zChain(kmod)[i, ])
+    plot.ts(ptab, plot.type="single", col=1:4)
+    abline(h=modes(kmodZ2)[["mixprob"]], col=1:4, lwd=2)
+
+    library(RUnit)
+    ii <- argMax(kmod)
+    checkEquals(pic(kmod)[ii,], modes(kmodZ2)[["mixprob"]])
+    checkEquals(thetac(kmod)[ii, ],  modes(kmodZ2)[["theta"]])
+    checkEquals(thetac(kmod)[ii, ],  theta(kmodZ2))
+    checkEquals(sigmac(kmod)[ii, ],  sigma(kmodZ2))
+    Z2 <- table(zChain(kmod)[ii, ])/NN
+    checkEquals(as.numeric(Z2), pic(kmod)[ii,], tolerance=0.05)
+    checkTrue(log(gtools::ddirichlet(pic(kmod)[ii,], as.numeric(Z2))) > -Inf)
+
+    kmod3 <- reducedGibbsThetaSigmaFixed(kmod)
+    Z <- zChain(kmod3)
+    ptab3 <- t(apply(Z, 1, function(x, NN) table(x)/NN, NN=NN))
+    plot.ts(ptab3, plot.type="single", col=1:4)
+    abline(h=modes(kmodZ2)[["mixprob"]], col=1:4, lwd=2)
+    p_pmix.z <- pMixProb(kmod3)
   }
   p_sigma2.z <- pSigma2(kmodZ1)
   p_pmix.z <- pMixProb(kmodZ2)
@@ -842,9 +854,15 @@ setMethod("reducedGibbsThetaSigmaFixed", "BatchModel", function(object){
   p_sigma2 <- mean(p_sigma2.z)
   p_pmix <- mean(p_pmix.z)
   pstar <- c(p_theta, p_sigma2, p_pmix)
-  if(any(is.na(pstar)) || any(!is.finite(pstar))) browser()
-  lpstar <- log(pstar)
-  if(any(is.na(lpstar)) || any(!is.finite(lpstar))) browser()
+  ##pstar <- c(p_theta, p_sigma2)
+##  if(any(is.na(pstar)) || any(!is.finite(pstar))) browser()
+##  lpstar <- log(pstar)
+##   if(!is.finite(lpstar[[3]])){
+##     ##kmodZ2 <- reducedGibbsThetaSigmaFixed(kmod)
+##     ##p_pmix.z <- pMixProb(kmodZ2)
+##     ##p_pmix <- mean(p_pmix.z)
+##     ##pstar[3] <- p_pmix
+##   }
   pstar
 }
 
@@ -862,8 +880,10 @@ setMethod("pThetaStar", "MixtureModel",
             results <- matrix(NA, NP, 3)
             nms <- c("p(theta*|y)", "p(sigma2*|theta*, y)", "p(p*|theta*, sigma2*, y)")
             colnames(results) <- nms
+            ##if(TRUE) results <- results[, 1:2, drop=FALSE]
             kmodZ1 <- reducedGibbsThetaFixed(kmod)
             kmodZ2 <- reducedGibbsThetaSigmaFixed(kmod)
+            ##if(k(kmod) == 4) browser()
             for(i in seq_len(nrow(permutations))){
               results[i, ] <- .pthetastar(kmod, kmodZ1, kmodZ2, T2, permutations[i, ])
             }
@@ -911,18 +931,20 @@ summarizeMarginalEstimates <- function(x){
 }
 
 simulateMultipleChains <- function(nchains, y, batch, k, mp){
-  if(k==1) nchains <- 1
+  ##if(k==1) nchains <- 1
   if(missing(batch)){
     kmodlist <- replicate(nchains, {
       kmod <- MarginalModel(y, k=k, mcmc.params=mp)
-      posteriorSimulation(kmod)
+      kmod <- posteriorSimulation(kmod)
+      return(kmod)
     })
     return(kmodlist)
   }
   ## batch not missing
   kmodlist <- replicate(nchains, {
     kmod <- BatchModel(y, batch=batch, k=k, mcmc.params=mp)
-    posteriorSimulation(kmod)
+    kmod <- posteriorSimulation(kmod)
+    return(kmod)
   })
   return(kmodlist)
 }
@@ -952,6 +974,12 @@ computeMarginalLik <- function(y, batch, K=1:4,
                                T2=200,
                                maxperm=5,
                                nchains=2){
+  if(T < T2) stop("T must be >= T2")
+  if(!missing(batch)){
+    nms <- names(table(batch))[table(batch) < 50]
+    if(length(nms) > 0)
+      warning("batches with fewer than 50 samples present")
+  }
   my <- vector("list", length(K))
   mlist <- vector("list", length(K))
   mp <- McmcParams(iter=T, nStarts=1, burnin=burnin)
@@ -999,48 +1027,17 @@ updateMarginalLik <- function(modellist, T=1000, burnin=200,
   results
 }
 
-## setMethod("computeMarginalLik", c("numeric", "vector"),
-##           function(y, batch, K=1:4,
-##                    T=1000, burnin=200,
-##                    T2=200,
-##                    maxperm=5,
-##                    nchains=2){
-##             my <- vector("list", length(K))
-##             mlist <- vector("list", length(K))
-##             mp <- McmcParams(iter=T, nStarts=1, burnin=burnin)
-##             modalLoglik <- function(x) modes(x)[["loglik"]]
-##             for(i in seq_along(K)){
-##               k <- K[i]
-##               ##kmod <- posteriorSimulation(kmod)
-##               if( k == 1 ) ns <- 1 else ns <- nchains
-##               kmodlist <- replicate(ns, {
-##                 kmod <- MarginalModel(y, k=k, mcmc.params=mp)
-##                 posteriorSimulation(kmod)
-##               })
-##               mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
-##               ll <- sapply(kmodlist, modalLoglik)
-##               mlist[[i]] <- kmodlist[[which.max(ll)]]
-##               xx <- summarizeMarginalEstimates(mlik)
-##               my[[i]] <- xx
-##             }
-##             nms <- paste0("M", K)
-##             names(my) <- nms
-##             results <- list(models=MarginalModelList(model_list=mlist,
-##                                 names=nms),
-##                             marginal=my)
-##             results
-##           })
-
 #' @export
 orderModels <- function(x){
   x <- .trimNA(x)
   models <- x$models
-  K <- k(models)
+  ##K <- k(models)
+  K <- names(models)
   ##maxdev <- sapply(K, function(x) log(factorial(x))) + 0.5
   maxdev <- 5
   marginal.est.list <- x$marginal
   m <- lapply(marginal.est.list, function(x) x[, "marginal"])
-  my <- sapply(m, max)
+  my <- sapply(m, mean)
   d <- sapply(m, function(x) diff(range(x)))
   if(sum(d < maxdev, na.rm=TRUE) >= 1){
     K <- K[ d < maxdev ]
@@ -1049,7 +1046,8 @@ orderModels <- function(x){
     return(NULL)
   }
   K <- K[order(my[K], decreasing=TRUE)]
-  models[ K ]
+  ix <- match(K, names(models))
+  models[ix]
 }
 
 .trimNA <- function(object){

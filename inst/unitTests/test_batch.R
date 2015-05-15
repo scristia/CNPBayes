@@ -80,16 +80,45 @@ test_kbatch <- function(){
   library(oligoClasses)
   set.seed(123)
   k <- 3
-  means <- matrix(c(-1.2, -1.0, -0.8,
-                    -0.2, 0, 0.2,
-                    0.8, 1, 1.2), 3, k, byrow=FALSE)
-  sds <- matrix(0.1, 3, k)
-  N <- 1500
+  means <- matrix(c(rnorm(5, -1, 0.1),
+                    rnorm(5, 0, 0.1),
+                    rnorm(5, 1, 0.1)), 5, k, byrow=FALSE)
+  sds <- matrix(0.1, 5, k)
+  ##N <- 1500
+  N <- 9000
+  probs <- c(1/3, 1/3, 3/10, 0.02, 0.013)
+  probs <- probs/sum(probs)
+  batch <- sample(1:5, size=N, prob=probs, replace=TRUE)
+
+  p <- c(1/5, 1/3)
+  p <- c(p, 1-sum(p))
   truth <- simulateBatchData(N=N,
-                             batch=rep(letters[1:3], length.out=N),
+                             batch=batch,
                              theta=means,
                              sds=sds,
-                             p=c(1/5, 1/3, 1-1/3-1/5))
+                             p=p)
+  mp <- McmcParams(iter=1000, burnin=250, nStarts=5)
+  kmod <- BatchModel(y(truth), batch(truth), k=3, mcmc.params=mp)
+  kmod <- posteriorSimulation(kmod)
+  cn <- map(kmod)
+
+  set.seed(1000)
+  index <- sample(seq_len(N), 3000)
+  kmod2 <- BatchModel(y(truth)[index], batch(truth)[index], k=3, mcmc.params=mp)
+  kmod2 <- posteriorSimulation(kmod2)
+  yy <- setNames(y(truth), seq_along(y(truth)))
+  df <- imputeFromSampledData(kmod2, yy, index)
+  cn2 <- df$cn
+  mean(cn != cn2)
+
+  cn2 <- map(kmod2)
+  pz <- probz(kmod2)
+  pz <- mapCnProbability(kmod2)
+
+
+
+
+
   if(FALSE){
     ##
     ## With 10k iterations and 1k iterations burnin, all models
