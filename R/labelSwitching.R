@@ -19,85 +19,85 @@
   } else tot <- thd+pid+mud+tau2d
   tot
 }
-
-## compute distance for a given permutation of columns
-.computeDistanceOnePerm <- function(mc, column.permutation, modes){
-  param.sds <- sapply(modes, sd)
-  .computeDistOneBatch(th=theta(mc)[, column.permutation],
-                       s2=sigma2(mc)[, column.permutation],
-                       mus=mu(mc)[, column.permutation],
-                       tau2s=tau2(mc)[, column.permutation],
-                       P=p(mc)[, column.permutation],
-                       modes=modes,
-                       param.sds=param.sds)
-}
-
-setMethod("computeDistance", "BatchModel", function(object){
-  modal.params <- modes(object)
-  ##param.sds <- sapply(modal.params, function(x) sd(x[1,]))
-  mc <- mcmcChains(object)
-  th <- theta(mc)
-  s2 <- sigma2(mc)
-  ## ix is the number of possible orderings for each batch
-  ix <- permutations(k(object), k(object))##
-  nr <- nrow(th)
-  nc <- nrow(ix)
-  Dlist <- vector("list", nBatch(bmodel))
-  ## iterate over batches
-  for(b in seq_len(nBatch(object))){
-    mc2 <- mc
-    batch.index <- seq(b, nBatch(object)*k(object), by=nBatch(object))
-    theta(mc2) <- th[, batch.index]
-    sigma2(mc2) <- s2[, batch.index]
-    D <- matrix(NA, nr, nc)
-    m.params <- list(theta=modal.params[["theta"]][b,],
-                     sigma2=modal.params[["sigma2"]][b,],
-                     mu=modal.params[["mu"]],
-                     tau2=modal.params[["tau2"]],
-                     mixprob=modal.params[["mixprob"]])
-    ## iterate over all possible permutations
-    for(j in 1:nrow(ix)){
-      J <- ix[j, ]
-      D[, j] <- .computeDistanceOnePerm(mc=mc2, column.permutation=J,
-                                        modes=m.params)
-    }
-    Dlist[[b]] <- D
-  }
-  Dlist
-})
-
-setMethod("switchLabels", "BatchModel", function(object){
-  Dlist <- computeDistance(object)
-  mc <- mcmcChains(object)
-  warn <- FALSE
-  for(b in seq_along(Dlist)){
-    D <- Dlist[[b]]
-    ordering_index <- apply(D, 1, which.min)
-    if(all(ordering_index == 1)) next()
-    warn <- TRUE
-    batch.index <- seq(b, nBatch(object)*k(object), by=nBatch(object))
-    mc2 <- mc
-    theta(mc2) <- theta(mc)[, batch.index]
-    sigma2(mc2) <- sigma2(mc)[, batch.index]
-    perms <- permutations(k(object), k(object))
-    tab <- as.integer(names(table(ordering_index)))
-    tab <- tab[tab!=1]
-    for(i in seq_along(tab)){
-      mcmc.index <- which(ordering_index == tab[i])
-      j <- perms[tab[i], ]
-      ## rewrite batch.index in mc from the permuted index in mc2
-      theta(mc)[mcmc.index, batch.index] <- theta(mc2)[mcmc.index, j]
-      sigma2(mc)[mcmc.index, batch.index] <- sigma2(mc2)[mcmc.index, j]
-      p(mc)[mcmc.index, ] <- p(mc)[mcmc.index, j]
-      mu(mc)[mcmc.index,] <- mu(mc)[mcmc.index, j]
-      tau2(mc)[mcmc.index,] <- tau2(mc)[mcmc.index, j]
-    }
-    mcmcChains(object) <- mc
-  }
-  if(warn) warning("Label switching occurred. Posterior probabilities for z may be incorrect")
-  object
-})
-
+##
+#### compute distance for a given permutation of columns
+##.computeDistanceOnePerm <- function(mc, column.permutation, modes){
+##  param.sds <- sapply(modes, sd)
+##  .computeDistOneBatch(th=theta(mc)[, column.permutation],
+##                       s2=sigma2(mc)[, column.permutation],
+##                       mus=mu(mc)[, column.permutation],
+##                       tau2s=tau2(mc)[, column.permutation],
+##                       P=p(mc)[, column.permutation],
+##                       modes=modes,
+##                       param.sds=param.sds)
+##}
+##
+##setMethod("computeDistance", "BatchModel", function(object){
+##  modal.params <- modes(object)
+##  ##param.sds <- sapply(modal.params, function(x) sd(x[1,]))
+##  mc <- mcmcChains(object)
+##  th <- theta(mc)
+##  s2 <- sigma2(mc)
+##  ## ix is the number of possible orderings for each batch
+##  ix <- permutations(k(object), k(object))##
+##  nr <- nrow(th)
+##  nc <- nrow(ix)
+##  Dlist <- vector("list", nBatch(bmodel))
+##  ## iterate over batches
+##  for(b in seq_len(nBatch(object))){
+##    mc2 <- mc
+##    batch.index <- seq(b, nBatch(object)*k(object), by=nBatch(object))
+##    theta(mc2) <- th[, batch.index]
+##    sigma2(mc2) <- s2[, batch.index]
+##    D <- matrix(NA, nr, nc)
+##    m.params <- list(theta=modal.params[["theta"]][b,],
+##                     sigma2=modal.params[["sigma2"]][b,],
+##                     mu=modal.params[["mu"]],
+##                     tau2=modal.params[["tau2"]],
+##                     mixprob=modal.params[["mixprob"]])
+##    ## iterate over all possible permutations
+##    for(j in 1:nrow(ix)){
+##      J <- ix[j, ]
+##      D[, j] <- .computeDistanceOnePerm(mc=mc2, column.permutation=J,
+##                                        modes=m.params)
+##    }
+##    Dlist[[b]] <- D
+##  }
+##  Dlist
+##})
+##
+##setMethod("switchLabels", "BatchModel", function(object){
+##  Dlist <- computeDistance(object)
+##  mc <- mcmcChains(object)
+##  warn <- FALSE
+##  for(b in seq_along(Dlist)){
+##    D <- Dlist[[b]]
+##    ordering_index <- apply(D, 1, which.min)
+##    if(all(ordering_index == 1)) next()
+##    warn <- TRUE
+##    batch.index <- seq(b, nBatch(object)*k(object), by=nBatch(object))
+##    mc2 <- mc
+##    theta(mc2) <- theta(mc)[, batch.index]
+##    sigma2(mc2) <- sigma2(mc)[, batch.index]
+##    perms <- permutations(k(object), k(object))
+##    tab <- as.integer(names(table(ordering_index)))
+##    tab <- tab[tab!=1]
+##    for(i in seq_along(tab)){
+##      mcmc.index <- which(ordering_index == tab[i])
+##      j <- perms[tab[i], ]
+##      ## rewrite batch.index in mc from the permuted index in mc2
+##      theta(mc)[mcmc.index, batch.index] <- theta(mc2)[mcmc.index, j]
+##      sigma2(mc)[mcmc.index, batch.index] <- sigma2(mc2)[mcmc.index, j]
+##      p(mc)[mcmc.index, ] <- p(mc)[mcmc.index, j]
+##      mu(mc)[mcmc.index,] <- mu(mc)[mcmc.index, j]
+##      tau2(mc)[mcmc.index,] <- tau2(mc)[mcmc.index, j]
+##    }
+##    mcmcChains(object) <- mc
+##  }
+##  if(warn) warning("Label switching occurred. Posterior probabilities for z may be incorrect")
+##  object
+##})
+##
 
 
 
@@ -180,26 +180,26 @@ setMethod("reorderComponents", "MixtureModel", function(object, new_levels){
 ##  }
   object
 })
-
-setMethod("switchLabels", "MarginalModel", function(object){
-  D <- computeDistance(object)
-  ordering_index <- apply(D, 1, which.min)
-  if(all(ordering_index == 1)) return(object)
-  warning("Label switching occurred. Posterior probabilities for z may be incorrect")
-  mc <- mcmcChains(object)
-  perms <- permutations(k(object), k(object))
-  tab <- as.integer(names(table(ordering_index)))
-  tab <- tab[tab!=1]
-  for(i in seq_along(tab)){
-    mcmc.index <- which(ordering_index == tab[i])
-    j <- perms[tab[i], ]
-    theta(mc)[mcmc.index, ] <- theta(mc)[mcmc.index, j]
-    sigma2(mc)[mcmc.index, ] <- sigma2(mc)[mcmc.index, j]
-    p(mc)[mcmc.index, ] <- p(mc)[mcmc.index, j]
-  }
-  mcmcChains(object) <- mc
-  object
-})
+##
+##setMethod("switchLabels", "MarginalModel", function(object){
+##  D <- computeDistance(object)
+##  ordering_index <- apply(D, 1, which.min)
+##  if(all(ordering_index == 1)) return(object)
+##  warning("Label switching occurred. Posterior probabilities for z may be incorrect")
+##  mc <- mcmcChains(object)
+##  perms <- permutations(k(object), k(object))
+##  tab <- as.integer(names(table(ordering_index)))
+##  tab <- tab[tab!=1]
+##  for(i in seq_along(tab)){
+##    mcmc.index <- which(ordering_index == tab[i])
+##    j <- perms[tab[i], ]
+##    theta(mc)[mcmc.index, ] <- theta(mc)[mcmc.index, j]
+##    sigma2(mc)[mcmc.index, ] <- sigma2(mc)[mcmc.index, j]
+##    p(mc)[mcmc.index, ] <- p(mc)[mcmc.index, j]
+##  }
+##  mcmcChains(object) <- mc
+##  object
+##})
 
 .computeDistanceMarginal <- function(th, s2, P, modes, param.sds){
   thetad <- .absoluteDistance(th, modes[["theta"]])
@@ -221,65 +221,66 @@ setMethod("switchLabels", "MarginalModel", function(object){
 
 .absoluteDistance <- function(x, y) abs(t(t(x)-y))
 
-.updateLabels <- function(object){
-  modal.params <- modes(object)
-  param.sds <- sapply(modal.params, sd)
-  th <- theta(object)
-  s2 <- sigma2(object)
-  P <- p(object)
-  ix <- permutations(k(object), k(object))##
-  nc <- nrow(ix)
-  D <- rep(NA, nc)
-  ##
-  ## Compute distance to the modes for the current ordering (1,2,3)
-  ## at each iteration of the chain.
-  ##
-  ## subtrace a vector from each row of chain matrix
-  D[1] <- .computeDistanceMarginal(th, s2, P, modal.params, param.sds)
-  if(FALSE) plot.ts(D[,1], col="gray")
-  for(j in 2:nc){
-    J <- ix[j, ]
-    browser()
-    D[j] <- .computeDistanceMarginal(th[J], s2[J], P[J], modal.params, param.sds)
-  }
-  reordering <- ix[which.min(D)]
-  theta(object) <- th[reordering]
-  sigma2(object) <- s2[reordering]
-  p(object) <- P[reordering]
-  z(object) <- factor(z(object), levels=reordering)
-  dataMean(object) <- dataMean(object)[reordering]
-  dataPrec(object) <- dataPrec(object)[reordering]
-  object
-}
+##.updateLabels <- function(object){
+##  modal.params <- modes(object)
+##  param.sds <- sapply(modal.params, sd)
+##  th <- theta(object)
+##  s2 <- sigma2(object)
+##  P <- p(object)
+##  ix <- permutations(k(object), k(object))##
+##  nc <- nrow(ix)
+##  D <- rep(NA, nc)
+##  ##
+##  ## Compute distance to the modes for the current ordering (1,2,3)
+##  ## at each iteration of the chain.
+##  ##
+##  ## subtrace a vector from each row of chain matrix
+##  D[1] <- .computeDistanceMarginal(th, s2, P, modal.params, param.sds)
+##  if(FALSE) plot.ts(D[,1], col="gray")
+##  for(j in 2:nc){
+##    J <- ix[j, ]
+##    browser()
+##    D[j] <- .computeDistanceMarginal(th[J], s2[J], P[J], modal.params, param.sds)
+##  }
+##  reordering <- ix[which.min(D)]
+##  theta(object) <- th[reordering]
+##  sigma2(object) <- s2[reordering]
+##  p(object) <- P[reordering]
+##  z(object) <- factor(z(object), levels=reordering)
+##  dataMean(object) <- dataMean(object)[reordering]
+##  dataPrec(object) <- dataPrec(object)[reordering]
+##  object
+##}
 
 
-
-setMethod("updateLabels", "MarginalModel", function(object){
-  .updateLabels(object)
-})
-
-
-setMethod("computeDistance", "MarginalModel", function(object){
-  modal.params <- modes(object)
-  param.sds <- sapply(modal.params, sd)
-  mc <- mcmcChains(object)
-  th <- theta(mc)
-  s2 <- sigma2(mc)
-  P <- p(mc)
-  ix <- permutations(k(object), k(object))##
-  nr <- nrow(th)
-  nc <- nrow(ix)
-  D <- matrix(NA, nr, nc)
-  ##
-  ## Compute distance to the modes for the current ordering (1,2,3)
-  ## at each iteration of the chain.
-  ##
-  ## subtrace a vector from each row of chain matrix
-  D[, 1] <- .computeDistanceMarginal(th, s2, P, modal.params, param.sds)
-  if(FALSE) plot.ts(D[,1], col="gray")
-  for(j in 2:nrow(ix)){
-    J <- ix[j, ]
-    D[, j] <- .computeDistanceMarginal(th[, J], s2[, J], P[, J], modal.params, param.sds)
-  }
-  D
-})
+##
+##setMethod("updateLabels", "MarginalModel", function(object){
+##  .updateLabels(object)
+##})
+##
+##
+##setMethod("computeDistance", "MarginalModel", function(object){
+##  modal.params <- modes(object)
+##  param.sds <- sapply(modal.params, sd)
+##  mc <- mcmcChains(object)
+##  th <- theta(mc)
+##  s2 <- sigma2(mc)
+##  P <- p(mc)
+##  ix <- permutations(k(object), k(object))##
+##  nr <- nrow(th)
+##  nc <- nrow(ix)
+##  D <- matrix(NA, nr, nc)
+##  ##
+##  ## Compute distance to the modes for the current ordering (1,2,3)
+##  ## at each iteration of the chain.
+##  ##
+##  ## subtrace a vector from each row of chain matrix
+##  D[, 1] <- .computeDistanceMarginal(th, s2, P, modal.params, param.sds)
+##  if(FALSE) plot.ts(D[,1], col="gray")
+##  for(j in 2:nrow(ix)){
+##    J <- ix[j, ]
+##    D[, j] <- .computeDistanceMarginal(th[, J], s2[, J], P[, J], modal.params, param.sds)
+##  }
+##  D
+##})
+##

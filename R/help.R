@@ -3,6 +3,7 @@
 #' @docType package
 #' @name CNPBayes
 #' @import methods
+#' @importFrom IRanges IRanges
 #' @import GenomicRanges
 #' @import S4Vectors
 #' @importFrom gtools rdirichlet ddirichlet
@@ -18,6 +19,7 @@
 #' @importFrom matrixStats colSds colMedians rowCumsums rowProds colMaxs
 #' @importFrom HardyWeinberg HWChisq
 #' @importFrom oligoClasses copyNumber batch chromosome integerMatrix
+#' @importMethodsFrom oligoClasses lrr
 #' @importFrom coda effectiveSize
 #' @importFrom combinat permn
 #' @importFrom dplyr ntile
@@ -29,4 +31,4 @@ NULL
 ## gtools rdirichlet ddirichlet
 
 ## S4Vectors is needed for the  SimpleList constructor
-# @import mixtools
+#  mixtools

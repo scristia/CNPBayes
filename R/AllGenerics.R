@@ -210,7 +210,7 @@ setGeneric("burnin", function(object) standardGeneric("burnin"))
 setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 
 #' @export
-setGeneric("iter<-", function(object, value, force=FALSE) standardGeneric("iter<-"))
+setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<-"))
 
 #' @export
 setGeneric("iter", function(object) standardGeneric("iter"))
@@ -276,7 +276,7 @@ setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 #' @export
 setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
 #' @export
-setGeneric("mcmcParams<-", function(object, value, force=FALSE) standardGeneric("mcmcParams<-"))
+setGeneric("mcmcParams<-", function(object, force=FALSE, value) standardGeneric("mcmcParams<-"))
 
 #' @export
 setGeneric("logPrior", function(object) standardGeneric("logPrior"))

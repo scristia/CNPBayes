@@ -2,13 +2,15 @@
 % Please edit documentation in R/bayesfactor.R
 \name{logBayesFactor}
 \alias{logBayesFactor}
-\title{##export
+\title{## ##export
+##export
 ##export
 ##export}
 \usage{
 logBayesFactor(x)
 }
 \description{
+## ##export
 ##export
 ##export
 ##export

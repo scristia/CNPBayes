@@ -1,6 +1,6 @@
 test_simulation <- function(){
-  library(devtools)
-  load_all()
+  ##library(devtools)
+  ##load_all()
   arguments <- list("sl.good" = 6.25, ## separation parameter for "good" probes
                     "sl.bad" = 0.0625, ## sep param for "bad" probes
                     "prbias" = 0.03, ## probe level bias ~ N(0,prbias)
@@ -41,8 +41,8 @@ test_simulation <- function(){
 }
 
 test_simulation_moderate <- function(){
-  library(devtools)
-  load_all()
+##  library(devtools)
+##  load_all()
   arguments <- list("sl.good" = 6.25, ## separation parameter for "good" probes
                     "sl.bad" = 0.0625, ## sep param for "bad" probes
                     "prbias" = 0.03, ## probe level bias ~ N(0,prbias)

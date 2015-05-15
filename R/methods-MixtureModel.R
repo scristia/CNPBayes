@@ -657,7 +657,7 @@ setReplaceMethod("burnin", "MixtureModel", function(object, value){
   object
 })
 
-setReplaceMethod("iter", "MixtureModel", function(object, value, force=FALSE){
+setReplaceMethod("iter", "MixtureModel", function(object, force=FALSE, value){
   mp <- mcmcParams(object)
   iter(mp) <- value
   mcmcParams(object, force=force) <- mp
@@ -687,7 +687,7 @@ sigma20c <- function(object) sigma2.0(chains(object))
 ## negative value -does not- trigger an update of the chains -- chains
 ## are kept as is
 ##
-setReplaceMethod("mcmcParams", "MixtureModel", function(object, value, force=FALSE){
+setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=FALSE, value){
   it <- iter(object)
   if(it != iter(value)){
     if(!force){

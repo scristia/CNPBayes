@@ -775,14 +775,7 @@
 
 ##
 ##
-modelOtherModes <- function(model, maxperm=5){
-  kperm <- permnK(k(model), maxperm)
-  model.list <- vector("list", nrow(kperm))
-  for(i in seq_along(model.list)){
-    model.list[[i]] <- relabel(model, kperm[i, ])
-  }
-  model.list
-}
+
 
 ##
 ## #' export

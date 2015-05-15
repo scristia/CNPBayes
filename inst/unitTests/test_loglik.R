@@ -60,7 +60,7 @@ test_senseless_batch <- function(){
                            T2=500, T=1000)
   models <- orderModels(m1)
   ## might select k=2 due to variability of marginal lik estimates
-  checkTrue(k(models[[1]]) == 3)
+  checkTrue(k(models)[1] == 3)
   if(FALSE){
     ## Make up a bogus batch
     m2 <- computeMarginalLik(y(truth), batch=rep(1:3, length.out=2500),

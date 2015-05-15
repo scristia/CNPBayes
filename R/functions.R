@@ -108,7 +108,7 @@ consensusCNP <- function(grl, transcripts, min.width=2e3, min.prevalance=0.02){
   g <- as(unlist(grl), "GRanges")
   names(g) <- NULL
   grl <- split(g, g$id)
-  grl <- grl[colnames(views)]
+  ##grl <- grl[colnames(views)]
   regions <- defineCnpRegions(grl, thr=min.prevalance)
   regions <- regions[ width(regions) > min.width ]
   regions <- reduce(regions)
@@ -145,6 +145,7 @@ computeLRRMedians <- function(views, regions){
   R <- lrr(views[subjectHits(hits), ])
   viewsCNP <- views[subjectHits(hits), ]
   indices <- split(seq_len(nrow(viewsCNP)), queryHits(hits))
+  i <- NULL
   lrr.meds <- foreach(i = indices, .combine="rbind", .packages="matrixStats") %do% {
     mat <- R[i, , drop=FALSE]
     colMedians(mat, na.rm=TRUE)
