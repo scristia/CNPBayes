@@ -854,15 +854,6 @@ setMethod("reducedGibbsThetaSigmaFixed", "BatchModel", function(object){
   p_sigma2 <- mean(p_sigma2.z)
   p_pmix <- mean(p_pmix.z)
   pstar <- c(p_theta, p_sigma2, p_pmix)
-  ##pstar <- c(p_theta, p_sigma2)
-##  if(any(is.na(pstar)) || any(!is.finite(pstar))) browser()
-##  lpstar <- log(pstar)
-##   if(!is.finite(lpstar[[3]])){
-##     ##kmodZ2 <- reducedGibbsThetaSigmaFixed(kmod)
-##     ##p_pmix.z <- pMixProb(kmodZ2)
-##     ##p_pmix <- mean(p_pmix.z)
-##     ##pstar[3] <- p_pmix
-##   }
   pstar
 }
 
@@ -885,6 +876,7 @@ setMethod("pThetaStar", "MixtureModel",
             kmodZ2 <- reducedGibbsThetaSigmaFixed(kmod)
             ##if(k(kmod) == 4) browser()
             for(i in seq_len(nrow(permutations))){
+              ## message("entering .pthetastar")
               results[i, ] <- .pthetastar(kmod, kmodZ1, kmodZ2, T2, permutations[i, ])
             }
             results
@@ -907,8 +899,11 @@ setMethod("pThetaStar", "MixtureModel",
 }
 
 berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5){
+  ## message("entering pThetaStar...")
   x <- pThetaStar(model, T2=T2, maxperm=maxperm)
+  ## message("entering .berkhof")
   results <- .berkhof(x, model=model)
+  ## message("computing PosteriorSummary")
   PosteriorSummary(p_theta=results$p_theta,
                    chib=results$chib,
                    berkhof=results$berkhof,
@@ -941,11 +936,22 @@ simulateMultipleChains <- function(nchains, y, batch, k, mp){
     return(kmodlist)
   }
   ## batch not missing
-  kmodlist <- replicate(nchains, {
-    kmod <- BatchModel(y, batch=batch, k=k, mcmc.params=mp)
-    kmod <- posteriorSimulation(kmod)
-    return(kmod)
-  })
+  if(FALSE){
+    kmodlist <- replicate(nchains, {
+      kmod <- BatchModel(y, batch=batch, k=k, mcmc.params=mp)
+      kmod <- posteriorSimulation(kmod)
+      return(kmod)
+    })
+  }
+  kmodlist <- vector("list", nchains)
+  for(i in seq_along(kmodlist)){
+    ## message("Initializing batch model", i)
+    kmod <- BatchModel(data=y, batch=batch, k=k, mcmc.params=mp)
+    ## message("Entering posteriorSimulation")
+    ## saveRDS(kmod, file="kmod.rds")  ## save the model before
+    ## segmentation fault
+    kmodlist[[i]] <- posteriorSimulation(kmod)
+  }
   return(kmodlist)
 }
 
@@ -985,13 +991,17 @@ computeMarginalLik <- function(y, batch, K=1:4,
   mp <- McmcParams(iter=T, nStarts=1, burnin=burnin)
   for(i in seq_along(K)){
     k <- K[i]
-    kmodlist <- simulateMultipleChains(nchains, y, batch, k, mp)
+    ## message(k)
+    kmodlist <- simulateMultipleChains(nchains=nchains, y=y, batch=batch, k=k, mp=mp)
+    ## message("Entering berkhofEstimate")
     mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
     ll <- sapply(kmodlist, modalLoglik)
     mlist[[i]] <- kmodlist[[which.max(ll)]]
     xx <- summarizeMarginalEstimates(mlik)
     my[[i]] <- xx
+    mlist[[i]] <- kmodlist[[1]]
   }
+  return(kmodlist)
   if(is(mlist[[1]], "MarginalModel")){
     nms <- paste0("M", K)
     mlist <- MarginalModelList(mlist, names=nms)

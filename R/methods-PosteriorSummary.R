@@ -1,6 +1,10 @@
-PosteriorSummary <- function(p_theta=matrix(), chib=numeric(), berkhof=numeric(), marginal=numeric(),
+PosteriorSummary <- function(p_theta=matrix(), chib=numeric(), berkhof=numeric(),
+                             marginal=numeric(),
                              delta_marginal=numeric()){
-  new("PosteriorSummary", p_theta=p_theta, chib=chib, berkhof=berkhof, marginal=marginal, delta_marginal=delta_marginal)
+  new("PosteriorSummary", p_theta=p_theta,
+      chib=chib,
+      berkhof=berkhof, marginal=marginal,
+      delta_marginal=delta_marginal)
 }
 
 p_theta <- function(object) object@p_theta

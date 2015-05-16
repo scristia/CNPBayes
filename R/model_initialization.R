@@ -95,6 +95,7 @@ setMethod("startingValues", "BatchModel", function(object){
   if(length(y(object)) > 0){
     zz <- simulateZ(length(y(object)), p(object))
     z(object) <- as.integer(factor(zz))
+
   } else zz <- as.integer(factor(levels=seq_len(k(hypp))))
   zFreq(object) <- as.integer(table(zz))
   if(length(y(object)) > 0){

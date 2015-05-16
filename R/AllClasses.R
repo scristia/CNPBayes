@@ -2,7 +2,6 @@
 
 setClassUnion("numericOrMatrix", c("numeric", "matrix"))
 
-## Better to have a field for each parameter
 setClass("Hyperparameters", representation(k="integer",
                                            mu.0="numeric",
                                            tau2.0="numeric",
@@ -12,6 +11,7 @@ setClass("Hyperparameters", representation(k="integer",
                                            beta="numeric",
                                            a="numeric",
                                            b="numeric"))
+
 setClass("HyperparametersMarginal", contains="Hyperparameters")
 
 setClass("HyperparametersBatch",  contains="Hyperparameters")
@@ -65,22 +65,11 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         mcmc.params="McmcParams"))
 
 
-
 setClass("BatchModel", contains="MixtureModel")
 
-
-##
-setClass("BatchModelPlusHom", contains="BatchModel")
-setClass("BatchModelNoHom", contains="BatchModel")
-
 setClass("MarginalModel", contains="MixtureModel")
-
 setClass("UnivariateBatchModel", contains="BatchModel")
-
 setClass("UnivariateMarginalModel", contains="MarginalModel")
-
-## Better to have a field for each variable
-setClass("Posterior", contains="MixtureModel")
 
 setClass("ModelParams", representation(type="character",
                                        k="numeric",
@@ -88,22 +77,14 @@ setClass("ModelParams", representation(type="character",
                                        batch="factor",
                                        mcmc.params="McmcParams"))
 
-setClass("PosteriorFiles",
-         representation(
-             isMarginalModel="logical",
-             model="character",
-             post1="character"))
-
 
 setClass("ModelList", representation(model_list="list", names="character",
                                      data="numeric"))
-##                                     ##elementType="character",
-##                                     names="character")
-##                                     ##mode_index="list",
-##                                     ##mode_list="list",
-##                                     ##maxperm="numeric"))
+
 setClass("MarginalModelList", contains="ModelList")
 setClass("BatchModelList", contains="ModelList")
+
+setClass("Posterior", contains="MixtureModel")
 
 setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", berkhof="numeric",
                                             marginal="numeric", delta_marginal="numeric"))

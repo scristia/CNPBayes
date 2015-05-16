@@ -52,6 +52,19 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
              theta_order=numeric(B*k),
              m.y=numeric(1))
   obj <- startingValues(obj)
+  zz <- table(batch(obj), z(obj))
+  K <- seq_len(k(obj))
+  if(any(zz==0)){
+    index <- which(rowSums(zz==0) > 0)
+    for(i in seq_along(index)){
+      j <- index[i]
+      zup <- z(obj)[batch(obj) == j]
+      missingk <- K[!K %in% unique(zup)]
+      maxk <- names(table(zup))[which.max(table(zup))]
+      zup[which(zup == maxk)[1]] <- missingk
+      obj@z[batch(obj) == j] <- zup
+    }
+  }
   obj
 }
 
