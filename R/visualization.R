@@ -110,14 +110,21 @@ setMethod("hist", "MixtureModel", function(x, ...){
     mapz <- apply(pz, 1, which.max)
     mapz <- factor(mapz, levels=seq_len(k(object)))
     tabz <- table(batch(object), mapz)
-    tabz <- tabz/rowSums(tabz)
-    P <- tabz
+    P <- tabz/rowSums(tabz)
+    ix <- order(thetas[1, ])
+    thetas <- thetas[, ix, drop=FALSE]
+    sds <- sds[, ix, drop=FALSE]
   } else {
     thetas <- theta(object)
     sds <- sigma(object)
     P <- p(object)
     P <- matrix(P, nBatch(object), k(object), byrow=TRUE)
     rownames(P) <- uniqueBatch(object)
+
+    ix <- order(thetas[1, ])
+    thetas <- thetas[, ix, drop=FALSE]
+    sds <- sds[, ix, drop=FALSE]
+    P <- P[, ix, drop=FALSE]
   }
   marginal <- matrix(NA, length(xx), nBatch(object)*k(object))
   cols <- brewer.pal(max(k(object), 3),  "Set1")

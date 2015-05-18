@@ -1001,7 +1001,6 @@ computeMarginalLik <- function(y, batch, K=1:4,
     my[[i]] <- xx
     mlist[[i]] <- kmodlist[[1]]
   }
-  return(kmodlist)
   if(is(mlist[[1]], "MarginalModel")){
     nms <- paste0("M", K)
     mlist <- MarginalModelList(mlist, names=nms)

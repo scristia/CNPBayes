@@ -223,3 +223,29 @@ permnK <- function(k, maxperm){
   kperm <- rbind(kperm.identity, kperm[seq_len(N), ])
   kperm
 }
+
+#' @export
+downSampleEachBatch <- function(y, nt, batch){
+  yb <- split(y, batch)
+  bb <- split(batch, batch)
+  S <- foreach(x=yb, b=bb, batch.id=names(bb)) %do% {
+    if(length(x) < 100) {
+      result <- list(y=x, labels=seq_along(x), batch.id=rep(batch.id, length(x)))
+      return(result)
+    }
+    tiles <- factor(paste(ntile(x, nt), batch.id, sep="_"))
+    x <- sapply(split(x, tiles), mean)
+    list(y=x, labels=tiles, batch.id=rep(batch.id, length(x)))
+  }
+  ys <- unlist(lapply(S, "[[", 1))
+  tiles <- unlist(lapply(S, "[[", 2))
+  batch.id <- unlist(lapply(S, "[[", 3))
+  ## are the tile labels meaningful?
+  list(y=ys, labels=tiles, batch=batch.id)
+}
+
+downSample <- function(y, nt){
+  tiles <- ntile(y, nt)
+  y_downsampled <- sapply(split(y, tiles), mean)
+  list(y=y_downsampled, labels=tiles)
+}

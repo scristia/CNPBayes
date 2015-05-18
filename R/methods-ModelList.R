@@ -1,10 +1,12 @@
 ModelList <- function(model_list=list(),
                       names=character(),
                       data=numeric()){
+  ##browser()
   if(length(model_list) > 0){
-    data <- y(model_list[[1]])
+    ##data <- y(model_list[[1]])
     model_list <- stripData(model_list)
   }
+
   new("ModelList", model_list=model_list, names=names, data=data)
 }
 
