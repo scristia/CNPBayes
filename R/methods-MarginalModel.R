@@ -400,16 +400,17 @@ setMethod("initializeMu", "MarginalModel", function(object)   mu(object))
 
 #' @export
 setMethod("bic", "MarginalModel", function(object, ...){
-  if(k(object) > 1){
-    object <- updateWithPosteriorMeans(object)
-  }
+  ##  if(k(object) > 1){
+  ##    object <- updateWithPosteriorMeans(object)
+  ##  }
+  object <- useModes(object)
   ## K: number of free parameters to be estimated
   ##   - component-specific parameters:  theta, sigma2   (3 x k(model))
   ##   - mixing probabilities:  k-1
   ##   - length-one parameters: mu, tau2, sigma2.0, nu.0             +4
   K <- 2*k(object) + (k(object)-1) + 4
   n <- length(y(object))
-  -2*logpotential(object) + K*(log(n) - log(2*pi))
+  -2*(logLik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
 })
 
 setMethod("initializeTheta", "MarginalModel", function(object){
@@ -876,7 +877,7 @@ setMethod("pThetaStar", "MixtureModel",
             kmodZ2 <- reducedGibbsThetaSigmaFixed(kmod)
             ##if(k(kmod) == 4) browser()
             for(i in seq_len(nrow(permutations))){
-              message("entering .pthetastar")
+              ##message("entering .pthetastar")
               results[i, ] <- .pthetastar(kmod, kmodZ1, kmodZ2, T2, permutations[i, ])
             }
             results
@@ -899,11 +900,11 @@ setMethod("pThetaStar", "MixtureModel",
 }
 
 berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5){
-  message("entering pThetaStar...")
+  ##message("entering pThetaStar...")
   x <- pThetaStar(model, T2=T2, maxperm=maxperm)
-  message("entering .berkhof")
+  ##message("entering .berkhof")
   results <- .berkhof(x, model=model)
-  message("computing PosteriorSummary")
+  ##message("computing PosteriorSummary")
   PosteriorSummary(p_theta=results$p_theta,
                    chib=results$chib,
                    berkhof=results$berkhof,
@@ -951,9 +952,9 @@ simulateMultipleChains <- function(nchains, y, batch, k, mp){
   }
   kmodlist <- vector("list", nchains)
   for(i in seq_along(kmodlist)){
-    message("Initializing batch model", i)
+    ##message("Initializing batch model", i)
     kmod <- BatchModel(data=y, batch=batch, k=k, mcmc.params=mp)
-    message("Entering posteriorSimulation")
+    ##message("Entering posteriorSimulation")
     nStarts(kmod) <- 10
     burnin(kmod) <- 100
     iter(kmod, force=TRUE) <- 1
@@ -1004,9 +1005,9 @@ computeMarginalLik <- function(y, batch, K=1:4,
   mp <- McmcParams(iter=T, nStarts=1, burnin=burnin, thin=thin)
   for(i in seq_along(K)){
     k <- K[i]
-    message(k)
+    ##message(k)
     kmodlist <- simulateMultipleChains(nchains=nchains, y=y, batch=batch, k=k, mp=mp)
-    message("Entering berkhofEstimate")
+    ##message("Entering berkhofEstimate")
     mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
     ll <- sapply(kmodlist, modalLoglik)
     mlist[[i]] <- kmodlist[[which.max(ll)]]
