@@ -53,6 +53,23 @@ dt <- Sys.Date()
 saveRDS(results, file=paste0("~/Software/CNPData/data/simulation_easy_", dt, ".rds"))
 q('no')
 
+if(FALSE){
+  library(cnvCall)
+  data_matrix <- matrix(rnorm(1e5), ncol=10)
+  data_matrix <- rbind(data_matrix, matrix(rnorm(1e5, mean=3, sd=1.4), ncol=10))
+  rownames(data_matrix) <- paste("ind" , 1:nrow(data_matrix), sep="")
+  colnames(data_matrix) <- paste("prob", 1:ncol(data_matrix), sep="")
+  ##data_matrix <- matrix(as.numeric(data_matrix), ncol=1)
+  ##dimnames(data_matrix) <- list(paste0("id", seq_len(nrow(data_matrix))), "cnp1")
+  arguments <- set_arguments(write_results=F, quick=F, nocls=5:1, cnvs=1, collections="coll_1")
+  arguments$hier_mchoice_iters <- 1:100
+  arguments$probe_summary <- "pca" # or you could use: "t8""mean"
+  arguments$signal_model <- "normal" # or you could use: "t8"
+  qcallrv <- simple_call(data_matrix=data_matrix, simpleArguments = arguments)
+}
+
+
+
 dt <- Sys.Date()
 dt <- "2015-05-12"
 results <- readRDS(paste0("~/Software/CNPData/data/simulation_easy_", dt, ".rds"))

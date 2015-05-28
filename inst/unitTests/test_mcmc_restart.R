@@ -97,3 +97,31 @@ test_mcmc_restart <- function(){
   th2 <- thetac(modelk)[1,]
   checkIdentical(th1, th2)
 }
+
+.test_running_models_in_sequence <- function(){
+  ##
+  ## Start with k=4 model.  Inititialize k=3 model with modes found in
+  ## the k=4 model.
+  ##
+  set.seed(1)
+  truth <- simulateData(N=2500, p=rep(1/3, 3),
+                        theta=c(-1, 0, 1),
+                        sds=rep(0.1, 3))
+  if(FALSE) plot(truth, use.current=TRUE)
+  ##mp <- McmcParams(iter=500, burnin=500)
+
+  mp <- McmcParams(iter=100, burnin=100, nStarts=1)
+  model <- MarginalModel(data=y(truth), k=4, mcmc.params=mp)
+  set.seed(123)
+  model <- posteriorSimulation(model)
+  model.nested <- NestedMarginalModel(model)
+  checkTrue(k(model.nested) == k(model) -1L)
+  checkEquals(sort(theta(model.nested)), c(-1, 0, 1), tolerance=0.1)
+  model.nested <- posteriorSimulation(model.nested)
+  checkEquals(sort(theta(model.nested)), c(-1, 0, 1), tolerance=0.1)
+  model.nested <- NestedMarginalModel(model.nested)
+  checkTrue(k(model.nested) ==2)
+  model.nested <- NestedMarginalModel(model.nested)
+  checkTrue(k(model.nested)==1)
+  checkException(NestedMarginalModel(model.nested))
+}

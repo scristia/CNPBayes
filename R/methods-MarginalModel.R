@@ -876,7 +876,7 @@ setMethod("pThetaStar", "MixtureModel",
             kmodZ2 <- reducedGibbsThetaSigmaFixed(kmod)
             ##if(k(kmod) == 4) browser()
             for(i in seq_len(nrow(permutations))){
-              ## message("entering .pthetastar")
+              message("entering .pthetastar")
               results[i, ] <- .pthetastar(kmod, kmodZ1, kmodZ2, T2, permutations[i, ])
             }
             results
@@ -899,11 +899,11 @@ setMethod("pThetaStar", "MixtureModel",
 }
 
 berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5){
-  ## message("entering pThetaStar...")
+  message("entering pThetaStar...")
   x <- pThetaStar(model, T2=T2, maxperm=maxperm)
-  ## message("entering .berkhof")
+  message("entering .berkhof")
   results <- .berkhof(x, model=model)
-  ## message("computing PosteriorSummary")
+  message("computing PosteriorSummary")
   PosteriorSummary(p_theta=results$p_theta,
                    chib=results$chib,
                    berkhof=results$berkhof,
@@ -930,6 +930,12 @@ simulateMultipleChains <- function(nchains, y, batch, k, mp){
   if(missing(batch)){
     kmodlist <- replicate(nchains, {
       kmod <- MarginalModel(y, k=k, mcmc.params=mp)
+      nStarts(kmod) <- 10
+      burnin(kmod) <- 100
+      iter(kmod, force=TRUE) <- 1
+      ## run burnin with multiple chains to find suitable starting values
+      kmod <- posteriorSimulation(kmod)
+      mcmcParams(kmod, force=TRUE) <- mp
       kmod <- posteriorSimulation(kmod)
       return(kmod)
     })
@@ -945,11 +951,17 @@ simulateMultipleChains <- function(nchains, y, batch, k, mp){
   }
   kmodlist <- vector("list", nchains)
   for(i in seq_along(kmodlist)){
-    ## message("Initializing batch model", i)
+    message("Initializing batch model", i)
     kmod <- BatchModel(data=y, batch=batch, k=k, mcmc.params=mp)
-    ## message("Entering posteriorSimulation")
-    ## saveRDS(kmod, file="kmod.rds")  ## save the model before
-    ## segmentation fault
+    message("Entering posteriorSimulation")
+    nStarts(kmod) <- 10
+    burnin(kmod) <- 100
+    iter(kmod, force=TRUE) <- 1
+    ## run burnin (fitting the marginal model) with multiple chains to
+    ## find suitable starting values
+    kmod <- posteriorSimulation(kmod)
+    mcmcParams(kmod, force=TRUE) <- mp
+    ##saveRDS(kmod, file="kmod.rds")
     kmodlist[[i]] <- posteriorSimulation(kmod)
   }
   return(kmodlist)
@@ -979,21 +991,22 @@ computeMarginalLik <- function(y, batch, K=1:4,
                                T=1000, burnin=200,
                                T2=200,
                                maxperm=5,
-                               nchains=2){
+                               nchains=2,
+                               thin=1){
   if(T < T2) stop("T must be >= T2")
-  if(!missing(batch)){
-    nms <- names(table(batch))[table(batch) < 50]
-    if(length(nms) > 0)
-      warning("batches with fewer than 50 samples present")
-  }
+##  if(!missing(batch)){
+##    nms <- names(table(batch))[table(batch) < 50]
+##    ##if(length(nms) > 0)
+##    ##warning("batches with fewer than 50 samples present")
+##  }
   my <- vector("list", length(K))
   mlist <- vector("list", length(K))
-  mp <- McmcParams(iter=T, nStarts=1, burnin=burnin)
+  mp <- McmcParams(iter=T, nStarts=1, burnin=burnin, thin=thin)
   for(i in seq_along(K)){
     k <- K[i]
-    ## message(k)
+    message(k)
     kmodlist <- simulateMultipleChains(nchains=nchains, y=y, batch=batch, k=k, mp=mp)
-    ## message("Entering berkhofEstimate")
+    message("Entering berkhofEstimate")
     mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
     ll <- sapply(kmodlist, modalLoglik)
     mlist[[i]] <- kmodlist[[which.max(ll)]]
@@ -1057,6 +1070,10 @@ orderModels <- function(x){
   m <- lapply(marginal.est.list, function(x) x[, "marginal"])
   my <- sapply(m, mean)
   d <- sapply(m, function(x) diff(range(x)))
+  keep <- !is.nan(d) & is.finite(d)
+  my <- my[keep]
+  K <- K[keep]
+  d <- d[keep]
   if(sum(d < maxdev, na.rm=TRUE) >= 1){
     K <- K[ d < maxdev ]
   } else {
@@ -1082,7 +1099,9 @@ logBayesFactor <- function(x){
     return(NA)
   }
   K <- k(models)
-  ml <- sapply(x$marginal[K], function(x) mean(x[, "marginal"]))
+  ##nms <- names(orderModels(x))
+  nms <- names(models)
+  ml <- sapply(x$marginal[nms], function(x) mean(x[, "marginal"]))
   bf <- setNames(ml[1]-ml[2], paste0(names(ml[1:2]), collapse="-"))
   bf
 }
@@ -1094,3 +1113,62 @@ setMethod("updateMultinomialProb", "MarginalModel", function(object){
 setMethod("updateMultinomialProb", "BatchModel", function(object){
   .Call("update_multinomialPr_batch", object)
 })
+
+NestedMarginalModel <- function(model){
+  model <- useModes(model)
+  if(k(model) == 1) stop("model only has 1 component")
+  ##
+  ## Transition to K=K-1 model, selecting K-1 modes with the greatest separation
+  ##
+  th <- setNames(theta(model), paste0("comp", seq_along(theta(model))))
+  d <- diff(sort(th))
+  drop_component <- names(d)[which.min(d)]
+  if(which.min(d) > 1){
+    replacement_for_dropped_component <- names(d)[which.min(d)-1]
+  } else {
+    replacement_for_dropped_component <- names(th)[!names(th) %in% names(d)]
+  }
+  zlabel_replace <- as.integer(strsplit(replacement_for_dropped_component, "comp")[[1]][2])
+  zlabel_dropped <- as.integer(strsplit(drop_component, "comp")[[1]][2])
+  zz <- z(model)
+  zz[zz == zlabel_dropped] <- zlabel_replace
+  ii <- zlabel_dropped
+  ## next relabel z such that the maximum value can not be greater
+  ## than the number of components
+  zz <- as.integer(factor(zz))
+  hypp <- hyperParams(model)
+  k(hypp) <- k(model)-1L
+  kmod <-  new("MarginalModel",
+               k=k(model)-1L,
+               hyperparams=hypp,
+               theta=theta(model)[-ii],
+               sigma2=sigma2(model)[-ii],
+               mu=mu(model),
+               tau2=tau2(model),
+               nu.0=nu.0(model),
+               sigma2.0=sigma2.0(model),
+               pi=p(model)[-ii],
+               data=y(model),
+               data.mean=dataMean(model)[-ii],
+               data.prec=dataPrec(model)[-ii],
+               z=zz,
+               zfreq=as.integer(table(zz)),
+               probz=matrix(0, length(y(model)), k(model)-1),
+               mcmc.chains=McmcChains(),
+               batch=batch(model),
+               batchElements=nBatch(model),
+               mcmc.params=mcmcParams(model))
+  ## initialize modes
+  modes(kmod) <- list(theta=theta(kmod),
+                      sigma2=sigma2(kmod),
+                      mixprob=p(kmod),
+                      mu=mu(kmod),
+                      tau2=tau2(kmod),
+                      nu0=nu.0(kmod),
+                      sigma2.0=sigma2.0(kmod),
+                      zfreq=zFreq(kmod),
+                      loglik=logLik(kmod),
+                      logprior=logPrior(kmod))
+  mcmcChains(kmod) <- McmcChains(kmod)
+  kmod
+}

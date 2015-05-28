@@ -339,7 +339,8 @@ RcppExport SEXP update_z_batch(SEXP xmod) {
   //  Make more efficient?
   //return cumP ;
   NumericVector u = runif(n) ;
-  IntegerVector zz(n) ;
+  IntegerVector zz_(n) ;
+  IntegerVector zz = clone(zz_) ;
   IntegerMatrix freq(B, K) ;
   int b ;  
   for(int i=0; i < n; i++){

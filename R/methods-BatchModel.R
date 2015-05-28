@@ -52,6 +52,11 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
              theta_order=numeric(B*k),
              m.y=numeric(1))
   obj <- startingValues(obj)
+  obj <- ensureAllComponentsObserved(obj)
+  obj
+}
+
+ensureAllComponentsObserved <- function(obj){
   zz <- table(batch(obj), z(obj))
   K <- seq_len(k(obj))
   if(any(zz==0)){
@@ -61,7 +66,7 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
       zup <- z(obj)[batch(obj) == j]
       missingk <- K[!K %in% unique(zup)]
       maxk <- names(table(zup))[which.max(table(zup))]
-      zup[which(zup == maxk)[1]] <- missingk
+      zup[sample(which(zup == maxk), length(missingk))] <- missingk
       obj@z[batch(obj) == j] <- zup
     }
   }
@@ -111,6 +116,16 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
   obj <- startingValues(obj)
   obj
 }
+
+setValidity("BatchModel", function(object){
+  msg <- TRUE
+  ztab <- table(batch(object), z(object))
+  if(any(ztab < 1)){
+    msg <- "All components in each batch must have 1 or more observations"
+    return(msg)
+  }
+  msg
+})
 
 
 

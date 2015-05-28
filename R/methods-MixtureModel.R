@@ -346,6 +346,7 @@ multipleStarts <- function(object){
   theta(bmodel) <- matrix(theta(model), nBatch(object), k(object), byrow=TRUE)
   mu(bmodel) <- theta(model)
   z(bmodel) <- z(model)
+  bmodel <- ensureAllComponentsObserved(bmodel)
   zFreq(bmodel) <- as.integer(table(z(bmodel)))
   dataMean(bmodel) <- computeMeans(bmodel)
   dataPrec(bmodel) <- computePrec(bmodel)

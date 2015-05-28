@@ -6,7 +6,6 @@ ModelList <- function(model_list=list(),
     ##data <- y(model_list[[1]])
     model_list <- stripData(model_list)
   }
-
   new("ModelList", model_list=model_list, names=names, data=data)
 }
 
@@ -48,7 +47,10 @@ setValidity("BatchModelList", function(object){
   msg
 })
 
-setMethod("modelList", "ModelList", function(object) object@model_list)
+setMethod("modelList", "ModelList", function(object) {
+  setNames(object@model_list, names(object))
+})
+
 setMethod("names", "ModelList", function(x) x@names)
 setMethod("length", "ModelList", function(x) length(modelList(x)))
 setMethod("k", "ModelList", function(object) sapply(object@model_list, k))
