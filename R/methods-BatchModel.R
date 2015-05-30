@@ -59,15 +59,18 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
 ensureAllComponentsObserved <- function(obj){
   zz <- table(batch(obj), z(obj))
   K <- seq_len(k(obj))
-  if(any(zz==0)){
-    index <- which(rowSums(zz==0) > 0)
+  if(any(zz<=1)){
+    index <- which(rowSums(zz<=1) > 0)
     for(i in seq_along(index)){
       j <- index[i]
       zup <- z(obj)[batch(obj) == j]
-      missingk <- K[!K %in% unique(zup)]
-      maxk <- names(table(zup))[which.max(table(zup))]
-      zup[sample(which(zup == maxk), length(missingk))] <- missingk
-      obj@z[batch(obj) == j] <- zup
+      zfact <- factor(zup, levels=K)
+      minz <- as.integer(names(table(zfact))[table(zfact) <= 1])
+      ##missingk <- K[!K %in% unique(zup)]
+      maxk <- names(table(zfact))[which.max(table(zfact))]
+      nreplace <- length(minz)*2
+      zup[sample(which(zup == maxk), nreplace)] <- as.integer(minz)
+      obj@z[batch(obj) == j] <- as.integer(zup)
     }
   }
   obj

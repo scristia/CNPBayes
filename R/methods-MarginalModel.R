@@ -954,6 +954,7 @@ simulateMultipleChains <- function(nchains, y, batch, k, mp){
   for(i in seq_along(kmodlist)){
     ##message("Initializing batch model", i)
     kmod <- BatchModel(data=y, batch=batch, k=k, mcmc.params=mp)
+    kmod <- ensureAllComponentsObserved(kmod)
     ##message("Entering posteriorSimulation")
     nStarts(kmod) <- 10
     burnin(kmod) <- 100

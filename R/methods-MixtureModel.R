@@ -289,7 +289,7 @@ setMethod("runMcmc", "BatchModel", function(object){
 multipleStarts <- function(object){
   if(k(object)==1) return(object)
   mcmcp <- mcmcParams(object)
-  message("Running ", nStarts(mcmcp), " chains")
+  message("Running ", nStarts(mcmcp), " chains for model k=", k(object))
   ##  if(is(object, "BatchModel")){
   ##    mmod <- replicate(nStarts(mcmcp), BatchModel(y(object), mcmc.params=mcmcp,
   ##                                                 hypp=hyperParams(object), k=k(object),
@@ -297,39 +297,40 @@ multipleStarts <- function(object){
   ##  } else {
   mmod <- replicate(nStarts(mcmcp), MarginalModel(y(object), mcmc.params=mcmcp,
                                                   hypp=hyperParams(object), k=k(object)))
-  model1 <- mmod[[1]]
-  K <- k(object)
-  if(K==2){
-    x <- MarginalModel(y(object), k=2)
-    z(model1)[y(model1) < -0.4] <- 1L
-    z(model1)[y(model1) >= -0.4] <- 2L
-    zFreq(model1) <- as.integer(table(z(model1)))
-    dataMean(model1) <- computeMeans(model1)
-    dataPrec(model1) <- computePrec(model1)
-    mmod[[1]] <- model1
-  }
-  if(K >= 3){
-    if(isMarginalModel(object)){
-      hypp <- hyperParams(object)
-    } else{
-      ## use defaults for marginal model
-      hypp <- Hyperparameters("marginal", k=K)
-    }
-    x <- MarginalModel(y(object), k=K, hypp=hypp)
-    z(x)[y(x) < -1] <- 1L
-    z(x)[y(x) > -1 & y(x) <=-0.2] <- 2L
-    z(x)[y(x) > -0.2] <- 3L
-    if(K == 4){
-      z(x)[y(x) > 0.2] <- 4L
-    }
-    zFreq(x) <- as.integer(table(z(x)))
-    theta(x) <- dataMean(x) <- computeMeans(x)
-    dataPrec(x) <- 1/computeVars(x)
-    sigma2(x) <- 1/dataPrec(x)
-    computeLoglik(x)
-    mcmcParams(x, force=TRUE) <- mcmcParams(object)
-    mmod[[1]] <- x
-  }
+##  browser()
+##  model1 <- mmod[[1]]
+##  K <- k(object)
+##  if(K==2){
+##    x <- MarginalModel(y(object), k=2)
+##    z(model1)[y(model1) < -0.4] <- 1L
+##    z(model1)[y(model1) >= -0.4] <- 2L
+##    zFreq(model1) <- as.integer(table(z(model1)))
+##    dataMean(model1) <- computeMeans(model1)
+##    dataPrec(model1) <- computePrec(model1)
+##    mmod[[1]] <- model1
+##  }
+##  if(K >= 3){
+##    if(isMarginalModel(object)){
+##      hypp <- hyperParams(object)
+##    } else{
+##      ## use defaults for marginal model
+##      hypp <- Hyperparameters("marginal", k=K)
+##    }
+##    x <- MarginalModel(y(object), k=K, hypp=hypp)
+##    z(x)[y(x) < -1] <- 1L
+##    z(x)[y(x) > -1 & y(x) <=-0.2] <- 2L
+##    z(x)[y(x) > -0.2] <- 3L
+##    if(K == 4){
+##      z(x)[y(x) > 0.2] <- 4L
+##    }
+##    zFreq(x) <- as.integer(table(z(x)))
+##    theta(x) <- dataMean(x) <- computeMeans(x)
+##    dataPrec(x) <- 1/computeVars(x)
+##    sigma2(x) <- 1/dataPrec(x)
+##    computeLoglik(x)
+##    mcmcParams(x, force=TRUE) <- mcmcParams(object)
+##    mmod[[1]] <- x
+##  }
   ##}
   ##
   ## TODO: Remove nStartIter slot
