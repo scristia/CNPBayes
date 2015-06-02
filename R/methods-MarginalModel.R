@@ -292,37 +292,6 @@ setMethod("updateSigma2", "MarginalModel", function(object) {
   sigma2.h
 }
 
-## variance for componets k > 1 assumed to be the same
-##.updateSigma2_2 <- function(object){
-##  nz <- nonZeroCopynumber(object)
-##  if(length(unique(nz)) ==1){
-##    ## guard against zeros
-##    nz[which.min(y(object))] <- 0
-##  }
-##  n.h <- table(nz)
-##  nu.n <- nu.0(object)+n.h
-##
-##  thetas <- theta(object)
-##
-##
-##  zz <- z(object)
-##  m <- thetas[as.integer(zz)]
-##  squares <- (y(object) - m)^2
-##  ss <- sapply(split(squares, nz), sum)
-##
-##  ## weighted average of sums of squares
-##  sigma2.nh <- 1/nu.n*(nu.0(object)*sigma2.0(object) + ss)
-##  shape <- 1/2*nu.n
-##  rate <- shape*sigma2.nh
-##  sigma2.h.tilde <- rgamma(2, shape=shape, rate=rate)
-##  ##tmp <- rgamma(1000, shape=1/2*nu.n[1], rate=1/2*nu.n[1]*sigma2.nh[1])
-##  sigma2.h <- 1/sigma2.h.tilde
-##  ##stopif(any(is.nan(sigma2.h)))
-##  s2 <- c(sigma2.h[1], rep(sigma2.h[2], k(object)-1))
-##  s2
-##}
-
-
 setMethod("updateSigma2.0", "MarginalModel", function(object){
   .Call("update_sigma2_0", object)
 ##     hypp <- hyperParams(object)
