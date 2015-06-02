@@ -131,15 +131,6 @@ setValidity("Hyperparameters", function(object){
 
 ##setMethod("params", "Hyperparameters", function(object) object@params)
 setMethod("k", "Hyperparameters", function(object) object@k)
-
-
-# #
-# setMethod("mu", "HyperparametersMarginal", function(object) object@mu)
-
-# #
-# setMethod("tau2", "HyperparametersMarginal", function(object) object@tau2)
-
-
 setMethod("alpha", "Hyperparameters", function(object) object@alpha)
 
 ## beta is a base function
