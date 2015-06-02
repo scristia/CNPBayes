@@ -96,18 +96,6 @@ setValidity("Hyperparameters", function(object){
   msg
 })
 
-##setGeneric("Hyperparameters", function(object, k, ...) standardGeneric("Hyperparameters"))
-##
-##setMethod("Hyperparameters", "character", function(object, k, ...){
-##  if(object=="marginal") return(HyperparametersMarginal(k, ...))
-##  if(object=="batch") return(HyperparametersBatch(k, ...))
-##})
-##
-##setMethod("Hyperparameters", "Hyperparameters", function(object, k, ...){
-##  if(object=="marginal") return(HyperparametersMarginal(k, ...))
-##  if(object=="batch") return(HyperparametersBatch(k, ...))
-##})
-
 #' @export
 Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="marginal") return(HyperparametersMarginal(k, ...))
