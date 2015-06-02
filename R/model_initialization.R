@@ -1,21 +1,3 @@
-## constructModel <- function(type, data, k, batch, hypp){
-##   nbatch <- length(unique(batch))
-##   if(k > 1){
-##     if(type=="batch"){
-##       object <- BatchModel(data, k, batch, hypp)
-##     } else{
-##       object <- MarginalModel(data, k, batch, hypp)
-##     }
-##   } else {
-##     if(type=="batch"){
-##       object <- UnivariateBatchModel(data, 1, batch, hypp)
-##     } else  {
-##       object <- UnivariateMarginalModel(data, 1 , batch, hypp)
-##     }
-##   }
-##   object
-## }
-
 setMethod("initializeTheta", "BatchModel", function(object){
   th <- matrix(NA, nBatch(object), k(object))
   for(j in seq_len(k(object))){
@@ -29,25 +11,6 @@ setMethod("initializeSigma2", "BatchModel", function(object){
   s2 <- matrix(s2, nBatch(object), k(object))
   s2
 })
-##
-## setMethod("initializeModel", "ModelParams", function(params, hypp){
-##   object <- constructModel(type(params),
-##                            data=y(params),
-##                            k=k(params),
-##                            batch=batch(params),
-##                            hypp=hypp)
-##   object <- startingValues(object, params)
-##   object
-## })
-##
-## #' @export
-## initializeBatchModel <- function(params, zz, hypp){
-##   object <- constructModel(type(params), data=y(params), k=k(params),
-##                            batch=batch(params),
-##                            hypp=hypp)
-##   startingValues(object, params, zz)
-## }
-
 
 setMethod("startingValues", "MarginalModel", function(object){
   hypp <- hyperParams(object)
