@@ -618,15 +618,6 @@ sumSquares <- function(object){
   ss
 }
 
-
-##permuteZ <- function(object){
-##  zz <- z(object)
-##  i <- permn(seq_len(k(object)))[[2]]
-##  zz <- factor(as.integer(factor(zz, levels=i)), levels=seq_len(k(object)))
-##  z(object) <- zz
-##  object
-##}
-
 setMethod("showMeans", "MarginalModel", function(object){
   paste(round(theta(object), 2), collapse=", ")
 })
