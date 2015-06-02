@@ -199,20 +199,6 @@ setMethod("initializeMu", "numeric", function(object){
 ##  means
 })
 
-##setMethod("initializeTau2", "numeric", function(object){
-##  means <- switch(paste0("k", object),
-##                  k1=1,
-##                  k2=c(-0.5, 0),
-##                  k3=c(-2, -0.5, 0),
-##                  k4=c(-2, -0.5, 0, 0.5),
-##                  k5=c(-2, -0.5, 0, 0.5, 1),
-##                  k6=c(-2, -0.5, -0.2, 0.2, 0.5, 1),
-##                  k7=c(-2, -0.5, -0.2, 0, 0.2, 0.5, 1),
-##                  NULL)
-##  if(is.null(means)) stop("k needs to be 1-7")
-##  means
-##})
-
 setMethod("HyperParameterList", "HyperparametersMarginal", function(hypp, K){
   hyplist <- foreach(k = K) %do% {
     HyperparametersMarginal(k=k, mu.0=mu.0(hypp),
