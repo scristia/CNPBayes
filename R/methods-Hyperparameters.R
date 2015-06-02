@@ -128,8 +128,6 @@ setValidity("Hyperparameters", function(object){
   }
 })
 
-
-##setMethod("params", "Hyperparameters", function(object) object@params)
 setMethod("k", "Hyperparameters", function(object) object@k)
 setMethod("alpha", "Hyperparameters", function(object) object@alpha)
 
