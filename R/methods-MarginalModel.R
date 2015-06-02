@@ -292,37 +292,6 @@ setMethod("updateSigma2", "MarginalModel", function(object) {
   sigma2.h
 }
 
-## variance for componets k > 1 assumed to be the same
-##.updateSigma2_2 <- function(object){
-##  nz <- nonZeroCopynumber(object)
-##  if(length(unique(nz)) ==1){
-##    ## guard against zeros
-##    nz[which.min(y(object))] <- 0
-##  }
-##  n.h <- table(nz)
-##  nu.n <- nu.0(object)+n.h
-##
-##  thetas <- theta(object)
-##
-##
-##  zz <- z(object)
-##  m <- thetas[as.integer(zz)]
-##  squares <- (y(object) - m)^2
-##  ss <- sapply(split(squares, nz), sum)
-##
-##  ## weighted average of sums of squares
-##  sigma2.nh <- 1/nu.n*(nu.0(object)*sigma2.0(object) + ss)
-##  shape <- 1/2*nu.n
-##  rate <- shape*sigma2.nh
-##  sigma2.h.tilde <- rgamma(2, shape=shape, rate=rate)
-##  ##tmp <- rgamma(1000, shape=1/2*nu.n[1], rate=1/2*nu.n[1]*sigma2.nh[1])
-##  sigma2.h <- 1/sigma2.h.tilde
-##  ##stopif(any(is.nan(sigma2.h)))
-##  s2 <- c(sigma2.h[1], rep(sigma2.h[2], k(object)-1))
-##  s2
-##}
-
-
 setMethod("updateSigma2.0", "MarginalModel", function(object){
   .Call("update_sigma2_0", object)
 ##     hypp <- hyperParams(object)
@@ -588,12 +557,6 @@ setMethod("computeModes", "MarginalModel", function(object){
   .computeModesMarginal(object)
 })
 
-
-##logLik(mcmc)[s] <- computeLoglik(object)
-##  mcmcChains(object) <- mcmc
-##  object
-##})
-
 sumSquares <- function(object){
   B <- batch(object)
   thetas <- theta(object)
@@ -618,15 +581,6 @@ sumSquares <- function(object){
   ss
 }
 
-
-##permuteZ <- function(object){
-##  zz <- z(object)
-##  i <- permn(seq_len(k(object)))[[2]]
-##  zz <- factor(as.integer(factor(zz, levels=i)), levels=seq_len(k(object)))
-##  z(object) <- zz
-##  object
-##}
-
 setMethod("showMeans", "MarginalModel", function(object){
   paste(round(theta(object), 2), collapse=", ")
 })
@@ -636,87 +590,6 @@ setMethod("showSigmas", "MarginalModel", function(object){
 })
 
 setMethod("tablez", "MarginalModel", function(object) table(z(object)))
-
-##
-##marginalModel1 <- function(object, hyp.list,
-##                           data, mcmcp.list=mcmcpList(),
-##                           save.it=FALSE, test=FALSE){
-##  if(test){
-##    message("Testing with just a few mcmc iterations")
-##    mcmcp.list <- mcmcpList(TRUE)
-##    save.it <- FALSE
-##  }
-##  mcmcp <- mcmcp.list[[1]]
-####   mp.list <- ModelParamList(hyp.list[[1]],
-####                             K=1:4,
-####                             data=data,
-####                             mcmcp=mcmcp)
-##  modlist <- foreach(hypp=hyp.list) %do% {
-##    MarginalModel(data=y(truth), hypp=hypp, mcmc.params=mcmcp)
-##    ##initializeModel(params=param, hypp=hypp)
-##  }
-##  models <- foreach(k=1:4, model=modlist) %do% posteriorSimulation(model, mcmcp[k])
-##  file.out <- postFiles(object)[1]
-##  x <- lapply(models, computeMarginalPr, mcmcp=mcmcp.list[[2]])
-##  if(save.it) saveRDS(x, file=file.out)
-##  xx <- do.call(cbind, lapply(x, rowMeans))
-##  post.range <- unlist(lapply(x, posteriorRange))
-##  marginals <- computeMarginal(xx)
-##  for(i in seq_along(models)){
-##    m.y(models[[i]]) <- marginals[i]
-##  }
-##  if(save.it) saveRDS(models, file=model(object))
-##  ## important to return NULL -- otherwise memory will skyrocket
-##  NULL
-##}
-
-
-##marginalExperiment <- function(object,
-##                               outdir,
-##                               ##mcmcp.list=mcmcpList(),
-##                               mcmcp=McmcParams(iter=1000, burnin=200, nStarts=20),
-##                               hypp,
-##                               marginaly=TRUE,
-##                               test=FALSE){
-##  M <- getFiles(outdir, rownames(object), "marginal")
-##  if(missing(hypp)){
-##    hp.list <- HyperParameterList(K=1:4, HyperparametersMarginal(tau2.0=1000))
-##  } else{
-##    hp.list <- HyperParameterList(K=1:4, hypp)
-##  }
-##  cn <- copyNumber(object)
-##  J <- seq_len(nrow(object)); j <- NULL
-##  x <- foreach(j = J, .packages=c("CNPBayes", "foreach")) %dopar% {
-##    models <- marginalModel1(M[j], data=cn[j, ],
-##                             hyp.list=hp.list,
-##                             mcmcp.list=mcmcp.list, save.it=TRUE,
-##                             test=test)
-##  }
-##  TRUE
-##}
-##
-
-##setMethod("marginal", c("SummarizedExperiment", "missing"),
-##          function(object, batch, mcmc.params, K=1:4, maxperm=5, ...){
-##            cn <- copyNumber(object)[1, ]
-##            notna <- !is.na(cn)
-##            cn <- cn[ notna ]
-##            mlist <- computeMarginalEachK(cn, K=K,
-##                                          mcmcp=mcmc.params,
-##                                          maxperm=maxperm, ...)
-##            mlist
-##          })
-##
-##setMethod("marginal", "MarginalModelList", ## a ModelList
-##          function(object, batch, mcmc.params, K=1:4, maxperm=5, ...){
-##            mlist <- computeMarginalEachK(object, maxperm=maxperm)
-##          })
-##
-##setMethod("rowMarginal", c("SummarizedExperiment", "missing"),
-##          function(object, batch, mcmc.params, model.files, K=1:4, maxperm=5, ...){
-##            rowM_yGivenK(object=object,  mcmc.params=mcmc.params,
-##                         K=K, maxperm=maxperm, ...)
-##          })
 
 permuteZ <- function(object, ix){
   zz <- zChain(object)
@@ -996,11 +869,6 @@ computeMarginalLik <- function(y, batch, K=1:4,
                                nchains=2,
                                thin=1){
   if(T < T2) stop("T must be >= T2")
-##  if(!missing(batch)){
-##    nms <- names(table(batch))[table(batch) < 50]
-##    ##if(length(nms) > 0)
-##    ##warning("batches with fewer than 50 samples present")
-##  }
   my <- vector("list", length(K))
   mlist <- vector("list", length(K))
   mp <- McmcParams(iter=T, nStarts=1, burnin=burnin, thin=thin)
