@@ -588,12 +588,6 @@ setMethod("computeModes", "MarginalModel", function(object){
   .computeModesMarginal(object)
 })
 
-
-##logLik(mcmc)[s] <- computeLoglik(object)
-##  mcmcChains(object) <- mcmc
-##  object
-##})
-
 sumSquares <- function(object){
   B <- batch(object)
   thetas <- theta(object)
