@@ -996,11 +996,6 @@ computeMarginalLik <- function(y, batch, K=1:4,
                                nchains=2,
                                thin=1){
   if(T < T2) stop("T must be >= T2")
-##  if(!missing(batch)){
-##    nms <- names(table(batch))[table(batch) < 50]
-##    ##if(length(nms) > 0)
-##    ##warning("batches with fewer than 50 samples present")
-##  }
   my <- vector("list", length(K))
   mlist <- vector("list", length(K))
   mp <- McmcParams(iter=T, nStarts=1, burnin=burnin, thin=thin)
