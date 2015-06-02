@@ -1,5 +1,7 @@
 #' @export
 simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
+  if(length(p) != ncol(theta)) stop("length of p must be same as ncol(theta)")
+  if(sum(p)!=1) stop("elements of p must sum to 1")
   if(missing(batch)) {
     batch <- rep(1L, N)
   } else {

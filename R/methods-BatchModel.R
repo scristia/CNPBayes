@@ -76,7 +76,6 @@ ensureAllComponentsObserved <- function(obj){
   obj
 }
 
-
 ##
 ## Multiple batches, but only 1 component
 ##

@@ -59,8 +59,7 @@ test_selectK_easy <- function(){
   x2 <- computeMarginalLik(y(truth), nchains=3, K=1:4, T=5000, T2=1000, burnin=1000)
   m2 <- orderModels(x2)
   checkTrue(k(m2)[1] >= 3)
-
-  ## T must be >= T2
+   ## T must be >= T2
   checkException(computeMarginalLik(y(truth),
                                     nchains=3,
                                     K=1:4,
