@@ -158,19 +158,6 @@ setReplaceMethod("alpha", "Hyperparameters", function(object, value){
   object
 })
 
-##setMethod("show", "HyperparametersMarginal", function(object){
-##  cat("An object of class 'Hyperparameters'\n")
-##  cat("   k      :", k(object), "\n")
-##  ##cat("   mu   :", mu(object), "\n")
-##  ##cat("   tau2 :", tau2(object), "\n")
-##  cat("   eta.0  :", eta.0(object), "\n")
-##  cat("   m2.0   :", round(m2.0(object), 3), "\n")
-##  cat("   alpha  :", alpha(object), "\n")
-##  cat("   beta   :", betas(object), "\n")
-##  cat("   a      :", a(object), "\n")
-##  cat("   b      :", b(object), "\n")
-##})
-
 setMethod("show", "Hyperparameters", function(object){
   cat("An object of class 'Hyperparameters'\n")
   cat("   k      :", k(object), "\n")
