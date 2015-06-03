@@ -258,7 +258,6 @@ setGeneric("postFiles", function(object) standardGeneric("postFiles"))
 #' @export
 setGeneric("relabel", function(object, zindex) standardGeneric("relabel"))
 
-#' @export
 setGeneric("HyperParameterList", function(hypp, K) standardGeneric("HyperParameterList"))
 
 #' @export

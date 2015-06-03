@@ -344,7 +344,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
                       nStarts=20,
                       nStartIter=200)
   hypp <- HyperparametersBatch()
-  hplist <- HyperParameterList(hypp, K=1:4)
+  hplist <- CNPBayes:::HyperParameterList(hypp, K=1:4)
   mplist <- ModelParamList(hypp, K=1:4, data=copyNumber(se472)[1, ],
                            batch=se472$batch, mcmcp=mcmcp)
   bmodlist <- foreach(hypp=hplist, param=mplist) %do% {
@@ -440,7 +440,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
                       nStart=20,
                       nStartIter=150)
   hypp <- HyperparametersMarginal()
-  hplist <- HyperParameterList(hypp, K=1:4)
+  hplist <- CNPBayes:::HyperParameterList(hypp, K=1:4)
   mplist <- ModelParamList(hypp, K=1:4, data=y(truth),
                            mcmcp=mcmcp)
   modlist <- foreach(hypp=hplist, param=mplist) %do% {
@@ -471,7 +471,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
                         sds=c(0.3, 0.15, 0.15),
                         p=c(1/100, 1/10, 1-0.1-0.001))
   hypp <- HyperparametersMarginal()
-  hplist <- HyperParameterList(hypp, K=1:4)
+  hplist <- CNPBayes:::HyperParameterList(hypp, K=1:4)
   mplist <- ModelParamList(hypp, K=1:4, data=y(truth),
                            mcmcp=mcmcp)
   modlist <- foreach(hypp=hplist, param=mplist) %do% {
