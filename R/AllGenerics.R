@@ -111,7 +111,6 @@ setGeneric("sigma2", function(object) standardGeneric("sigma2"))
 
 setGeneric("reorderComponents", function(object, new_levels) standardGeneric("reorderComponents"))
 
-#' @export
 setGeneric("hwe", function(object) standardGeneric("hwe"))
 
 #' @export
