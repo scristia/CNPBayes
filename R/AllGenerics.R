@@ -119,7 +119,6 @@ setGeneric("probz", function(object) standardGeneric("probz"))
 
 setGeneric("probz<-", function(object, value) standardGeneric("probz<-"))
 
-#' @export
 setGeneric("fitMixtureModels", function(object, mcmcp, K=1:5, batch) standardGeneric("fitMixtureModels"))
 
 #' @export

@@ -279,7 +279,7 @@
   mcmcp <- McmcParams(iter=c(500, 1000, 1000), burnin=c(100, 200, 200))
   params <- ModelParams("marginal", y=copyNumber(se707)[1, ], k=3,
                         mcmc.params=mcmcp)
-  mmodels <- fitMixtureModels(y(params), mcmcp, K=1:3)
+  mmodels <- CNPBayes:::fitMixtureModels(y(params), mcmcp, K=1:3)
   sapply(mmodels, bic)
 
 
