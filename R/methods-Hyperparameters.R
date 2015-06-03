@@ -118,13 +118,8 @@ setMethod("k", "Hyperparameters", function(object) object@k)
 setMethod("alpha", "Hyperparameters", function(object) object@alpha)
 
 ## beta is a base function
-#' @export
 betas <- function(object) object@beta
-
-#' @export
 a <- function(object) object@a
-
-#' @export
 b <- function(object) object@b
 
 #' @export
