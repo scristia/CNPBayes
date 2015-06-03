@@ -34,7 +34,6 @@ MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
   object <- startingValues(object)
 }
 
-#' @export
 UnivariateMarginalModel <- function(data, k=1, batch, hypp){
   if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
   if(!missing(batch)){
