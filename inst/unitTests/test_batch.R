@@ -564,8 +564,8 @@ test_missingcomponent <- function(){
   if(FALSE) plot(m[[1]], use.current=TRUE)
 
   b <- marginal(se, batch=testdat$batch, mcmc.params=mcmcp, maxperm=2)
-  my <- rbind(summarizeMarginal(m),
-              summarizeMarginal(b))
+  my <- rbind(CNPBayes:::summarizeMarginal(m),
+              CNPBayes:::summarizeMarginal(b))
   bf <- bayesFactor(my)
   calls <- names(bf)
   ## check 4-component model is called

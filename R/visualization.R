@@ -207,7 +207,6 @@ plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
   }
 }
 
-#' @export
 summarizeMarginal <- function(model.list){
   xlist <- lapply(model.list, m.y)
   if(isMarginalModel(model.list[[1]])){
