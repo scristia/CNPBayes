@@ -439,7 +439,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
                       thin=c(1, 1, 2, 2, 2),
                       nStart=20,
                       nStartIter=150)
-  hypp <- HyperparametersMarginal()
+  hypp <- CNPBayes:::HyperparametersMarginal()
   hplist <- CNPBayes:::HyperParameterList(hypp, K=1:4)
   mplist <- ModelParamList(hypp, K=1:4, data=y(truth),
                            mcmcp=mcmcp)
@@ -470,7 +470,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
                         theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
                         p=c(1/100, 1/10, 1-0.1-0.001))
-  hypp <- HyperparametersMarginal()
+  hypp <- CNPBayes:::HyperparametersMarginal()
   hplist <- CNPBayes:::HyperParameterList(hypp, K=1:4)
   mplist <- ModelParamList(hypp, K=1:4, data=y(truth),
                            mcmcp=mcmcp)

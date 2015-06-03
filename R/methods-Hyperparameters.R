@@ -61,7 +61,6 @@ HyperparametersBatch <- function(k=0L,
       b=b)
 }
 
-#' @export
 HyperparametersMarginal <- function(k=0L,
                                     mu.0=0,
                                     tau2.0=100,
