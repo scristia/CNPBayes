@@ -9,9 +9,9 @@ if(FALSE){
                     "prvar" = c(19.92985, 0.06272) ## probe variance gamma parameters (shape,scale)
                     )
   set.seed(123)
-  dat <- simulateProbeLevel(cnvs=100, K=4, probes=10,
-                            arguments=arguments,
-                            qual="hard")
+  dat <- CNPBayes:::simulateProbeLevel(cnvs=100, K=4, probes=10,
+                                       arguments=arguments,
+                                       qual="hard")
   saveRDS(dat, file="~/Software/CNPData/data/simulated_data_hard.rds")
 } else {
   dat <- readRDS("~/Software/CNPData/data/simulated_data_hard.rds")

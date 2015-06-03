@@ -11,7 +11,8 @@ arguments <- list("sl.good" = 6.25, ## separation parameter for "good" probes
                   "prvar" = c(19.92985, 0.06272) ## probe variance gamma parameters (shape,scale)
                   )
 
-easy.sim <- simulateProbeLevel(samples=2000, cnvs=200, arguments=arguments, qual="easy")
+easy.sim <- CNPBayes:::simulateProbeLevel(samples=2000, cnvs=200, 
+                                          arguments=arguments, qual="easy")
 
 easy.sim <- simulate.probes(samples=2000, cnvs=200, arguments=arguments, qual="easy")
 

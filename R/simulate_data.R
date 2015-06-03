@@ -84,7 +84,6 @@ cumProbs <- function(p, k){
   pcum2 <- cbind(p[, 1], do.call(cbind, pcum), 1)
 }
 
-#' @export
 simulateProbeLevel <- function(samples=2000,
                                cnvs=200, K=4,
                                probes=10,

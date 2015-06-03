@@ -7,9 +7,9 @@ test_simulation <- function(){
                     "n" = 0.2, ## background noise
                     "prvar" = c(19.92985, 0.06272) ## probe variance gamma parameters (shape,scale)
                     )
-  dat <- simulateProbeLevel(cnvs=1, K=4, probes=10,
-                            arguments=arguments,
-                            qual="easy")
+  dat <- CNPBayes:::simulateProbeLevel(cnvs=1, K=4, probes=10,
+                                       arguments=arguments,
+                                       qual="easy")
 
   ## dimensions are samples x probes x cnp x components
   x <- dat[[1]]
@@ -49,9 +49,9 @@ test_simulation_moderate <- function(){
                     "n" = 0.2, ## background noise
                     "prvar" = c(19.92985, 0.06272) ## probe variance gamma parameters (shape,scale)
                     )
-  dat <- simulateProbeLevel(cnvs=1, K=4, probes=10,
-                            arguments=arguments,
-                            qual="medium")
+  dat <- CNPBayes:::simulateProbeLevel(cnvs=1, K=4, probes=10,
+                                       arguments=arguments,
+                                       qual="medium")
 
   ## dimensions are samples x probes x cnp x components
   x <- dat[[1]]
