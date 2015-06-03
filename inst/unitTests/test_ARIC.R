@@ -10,7 +10,7 @@
 
   mcmcp <- McmcParams(iter=1000, burnin=1000)
   params <- ModelParams("marginal", y=copyNumber(se.ea)[1,], k=3)
-  marg.model <- initializeModel(params)
+  marg.model <- CNPBayes:::initializeModel(params)
   if(any(diff(theta(marg.model)) < 0.1)){
     cn <- copyNumber(se.ea)[1,]
     theta(marg.model) <- c(theta(marg.model)[1], theta(marg.model)[1]+1.5,
@@ -23,7 +23,7 @@
   b <- collapseBatch(se.ea[1,])
   params <- ModelParams("batch", y=copyNumber(se.ea)[1, ], batch=b, k=3,
                         mcmc.params=mcmcp)
-  truth <- initializeModel(params)
+  truth <- CNPBayes:::initializeModel(params)
   z(truth) <- z(marg.model)
   p(truth) <- sapply(split(z(truth), z(truth)), length)/length(z(truth))
   ylist <- split(y(truth), z(truth))
@@ -55,7 +55,7 @@
   mcmcp <- McmcParams(iter=1000, burnin=1000)
   params <- ModelParams("batch", y=copyNumber(se360)[1, ], batch=b, k=3,
                         mcmc.params=mcmcp)
-  bmodel <- initializeModel(params)
+  bmodel <- CNPBayes:::initializeModel(params)
   bmodel <- posteriorSimulation(bmodel, mcmcp)
   zz <- map(bmodel)
   is_homozygous <- zz==1
@@ -64,7 +64,7 @@
   if(FALSE){
     params <- ModelParams("batch", y=copyNumber(se360)[1, ], batch=b, k=2,
                           mcmc.params=mcmcp)
-    bmodel2 <- initializeModel(params)
+    bmodel2 <- CNPBayes:::initializeModel(params)
     bmodel2 <- posteriorSimulation(bmodel2, mcmcp)
   }
 
@@ -89,10 +89,10 @@
   mcmcp <- McmcParams(iter=10000, burnin=200, thin=10, nStarts=10, nStartIter=200)
   mparams <- ModelParams("marginal", y=copyNumber(se472)[1, ], k=3,
                         mcmc.params=mcmcp)
-  mmodel <- initializeModel(mparams)
+  mmodel <- CNPBayes:::initializeModel(mparams)
   mmodel <- posteriorSimulation(mmodel, mcmcp)
 
-  truth <- initializeModel(mparams)
+  truth <- CNPBayes:::initializeModel(mparams)
   z(truth) <- z(mmodel)
   theta(truth) <- theta(mmodel)
   p(truth) <- sapply(split(z(truth), z(truth)), length)/length(z(truth))

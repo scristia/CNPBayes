@@ -444,7 +444,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
   mplist <- ModelParamList(hypp, K=1:4, data=y(truth),
                            mcmcp=mcmcp)
   modlist <- foreach(hypp=hplist, param=mplist) %do% {
-    initializeModel(params=param, hypp=hypp)
+    CNPBayes:::initializeModel(params=param, hypp=hypp)
   }
   models <- foreach(k=1:4, model=modlist) %do% posteriorSimulation(model, mcmcp[k])
   bicstat <- sapply(models, bic)
@@ -475,7 +475,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
   mplist <- ModelParamList(hypp, K=1:4, data=y(truth),
                            mcmcp=mcmcp)
   modlist <- foreach(hypp=hplist, param=mplist) %do% {
-    initializeModel(params=param, hypp=hypp)
+    CNPBayes:::initializeModel(params=param, hypp=hypp)
   }
   fit <- foreach(k=1:4, model=modlist) %do% posteriorSimulation(model, mcmcp[k])
   ##

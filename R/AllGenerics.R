@@ -220,7 +220,6 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 #' @export
 setGeneric("posteriorSimulation", function(object) standardGeneric("posteriorSimulation"))
 
-#' @export
 setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
 
 #' @export

@@ -9,7 +9,7 @@ if(FALSE) plot(truth, use.current=TRUE)
 params <- ModelParams("marginal", y=y(truth), k=3)
 mcmcp <- McmcParams(iter=150, burnin=0)
 ##trace(initializeModel, browser)
-model <- initializeModel(params)
+model <- CNPBayes:::initializeModel(params)
 
 Rprof("m2.prof")
 model <- posteriorSimulation(model, mcmcp)
@@ -39,7 +39,7 @@ k <- 3
 params <- ModelParams("marginal", y=y(truth), k=k,
                       batch=rep(letters[1:3], length.out=2500),
                       mcmc.params=mcmcp)
-model <- initializeModel(params)
+model <- CNPBayes:::initializeModel(params)
 #model <- posteriorSimulation(model, mcmcp)
 updateTheta(model, constrain=FALSE)
 updateThetaCpp(model, constrain=TRUE)
