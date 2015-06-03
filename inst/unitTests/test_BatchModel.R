@@ -25,7 +25,7 @@
   ##checkEquals(batch(mod), b)
   checkEquals(round(mu(mod), 2), c(-0.28, 0.23, 0.28))
   checkEquals(round(tau2(mod), 2), c(4.16, 0.04, 71.26))
-  checkIdentical(uniqueBatch(mod)[1:2], c("LAITH,WI", "AWFUL,BO"))
+  checkIdentical(CNPBayes:::uniqueBatch(mod)[1:2], c("LAITH,WI", "AWFUL,BO"))
   checkEquals(logLikData(mod), -13799.59, tolerance=0.01)
   checkEquals(round(as.numeric(dataMean(mod)[1, ]), 2), c(-0.07, -0.06, -0.06))
   ##checkEquals(round(as.numeric(dataPrec(mod)[1, ]), 2), c(38.45, 40.10, 52.65))

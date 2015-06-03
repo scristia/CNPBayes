@@ -31,12 +31,12 @@
   thetas <- foreach(y=ylist, b=blist, .combine="rbind") %do%{
     sapply(split(y, b), mean)
   }
-  thetas <- (t(thetas))[uniqueBatch(truth), ]
+  thetas <- (t(thetas))[CNPBayes:::uniqueBatch(truth), ]
   theta(truth) <- thetas
   sigmas <- foreach(y=ylist, b=blist, .combine="rbind") %do%{
     sapply(split(y, b), sd)
   }
-  sigmas <- (t(sigmas))[uniqueBatch(truth), ]
+  sigmas <- (t(sigmas))[CNPBayes:::uniqueBatch(truth), ]
   sigma2(truth) <- sigmas^2
   dataMean(truth) <- thetas
   dataPrec(truth) <- 1/sigma2(truth)

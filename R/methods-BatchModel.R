@@ -455,7 +455,6 @@ setMethod("tablez", "BatchModel", function(object){
   tab
 })
 
-#' @export
 uniqueBatch <- function(object) unique(batch(object))
 
 setMethod("permuteModes", "BatchModel", function(object, ix){
