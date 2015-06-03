@@ -247,7 +247,6 @@ setGeneric("isMarginalModel", function(object) standardGeneric("isMarginalModel"
 setGeneric("computePrior", function(object) standardGeneric("computePrior"))
 setGeneric("computeLogLikxPrior", function(object) standardGeneric("computeLogLikxPrior"))
 
-#' @export
 setGeneric("postFiles", function(object) standardGeneric("postFiles"))
 
 #' @export
