@@ -354,8 +354,8 @@ multipleStarts <- function(object){
   bmodel
 }
 
-#' @export
-computeLogLikForRandomStarts <- function(seed, params, hypp, return.model=FALSE){
+computeLogLikForRandomStarts <- function(seed, params, hypp, 
+                                         return.model=FALSE) {
   set.seed(seed)
   model <- initializeModel(params, hypp)
   if(return.model) return(model)
