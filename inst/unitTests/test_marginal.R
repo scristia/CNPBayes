@@ -34,7 +34,7 @@ test_marginalEasy <- function(){
   ##
   ## Update slots with the mode of loglik + logprior
   ##
-  i <- argMax(model)
+  i <- CNPBayes:::argMax(model)
   checkTrue(i == which.max(logPrior(chains(model)) + logLik(chains(model))))
   ## Check the modes
   checkIdentical(modes(model)[["theta"]], thetac(model)[i, ])
@@ -108,7 +108,7 @@ test_selectK_easy <- function(){
   lpp <- log(mean(exp(logp_p)))
   checkTrue(identical(headtheta, head(thetac(kmod))))
 
-  i <- argMax(kmod)
+  i <- CNPBayes:::argMax(kmod)
   mlik <- logLik(chains(kmod))[i] + logPrior(chains(kmod))[i] - logp - lps2 - lpp
 
   permutations <- permnK(3, 5)

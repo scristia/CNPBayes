@@ -98,7 +98,7 @@
   ## random starts
   model <- initializeBatchModel(params)
   model <- posteriorSimulation(model, McmcParams(iter=1000, burnin=100))
-  th <- matrix(thetac(model)[argMax(model), ], 3, 3)
+  th <- matrix(thetac(model)[CNPBayes:::argMax(model), ], 3, 3)
   ## Fails even with noninformative prior
   checkEquals(th, theta(truth), tolerance=0.1)
   if(FALSE){
@@ -118,7 +118,7 @@
                         mcmc.params=mcmcp)
   model <- initializeBatchModel(params)
   model <- posteriorSimulation(model, mcmcp)
-  th <- matrix(thetac(model)[argMax(model), ], 3, 3)
+  th <- matrix(thetac(model)[CNPBayes:::argMax(model), ], 3, 3)
   ## Fails even with noninformative prior
   checkEquals(th, theta(truth), tolerance=0.1)
 }
@@ -401,7 +401,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
   checkEquals(pmns[, j], theta(truth), tolerance=0.02)
   checkEquals(pmix, as.numeric(p(truth)), tolerance=0.01)
 
-  checkTrue(  logpotentialc(bmodel)[argMax(bmodel)] > -2000)
+  checkTrue(  logpotentialc(bmodel)[CNPBayes:::argMax(bmodel)] > -2000)
 
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)

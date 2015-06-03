@@ -570,7 +570,6 @@ argmaxLogLik <- function(object){
   which.max(logLik(x))
 }
 
-#' @export
 argMax <- function(object){
   ll <- logLik(chains(object))
   lp <- logPrior(chains(object))
