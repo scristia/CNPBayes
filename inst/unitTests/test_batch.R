@@ -264,7 +264,7 @@ test_hard3 <- function(){
     cbind(colMeans(sigma(mc)), as.numeric(sigma(truth)))
   }
   ##mc <- mcmcChains(mmodel)
-  pmns <- thetaMean(mmodel)
+  pmns <- CNPBayes:::thetaMean(mmodel)
   j <- order(pmns[1,])
   ps <- sigmaMean(mmodel)[, j]
   pmix <- pMean(mmodel)[j]
@@ -280,7 +280,7 @@ test_hard3 <- function(){
                        CNPBayes:::HyperparametersBatch(k=3, m2.0=1/60, 
                                                        eta.0=1800, tau2.0=1000))
   mmodel <- posteriorSimulation(modelk)
-  pmns <- thetaMean(mmodel)
+  pmns <- CNPBayes:::thetaMean(mmodel)
   j <- order(pmns[1,])
   ps <- sigmaMean(mmodel)[, j]
   pmix <- pMean(mmodel)[j]

@@ -164,7 +164,6 @@ setGeneric("collapseBatch", function(object, plate, THR=0.1) standardGeneric("co
 #' @export
 setGeneric("thetac", function(object) standardGeneric("thetac"))
 
-#' @export
 setGeneric("thetaMean", function(object) standardGeneric("thetaMean"))
 
 #' @export

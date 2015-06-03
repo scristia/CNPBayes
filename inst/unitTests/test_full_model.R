@@ -28,7 +28,7 @@
     tracePlot(model, "theta", col=1:3)
     par(op)
   }
-  th <- thetaMean(model)
+  th <- CNPBayes:::thetaMean(model)
   j <- order(th[1,])
   ##
   ## Why would a label switch within one batch?  - in batch 'c', the
@@ -57,7 +57,7 @@
     tracePlot(model, "theta", col=1:3)
     par(op)
   }
-  th <- thetaMean(model)
+  th <- CNPBayes:::thetaMean(model)
   j <- order(th[1,])
   checkEquals(th[, j], theta(truth), tolerance=0.1) #!!FAILS
 
@@ -183,7 +183,7 @@
   modelk <- posteriorSimulation(model, mcmcp)
   checkEquals(theta(modelk), theta(truth), tolerance=0.1)
 
-  pmns <- thetaMean(modelk)
+  pmns <- CNPBayes:::thetaMean(modelk)
   j <- order(pmns[1,])
   checkEquals(pmns[, j], theta(truth), tolerance=0.03)
 
@@ -393,7 +393,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
   bmodel <- initializeBatchModel(params, hypp=hypp)
   bmodel <- posteriorSimulation(bmodel, mcmcp)
 
-  pmns <- thetaMean(bmodel)
+  pmns <- CNPBayes:::thetaMean(bmodel)
   j <- order(pmns[1, ])
   ps <- sigmaMean(bmodel)[, j]
   pmix <- pMean(bmodel)[j]
