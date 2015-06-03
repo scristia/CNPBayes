@@ -122,7 +122,6 @@ betas <- function(object) object@beta
 a <- function(object) object@a
 b <- function(object) object@b
 
-#' @export
 setReplaceMethod("alpha", "Hyperparameters", function(object, value){
   object@alpha <- value
   object
