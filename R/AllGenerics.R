@@ -310,7 +310,6 @@ setGeneric("computeMarginalEachK2",
                     K=1:4, mcmcp=McmcParams(),
                     hypp) standardGeneric("computeMarginalEachK2"))
 
-#' @export
 setGeneric("best", function(object) standardGeneric("best"))
 
 setGeneric("posteriorP", function(object) standardGeneric("posteriorP"))

@@ -47,7 +47,7 @@ results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
     ##burnin(m2) <- burnin(m2)/10
     m2 <- marginal(m2)
     saveRDS(m2, file=model.files[it])
-    calledK[k] <- best(m)
+    calledK[k] <- CNPBayes:::best(m)
     true_cn <- cn[i, , k]
     zz <- map(m[[k]])
     nIncorrect[k] <- sum(zz != true_cn)
