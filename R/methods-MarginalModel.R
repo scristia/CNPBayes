@@ -67,7 +67,6 @@ UnivariateMarginalModel <- function(data, k=1, batch, hypp){
       m.y=numeric(1))
 }
 
-#' @export
 getK <- function(object){
   hypp <- hyperParams(object)
   .Call("getK", hypp)
