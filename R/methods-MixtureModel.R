@@ -501,7 +501,6 @@ setMethod("thetaMean", "MixtureModel", function(object) colMeans(thetac(object))
 
 setMethod("sigmaMean", "MixtureModel", function(object) colMeans(sigmac(object)))
 
-#' @export
 logpotentialc <- function(object) logpotential(mcmcChains(object))
 
 logLikc <- function(object) logLik(mcmcChains(object))

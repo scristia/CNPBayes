@@ -401,7 +401,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
   checkEquals(pmns[, j], theta(truth), tolerance=0.02)
   checkEquals(pmix, as.numeric(p(truth)), tolerance=0.01)
 
-  checkTrue(  logpotentialc(bmodel)[CNPBayes:::argMax(bmodel)] > -2000)
+  checkTrue(CNPBayes:::logpotentialc(bmodel)[CNPBayes:::argMax(bmodel)] > -2000)
 
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
