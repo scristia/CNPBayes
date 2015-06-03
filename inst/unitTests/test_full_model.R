@@ -343,7 +343,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
                       thin=c(1, 2, 2, 2),
                       nStarts=20,
                       nStartIter=200)
-  hypp <- HyperparametersBatch()
+  hypp <- CNPBayes:::HyperparametersBatch()
   hplist <- CNPBayes:::HyperParameterList(hypp, K=1:4)
   mplist <- ModelParamList(hypp, K=1:4, data=copyNumber(se472)[1, ],
                            batch=se472$batch, mcmcp=mcmcp)
@@ -389,7 +389,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
   params <- ModelParams("batch", y=y(truth), k=3,
                         batch=batch(truth),
                         mcmc.params=mcmcp)
-  hypp <- HyperparametersBatch(k=3, tau2.0=1000)
+  hypp <- CNPBayes:::HyperparametersBatch(k=3, tau2.0=1000)
   bmodel <- initializeBatchModel(params, hypp=hypp)
   bmodel <- posteriorSimulation(bmodel, mcmcp)
 

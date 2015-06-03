@@ -19,7 +19,7 @@
                     k=3,
                     batch=se472$batch,
                     mcmc.params=McmcParams(iter=2))
-  hp <- HyperparametersBatch(tau2.0=1000, k=3)
+  hp <- CNPBayes:::HyperparametersBatch(tau2.0=1000, k=3)
   mod <- initializeBatchModel(mp, hypp=hp)
   ##checkEquals(as.numeric(y(mod)), yy)
   ##checkEquals(batch(mod), b)

@@ -39,7 +39,6 @@ gammaShapeRate3 <- function(eta.0, m2.0){
   x
 }
 
-#' @export
 HyperparametersBatch <- function(k=0L,
                                  mu.0=0,
                                  tau2.0=100,

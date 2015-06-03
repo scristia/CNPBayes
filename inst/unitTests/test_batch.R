@@ -164,7 +164,7 @@ test_batch_moderate <- function(){
                              theta=means,
                              sds=sds)
   mcmcp <- McmcParams(iter=150, burnin=0)
-  hypp <- HyperparametersBatch(m2.0=1/60, eta.0=1800, k=3)
+  hypp <- CNPBayes:::HyperparametersBatch(m2.0=1/60, eta.0=1800, k=3)
   model <- BatchModel(data=y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp,
                       hypp=hypp)
   model <- startAtTrueValues(model, truth)
@@ -237,8 +237,10 @@ test_hard3 <- function(){
   ## Use defaults
   ##
   mcmcp <- McmcParams(iter=100, burnin=0)
-  modelk <- BatchModel(data=y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp,
-                       HyperparametersBatch(k=3, m2.0=1/60, eta.0=1800))
+  modelk <- BatchModel(data=y(truth), batch=batch(truth), k=3, 
+                       mcmc.params=mcmcp,
+                       CNPBayes:::HyperparametersBatch(k=3, m2.0=1/60, 
+                                                       eta.0=1800))
   modelk <- startAtTrueValues(modelk, truth)
   mmodel <- posteriorSimulation(modelk)
   if(FALSE){
@@ -273,8 +275,10 @@ test_hard3 <- function(){
   ## With multiple starts we can find the mode
   ##
   mcmcp <- McmcParams(iter=200, burnin=100, nStarts=20)
-  modelk <- BatchModel(data=y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp,
-                       HyperparametersBatch(k=3, m2.0=1/60, eta.0=1800, tau2.0=1000))
+  modelk <- BatchModel(data=y(truth), batch=batch(truth), k=3, 
+                       mcmc.params=mcmcp,
+                       CNPBayes:::HyperparametersBatch(k=3, m2.0=1/60, 
+                                                       eta.0=1800, tau2.0=1000))
   mmodel <- posteriorSimulation(modelk)
   pmns <- thetaMean(mmodel)
   j <- order(pmns[1,])
