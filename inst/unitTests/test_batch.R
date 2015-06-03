@@ -107,7 +107,7 @@ test_kbatch <- function(){
   kmod2 <- BatchModel(y(truth)[index], batch(truth)[index], k=3, mcmc.params=mp)
   kmod2 <- posteriorSimulation(kmod2)
   yy <- setNames(y(truth), seq_along(y(truth)))
-  df <- imputeFromSampledData(kmod2, yy, index)
+  df <- CNPBayes:::imputeFromSampledData(kmod2, yy, index)
   cn2 <- df$cn
   mean(cn != cn2)
 

@@ -235,7 +235,7 @@ test_marginal_hard <- function(){
   xx <- computeMarginalLik(r[index], nchains=3)
   models2 <- orderModels(xx)
   checkTrue(k(models2[[1]]) == 2)
-  df <- imputeFromSampledData(models2[[1]], r, index)
+  df <- CNPBayes:::imputeFromSampledData(models2[[1]], r, index)
   checkTrue(!any(is.na(df$cn)))
   cn_complete <- map(models[[1]])
   cn_incomplete <- df$cn

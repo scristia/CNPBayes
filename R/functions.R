@@ -158,9 +158,6 @@ computeLRRMedians <- function(views, regions){
   se
 }
 
-
-
-#' @export
 imputeFromSampledData <-  function(model, data, index){
   if(is.null(names(data))) stop("data must be a named vector")
   pz2 <- probz(model)
