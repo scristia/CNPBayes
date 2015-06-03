@@ -159,7 +159,6 @@ drawEachBatch <- function(x, batches, thetas, sds, p1, p2, col){
   marginal
 }
 
-#' @export
 plot.PosteriorFiles <- function(x, y, bayes.factor, m.y, ...){
   best.model <- substr(names(bayes.factor), 1, 2)
   se <- y
