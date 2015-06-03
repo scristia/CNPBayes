@@ -176,7 +176,6 @@ setGeneric("pMean", function(object) standardGeneric("pMean"))
 #' @export
 setGeneric("tracePlot", function(object, name, ...) standardGeneric("tracePlot"))
 
-#' @export
 setGeneric("tablez", function(object) standardGeneric("tablez"))
 
 #' @export

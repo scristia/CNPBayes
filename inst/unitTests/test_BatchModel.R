@@ -52,7 +52,7 @@
     probs1 <- posteriorMultinomial(modfit)
     zz1 <- .updateZ(probs1)
     checkEquals(as.integer(table(zz1)), c(2244L, 3256L, 3917L))
-    tabz <- tablez(modfit)
+    tabz <- CNPBayes:::tablez(modfit)
     checkEquals(as.integer(tabz[1:2, ]), c(459L, 191L, 714L, 223L, 828L, 317L))
   }
   if(FALSE){
@@ -76,7 +76,7 @@
   sds2 <- matrix(c(0.17, 0.09, 0.18, 0.26, 0.09, 0.09), 2, 3)
   checkEquals(sds, sds2)
 
-  zz <- tablez(modfit)[1:2, ]
+  zz <- CNPBayes:::tablez(modfit)[1:2, ]
   mat <- matrix(c(368L, 205L, 611L, 187L, 1022L, 339L), 2, 3)
   dimnames(zz) <- NULL
   checkEquals(zz, mat)
@@ -126,8 +126,8 @@ if(FALSE){
   mp2 <- updateMixProbs(modfit2)
   checkEquals(mp1, mp2)
 
-  zz <- tablez(modfit)[1:2, ]
-  zz <- tablez(modfit2)[1:2, ]
+  zz <- CNPBayes:::tablez(modfit)[1:2, ]
+  zz <- CNPBayes:::tablez(modfit2)[1:2, ]
 }
 
 }
