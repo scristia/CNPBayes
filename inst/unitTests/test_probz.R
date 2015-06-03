@@ -6,7 +6,7 @@ test_probz <- function(){
   mp <- McmcParams(iter=500, burnin=500)
   set.seed(123)
   model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
-  model <- startAtTrueValues(model, truth)
+  model <- CNPBayes:::startAtTrueValues(model, truth)
   true_z <- z(truth)
   checkEquals(z(truth), z(model))
 

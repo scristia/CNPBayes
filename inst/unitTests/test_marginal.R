@@ -12,7 +12,7 @@ test_marginalEasy <- function(){
   ##mp <- McmcParams(iter=500, burnin=500)
   mp <- McmcParams(iter=5, burnin=5, nStarts=1)
   model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
-  model <- startAtTrueValues(model, truth)
+  model <- CNPBayes:::startAtTrueValues(model, truth)
   model <- posteriorSimulation(model)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
@@ -158,7 +158,7 @@ test_marginal_Moderate <- function(){
   if(FALSE) plot(truth, use.current=TRUE)
   mcmcp <- McmcParams(iter=500, burnin=500, thin=2)
   model <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
-  model <- startAtTrueValues(model, truth)
+  model <- CNPBayes:::startAtTrueValues(model, truth)
   model <- posteriorSimulation(model)
   checkEquals(sort(theta(model)), theta(truth), tolerance=0.15)
   if(FALSE){

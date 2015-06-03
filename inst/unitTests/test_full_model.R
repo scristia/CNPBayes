@@ -91,7 +91,7 @@
                         batch=batch(truth),
                         mcmc.params=mcmcp)
   model <- initializeBatchModel(params)
-  model <- startAtTrueValues(model, truth)
+  model <- CNPBayes:::startAtTrueValues(model, truth)
   model <- posteriorSimulation(model, mcmcp)
   checkEquals(theta(model), theta(truth), tolerance=0.1)
 

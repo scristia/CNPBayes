@@ -28,7 +28,7 @@ test_batchEasy <- function(){
   mcmcp <- McmcParams(iter=50, burnin=0)
   set.seed(123)
   model <- BatchModel(y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp)
-  model <- startAtTrueValues(model, truth)
+  model <- CNPBayes:::startAtTrueValues(model, truth)
   checkIdentical(batch(model), batch(truth))
   checkIdentical(y(model), y(truth))
   checkIdentical(theta(model), theta(truth))
@@ -167,7 +167,7 @@ test_batch_moderate <- function(){
   hypp <- CNPBayes:::HyperparametersBatch(m2.0=1/60, eta.0=1800, k=3)
   model <- BatchModel(data=y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp,
                       hypp=hypp)
-  model <- startAtTrueValues(model, truth)
+  model <- CNPBayes:::startAtTrueValues(model, truth)
   model <- posteriorSimulation(model)
   i <- order(theta(model)[1, ])
   checkEquals(theta(model)[, i], theta(truth), tolerance=0.1)
@@ -241,7 +241,7 @@ test_hard3 <- function(){
                        mcmc.params=mcmcp,
                        CNPBayes:::HyperparametersBatch(k=3, m2.0=1/60, 
                                                        eta.0=1800))
-  modelk <- startAtTrueValues(modelk, truth)
+  modelk <- CNPBayes:::startAtTrueValues(modelk, truth)
   mmodel <- posteriorSimulation(modelk)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)

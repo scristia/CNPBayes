@@ -580,7 +580,6 @@ argMax <- function(object){
 setMethod("isMarginalModel", "MarginalModel", function(object) TRUE)
 setMethod("isMarginalModel", "BatchModel", function(object) FALSE)
 
-#' @export
 startAtTrueValues <- function(model, truth){
   theta(model) <- theta(truth)
   sigma2(model) <- sigma2(truth)

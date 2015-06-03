@@ -41,7 +41,7 @@
   set.seed(1)
   .Call("update_mu_batch", model)
 
-  model2 <- startAtTrueValues(model, truth)
+  model2 <- CNPBayes:::startAtTrueValues(model, truth)
   ##trace(.updateMuBatch, browser)
   ##.updateMuBatch(model2)
   ##.Call("update_mu_batch", model)
@@ -209,7 +209,7 @@
   th_c <- .Call("mcmc_marginal", model1)
   th_c <- .Call("update_theta", model1)
 
-  model2 <- startAtTrueValues(model, truth)
+  model2 <- CNPBayes:::startAtTrueValues(model, truth)
   model3 <- posteriorSimulation(model, mcmcp)
 
 
