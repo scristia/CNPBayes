@@ -208,9 +208,17 @@ setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 #' @export
 setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<-"))
 
-#' @export
+#' Number of MCMC iterations.
+#'
+#' This function retrieves the number of iterations of an MCMC simulation.
+#' @param object see \code{showMethods(iter)}
+#' @export 
 setGeneric("iter", function(object) standardGeneric("iter"))
 
+#' Number of thinning intervals.
+#'
+#' This function retrieves the number of thinning intervals used for an MCMC simulation. 
+#' @param object see showMethods(thin)
 #' @export
 setGeneric("thin", function(object) standardGeneric("thin"))
 

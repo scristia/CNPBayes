@@ -28,6 +28,21 @@ setClass("McmcChains", representation(theta="matrix",
                                       zfreq="matrix",
                                       z="matrix"))
 
+#' An object to specify MCMC options for a later simulation
+#'
+#' @slot thin A one length numeric to specify thinning. A value of n indicates that every nth sample should be saved. Thinning helps to reduce autocorrelation.
+#' @slot iter A one length numeric to specify how many MCMC iterations should be sampled.
+#' @slot burnin A one length numeric to specify burnin. The first $n$ samples will be discarded.
+#' @slot nstarts A one length numeric to specify the number of chains in a simulation.
+#' @slot nstart_iter Not sure about this one. RS: Is this used?
+#' @slot check_labels Not sure about this one either. RS: Is this used?
+#' @slot param_updates Still looking.
+#' @examples 
+#' McmcParams()
+#' McmcParams(k=3)
+#' mp <- McmcParams()
+#' iter(mp)
+#' @aliases iter,McmcParams-method
 setClass("McmcParams", representation(thin="numeric",
                                       iter="numeric",
                                       burnin="numeric",
@@ -67,6 +82,34 @@ setClass("MixtureModel", representation("VIRTUAL",
 
 setClass("BatchModel", contains="MixtureModel")
 
+
+#' The 'MarginalModel' class 
+#'
+#' @slot k An integer value specifying the number of latent classes.
+#' @slot hyperparams An object of class `Hyperparameters` used to specify the hyperparameters of....
+#' @slot theta A
+#' @slot sigma2 A
+#' @slot nu.0 A
+#' @slot sigma2.0 A
+#' @slot pi A
+#' @slot mu A
+#' @slot tau2 A
+#' @slot data A
+#' @slot data.mean A
+#' @slot data.prec A
+#' @slot z A
+#' @slot zfreq A
+#' @slot probz A
+#' @slot logprior A
+#' @slot loglik A
+#' @slot mcmc.chains A
+#' @slot batch A
+#' @slot batchElements A
+#' @slot hwe A
+#' @slot modes A
+#' @slot theta_order A
+#' @slot m.y A
+#' @slot mcmc.params An object of class 'McmcParams'
 setClass("MarginalModel", contains="MixtureModel")
 setClass("UnivariateBatchModel", contains="BatchModel")
 setClass("UnivariateMarginalModel", contains="MarginalModel")
