@@ -190,10 +190,6 @@ setMethod("computeVars", "MarginalModel", function(object){
   vars
 }
 
-
-
-#' @export
-
 setMethod("simulateY", "MarginalModel", function(object){
   zz <- z(object)
   yy <- rnorm(length(zz), mean=theta(object)[zz], sd=sigma(object)[zz])
