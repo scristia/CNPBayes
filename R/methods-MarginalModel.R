@@ -868,9 +868,7 @@ computeMarginalLik <- function(y, batch, K=1:4,
   mp <- McmcParams(iter=T, nStarts=1, burnin=burnin, thin=thin)
   for(i in seq_along(K)){
     k <- K[i]
-    ##message(k)
     kmodlist <- simulateMultipleChains(nchains=nchains, y=y, batch=batch, k=k, mp=mp)
-    ##message("Entering berkhofEstimate")
     mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
     ll <- sapply(kmodlist, modalLoglik)
     mlist[[i]] <- kmodlist[[which.max(ll)]]

@@ -233,11 +233,29 @@ downSampleEachBatch <- function(y, nt, batch){
   ys <- unlist(lapply(S, "[[", 1))
   tiles <- unlist(lapply(S, "[[", 2))
   batch.id <- unlist(lapply(S, "[[", 3))
-  list(y=ys, labels=tiles, batch=batch.id)
+  list(y=ys, labels=as.character(tiles), batch=batch.id)
 }
 
-downSample <- function(y, nt){
-  tiles <- ntile(y, nt)
-  y_downsampled <- sapply(split(y, tiles), mean)
-  list(y=y_downsampled, labels=tiles)
+#' @export
+downsample <- function(batch.file, plate, y, ntiles=250, THR=0.1){
+  if(file.exists(batch.file)){
+    batches <- readRDS(batch.file)
+  } else {
+    message("merging plates... ")
+    if(missing(plate)) stop("batch.file does not exist.  Chemistry plate must be specified")
+    batches <- collapseBatch(y, plate, THR=THR)
+    saveRDS(batches, file=batch.file)
+  }
+  ds <- downSampleEachBatch(y, ntiles, batches)
+  if(length(unique(ds$batch)) > 15){
+    batches <- collapseBatch(ds$y, ds$batch, THR=1e-5)
+    ds$batch <- batches
+  }
+  if(any(table(ds$batch) <= 25)){
+    tab <- table(ds$batch)
+    keep <- ds$batch %in% names(tab)[tab > 25]
+    ds$y <- ds$y[keep]
+    ds$batch <- ds$batch[keep]
+  }
+  ds
 }
