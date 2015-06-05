@@ -199,6 +199,10 @@ setGeneric("logLik<-", function(object,value) standardGeneric("logLik<-"))
 #' @export
 setGeneric("computeLoglik", function(object, psi) standardGeneric("computeLoglik"))
 
+#' Number of burnin iterations.
+#'
+#' This function retrieves the number of burnin simulations to be discarded.
+#' @param object see \code{showMethods(burnin)}
 #' @export
 setGeneric("burnin", function(object) standardGeneric("burnin"))
 
