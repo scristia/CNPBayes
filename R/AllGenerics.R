@@ -1,18 +1,9 @@
 #' @include help.R
 
-##setGeneric("rv", function(object) standardGeneric("rv"))
-
 #' @export
 setGeneric("k", function(object) standardGeneric("k"))
 
 setGeneric("k<-", function(object, value) standardGeneric("k<-"))
-##setGeneric("params", function(object) standardGeneric("params"))
-
-##setGeneric("posteriorMean", function(object) standardGeneric("posteriorMean"))
-##setGeneric("posteriorPrec", function(object) standardGeneric("posteriorPrec"))
-##
-##setGeneric("posteriorMean<-", function(object, value) standardGeneric("posteriorMean<-"))
-##setGeneric("posteriorPrec<-", function(object, value) standardGeneric("posteriorPrec<-"))
 
 setGeneric("z<-", function(object, value) standardGeneric("z<-"))
 
@@ -49,11 +40,6 @@ setGeneric("McmcChains", function(object, mcmc.params) standardGeneric("McmcChai
 
 setGeneric("hist")
 setGeneric("plot")
-
-##setGeneric("BatchModel", function(object, ncomp, batch) standardGeneric("BatchModel"))
-
-
-##setGeneric("batch", function(object) standardGeneric("batch"))
 
 setGeneric("batch<-", function(object,value) standardGeneric("batch<-"))
 
