@@ -204,6 +204,12 @@ setGeneric("burnin", function(object) standardGeneric("burnin"))
 #' @export
 setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 
+#' Reset number of iterations.
+#'
+#' This function changes the number of simulations.
+#' @param object see \code{showMethods("iter<-")}
+#' @param force Allow changing of the size of the elements?
+#' @param value new number of iterations
 #' @export
 setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<-"))
 
