@@ -22,8 +22,6 @@ setMethod("y", "ModelParams", function(object) object@data)
 #' @export
 setMethod("batch", "ModelParams", function(object) object@batch)
 
-## mcmcParams <- function(object) object@mcmc.params
-
 N <- function(object) length(y(object))
 
 setMethod("show", "ModelParams", function(object){
