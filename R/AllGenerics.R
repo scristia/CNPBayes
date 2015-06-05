@@ -186,8 +186,6 @@ setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 setGeneric("nStarts<-", function(object, value) standardGeneric("nStarts<-"))
 
 ## RS: Can this be removed?
-setGeneric("checkLabels", function(object) standardGeneric("checkLabels"))
-## RS: Can this be removed?
 setGeneric("nStartIter", function(object) standardGeneric("nStartIter"))
 
 setGeneric("updateAlpha", function(object) standardGeneric("updateAlpha"))

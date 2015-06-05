@@ -1,6 +1,6 @@
 #' @export
 McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1,
-                       nStartIter=200, checkLabels=FALSE,
+                       nStartIter=200,
                        param_updates=.param_updates()){
   if(missing(thin)) thin <- rep(1L, length(iter))
   new("McmcParams", iter=as.integer(iter),
@@ -8,7 +8,6 @@ McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1,
       thin=as.integer(thin),
       nstarts=as.integer(nStarts),
       nstart_iter=as.integer(nStartIter),
-      check_labels=checkLabels,
       param_updates=param_updates)
 }
 
@@ -63,7 +62,6 @@ setReplaceMethod("nStarts", "McmcParams", function(object, value){
   object
 })
 
-setMethod("checkLabels", "McmcParams", function(object) object@check_labels)
 setMethod("nStartIter", "McmcParams", function(object) object@nstart_iter)
 
 #' @export
