@@ -23,6 +23,18 @@ setClass("Hyperparameters", representation(k="integer",
                                            a="numeric",
                                            b="numeric"))
 
+#' An object to specify the hyperparameters of a marginal model.
+#'
+#' This class inherits from the Hyperparameters class. This class is for hyperparameters which are marginal over the batches.
+#' @slot k Number of components
+#' @slot mu.0 a priori mean?
+#' @slot tau2.0 a priori precision?
+#' @slot eta.0 ?
+#' @slot m2.0 ?
+#' @slot alpha gamma parameter?
+#' @slot beta gamma parameter?
+#' @slot a ?
+#' @slot b ?
 setClass("HyperparametersMarginal", contains="Hyperparameters")
 
 setClass("HyperparametersBatch",  contains="Hyperparameters")
