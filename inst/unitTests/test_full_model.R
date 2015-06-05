@@ -179,7 +179,7 @@
                              p=c(1/10, 1/5, 1-0.1-0.2),
                              theta=means,
                              sds=sds)
-  mcmcp <- McmcParams(iter=1000, burnin=100, nStarts=10, nStartIter=50)
+  mcmcp <- McmcParams(iter=1000, burnin=100, nStarts=10)
   modelk <- posteriorSimulation(model, mcmcp)
   checkEquals(theta(modelk), theta(truth), tolerance=0.1)
 
@@ -247,7 +247,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
   ## Use defaults
   ##
   mcmcp <- McmcParams(iter=2000, burnin=1000,
-                      nStarts=20, nStartIter=100, thin=2)
+                      nStarts=20, thin=2)
   params <- ModelParams("batch", y=y(truth), k=3,
                         batch=batch(truth),
                         mcmc.params=mcmcp)
@@ -341,8 +341,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
   mcmcp <- McmcParams(iter=c(500, 2000, 2000, 2000),
                       burnin=c(50, 100, 100, 100),
                       thin=c(1, 2, 2, 2),
-                      nStarts=20,
-                      nStartIter=200)
+                      nStarts=20)
   hypp <- CNPBayes:::HyperparametersBatch()
   hplist <- CNPBayes:::HyperParameterList(hypp, K=1:4)
   mplist <- ModelParamList(hypp, K=1:4, data=copyNumber(se472)[1, ],
@@ -385,7 +384,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
   library(GenomicRanges)
   library(oligoClasses)
   truth <- readRDS("~/Software/CNPBayes/inst/extdata/unequal_mix_model.rds")
-  mcmcp <- McmcParams(iter=1000, burnin=100, nStarts=20, nStartIter=100)
+  mcmcp <- McmcParams(iter=1000, burnin=100, nStarts=20)
   params <- ModelParams("batch", y=y(truth), k=3,
                         batch=batch(truth),
                         mcmc.params=mcmcp)
@@ -437,8 +436,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
   mcmcp <- McmcParams(iter=c(1000, 1000, 2000, 2000, 2000),
                       burnin=c(100, 200, 1000, 1000, 1000),
                       thin=c(1, 1, 2, 2, 2),
-                      nStart=20,
-                      nStartIter=150)
+                      nStart=20)
   hypp <- CNPBayes:::HyperparametersMarginal()
   hplist <- CNPBayes:::HyperParameterList(hypp, K=1:4)
   mplist <- ModelParamList(hypp, K=1:4, data=y(truth),
@@ -464,8 +462,7 @@ hardTruth <- function(prop_comp1=0.005, s=0.3){
   mcmcp <- McmcParams(iter=c(1000, 1000, 2000, 2000, 2000),
                       burnin=c(100, 200, 1000, 1000, 1000),
                       thin=c(1, 1, 2, 2, 2),
-                      nStart=20,
-                      nStartIter=150)
+                      nStart=20)
   truth <- simulateData(2500,
                         theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),

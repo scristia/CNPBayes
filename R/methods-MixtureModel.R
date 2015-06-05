@@ -292,10 +292,6 @@ multipleStarts <- function(object){
   message("Running ", nStarts(mcmcp), " chains for model k=", k(object))
   mmod <- replicate(nStarts(mcmcp), MarginalModel(y(object), mcmc.params=mcmcp,
                                                   hypp=hyperParams(object), k=k(object)))
-  ##}
-  ##
-  ## TODO: Remove nStartIter slot
-  ##
   models <- suppressMessages(lapply(mmod, runBurnin))
   lp <- sapply(models, logLik)
   model <- models[[which.max(lp)]]

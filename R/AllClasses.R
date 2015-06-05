@@ -70,7 +70,6 @@ setClass("McmcChains", representation(theta="matrix",
 #' @slot iter A one length numeric to specify how many MCMC iterations should be sampled.
 #' @slot burnin A one length numeric to specify burnin. The first $n$ samples will be discarded.
 #' @slot nstarts A one length numeric to specify the number of chains in a simulation.
-#' @slot nstart_iter Not sure about this one. RS: Is this used?
 #' @slot param_updates Still looking.
 #' @examples 
 #' McmcParams()
@@ -82,7 +81,6 @@ setClass("McmcParams", representation(thin="numeric",
                                       iter="numeric",
                                       burnin="numeric",
                                       nstarts="numeric",
-                                      nstart_iter="numeric",
                                       param_updates="integer"))
 
 setClass("MixtureModel", representation("VIRTUAL",

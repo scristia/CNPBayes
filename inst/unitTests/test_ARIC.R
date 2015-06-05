@@ -86,7 +86,7 @@
   ##
   ##
   ##
-  mcmcp <- McmcParams(iter=10000, burnin=200, thin=10, nStarts=10, nStartIter=200)
+  mcmcp <- McmcParams(iter=10000, burnin=200, thin=10, nStarts=10)
   mparams <- ModelParams("marginal", y=copyNumber(se472)[1, ], k=3,
                         mcmc.params=mcmcp)
   mmodel <- CNPBayes:::initializeModel(mparams)
