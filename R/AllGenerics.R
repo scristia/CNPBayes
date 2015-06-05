@@ -169,6 +169,12 @@ setGeneric("tablez", function(object) standardGeneric("tablez"))
 #' @param object see showMethods(nStarts)
 #' @export
 setGeneric("nStarts", function(object) standardGeneric("nStarts"))
+
+#' Reset number of MCMC chains in simulation.
+#'
+#' This function changes the number of chains used for an MCMC simulation. 
+#' @param object see showMethods(nStarts)
+#' @param value new number of chains
 #' @export
 setGeneric("nStarts<-", function(object, value) standardGeneric("nStarts<-"))
 
