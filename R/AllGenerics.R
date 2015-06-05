@@ -163,6 +163,10 @@ setGeneric("tracePlot", function(object, name, ...) standardGeneric("tracePlot")
 
 setGeneric("tablez", function(object) standardGeneric("tablez"))
 
+#' Number of MCMC chains.
+#'
+#' This function retrieves the number of chains used for an MCMC simulation. 
+#' @param object see showMethods(nStarts)
 #' @export
 setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 #' @export

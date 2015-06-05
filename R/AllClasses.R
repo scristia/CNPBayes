@@ -42,7 +42,7 @@ setClass("McmcChains", representation(theta="matrix",
 #' McmcParams(k=3)
 #' mp <- McmcParams()
 #' iter(mp)
-#' @aliases iter,burnin,McmcParams-method
+#' @aliases iter,burnin,nStarts,McmcParams-method
 setClass("McmcParams", representation(thin="numeric",
                                       iter="numeric",
                                       burnin="numeric",
