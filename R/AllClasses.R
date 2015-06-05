@@ -150,6 +150,17 @@ setClass("MarginalModel", contains="MixtureModel")
 setClass("UnivariateBatchModel", contains="BatchModel")
 setClass("UnivariateMarginalModel", contains="MarginalModel")
 
+#' An object to specify the parameters for MCMC simulation.
+#'
+#' This class has slots for parameters and data needed for simulation.
+#' @slot type Indicates whether the model should be marginal over the batches, or hierarchical over the batches.
+#' @slot k Number of components.
+#' @slot data A numeric vector containing the data
+#' @slot batch A vector indicating from which batch each observation came.
+#' @slot mcmc.params An object of class McmcParams indicating number of iterations, etc.
+#' @examples 
+#' ModelParams()
+#' ModelParams(k=3)
 setClass("ModelParams", representation(type="character",
                                        k="numeric",
                                        data="numeric",
