@@ -1,5 +1,9 @@
 #' @include help.R
 
+#' Number of components.
+#'
+#' This function retrieves the number of a priori components.
+#' @param object see \code{showMethods(k)}
 #' @export
 setGeneric("k", function(object) standardGeneric("k"))
 

@@ -13,6 +13,7 @@ setClassUnion("numericOrMatrix", c("numeric", "matrix"))
 #' @slot beta gamma parameter?
 #' @slot a ?
 #' @slot b ?
+#' @aliases k,Hyperparameters-method
 setClass("Hyperparameters", representation(k="integer",
                                            mu.0="numeric",
                                            tau2.0="numeric",
