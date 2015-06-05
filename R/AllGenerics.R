@@ -116,6 +116,9 @@ setGeneric("nu.0", function(object) standardGeneric("nu.0"))
 #' @export
 setGeneric("sigma2.0", function(object) standardGeneric("sigma2.0"))
 
+#' Retrieve data.
+#'
+#' @param object see \code{showMethods(y)}
 #' @export
 setGeneric("y", function(object) standardGeneric("y"))
 
