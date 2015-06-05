@@ -196,6 +196,10 @@ setGeneric("computeLoglik", function(object, psi) standardGeneric("computeLoglik
 #' @export
 setGeneric("burnin", function(object) standardGeneric("burnin"))
 
+#' Reset number of burnin iterations.
+#'
+#' This function changes the number of burnin simulations to be discarded.
+#' @param object see \code{showMethods("burnin<-")}
 #' @export
 setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 
