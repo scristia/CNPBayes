@@ -2,6 +2,17 @@
 
 setClassUnion("numericOrMatrix", c("numeric", "matrix"))
 
+#' An object to specify the hyperparameters of a model.
+#'
+#' @slot k Number of components
+#' @slot mu.0 a priori mean?
+#' @slot tau2.0 a priori precision?
+#' @slot eta.0 ?
+#' @slot m2.0 ?
+#' @slot alpha gamma parameter?
+#' @slot beta gamma parameter?
+#' @slot a ?
+#' @slot b ?
 setClass("Hyperparameters", representation(k="integer",
                                            mu.0="numeric",
                                            tau2.0="numeric",
