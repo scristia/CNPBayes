@@ -114,16 +114,7 @@ setMethod("show", "MarginalModel", function(object) callNextMethod())
 
 setMethod("computeMeans", "MarginalModel", function(object){
   .Call("compute_means", object)
-
 })
-
-.computeMeans <- function(object){
-  means <- sapply(split(y(object), z(object)), mean, na.rm=TRUE)
-  if(any(is.nan(means))) {
-    means[is.nan(means)] <- rnorm(sum(is.nan(means)), mu(object), tau(object))
-  }
-  means
-}
 
 setMethod("computeVars", "MarginalModel", function(object){
 
