@@ -41,10 +41,7 @@ setMethod("McmcChains", "MixtureModel", function(object){
   ns <- length(y(object))
   K <- k(object)
   B <- nBatch(object)
-  ##mat_batch <- matrix(NA, nr, K*B)
-  ##mat <- matrix(NA, nr, K)
   mati <- matrix(as.integer(NA), nr, K)
-  ##vec <- numeric(nr)
   new("McmcChains",
       theta=matrix(NA, nr, K*B),
       sigma2=matrix(NA, nr, K*B),
