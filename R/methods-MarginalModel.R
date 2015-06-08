@@ -127,11 +127,6 @@ setMethod("initializeSigma2.0", "MarginalModel", function(object){
 setMethod("initializeTau2", "MarginalModel", function(object)  1000)
 
 setMethod("posteriorMultinomial", "MarginalModel", function(object){
-##    .multinomial_probs <- .posteriorMultinomial(y(object),
-##                                                theta(object),
-##                                                sqrt(sigma2(object)),
-##                                                p(object))
-##
   .Call("update_multinomialPr", object)
 })
 
