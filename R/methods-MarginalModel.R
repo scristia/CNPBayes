@@ -97,25 +97,6 @@ setMethod("updateMu", "MarginalModel", function(object){
   .Call("update_mu", object)
 })
 
-.updateMu <- function(object){
-  hypp <- hyperParams(object)
-  tau2.0.tilde <- 1/tau2.0(hypp)
-  tau2.tilde <- 1/tau2(object)
-  tau2.k.tilde <- tau2.0.tilde + k(object)*tau2.tilde
-  nn <- zFreq(object)
-  theta.bar <- sum(nn*theta(object))/sum(nn)
-  w1 <- tau2.0.tilde/tau2.k.tilde
-  w2 <- k(object)*tau2.tilde/tau2.k.tilde
-  mu.k <- w1*mu.0(hypp) + w2*theta.bar
-  sd <- sqrt(1/tau2.k.tilde)
-  mu_new <- rnorm(1, mu.k, sd)
-  mu_new
-}
-
-
-
-
-
 setMethod("initializeSigma2.0", "MarginalModel", function(object){
   hypp <- hyperParams(object)
   sum(alpha(hypp)*sigma2(object))/sum(alpha(hypp))
