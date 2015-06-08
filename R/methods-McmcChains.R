@@ -68,11 +68,6 @@ setMethod("tau2", "McmcChains", function(object) object@tau2)
 setMethod("theta", "McmcChains", function(object) object@theta)
 setMethod("sigma2", "McmcChains", function(object) object@sigma2)
 
-
-##posteriorMean <- function(object) object@mean
-##posteriorPrec <- function(object) object@prec
-##posteriorProb <- function(object) object@prob
-
 setMethod("show", "McmcChains", function(object){
   cat("An object of class 'McmcChains'\n")
   cat("    chain dim:", nrow(theta(object)), "x", ncol(theta(object)), "\n")
