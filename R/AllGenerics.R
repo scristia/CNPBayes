@@ -1,4 +1,5 @@
 #' @include help.R
+NULL
 
 #' Number of components.
 #'
@@ -172,14 +173,14 @@ setGeneric("tablez", function(object) standardGeneric("tablez"))
 
 #' Number of MCMC chains.
 #'
-#' This function retrieves the number of chains used for an MCMC simulation. 
+#' This function retrieves the number of chains used for an MCMC simulation.
 #' @param object see showMethods(nStarts)
 #' @export
 setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 
 #' Reset number of MCMC chains in simulation.
 #'
-#' This function changes the number of chains used for an MCMC simulation. 
+#' This function changes the number of chains used for an MCMC simulation.
 #' @param object see showMethods(nStarts)
 #' @param value new number of chains
 #' @export
@@ -227,12 +228,12 @@ setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<
 #'
 #' This function retrieves the number of iterations of an MCMC simulation.
 #' @param object see \code{showMethods(iter)}
-#' @export 
+#' @export
 setGeneric("iter", function(object) standardGeneric("iter"))
 
 #' Number of thinning intervals.
 #'
-#' This function retrieves the number of thinning intervals used for an MCMC simulation. 
+#' This function retrieves the number of thinning intervals used for an MCMC simulation.
 #' @param object see showMethods(thin)
 #' @export
 setGeneric("thin", function(object) standardGeneric("thin"))
