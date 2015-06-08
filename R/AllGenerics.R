@@ -94,6 +94,10 @@ setGeneric("updateWithPosteriorMeans", function(object) standardGeneric("updateW
 #' @export
 setGeneric("bic", function(object, ...) standardGeneric("bic"))
 
+#' Retrieve theta.
+#'
+#' This function retrieves theta from an object. Theta is a vector or matrix representing the means of each component distribution.
+#' @param object see \code{showMethods(theta)}
 #' @export
 setGeneric("theta", function(object) standardGeneric("theta"))
 
