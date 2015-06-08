@@ -187,13 +187,6 @@ setMethod("updateThetaCpp", "MarginalModel", function(object, constrain) {
   .Call("update_theta", object, constrain=constrain)
 })
 
-#
-#.updateThetaCpp <- function(obj, constrain=TRUE) {
-#    theta <- .Call("update", obj, constrain)
-#    theta
-#}
-
-
 setMethod("updateTheta", "MarginalModel", function(object) {
   ##.updateTheta(object)
   .Call("update_theta", object)
