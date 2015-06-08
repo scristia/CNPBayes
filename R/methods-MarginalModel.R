@@ -95,7 +95,6 @@ setMethod("computePotential", "MarginalModel", function(object){
 ##
 setMethod("updateMu", "MarginalModel", function(object){
   .Call("update_mu", object)
-  ##.updateMu(object)
 })
 
 .updateMu <- function(object){
