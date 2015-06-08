@@ -150,28 +150,8 @@ setMethod("updateThetaCpp", "MarginalModel", function(object, constrain) {
 })
 
 setMethod("updateTheta", "MarginalModel", function(object) {
-  ##.updateTheta(object)
   .Call("update_theta", object)
 })
-
-.updateTheta <- function(object){
-  theta.last <- theta(object)
-  tau2.tilde <- 1/tau2(object)
-  sigma2.tilde <- 1/sigma2(object)
-  n.h <- tablez(object)
-  n.h <- pmax(n.h, 1)
-  ##tau2.n.tilde <- tau2.tilde + n.h*sigma2.tilde
-  post.prec <- tau2.tilde + n.h*sigma2.tilde
-  tau2.n <- 1/post.prec
-  ##denom <- tau2.tilde + n.h*sigma2.tilde
-  w1 <- tau2.tilde/post.prec
-  w2 <- n.h*sigma2.tilde/post.prec
-  mu.n <- w1*mu(object) + w2*dataMean(object)
-  thetas <- rnorm(k(object), mu.n, sqrt(tau2.n))
-  if(any(is.na(thetas))) stop("NAs in theta update")
-  if(length(thetas) != length(theta.last)) stop("check thetas")
-  thetas
-}
 
 setMethod("updateSigma2", "MarginalModel", function(object) {
   ##.updateSigma2(object)
