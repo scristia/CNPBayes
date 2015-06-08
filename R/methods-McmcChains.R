@@ -134,11 +134,6 @@ setReplaceMethod("sigma2.0", "McmcChains", function(object, value){
   object
 })
 
-## setReplaceMethod("logpotential", "McmcChains", function(object, value){
-##   object@logpotential <- value
-##   object
-## })
-
 setReplaceMethod("logLik", "McmcChains", function(object, value){
   object@loglik <- value
   object
