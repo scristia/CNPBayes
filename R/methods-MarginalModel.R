@@ -154,36 +154,8 @@ setMethod("updateTheta", "MarginalModel", function(object) {
 })
 
 setMethod("updateSigma2", "MarginalModel", function(object) {
-  ##.updateSigma2(object)
   .Call("update_sigma2", object)
 })
-
-
-##.updateSigma2 <- function(data.list, thetas, nu.0, sigma2.0, n.h){
-.updateSigma2 <- function(object){
-  data.list <- split(y(object), z(object))
-  thetas <- theta(object)
-  nu.0 <- nu.0(object)
-  sigma2.0 <- sigma2.0(object)
-  n.h <- tablez(object)
-  n.h <- pmax(n.h, 1)
-
-  nu.n <- nu.0+n.h
-
-  zz <- z(object)
-  m <- thetas[as.integer(zz)]
-  squares <- (y(object) - m)^2
-  ss <- sapply(split(squares, zz), sum)
-
-  ## weighted average of sums of squares
-  sigma2.nh <- 1/nu.n*(nu.0*sigma2.0 + ss)
-  shape <- 1/2*nu.n
-  rate <- shape*sigma2.nh
-  sigma2.h.tilde <- rgamma(k(object), shape=shape, rate=rate)
-  sigma2.h <- 1/sigma2.h.tilde
-  stopif(any(is.nan(sigma2.h)))
-  sigma2.h
-}
 
 setMethod("updateSigma2.0", "MarginalModel", function(object){
   .Call("update_sigma2_0", object)
