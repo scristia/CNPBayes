@@ -117,17 +117,8 @@ setMethod("computeMeans", "MarginalModel", function(object){
 })
 
 setMethod("computeVars", "MarginalModel", function(object){
-
   .Call("compute_vars", object)
 })
-
-.computeVars <- function(object){
-  vars <- sapply(split(y(object), z(object)), var, na.rm=TRUE)
-  if(any(is.nan(vars))){
-    vars[is.nan(vars)] <- 1/rgamma(sum(is.nan(vars)), shape=1/2*nu.0(object), rate=1/2*nu.0(object)*sigma2.0(object))
-  }
-  vars
-}
 
 setMethod("simulateY", "MarginalModel", function(object){
   zz <- z(object)
