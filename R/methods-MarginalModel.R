@@ -130,17 +130,6 @@ setMethod("posteriorMultinomial", "MarginalModel", function(object){
   .Call("update_multinomialPr", object)
 })
 
-.posteriorMultinomial <- function(y, theta, sd, pi){
-  K <- seq_len(length(pi))
-  numerator <- vector("list", length(K))
-  for(j in K){
-    numerator[[j]] <- pi[j]*dnorm(y, theta[j], sd[j])
-  }
-  numerator <- do.call(cbind, numerator)
-  denominator <- rowSums(numerator)
-  numerator/denominator
-}
-
 setMethod("show", "MarginalModel", function(object) callNextMethod())
 
 setMethod("computeMeans", "MarginalModel", function(object){
