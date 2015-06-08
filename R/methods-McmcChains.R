@@ -20,10 +20,6 @@
       zfreq=mati,
       z=matrix(NA, nr, ns))
 }
-##
-##setMethod("McmcChains", "Hyperparameters", function(object, mcmc.params){
-##  .initializeMcmc(object, mcmc.params)
-##})
 
 setMethod("McmcChains", "missing", function(object, mcmc.params){
   new("McmcChains", theta=matrix(), sigma2=matrix(),
