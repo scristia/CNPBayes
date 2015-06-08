@@ -126,22 +126,6 @@ setMethod("initializeSigma2.0", "MarginalModel", function(object){
 ## just choose a big number
 setMethod("initializeTau2", "MarginalModel", function(object)  1000)
 
-
-##setMethod("initializeMu", "MarginalModel", function(object){
-##  means <- switch(paste0("k", k(object)),
-##                  k1=0,
-##                  k2=c(-0.5, 0),
-##                  k3=c(-2, -0.5, 0),
-##                  k4=c(-2, -0.5, 0, 0.5),
-##                  k5=c(-2, -0.5, 0, 0.5, 1),
-##                  k6=c(-2, -0.5, -0.2, 0.2, 0.5, 1),
-##                  k7=c(-2, -0.5, -0.2, 0, 0.2, 0.5, 1),
-##                  NULL)
-##  if(is.null(means)) stop("k needs to be 1-7")
-##  means
-##})
-
-
 setMethod("posteriorMultinomial", "MarginalModel", function(object){
 ##    .multinomial_probs <- .posteriorMultinomial(y(object),
 ##                                                theta(object),
