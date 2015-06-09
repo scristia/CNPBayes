@@ -170,25 +170,8 @@ setMethod("updateNu.0", "MarginalModel", function(object){
 ## no update.
 ##
 setMethod("updateTau2", "MarginalModel", function(object){
-  ##  .updateTau2(object)
   .Call("update_tau2", object)
 })
-
-.updateTau2 <- function(object){
-  hypp <- hyperParams(object)
-  ##eta.0, m2.0, theta, mu, k){
-  eta.k <- eta.0(hypp)+k(object)
-  s2.k <- sum((theta(object)-mu(object))^2)
-  m2.k <- 1/eta.k * (eta.0(hypp) * m2.0(hypp) + s2.k)
-
-  tau2 <- 1/rgamma(1, shape=1/2 * eta.k, rate=1/2 * eta.k * m2.k)
-##   if(is.nan(tau2) || !is.finite(tau2)){
-##     tau2 <- 1/rgamma(1, shape=1/2*eta.0(hypp), rate=1/2*eta.0(hypp)*m2.0(hypp))
-##   }
-  if(length(tau2) > 1) stop("tau2 should have length 1")
-  tau2
-}
-
 
 setReplaceMethod("tau2", "MarginalModel", function(object, value){
   ##hyperParams(object)@tau2 <- value
