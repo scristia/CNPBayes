@@ -144,7 +144,7 @@ setClass("BatchModel", contains="MixtureModel")
 #' @slot mcmc.params An object of class 'McmcParams'
 setClass("MarginalModel", contains="MixtureModel")
 setClass("UnivariateBatchModel", contains="BatchModel")
-setClass("UnivariateMarginalModel", contains="MarginalModel")
+# setClass("UnivariateMarginalModel", contains="MarginalModel")
 
 #' An object to specify the parameters for MCMC simulation.
 #'
