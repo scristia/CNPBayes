@@ -341,7 +341,6 @@ setMethod("sigma2", "BatchModel", function(object) {
 
 setMethod("tablez", "BatchModel", function(object){
   tab <- table(batch(object), z(object))
-  ##tab
   tab[uniqueBatch(object), , drop=FALSE]
 })
 
