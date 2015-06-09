@@ -5,14 +5,14 @@ setClassUnion("numericOrMatrix", c("numeric", "matrix"))
 #' An object to specify the hyperparameters of a model.
 #'
 #' @slot k Number of components
-#' @slot mu.0 a priori mean?
-#' @slot tau2.0 a priori precision?
-#' @slot eta.0 ?
-#' @slot m2.0 ?
-#' @slot alpha gamma parameter?
-#' @slot beta gamma parameter?
-#' @slot a ?
-#' @slot b ?
+#' @slot mu.0 Prior mean for mu.
+#' @slot tau2.0 prior variance on mu
+#' @slot eta.0 rate paramater for tau2
+#' @slot m2.0 shape parameter for tau2
+#' @slot alpha mixture probabilities
+#' @slot beta parameter for nu.0 distribution
+#' @slot a shape for sigma2.0
+#' @slot b rate for sigma2.0
 #' @aliases k,Hyperparameters-method
 setClass("Hyperparameters", representation(k="integer",
                                            mu.0="numeric",
@@ -28,28 +28,28 @@ setClass("Hyperparameters", representation(k="integer",
 #'
 #' This class inherits from the Hyperparameters class. This class is for hyperparameters which are marginal over the batches.
 #' @slot k Number of components
-#' @slot mu.0 a priori mean?
-#' @slot tau2.0 a priori precision?
-#' @slot eta.0 ?
-#' @slot m2.0 ?
-#' @slot alpha gamma parameter?
-#' @slot beta gamma parameter?
-#' @slot a ?
-#' @slot b ?
+#' @slot mu.0 Prior mean for mu.
+#' @slot tau2.0 prior variance on mu
+#' @slot eta.0 rate paramater for tau2
+#' @slot m2.0 shape parameter for tau2
+#' @slot alpha mixture probabilities
+#' @slot beta parameter for nu.0 distribution
+#' @slot a shape for sigma2.0
+#' @slot b rate for sigma2.0
 setClass("HyperparametersMarginal", contains="Hyperparameters")
 
 #' An object to specify the hyperparameters of a batch effect model.
 #'
 #' This class inherits from the Hyperparameters class. This class is for hyperparameters which are hierachical over the batches.
 #' @slot k Number of components
-#' @slot mu.0 a priori mean?
-#' @slot tau2.0 a priori precision?
-#' @slot eta.0 ?
-#' @slot m2.0 ?
-#' @slot alpha gamma parameter?
-#' @slot beta gamma parameter?
-#' @slot a ?
-#' @slot b ?
+#' @slot mu.0 Prior mean for mu.
+#' @slot tau2.0 prior variance on mu
+#' @slot eta.0 rate paramater for tau2
+#' @slot m2.0 shape parameter for tau2
+#' @slot alpha mixture probabilities
+#' @slot beta parameter for nu.0 distribution
+#' @slot a shape for sigma2.0
+#' @slot b rate for sigma2.0
 setClass("HyperparametersBatch",  contains="Hyperparameters")
 
 setClass("McmcChains", representation(theta="matrix",
