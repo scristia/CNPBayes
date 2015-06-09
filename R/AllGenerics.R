@@ -196,6 +196,9 @@ setGeneric("alpha", function(object) standardGeneric("alpha"))
 setGeneric("orderTheta<-", function(object, value) standardGeneric("orderTheta<-"))
 setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))
 
+#' Retrieve log likelihood.
+#'
+#' @param object see showMethods(logLik)
 #' @export
 setGeneric("logLik", function(object) standardGeneric("logLik"))
 
