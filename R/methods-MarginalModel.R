@@ -159,9 +159,6 @@ setMethod("updateSigma2", "MarginalModel", function(object) {
 
 setMethod("updateSigma2.0", "MarginalModel", function(object){
   .Call("update_sigma2_0", object)
-##     hypp <- hyperParams(object)
-##     .updateSigma2.0(a=a(hypp), b=b(hypp), nu.0=nu.0(object),
-##                     sigma2.h=sigma2(object), k=k(hypp))
 })
 
 .updateSigma2.0 <- function(a, b, nu.0, sigma2.h, k){
