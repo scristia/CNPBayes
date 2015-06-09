@@ -164,9 +164,6 @@ setMethod("batchCorrect", "BatchModel", function(object){
 
 
 setMethod("bic", "BatchModel", function(object, ...){
-##  if(k(object) > 1){
-##    object <- updateWithPosteriorMeans(object)
-  ##  }
   object <- useModes(object)
   ## K: number of free parameters to be estimated
   ##   - component and batch-specific parameters:  theta, sigma2  ( k(model) * nBatch(model))
