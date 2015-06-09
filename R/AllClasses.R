@@ -170,7 +170,5 @@ setClass("ModelList", representation(model_list="list", names="character",
 setClass("MarginalModelList", contains="ModelList")
 setClass("BatchModelList", contains="ModelList")
 
-setClass("Posterior", contains="MixtureModel")
-
 setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", berkhof="numeric",
                                             marginal="numeric", delta_marginal="numeric"))
