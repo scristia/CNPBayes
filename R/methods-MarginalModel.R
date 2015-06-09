@@ -174,13 +174,11 @@ setMethod("updateTau2", "MarginalModel", function(object){
 })
 
 setReplaceMethod("tau2", "MarginalModel", function(object, value){
-  ##hyperParams(object)@tau2 <- value
   object@tau2 <- value
   object
 })
 
 setReplaceMethod("mu", "MarginalModel", function(object, value){
-  ##hyperParams(object)@mu <- value
   object@mu <- value
   object
 })
