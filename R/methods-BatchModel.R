@@ -311,9 +311,6 @@ setMethod("pMean", "BatchModel", function(object) {
 
 setMethod("showMeans", "BatchModel", function(object){
   thetas <- round(theta(object), 2)
-##  dimnames(thetas) <- list(paste0("batch", uniqueBatch(object)),
-##                           paste0("component", seq_len(k(object))))
-  ##
   mns <- c("\n", paste0(t(cbind(thetas, "\n")), collapse="\t"))
   mns <- paste0("\t", mns[2])
   mns <- paste0("\n", mns[1])
