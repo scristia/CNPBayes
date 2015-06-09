@@ -249,7 +249,6 @@ setMethod("runBurnin", "MarginalModel", function(object){
 
 setMethod("runBurnin", "BatchModel", function(object){
   .Call("mcmc_batch_burnin", object, mcmcParams(object))
-  ##.runBurnin(object)
 })
 
 setMethod("runMcmc", "MarginalModel", function(object){
@@ -259,14 +258,6 @@ setMethod("runMcmc", "MarginalModel", function(object){
 setMethod("runMcmc", "BatchModel", function(object){
   .Call("mcmc_batch", object, mcmcParams(object))
 })
-
-.runBurnin <- function(object){
-  message("Running burnin...")
-  for(b in seq_len(burnin(object))){
-    object <- updateAll(object, is_burnin=TRUE)
-  }
-  object
-}
 
 multipleStarts <- function(object){
   if(k(object)==1) return(object)
