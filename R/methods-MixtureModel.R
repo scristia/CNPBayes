@@ -43,10 +43,10 @@ setValidity("BatchModel", function(object){
 setMethod("hyperParams", "MixtureModel", function(object) object@hyperparams)
 
 setReplaceMethod("hyperParams", c("MixtureModel", "Hyperparameters"),
-                 function(object, value) {
-                   object@hyperparams <- value
-                   object
-                 })
+  function(object, value) {
+    object@hyperparams <- value
+    object
+})
 
 
 
