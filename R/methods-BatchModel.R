@@ -226,20 +226,6 @@ setMethod("computeVars", "BatchModel", function(object){
   .Call("compute_vars_batch", object)
 })
 
-.computeVarsBatch <- function(object){
-   if(length(y(object))==0) return(numeric())
-   ubatch <- uniqueBatch(object)
-   B <- batch(object)
-   ybatch <- split(y(object), B)
-   zbatch <- split(z(object), B)
-   yvars <- foreach(y=ybatch, z=zbatch, .combine='rbind') %do%{
-     componentVariances(y, z)
-   }
-   rownames(yvars) <- names(ybatch)
-   yvars[ubatch, ]
-}
-
-
 setMethod("getThetaOrder", "MarginalModel", function(object) order(thetaMean(object)))
 setMethod("getThetaOrder", "BatchModel", function(object){
   .getThetaOrdering(object)
