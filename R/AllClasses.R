@@ -174,5 +174,3 @@ setClass("Posterior", contains="MixtureModel")
 
 setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", berkhof="numeric",
                                             marginal="numeric", delta_marginal="numeric"))
-
-setClass("PosteriorSummaryList", representation(data="list", names="character"))
