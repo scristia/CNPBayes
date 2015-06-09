@@ -165,17 +165,6 @@ setMethod("updateNu.0", "MarginalModel", function(object){
   .Call("update_nu0", object)
 })
 
-.updateNu.0 <- function(NUMAX=100, beta, sigma2.0, sigma2.h, nu.0, k){
-  x <- seq_len(NUMAX)
-  lpnu0 <- k * (0.5 * x * log(sigma2.0 * x/2)-lgamma(x/2)) +
-    (x/2 - 1) * sum(log(1/sigma2.h)) +
-      -x * (beta + 0.5 * sigma2.0 * sum(1/sigma2.h))
-  prob <- exp(lpnu0 - max(lpnu0))
-  nu0 <- sample(x, 1, prob=prob)
-  nu0 <- max(1, nu0)
-  nu0
-}
-
 ##
 ## For the marginal model, mu and tau2 are hyper-parameters.  There is
 ## no update.
