@@ -1105,3 +1105,126 @@ if(FALSE){
   bicstat <- sapply(fit, bic)
   checkTrue(which.min(bicstat) == 3)
 }
+
+.test_selectK_nobatchEffect <- function(){
+  ## Fit batch model when truth is no batch effect
+  ## batch found
+  library(GenomicRanges)
+  set.seed(1000)
+  means <- c(-1, 0, 1)
+  sds <- c(0.1, 0.2, 0.2)
+  truth <- simulateData(N=2500, p=rep(1/3, 3), theta=means, sds=sds)
+  se <- as(truth, "SummarizedExperiment")
+  library(devtools)
+  load_all()
+  ##m <- marginal(se, mcmc.params=McmcParams(iter=10, burnin=5, nStarts=1), K=3)
+
+  kmod <- MarginalModel(y(truth), k=3)
+  iter(kmod, force=TRUE) <- 500
+  kmod <- posteriorSimulation(kmod)
+  headtheta <- head(thetac(kmod))
+
+  ##
+  ## Marginal likelihood
+  ##
+  logp_theta <- .Call("marginal_theta", kmod)
+  logp <- log(mean(exp(logp_theta)))
+  checkTrue(identical(headtheta, head(thetac(kmod))))
+
+  ##  logp_theta <- .Call("p_theta_zpermuted", kmod)
+  ##  logp <- log(mean(exp(logp_theta)))
+  ##  checkTrue(identical(headtheta, head(thetac(kmod))))
+
+  ## Simulate Z under the reduced model
+  kmodZ <- .Call("simulate_z_reduced1", kmod)
+  checkTrue(identical(headtheta, head(thetac(kmod))))
+  zz <- zChain(kmodZ)
+
+  logp_sigma2 <- .Call("p_sigma2_zpermuted", kmodZ)
+  lps2 <- log(mean(exp(logp_sigma2)))
+  checkTrue(identical(headtheta, head(thetac(kmod))))
+
+  logp_p <- .Call("p_p_unpermuted", kmod)
+  lpp <- log(mean(exp(logp_p)))
+  checkTrue(identical(headtheta, head(thetac(kmod))))
+
+  i <- CNPBayes:::argMax(kmod)
+  mlik <- logLik(chains(kmod))[i] + logPrior(chains(kmod))[i] - logp - lps2 - lpp
+
+  permutations <- permnK(3, 5)
+  kmod2 <- kmod
+  zChain(kmod2) <- permuteZ(kmod, permutations[2, ])
+  zz <- table(zChain(kmod)[1, ])
+  zz2 <- table(zChain(kmod2)[1, ])
+  ##
+  ## this uses the permuted values of z directly.
+  ##
+  logp_theta2 <- .Call("p_theta_zpermuted", kmod2)  ## use permuted z
+  logp2 <- log(mean(exp(logp_theta2)))
+  ## now we have to simulate new values of z as described in Chib (We
+  ## need z|y, theta* and not z|y).  To do this, we could use the z
+  ## chain already simulated under the reduced model and permute these
+  logp_sigma <- .Call("p_sigma2_zpermuted", kmod)
+  lps1 <- log(mean(exp(logp_sigma)))
+
+  ans <- gtools::ddirichlet(x=c(0.2, 0.3, 0.5), alpha=c(100, 150, 200))
+  result <- .Call("ddirichlet_", c(0.2, 0.3, 0.5), c(100, 150, 200))
+  checkEquals(log(ans), result)
+##  batchExperiment(se, outdir, mcmcp.list=mcmp.list)
+##  B <- getFiles(outdir, rownames(se), "batch")
+##  checkTrue(is.null(readRDS(model(B))))
+
+  ## simulate a bogus batch
+##  se$plate <- factor(rep(letters[1:3], length.out=ncol(se)))
+##  batchExperiment(se, outdir, mcmcp.list=mcmp.list)
+##  B <- getFiles(outdir, rownames(se), "batch")
+  ##  checkTrue(is.null(readRDS(model(B))))
+
+
+  setClass("foo", representation(x="numeric"))
+  object <- new("foo")
+  object@x <- rnorm(10)
+
+  object2 <- .Call("test_clone", object)
+
+}
+
+.test_cnp360 <- function(){
+  library(GenomicRanges)
+  se360 <- readRDS("~/Software/CNPBayes/inst/extdata/se_cnp360.rds")
+  r <- assays(se360)[["mean"]][1, ]
+  if(FALSE) hist(r, breaks=1000, col="gray", border="gray")
+  x <- computeMarginalLik(r, nchains=3)
+  ## hemizygous deletion is rare
+  models <- orderModels(x)
+  checkTrue(k(models)[1] %in% c(2, 3))
+  cn <- map(models[[1]])
+  freq_hem <- mean(cn==1)
+  ## get homozygous post-hoc
+  cn[ r < -4 ] <- 0
+
+
+  probs <- seq(0, 1, 0.001)
+  rgrid <- cut(r, breaks=quantile(r, probs=probs), label=FALSE,
+               include.lowest=TRUE)
+  rcenters <- sapply(split(r, rgrid), mean)
+
+  ##
+  ## Computationally not feasible to explore all K models adequately
+  ## with 10,000 samples
+  ##
+  index <- sample(seq_along(r), 2000)
+  table(cn[index])
+  xx <- computeMarginalLik(r[index], nchains=3)
+  models2 <- orderModels(xx)
+  checkTrue(k(models2[[1]]) == 2)
+  df <- CNPBayes:::imputeFromSampledData(models2[[1]], r, index)
+  checkTrue(!any(is.na(df$cn)))
+  cn_complete <- map(models[[1]])
+  cn_incomplete <- df$cn
+  checkTrue(mean(cn_incomplete != cn_complete) < 0.001)
+
+  p_complete <- cnProbability(probz(models[[1]]), 2)
+  p_incomplete <- df$p
+  checkTrue(mean(abs(p_complete - p_incomplete) > 0.1 ) < 0.01)
+}
