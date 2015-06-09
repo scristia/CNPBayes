@@ -449,10 +449,6 @@ setMethod("reducedGibbsZThetaFixed", "MarginalModel", function(object){
   .Call("permutedz_reduced1", object)
 })
 
-##setMethod("reducedGibbsZThetaSigmaFixed", "MarginalModel", function(object){
-##  .Call("permutedz_reduced2", object)
-##})
-
 setMethod("reducedGibbsZThetaFixed", "BatchModel", function(object){
   .Call("reduced_z_theta_fixed", object)
 })
