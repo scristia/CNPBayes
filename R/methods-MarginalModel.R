@@ -300,9 +300,6 @@ setMethod("relabel", "BatchModel", function(object, zindex){
   zFreq(object) <- as.integer(table(zz))
   dataMean(object) <- dataMean(object)[, zindex, drop=FALSE]
   dataPrec(object) <- dataPrec(object)[, zindex, drop=FALSE]
-##  theta(object) <- theta(object)[, zindex, drop=FALSE]
-##  sigma2(object) <- sigma2(object)[, zindex, drop=FALSE]
-##  mu(object) <- mu(object)[zindex]
   object
 })
 
