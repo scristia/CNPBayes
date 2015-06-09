@@ -258,30 +258,12 @@ setMethod("runMcmc", "MarginalModel", function(object){
 
 setMethod("runMcmc", "BatchModel", function(object){
   .Call("mcmc_batch", object, mcmcParams(object))
-  ##.runMcmc(object, mcmcParams(object))
 })
 
 .runBurnin <- function(object){
   message("Running burnin...")
   for(b in seq_len(burnin(object))){
     object <- updateAll(object, is_burnin=TRUE)
-  }
-  object
-}
-
-.runMcmc <- function(object){
-  if(burnin(object) > 0) message("Burnin finished. Running additional MCMC simulations...")
-  S <- 2:iter(object)
-  do_thin <- thin(object) > 1
-  T <- seq_len(thin(object))
-  object <- moveChain(object, 1)
-  for(s in S){
-    object <- updateAll(object, FALSE)
-    object <- moveChain(object, s)
-    ## update without moving chain
-    if(do_thin){
-      for(t in T) object <- updateAll(object, TRUE)
-    }
   }
   object
 }
