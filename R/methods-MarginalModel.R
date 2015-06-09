@@ -161,14 +161,6 @@ setMethod("updateSigma2.0", "MarginalModel", function(object){
   .Call("update_sigma2_0", object)
 })
 
-.updateSigma2.0 <- function(a, b, nu.0, sigma2.h, k){
-  a.k <- a+1/2*k*nu.0
-  b.k <- b+1/2*sum(1/sigma2.h)
-  sigma2.0 <- rgamma(1, shape=a.k, rate=b.k)
-  stopif(is.nan(sigma2.0))
-  sigma2.0
-}
-
 setMethod("updateNu.0", "MarginalModel", function(object){
   .Call("update_nu0", object)
 ##   hypp <- hyperParams(object)
