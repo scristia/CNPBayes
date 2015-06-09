@@ -73,7 +73,7 @@ setClass("McmcChains", representation(theta="matrix",
 #' @slot param_updates Still looking.
 #' @examples 
 #' McmcParams()
-#' McmcParams(k=3)
+#' McmcParams(iter=1000)
 #' mp <- McmcParams()
 #' iter(mp)
 #' @aliases iter,burnin,nStarts,McmcParams-method
