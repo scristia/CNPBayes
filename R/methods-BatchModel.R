@@ -193,20 +193,6 @@ setMethod("computePrec", "BatchModel", function(object){
   .Call("compute_prec_batch", object)
 })
 
-.computeMeansBatch <- function(object){
-   if(length(y(object))==0) return(numeric())
-   B <- batch(object)
-   ubatch <- uniqueBatch(object)
-   ybatch <- split(y(object), B)
-   zbatch <- split(z(object), B)
-   ymeans <- foreach(y=ybatch, z=zbatch, .combine='rbind') %do%{
-     mns <- sapply(split(y, z), mean, na.rm=TRUE)
-     mns
-   }
-   rownames(ymeans) <- names(ybatch)
-   ymeans[ubatch, ]
- }
-
 .computeModesBatch <- function(object){
   i <- argMax(object)
   mc <- mcmcChains(object)
