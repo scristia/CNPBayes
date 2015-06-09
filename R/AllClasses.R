@@ -52,6 +52,20 @@ setClass("HyperparametersMarginal", contains="Hyperparameters")
 #' @slot b rate for sigma2.0
 setClass("HyperparametersBatch",  contains="Hyperparameters")
 
+#' An object to hold estimated paraeters.
+#'
+#' An object of this class holds estimates of each parameter at each iteration of the MCMC simulation.
+#' @slot theta means of each batch and component
+#' @slot sigma2 variances of each batch and component
+#' @slot pi mixture probabilities
+#' @slot mu overall mean in a marginal. In batch model, averaged across batches
+#' @slot tau2 overall variance in a marginal model. In a batch model, weighted average by precision across batches.
+#' @slot nu.0 shape parameter for sigma.2 distribution
+#' @slot sigma2.0 rate parameter for sigma.2 distribution
+#' @slot logprior log likelihood of prior.
+#' @slot loglik log likelihood.
+#' @slot zfreq table of z.
+#' @slot z latent variables
 setClass("McmcChains", representation(theta="matrix",
                                       sigma2="matrix",
                                       pi="matrix",
