@@ -190,9 +190,6 @@ setMethod("initializeMu", "MarginalModel", function(object)   mu(object))
 
 #' @export
 setMethod("bic", "MarginalModel", function(object, ...){
-  ##  if(k(object) > 1){
-  ##    object <- updateWithPosteriorMeans(object)
-  ##  }
   object <- useModes(object)
   ## K: number of free parameters to be estimated
   ##   - component-specific parameters:  theta, sigma2   (3 x k(model))
