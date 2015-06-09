@@ -319,8 +319,6 @@ setMethod("showMeans", "BatchModel", function(object){
 
 setMethod("showSigmas", "BatchModel", function(object){
   sigmas <- round(sqrt(sigma2(object)), 2)
-##  dimnames(sigmas) <- list(paste0("batch", uniqueBatch(object)),
-##                           paste0("component", seq_len(k(object))))
   sigmas <- c("\n", paste0(t(cbind(sigmas, "\n")), collapse="\t"))
   sigmas <- paste0("\t", sigmas[2])
   sigmas <- paste0("\n", sigmas[1])
