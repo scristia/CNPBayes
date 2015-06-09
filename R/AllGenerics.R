@@ -40,8 +40,11 @@ setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 #' @export
 setGeneric("hyperParams<-", function(object,value) standardGeneric("hyperParams<-"))
 
+#' Initialize empty chain for model.
+#' 
+#' @param object see \code{showMethods(McmcChains)}
 #' @export
-setGeneric("McmcChains", function(object, mcmc.params) standardGeneric("McmcChains"))
+setGeneric("McmcChains", function(object) standardGeneric("McmcChains"))
 
 setGeneric("hist")
 setGeneric("plot")

@@ -21,7 +21,7 @@
       z=matrix(NA, nr, ns))
 }
 
-setMethod("McmcChains", "missing", function(object, mcmc.params){
+setMethod("McmcChains", "missing", function(object){
   new("McmcChains", theta=matrix(), sigma2=matrix(),
       pi=matrix(), mu=numeric(), tau2=numeric(),
       nu.0=numeric(), sigma2.0=numeric(),
