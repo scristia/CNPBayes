@@ -65,7 +65,7 @@ test_batchEasy <- function(){
     ## plot the true posterior density (left) and the Gibbs
     ## approximation (right)
     op <- par(mfrow=c(1,2),las=1)
-    plot(truth, use.current=T)
+    plot(truth)
     plot(model)
     par(op)
     op <- par(mfrow=c(1,3))
@@ -192,9 +192,8 @@ test_batch_moderate <- function(){
     abline(h=sigma(truth))
     op <- par(mfrow=c(1,2),las=1)
     ##trace(.plotBatch, browser)
-    ##.plotBatch(truth, use.current=TRUE)
-    CNPBayes::plot(truth, use.current=TRUE)
-    CNPBayes::plot(modelk, use.current=TRUE)
+    CNPBayes::plot(truth)
+    CNPBayes::plot(modelk)
     par(op)
     mc <- mcmcChains(modelk)
     plot.ts(sigma(mc), col="gray")
@@ -230,22 +229,22 @@ test_hard3 <- function(){
   library(GenomicRanges)
   truth <- hardTruth(0.005, s=0.1)
   table(z(truth), batch(truth))
-  if(FALSE) CNPBayes::plot(truth, use.current=TRUE)
+  if(FALSE) CNPBayes::plot(truth)
   se <- as(truth, "SummarizedExperiment")
   if(FALSE) hist(oligoClasses::copyNumber(se), breaks=1000, col="gray", border="gray")
   ##
   ## Use defaults
   ##
   mcmcp <- McmcParams(iter=100, burnin=0)
-  modelk <- BatchModel(data=y(truth), batch=batch(truth), k=3, 
+  modelk <- BatchModel(data=y(truth), batch=batch(truth), k=3,
                        mcmc.params=mcmcp,
-                       CNPBayes:::HyperparametersBatch(k=3, m2.0=1/60, 
+                       CNPBayes:::HyperparametersBatch(k=3, m2.0=1/60,
                                                        eta.0=1800))
   modelk <- CNPBayes:::startAtTrueValues(modelk, truth)
   mmodel <- posteriorSimulation(modelk)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
-    CNPBayes::plot(truth, use.current=TRUE)
+    CNPBayes::plot(truth)
     ##trace(.plotBatch, browser)
     .plotBatch(mmodel)
     par(op)
@@ -275,9 +274,9 @@ test_hard3 <- function(){
   ## With multiple starts we can find the mode
   ##
   mcmcp <- McmcParams(iter=200, burnin=100, nStarts=20)
-  modelk <- BatchModel(data=y(truth), batch=batch(truth), k=3, 
+  modelk <- BatchModel(data=y(truth), batch=batch(truth), k=3,
                        mcmc.params=mcmcp,
-                       CNPBayes:::HyperparametersBatch(k=3, m2.0=1/60, 
+                       CNPBayes:::HyperparametersBatch(k=3, m2.0=1/60,
                                                        eta.0=1800, tau2.0=1000))
   mmodel <- posteriorSimulation(modelk)
   pmns <- CNPBayes:::thetaMean(mmodel)

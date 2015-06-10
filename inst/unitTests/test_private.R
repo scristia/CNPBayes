@@ -6,18 +6,18 @@
   truth <- simulateData(N=2500, p=rep(1/3, 3),
                         theta=c(-1, 0, 1),
                         sds=rep(0.1, 3))
-  if(FALSE) plot(truth, use.current=TRUE)
+  if(FALSE) plot(truth)
   params <- ModelParams("marginal", y=y(truth), k=3)
   mcmcp <- McmcParams(iter=150, burnin=0)
   ##trace(initializeModel, browser)
   model <- CNPBayes:::initializeModel(params)
-  
+
   Rprof("m2.prof")
   model <- posteriorSimulation(model, mcmcp)
   Rprof(NULL)
   m1 <- summaryRprof("m1.prof")
   m2 <- summaryRprof("m2.prof")
-  
+
   ##
   ## example (from test_batch.R)
   ##
@@ -48,17 +48,17 @@
   ## Need to profile posteriorSimulation.
   Rprof()
   posteriorSimulation(model, mcmcp)
-  
+
   ##
   ## Batch model
   ##
   outdir <- '~/Software'
   se472 <- readRDS("~/Software/CNPBayes/inst/extdata/se_cnp472_EA.rds")
   B <- getFiles(outdir, rownames(se472), "batch")
-  
+
   batch.files <- paste0(dirname(model(B)), "/", rownames(se472), "_batch.rds")
   object <- BatchModel(copyNumber(se472)[1,], k=3, batch= batch.files)
-  
+
   load_all()
   Rprof()
   batchExperiment(se472, outdir, test=TRUE)
@@ -67,7 +67,7 @@
   prof <- summaryRprof()
   tot <- prof$by.total
   self <- prof$by.self
-  
+
   load_all()
   batchExperiment(se472, outdir, test=TRUE)
   outdir <- tempdir()
@@ -75,12 +75,12 @@
   marginalExperiment(se472, outdir)
   Rprof(NULL)
   mp2 <- summaryRprof("marginal.prof")
-  
+
   load_all()
   marginalExperiment(se472, outdir, test=TRUE)
-  
-  
-  
+
+
+
   #mcmcp <- McmcParams(iter=c(500, 2000, 2000, 2000),
   #                      burnin=c(50, 100, 100, 100),
   #                      thin=c(1, 2, 2, 2),
@@ -94,7 +94,7 @@
   #    initializeBatchModel(params=param, hypp=hypp)
   #  }
   #  bmodels <- foreach(k=1:4, model=bmodlist) %do% posteriorSimulation(model, mcmcp[k])
-  
+
   ##### Rcpp S4 testing stuff
   library(inline)
   src <- '
@@ -624,7 +624,7 @@ if(FALSE){
   se <- as(x, "SummarizedExperiment")
   mcmcp <- McmcParams(iter=250, burnin=250, nStarts=5)
   m <- marginal(se, mcmc.params=mcmcp, maxperm=2)
-  if(FALSE) plot(m[[1]], use.current=TRUE)
+  if(FALSE) plot(m[[1]])
 
   b <- marginal(se, batch=testdat$batch, mcmc.params=mcmcp, maxperm=2)
   my <- rbind(CNPBayes:::summarizeMarginal(m),
@@ -635,7 +635,7 @@ if(FALSE){
   checkTrue(substr(calls, 2, 2) == 4)
   if(FALSE){
     par(mfrow=c(1,3), las=1)
-    plot(b[[4]], use.current=TRUE)
+    plot(b[[4]])
   }
 }
 
@@ -662,7 +662,7 @@ if(FALSE){
   checkIdentical(y(model), y(truth))
   if(FALSE){
     op <- par(mfrow=c(1,2), las=1)
-    plot(truth, use.current=TRUE)
+    plot(truth)
     plot(model)
     par(op)
     op <- par(mfrow=c(1,3), las=1)
@@ -691,7 +691,7 @@ if(FALSE){
   model <- posteriorSimulation(model, mcmcp)
   if(FALSE){
     op <- par(mfrow=c(1,2), las=1)
-    plot(truth, use.current=TRUE)
+    plot(truth)
     plot(model)
     par(op)
     op <- par(mfrow=c(1,3), las=1)
@@ -744,7 +744,7 @@ if(FALSE){
   checkEquals(th, theta(truth), tolerance=0.1)
   if(FALSE){
     op <- par(mfrow=c(1,2), las=1)
-    plot(truth, use.current=TRUE)
+    plot(truth)
     plot(model)
     par(op)
     op <- par(mfrow=c(1,3), las=1)
@@ -800,7 +800,7 @@ if(FALSE){
   checkIdentical(which.min(bicstat), 3L)
   if(FALSE) {
     op <- par(mfrow=c(1,2), las=1)
-    CNPBayes::plot(truth, use.current=TRUE)
+    CNPBayes::plot(truth)
     CNPBayes::plot(mmodels[[3]])
     par(op)
   }
@@ -847,8 +847,7 @@ if(FALSE){
     abline(h=sigma(truth))
     op <- par(mfrow=c(1,2),las=1)
     ##trace(.plotBatch, browser)
-    ##.plotBatch(truth, use.current=TRUE)
-    CNPBayes::plot(truth, use.current=TRUE)
+    CNPBayes::plot(truth)
     CNPBayes::plot(modelk)
     par(op)
     mc <- mcmcChains(modelk)
@@ -861,7 +860,7 @@ if(FALSE){
 .test_hard1 <- function(){
   truth <- hardTruth(0.005, s=0.3)
   table(z(truth), batch(truth))
-  if(FALSE) plot(truth, use.current=TRUE)
+  if(FALSE) plot(truth)
   ##
   ## Use defaults
   ##
@@ -874,7 +873,7 @@ if(FALSE){
   model <- posteriorSimulation(model, mcmcp)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
-    CNPBayes::plot(truth, use.current=TRUE, xlim=c(-2,1))
+    CNPBayes::plot(truth, xlim=c(-2,1))
     CNPBayes::plot(model, xlim=c(-2,1))
     par(op)
     par(mfrow=c(1,3), las=1)
@@ -892,7 +891,7 @@ if(FALSE){
   ##
   truth <- hardTruth(0.005, s=0.2)
   table(z(truth), batch(truth))
-  if(FALSE) CNPBayes::plot(truth, use.current=TRUE)
+  if(FALSE) CNPBayes::plot(truth)
 
   ## start at true values
   mcmcp <- McmcParams(iter=1000, burnin=1000, thin=1)
@@ -904,7 +903,7 @@ if(FALSE){
   checkEquals(colMeans(p(mc)), as.numeric(p(truth)), tolerance=0.17)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
-    CNPBayes::plot(truth, use.current=TRUE, xlim=c(-2,1))
+    CNPBayes::plot(truth, xlim=c(-2,1))
     CNPBayes::plot(model, xlim=c(-2,1))
     par(op)
     plot.ts(logpotential(mc), col="gray")
@@ -922,7 +921,7 @@ if(FALSE){
   mc <- mcmcChains(model)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
-    CNPBayes::plot(truth, use.current=TRUE, xlim=c(-2,1))
+    CNPBayes::plot(truth, xlim=c(-2,1))
     CNPBayes::plot(model, xlim=c(-2,1))
     par(op)
     plot.ts(p(mc), col="gray")
@@ -1023,7 +1022,7 @@ if(FALSE){
 
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
-    plot(truth, use.current=T)
+    plot(truth)
     plot(bmodel)
     par(op)
 
@@ -1068,7 +1067,7 @@ if(FALSE){
   checkTrue(which.min(bicstat) == 3)
   if(FALSE){
     op <- par(mfrow=c(1,3),las=1)
-    plot(truth, use.current=T)
+    plot(truth)
     plot(models[[2]])
     plot(models[[3]])
     par(op)
@@ -1238,7 +1237,7 @@ if(FALSE){
   truth <- simulateData(N=2500, p=rep(1/3, 3),
                         theta=c(-1, 0, 1),
                         sds=rep(0.1, 3))
-  if(FALSE) plot(truth, use.current=TRUE)
+  if(FALSE) plot(truth)
   ##mp <- McmcParams(iter=500, burnin=500)
 
   mp <- McmcParams(iter=100, burnin=100, nStarts=1)
@@ -1313,7 +1312,7 @@ if(FALSE){
     theta(x) <- true_theta
     sigma2(x)[, ] <- 0.06^2
 
-    plot(x, use.current=TRUE)
+    plot(x)
     ##
     ## Note the zeros for some components
     ##
@@ -1362,7 +1361,7 @@ if(FALSE){
     checkEquals(mu(x2), truemu, tolerance=0.05)
     checkEquals(p(x2), truep, tolerance=0.05)
     if(FALSE){
-      plot(x2, use.current=TRUE)
+      plot(x2)
     }
   }
   ##
@@ -1375,7 +1374,7 @@ if(FALSE){
   burnin(xx) <- 200
   xx <- posteriorSimulation(xx)
   if(FALSE){
-    plot(xx, use.current=TRUE)
+    plot(xx)
     par(mfrow=c(4,3), las=1)
     tracePlot(xx, "theta")
   }

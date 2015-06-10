@@ -40,6 +40,7 @@ Collate:
     'functions_sc.R'
     'methods-BatchModel.R'
     'methods-BatchModelP.R'
+    'methods-DensityModel.R'
     'methods-Hyperparameters.R'
     'methods-MarginalModel.R'
     'methods-McmcChains.R'

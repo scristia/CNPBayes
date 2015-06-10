@@ -8,7 +8,7 @@ test_marginalEasy <- function(){
   truth <- simulateData(N=2500, p=rep(1/3, 3),
                         theta=c(-1, 0, 1),
                         sds=rep(0.1, 3))
-  if(FALSE) plot(truth, use.current=TRUE)
+  if(FALSE) plot(truth)
   ##mp <- McmcParams(iter=500, burnin=500)
   mp <- McmcParams(iter=5, burnin=5, nStarts=1)
   model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
@@ -16,7 +16,7 @@ test_marginalEasy <- function(){
   model <- posteriorSimulation(model)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
-    plot(truth, use.current=T)
+    plot(truth)
     plot(model)
     par(op)
   }
@@ -72,7 +72,7 @@ test_marginal_Moderate <- function(){
                         theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
                         p=c(0.05, 0.1, 0.8))
-  if(FALSE) plot(truth, use.current=TRUE)
+  if(FALSE) plot(truth)
   mcmcp <- McmcParams(iter=500, burnin=500, thin=2)
   model <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
   model <- CNPBayes:::startAtTrueValues(model, truth)
@@ -83,7 +83,7 @@ test_marginal_Moderate <- function(){
     plot.ts(sigmac(model), plot.type="single")
     plot.ts(pic(model), plot.type="single")
     op <- par(mfrow=c(1,2),las=1)
-    plot(truth, use.current=T)
+    plot(truth)
     plot(model)
     par(op)
   }
@@ -104,7 +104,7 @@ test_marginal_hard <- function(){
                         theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
                         p=c(0.005, 1/10, 1-0.005-1/10))
-  if(FALSE) plot(truth, use.current=TRUE)
+  if(FALSE) plot(truth)
   mcmcp <- McmcParams(iter=1000, burnin=100, thin=10)
   modelk <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
   model <- posteriorSimulation(modelk)
@@ -114,7 +114,7 @@ test_marginal_hard <- function(){
   checkEquals(colMeans(pic(model))[i], p(truth), tolerance=0.15)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
-    plot(truth, use.current=T)
+    plot(truth)
     plot(model)
     par(op)
     plot.ts(sigmac(model), col=1:3, plot.type="single")

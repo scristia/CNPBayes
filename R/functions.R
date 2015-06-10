@@ -221,19 +221,25 @@ permnK <- function(k, maxperm){
   kperm
 }
 
+
 #' @export
 downSampleEachBatch <- function(y, nt, batch){
   yb <- split(y, batch)
-  bb <- split(batch, batch)
-  S <- foreach(x=yb, b=bb, batch.id=names(bb)) %do% {
+  indices <- split(seq_along(y), batch)
+  S <- foreach(x=yb, batch.id=names(yb), obs.index=indices) %do% {
     tiles <- factor(paste(ntile(x, nt), batch.id, sep="_"))
-    x <- sapply(split(x, tiles), mean)
-    list(y=x, labels=tiles, batch.id=rep(batch.id, length(x)))
+    xx <- sapply(split(x, tiles), mean)
+    tiles <- setNames(as.character(tiles), obs.index)
+    list(y=xx, labels=tiles, batch.id=rep(batch.id, length(xx)))
   }
   ys <- unlist(lapply(S, "[[", 1))
   tiles <- unlist(lapply(S, "[[", 2))
   batch.id <- unlist(lapply(S, "[[", 3))
-  list(y=ys, labels=as.character(tiles), batch=batch.id)
+  ##
+  ## tile labels must be in the same order as the original y vector
+  ##
+  tiles <- tiles[order(as.numeric(names(tiles)))]
+  list(y=ys, labels=tiles, batch=batch.id)
 }
 
 #' @export
@@ -247,8 +253,8 @@ downsample <- function(batch.file, plate, y, ntiles=250, THR=0.1){
     saveRDS(batches, file=batch.file)
   }
   ds <- downSampleEachBatch(y, ntiles, batches)
-  if(length(unique(ds$batch)) > 15){
-    batches <- collapseBatch(ds$y, ds$batch, THR=1e-5)
+  if(length(unique(ds$batch)) > 12){
+    batches <- collapseBatch(ds$y, ds$batch, THR=1e-3)
     ds$batch <- batches
   }
   if(any(table(ds$batch) <= 25)){

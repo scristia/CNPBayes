@@ -43,7 +43,7 @@ setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 setGeneric("hyperParams<-", function(object,value) standardGeneric("hyperParams<-"))
 
 #' Initialize empty chain for model.
-#' 
+#'
 #' @param object see \code{showMethods(McmcChains)}
 #' @export
 #' @docType methods
@@ -134,7 +134,21 @@ setGeneric("sigma2.0", function(object) standardGeneric("sigma2.0"))
 #' @export
 #' @docType methods
 #' @rdname y-method
+#' @export
 setGeneric("y", function(object) standardGeneric("y"))
+
+
+## TODO: oned is for 1-dimensional summary. Perhaps more informative
+## than 'y'.
+
+#' Retrieve data.
+#'
+#' @param object see \code{showMethods(oned)}
+#' @export
+#' @docType methods
+#' @rdname oned-method
+#' @export
+setGeneric("oned", function(object) standardGeneric("oned"))
 
 #' @export
 setGeneric("z", function(object) standardGeneric("z"))
@@ -387,3 +401,10 @@ setGeneric("pTheta_Zfixed", function(object) standardGeneric("pTheta_Zfixed"))
 setGeneric("pTheta", function(object) standardGeneric("pTheta"))
 
 setGeneric("updateMultinomialProb", function(object) standardGeneric("updateMultinomialProb"))
+
+setGeneric("component", function(object) standardGeneric("component"))
+setGeneric("overall", function(object) standardGeneric("overall"))
+
+setGeneric("densities", function(object) standardGeneric("densities"))
+setGeneric("densitiesCluster", function(object) standardGeneric("densitiesCluster"))
+setGeneric("clusters", function(object) standardGeneric("clusters"))

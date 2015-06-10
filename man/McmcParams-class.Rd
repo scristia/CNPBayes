@@ -23,7 +23,7 @@ An object to specify MCMC options for a later simulation
 }}
 \examples{
 McmcParams()
-McmcParams(k=3)
+McmcParams(iter=1000)
 mp <- McmcParams()
 iter(mp)
 }

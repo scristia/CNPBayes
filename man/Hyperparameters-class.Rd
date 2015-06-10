@@ -13,20 +13,20 @@ An object to specify the hyperparameters of a model.
 \describe{
 \item{\code{k}}{Number of components}
 
-\item{\code{mu.0}}{a priori mean?}
+\item{\code{mu.0}}{Prior mean for mu.}
 
-\item{\code{tau2.0}}{a priori precision?}
+\item{\code{tau2.0}}{prior variance on mu}
 
-\item{\code{eta.0}}{?}
+\item{\code{eta.0}}{rate paramater for tau2}
 
-\item{\code{m2.0}}{?}
+\item{\code{m2.0}}{shape parameter for tau2}
 
-\item{\code{alpha}}{gamma parameter?}
+\item{\code{alpha}}{mixture probabilities}
 
-\item{\code{beta}}{gamma parameter?}
+\item{\code{beta}}{parameter for nu.0 distribution}
 
-\item{\code{a}}{?}
+\item{\code{a}}{shape for sigma2.0}
 
-\item{\code{b}}{?}
+\item{\code{b}}{rate for sigma2.0}
 }}
 

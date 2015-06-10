@@ -1,11 +1,10 @@
 ## provide a probabilistic estimate of copy number
 test_cnProbability <- function(){
-
   set.seed(1)
   truth <- simulateData(N=2500, p=rep(1/3, 3),
                         theta=c(-1, 0, 1),
                         sds=rep(0.1, 3))
-  if(FALSE) plot(truth, use.current=TRUE)
+  if(FALSE) plot(truth)
   mp <- McmcParams(iter=200, burnin=100, nStarts=1)
   model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
   model <- posteriorSimulation(model)

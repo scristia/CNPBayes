@@ -186,6 +186,9 @@ setMethod("updateAlpha", "MixtureModel", function(object){
 #' @rdname y-method
 #' @aliases y,MixtureModel-method
 setMethod("y", "MixtureModel", function(object) object@data)
+
+setMethod("oned", "MixtureModel", function(object) object@data)
+
 setMethod("batch", "MixtureModel", function(object) object@batch)
 setMethod("z", "MixtureModel", function(object) object@z)
 
@@ -288,7 +291,7 @@ multipleStarts <- function(object){
   bmodel
 }
 
-computeLogLikForRandomStarts <- function(seed, params, hypp, 
+computeLogLikForRandomStarts <- function(seed, params, hypp,
                                          return.model=FALSE) {
   set.seed(seed)
   model <- initializeModel(params, hypp)
@@ -412,7 +415,11 @@ HardyWeinberg <- function(object){
 setMethod("hwe", "MixtureModel", function(object) object@hwe)
 
 #' @export
-map <- function(object) apply(probz(object), 1, which.max)
+map <- function(object) {
+  estimates <- apply(probz(object), 1, which.max)
+  names(estimates) <- names(y(object))
+  estimates
+}
 
 setMethod("fitMixtureModels", "numeric", function(object, mcmcp, K=1:5){
   message("Fitting ", length(K), " models")
