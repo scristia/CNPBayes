@@ -48,9 +48,7 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
              mcmc.params=mcmc.params,
              batch=batch[ix],
              batchElements=nbatch,
-             hwe=numeric(),
-             theta_order=numeric(B*k),
-             m.y=numeric(1))
+             hwe=numeric())
   obj <- startingValues(obj)
   obj <- ensureAllComponentsObserved(obj)
   obj
@@ -113,8 +111,7 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
              mcmc.params=mcmc.params,
              batch=batch[ix],
              batchElements=nbatch,
-             hwe=numeric(),
-             m.y=numeric(1))
+             hwe=numeric())
   obj <- startingValues(obj)
   obj
 }
@@ -226,31 +223,10 @@ setMethod("computeVars", "BatchModel", function(object){
   .Call("compute_vars_batch", object)
 })
 
-setMethod("getThetaOrder", "MarginalModel", function(object) order(thetaMean(object)))
-setMethod("getThetaOrder", "BatchModel", function(object){
-  .getThetaOrdering(object)
-})
-
-.getThetaOrdering <- function(object){
-  ##th <- thetaMean(object)
-  th <- matrix(colMeans(thetac(object)), nBatch(object), k(object))
-  ##ix <- object@theta_order
-  ix <- matrix(NA, nBatch(object), k(object))
-  index <- matrix(seq_len(nBatch(object)*k(object)), nBatch(object), k(object))
-  for(j in 1:nrow(th)){
-    ix[j, ] <- order(th[j,])
-    index[j, ] <- index[j, ix[j, ]]
-  }
-  index <- as.numeric(index)
-  index
-}
-
-
 setMethod("initializeSigma2.0", "BatchModel", function(object){
   hypp <- hyperParams(object)
   sum(alpha(hypp)*colMeans(sigma2(object)))/sum(alpha(hypp))
 })
-
 
 setMethod("moveChain", "BatchModel", function(object, s){
   mcmc <- mcmcChains(object)
@@ -360,7 +336,8 @@ setReplaceMethod("tau2", "BatchModel", function(object, value){
   object
 })
 
-
+#' @rdname theta-method
+#' @aliases theta,BatchModel-method
 setMethod("theta", "BatchModel", function(object) {
   b <- object@theta
   b <- matrix(b, nBatch(object), k(object))

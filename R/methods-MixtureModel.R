@@ -171,12 +171,6 @@ setMethod("updateMixProbs", "MixtureModel", function(object){
   .Call("update_p", object)
 })
 
-.updateMix <- function(object){
-  alpha.n <- updateAlpha(object)
-  as.numeric(rdirichlet(1, alpha.n))
-}
-
-
 setMethod("alpha", "MixtureModel", function(object) alpha(hyperParams(object)))
 
 setMethod("updateAlpha", "MixtureModel", function(object){
@@ -191,40 +185,6 @@ setMethod("oned", "MixtureModel", function(object) object@data)
 
 setMethod("batch", "MixtureModel", function(object) object@batch)
 setMethod("z", "MixtureModel", function(object) object@z)
-
-updateAll <- function(post, is_burnin=FALSE){
-  K <- k(post)
-  up <- paramUpdates(mcmcParams(post))
-  if(up["theta"] > 0)
-    theta(post) <- updateTheta(post)
-  if(up["sigma2"] > 0)
-    sigma2(post) <- updateSigma2(post)
-  if(up ["mu"] > 0)
-    mu(post) <- updateMu(post)
-  if(up["tau2"] > 0 )
-    tau2(post) <- updateTau2(post)
-  if(up["sigma2.0"] > 0)
-    sigma2.0(post) <- updateSigma2.0(post)
-  if(up["nu.0"] > 0)
-    nu.0(post) <- updateNu.0(post)
-  if(up["p"] > 0)
-    p(post) <- updateMixProbs(post)
-  if(up["z"] > 0){
-    z(post) <- updateZ(post)
-    zFreq(post) <- as.integer(table(z(post)))
-  }
-  dataMean(post) <- computeMeans(post)
-  ##dataPrec(post) <- 1/computeVars(post)
-  dataPrec(post) <- computePrec(post)
-  if(!is_burnin){
-    ## faster if we omit these steps during burnin
-    ##logpotential(post) <- computeLogLikxPrior(post)
-    logPrior(post) <- computePrior(post)
-    logLik(post) <- computeLoglik(post)
-  }
-  post
-}
-
 
 setMethod("computePrec", "MarginalModel", function(object){
   .Call("compute_prec", object)
@@ -316,26 +276,6 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
   post
 }
 
-
-.class_constructor <- function(class, ...){
-  new(class, ...)
-}
-
-homozygousComponent <- function(y){
-  ##mean(y < -1.5) > 0.005
-  sum(y < -1.5) >= 3
-}
-
-setMethod("computeMeans", "UnivariateMarginalModel", function(object){
-  median(y(object), na.rm=TRUE)
-})
-
-setMethod("computeVars", "UnivariateMarginalModel", function(object){
-  var(y(object), na.rm=TRUE)
-})
-
-
-
 setReplaceMethod("dataMean", "MixtureModel", function(object, value){
   object@data.mean <- value
   object
@@ -393,25 +333,6 @@ makeUnique <- function(x){
   as.character(abbrv[x])
 }
 
-
-
-HardyWeinberg <- function(object){
-  warning("requires cn inference...")
-  tab <- table(map(object))
-  ##freq <- setNames(table(zz), c("AA", "AB", "BB"))
-  if(length(tab) == 1) return(NA)
-  if(length(tab)==2){
-    tab <- setNames(c(sort(tab, decreasing=TRUE), 0), c("AA", "AB", "BB"))
-  }
-  if(length(tab)==3){
-    tab <- setNames(tab, c("AA", "AB", "BB"))
-  }
-  if(length(tab) > 3){
-    tab <- setNames(tab[1:3], c("AA", "AB", "BB"))
-  }
-  HWChisq(tab)
-}
-
 setMethod("hwe", "MixtureModel", function(object) object@hwe)
 
 #' @export
@@ -430,7 +351,6 @@ setMethod("fitMixtureModels", "numeric", function(object, mcmcp, K=1:5){
     kk <- K[j]
     params <- ModelParams("marginal", y=object, k=kk, mcmc.params=mp)
     model <- posteriorSimulation(params, mp)
-    ##m.y(model) <- marginalY(model, mp)
     fit[[j]] <- model
   }
   fit
@@ -476,6 +396,8 @@ setReplaceMethod("modes", "MixtureModel", function(object, value) {
   object
 })
 
+#' @rdname logLik-method
+#' @aliases logLik,MixtureModel-method
 setMethod("logLik", "MixtureModel", function(object){
   object@loglik
 })
@@ -485,38 +407,11 @@ setReplaceMethod("logLik", "MixtureModel", function(object, value){
   object
 })
 
-
-setMethod("m.y", "MixtureModel", function(object) object@m.y)
-setReplaceMethod("m.y", "MixtureModel", function(object,value){
-  object@m.y <- value
-  object
-})
-
-
-setMethod("orderTheta", "MixtureModel", function(object) object@theta_order)
-
-setReplaceMethod("orderTheta", "MixtureModel", function(object, value) {
-  object@theta_order <- value
-  object
-})
-
-modalLogLik <- function(object){
-  x <- mcmcChains(object)
-  max(logLik(x))
-}
-
-argmaxLogLik <- function(object){
-  x <- mcmcChains(object)
-  which.max(logLik(x))
-}
-
 argMax <- function(object){
   ll <- logLik(chains(object))
   lp <- logPrior(chains(object))
   which.max(ll + lp)
 }
-
-
 
 setMethod("isMarginalModel", "MarginalModel", function(object) TRUE)
 setMethod("isMarginalModel", "BatchModel", function(object) FALSE)

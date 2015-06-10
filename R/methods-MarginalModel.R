@@ -29,42 +29,8 @@ MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
                 batchElements=nbatch,
                 hwe=numeric(),
                 modes=list(),
-                m.y=numeric(1),
                 mcmc.params=mcmc.params)
   object <- startingValues(object)
-}
-
-UnivariateMarginalModel <- function(data, k=1, batch, hypp){
-  if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
-  if(!missing(batch)){
-    nbatch <- setNames(as.integer(table(batch)), levels(batch))
-  } else nbatch <- length(data)
-  zz <- as.integer(factor(numeric(k)))
-  zfreq <- as.integer(table(zz))
-  new("UnivariateMarginalModel",
-      hyperparams=hypp,
-      theta=numeric(k),
-      sigma2=numeric(k),
-      mu=numeric(1),
-      tau2=numeric(1),
-      nu.0=1L,
-      sigma2.0=1L,
-      pi=rep(1/k, k),
-      data=data,
-      data.mean=numeric(k),
-      data.prec=numeric(k),
-      z=zz,
-      zfreq=zfreq,
-      probz=matrix(1, length(data), 1),
-      logprior=numeric(1),
-      loglik=numeric(1),
-      mcmc.chains=McmcChains(),
-      batch=batch,
-      ##uniqueBatch=unique(batch),
-      batchElements=nbatch,
-      hwe=numeric(),
-      modes=list(),
-      m.y=numeric(1))
 }
 
 getK <- function(object){
@@ -77,10 +43,6 @@ setMethod("mu", "MarginalModel", function(object) object@mu)
 
 #' @export
 setMethod("tau2", "MarginalModel", function(object) object@tau2)
-
-setMethod("updateZ", "UnivariateMarginalModel", function(object){
-  factor(rep(1, length(y(object))))
-})
 
 ## compute p(theta) * p(y | theta)
 setMethod("computePotential", "MarginalModel", function(object){
@@ -204,6 +166,8 @@ setMethod("initializeTheta", "MarginalModel", function(object){
   initializeTheta(k(object))
 })
 
+#' @rdname theta-method
+#' @aliases theta,MarginalModel-method
 setMethod("theta", "MarginalModel", function(object) object@theta)
 
 setMethod("sigma2", "MarginalModel", function(object) object@sigma2)

@@ -105,9 +105,11 @@ setGeneric("bic", function(object, ...) standardGeneric("bic"))
 
 #' Retrieve theta.
 #'
-#' This function retrieves theta from an object. Theta is a vector or matrix representing the means of each component distribution.
+#' This function retrieves theta from an object. Theta is a vector or matrix representing the means of each component/batch.
 #' @param object see \code{showMethods(theta)}
 #' @export
+#' @docType methods
+#' @rdname theta-method
 setGeneric("theta", function(object) standardGeneric("theta"))
 
 #' @export
@@ -227,6 +229,8 @@ setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))
 #'
 #' @param object see showMethods(logLik)
 #' @export
+#' @docType methods
+#' @rdname logLik-method
 setGeneric("logLik", function(object) standardGeneric("logLik"))
 
 setGeneric("logLik<-", function(object,value) standardGeneric("logLik<-"))
@@ -283,11 +287,6 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 setGeneric("posteriorSimulation", function(object) standardGeneric("posteriorSimulation"))
 
 setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
-
-setGeneric("m.y", function(object) standardGeneric("m.y"))
-setGeneric("m.y<-", function(object,value) standardGeneric("m.y<-"))
-
-setGeneric("getThetaOrder", function(object) standardGeneric("getThetaOrder"))
 
 setGeneric("updateLabels", function(object) standardGeneric("updateLabels"))
 
