@@ -21,6 +21,8 @@
       z=matrix(NA, nr, ns))
 }
 
+#' @rdname McmcChains-method
+#' @aliases McmcChains,missing-method
 setMethod("McmcChains", "missing", function(object){
   new("McmcChains", theta=matrix(), sigma2=matrix(),
       pi=matrix(), mu=numeric(), tau2=numeric(),
@@ -31,6 +33,8 @@ setMethod("McmcChains", "missing", function(object){
       z=matrix())
 })
 
+#' @rdname McmcChains-method
+#' @aliases McmcChains,MixtureModel-method
 setMethod("McmcChains", "MixtureModel", function(object){
   .initializeMcmc(object)
 })
@@ -56,6 +60,8 @@ setMethod("McmcChains", "MixtureModel", function(object){
       z=matrix(NA, nr, ns))
 }
 
+#' @rdname McmcChains-method
+#' @aliases McmcChains,MixtureModel-method
 setMethod("McmcChains", "BatchModel", function(object){
   .initializeMcmcBatch(object)
 })

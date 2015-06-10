@@ -44,6 +44,8 @@ setGeneric("hyperParams<-", function(object,value) standardGeneric("hyperParams<
 #' 
 #' @param object see \code{showMethods(McmcChains)}
 #' @export
+#' @docType methods
+#' @rdname McmcChains-method
 setGeneric("McmcChains", function(object) standardGeneric("McmcChains"))
 
 setGeneric("hist")
@@ -239,6 +241,8 @@ setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<
 #' This function retrieves the number of iterations of an MCMC simulation.
 #' @param object see \code{showMethods(iter)}
 #' @export
+#' @docType methods
+#' @rdname iter-method
 setGeneric("iter", function(object) standardGeneric("iter"))
 
 #' Number of thinning intervals.
