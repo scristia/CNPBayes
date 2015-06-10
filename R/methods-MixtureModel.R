@@ -183,40 +183,6 @@ setMethod("y", "MixtureModel", function(object) object@data)
 setMethod("batch", "MixtureModel", function(object) object@batch)
 setMethod("z", "MixtureModel", function(object) object@z)
 
-updateAll <- function(post, is_burnin=FALSE){
-  K <- k(post)
-  up <- paramUpdates(mcmcParams(post))
-  if(up["theta"] > 0)
-    theta(post) <- updateTheta(post)
-  if(up["sigma2"] > 0)
-    sigma2(post) <- updateSigma2(post)
-  if(up ["mu"] > 0)
-    mu(post) <- updateMu(post)
-  if(up["tau2"] > 0 )
-    tau2(post) <- updateTau2(post)
-  if(up["sigma2.0"] > 0)
-    sigma2.0(post) <- updateSigma2.0(post)
-  if(up["nu.0"] > 0)
-    nu.0(post) <- updateNu.0(post)
-  if(up["p"] > 0)
-    p(post) <- updateMixProbs(post)
-  if(up["z"] > 0){
-    z(post) <- updateZ(post)
-    zFreq(post) <- as.integer(table(z(post)))
-  }
-  dataMean(post) <- computeMeans(post)
-  ##dataPrec(post) <- 1/computeVars(post)
-  dataPrec(post) <- computePrec(post)
-  if(!is_burnin){
-    ## faster if we omit these steps during burnin
-    ##logpotential(post) <- computeLogLikxPrior(post)
-    logPrior(post) <- computePrior(post)
-    logLik(post) <- computeLoglik(post)
-  }
-  post
-}
-
-
 setMethod("computePrec", "MarginalModel", function(object){
   .Call("compute_prec", object)
 })
