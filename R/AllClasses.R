@@ -116,7 +116,7 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot zfreq table of latent variables
 #' @slot probz n x k matrix of probabilities
 #' @slot logprior log likelihood of prior: log(p(sigma2.0)p(nu.0)p(mu))
-#' @slot loglik log likelihood: $\sum p_k \Phi(\theta_k, \sigma_k)
+#' @slot loglik log likelihood: \eqn{\sum p_k \Phi(\theta_k, \sigma_k)}
 #' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
 #' @slot batch a vector of the different batch numbers
 #' @slot batchElements a vector labeling from which batch each observation came from
@@ -168,7 +168,7 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot zfreq table of latent variables
 #' @slot probz n x k matrix of probabilities
 #' @slot logprior log likelihood of prior: log(p(sigma2.0)p(nu.0)p(mu))
-#' @slot loglik log likelihood: $\sum p_k \Phi(\theta_k, \sigma_k)
+#' @slot loglik log likelihood: \eqn{\sum p_k \Phi(\theta_k, \sigma_k)}
 #' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
 #' @slot batch a vector of the different batch numbers
 #' @slot batchElements a vector labeling from which batch each observation came from
@@ -197,7 +197,7 @@ setClass("BatchModel", contains="MixtureModel")
 #' @slot zfreq table of latent variables
 #' @slot probz n x k matrix of probabilities
 #' @slot logprior log likelihood of prior: log(p(sigma2.0)p(nu.0)p(mu))
-#' @slot loglik log likelihood: $\sum p_k \Phi(\theta_k, \sigma_k)
+#' @slot loglik log likelihood: \eqn{\sum p_k \Phi(\theta_k, \sigma_k)}
 #' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
 #' @slot batch a vector of the different batch numbers
 #' @slot batchElements a vector labeling from which batch each observation came from
@@ -207,7 +207,6 @@ setClass("BatchModel", contains="MixtureModel")
 setClass("MarginalModel", contains="MixtureModel")
 
 setClass("UnivariateBatchModel", contains="BatchModel")
-# setClass("UnivariateMarginalModel", contains="MarginalModel")
 
 #' An object to specify the parameters for MCMC simulation.
 #'
