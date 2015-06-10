@@ -575,6 +575,9 @@ setMethod("mcmcParams", "MixtureModel", function(object) object@mcmc.params )
 #' @rdname iter-method
 #' @aliases iter,MixtureModel-method
 setMethod("iter", "MixtureModel", function(object) iter(mcmcParams(object)))
+
+#' @rdname nStarts-method
+#' @aliases nStarts,MixtureModel-method
 setMethod("nStarts", "MixtureModel", function(object) nStarts(mcmcParams(object)))
 
 setReplaceMethod("nStarts", "MixtureModel", function(object, value){

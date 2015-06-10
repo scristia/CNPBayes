@@ -56,6 +56,8 @@ setValidity("McmcParams", function(object){
   }
 })
 
+#' @rdname nStarts-method
+#' @aliases nStarts,McmcParams-method
 setMethod("nStarts", "McmcParams", function(object) object@nstarts)
 
 setReplaceMethod("nStarts", "McmcParams", function(object, value){
