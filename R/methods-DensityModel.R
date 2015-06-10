@@ -9,8 +9,8 @@ setMethod("densitiesCluster", "BatchModel", function(object){
   names(mus) <- ix
   if(length(mus) > length(modes)){
     km <- kmeans(mus, centers=modes)$cluster
-    names(km) <- ix
-  } else km <- setNames(seq_along(mus), ix)
+    names(km) <- seq_along(mus)
+  } else km <- setNames(seq_along(mus), seq_along(mus))
   nclusters <- length(unique(km))
   batch <- dens[["batch"]]
   batch.list <- split(batch, km)
@@ -38,8 +38,8 @@ setMethod("densitiesCluster", "MarginalModel", function(object){
   names(thetas) <- ix
   if(length(thetas) > length(modes)){
     km <- kmeans(thetas, centers=modes)$cluster
-    names(km) <- ix
-  } else km <- setNames(seq_along(modes), ix)
+    names(km) <- seq_along(thetas)
+  } else km <- setNames(seq_along(thetas), seq_along(thetas))
   nclusters <- length(unique(km))
   component <- dens[["component"]]
   component.list <- split(component, km)
