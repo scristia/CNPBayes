@@ -410,13 +410,6 @@ setReplaceMethod("logLik", "MixtureModel", function(object, value){
   object
 })
 
-setMethod("orderTheta", "MixtureModel", function(object) object@theta_order)
-
-setReplaceMethod("orderTheta", "MixtureModel", function(object, value) {
-  object@theta_order <- value
-  object
-})
-
 argMax <- function(object){
   ll <- logLik(chains(object))
   lp <- logPrior(chains(object))

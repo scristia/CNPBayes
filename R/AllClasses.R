@@ -122,7 +122,6 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot batchElements a vector labeling from which batch each observation came from
 #' @slot hwe Hardy Weinberg Equilibrium
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
-#' @slot theta_order to be removed
 #' @slot mcmc.params An object of class 'McmcParams'
 setClass("MixtureModel", representation("VIRTUAL",
                                         k = "integer",
@@ -148,7 +147,6 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         batchElements="integer",
                                         hwe="numeric",
                                         modes="list",
-                                        theta_order="numeric",
                                         mcmc.params="McmcParams"))
 
 
@@ -179,7 +177,6 @@ setClass("BatchModel", contains="MixtureModel")
 #' @slot batchElements A
 #' @slot hwe A
 #' @slot modes A
-#' @slot theta_order A
 #' @slot mcmc.params An object of class 'McmcParams'
 setClass("MarginalModel", contains="MixtureModel")
 setClass("UnivariateBatchModel", contains="BatchModel")

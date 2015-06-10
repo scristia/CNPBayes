@@ -48,8 +48,7 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
              mcmc.params=mcmc.params,
              batch=batch[ix],
              batchElements=nbatch,
-             hwe=numeric(),
-             theta_order=numeric(B*k))
+             hwe=numeric())
   obj <- startingValues(obj)
   obj <- ensureAllComponentsObserved(obj)
   obj
@@ -232,7 +231,6 @@ setMethod("getThetaOrder", "BatchModel", function(object){
 .getThetaOrdering <- function(object){
   ##th <- thetaMean(object)
   th <- matrix(colMeans(thetac(object)), nBatch(object), k(object))
-  ##ix <- object@theta_order
   ix <- matrix(NA, nBatch(object), k(object))
   index <- matrix(seq_len(nBatch(object)*k(object)), nBatch(object), k(object))
   for(j in 1:nrow(th)){
