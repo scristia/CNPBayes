@@ -51,6 +51,8 @@ setGeneric("hyperParams<-", function(object,value) standardGeneric("hyperParams<
 setGeneric("McmcChains", function(object) standardGeneric("McmcChains"))
 
 setGeneric("hist")
+
+#' @export
 setGeneric("plot")
 
 setGeneric("batch<-", function(object,value) standardGeneric("batch<-"))
@@ -407,5 +409,17 @@ setGeneric("overall", function(object) standardGeneric("overall"))
 
 setGeneric("densities", function(object) standardGeneric("densities"))
 setGeneric("densitiesCluster", function(object) standardGeneric("densitiesCluster"))
+
+#' Accessor for extracting the kmeans clusters from a DensityModel
+#' instance
+#'
+#' @seealso \code{\link{DensityModel-class}}
+#' @examples
+#' truth <- simulateData(N=2500, p=rep(1/3, 3),
+#'                       theta=c(-1, 0, 1),
+#'                       sds=rep(0.1, 3))
+#' dm <- DensityModel(truth)
+#' clusters(dm)
+#' @export
 setGeneric("clusters", function(object) standardGeneric("clusters"))
 setGeneric("quantiles", function(object) standardGeneric("quantiles"))

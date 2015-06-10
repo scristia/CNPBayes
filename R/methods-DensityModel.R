@@ -135,11 +135,10 @@ setMethod("show", "DensityBatchModel", function(object){
   K <- length(comp)
   cols <- brewer.pal(max(K, 3), "Set1")
   cols <- cols[seq_len(K)]
-  quantiles <- seq(min(y), max(y),  length.out=250)
   drawdens <- function(y, x, col, lwd=1) lines(x, y, col=col, lwd=lwd)
-  mapply(drawdens, y=comp, col=cols, MoreArgs=list(x=quantiles, lwd=2))
+  mapply(drawdens, y=comp, col=cols, MoreArgs=list(x=quantiles(object), lwd=2))
   marg <- overall(object)
-  lines(quantiles, marg, col="black", lwd=1)
+  lines(quantiles(object), marg, col="black", lwd=1)
 }
 
 .plotBatch <- function(x, y, show.batch=TRUE, ...){
@@ -169,7 +168,7 @@ setMethod("show", "DensityBatchModel", function(object){
   }
   mapply(drawdens, y=comp, col=cols, MoreArgs=list(x=quantiles(object), lwd=2))
   marg <- overall(object)
-  lines(quantiles, marg, col="black", lwd=1)
+  lines(quantiles(object), marg, col="black", lwd=1)
 }
 
 dens <- function(x, mean, sd, p1, p2){
@@ -218,9 +217,9 @@ setMethod("plot", "MarginalModel", function(x, y, ...){
   return(object)
 })
 
-setMethod("plot", "BatchModel", function(x, y, ...){
+setMethod("plot", "BatchModel", function(x, y, show.batch=TRUE, ...){
   object <- DensityModel(x)
-  .plotBatch(object, oned(x), ...)
+  .plotBatch(object, oned(x), show.batch, ...)
   return(object)
 })
 
@@ -301,5 +300,7 @@ setMethod("densities", "MarginalModel", function(object){
        clusters=clusters, quantiles=quantiles)
 })
 
+#' @rdname DensityModel-class
+#' @aliases clusters,DensityModel-method
 setMethod("clusters", "DensityModel", function(object) object@clusters)
 setMethod("quantiles", "DensityModel", function(object) object@quantiles)

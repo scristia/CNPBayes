@@ -225,7 +225,7 @@ setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", be
 #' plot(dm, oned(truth))
 #' ## Note that calling plot on a MixtureModel-derived object returns
 #' ## a density object as a side-effect of the plotting
-#' dm2 <- plot(truth)
+#' dm2 <- CNPBayes::plot(truth)
 #' identical(dm, dm2)
 #' ## batch model
 #' k <- 3
@@ -243,10 +243,10 @@ setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", be
 #' dm <- DensityModel(truth)
 #' dm.merged <- DensityModel(truth, merge=TRUE)
 #' print(dm)
-#' dm2 <- plot(truth)
+#' dm2 <- CNPBayes::plot(truth)
 #' identical(dm, dm2)
 #' ## suppress plotting of the batch-specific densities
-#' plot(dm2, oned(truth), show.batch=FALSE)
+#' CNPBayes::plot(dm2, oned(truth), show.batch=FALSE)
 #' @aliases DensityBatchModel-class
 #' @seealso \code{\link{DensityModel}}
 #' @export
