@@ -223,30 +223,10 @@ setMethod("computeVars", "BatchModel", function(object){
   .Call("compute_vars_batch", object)
 })
 
-setMethod("getThetaOrder", "MarginalModel", function(object) order(thetaMean(object)))
-setMethod("getThetaOrder", "BatchModel", function(object){
-  .getThetaOrdering(object)
-})
-
-.getThetaOrdering <- function(object){
-  ##th <- thetaMean(object)
-  th <- matrix(colMeans(thetac(object)), nBatch(object), k(object))
-  ix <- matrix(NA, nBatch(object), k(object))
-  index <- matrix(seq_len(nBatch(object)*k(object)), nBatch(object), k(object))
-  for(j in 1:nrow(th)){
-    ix[j, ] <- order(th[j,])
-    index[j, ] <- index[j, ix[j, ]]
-  }
-  index <- as.numeric(index)
-  index
-}
-
-
 setMethod("initializeSigma2.0", "BatchModel", function(object){
   hypp <- hyperParams(object)
   sum(alpha(hypp)*colMeans(sigma2(object)))/sum(alpha(hypp))
 })
-
 
 setMethod("moveChain", "BatchModel", function(object, s){
   mcmc <- mcmcChains(object)
