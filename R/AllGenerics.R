@@ -258,6 +258,8 @@ setGeneric("iter", function(object) standardGeneric("iter"))
 #' This function retrieves the number of thinning intervals used for an MCMC simulation.
 #' @param object see showMethods(thin)
 #' @export
+#' @docType methods
+#' @rdname thin-method
 setGeneric("thin", function(object) standardGeneric("thin"))
 
 

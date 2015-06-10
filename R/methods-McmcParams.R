@@ -19,6 +19,8 @@ setReplaceMethod("burnin", "McmcParams", function(object,value){
   object
 })
 
+#' @rdname thin-method
+#' @aliases thin,McmcParams-method
 setMethod("thin", "McmcParams", function(object) object@thin)
 
 #' @rdname iter-method
