@@ -78,6 +78,8 @@ setMethod("[", "ModelList", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+#' @rdname y-method
+#' @aliases y,ModelList-method
 setMethod("y", "ModelList", function(object)  object@data )
 
 

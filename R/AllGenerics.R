@@ -132,6 +132,8 @@ setGeneric("sigma2.0", function(object) standardGeneric("sigma2.0"))
 #'
 #' @param object see \code{showMethods(y)}
 #' @export
+#' @docType methods
+#' @rdname y-method
 setGeneric("y", function(object) standardGeneric("y"))
 
 #' @export

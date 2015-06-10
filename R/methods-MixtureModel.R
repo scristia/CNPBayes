@@ -183,6 +183,8 @@ setMethod("updateAlpha", "MixtureModel", function(object){
   alpha(object) + table(z(object))
 })
 
+#' @rdname y-method
+#' @aliases y,MixtureModel-method
 setMethod("y", "MixtureModel", function(object) object@data)
 setMethod("batch", "MixtureModel", function(object) object@batch)
 setMethod("z", "MixtureModel", function(object) object@z)

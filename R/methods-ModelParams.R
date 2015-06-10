@@ -19,6 +19,8 @@ type <- function(object) object@type
 #' @aliases k,ModelParams-method
 setMethod("k", "ModelParams", function(object) object@k)
 
+#' @rdname y-method
+#' @aliases y,ModelParams-method
 setMethod("y", "ModelParams", function(object) object@data)
 
 #' @export
