@@ -171,12 +171,6 @@ setMethod("updateMixProbs", "MixtureModel", function(object){
   .Call("update_p", object)
 })
 
-.updateMix <- function(object){
-  alpha.n <- updateAlpha(object)
-  as.numeric(rdirichlet(1, alpha.n))
-}
-
-
 setMethod("alpha", "MixtureModel", function(object) alpha(hyperParams(object)))
 
 setMethod("updateAlpha", "MixtureModel", function(object){
