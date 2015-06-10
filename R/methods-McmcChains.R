@@ -61,7 +61,7 @@ setMethod("McmcChains", "MixtureModel", function(object){
 }
 
 #' @rdname McmcChains-method
-#' @aliases McmcChains,MixtureModel-method
+#' @aliases McmcChains,BatchModel-method
 setMethod("McmcChains", "BatchModel", function(object){
   .initializeMcmcBatch(object)
 })
