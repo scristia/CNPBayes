@@ -380,25 +380,6 @@ makeUnique <- function(x){
   as.character(abbrv[x])
 }
 
-
-
-HardyWeinberg <- function(object){
-  warning("requires cn inference...")
-  tab <- table(map(object))
-  ##freq <- setNames(table(zz), c("AA", "AB", "BB"))
-  if(length(tab) == 1) return(NA)
-  if(length(tab)==2){
-    tab <- setNames(c(sort(tab, decreasing=TRUE), 0), c("AA", "AB", "BB"))
-  }
-  if(length(tab)==3){
-    tab <- setNames(tab, c("AA", "AB", "BB"))
-  }
-  if(length(tab) > 3){
-    tab <- setNames(tab[1:3], c("AA", "AB", "BB"))
-  }
-  HWChisq(tab)
-}
-
 setMethod("hwe", "MixtureModel", function(object) object@hwe)
 
 #' @export
