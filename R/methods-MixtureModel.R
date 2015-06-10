@@ -273,16 +273,6 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
   post
 }
 
-setMethod("computeMeans", "UnivariateMarginalModel", function(object){
-  median(y(object), na.rm=TRUE)
-})
-
-setMethod("computeVars", "UnivariateMarginalModel", function(object){
-  var(y(object), na.rm=TRUE)
-})
-
-
-
 setReplaceMethod("dataMean", "MixtureModel", function(object, value){
   object@data.mean <- value
   object
