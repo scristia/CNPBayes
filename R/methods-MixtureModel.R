@@ -471,11 +471,6 @@ modalLogLik <- function(object){
   max(logLik(x))
 }
 
-argmaxLogLik <- function(object){
-  x <- mcmcChains(object)
-  which.max(logLik(x))
-}
-
 argMax <- function(object){
   ll <- logLik(chains(object))
   lp <- logPrior(chains(object))
