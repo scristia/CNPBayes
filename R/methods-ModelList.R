@@ -112,6 +112,9 @@ setReplaceMethod("mcmcParams", "ModelList", function(object, value){
 #' @rdname iter-method
 #' @aliases iter,ModelList-method
 setMethod("iter", "ModelList", function(object) sapply(modelList(object), iter))
+
+#' @rdname burnin-method
+#' @aliases burnin,ModelList-method
 setMethod("burnin", "ModelList", function(object) sapply(modelList(object), burnin))
 
 #' @rdname nStarts-method

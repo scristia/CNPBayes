@@ -588,6 +588,9 @@ setReplaceMethod("nStarts", "MixtureModel", function(object, value){
 })
 
 setMethod("thin", "MixtureModel", function(object) thin(mcmcParams(object)))
+
+#' @rdname burnin-method
+#' @aliases burnin,MixtureModel-method
 setMethod("burnin", "MixtureModel", function(object) burnin(mcmcParams(object)))
 
 setReplaceMethod("burnin", "MixtureModel", function(object, value){

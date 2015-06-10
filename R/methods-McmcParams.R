@@ -10,6 +10,8 @@ McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1,
 }
 
 
+#' @rdname burnin-method
+#' @aliases burnin,McmcParams-method
 setMethod("burnin", "McmcParams", function(object)  object@burnin)
 
 setReplaceMethod("burnin", "McmcParams", function(object,value){
