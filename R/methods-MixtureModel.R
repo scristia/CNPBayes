@@ -313,11 +313,6 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
   post
 }
 
-homozygousComponent <- function(y){
-  ##mean(y < -1.5) > 0.005
-  sum(y < -1.5) >= 3
-}
-
 setMethod("computeMeans", "UnivariateMarginalModel", function(object){
   median(y(object), na.rm=TRUE)
 })
