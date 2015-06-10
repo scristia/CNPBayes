@@ -29,7 +29,6 @@ MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
                 batchElements=nbatch,
                 hwe=numeric(),
                 modes=list(),
-                m.y=numeric(1),
                 mcmc.params=mcmc.params)
   object <- startingValues(object)
 }
@@ -63,8 +62,7 @@ UnivariateMarginalModel <- function(data, k=1, batch, hypp){
       ##uniqueBatch=unique(batch),
       batchElements=nbatch,
       hwe=numeric(),
-      modes=list(),
-      m.y=numeric(1))
+      modes=list())
 }
 
 getK <- function(object){

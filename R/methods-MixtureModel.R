@@ -354,7 +354,6 @@ setMethod("fitMixtureModels", "numeric", function(object, mcmcp, K=1:5){
     kk <- K[j]
     params <- ModelParams("marginal", y=object, k=kk, mcmc.params=mp)
     model <- posteriorSimulation(params, mp)
-    ##m.y(model) <- marginalY(model, mp)
     fit[[j]] <- model
   }
   fit
@@ -410,14 +409,6 @@ setReplaceMethod("logLik", "MixtureModel", function(object, value){
   object@loglik <- value
   object
 })
-
-
-setMethod("m.y", "MixtureModel", function(object) object@m.y)
-setReplaceMethod("m.y", "MixtureModel", function(object,value){
-  object@m.y <- value
-  object
-})
-
 
 setMethod("orderTheta", "MixtureModel", function(object) object@theta_order)
 

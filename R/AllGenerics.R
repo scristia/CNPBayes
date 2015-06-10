@@ -272,9 +272,6 @@ setGeneric("posteriorSimulation", function(object) standardGeneric("posteriorSim
 
 setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
 
-setGeneric("m.y", function(object) standardGeneric("m.y"))
-setGeneric("m.y<-", function(object,value) standardGeneric("m.y<-"))
-
 setGeneric("getThetaOrder", function(object) standardGeneric("getThetaOrder"))
 
 setGeneric("updateLabels", function(object) standardGeneric("updateLabels"))

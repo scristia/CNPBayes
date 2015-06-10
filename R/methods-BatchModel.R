@@ -49,8 +49,7 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
              batch=batch[ix],
              batchElements=nbatch,
              hwe=numeric(),
-             theta_order=numeric(B*k),
-             m.y=numeric(1))
+             theta_order=numeric(B*k))
   obj <- startingValues(obj)
   obj <- ensureAllComponentsObserved(obj)
   obj
@@ -113,8 +112,7 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
              mcmc.params=mcmc.params,
              batch=batch[ix],
              batchElements=nbatch,
-             hwe=numeric(),
-             m.y=numeric(1))
+             hwe=numeric())
   obj <- startingValues(obj)
   obj
 }
