@@ -22,7 +22,7 @@ x <- dat[[1]]
 outdir <- "~/Software/CNPData/data"
 model.files <- file.path(outdir, paste0("simulation_easy", seq_len(10 * 4), ".rds"))
 ##set.seed(1100)
-T <- 2000; T2=1000; burnin=1000
+T <- 1000; T2=500; burnin=500; thin <- 5
 results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
 ##for(i in 1:10){
   set.seed(i)
@@ -33,11 +33,12 @@ results <- foreach(i = 1:10, .packages=c("stats", "CNPBayes")) %dopar%{
     it <- (i-1)*4 + k
     xx <- x[, , i, k]
     mns <- rowMeans(xx)
-    pc <- prcomp(xx, center=TRUE, scale.=TRUE)$x[, 1]
+    pc <- prcomp(xx, center=TRUE, scale.=FALSE)$x[, 1]
     if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
     fit <- computeMarginalLik(pc, nchains=3,
                               T=T, T2=T2,
                               burnin=burnin,
+                              thin=thin,
                               K=1:4)
     models <- orderModels(fit)
     if(length(models) == 0){

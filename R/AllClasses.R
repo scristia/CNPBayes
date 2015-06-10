@@ -219,8 +219,8 @@ setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", be
 #' dm.merged <- DensityModel(truth, merge=TRUE)
 #' print(dm.merged)
 #' ## here, because there are 3 distinct modes, specifying merge=TRUE
-#' does not change the resulting object
-#' identical(dm, dm.merged)
+#' ## does not change the resulting clusters
+#' identical(clusters(dm), clusters(dm.merged))
 #' ## These objects can be plotted
 #' plot(dm, oned(truth))
 #' ## Note that calling plot on a MixtureModel-derived object returns
@@ -241,6 +241,7 @@ setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", be
 #'                            sds=sds,
 #'                            p=c(1/5, 1/3, 1-1/3-1/5))
 #' dm <- DensityModel(truth)
+#' dm.merged <- DensityModel(truth, merge=TRUE)
 #' print(dm)
 #' dm2 <- plot(truth)
 #' identical(dm, dm2)
@@ -252,7 +253,8 @@ setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", be
 setClass("DensityModel", representation(component="list",
                                         overall="numeric",
                                         modes="numeric",
-                                        clusters="numeric"))
+                                        clusters="numeric",
+                                        quantiles="numeric"))
 
 #' @export
 setClass("DensityBatchModel", representation(batch="list"), contains="DensityModel")

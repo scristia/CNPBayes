@@ -44,9 +44,8 @@ print(dm)
 dm.merged <- DensityModel(truth, merge=TRUE)
 print(dm.merged)
 ## here, because there are 3 distinct modes, specifying merge=TRUE
-does not change the resulting object
-identical(dm, dm.merged)
-## These objects can be plotted
+## does not change the number of clusters
+identical(clusters(dm), clusters(dm.merged))
 plot(dm, oned(truth))
 ## Note that calling plot on a MixtureModel-derived object returns
 ## a density object as a side-effect of the plotting
