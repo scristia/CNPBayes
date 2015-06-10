@@ -313,11 +313,6 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
   post
 }
 
-
-.class_constructor <- function(class, ...){
-  new(class, ...)
-}
-
 homozygousComponent <- function(y){
   ##mean(y < -1.5) > 0.005
   sum(y < -1.5) >= 3
