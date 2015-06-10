@@ -103,9 +103,11 @@ setGeneric("bic", function(object, ...) standardGeneric("bic"))
 
 #' Retrieve theta.
 #'
-#' This function retrieves theta from an object. Theta is a vector or matrix representing the means of each component distribution.
+#' This function retrieves theta from an object. Theta is a vector or matrix representing the means of each component/batch.
 #' @param object see \code{showMethods(theta)}
 #' @export
+#' @docType methods
+#' @rdname theta-method
 setGeneric("theta", function(object) standardGeneric("theta"))
 
 #' @export

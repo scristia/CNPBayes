@@ -68,6 +68,9 @@ setMethod("McmcChains", "BatchModel", function(object){
 
 setMethod("mu", "McmcChains", function(object) object@mu)
 setMethod("tau2", "McmcChains", function(object) object@tau2)
+
+#' @rdname theta-method
+#' @aliases theta,McmcChains-method
 setMethod("theta", "McmcChains", function(object) object@theta)
 setMethod("sigma2", "McmcChains", function(object) object@sigma2)
 

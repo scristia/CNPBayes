@@ -360,7 +360,8 @@ setReplaceMethod("tau2", "BatchModel", function(object, value){
   object
 })
 
-
+#' @rdname theta-method
+#' @aliases theta,BatchModel-method
 setMethod("theta", "BatchModel", function(object) {
   b <- object@theta
   b <- matrix(b, nBatch(object), k(object))

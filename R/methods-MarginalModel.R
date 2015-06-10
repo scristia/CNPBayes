@@ -204,6 +204,8 @@ setMethod("initializeTheta", "MarginalModel", function(object){
   initializeTheta(k(object))
 })
 
+#' @rdname theta-method
+#' @aliases theta,MarginalModel-method
 setMethod("theta", "MarginalModel", function(object) object@theta)
 
 setMethod("sigma2", "MarginalModel", function(object) object@sigma2)
