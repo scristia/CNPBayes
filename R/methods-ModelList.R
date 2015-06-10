@@ -64,11 +64,6 @@ setMethod("show", "ModelList", function(object){
   cat(" see summary(), modelList()\n")
 })
 
-## setMethod("m.y", "ModelList", function(object){
-##   mylist <- setNames(lapply(modelList(object), m.y), names(object))
-##   mylist
-## })
-
 ## returns another ModelList
 setMethod("[", "ModelList", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
