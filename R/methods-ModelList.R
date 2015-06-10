@@ -53,6 +53,9 @@ setMethod("modelList", "ModelList", function(object) {
 
 setMethod("names", "ModelList", function(x) x@names)
 setMethod("length", "ModelList", function(x) length(modelList(x)))
+
+#' @rdname k-method
+#' @aliases k,ModelList-method
 setMethod("k", "ModelList", function(object) sapply(object@model_list, k))
 
 setMethod("show", "ModelList", function(object){

@@ -6,6 +6,8 @@ NULL
 #' This function retrieves the number of a priori components.
 #' @param object see \code{showMethods(k)}
 #' @export
+#' @docType methods
+#' @rdname k-method
 setGeneric("k", function(object) standardGeneric("k"))
 
 setGeneric("k<-", function(object, value) standardGeneric("k<-"))

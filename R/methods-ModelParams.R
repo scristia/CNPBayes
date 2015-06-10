@@ -15,6 +15,8 @@ ModelParams <- function(type=c("marginal", "batch"),
 
 type <- function(object) object@type
 
+#' @rdname k-method
+#' @aliases k,ModelParams-method
 setMethod("k", "ModelParams", function(object) object@k)
 
 setMethod("y", "ModelParams", function(object) object@data)

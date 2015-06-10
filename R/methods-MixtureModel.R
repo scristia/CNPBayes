@@ -86,6 +86,8 @@ dataSd <- function(object) sqrt(1/dataPrec(object))
 #' @export
 logpotential <- function(object) object@logpotential
 
+#' @rdname k-method
+#' @aliases k,MixtureModel-method
 setMethod("k", "MixtureModel", function(object) object@k)
 
 setReplaceMethod("z", "MixtureModel", function(object, value){
