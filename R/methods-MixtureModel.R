@@ -466,18 +466,11 @@ setReplaceMethod("orderTheta", "MixtureModel", function(object, value) {
   object
 })
 
-modalLogLik <- function(object){
-  x <- mcmcChains(object)
-  max(logLik(x))
-}
-
 argMax <- function(object){
   ll <- logLik(chains(object))
   lp <- logPrior(chains(object))
   which.max(ll + lp)
 }
-
-
 
 setMethod("isMarginalModel", "MarginalModel", function(object) TRUE)
 setMethod("isMarginalModel", "BatchModel", function(object) FALSE)
