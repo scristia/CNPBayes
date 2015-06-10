@@ -469,6 +469,8 @@ setReplaceMethod("modes", "MixtureModel", function(object, value) {
   object
 })
 
+#' @rdname logLik-method
+#' @aliases logLik,MixtureModel-method
 setMethod("logLik", "MixtureModel", function(object){
   object@loglik
 })

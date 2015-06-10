@@ -213,6 +213,8 @@ setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))
 #'
 #' @param object see showMethods(logLik)
 #' @export
+#' @docType methods
+#' @rdname logLik-method
 setGeneric("logLik", function(object) standardGeneric("logLik"))
 
 setGeneric("logLik<-", function(object,value) standardGeneric("logLik<-"))

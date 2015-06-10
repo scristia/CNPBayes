@@ -145,6 +145,8 @@ setReplaceMethod("logLik", "McmcChains", function(object, value){
   object
 })
 
+#' @rdname logLik-method
+#' @aliases logLik,McmcChains-method
 setMethod("logLik", "McmcChains", function(object){
   object@loglik
 })
