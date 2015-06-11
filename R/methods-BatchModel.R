@@ -132,7 +132,7 @@ setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     y(object) <- y(object)[i]
     z(object) <- z(object)[i]
-    batch(objct) <- batch(object)[i]
+    batch(object) <- batch(object)[i]
   }
   object
 })
