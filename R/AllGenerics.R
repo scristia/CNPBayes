@@ -366,6 +366,8 @@ setGeneric("HyperParameterList", function(hypp, K) standardGeneric("HyperParamet
 #' @param mcmcp An object of class 'ModelParams'. Can have varying numbers of iterations, etc for each component size.
 #' @param batch A vector indicating the batches from which each observation came from.
 #' @export
+#' @docType methods
+#' @rdname ModelParamList-method
 setGeneric("ModelParamList", function(hypp, K, data, mcmcp, batch) standardGeneric("ModelParamList"))
 
 setGeneric("runBurnin", function(object, mcmcp) standardGeneric("runBurnin"))
