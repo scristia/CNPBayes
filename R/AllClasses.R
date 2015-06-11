@@ -225,7 +225,12 @@ setClass("ModelParams", representation(type="character",
                                        batch="factor",
                                        mcmc.params="McmcParams"))
 
-
+#' An object to store a list of MarginalModel or BatchModel
+#' 
+#' This class is primarily used internally for calculating the number of components of a mixture. MarginalModelList and BatchModelList inherit from this class depending on the model.
+#' @slot model_list A list of MarginalModel or BatchModel
+#' @slot names The names of each model
+#' @slot data A vector containing the data
 setClass("ModelList", representation(model_list="list", names="character",
                                      data="numeric"))
 
