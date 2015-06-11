@@ -23,7 +23,8 @@ setMethod("k", "ModelParams", function(object) object@k)
 #' @aliases y,ModelParams-method
 setMethod("y", "ModelParams", function(object) object@data)
 
-#' @export
+#' @rdname batch-method
+#' @aliases batch,ModelParams-method
 setMethod("batch", "ModelParams", function(object) object@batch)
 
 N <- function(object) length(y(object))

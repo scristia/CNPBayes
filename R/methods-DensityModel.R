@@ -112,6 +112,9 @@ DensityModel <- function(object, merge=FALSE){
 }
 
 setMethod("component", "DensityModel", function(object) object@component)
+
+#' @rdname batch-method
+#' @aliases batch,DensityModel-method
 setMethod("batch", "DensityModel", function(object) object@batch)
 
 setMethod("overall", "DensityModel", function(object) object@overall)

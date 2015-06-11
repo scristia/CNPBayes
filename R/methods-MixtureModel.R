@@ -193,6 +193,8 @@ setMethod("y", "MixtureModel", function(object) object@data)
 
 setMethod("oned", "MixtureModel", function(object) object@data)
 
+#' @rdname batch-method
+#' @aliases batch,MixtureModel-method
 setMethod("batch", "MixtureModel", function(object) object@batch)
 setMethod("z", "MixtureModel", function(object) object@z)
 

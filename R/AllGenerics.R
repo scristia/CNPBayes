@@ -82,6 +82,14 @@ setGeneric("hist")
 #' @export
 setGeneric("plot")
 
+#' Retrieve batches from object.
+#'
+#' The batches are represented as a vector of integers.
+#' @param object see \code{showMethods(batch)}
+#' @export
+#' @docType methods
+#' @rdname batch-method
+setGeneric("batch", function(object) standardGeneric("batch"))
 setGeneric("batch<-", function(object,value) standardGeneric("batch<-"))
 
 setGeneric("startingValues", function(object, params, zz) standardGeneric("startingValues"))

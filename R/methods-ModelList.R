@@ -80,8 +80,10 @@ setMethod("[", "ModelList", function(x, i, j, ..., drop=FALSE){
 #' @aliases y,ModelList-method
 setMethod("y", "ModelList", function(object)  object@data )
 
-
-## returns MarginalModel or BatchModel
+#' Extract a particular Marginal or BatchModel. 
+#' @aliases [[,ModelList-method
+#' @docType method
+#' @rdname extract-methods
 setMethod("[[", "ModelList", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     yy <- y(x)
@@ -91,6 +93,10 @@ setMethod("[[", "ModelList", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+#' Replace a MarginalModel or BatchModel in a ModelList.
+#' @aliases [[<-,ModelList-method
+#' @docType method
+#' @rdname extract-methods
 setReplaceMethod("[[", c("ModelList"), # "MixtureModel"),
                  function(x, i, j, ..., drop=FALSE, value){
   if(!missing(i)){
