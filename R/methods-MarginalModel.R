@@ -38,6 +38,8 @@ getK <- function(object){
   .Call("getK", hypp)
 }
 
+#' @rdname mu-method
+#' @aliases mu,MarginalModel-method
 #' @export
 setMethod("mu", "MarginalModel", function(object) object@mu)
 

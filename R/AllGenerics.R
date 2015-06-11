@@ -17,6 +17,13 @@ setGeneric("z<-", function(object, value) standardGeneric("z<-"))
 setGeneric("theta<-", function(object, value) standardGeneric("theta<-"))
 setGeneric("sigma2<-", function(object, value) standardGeneric("sigma2<-"))
 setGeneric("p<-", function(object, value) standardGeneric("p<-"))
+
+#' Retrieve overall mean
+#'
+#' @param object see \code{showMethods(mu)}
+#' @export
+#' @docType methods
+#' @rdname mu-method
 setGeneric("mu", function(object) standardGeneric("mu"))
 setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
 setGeneric("tau2", function(object) standardGeneric("tau2"))

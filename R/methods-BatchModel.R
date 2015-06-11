@@ -262,9 +262,8 @@ setMethod("moveChain", "BatchModel", function(object, s){
   mix.probs
 }
 
-
-
-#' @export
+#' @rdname mu-method
+#' @aliases mu,BatchModel-method
 setMethod("mu", "BatchModel", function(object) object@mu)
 
 setReplaceMethod("mu", "BatchModel", function(object, value){
