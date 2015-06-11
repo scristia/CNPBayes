@@ -5,58 +5,54 @@
 \alias{MarginalModel-class}
 \title{The 'MarginalModel' class}
 \description{
-The 'MarginalModel' class
+Run marginal MCMC simulation
 }
 \section{Slots}{
 
 \describe{
 \item{\code{k}}{An integer value specifying the number of latent classes.}
 
-\item{\code{hyperparams}}{An object of class `Hyperparameters` used to specify the hyperparameters of....}
+\item{\code{hyperparams}}{An object of class `Hyperparameters` used to specify the hyperparameters of the model.}
 
-\item{\code{theta}}{A}
+\item{\code{theta}}{the means of each component and batch}
 
-\item{\code{sigma2}}{A}
+\item{\code{sigma2}}{the variances of each component and batch}
 
-\item{\code{nu.0}}{A}
+\item{\code{nu.0}}{the shape parameter for sigma2}
 
-\item{\code{sigma2.0}}{A}
+\item{\code{sigma2.0}}{the rate parameter for sigma2}
 
-\item{\code{pi}}{A}
+\item{\code{pi}}{mixture probabilities which are assumed to be the same for all batches}
 
-\item{\code{mu}}{A}
+\item{\code{mu}}{overall mean}
 
-\item{\code{tau2}}{A}
+\item{\code{tau2}}{overall variance}
 
-\item{\code{data}}{A}
+\item{\code{data}}{the data for the simulation.}
 
-\item{\code{data.mean}}{A}
+\item{\code{data.mean}}{the empirical means of the components}
 
-\item{\code{data.prec}}{A}
+\item{\code{data.prec}}{the empirical precisions}
 
-\item{\code{z}}{A}
+\item{\code{z}}{latent variables}
 
-\item{\code{zfreq}}{A}
+\item{\code{zfreq}}{table of latent variables}
 
-\item{\code{probz}}{A}
+\item{\code{probz}}{n x k matrix of probabilities}
 
-\item{\code{logprior}}{A}
+\item{\code{logprior}}{log likelihood of prior: log(p(sigma2.0)p(nu.0)p(mu))}
 
-\item{\code{loglik}}{A}
+\item{\code{loglik}}{log likelihood: \eqn{\sum p_k \Phi(\theta_k, \sigma_k)}}
 
-\item{\code{mcmc.chains}}{A}
+\item{\code{mcmc.chains}}{an object of class 'McmcChains' to store MCMC samples}
 
-\item{\code{batch}}{A}
+\item{\code{batch}}{a vector of the different batch numbers}
 
-\item{\code{batchElements}}{A}
+\item{\code{batchElements}}{a vector labeling from which batch each observation came from}
 
-\item{\code{hwe}}{A}
+\item{\code{hwe}}{Hardy Weinberg Equilibrium}
 
-\item{\code{modes}}{A}
-
-\item{\code{theta_order}}{A}
-
-\item{\code{m.y}}{A}
+\item{\code{modes}}{the values of parameters from the iteration which maximizes log likelihood and log prior}
 
 \item{\code{mcmc.params}}{An object of class 'McmcParams'}
 }}

@@ -5,12 +5,19 @@ setMethod("densitiesCluster", "BatchModel", function(object){
     object <- useModes(object)
   }
   ix <- order(mu(object))
-  mus <- mu(object)[ix]
-  names(mus) <- ix
-  if(length(mus) > length(modes)){
-    km <- kmeans(mus, centers=modes)$cluster
-    names(km) <- seq_along(mus)
-  } else km <- setNames(seq_along(mus), seq_along(mus))
+  thetas <- mu(object)[ix]
+  names(thetas) <- ix
+  if(length(modes) == 1) {
+    km <- setNames(rep(1, length(thetas)), seq_along(thetas))
+  } else {
+    if(length(thetas) > length(modes)){
+      km <- kmeans(thetas, centers=modes)$cluster
+      names(km) <- seq_along(thetas)
+    } else {
+      ## length modes = length thetas
+      km <- setNames(seq_along(thetas), seq_along(thetas))
+    }
+  }
   nclusters <- length(unique(km))
   batch <- dens[["batch"]]
   batch.list <- split(batch, km)
@@ -18,7 +25,8 @@ setMethod("densitiesCluster", "BatchModel", function(object){
   component <- dens[["component"]]
   component.list <- split(component, km)
   length(component.list) == nclusters
-  component <- lapply(component.list, function(x) do.call("+", x))
+  component <- lapply(component.list, function(x) rowSums(do.call(cbind, x)))
+  ##component <- lapply(component.list, function(x) do.call("+", x))
   ##component <- lapply(component.list, rowSums)
   overall <- rowSums(do.call(cbind, component))
   modes <- findModes(dens$quantiles, overall) ## should be the same
@@ -26,6 +34,8 @@ setMethod("densitiesCluster", "BatchModel", function(object){
        quantiles=dens$quantiles,
        clusters=km)
 })
+
+doKmeans <- function(thetas, modes) length(thetas) > length(modes) && length(modes) > 1
 
 setMethod("densitiesCluster", "MarginalModel", function(object){
   dens <- densities(object)
@@ -36,15 +46,22 @@ setMethod("densitiesCluster", "MarginalModel", function(object){
   ix <- order(theta(object))
   thetas <- theta(object)[ix]
   names(thetas) <- ix
-  if(length(thetas) > length(modes)){
-    km <- kmeans(thetas, centers=modes)$cluster
-    names(km) <- seq_along(thetas)
-  } else km <- setNames(seq_along(thetas), seq_along(thetas))
+  if(length(modes) == 1) {
+    km <- setNames(rep(1, length(thetas)), seq_along(thetas))
+  } else {
+    if(length(thetas) > length(modes)){
+      km <- kmeans(thetas, centers=modes)$cluster
+      names(km) <- seq_along(thetas)
+    } else {
+      ## length modes = length thetas
+      km <- setNames(seq_along(thetas), seq_along(thetas))
+    }
+  }
   nclusters <- length(unique(km))
   component <- dens[["component"]]
   component.list <- split(component, km)
   length(component.list) == nclusters
-  component <- lapply(component.list, function(x) do.call("+", x))
+  component <- lapply(component.list, function(x) rowSums(do.call(cbind, x)))
   overall <- rowSums(do.call(cbind, component))
   modes <- findModes(dens$quantiles, overall) ## should be the same
   list(component=component, overall=overall, modes=modes,

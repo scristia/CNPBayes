@@ -640,8 +640,8 @@ modalLoglik <- function(x) modes(x)[["loglik"]]
 computeMarginalLik <- function(y, batch, K=1:4,
                                T=1000, burnin=200,
                                T2=200,
-                               maxperm=5,
-                               nchains=2,
+                               maxperm=3,
+                               nchains=3,
                                thin=1){
   if(T < T2) stop("T must be >= T2")
   my <- vector("list", length(K))
