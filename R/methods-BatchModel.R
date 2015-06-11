@@ -157,9 +157,8 @@ setMethod("batchCorrect", "BatchModel", function(object){
   ystar[names(yy)]
 })
 
-
-
-
+#' @rdname bic-method
+#' @aliases bic,BatchModel-method
 setMethod("bic", "BatchModel", function(object, ...){
   object <- useModes(object)
   ## K: number of free parameters to be estimated

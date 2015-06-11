@@ -116,6 +116,11 @@ setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
 
 setGeneric("updateWithPosteriorMeans", function(object) standardGeneric("updateWithPosteriorMeans"))
 
+#' Calculate BIC of a model
+#' 
+#' @param object see \code{showMethods(bic)}
+#' @docType methods
+#' @rdname bic-method
 #' @export
 setGeneric("bic", function(object, ...) standardGeneric("bic"))
 

@@ -150,7 +150,8 @@ setReplaceMethod("mu", "MarginalModel", function(object, value){
 ##
 setMethod("initializeMu", "MarginalModel", function(object)   mu(object))
 
-#' @export
+#' @rdname bic-method
+#' @aliases bic,MarginalModel-method
 setMethod("bic", "MarginalModel", function(object, ...){
   object <- useModes(object)
   ## K: number of free parameters to be estimated
