@@ -633,13 +633,11 @@ loglik.normmix <-
   }
 
 setMethod("computeLoglik", "BatchModel", function(object){
-  ##logLikData(object)
   .Call("compute_loglik_batch", object)
 })
 
 
 setMethod("computeLoglik", "MarginalModel", function(object){
-  ##.computeLoglik(object)
   .Call("loglik", object)
 })
 
