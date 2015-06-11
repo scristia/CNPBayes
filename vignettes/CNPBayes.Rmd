@@ -1,0 +1,37 @@
+---
+title: "Bayesian mixture models for copy number estimation"
+author: 
+date: \today
+output: pdf_document
+---
+
+# posteriorSimulation
+
+- McmcParams()
+- Hyperparameters()
+- graphical model
+- MarginalModel
+- BatchModel
+- visualization (DensityModel/plot)
+- merging (if needed)
+
+# K unknown
+
+- computeMarginalLik
+    - Ref Chib estimator / Berkhof for estimating marginal likelihoods
+- computing a bayes factor
+- merging components
+- Alternative statistics for model selection (i.e., BIC)
+
+# Finding CNPs
+- hidden Markov models
+- prior knowledge (HapMap / 1000 Genomes Project)
+
+# Other applications
+- down-sampling 
+- modeling differences in variance (same mean)
+   - paramUpdates
+
+
+
+

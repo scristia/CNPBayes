@@ -230,7 +230,6 @@ setMethod("plot", "DensityModel", function(x, y, ...){
 
 setMethod("plot", "MarginalModel", function(x, y, ...){
   object <- DensityModel(x)
-  .plotMarginal(object, oned(x), ...)
   return(object)
 })
 
