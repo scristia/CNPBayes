@@ -285,6 +285,8 @@ setGeneric("burnin", function(object) standardGeneric("burnin"))
 #' @param object see \code{showMethods("burnin<-")}
 #' @param value new number of burnin iterations
 #' @export
+#' @docType methods
+#' @rdname burnin-method
 setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 
 #' Reset number of iterations.

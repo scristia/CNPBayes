@@ -14,6 +14,8 @@ McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1,
 #' @aliases burnin,McmcParams-method
 setMethod("burnin", "McmcParams", function(object)  object@burnin)
 
+#' @rdname burnin-method
+#' @aliases burnin<-,McmcParams-method
 setReplaceMethod("burnin", "McmcParams", function(object,value){
   object@burnin <- value
   object

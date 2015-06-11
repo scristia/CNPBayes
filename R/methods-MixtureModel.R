@@ -505,6 +505,8 @@ setMethod("thin", "MixtureModel", function(object) thin(mcmcParams(object)))
 #' @aliases burnin,MixtureModel-method
 setMethod("burnin", "MixtureModel", function(object) burnin(mcmcParams(object)))
 
+#' @rdname burnin-method
+#' @aliases burnin<-,MixtureModel-method
 setReplaceMethod("burnin", "MixtureModel", function(object, value){
   burnin(mcmcParams(object)) <- value
   object

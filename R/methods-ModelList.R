@@ -136,6 +136,8 @@ setReplaceMethod("iter", "ModelList", function(object, value){
   object
 })
 
+#' @rdname burnin-method
+#' @aliases burnin<-,ModelList-method
 setReplaceMethod("burnin", "ModelList", function(object, value){
   if(length(value) == length(object)){
     for(i in seq_along(object)){
