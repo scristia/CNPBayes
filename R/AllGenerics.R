@@ -270,6 +270,8 @@ setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 #' @param object see showMethods(nStarts)
 #' @param value new number of chains
 #' @export
+#' @docType methods
+#' @rdname nStarts-method
 setGeneric("nStarts<-", function(object, value) standardGeneric("nStarts<-"))
 
 setGeneric("updateAlpha", function(object) standardGeneric("updateAlpha"))

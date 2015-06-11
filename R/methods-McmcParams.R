@@ -71,6 +71,8 @@ setValidity("McmcParams", function(object){
 #' @aliases nStarts,McmcParams-method
 setMethod("nStarts", "McmcParams", function(object) object@nstarts)
 
+#' @rdname nStarts-method
+#' @aliases nStarts<-,McmcParams-method
 setReplaceMethod("nStarts", "McmcParams", function(object, value){
   object@nstarts <- as.integer(value)
   object

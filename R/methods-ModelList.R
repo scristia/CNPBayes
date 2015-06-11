@@ -160,6 +160,8 @@ setReplaceMethod("burnin", "ModelList", function(object, value){
   object
 })
 
+#' @rdname nStarts-method
+#' @aliases nStarts<-,ModelList-method
 setReplaceMethod("nStarts", "ModelList", function(object, value){
   if(length(value) == length(object)){
     for(i in seq_along(object)){
