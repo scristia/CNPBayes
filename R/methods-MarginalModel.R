@@ -171,6 +171,8 @@ setMethod("initializeTheta", "MarginalModel", function(object){
 #' @aliases theta,MarginalModel-method
 setMethod("theta", "MarginalModel", function(object) object@theta)
 
+#' @rdname sigma2-method
+#' @aliases sigma2,MarginalModel-method
 setMethod("sigma2", "MarginalModel", function(object) object@sigma2)
 
 setMethod("reorderComponents", "MarginalModel", function(object){

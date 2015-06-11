@@ -307,6 +307,8 @@ setReplaceMethod("sigma2", "BatchModel", function(object, value){
   object
 })
 
+#' @rdname sigma2-method
+#' @aliases sigma2,BatchModel-method
 setMethod("sigma2", "BatchModel", function(object) {
   s2 <- object@sigma2
   s2 <- matrix(s2, nBatch(object), k(object))

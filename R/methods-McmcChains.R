@@ -72,6 +72,9 @@ setMethod("tau2", "McmcChains", function(object) object@tau2)
 #' @rdname theta-method
 #' @aliases theta,McmcChains-method
 setMethod("theta", "McmcChains", function(object) object@theta)
+
+#' @rdname sigma2-method
+#' @aliases sigma2,missing-method
 setMethod("sigma2", "McmcChains", function(object) object@sigma2)
 
 setMethod("show", "McmcChains", function(object){

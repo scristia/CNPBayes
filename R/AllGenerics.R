@@ -133,7 +133,13 @@ setGeneric("bic", function(object) standardGeneric("bic"))
 #' @rdname theta-method
 setGeneric("theta", function(object) standardGeneric("theta"))
 
+#' Retrieve the variances of each component and batch distribution
+#'
+#' For a MarginalModel, this function returns a vector of variances. For a BatchModel, returns a matrix of size number of batches by number of components.
+#' @param object see \code{showMethods(sigma2)}
 #' @export
+#' @docType methods
+#' @rdname sigma2-method
 setGeneric("sigma2", function(object) standardGeneric("sigma2"))
 
 setGeneric("reorderComponents", function(object, new_levels) standardGeneric("reorderComponents"))
