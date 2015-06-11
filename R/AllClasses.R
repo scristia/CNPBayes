@@ -250,6 +250,7 @@ setClass("MarginalModelList", contains="ModelList")
 #' @slot data A vector containing the data
 setClass("BatchModelList", contains="ModelList")
 
+## RS: Check this out please!
 setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", berkhof="numeric",
                                             marginal="numeric", delta_marginal="numeric"))
 
