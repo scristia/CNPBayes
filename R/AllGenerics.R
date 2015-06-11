@@ -32,7 +32,7 @@ setGeneric("mcmcChains<-", function(object, value) standardGeneric("mcmcChains<-
 
 #' Retrieve simulated chains from model object.
 #' 
-#' @param object \code{showMethods(object)}
+#' @param object \code{showMethods(mcmcChains)}
 #' @export
 #' @docType methods
 #' @rdname mcmcChains-method
