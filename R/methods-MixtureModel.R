@@ -145,6 +145,8 @@ setReplaceMethod("dat", "MixtureModel", function(object, value) {
   object
 })
 
+#' @rdname mcmcChains-method
+#' @aliases mcmcChains<-,MixtureModel,ANY-method
 setReplaceMethod("mcmcChains", "MixtureModel", function(object, value){
   object@mcmc.chains <- value
   object
