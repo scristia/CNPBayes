@@ -510,6 +510,8 @@ setReplaceMethod("burnin", "MixtureModel", function(object, value){
   object
 })
 
+#' @rdname iter-method
+#' @aliases iter<-,MixtureModel-method
 setReplaceMethod("iter", "MixtureModel", function(object, force=FALSE, value){
   mp <- mcmcParams(object)
   iter(mp) <- value

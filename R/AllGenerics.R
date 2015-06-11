@@ -294,6 +294,8 @@ setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 #' @param force Allow changing of the size of the elements?
 #' @param value new number of iterations
 #' @export
+#' @docType methods
+#' @rdname iter-method
 setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<-"))
 
 #' Number of MCMC iterations.

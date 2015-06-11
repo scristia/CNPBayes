@@ -105,6 +105,8 @@ setReplaceMethod("paramUpdates", "McmcParams", function(x, value){
   x
 })
 
+#' @rdname iter-method
+#' @aliases iter<-,McmcParams-method
 setReplaceMethod("iter", "McmcParams", function(object, force=FALSE, value){
   object@iter <- value
   object

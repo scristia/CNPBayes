@@ -121,6 +121,8 @@ setMethod("burnin", "ModelList", function(object) sapply(modelList(object), burn
 #' @aliases nStarts,ModelList-method
 setMethod("nStarts", "ModelList", function(object) sapply(modelList(object), nStarts))
 
+#' @rdname iter-method
+#' @aliases iter<-,ModelList-method
 setReplaceMethod("iter", "ModelList", function(object, value){
   if(length(value) == length(object)){
     for(i in seq_along(object)){
