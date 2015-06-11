@@ -40,6 +40,8 @@ setValidity("BatchModel", function(object){
   msg
 })
 
+#' @rdname hyperParams-method
+#' @aliases hyperParams,MixtureModel-method
 setMethod("hyperParams", "MixtureModel", function(object) object@hyperparams)
 
 setReplaceMethod("hyperParams", c("MixtureModel", "Hyperparameters"),

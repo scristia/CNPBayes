@@ -46,7 +46,12 @@ setGeneric("mcmcChains", function(object) standardGeneric("mcmcChains"))
 #' @rdname chains-method
 setGeneric("chains", function(object) standardGeneric("chains"))
 
+#' Retried specified hyper parameters from model.
+#'
+#' @param object see \code{showMethods(hyperParams)}
 #' @export
+#' @docType methods
+#' @rdname hyperParams-method
 setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 
 #' @export
