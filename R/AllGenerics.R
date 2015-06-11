@@ -67,6 +67,7 @@ setGeneric("McmcChains", function(object) standardGeneric("McmcChains"))
 
 setGeneric("hist")
 
+## RS: might need some help documenting this one
 #' @export
 setGeneric("plot")
 
