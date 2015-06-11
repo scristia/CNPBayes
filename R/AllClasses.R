@@ -234,6 +234,12 @@ setClass("ModelParams", representation(type="character",
 setClass("ModelList", representation(model_list="list", names="character",
                                      data="numeric"))
 
+#' An object to store a list of MarginalModel
+#' 
+#' This class is primarily used internally for calculating the number of components of a mixture. 
+#' @slot model_list A list of MarginalModel
+#' @slot names The names of each model
+#' @slot data A vector containing the data
 setClass("MarginalModelList", contains="ModelList")
 setClass("BatchModelList", contains="ModelList")
 
