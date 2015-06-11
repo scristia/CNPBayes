@@ -632,12 +632,6 @@ loglik.normmix <-
     return(sum(loglike))
   }
 
-
-## .computeLoglikBatch <- function(object){
-##   ll.data <- logLikData(object)
-##   ll.data
-## }
-
 setMethod("computeLoglik", "BatchModel", function(object){
   ##logLikData(object)
   .Call("compute_loglik_batch", object)
