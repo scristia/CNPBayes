@@ -159,7 +159,7 @@ setMethod("batchCorrect", "BatchModel", function(object){
 
 #' @rdname bic-method
 #' @aliases bic,BatchModel-method
-setMethod("bic", "BatchModel", function(object, ...){
+setMethod("bic", "BatchModel", function(object){
   object <- useModes(object)
   ## K: number of free parameters to be estimated
   ##   - component and batch-specific parameters:  theta, sigma2  ( k(model) * nBatch(model))

@@ -122,7 +122,7 @@ setGeneric("updateWithPosteriorMeans", function(object) standardGeneric("updateW
 #' @docType methods
 #' @rdname bic-method
 #' @export
-setGeneric("bic", function(object, ...) standardGeneric("bic"))
+setGeneric("bic", function(object) standardGeneric("bic"))
 
 #' Retrieve theta.
 #'

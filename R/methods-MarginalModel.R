@@ -152,7 +152,7 @@ setMethod("initializeMu", "MarginalModel", function(object)   mu(object))
 
 #' @rdname bic-method
 #' @aliases bic,MarginalModel-method
-setMethod("bic", "MarginalModel", function(object, ...){
+setMethod("bic", "MarginalModel", function(object){
   object <- useModes(object)
   ## K: number of free parameters to be estimated
   ##   - component-specific parameters:  theta, sigma2   (3 x k(model))
