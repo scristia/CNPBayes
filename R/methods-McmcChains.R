@@ -160,6 +160,8 @@ setMethod("zFreq", "McmcChains", function(object) object@zfreq )
 
 setMethod("z", "McmcChains", function(object) object@z )
 
+#' @rdname logPrior-method
+#' @aliases logPrior,McmcChains-method
 setMethod("logPrior", "McmcChains", function(object) object@logprior)
 
 setReplaceMethod("logPrior", "McmcChains", function(object, value) {

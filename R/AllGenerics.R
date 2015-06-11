@@ -379,7 +379,12 @@ setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
 #' @export
 setGeneric("mcmcParams<-", function(object, force=FALSE, value) standardGeneric("mcmcParams<-"))
 
+#' Calculate log likelihood of prior for model
+#' 
+#' @param object see \code{showMethods(logPrior)}
 #' @export
+#' @docType methods
+#' @rdname logPrior-method
 setGeneric("logPrior", function(object) standardGeneric("logPrior"))
 
 setGeneric("logPrior<-", function(object,value) standardGeneric("logPrior<-"))

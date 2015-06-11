@@ -523,6 +523,8 @@ setReplaceMethod("iter", "MixtureModel", function(object, force=FALSE, value){
   object
 })
 
+#' @rdname logPrior-method
+#' @aliases logPrior,MixtureModel-method
 setMethod("logPrior", "MixtureModel", function(object) object@logprior)
 
 setReplaceMethod("logPrior", "MixtureModel", function(object, value) {
