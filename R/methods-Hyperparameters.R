@@ -170,6 +170,8 @@ setMethod("HyperParameterList", "HyperparametersBatch", function(hypp, K){
   hyplist
 })
 
+#' @rdname ModelParamList-method
+#' @aliases ModelParamList,HyperParametersMarginal-method
 setMethod("ModelParamList", "HyperparametersMarginal", function(hypp, K, data, mcmcp, batch){
   plist <- foreach(k=K) %do% {
     ModelParams("marginal", y=data, k=k,
@@ -178,6 +180,8 @@ setMethod("ModelParamList", "HyperparametersMarginal", function(hypp, K, data, m
   plist
 })
 
+#' @rdname ModelParamList-method
+#' @aliases ModelParamList,HyperParametersBatch-method
 setMethod("ModelParamList", "HyperparametersBatch", function(hypp, K, data, mcmcp, batch){
   plist <- foreach(k=K) %do% {
     ModelParams("batch", y=data, k=k,
