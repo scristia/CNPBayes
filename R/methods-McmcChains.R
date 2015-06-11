@@ -83,6 +83,10 @@ setMethod("show", "McmcChains", function(object){
   cat("    see theta(), sigma2(), p(), ...\n")
 })
 
+#' extract estimated parameters at particular iteration of simulation.
+#' @aliases [,McmcChains-method
+#' @docType method
+#' @rdname extract-methods
 setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     x@theta <- x@theta[i, , drop=FALSE]

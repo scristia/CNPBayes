@@ -38,8 +38,13 @@ setMethod("show", "McmcParams", function(object){
 })
 
 
+#' extract iter, thin, and burnin for a specified instance of McmcParams
+#'
+#' Allows a user to pass a vector for burnin, thin, and iter.
+#' @aliases [,McmcParams-method
+#' @docType method
+#' @rdname extract-methods
 setMethod("[", "McmcParams", function(x, i, j, ..., drop=FALSE){
-  ## allow one to pass a vector for burnin, thin, and iter slots
   if(length(iter(x))==1) return(x)
   if(!missing(i)){
     x@iter <- iter(x)[i]

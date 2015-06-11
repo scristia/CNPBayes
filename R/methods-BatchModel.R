@@ -126,8 +126,10 @@ setValidity("BatchModel", function(object){
   msg
 })
 
-
-
+#' extract data, latent variable, and batch for given observation
+#' @aliases [,BatchModel-method
+#' @docType method
+#' @rdname extract-methods
 setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     y(object) <- y(object)[i]

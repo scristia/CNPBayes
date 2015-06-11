@@ -64,7 +64,10 @@ setMethod("show", "ModelList", function(object){
   cat(" see summary(), modelList()\n")
 })
 
-## returns another ModelList
+#' Extract a particular Marginal or BatchModel but still as class ModelList.
+#' @aliases [,ModelList-method
+#' @docType method
+#' @rdname extract-methods
 setMethod("[", "ModelList", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     x@model_list <- modelList(x)[i]
