@@ -11,23 +11,6 @@ stopif <- function(x) stopifnot(!x)
 
 precision <- function(x) 1/var(x, na.rm=TRUE)
 
-gammaShapeRate <- function(mn, sd){
-  ##shape/rate   = mn (1)
-  ##shape/rate^2 = sd (2)
-  ##shape = mn * rate
-  ##mn * rate / rate^2 = sd
-  ##mn/rate = sd
-  ##mn/sd = rate
-  rate <- mn/sd
-  shape <- mn*rate
-  setNames(c(shape, rate), c("shape", "rate"))
-}
-
-
-
-
-
-
 #' @export
 consensusRegion <- function(g){
   ## Defined the consensus start as the minimum basepair that is

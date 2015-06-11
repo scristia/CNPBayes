@@ -1,42 +1,52 @@
 #' @include AllClasses.R
 
-gammaShapeRate2 <- function(mn, sd){
-  ##1/2*a   = shape
-  ##1/2*a*b = rate
-  ##shape/rate   = mn (1)
-  ##shape/rate^2 = sd (2)
-  ##shape = mn * rate
-  ##mn * rate / rate^2 = sd
-  ##mn/rate = sd
-  ##mn/sd = rate
+.parameterizeGammaByMeanSd <- function(mn, sd){
   rate <- mn/sd
   shape <- mn*rate
-  ##a=shape*2
-  ##1/2*(shape*2)*b = rate
-  ## shape*b=rate
-  ## b=rate/shape
-  a <- shape*2
-  b <- rate/shape
-  setNames(c(a, b), c("a", "b"))
+  setNames(c(shape, rate), c("shape", "rate"))
 }
 
-gammaShapeRate3 <- function(eta.0, m2.0){
-  eta.0 <- 1800/100
-  ##eta.0 <- 180
-  m2.0 <- 1/(60/100)
-  a <- 0.5*eta.0
-  b <- 0.5*eta.0*m2.0
-  x <- rgamma(1000, a, rate=1/b)
-  ##  ##shape/rate   = mn (1)
-  ##  ##shape/rate^2 = sd (2)
-  ##  ##shape = mn * rate
-  ##  ##mn * rate / rate^2 = sd
-  ##  ##mn/rate = sd
-  ##  ##mn/sd = rate
-  ##  rate <- mn/sd
-  ##  shape <- mn*rate
-  ##  setNames(c(shape, rate), c("shape", "rate"))
-  x
+
+#' Quantiles, shape, and rate of the prior for the inverse of tau2 (the precision)
+#'
+#' The precision prior for tau2 in the hiearchical model is given by
+#' gamma(shape, rate). The shape and rate are a function of the
+#' hyperparameters eta.0 and m2.0.  Specifically, shape=1/2*eta.0 and
+#' the rate=1/2*eta.0*m2.0.  Quantiles for this distribution and the
+#' shape and rate can be obtained by specifying the hyperparameters
+#' eta.0 and m2.0, or alternatively by specifying the desired mean and
+#' standard deviation of the precisions.
+#' @return a list with elements 'quantiles', 'eta.0', 'm2.0', 'mean', and 'sd'
+#'
+#'
+#' @examples
+#' results <- qInverseTau2(mn=100, sd=1)
+#' precision.quantiles <- results$quantiles
+#' sd.quantiles <- sqrt(1/precision.quantiles)
+#' results$mean
+#' results$sd
+#' results$eta.0
+#' results$m2.0
+#'
+#' results2 <- qInverseTau2(eta.0=1800, m2.0=100)
+#'
+#' ## Find quantiles from the default set of hyperparameters
+#' hypp <- Hyperparameters(type="batch")
+#' results3 <- qInverseTau2(eta.0(hypp), m2.0(hypp))
+#' default.precision.quantiles <- results3$quantiles
+#' @export
+qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
+  if(!missing(mn) && !missing(sd)){
+    params <- .parameterizeGammaByMeanSd(mn, sd)
+    eta.0 <- params[["shape"]]
+    m2.0 <- params[["rate"]]
+  }
+  shape <- 0.5*eta.0
+  rate <- 0.5*eta.0*m2.0
+  mn <- shape/rate
+  sd <- shape/rate^2
+  x <- qgamma(seq(0, 1, 0.001), shape=shape, rate=rate)
+  list(quantiles=x, eta.0=eta.0, m2.0=m2.0, mean=mn, sd=sd)
 }
 
 HyperparametersBatch <- function(k=0L,
