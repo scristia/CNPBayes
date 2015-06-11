@@ -30,7 +30,12 @@ setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 #' @export
 setGeneric("mcmcChains<-", function(object, value) standardGeneric("mcmcChains<-"))
 
+#' Retrieve simulated chains from model object.
+#' 
+#' @param object \code{showMethods(object)}
 #' @export
+#' @docType methods
+#' @rdname mcmcChains-method
 setGeneric("mcmcChains", function(object) standardGeneric("mcmcChains"))
 
 #' @export
