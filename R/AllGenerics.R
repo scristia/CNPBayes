@@ -181,7 +181,7 @@ setGeneric("fitMixtureModels", function(object, mcmcp, K=1:5, batch) standardGen
 
 #' Retrieve the shape parameter for the sigma.2 distribution.
 #'
-#' @param object see \code{showMethods(y)}
+#' @param object see \code{showMethods(nu.0)}
 #' @export
 #' @docType methods
 #' @rdname y-method
