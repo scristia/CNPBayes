@@ -296,7 +296,7 @@ setGeneric("logLik<-", function(object,value) standardGeneric("logLik<-"))
 #' @export
 #' @docType methods
 #' @rdname computeLoglik-method
-setGeneric("computeLoglik", function(object, psi) standardGeneric("computeLoglik"))
+setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 
 #' Number of burnin iterations.
 #'
