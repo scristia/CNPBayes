@@ -184,7 +184,7 @@ setGeneric("fitMixtureModels", function(object, mcmcp, K=1:5, batch) standardGen
 #' @param object see \code{showMethods(nu.0)}
 #' @export
 #' @docType methods
-#' @rdname y-method
+#' @rdname nu.0-method
 setGeneric("nu.0", function(object) standardGeneric("nu.0"))
 
 #' @export
