@@ -261,6 +261,7 @@ setGeneric("computeDistance", function(object) standardGeneric("computeDistance"
 #' @rdname modes-method
 setGeneric("modes", function(object) standardGeneric("modes"))
 
+## RS: I'm not sure how to document this method, because I'm not sure what to say about the values or what happens when the mode of a model is changed.
 #' @export
 setGeneric("modes<-", function(object,value) standardGeneric("modes<-"))
 
