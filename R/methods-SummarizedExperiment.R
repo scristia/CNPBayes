@@ -88,7 +88,7 @@ saveBatch <- function(se, batch.file, THR=0.1){
 
 
 
-
+## RS: Can you write the documetnation here? I'm not familiar with the SummarizedExperiment class or the package from which it comes.
 #' @export
 setMethod("copyNumber", "SummarizedExperiment", function(object, ...){
   assays(object)[["medr"]]/1000
