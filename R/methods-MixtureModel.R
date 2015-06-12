@@ -177,8 +177,6 @@ setMethod("show", "MixtureModel", function(object){
 })
 
 setMethod("updateMixProbs", "MixtureModel", function(object){
-  ##alpha.n <- updateAlpha(object)
-  ##as.numeric(rdirichlet(1, alpha.n))
   .Call("update_p", object)
 })
 
