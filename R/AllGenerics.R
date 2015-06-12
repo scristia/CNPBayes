@@ -490,11 +490,6 @@ setGeneric("ModelParamList", function(hypp, K, data, mcmcp, batch) standardGener
 setGeneric("runBurnin", function(object, mcmcp) standardGeneric("runBurnin"))
 setGeneric("runMcmc", function(object, mcmcp) standardGeneric("runMcmc"))
 
-#' Change MCMC parameter status.
-#'
-#' This function changes the status of MCMC parameters for a model.
-#' @param object see showMethods("paramUpdates<-")
-#' @param value new MCMC parameter status.
 setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"))
 
 #' Calculates a frequency table of latent variable assigments by observation.
@@ -538,10 +533,6 @@ setGeneric("logPrior<-", function(object,value) standardGeneric("logPrior<-"))
 
 setGeneric("fullGibbs", function(object, mcmcp) standardGeneric("fullGibbs"))
 
-#' MCMC parameter status.
-#'
-#' This function retrieves the status of MCMC parameters for a model.
-#' @param object see showMethods(paramUpdates)
 setGeneric("paramUpdates", function(x) standardGeneric("paramUpdates"))
 
 setGeneric("computePrec", function(object) standardGeneric("computePrec"))
