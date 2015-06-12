@@ -120,6 +120,8 @@ setReplaceMethod("modelList", c("ModelList", "MixtureModel"),
                    object
                  })
 
+#' @rdname mcmcParams-method
+#' @aliases mcmcParams,ModelList-method
 setReplaceMethod("mcmcParams", "ModelList", function(object, value){
   for(i in seq_along(object)){
     mcmcParams(object[[i]]) <- value

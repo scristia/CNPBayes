@@ -567,13 +567,8 @@ setReplaceMethod("paramUpdates", "MixtureModel", function(x, value){
 nu0c <- function(object) nu.0(chains(object))
 sigma20c <- function(object) sigma2.0(chains(object))
 
-##
-## Any update of the mcmc parameters triggers an update of the chains.
-## This is important because it initializes the chains to be of the
-## right size. **An important exception: setting iter to zero or a
-## negative value -does not- trigger an update of the chains -- chains
-## are kept as is
-##
+#' @rdname mcmcParams-method
+#' @aliases mcmcParams,MixtureModel-method
 setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=FALSE, value){
   it <- iter(object)
   if(it != iter(value)){

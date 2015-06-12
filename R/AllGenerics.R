@@ -490,7 +490,15 @@ setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 #' @rdname mcmcParams-method
 setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
 
+#' Replace MCMC parameters of model.
+#'
+#' Replace number of iterations, burnin, etc. Any update of the MCMC parameters will trigger an update of the chains. However, if iter (the number of MCMC iterations) is set to a nonpositive value, the chains will not be updated and kept as is.
+#' @param object see \code{showMethods(mcmcParams)}
+#' @param force logical value. If false (default) the update will not proceed.
+#' @param value an object of class 'McmcParams' containing the new number of iterations, etc.
 #' @export
+#' @docType methods
+#' @rdname mcmcParams-method
 setGeneric("mcmcParams<-", function(object, force=FALSE, value) standardGeneric("mcmcParams<-"))
 
 #' Calculate log likelihood of prior for model
