@@ -231,7 +231,7 @@ findModes <- function(quantiles, x){ ##quantiles, density
   modes
 }
 
-
+## RS: Can you document the plot methods?
 setMethod("plot", "DensityModel", function(x, y, ...){
   .plotMarginal(x, y, ...)
 })
