@@ -191,7 +191,6 @@ setGeneric("sigma2.0", function(object) standardGeneric("sigma2.0"))
 #' @export
 #' @docType methods
 #' @rdname y-method
-#' @export
 setGeneric("y", function(object) standardGeneric("y"))
 
 
