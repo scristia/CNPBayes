@@ -231,6 +231,7 @@ setGeneric("oned", function(object) standardGeneric("oned"))
 #' Retrieve latent variable assignments.
 #'
 #' Retrieves the simulated latent variable assignments of each observation at each MCMC simulation.
+#' @param z see \code{showMethods(z)}
 #' @export
 #' @docType methods
 #' @rdname z-method
