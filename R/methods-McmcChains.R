@@ -114,6 +114,8 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
 #' @aliases nu.0,McmcChains-method
 setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 
+#' @rdname sigma2.0-method
+#' @aliases sigma2.0,McmcChains-method
 setMethod("sigma2.0", "McmcChains", function(object) object@sigma2.0)
 
 setReplaceMethod("theta", "McmcChains", function(object, value){
