@@ -539,6 +539,7 @@ setGeneric("paramUpdates", function(x) standardGeneric("paramUpdates"))
 
 setGeneric("computePrec", function(object) standardGeneric("computePrec"))
 
+## RS: Can you document the marginal method?
 #' @export
 setGeneric("marginal", function(object, batch, mcmc.params, K=1:4, maxperm=5, ...)
   standardGeneric("marginal"))
