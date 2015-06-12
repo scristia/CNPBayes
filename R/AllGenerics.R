@@ -287,7 +287,14 @@ setGeneric("sigmaMean", function(object) standardGeneric("sigmaMean"))
 #' @rdname pMean-method
 setGeneric("pMean", function(object) standardGeneric("pMean"))
 
+#' Create a trace plot of a parameter estimated by MCMC.
+#'
+#' @param object see \code{showMethods(tracePlot)}
+#' @param name the name of the parameter for which to plot values. Can be 'theta', 'sigma', 'p', 'mu', or 'tau'.
+#' @param ... Other argument to pass to plot.
 #' @export
+#' @docType methods
+#' @rdname tracePlot-method
 setGeneric("tracePlot", function(object, name, ...) standardGeneric("tracePlot"))
 
 setGeneric("tablez", function(object) standardGeneric("tablez"))

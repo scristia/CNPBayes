@@ -1,3 +1,5 @@
+#' @rdname tracePlot-method
+#' @aliases tracePlot,BatchModel-method
 setMethod("tracePlot", "BatchModel", function(object, name, ...){
   j <- NULL
   ilist <- foreach(j=1:nBatch(object)) %do% seq(j, nBatch(object)*k(object), nBatch(object))
