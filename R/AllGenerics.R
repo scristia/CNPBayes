@@ -49,6 +49,7 @@ setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 #' @rdname mcmcChains-method
 setGeneric("mcmcChains<-", function(object, value) standardGeneric("mcmcChains<-"))
 
+## RS: Can you take a look at this documentation? I've documented the generic (and replacement generic) and added rdname and aliases to the methods, but I'm still getting warning for undocumented S4 methods. Any ideas?
 #' Retrieve simulated chains from model object.
 #' 
 #' @param object \code{showMethods(mcmcChains)}
