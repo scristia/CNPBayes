@@ -5,37 +5,25 @@ setMethod("tracePlot", "BatchModel", function(object, name, ...){
   ilist <- foreach(j=1:nBatch(object)) %do% seq(j, nBatch(object)*k(object), nBatch(object))
   uB <- uniqueBatch(object)
   if(name=="theta"){
-    ##op <- par(mfrow=c(3, 3), las=1)
     foreach(k=1:nBatch(object)) %do% {
       plot.ts(thetac(object)[, ilist[[k]]], ylab="", xlab="",
               plot.type="single", main=uB[k], ...)
     }
-    ##par(op)
   }
   if(name=="sigma"){
-    ##op <- par(mfrow=c(nBatch(object)/3, 3), las=1)
     foreach(k=1:nBatch(object)) %do% {
       plot.ts(sigmac(object)[, ilist[[k]]], ylab="", xlab="",
               plot.type="single", main=uB[k],...)
     }
-    ##par(op)
   }
   if(name=="p"){
-    ##op <- par(mfrow=c(1, k(object)), las=1)
-    ##foreach(k=1:nBatch(object)) %do% {
     plot.ts(pic(object),  ...)
-    ##plot.ts(pic(object), col="gray", ...)
-    ##par(op)
   }
   if(name=="mu"){
-    ##op <- par(mfrow=c(1, k(object)), las=1)
     plot.ts(muc(object),  ...)
-    ##par(op)
   }
   if(name=="tau"){
-    ##op <- par(mfrow=c(1, k(object)), las=1)
     plot.ts(tauc(object),  ...)
-    ##par(op)
   }
 })
 
