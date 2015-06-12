@@ -52,6 +52,11 @@ setMethod("modelList", "ModelList", function(object) {
 })
 
 setMethod("names", "ModelList", function(x) x@names)
+
+#' Retrieve the number of Marginal or BatchModels contained.
+#' @aliases length,ModelList-method
+#' @docType methods
+#' @rdname length-methods
 setMethod("length", "ModelList", function(x) length(modelList(x)))
 
 #' @rdname k-method
