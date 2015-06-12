@@ -396,7 +396,6 @@ setGeneric("burnin", function(object) standardGeneric("burnin"))
 #' Reset number of burnin iterations.
 #'
 #' This function changes the number of burnin simulations to be discarded.
-#' @param object see \code{showMethods("burnin<-")}
 #' @param value new number of burnin iterations
 #' @export
 #' @docType methods
