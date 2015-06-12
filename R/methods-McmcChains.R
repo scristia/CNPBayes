@@ -160,6 +160,10 @@ setMethod("logLik", "McmcChains", function(object){
   object@loglik
 })
 
+#' Retrieve the names of the parameters estimated in the MCMC chain.
+#' @aliases names,McmcChains-method
+#' @docType methods
+#' @rdname names-methods
 setMethod("names", "McmcChains", function(x) slotNames(x))
 
 setMethod("zFreq", "McmcChains", function(object) object@zfreq )
