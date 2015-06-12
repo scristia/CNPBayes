@@ -108,6 +108,11 @@ setValidity("Hyperparameters", function(object){
   msg
 })
 
+#' Create an object of class 'Hyperparameters'
+#'
+#' @param type specifies 'marginal' or 'batch'
+#' @param k number of components
+#' @param ... optional parameters, i.e. mu.0, tau2.0, eta.0, etc.
 #' @export
 Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="marginal") return(HyperparametersMarginal(k, ...))
