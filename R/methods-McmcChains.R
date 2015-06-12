@@ -168,6 +168,7 @@ setMethod("logLik", "McmcChains", function(object){
 })
 
 #' Retrieve the names of the parameters estimated in the MCMC chain.
+#' @param x an object of class 'McmcChains'
 #' @aliases names,McmcChains-method
 #' @docType methods
 #' @rdname names-methods
