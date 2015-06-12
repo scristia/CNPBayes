@@ -273,8 +273,8 @@ computeLogLikForRandomStarts <- function(seed, params, hypp,
   logLikData(model)
 }
 
-
-
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", "MixtureModel", function(object){
   .posteriorSimulation(object)
 })

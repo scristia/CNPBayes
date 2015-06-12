@@ -361,7 +361,13 @@ setGeneric("iter", function(object) standardGeneric("iter"))
 setGeneric("thin", function(object) standardGeneric("thin"))
 
 
+#' Run the MCMC simulation.
+#'
+#' nStarts chains are run. b burnin iterations are run and then discarded. Next, s iterations are run in each train. The mode of the MCMC simulation is also calculated.
+#' @param object see showMethods(posteriorSimulation)
 #' @export
+#' @docType methods
+#' @rdname posteriorSimulation-method
 setGeneric("posteriorSimulation", function(object) standardGeneric("posteriorSimulation"))
 
 setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
