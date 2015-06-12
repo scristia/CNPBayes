@@ -66,8 +66,8 @@ setMethod("McmcChains", "BatchModel", function(object){
   .initializeMcmcBatch(object)
 })
 
-#' @rdname logLik-method
-#' @aliases logLik,McmcChains-method
+#' @rdname mu-method
+#' @aliases mu,McmcChains-method
 setMethod("mu", "McmcChains", function(object) object@mu)
 
 #' @rdname tau2-method
