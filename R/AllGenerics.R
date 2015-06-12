@@ -76,7 +76,6 @@ setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 
 #' Replace hyper paramaters of model.
 #'
-#' @param object see \code{showMethods(hyperParams)}
 #' @param value an object of class 'Hyperparameters'
 #' @export
 #' @docType methods
