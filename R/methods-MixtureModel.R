@@ -516,6 +516,8 @@ setMethod("iter", "MixtureModel", function(object) iter(mcmcParams(object)))
 #' @aliases nStarts,MixtureModel-method
 setMethod("nStarts", "MixtureModel", function(object) nStarts(mcmcParams(object)))
 
+#' @rdname nStarts-method
+#' @aliases nStarts<-,MixtureModel-method
 setReplaceMethod("nStarts", "MixtureModel", function(object, value){
   mcmcParams(object)@nstarts <- as.integer(value)
   object
