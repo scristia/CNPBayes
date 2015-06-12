@@ -120,6 +120,8 @@ setMethod("batch", "DensityModel", function(object) object@batch)
 setMethod("overall", "DensityModel", function(object) object@overall)
 setMethod("modes", "DensityModel", function(object) object@modes)
 
+#' @rdname k-method
+#' @aliases k,DensityModel-method
 setMethod("k", "DensityModel", function(object) length(component(object)))
 
 setMethod("show", "DensityModel", function(object){
