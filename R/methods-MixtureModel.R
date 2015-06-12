@@ -420,6 +420,8 @@ tauc <- function(object) sqrt(tau2(mcmcChains(object)))
 #' @export
 tauMean <- function(object) colMeans(tauc(object))
 
+#' @rdname modes-method
+#' @aliases modes,MixtureModel-method
 setMethod("modes", "MixtureModel", function(object) object@modes)
 
 setReplaceMethod("modes", "MixtureModel", function(object, value) {
