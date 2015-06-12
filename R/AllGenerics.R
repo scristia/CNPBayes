@@ -290,7 +290,12 @@ setGeneric("logLik", function(object) standardGeneric("logLik"))
 
 setGeneric("logLik<-", function(object,value) standardGeneric("logLik<-"))
 
+#' Compute log likelihood for a BatchModel or MarginalModel
+#'
+#' @param object see \code{showMethods(computeLoglik)}
 #' @export
+#' @docType methods
+#' @rdname computeLoglik-method
 setGeneric("computeLoglik", function(object, psi) standardGeneric("computeLoglik"))
 
 #' Number of burnin iterations.

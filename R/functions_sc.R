@@ -632,11 +632,14 @@ loglik.normmix <-
     return(sum(loglike))
   }
 
+#' @rdname computeLoglik-method
+#' @aliases computeLoglik,BatchModel-method
 setMethod("computeLoglik", "BatchModel", function(object){
   .Call("compute_loglik_batch", object)
 })
 
-
+#' @rdname computeLoglik-method
+#' @aliases computeLoglik,BatchModel-method
 setMethod("computeLoglik", "MarginalModel", function(object){
   .Call("loglik", object)
 })
