@@ -344,7 +344,7 @@ setGeneric("tablez", function(object) standardGeneric("tablez"))
 #' Number of MCMC chains.
 #'
 #' This function retrieves the number of chains used for an MCMC simulation.
-#' @param object see showMethods(nStarts)
+#' @param object see \code{showMethods(nStarts)}
 #' @export
 #' @docType methods
 #' @rdname nStarts-method
@@ -353,7 +353,6 @@ setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 #' Reset number of MCMC chains in simulation.
 #'
 #' This function changes the number of chains used for an MCMC simulation.
-#' @param object see showMethods(nStarts)
 #' @param value new number of chains
 #' @export
 #' @docType methods
