@@ -43,7 +43,8 @@ getK <- function(object){
 #' @export
 setMethod("mu", "MarginalModel", function(object) object@mu)
 
-#' @export
+#' @rdname tau2-method
+#' @aliases tau2,MarginalModel-method
 setMethod("tau2", "MarginalModel", function(object) object@tau2)
 
 ## compute p(theta) * p(y | theta)

@@ -26,6 +26,13 @@ setGeneric("p<-", function(object, value) standardGeneric("p<-"))
 #' @rdname mu-method
 setGeneric("mu", function(object) standardGeneric("mu"))
 setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
+
+#' Retrieve overall variance across components/batches.
+#'
+#' @param object see \code{showMethods(tau2)}
+#' @export
+#' @docType methods
+#' @rdname tau2-method
 setGeneric("tau2", function(object) standardGeneric("tau2"))
 setGeneric("tau2<-", function(object, value) standardGeneric("tau2<-"))
 setGeneric("nu.0<-", function(object, value) standardGeneric("nu.0<-"))

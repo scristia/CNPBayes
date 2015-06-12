@@ -335,7 +335,8 @@ setMethod("sigmaMean", "BatchModel", function(object) {
   mns
 })
 
-#' @export
+#' @rdname tau2-method
+#' @aliases tau2,BatchModel-method
 setMethod("tau2", "BatchModel", function(object) object@tau2)
 
 setReplaceMethod("tau2", "BatchModel", function(object, value){
