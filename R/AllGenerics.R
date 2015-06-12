@@ -179,7 +179,12 @@ setGeneric("reorderComponents", function(object, new_levels) standardGeneric("re
 
 setGeneric("hwe", function(object) standardGeneric("hwe"))
 
+#' Retrieve the probability of latent variable membership by observation.
+#'
+#' @param object see \code{showMethods(probz)}
 #' @export
+#' @docType methods
+#' @rdname probz-method
 setGeneric("probz", function(object) standardGeneric("probz"))
 
 setGeneric("probz<-", function(object, value) standardGeneric("probz<-"))

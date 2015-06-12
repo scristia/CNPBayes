@@ -225,6 +225,8 @@ setReplaceMethod("probz", "MixtureModel", function(object, value){
   object
 })
 
+#' @rdname probz-method
+#' @aliases probz,MixtureModel-method
 setMethod("probz", "MixtureModel", function(object) {
   object@probz/iter(object)
 })
