@@ -1,3 +1,8 @@
+#' Create an object for running marginal MCMC simulations.
+#' @slot data the data for the simulation.
+#' @slot k An integer value specifying the number of latent classes.
+#' @slot hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @slot mcmc.params An object of class 'McmcParams'
 #' @export
 MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
   batch <- rep(1L, length(data))
