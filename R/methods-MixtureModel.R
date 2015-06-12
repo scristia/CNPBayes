@@ -313,8 +313,14 @@ setMethod("tau2.0", "Hyperparameters", function(object) object@tau2.0)
 
 tau.0 <- function(object) sqrt(tau2.0(object))
 
+#' @rdname eta.0-method
+#' @aliases eta.0,MixtureModel-method
 setMethod("eta.0", "MixtureModel", function(object) eta.0(hyperParams(object)))
+
+#' @rdname eta.0-method
+#' @aliases eta.0,Hyperparameters-method
 setMethod("eta.0", "Hyperparameters", function(object) object@eta.0)
+
 setMethod("m2.0", "MixtureModel", function(object) m2.0(hyperParams(object)))
 setMethod("m2.0", "Hyperparameters", function(object) object@m2.0)
 

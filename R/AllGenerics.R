@@ -254,6 +254,13 @@ setGeneric("modes<-", function(object,value) standardGeneric("modes<-"))
 
 setGeneric("mu.0", function(object) standardGeneric("mu.0"))
 setGeneric("tau2.0", function(object) standardGeneric("tau2.0"))
+
+#' Retrieve the rate parameter for the tau2 distribution.
+#'
+#' @param object see \code{showMethods(eta.0)}
+#' @export
+#' @docType methods
+#' @rdname eta.0-method
 setGeneric("eta.0", function(object) standardGeneric("eta.0"))
 setGeneric("eta.0<-", function(object,value) standardGeneric("eta.0<-"))
 setGeneric("m2.0", function(object) standardGeneric("m2.0"))
