@@ -406,6 +406,9 @@ logLikc <- function(object) logLik(mcmcChains(object))
 #' @export
 sigmac <- function(object) sigma(mcmcChains(object))
 
+#' Retrieve mixture proportions at each iteration of the MCMC.
+#'
+#' @param object an object of class MarginalModel or BatchModel
 #' @export
 pic <- function(object) p(mcmcChains(object))
 
