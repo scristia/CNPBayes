@@ -282,6 +282,8 @@ setReplaceMethod("p", "BatchModel", function(object, value){
   object
 })
 
+#' @rdname pMean-method
+#' @aliases pMean,BatchModel-method
 setMethod("pMean", "BatchModel", function(object) {
   mns <- colMeans(pic(object))
   mns

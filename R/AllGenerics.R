@@ -256,7 +256,12 @@ setGeneric("thetaMean", function(object) standardGeneric("thetaMean"))
 #' @export
 setGeneric("sigmaMean", function(object) standardGeneric("sigmaMean"))
 
+#' Calculate mean mixture proportion of components.
+#'
+#' @param object see showMethods(pMean)
 #' @export
+#' @docType methods
+#' @rdname pMean-method
 setGeneric("pMean", function(object) standardGeneric("pMean"))
 
 #' @export

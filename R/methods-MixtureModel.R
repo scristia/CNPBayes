@@ -387,6 +387,8 @@ sigmac <- function(object) sigma(mcmcChains(object))
 #' @export
 pic <- function(object) p(mcmcChains(object))
 
+#' @rdname pMean-method
+#' @aliases pMean,MixtureModel-method
 setMethod("pMean", "MixtureModel", function(object){
   colMeans(pic(object))
 })
