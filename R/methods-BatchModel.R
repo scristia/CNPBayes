@@ -326,7 +326,8 @@ setMethod("tablez", "BatchModel", function(object){
   tab[uniqueBatch(object), , drop=FALSE]
 })
 
-
+#' @rdname sigmaMean-method
+#' @aliases sigmaMean,BatchModel-method
 setMethod("sigmaMean", "BatchModel", function(object) {
   mns <- colMeans(sigmac(object))
   mns <- matrix(mns, nBatch(object), k(object))

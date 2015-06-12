@@ -258,7 +258,13 @@ setGeneric("thetac", function(object) standardGeneric("thetac"))
 
 setGeneric("thetaMean", function(object) standardGeneric("thetaMean"))
 
+#' Calculate mean variance of each component/batch.
+#'
+#' Mean is taken across simulated MCMC chain.
+#' @param object see \code{showMethods(sigmaMean)}
 #' @export
+#' @docType methods
+#' @rdname sigmaMean-method
 setGeneric("sigmaMean", function(object) standardGeneric("sigmaMean"))
 
 #' Calculate mean mixture proportion of components.

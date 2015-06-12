@@ -376,6 +376,8 @@ setMethod("thetac", "MixtureModel", function(object) theta(mcmcChains(object)))
 
 setMethod("thetaMean", "MixtureModel", function(object) colMeans(thetac(object)))
 
+#' @rdname sigmaMean-method
+#' @aliases sigmaMean,MixtureModel-method
 setMethod("sigmaMean", "MixtureModel", function(object) colMeans(sigmac(object)))
 
 logpotentialc <- function(object) logpotential(mcmcChains(object))
