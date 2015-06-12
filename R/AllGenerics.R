@@ -223,7 +223,12 @@ setGeneric("y", function(object) standardGeneric("y"))
 #' @export
 setGeneric("oned", function(object) standardGeneric("oned"))
 
+#' Retrieve latent variable assignments.
+#'
+#' Retrieves the simulated latent variable assignments of each observation at each MCMC simulation.
 #' @export
+#' @docType methods
+#' @rdname z-method
 setGeneric("z", function(object) standardGeneric("z"))
 
 setGeneric("modalParameters", function(object) standardGeneric("modalParameters"))

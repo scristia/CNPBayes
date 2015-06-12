@@ -200,6 +200,9 @@ setMethod("oned", "MixtureModel", function(object) object@data)
 #' @rdname batch-method
 #' @aliases batch,MixtureModel-method
 setMethod("batch", "MixtureModel", function(object) object@batch)
+
+#' @rdname z-method
+#' @aliases z,MixtureModel-method
 setMethod("z", "MixtureModel", function(object) object@z)
 
 setMethod("computePrec", "MarginalModel", function(object){

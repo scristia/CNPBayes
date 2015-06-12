@@ -175,6 +175,8 @@ setMethod("names", "McmcChains", function(x) slotNames(x))
 
 setMethod("zFreq", "McmcChains", function(object) object@zfreq )
 
+#' @rdname z-method
+#' @aliases z,McmcChains-method
 setMethod("z", "McmcChains", function(object) object@z )
 
 #' @rdname logPrior-method
