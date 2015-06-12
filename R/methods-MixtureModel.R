@@ -195,6 +195,8 @@ setMethod("updateAlpha", "MixtureModel", function(object){
 #' @aliases y,MixtureModel-method
 setMethod("y", "MixtureModel", function(object) object@data)
 
+#' @rdname oned-method
+#' @aliases oned,MixtureModel-method
 setMethod("oned", "MixtureModel", function(object) object@data)
 
 #' @rdname batch-method
