@@ -83,6 +83,9 @@ sigma.0 <- function(object) sqrt(sigma2.0(object))
 
 
 
+#' Retrieve mixture proportions.
+#'
+#' @param object an object of class MarginalModel or BatchModel
 #' @export
 p <- function(object) object@pi
 
