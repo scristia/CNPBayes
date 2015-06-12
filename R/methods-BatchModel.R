@@ -214,6 +214,8 @@ setMethod("computePrec", "BatchModel", function(object){
   modes
 }
 
+#' @rdname computeModes-method
+#' @aliases computeModes,BatchModel-method
 setMethod("computeModes", "BatchModel", function(object){
   .computeModesBatch(object)
 })

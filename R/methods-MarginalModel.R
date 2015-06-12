@@ -337,6 +337,8 @@ setMethod("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
   modes
 }
 
+#' @rdname computeModes-method
+#' @aliases computeModes,MarginalModel-method
 setMethod("computeModes", "MarginalModel", function(object){
   .computeModesMarginal(object)
 })

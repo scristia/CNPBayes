@@ -212,7 +212,12 @@ setGeneric("z", function(object) standardGeneric("z"))
 
 setGeneric("modalParameters", function(object) standardGeneric("modalParameters"))
 
+#' Calculates the modes for each of the parameters estimated by a model.
+#'
+#' @param object see \code{showMethods(computeModes)}
 #' @export
+#' @docType methods
+#' @rdname computeModes-method
 setGeneric("computeModes", function(object) standardGeneric("computeModes"))
 
 setGeneric("switchLabels", function(object) standardGeneric("switchLabels"))
