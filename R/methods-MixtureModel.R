@@ -418,6 +418,9 @@ setMethod("pMean", "MixtureModel", function(object){
   colMeans(pic(object))
 })
 
+#' Retrieve overall mean at each iteration of the MCMC.
+#'
+#' @param object an object of class MarginalModel or BatchModel
 #' @export
 muc <- function(object) mu(mcmcChains(object))
 
