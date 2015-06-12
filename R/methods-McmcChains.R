@@ -173,6 +173,8 @@ setMethod("logLik", "McmcChains", function(object){
 #' @rdname names-methods
 setMethod("names", "McmcChains", function(x) slotNames(x))
 
+#' @rdname zfreq-method
+#' @aliases zfreq,McmcChains-method
 setMethod("zFreq", "McmcChains", function(object) object@zfreq )
 
 #' @rdname z-method

@@ -457,7 +457,12 @@ setGeneric("runMcmc", function(object, mcmcp) standardGeneric("runMcmc"))
 #' @param value new MCMC parameter status.
 setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"))
 
+#' Calculates a frequency table of latent variable assigments by observation.
+#'
+#' @param object see \code{showMethods(zfreq)}
 #' @export
+#' @docType methods
+#' @rdname zfreq-method
 setGeneric("zFreq", function(object) standardGeneric("zFreq"))
 setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 

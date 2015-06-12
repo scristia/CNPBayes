@@ -491,7 +491,8 @@ restartAtChainIndex <- function(model, index){
   model
 }
 
-
+#' @rdname zfreq-method
+#' @aliases zfreq,MixtureModel-method
 setMethod("zFreq", "MixtureModel", function(object) object@zfreq)
 
 setReplaceMethod("zFreq", "MixtureModel", function(object, value){
