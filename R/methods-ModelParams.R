@@ -1,3 +1,10 @@
+#' Create an object of class 'ModelParams' to specify data, parameters, etc.
+#'
+#' @param type marginal or batch
+#' @param y the data
+#' @param k the number of components
+#' @param batch a vector specifying batch labels
+#' @param mcmc.params an object of class 'McmcParams'
 #' @export
 ModelParams <- function(type=c("marginal", "batch"),
                         y=numeric(),
