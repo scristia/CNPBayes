@@ -424,6 +424,9 @@ setMethod("pMean", "MixtureModel", function(object){
 #' @export
 muc <- function(object) mu(mcmcChains(object))
 
+#' Retrieve overall mean averaged across MCMC simulations.
+#'
+#' @param object an object of class MarginalModel or BatchModel
 #' @export
 muMean <- function(object) colMeans(muc(object))
 
