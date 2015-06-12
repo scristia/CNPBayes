@@ -1,3 +1,10 @@
+#' Create an object of class 'McmcParams' to specify iterations, burnin, etc.
+#'
+#' @param iter number of iterations
+#' @param burnin number of burnin iterations
+#' @param thin thinning interval
+#' @param nStarts number of chains to run
+#' @param param_updates labeled vector specifying whether each parameter is to be updated (1) or not (0).
 #' @export
 McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1,
                        param_updates=.param_updates()){
