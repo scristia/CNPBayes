@@ -1,3 +1,9 @@
+#' Create an object for running hierarchical MCMC simulations.
+#' @slot data the data for the simulation.
+#' @slot k An integer value specifying the number of latent classes.
+#' @slot batch a vector of the different batch numbers
+#' @slot hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @slot mcmc.params An object of class 'McmcParams'
 #' @export
 BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
   if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
