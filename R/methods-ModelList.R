@@ -66,7 +66,7 @@ setMethod("show", "ModelList", function(object){
 
 #' Extract a particular Marginal or BatchModel but still as class ModelList.
 #' @aliases [,ModelList-method
-#' @docType method
+#' @docType methods
 #' @rdname extract-methods
 setMethod("[", "ModelList", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
@@ -82,7 +82,7 @@ setMethod("y", "ModelList", function(object)  object@data )
 
 #' Extract a particular Marginal or BatchModel. 
 #' @aliases [[,ModelList-method
-#' @docType method
+#' @docType methods
 #' @rdname extract-methods
 setMethod("[[", "ModelList", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
