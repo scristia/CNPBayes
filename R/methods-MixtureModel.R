@@ -320,7 +320,12 @@ setMethod("eta.0", "MixtureModel", function(object) eta.0(hyperParams(object)))
 #' @aliases eta.0,Hyperparameters-method
 setMethod("eta.0", "Hyperparameters", function(object) object@eta.0)
 
+#' @rdname m2.0-method
+#' @aliases m2.0,MixtureModel-method
 setMethod("m2.0", "MixtureModel", function(object) m2.0(hyperParams(object)))
+
+#' @rdname m2.0-method
+#' @aliases m2.0,Hyperparameters-method
 setMethod("m2.0", "Hyperparameters", function(object) object@m2.0)
 
 setReplaceMethod("eta.0", "MixtureModel", function(object, value){

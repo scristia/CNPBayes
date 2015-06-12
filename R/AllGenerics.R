@@ -274,7 +274,15 @@ setGeneric("tau2.0", function(object) standardGeneric("tau2.0"))
 #' @rdname eta.0-method
 setGeneric("eta.0", function(object) standardGeneric("eta.0"))
 setGeneric("eta.0<-", function(object,value) standardGeneric("eta.0<-"))
+
+#' Retrieve the shape parameter for the tau2 distribution.
+#'
+#' @param object see \code{showMethods(m2.0)}
+#' @export
+#' @docType methods
+#' @rdname m2.0-method
 setGeneric("m2.0", function(object) standardGeneric("m2.0"))
+
 setGeneric("m2.0<-", function(object,value) standardGeneric("m2.0<-"))
 
 setGeneric("showMeans", function(object) standardGeneric("showMeans"))
