@@ -179,7 +179,12 @@ setGeneric("probz<-", function(object, value) standardGeneric("probz<-"))
 
 setGeneric("fitMixtureModels", function(object, mcmcp, K=1:5, batch) standardGeneric("fitMixtureModels"))
 
+#' Retrieve the shape parameter for the sigma.2 distribution.
+#'
+#' @param object see \code{showMethods(y)}
 #' @export
+#' @docType methods
+#' @rdname y-method
 setGeneric("nu.0", function(object) standardGeneric("nu.0"))
 
 #' @export

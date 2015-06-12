@@ -110,6 +110,8 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+#' @rdname nu.0-method
+#' @aliases nu.0,McmcChains-method
 setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 
 setMethod("sigma2.0", "McmcChains", function(object) object@sigma2.0)

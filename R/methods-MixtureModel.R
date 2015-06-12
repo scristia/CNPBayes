@@ -71,6 +71,8 @@ sigma <- function(object) sqrt(sigma2(object))
 #' @export
 tau <- function(object) sqrt(tau2(object))
 
+#' @rdname nu.0-method
+#' @aliases nu.0,MixtureModel-method
 setMethod("nu.0", "MixtureModel", function(object) object@nu.0)
 
 setMethod("sigma2.0", "MixtureModel", function(object) object@sigma2.0)
