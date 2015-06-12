@@ -11,11 +11,15 @@ setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   se
 })
 
+#' @rdname collapseBatch-method
+#' @aliases collapseBatch,SummarizedExperiment-method
 setMethod("collapseBatch", "SummarizedExperiment", function(object, plate, THR=0.1){
   plate <- as.character(object$plate)
   collapseBatch(copyNumber(object)[1, ], plate, THR=THR)
 })
 
+#' @rdname collapseBatch-method
+#' @aliases collapseBatch,numeric-method
 setMethod("collapseBatch", "numeric", function(object, plate, THR=0.1){
   N <- choose(length(unique(plate)), 2)
   cond2 <- TRUE

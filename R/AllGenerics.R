@@ -269,7 +269,15 @@ setGeneric("m2.0<-", function(object,value) standardGeneric("m2.0<-"))
 setGeneric("showMeans", function(object) standardGeneric("showMeans"))
 setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 
+#' Collapse batch data to fewer number of batches.
+#'
+#' For observations from different batches that are likely drawn from the same distribution, collapse the batches. This is done for computational efficiency. The Kolmogorov-Smirnov test is used.
+#' @param object see \code{showMethods(collapseBatch)}
+#' @param plate a vector labelling from which batch each observation came from.
+#' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
 #' @export
+#' @docType methods
+#' @rdname collapseBatch-method
 setGeneric("collapseBatch", function(object, plate, THR=0.1) standardGeneric("collapseBatch"))
 
 #' Retrieve simulated thetas from a MixtureModel

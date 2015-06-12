@@ -174,6 +174,8 @@ setMethod("bic", "BatchModel", function(object){
   bicstat
 })
 
+#' @rdname collapseBatch-method
+#' @aliases collapseBatch,BatchModel-method
 setMethod("collapseBatch", "BatchModel", function(object){
   collapseBatch(y(object), as.character(batch(object)))
 })
