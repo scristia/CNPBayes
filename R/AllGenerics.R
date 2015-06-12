@@ -481,8 +481,15 @@ setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"
 setGeneric("zFreq", function(object) standardGeneric("zFreq"))
 setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 
+#' Retrieve MCMC parameters from model.
+#'
+#' View number of iterations, burnin, etc.
+#' @param object see \code{showMethods(mcmcParams)}
 #' @export
+#' @docType methods
+#' @rdname mcmcParams-method
 setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
+
 #' @export
 setGeneric("mcmcParams<-", function(object, force=FALSE, value) standardGeneric("mcmcParams<-"))
 

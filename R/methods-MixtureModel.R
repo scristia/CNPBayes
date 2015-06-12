@@ -506,6 +506,8 @@ setReplaceMethod("zFreq", "MixtureModel", function(object, value){
   object
 })
 
+#' @rdname mcmcParams-method
+#' @aliases mcmcParams,MixtureModel-method
 setMethod("mcmcParams", "MixtureModel", function(object) object@mcmc.params )
 
 #' @rdname iter-method
