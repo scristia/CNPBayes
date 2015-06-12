@@ -16,6 +16,10 @@
 #' shape and rate can be obtained by specifying the hyperparameters
 #' eta.0 and m2.0, or alternatively by specifying the desired mean and
 #' standard deviation of the precisions.
+#' @param eta.0 hyperparameter for precision
+#' @param m2.0 hyperparameter for precision
+#' @param mn mean of precision
+#' @param sd standard deviation of precision
 #' @return a list with elements 'quantiles', 'eta.0', 'm2.0', 'mean', and 'sd'
 #'
 #'
