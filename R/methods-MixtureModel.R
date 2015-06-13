@@ -439,6 +439,9 @@ muMean <- function(object) colMeans(muc(object))
 #' @export
 tauc <- function(object) sqrt(tau2(mcmcChains(object)))
 
+#' Retrieve overall standard deviation averaged across MCMC simulations.
+#'
+#' @param object an object of class MarginalModel or BatchModel
 #' @export
 tauMean <- function(object) colMeans(tauc(object))
 
