@@ -407,6 +407,9 @@ logpotentialc <- function(object) logpotential(mcmcChains(object))
 logLikc <- function(object) logLik(mcmcChains(object))
 
 
+#' Retrieve standard deviation of each component/batch mean at each iteration of the MCMC.
+#'
+#' @param object an object of class MarginalModel or BatchModel
 #' @export
 sigmac <- function(object) sigma(mcmcChains(object))
 
