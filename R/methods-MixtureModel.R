@@ -68,6 +68,9 @@ observed <- function(object) object@data
 #' @export
 sigma <- function(object) sqrt(sigma2(object))
 
+#' Retrieve overall standard deviation.
+#'
+#' @param object an object of class MarginalModel or BatchModel
 #' @export
 tau <- function(object) sqrt(tau2(object))
 
