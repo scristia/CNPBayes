@@ -6,20 +6,36 @@
 \alias{nStarts,McmcParams-method}
 \alias{nStarts,MixtureModel-method}
 \alias{nStarts,ModelList-method}
+\alias{nStarts<-}
+\alias{nStarts<-,McmcParams-method}
+\alias{nStarts<-,MixtureModel-method}
+\alias{nStarts<-,ModelList-method}
 \title{Number of MCMC chains.}
 \usage{
 nStarts(object)
 
+nStarts(object) <- value
+
 \S4method{nStarts}{McmcParams}(object)
+
+\S4method{nStarts}{McmcParams}(object) <- value
 
 \S4method{nStarts}{MixtureModel}(object)
 
+\S4method{nStarts}{MixtureModel}(object) <- value
+
 \S4method{nStarts}{ModelList}(object)
+
+\S4method{nStarts}{ModelList}(object) <- value
 }
 \arguments{
-\item{object}{see showMethods(nStarts)}
+\item{object}{see \code{showMethods(nStarts)}}
+
+\item{value}{new number of chains}
 }
 \description{
 This function retrieves the number of chains used for an MCMC simulation.
+
+This function changes the number of chains used for an MCMC simulation.
 }
 

@@ -6,20 +6,36 @@
 \alias{burnin,McmcParams-method}
 \alias{burnin,MixtureModel-method}
 \alias{burnin,ModelList-method}
+\alias{burnin<-}
+\alias{burnin<-,McmcParams-method}
+\alias{burnin<-,MixtureModel-method}
+\alias{burnin<-,ModelList-method}
 \title{Number of burnin iterations.}
 \usage{
 burnin(object)
 
+burnin(object) <- value
+
 \S4method{burnin}{McmcParams}(object)
+
+\S4method{burnin}{McmcParams}(object) <- value
 
 \S4method{burnin}{MixtureModel}(object)
 
+\S4method{burnin}{MixtureModel}(object) <- value
+
 \S4method{burnin}{ModelList}(object)
+
+\S4method{burnin}{ModelList}(object) <- value
 }
 \arguments{
 \item{object}{see \code{showMethods(burnin)}}
+
+\item{value}{new number of burnin iterations}
 }
 \description{
 This function retrieves the number of burnin simulations to be discarded.
+
+This function changes the number of burnin simulations to be discarded.
 }
 

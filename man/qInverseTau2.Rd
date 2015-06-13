@@ -6,6 +6,15 @@
 \usage{
 qInverseTau2(eta.0 = 1800, m2.0 = 100, mn, sd)
 }
+\arguments{
+\item{eta.0}{hyperparameter for precision}
+
+\item{m2.0}{hyperparameter for precision}
+
+\item{mn}{mean of precision}
+
+\item{sd}{standard deviation of precision}
+}
 \value{
 a list with elements 'quantiles', 'eta.0', 'm2.0', 'mean', and 'sd'
 }

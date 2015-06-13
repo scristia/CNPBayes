@@ -49,9 +49,20 @@ setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 #' @rdname mcmcChains-method
 setGeneric("mcmcChains<-", function(object, value) standardGeneric("mcmcChains<-"))
 
-## RS: Can you take a look at this documentation? I've documented the generic (and replacement generic) and added rdname and aliases to the methods, but I'm still getting warning for undocumented S4 methods. Any ideas?
+## RS: Can you take a look at this documentation? I've documented the
+## generic (and replacement generic) and added rdname and aliases to
+## the methods, but I'm still getting warning for undocumented S4
+## methods. Any ideas?
+##
+## JC: Looks like an issue with capitalization. We have a constructor
+## by the name 'McmcChains' and a method 'mcmcChains'.  In general,
+## this is a bad idea (may fail on some platforms) and I had probably
+## forgotten about the constructor when I defined the method.  Let's
+## remove all instances of mcmcChains and replace with 'chains'.  Be
+## careful not to remove the constructor.
+
 #' Retrieve simulated chains from model object.
-#' 
+#'
 #' @param object \code{showMethods(mcmcChains)}
 #' @export
 #' @docType methods
@@ -59,7 +70,7 @@ setGeneric("mcmcChains<-", function(object, value) standardGeneric("mcmcChains<-
 setGeneric("mcmcChains", function(object) standardGeneric("mcmcChains"))
 
 #' Retrieve simulated chains from model object.
-#' 
+#'
 #' @param object \code{showMethods(chains)}
 #' @export
 #' @docType methods
@@ -150,7 +161,7 @@ setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
 setGeneric("updateWithPosteriorMeans", function(object) standardGeneric("updateWithPosteriorMeans"))
 
 #' Calculate BIC of a model
-#' 
+#'
 #' @param object see \code{showMethods(bic)}
 #' @docType methods
 #' @rdname bic-method
@@ -252,7 +263,7 @@ setGeneric("switchLabels", function(object) standardGeneric("switchLabels"))
 setGeneric("computeDistance", function(object) standardGeneric("computeDistance"))
 
 #' Retrieve the modes from a model.
-#' 
+#'
 #' The iteration which maximizes log likelihood and log prior is found. The estimates for each parameter at this iteration are retrieved.
 #' @param object see \code{showMethods(modes)}
 #' @export
@@ -260,7 +271,17 @@ setGeneric("computeDistance", function(object) standardGeneric("computeDistance"
 #' @rdname modes-method
 setGeneric("modes", function(object) standardGeneric("modes"))
 
-## RS: I'm not sure how to document this method, because I'm not sure what to say about the values or what happens when the mode of a model is changed.
+
+#' Replacement method for modes
+#'
+#' For a mixture model with K components, there are K! possible modes.
+#' One can permute the ordering of the modes and assign the permuted
+#' order to a MixtureModel derived class by this method.
+#'
+#' @param object a \code{MixtureModel}-derived class
+#' @param value a \code{list} of the modes.  See \code{mode(object)}
+#' to obtain the correct format of the list.
+#'
 #' @export
 setGeneric("modes<-", function(object,value) standardGeneric("modes<-"))
 
@@ -520,7 +541,7 @@ setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
 setGeneric("mcmcParams<-", function(object, force=FALSE, value) standardGeneric("mcmcParams<-"))
 
 #' Calculate log likelihood of prior for model
-#' 
+#'
 #' @param object see \code{showMethods(logPrior)}
 #' @export
 #' @docType methods

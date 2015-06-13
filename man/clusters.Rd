@@ -7,6 +7,9 @@ instance}
 \usage{
 clusters(object)
 }
+\arguments{
+\item{object}{an object of class 'DensityModel'}
+}
 \description{
 Accessor for extracting the kmeans clusters from a DensityModel
 instance

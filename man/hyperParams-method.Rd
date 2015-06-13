@@ -4,16 +4,27 @@
 \name{hyperParams}
 \alias{hyperParams}
 \alias{hyperParams,MixtureModel-method}
+\alias{hyperParams<-}
+\alias{hyperParams<-,MixtureModel,Hyperparameters-method}
+\alias{hyperParams<-,MixtureModel-method}
 \title{Retried specified hyper parameters from model.}
 \usage{
 hyperParams(object)
 
+hyperParams(object) <- value
+
 \S4method{hyperParams}{MixtureModel}(object)
+
+\S4method{hyperParams}{MixtureModel,Hyperparameters}(object) <- value
 }
 \arguments{
 \item{object}{see \code{showMethods(hyperParams)}}
+
+\item{value}{an object of class 'Hyperparameters'}
 }
 \description{
 Retried specified hyper parameters from model.
+
+Replace hyper paramaters of model.
 }
 
