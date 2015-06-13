@@ -63,8 +63,9 @@ setReplaceMethod("batch", "MixtureModel", function(object, value){
 
 observed <- function(object) object@data
 
-
-
+#' Retrieve standard deviations of each component/batch mean.
+#'
+#' @param object an object of class MarginalModel or BatchModel
 #' @export
 sigma <- function(object) sqrt(sigma2(object))
 
