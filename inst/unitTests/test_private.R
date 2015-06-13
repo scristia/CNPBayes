@@ -764,48 +764,6 @@ if(FALSE){
   checkEquals(th, theta(truth), tolerance=0.1)
 }
 
-.test_selectK_batch <- function(){
-  ## Need to replace setParallelization with source code
-  ## -investigate BiocParallel
-  library(GenomicRanges)
-  set.seed(1000)
-  k <- 3
-  nbatch <- 3
-  means <- matrix(c(-1.2, -1.0, -0.8,
-                    -0.2, 0, 0.2,
-                    0.8, 1, 1.2), nbatch, k, byrow=FALSE)
-  sds <- matrix(0.1, nbatch, k)
-  truth <- simulateBatchData(N=2500,
-                             batch=rep(letters[1:3], length.out=2500),
-                             p=c(1/10, 1/5, 1-0.1-0.2),
-                             theta=means,
-                             sds=sds)
-  se <- as(truth, "SummarizedExperiment")
-  outdir <- tempdir()
-  ##
-  ## Evaluate at different K
-  ##
-  mcmp.list <- mcmcpList(iter=rep(100, 4))
-  batchExperiment(se, outdir, mcmcp.list=mcmp.list)
-  B <- getFiles(outdir, rownames(se), "batch")
-  models <- readRDS(model(B))
-  ##trace(plotModel, browser)
-  par(mfrow=c(1,4), las=1)
-  load_all()
-  plotModel(list(B), se, xlim=c(-3,2), xaxt="s")
-  ##
-  ## 4-component has higher bic, yet the max a post. estimate has only 3 components
-  ## --> inference from map would be the same
-  ##
-  checkIdentical(which.min(bicstat), 3L)
-  if(FALSE) {
-    op <- par(mfrow=c(1,2), las=1)
-    CNPBayes::plot(truth)
-    CNPBayes::plot(mmodels[[3]])
-    par(op)
-  }
-}
-
 .test_batch_moderate <- function(){
   set.seed(100)
   nbatch <- 3
