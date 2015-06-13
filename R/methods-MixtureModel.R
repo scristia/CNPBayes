@@ -433,6 +433,9 @@ muc <- function(object) mu(mcmcChains(object))
 #' @export
 muMean <- function(object) colMeans(muc(object))
 
+#' Retrieve overall standard deviation at each iteration of the MCMC.
+#'
+#' @param object an object of class MarginalModel or BatchModel
 #' @export
 tauc <- function(object) sqrt(tau2(mcmcChains(object)))
 
