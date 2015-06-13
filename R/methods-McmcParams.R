@@ -85,26 +85,6 @@ setReplaceMethod("nStarts", "McmcParams", function(object, value){
   object
 })
 
-#' @export
-mcmcpList <- function(test=FALSE, iter=c(500, 3000, 3000, 3000),
-                      nStarts=20){
-  if(test){
-    mcmcp.list <- list(McmcParams(iter=rep(2L, 4),
-                                  burnin=rep(1L,4),
-                                  thin=rep(1L,4),
-                                  nStarts=2L),
-                       McmcParams(iter=2L, burnin=1L, thin=1L))
-  } else {
-    mcmcp.list <- list(McmcParams(iter=as.integer(iter),
-                                  burnin=as.integer(pmax(1, iter/10)),
-                                  thin=as.integer(pmax(1, iter/1000)),
-                                  nStarts=as.integer(nStarts)),
-                       McmcParams(iter=1000L, burnin=100L, thin=1L))
-  }
-  mcmcp.list
-}
-
-
 setMethod("paramUpdates", "McmcParams", function(x){
   x@param_updates
 })
