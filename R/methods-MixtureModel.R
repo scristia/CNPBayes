@@ -667,7 +667,10 @@ mapModel <- function(model){
 }
 
 
-
+#' Probabiliistic copy number assigments.
+#'
+#' Calculate probabilistic copy number assignments using Bayes Rule applied at the MAP estimates of the cluster mean, variance, and class proportion parameters
+#' @param model An object of class MixtureModel.
 #' @export
 mapCnProbability <- function(model){
   ## Cardin et al. : calculate probabilistic copy number assignments
