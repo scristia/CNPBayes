@@ -98,6 +98,10 @@ dataMean <- function(object) object@data.mean
 dataPrec <- function(object) object@data.prec
 dataSd <- function(object) sqrt(1/dataPrec(object))
 
+#' Retrieve the log potential from a MixtureModel
+#'
+#' The log potential of a model is the log(likelihood * likelihood of prior) + log(probability(theta)) + log(probability(sigma.2))
+#' @param object a MixtureModel.
 #' @export
 logpotential <- function(object) object@logpotential
 
