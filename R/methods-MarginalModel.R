@@ -653,6 +653,18 @@ updateMultipleChains <- function(nchains, modellist, mp){
 
 modalLoglik <- function(x) modes(x)[["loglik"]]
 
+#' Compute Marginal Likelihood
+#'
+#' This function is used to compute marginal likelihoods of posterior simulations for chains of different component sizes. Likelihoods are computed using marginal, berkhof and chibs. Summaries are calculated for each chain of each component size.
+#' @param y data on which to perform MCMC simulation
+#' @param batch a vector labelling from which batch each observation came from
+#' @param K integer vector of possible copy numbers (latent variable states)
+#' @param T number of MCMC iterations
+#' @param burnin number of MCMC burnin iterations to be discarded
+#' @param T2 RS: Can you help with this paramaeter?
+#' @param maxperm RS: Can you help with this paramaeter?
+#' @param nchains number of parallel MCMC chains to run
+#' @param thin number of thinning intervals
 #' @export
 computeMarginalLik <- function(y, batch, K=1:4,
                                T=1000, burnin=200,
