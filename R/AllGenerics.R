@@ -41,26 +41,6 @@ setGeneric("logpotential<-", function(object, value) standardGeneric("logpotenti
 setGeneric("dataMean<-", function(object, value) standardGeneric("dataMean<-"))
 setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 
-## RS: Can you take a look at this documentation? I've documented the
-## generic (and replacement generic) and added rdname and aliases to
-## the methods, but I'm still getting warning for undocumented S4
-## methods. Any ideas?
-##
-## JC: Looks like an issue with capitalization. We have a constructor
-## by the name 'McmcChains' and a method 'mcmcChains'.  In general,
-## this is a bad idea (may fail on some platforms) and I had probably
-## forgotten about the constructor when I defined the method.  Let's
-## remove all instances of mcmcChains and replace with 'chains'.  Be
-## careful not to remove the constructor.
-
-#' Retrieve simulated chains from model object.
-#'
-#' @param object \code{showMethods(mcmcChains)}
-#' @export
-#' @docType methods
-#' @rdname mcmcChains-method
-setGeneric("mcmcChains", function(object) standardGeneric("mcmcChains"))
-
 #' Replace model's simulated MCMC chain.
 #' @param object see \code{showMethods(chains)}
 #' @param value object with which to replace the McmcChains

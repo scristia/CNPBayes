@@ -143,10 +143,6 @@ setReplaceMethod("logpotential", "MixtureModel", function(object, value){
   object
 })
 
-#' @rdname mcmcChains-method
-#' @aliases mcmcChains,MixtureModel-method
-setMethod("mcmcChains", "MixtureModel", function(object) object@mcmc.chains)
-
 #' @rdname chains-method
 #' @aliases chains,MixtureModel-method
 setMethod("chains", "MixtureModel", function(object) object@mcmc.chains)
