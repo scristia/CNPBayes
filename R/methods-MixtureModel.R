@@ -370,6 +370,9 @@ makeUnique <- function(x){
 
 setMethod("hwe", "MixtureModel", function(object) object@hwe)
 
+#' Calculate the maximum a posteriori estimate.
+#'
+#' @param object an object of class MixtureModel.
 #' @export
 map <- function(object) {
   estimates <- apply(probz(object), 1, which.max)
