@@ -777,6 +777,10 @@ trimModels <- function(models){
   object
 }
 
+#' Compute the log bayes factor between models.
+#'
+#' Models of varying component sizes are compared. The log bayes factor is calculated comparing the two models with the highest marginal likelihood, as computed by \code{computeMarginalLik}.
+#' @param x the result of a call to \code{computeMarginalLik}.
 #' @export
 logBayesFactor <- function(x){
   models <- orderModels(x)
