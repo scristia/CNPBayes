@@ -1,3 +1,24 @@
+#' Create simulated batch data for testing.
+#'
+#' @param N number of observations
+#' @param p a vector indicating probability of membership to each component
+#' @param theta a vector of means, one per component/batch
+#' @param sds a vector of standard deviations, one per component/batch
+#' @param batch a vector of labels indication from which batch each simulation should come from
+#' @param zz a vector indicating latent variable membership. Can be omitted.
+#' @examples
+#' k <- 3
+#' nbatch <- 3
+#' means <- matrix(c(-1.2, -1.0, -0.8,
+#'                   -0.2, 0, 0.2,
+#'                   0.8, 1, 1.2), nbatch, k, byrow=FALSE)
+#' sds <- matrix(0.1, nbatch, k)
+#' N <- 1500
+#' truth <- simulateBatchData(N=N,
+#'                            batch=rep(letters[1:3], length.out=N),
+#'                            theta=means,
+#'                            sds=sds,
+#'                            p=c(1/5, 1/3, 1-1/3-1/5))
 #' @export
 simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
   if(length(p) != ncol(theta)) stop("length of p must be same as ncol(theta)")
