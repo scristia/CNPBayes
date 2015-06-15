@@ -39,7 +39,16 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
   object
 }
 
-
+#' Create simulated data for testing.
+#'
+#' @param N number of observations
+#' @param p a vector indicating probability of membership to each component
+#' @param theta a vector of means, one per component
+#' @param sds a vector of standard deviations, one per component
+#' @examples
+#' truth <- simulateData(N=2500, p=rep(1/3, 3),
+#'                       theta=c(-1, 0, 1),
+#'                       sds=rep(0.1, 3))
 #' @export
 simulateData <- function(N, p, theta, sds){
   zz <- simulateZ(N, p)
