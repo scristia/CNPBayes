@@ -230,6 +230,14 @@ downSampleEachBatch <- function(y, nt, batch){
   list(y=ys, labels=tiles, batch=batch.id)
 }
 
+#' Create tile labels for each observation
+#' 
+#' A wrapper for function downSampleEachBatch. Batches are automatically merged as needed.
+#' @param batch.file the name of a file contaning RDS data to be read in.
+#' @param plate a vector containing the labels  from which batch each observation came from.
+#' @param y in memory data
+#' @param ntiles number of tiles in a batch
+#' @param THR threshold above which to merge batches in Kolmogorov-Smirnov test.
 #' @export
 downsample <- function(batch.file, plate, y, ntiles=250, THR=0.1){
   if(file.exists(batch.file)){
