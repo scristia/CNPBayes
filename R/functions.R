@@ -205,6 +205,11 @@ permnK <- function(k, maxperm){
 }
 
 
+#' Create tile labels for each observation
+#' 
+#' @param y vector containing data
+#' @param nt the number of tiles in a batch
+#' @param batch a vector containing the labels from which batch each observation came from.
 #' @export
 downSampleEachBatch <- function(y, nt, batch){
   yb <- split(y, batch)
