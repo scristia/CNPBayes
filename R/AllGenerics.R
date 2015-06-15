@@ -536,11 +536,6 @@ setGeneric("computePrec", function(object) standardGeneric("computePrec"))
 setGeneric("marginal", function(object, batch, mcmc.params, K=1:4, maxperm=5, ...)
   standardGeneric("marginal"))
 
-#' @export
-setGeneric("rowMarginal", function(object, batch, mcmc.params,
-                                   model.files, K=1:4, maxperm=5, ...)
-  standardGeneric("rowMarginal"))
-
 setGeneric("modelList", function(object) standardGeneric("modelList"))
 
 setGeneric("modelList<-", function(object, value) standardGeneric("modelList<-"))
