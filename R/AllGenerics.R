@@ -42,7 +42,6 @@ setGeneric("dataMean<-", function(object, value) standardGeneric("dataMean<-"))
 setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 
 #' Replace model's simulated MCMC chain.
-#' @param object see \code{showMethods(chains)}
 #' @param value object with which to replace the McmcChains
 #' @export
 #' @docType methods
