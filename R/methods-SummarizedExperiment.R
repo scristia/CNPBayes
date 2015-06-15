@@ -74,7 +74,12 @@ ksTest <- function(object){
   B
 }
 
-
+#' Save se data
+#'
+#' Batches drawn from the same distribution as identified by Kolmogorov-Smirnov test are combined.
+#' @param se a SummarizedExperiment object
+#' @param batch.file the file name to which to save the data
+#' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
 #' @export
 saveBatch <- function(se, batch.file, THR=0.1){
   if(file.exists(batch.file)){
