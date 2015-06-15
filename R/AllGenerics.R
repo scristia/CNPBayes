@@ -41,14 +41,6 @@ setGeneric("logpotential<-", function(object, value) standardGeneric("logpotenti
 setGeneric("dataMean<-", function(object, value) standardGeneric("dataMean<-"))
 setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 
-#' Replace model's simulated MCMC chain.
-#' @param object see \code{showMethods(mcmcChains)}
-#' @param value object with which to replace the mcmcChains
-#' @export
-#' @docType methods
-#' @rdname mcmcChains-method
-setGeneric("mcmcChains<-", function(object, value) standardGeneric("mcmcChains<-"))
-
 ## RS: Can you take a look at this documentation? I've documented the
 ## generic (and replacement generic) and added rdname and aliases to
 ## the methods, but I'm still getting warning for undocumented S4
