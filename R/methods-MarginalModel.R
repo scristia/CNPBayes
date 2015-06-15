@@ -608,13 +608,6 @@ simulateMultipleChains <- function(nchains, y, batch, k, mp){
     return(kmodlist)
   }
   ## batch not missing
-  if(FALSE){
-    kmodlist <- replicate(nchains, {
-      kmod <- BatchModel(y, batch=batch, k=k, mcmc.params=mp)
-      kmod <- posteriorSimulation(kmod)
-      return(kmod)
-    })
-  }
   kmodlist <- vector("list", nchains)
   for(i in seq_along(kmodlist)){
     ##message("Initializing batch model", i)
