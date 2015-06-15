@@ -195,7 +195,7 @@ test_batch_moderate <- function(){
     CNPBayes::plot(truth)
     CNPBayes::plot(modelk)
     par(op)
-    mc <- mcmcChains(modelk)
+    mc <- chains(modelk)
     plot.ts(sigma(mc), col="gray")
     plot.ts(theta(mc), col="gray")
     plot.ts(p(mc), col="gray")
@@ -253,7 +253,7 @@ test_hard3 <- function(){
     theta(truth)
     sigma(model)[, i]
     sigma(truth)
-    mc <- mcmcChains(mmodel)
+    mc <- chains(mmodel)
     par(mfrow=c(1,3))
     tracePlot(mmodel, "sigma", col=1:3)
     tracePlot(mmodel, "theta", col=1:3)
@@ -262,7 +262,7 @@ test_hard3 <- function(){
     plot.ts(mu(mc), plot.type="single", col=1:3)
     cbind(colMeans(sigma(mc)), as.numeric(sigma(truth)))
   }
-  ##mc <- mcmcChains(mmodel)
+  ##mc <- chains(mmodel)
   pmns <- CNPBayes:::thetaMean(mmodel)
   j <- order(pmns[1,])
   ps <- sigmaMean(mmodel)[, j]

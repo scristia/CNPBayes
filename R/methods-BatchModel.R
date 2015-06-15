@@ -201,7 +201,7 @@ setMethod("computePrec", "BatchModel", function(object){
 
 .computeModesBatch <- function(object){
   i <- argMax(object)
-  mc <- mcmcChains(object)
+  mc <- chains(object)
   B <- nBatch(object)
   K <- k(object)
   thetamax <- matrix(theta(mc)[i, ], B, K)
@@ -240,7 +240,7 @@ setMethod("initializeSigma2.0", "BatchModel", function(object){
 })
 
 setMethod("moveChain", "BatchModel", function(object, s){
-  mcmc <- mcmcChains(object)
+  mcmc <- chains(object)
   theta(mcmc)[s, ] <- as.numeric(theta(object))
   sigma2(mcmc)[s, ] <- as.numeric(sigma2(object))
   p(mcmc)[s, ] <- p(object)
@@ -251,7 +251,7 @@ setMethod("moveChain", "BatchModel", function(object, s){
   ##logpotential(mcmc)[s] <- computeLogLikxPrior(object)
   logPrior(mcmc)[s] <- computePrior(object)
   logLik(mcmc)[s] <- computeLoglik(object)
-  mcmcChains(object) <- mcmc
+  chains(object) <- mcmc
   object
 })
 

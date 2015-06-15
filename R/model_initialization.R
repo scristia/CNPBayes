@@ -34,7 +34,7 @@ setMethod("startingValues", "MarginalModel", function(object){
   dataMean(object) <- computeMeans(object)
   logLik(object) <- computeLoglik(object)
   logPrior(object) <- computePrior(object)
-  mcmcChains(object) <- McmcChains(object)
+  chains(object) <- McmcChains(object)
   object
 })
 
@@ -68,6 +68,6 @@ setMethod("startingValues", "BatchModel", function(object){
     logPrior(object) <- computePrior(object)
   }
   probz(object) <- .computeProbZ(object)
-  mcmcChains(object) <- McmcChains(object)
+  chains(object) <- McmcChains(object)
   object
 })

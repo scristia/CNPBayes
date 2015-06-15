@@ -10,7 +10,7 @@ test_mcmc_restart <- function(){
   ##
   mcmcParams(model, force=TRUE) <- McmcParams(iter=1, burnin=0)
   model <- posteriorSimulation(model)
-  mc <- mcmcChains(model)
+  mc <- chains(model)
   checkIdentical(theta(mc)[1, ], theta(truth))
   checkIdentical(sigma(mc)[1, ], sigma(truth))
   ##checkEquals(rowSums(probz(model)), rep(1.0, length(y(model))))
@@ -33,7 +33,7 @@ test_mcmc_restart <- function(){
   model <- truth
   mcmcParams(model, force=TRUE) <- McmcParams(iter=1, burnin=1)
   model <- posteriorSimulation(model)
-  mc <- mcmcChains(model)
+  mc <- chains(model)
   checkTrue(!identical(theta(mc)[1, ], theta(truth)))
   checkTrue(!identical(sigma(mc)[1, ], sigma(truth)))
   checkEquals(theta(mc)[1, ], as.numeric(theta(model)))
@@ -42,7 +42,7 @@ test_mcmc_restart <- function(){
   model <- truth
   mcmcParams(model, force=TRUE) <- McmcParams(iter=0, burnin=1)
   model <- posteriorSimulation(model)
-  mc <- mcmcChains(model)
+  mc <- chains(model)
   checkIdentical(nrow(theta(mc)), 0L)
   ##
   ## Burnin 0, 1 iteration
@@ -59,14 +59,14 @@ test_mcmc_restart <- function(){
   ##  -- a postive value for iter triggers an update of the chains
   mcmcParams(model, force=TRUE) <- McmcParams(iter=10, burnin=0)
   model <- posteriorSimulation(model)
-  mc <- mcmcChains(model)
+  mc <- chains(model)
   checkIdentical(nrow(theta(mc)), 10L)
   checkIdentical(theta(mc)[1, ], as.numeric(theta(truth)))
   ## restart
   th <- theta(model)
   s <- sigma(model)
   model2 <- posteriorSimulation(model)
-  mc <- mcmcChains(model2)
+  mc <- chains(model2)
   checkIdentical(theta(mc)[1, ], as.numeric(th))
   checkIdentical(sigma(mc)[1, ], as.numeric(s))
 

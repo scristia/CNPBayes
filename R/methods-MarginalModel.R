@@ -96,7 +96,7 @@ setMethod("simulateY", "MarginalModel", function(object){
 })
 
 setMethod("moveChain", "MarginalModel", function(object, s){
-  mcmc <- mcmcChains(object)
+  mcmc <- chains(object)
   K <- k(object)
   theta(mcmc)[s, ] <- as.numeric(theta(object))
   sigma2(mcmc)[s, ] <- as.numeric(sigma2(object))
@@ -111,7 +111,7 @@ setMethod("moveChain", "MarginalModel", function(object, s){
   logLik(mcmc)[s] <- logLik(object)
   ##zz <- factor(z(object), levels=seq_len(K))
   zFreq(mcmc)[s, ] <- as.integer(table(z(object)))
-  mcmcChains(object) <- mcmc
+  chains(object) <- mcmc
   object
 })
 
@@ -283,7 +283,7 @@ setMethod("relabel", "BatchModel", function(object, zindex){
 })
 
 setMethod("updateWithPosteriorMeans", "MarginalModel", function(object){
-  mc <- mcmcChains(object)
+  mc <- chains(object)
   theta(object) <- colMeans(theta(mc))
   sigma2(object) <- colMeans(sigma2(mc))
   p(object) <- colMeans(p(mc))
@@ -297,7 +297,7 @@ setMethod("updateWithPosteriorMeans", "MarginalModel", function(object){
 })
 
 setMethod("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
-  mc <- mcmcChains(x)
+  mc <- chains(x)
   pot <- logpotential(mc)
   index <- which.max(pot)
   thetas <- theta(mc)[index, ]
@@ -324,13 +324,13 @@ setMethod("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
   z(x) <- factor(as.integer(factor(zz, levels=cn)), levels=sort(unique(zz)))
   dataMean(x) <- dataMean(x)[cn]
   dataPrec(x) <- dataPrec(x)[cn]
-  mcmcChains(x) <- mc
+  chains(x) <- mc
   x
 })
 
 .computeModesMarginal <- function(object){
   i <- argMax(object)
-  mc <- mcmcChains(object)
+  mc <- chains(object)
   thetamax <- theta(mc)[i, ]
   sigma2max <- sigma2(mc)[i,]
   pmax <- p(mc)[i, ]
@@ -849,6 +849,6 @@ NestedMarginalModel <- function(model){
                       zfreq=zFreq(kmod),
                       loglik=logLik(kmod),
                       logprior=logPrior(kmod))
-  mcmcChains(kmod) <- McmcChains(kmod)
+  chains(kmod) <- McmcChains(kmod)
   kmod
 }

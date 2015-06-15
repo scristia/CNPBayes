@@ -808,7 +808,7 @@ if(FALSE){
     CNPBayes::plot(truth)
     CNPBayes::plot(modelk)
     par(op)
-    mc <- mcmcChains(modelk)
+    mc <- chains(modelk)
     plot.ts(sigma(mc), col="gray")
     plot.ts(theta(mc), col="gray")
     plot.ts(p(mc), col="gray")
@@ -855,7 +855,7 @@ if(FALSE){
   mcmcp <- McmcParams(iter=1000, burnin=1000, thin=1)
   model <- truth
   model <- posteriorSimulation(model, mcmcp)
-  mc <- mcmcChains(model)
+  mc <- chains(model)
   checkEquals(colMeans(theta(mc)), as.numeric(theta(truth)), tolerance=0.06)
   checkEquals(colMeans(sigma(mc)), as.numeric(sigma(truth)), tolerance=0.05)
   checkEquals(colMeans(p(mc)), as.numeric(p(truth)), tolerance=0.17)
@@ -876,7 +876,7 @@ if(FALSE){
   model <- initializeBatchModel(params)
   batch(model) <- collapseBatch(model)
   model <- posteriorSimulation(model, mcmcp)
-  mc <- mcmcChains(model)
+  mc <- chains(model)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     CNPBayes::plot(truth, xlim=c(-2,1))

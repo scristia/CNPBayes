@@ -20,7 +20,7 @@ test_marginalEasy <- function(){
     plot(model)
     par(op)
   }
-  mc <- mcmcChains(model)
+  mc <- chains(model)
   pmns <- colMeans(theta(mc))
   i <- order(pmns)
   checkEquals2(pmns, theta(truth), order=i, tolerance=0.03)

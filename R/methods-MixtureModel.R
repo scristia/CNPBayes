@@ -389,7 +389,7 @@ setMethod("fitMixtureModels", "numeric", function(object, mcmcp, K=1:5){
 
 #' @rdname thetac-method
 #' @aliases thetac,MixtureModel-method
-setMethod("thetac", "MixtureModel", function(object) theta(mcmcChains(object)))
+setMethod("thetac", "MixtureModel", function(object) theta(chains(object)))
 
 setMethod("thetaMean", "MixtureModel", function(object) colMeans(thetac(object)))
 
@@ -397,22 +397,22 @@ setMethod("thetaMean", "MixtureModel", function(object) colMeans(thetac(object))
 #' @aliases sigmaMean,MixtureModel-method
 setMethod("sigmaMean", "MixtureModel", function(object) colMeans(sigmac(object)))
 
-logpotentialc <- function(object) logpotential(mcmcChains(object))
+logpotentialc <- function(object) logpotential(chains(object))
 
-logLikc <- function(object) logLik(mcmcChains(object))
+logLikc <- function(object) logLik(chains(object))
 
 
 #' Retrieve standard deviation of each component/batch mean at each iteration of the MCMC.
 #'
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
-sigmac <- function(object) sigma(mcmcChains(object))
+sigmac <- function(object) sigma(chains(object))
 
 #' Retrieve mixture proportions at each iteration of the MCMC.
 #'
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
-pic <- function(object) p(mcmcChains(object))
+pic <- function(object) p(chains(object))
 
 #' @rdname pMean-method
 #' @aliases pMean,MixtureModel-method
@@ -424,7 +424,7 @@ setMethod("pMean", "MixtureModel", function(object){
 #'
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
-muc <- function(object) mu(mcmcChains(object))
+muc <- function(object) mu(chains(object))
 
 #' Retrieve overall mean averaged across MCMC simulations.
 #'
@@ -436,7 +436,7 @@ muMean <- function(object) colMeans(muc(object))
 #'
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
-tauc <- function(object) sqrt(tau2(mcmcChains(object)))
+tauc <- function(object) sqrt(tau2(chains(object)))
 
 #' Retrieve overall standard deviation averaged across MCMC simulations.
 #'
@@ -611,9 +611,9 @@ setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=FALSE, val
       } else {
         object@mcmc.params <- value
         index <- seq_len(iter(value))
-        mcmc_chains <- mcmcChains(object)[index, ]
+        mcmc_chains <- chains(object)[index, ]
       }
-      mcmcChains(object) <- mcmc_chains
+      chains(object) <- mcmc_chains
       return(object)
     }
   }
@@ -627,7 +627,7 @@ setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=FALSE, val
 
 setMethod("zChain", "MixtureModel", function(object) chains(object)@z)
 setReplaceMethod("zChain", "MixtureModel", function(object, value){
-  mcmcChains(object)@z <- value
+  chains(object)@z <- value
   object
 })
 

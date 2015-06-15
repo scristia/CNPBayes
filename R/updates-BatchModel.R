@@ -270,7 +270,7 @@ setMethod("updateNu.0", "BatchModel", function(object){
 
 
 setMethod("updateWithPosteriorMeans", "BatchModel", function(object){
-  mc <- mcmcChains(object)
+  mc <- chains(object)
   theta(object) <- matrix(colMeans(theta(mc)), nBatch(object), k(object))
   sigma2(object) <- matrix(colMeans(sigma2(mc)), nBatch(object), k(object))
   p(object) <- colMeans(p(mc))
