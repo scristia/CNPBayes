@@ -1,4 +1,7 @@
 inits <- function(r, K, model="Normal"){
+    ## NULL out these two variables to avoid NOTE about
+    ## no visible binding for global variable
+    xx <- nsim <- NULL
     if(model == "Normal") {
         if(K == 1) return(list("mu0"=mean(r), "sigma20"=var(r), "nn"=length(r)))
         ## Check if homozygous deletion may be present
