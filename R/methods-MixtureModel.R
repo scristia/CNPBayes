@@ -460,6 +460,8 @@ tauMean <- function(object) colMeans(tauc(object))
 #' @aliases modes,MixtureModel-method
 setMethod("modes", "MixtureModel", function(object) object@modes)
 
+#' @rdname modes-method
+#' @aliases modes<-,MixtureModel-method
 setReplaceMethod("modes", "MixtureModel", function(object, value) {
   object@modes <- value
   object

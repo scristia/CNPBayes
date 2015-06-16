@@ -263,6 +263,8 @@ setGeneric("modes", function(object) standardGeneric("modes"))
 #' to obtain the correct format of the list.
 #'
 #' @export
+#' @docType methods
+#' @rdname modes-method
 setGeneric("modes<-", function(object,value) standardGeneric("modes<-"))
 
 
