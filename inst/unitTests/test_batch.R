@@ -1,12 +1,3 @@
-test_computemeans <- function(){
-  dir <- system.file("unitTests", package="CNPBayes")
-  testdat <- readRDS(file.path(dir, "test_data.rds"))
-  model <- BatchModel(data=testdat$y, batch=testdat$b)
-  mns <- CNPBayes:::computeMeans(model)
-  mns2 <- matrix(as.numeric(CNPBayes:::.computeMeansBatch(model)), 4, 2)
-  checkEquals(mns, mns2)
-}
-
 test_batchEasy <- function(){
   library(oligoClasses)
   set.seed(123)
