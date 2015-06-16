@@ -196,7 +196,7 @@ setMethod("updateAlpha", "MixtureModel", function(object){
 #' @aliases y,MixtureModel-method
 setMethod("y", "MixtureModel", function(object) object@data)
 
-setReplaceMethod("y", "MixtureModel", function(object){ 
+setReplaceMethod("y", "MixtureModel", function(object, value){ 
   object@data <- value
   object
 })
