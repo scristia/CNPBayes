@@ -23,6 +23,8 @@
 #' @importFrom coda effectiveSize
 #' @importFrom combinat permn
 #' @importFrom dplyr ntile
+#' @importFrom mvtnorm rmvnorm
+#' @importFrom sn dsn
 #' @useDynLib CNPBayes
 NULL
 

@@ -28,7 +28,9 @@ Imports:
     coda,
     combinat,
     dplyr,
-    IRanges
+    IRanges,
+    mvtnorm,
+    sn
 Suggests:
     RUnit
 Collate:
