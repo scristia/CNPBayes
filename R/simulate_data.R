@@ -56,7 +56,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
   sigma2(object) <- computeVars(object)
   dataPrec(object) <- 1/computeVars(object)
   p(object) <- as.numeric(table(z(object))/N)
-  logLik(object) <- computeLoglik(object)
+  log_lik(object) <- computeLoglik(object)
   object
 }
 
@@ -84,7 +84,7 @@ simulateData <- function(N, p, theta, sds){
   p(object) <- as.numeric(sapply(split(y(object), z(object)), length)/length(z(object)))
   mu(object) <- mean(theta(object))
   tau2(object) <- var(theta(object))
-  logLik(object) <- computeLoglik(object)
+  log_lik(object) <- computeLoglik(object)
   logPrior(object) <- computePrior(object)
   ##logpotential(object) <- computePotential(object)
   object

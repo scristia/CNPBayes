@@ -1106,7 +1106,7 @@ if(FALSE){
   checkTrue(identical(headtheta, head(thetac(kmod))))
 
   i <- CNPBayes:::argMax(kmod)
-  mlik <- logLik(chains(kmod))[i] + logPrior(chains(kmod))[i] - logp - lps2 - lpp
+  mlik <- log_lik(chains(kmod))[i] + logPrior(chains(kmod))[i] - logp - lps2 - lpp
 
   permutations <- permnK(3, 5)
   kmod2 <- kmod

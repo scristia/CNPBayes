@@ -35,7 +35,7 @@ test_marginalEasy <- function(){
   ## Update slots with the mode of loglik + logprior
   ##
   i <- CNPBayes:::argMax(model)
-  checkTrue(i == which.max(logPrior(chains(model)) + logLik(chains(model))))
+  checkTrue(i == which.max(logPrior(chains(model)) + log_lik(chains(model))))
   ## Check the modes
   checkIdentical(modes(model)[["theta"]], thetac(model)[i, ])
   checkIdentical(sqrt(modes(model)[["sigma2"]]), sigmac(model)[i, ])

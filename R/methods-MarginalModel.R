@@ -108,7 +108,7 @@ setMethod("moveChain", "MarginalModel", function(object, s){
   nu.0(mcmc)[s] <- nu.0(object)
   sigma2.0(mcmc)[s] <- sigma2.0(object)
   ##logpotential(mcmc)[s] <- logpotential(object)
-  logLik(mcmc)[s] <- logLik(object)
+  log_lik(mcmc)[s] <- log_lik(object)
   ##zz <- factor(z(object), levels=seq_len(K))
   zFreq(mcmc)[s, ] <- as.integer(table(z(object)))
   chains(object) <- mcmc
@@ -168,7 +168,7 @@ setMethod("bic", "MarginalModel", function(object){
   ##   - length-one parameters: mu, tau2, sigma2.0, nu.0             +4
   K <- 2*k(object) + (k(object)-1) + 4
   n <- length(y(object))
-  -2*(logLik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
+  -2*(log_lik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
 })
 
 setMethod("initializeTheta", "MarginalModel", function(object){
@@ -219,7 +219,7 @@ newMarginalModel <- function(object){
   sigma2.0(object2) <- sigma2.0(object)
   dataMean(object2) <- dataMean(object)
   dataPrec(object2) <- dataPrec(object)
-  logLik(object2) <- logLik(object)
+  log_lik(object2) <- log_lik(object)
   logPrior(object2) <- logPrior(object)
   modes(object2) <- modes(object)
   object2
@@ -242,7 +242,7 @@ newBatchModel <- function(object){
   sigma2.0(object2) <- sigma2.0(object)
   dataMean(object2) <- dataMean(object)
   dataPrec(object2) <- dataPrec(object)
-  logLik(object2) <- logLik(object)
+  log_lik(object2) <- log_lik(object)
   logPrior(object2) <- logPrior(object)
   modes(object2) <- modes(object)
   object2
@@ -342,7 +342,7 @@ setMethod("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
                 nu0=nu.0(mc)[i],
                 sigma2.0=sigma2.0(mc)[i],
                 zfreq=zFreq(mc)[i, ],
-                loglik=logLik(mc)[i],
+                loglik=log_lik(mc)[i],
                 logprior=logPrior(mc)[i])
   modes
 }
@@ -856,7 +856,7 @@ NestedMarginalModel <- function(model){
                       nu0=nu.0(kmod),
                       sigma2.0=sigma2.0(kmod),
                       zfreq=zFreq(kmod),
-                      loglik=logLik(kmod),
+                      loglik=log_lik(kmod),
                       logprior=logPrior(kmod))
   chains(kmod) <- McmcChains(kmod)
   kmod

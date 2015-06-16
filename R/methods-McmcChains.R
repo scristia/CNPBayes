@@ -156,14 +156,14 @@ setReplaceMethod("sigma2.0", "McmcChains", function(object, value){
   object
 })
 
-setReplaceMethod("logLik", "McmcChains", function(object, value){
+setReplaceMethod("log_lik", "McmcChains", function(object, value){
   object@loglik <- value
   object
 })
 
-#' @rdname logLik-method
-#' @aliases logLik,McmcChains-method
-setMethod("logLik", "McmcChains", function(object){
+#' @rdname log_lik-method
+#' @aliases log_lik,McmcChains-method
+setMethod("log_lik", "McmcChains", function(object){
   object@loglik
 })
 

@@ -176,7 +176,7 @@ setMethod("bic", "BatchModel", function(object){
   ##   - length-one parameters: sigma2.0, nu.0                   +2
   K <- 2*k(object)*nBatch(object) + (k(object)-1) + 2*k(object) + 2
   n <- length(y(object))
-  bicstat <- -2*(logLik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
+  bicstat <- -2*(log_lik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
   bicstat
 })
 
@@ -217,7 +217,7 @@ setMethod("computePrec", "BatchModel", function(object){
                 nu0=nu.0(mc)[i],
                 sigma2.0=sigma2.0(mc)[i],
                 zfreq=zFreq(mc)[i, ],
-                loglik=logLik(mc)[i],
+                loglik=log_lik(mc)[i],
                 logprior=logPrior(mc)[i])
   modes
 }
@@ -250,7 +250,7 @@ setMethod("moveChain", "BatchModel", function(object, s){
   sigma2.0(mcmc)[s] <- sigma2.0(object)
   ##logpotential(mcmc)[s] <- computeLogLikxPrior(object)
   logPrior(mcmc)[s] <- computePrior(object)
-  logLik(mcmc)[s] <- computeLoglik(object)
+  log_lik(mcmc)[s] <- computeLoglik(object)
   chains(object) <- mcmc
   object
 })
@@ -385,7 +385,7 @@ setMethod("show", "BatchModel", function(object){
   cat("     n. batches  :", nBatch(object), "\n")
   cat("     k           :", k(object), "\n")
   cat("     nobs/batch  :", table(batch(object)), "\n")
-  cat("     loglik (s)  :", round(logLik(object), 1), "\n")
+  cat("     loglik (s)  :", round(log_lik(object), 1), "\n")
   cat("     logprior (s):", round(logPrior(object), 1), "\n")
 })
 

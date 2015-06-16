@@ -179,7 +179,7 @@ setMethod("show", "MixtureModel", function(object){
   cat("     sigma2.0 (s):", round(sigma2.0(object), 2), "\n")
   cat("     nu.0 (s)    :", nu.0(object), "\n")
   cat("     logprior(s):", round(logPrior(object), 2), "\n")
-  cat("     loglik (s)  :", round(logLik(object), 2), "\n")
+  cat("     loglik (s)  :", round(log_lik(object), 2), "\n")
 })
 
 setMethod("updateMixProbs", "MixtureModel", function(object){
@@ -257,7 +257,7 @@ multipleStarts <- function(object){
   mmod <- replicate(nStarts(mcmcp), MarginalModel(y(object), mcmc.params=mcmcp,
                                                   hypp=hyperParams(object), k=k(object)))
   models <- suppressMessages(lapply(mmod, runBurnin))
-  lp <- sapply(models, logLik)
+  lp <- sapply(models, log_lik)
   model <- models[[which.max(lp)]]
   if(isMarginalModel(object)) return(model)
   ##
@@ -406,7 +406,7 @@ setMethod("sigmaMean", "MixtureModel", function(object) colMeans(sigmac(object))
 
 logpotentialc <- function(object) logpotential(chains(object))
 
-logLikc <- function(object) logLik(chains(object))
+logLikc <- function(object) log_lik(chains(object))
 
 
 #' Retrieve standard deviation of each component/batch mean at each iteration of the MCMC.
@@ -460,19 +460,19 @@ setReplaceMethod("modes", "MixtureModel", function(object, value) {
   object
 })
 
-#' @rdname logLik-method
-#' @aliases logLik,MixtureModel-method
-setMethod("logLik", "MixtureModel", function(object){
+#' @rdname log_lik-method
+#' @aliases log_lik,MixtureModel-method
+setMethod("log_lik", "MixtureModel", function(object){
   object@loglik
 })
 
-setReplaceMethod("logLik", "MixtureModel", function(object, value){
+setReplaceMethod("log_lik", "MixtureModel", function(object, value){
   object@loglik <- value
   object
 })
 
 argMax <- function(object){
-  ll <- logLik(chains(object))
+  ll <- log_lik(chains(object))
   lp <- logPrior(chains(object))
   which.max(ll + lp)
 }
@@ -647,7 +647,7 @@ useModes <- function(object){
   sigma2.0(m2) <- modes(object)[["sigma2.0"]]
   p(m2) <- modes(object)[["mixprob"]]
   zFreq(m2) <- as.integer(modes(object)[["zfreq"]])
-  logLik(m2) <- modes(object)[["loglik"]]
+  log_lik(m2) <- modes(object)[["loglik"]]
   logPrior(m2) <- modes(object)[["logprior"]]
   ##
   ## update z using the modal values from above

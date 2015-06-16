@@ -366,13 +366,13 @@ setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))
 
 #' Retrieve log likelihood.
 #'
-#' @param object see showMethods(logLik)
+#' @param object see showMethods(log_lik)
 #' @export
 #' @docType methods
-#' @rdname logLik-method
-setGeneric("logLik", function(object) standardGeneric("logLik"))
+#' @rdname log_lik-method
+setGeneric("log_lik", function(object) standardGeneric("log_lik"))
 
-setGeneric("logLik<-", function(object,value) standardGeneric("logLik<-"))
+setGeneric("log_lik<-", function(object,value) standardGeneric("log_lik<-"))
 
 #' Compute log likelihood for a BatchModel or MarginalModel
 #'

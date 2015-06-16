@@ -32,7 +32,7 @@ setMethod("startingValues", "MarginalModel", function(object){
   zFreq(object) <- as.integer(table(z(object)))
   dataPrec(object) <- 1/computeVars(object)
   dataMean(object) <- computeMeans(object)
-  logLik(object) <- computeLoglik(object)
+  log_lik(object) <- computeLoglik(object)
   logPrior(object) <- computePrior(object)
   chains(object) <- McmcChains(object)
   object
@@ -64,7 +64,7 @@ setMethod("startingValues", "BatchModel", function(object){
   if(length(y(object)) > 0){
     dataMean(object) <- computeMeans(object)
     dataPrec(object) <- computePrec(object)
-    logLik(object) <- computeLoglik(object)
+    log_lik(object) <- computeLoglik(object)
     logPrior(object) <- computePrior(object)
   }
   probz(object) <- .computeProbZ(object)

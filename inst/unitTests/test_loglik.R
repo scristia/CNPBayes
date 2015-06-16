@@ -5,7 +5,7 @@ test_loglik <- function(){
                         theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
                         p=c(0.005, 1/10, 1-0.005-1/10))
-  ll.truth <- logLik(truth)
+  ll.truth <- log_lik(truth)
   checkEquals(ll.truth, computeLoglik(truth))
 
   yy <- y(truth)
@@ -26,7 +26,7 @@ test_loglik <- function(){
   burnin(model) <- 100
   nStarts(model) <- 5
   model <- posteriorSimulation(model)
-  ll1 <- logLik(model)
+  ll1 <- log_lik(model)
   ll2 <- computeLoglik(model)
   checkEquals(ll1, ll2, tolerance=0.005)
 
