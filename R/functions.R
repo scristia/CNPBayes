@@ -212,6 +212,9 @@ permnK <- function(k, maxperm){
 #' @param batch a vector containing the labels from which batch each observation came from.
 #' @export
 downSampleEachBatch <- function(y, nt, batch){
+  ## NULL out these two variables to avoid NOTE about
+  ## no visible binding for global variable
+  x <- obs.index <- NULL
   yb <- split(y, batch)
   indices <- split(seq_along(y), batch)
   S <- foreach(x=yb, batch.id=names(yb), obs.index=indices) %do% {
