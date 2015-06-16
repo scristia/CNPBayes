@@ -1346,7 +1346,7 @@ if(FALSE){
   checkEquals(ps, truep, tolerance=0.05)
 }
 
-test_computemeans <- function(){
+.test_computemeans <- function(){
   dir <- system.file("unitTests", package="CNPBayes")
   testdat <- readRDS(file.path(dir, "test_data.rds"))
   model <- BatchModel(data=testdat$y, batch=testdat$b)
