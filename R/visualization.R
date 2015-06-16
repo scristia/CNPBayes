@@ -27,14 +27,14 @@ setMethod("tracePlot", "BatchModel", function(object, name, ...){
   }
 })
 
-summarizeMarginal <- function(model.list){
-  xlist <- lapply(model.list, m.y)
-  if(isMarginalModel(model.list[[1]])){
-    nms <- paste0("M", seq_along(model.list))
-  } else nms <- paste0("B", seq_along(model.list))
-  mns <- sapply(xlist, mean)
-  rg <- sapply(xlist, function(x) diff(range(x)))
-  df <- data.frame(mean=mns, range=rg)
-  rownames(df) <- nms
-  df
-}
+# summarizeMarginal <- function(model.list){
+#   xlist <- lapply(model.list, m.y)
+#   if(isMarginalModel(model.list[[1]])){
+#     nms <- paste0("M", seq_along(model.list))
+#   } else nms <- paste0("B", seq_along(model.list))
+#   mns <- sapply(xlist, mean)
+#   rg <- sapply(xlist, function(x) diff(range(x)))
+#   df <- data.frame(mean=mns, range=rg)
+#   rownames(df) <- nms
+#   df
+# }
