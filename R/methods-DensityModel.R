@@ -324,7 +324,7 @@ setMethod("densities", "MarginalModel", function(object){
        clusters=clusters, quantiles=quantiles)
 })
 
-#' @rdname DensityModel-class
+#' @rdname clusters-method
 #' @aliases clusters,DensityModel-method
 setMethod("clusters", "DensityModel", function(object) object@clusters)
 setMethod("quantiles", "DensityModel", function(object) object@quantiles)
