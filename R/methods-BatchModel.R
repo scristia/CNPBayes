@@ -138,11 +138,11 @@ setValidity("BatchModel", function(object){
 #' @rdname extract-methods
 setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
-    y(object) <- y(object)[i]
-    z(object) <- z(object)[i]
-    batch(object) <- batch(object)[i]
+    y(x) <- y(x)[i]
+    z(x) <- z(x)[i]
+    batch(x) <- batch(x)[i]
   }
-  object
+  x
 })
 
 
