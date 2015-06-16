@@ -196,6 +196,11 @@ setMethod("updateAlpha", "MixtureModel", function(object){
 #' @aliases y,MixtureModel-method
 setMethod("y", "MixtureModel", function(object) object@data)
 
+setReplaceMethod("y", "MixtureModel", function(object){ 
+  object@data <- value
+  object
+})
+
 #' @rdname oned-method
 #' @aliases oned,MixtureModel-method
 setMethod("oned", "MixtureModel", function(object) object@data)

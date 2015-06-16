@@ -205,6 +205,7 @@ setGeneric("sigma2.0", function(object) standardGeneric("sigma2.0"))
 #' @rdname y-method
 setGeneric("y", function(object) standardGeneric("y"))
 
+setGeneric("y<-", function(object, value) standardGeneric("y<-"))
 
 ## TODO: oned is for 1-dimensional summary. Perhaps more informative
 ## than 'y'.
