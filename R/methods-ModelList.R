@@ -104,6 +104,7 @@ setMethod("[[", "ModelList", function(x, i, j, ..., drop=FALSE){
 })
 
 #' Replace a MarginalModel or BatchModel in a ModelList.
+#' @param value A MarginalModel or BatchModel to insert.
 #' @aliases [[<-,ModelList-method
 #' @docType method
 #' @rdname extract-methods

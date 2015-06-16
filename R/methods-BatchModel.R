@@ -139,7 +139,7 @@ setValidity("BatchModel", function(object){
 #' @param j Not used.
 #' @param ... Not used.
 #' @param drop Not used.
-#' @aliases [,BatchModel-method
+#' @aliases [,BatchModel-method [,BatchModel,ANY,ANY,ANY-method 
 #' @docType methods
 #' @rdname extract-methods
 setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
