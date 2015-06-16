@@ -245,7 +245,7 @@ setGeneric("computeDistance", function(object) standardGeneric("computeDistance"
 #' Retrieve the modes from a model.
 #'
 #' The iteration which maximizes log likelihood and log prior is found. The estimates for each parameter at this iteration are retrieved.
-#' @param object see \code{showMethods(modes)}
+#' @param object a \code{MixtureModel}-derived class
 #' @export
 #' @docType methods
 #' @rdname modes-method
@@ -258,7 +258,6 @@ setGeneric("modes", function(object) standardGeneric("modes"))
 #' One can permute the ordering of the modes and assign the permuted
 #' order to a MixtureModel derived class by this method.
 #'
-#' @param object a \code{MixtureModel}-derived class
 #' @param value a \code{list} of the modes.  See \code{mode(object)}
 #' to obtain the correct format of the list.
 #'
