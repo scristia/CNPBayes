@@ -115,6 +115,8 @@ plot(DensityModel(marginal.model), y(sim.data),
 
 # K unknown
 
+Often times, the number of components is not known $a priori$.
+
 - computeMarginalLik
     - Ref Chib estimator / Berkhof for estimating marginal likelihoods
 - computing a bayes factor
