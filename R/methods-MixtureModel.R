@@ -184,10 +184,6 @@ setMethod("show", "MixtureModel", function(object){
 
 setMethod("alpha", "MixtureModel", function(object) alpha(hyperParams(object)))
 
-setMethod("updateAlpha", "MixtureModel", function(object){
-  alpha(object) + table(z(object))
-})
-
 #' @rdname y-method
 #' @aliases y,MixtureModel-method
 setMethod("y", "MixtureModel", function(object) object@data)

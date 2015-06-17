@@ -360,7 +360,6 @@ setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 #' @rdname nStarts-method
 setGeneric("nStarts<-", function(object, value) standardGeneric("nStarts<-"))
 
-setGeneric("updateAlpha", function(object) standardGeneric("updateAlpha"))
 setGeneric("alpha", function(object) standardGeneric("alpha"))
 
 setGeneric("orderTheta<-", function(object, value) standardGeneric("orderTheta<-"))
