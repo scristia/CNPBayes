@@ -442,8 +442,6 @@ setGeneric("posteriorSimulation", function(object) standardGeneric("posteriorSim
 
 setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
 
-setGeneric("updateLabels", function(object) standardGeneric("updateLabels"))
-
 setGeneric("posteriorTheta", function(object, mcmcp) standardGeneric("posteriorTheta"))
 setGeneric("posteriorSigma2", function(object, mcmcp) standardGeneric("posteriorSigma2"))
 
