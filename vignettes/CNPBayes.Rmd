@@ -12,8 +12,24 @@ vignette: >
   \usepackage[utf8]{inputenc} 
 ---
 
+# Introduction
+
+CNPBayes allows for copy number estimation via a Bayesian mixture model. Models
+can be marginal or hierarchical over batches. The long-running, Markov Chain
+Monte Carlo portions of the code are written in C++ (using Rcpp) for fast
+performance.
+
 # posteriorSimulation
 
+In order to simulate the posterior distribution of a model, many parameters for
+the routine must be specified first. An instance of class `McmcParams` is used
+to specify the simulation options, such as number of iterations, length of
+burnin, and thinning interval.
+```{r McmcParams}
+mp <- McmcParams(iter=1000,
+                 burnin=100,
+                 thin=1)
+```
 - McmcParams()
 - Hyperparameters()
 - graphical model
