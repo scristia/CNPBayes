@@ -55,9 +55,62 @@ hypp.batch <- Hyperparameters(type="batch")
 
 - graphical model
 
-- MarginalModel
-- BatchModel
-- visualization (DensityModel/plot)
+CNPBayes also allows for the simulation of test data. The number of
+observations, means for each component, standard deviations for each component,
+and mixture proportions must be specified. Additionally, for batch data, the
+batch label for each observation must be specified as well.
+```{r simulateData}
+## Simulate data
+sim.data <- simulateData(N=2500, p=rep(1/3, 3),
+                         theta=c(-1, 0, 1),
+                         sds=rep(0.1, 3))
+
+## Simulate batch data
+k <- 3
+nbatch <- 3
+means <- matrix(c(-1.2, -1.0, -0.8,
+                -0.2, 0, 0.2,
+                0.8, 1, 1.2), nbatch, k, byrow=FALSE)
+sds <- matrix(0.1, nbatch, k)
+N <- 1500
+batch.sim.data <- simulateBatchData(N=N,
+                                    batch=rep(letters[1:3], length.out=N),
+                                    theta=means,
+                                    sds=sds,
+                                    p=c(1/5, 1/3, 1-1/3-1/5))
+```
+
+To simulate the posterior distribution, an instance of class MarginalModel or
+BatchModel must first be constructed. Note that when initializing objects of
+these classes, the parameters `data`, `k` (number of $a priori$ components), 
+`hypp`, (object of class `Hyperparameters`) and `mcmc.params` (object of class
+`McmcParams`) should be specified. Default values for `hypp` and `mcmc.params`
+will be used if not specified. Note that to retrieve the simulated data from
+the object, the `y` method can be used. After construction of a model, the
+`posteriorSimulation` method should be used.
+
+```{r model}
+marginal.model <- MarginalModel(data=y(sim.data), k=3,
+                                hypp=hypp.marginal,
+                                mcmc.params=mp)
+
+batch.model <- BatchModel(data=y(batch.sim.data), k=3,
+                          batch=rep(letters[1:3], length.out=N),
+                          hypp=hypp.batch,
+                          mcmc.params=mp)
+
+marginal.model <- posteriorSimulation(marginal.model)
+batch.model <- posteriorSimulation(batch.model)
+```
+
+The results of the `posteriorSimulation` call returns an object of class
+`DensityModel` or `DensityBatchModel`. This object can be used, along with the
+data, for plotting.
+
+```{r plot}
+plot(DensityModel(marginal.model), y(sim.data), 
+     main="Marginal Model posterior")
+```
 - merging (if needed)
 
 # K unknown
