@@ -268,22 +268,6 @@ setMethod("updateNu.0", "BatchModel", function(object){
   nu0
 }
 
-
-setMethod("updateWithPosteriorMeans", "BatchModel", function(object){
-  mc <- chains(object)
-  theta(object) <- matrix(colMeans(theta(mc)), nBatch(object), k(object))
-  sigma2(object) <- matrix(colMeans(sigma2(mc)), nBatch(object), k(object))
-  p(object) <- colMeans(p(mc))
-  nu.0(object) <- median(nu.0(mc))
-  mu(object) <- colMeans(mu(mc))
-  tau2(object) <- colMeans(tau2(mc))
-  sigma2.0(object) <- mean(sigma2.0(object))
-  logpotential(object) <- computePotential(object)
-  z(object) <- factor(map(object), levels=seq_len(k(object)))
-  object
-})
-
-
 ##
 ## z has length y.  Each observation is a sample.
 ##

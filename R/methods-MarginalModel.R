@@ -282,20 +282,6 @@ setMethod("relabel", "BatchModel", function(object, zindex){
   object
 })
 
-setMethod("updateWithPosteriorMeans", "MarginalModel", function(object){
-  mc <- chains(object)
-  theta(object) <- colMeans(theta(mc))
-  sigma2(object) <- colMeans(sigma2(mc))
-  p(object) <- colMeans(p(mc))
-  nu.0(object) <- median(nu.0(mc))
-  mu(object) <- mean(mu(object))
-  tau2(object) <- mean(tau2(object))
-  sigma2.0(object) <- mean(sigma2.0(object))
-  logpotential(object) <- computePotential(object)
-  z(object) <- factor(map(object), levels=seq_len(k(object)))
-  object
-})
-
 setMethod("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
   mc <- chains(x)
   pot <- logpotential(mc)
