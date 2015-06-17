@@ -444,8 +444,6 @@ setGeneric("initializeModel", function(params, hypp) standardGeneric("initialize
 
 setGeneric("updateLabels", function(object) standardGeneric("updateLabels"))
 
-setGeneric("updateMixProbs", function(object) standardGeneric("updateMixProbs"))
-
 setGeneric("posteriorTheta", function(object, mcmcp) standardGeneric("posteriorTheta"))
 setGeneric("posteriorSigma2", function(object, mcmcp) standardGeneric("posteriorSigma2"))
 
