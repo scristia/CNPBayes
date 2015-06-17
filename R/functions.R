@@ -95,6 +95,7 @@ defineCnpRegions <- function(grl, thr=0.02){
   GenomicRanges::unlist(regions)
 }
 
+## RS: Can you document this one?
 #' @export
 consensusCNP <- function(grl, transcripts, min.width=2e3, min.prevalance=0.02){
   g <- as(unlist(grl), "GRanges")
