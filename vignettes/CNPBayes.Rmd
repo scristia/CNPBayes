@@ -115,7 +115,13 @@ plot(DensityModel(marginal.model), y(sim.data),
 
 # K unknown
 
-Often times, the number of components is not known $a priori$.
+Often times, the number of components is not known $a priori$. In order to
+estimate the number, the `computeMarginalLik` function is used. 
+
+```{r computeMarginalLik}
+x <- computeMarginalLik(y(sim.data), K=2:3)
+orderModels(x)
+```
 
 - computeMarginalLik
     - Ref Chib estimator / Berkhof for estimating marginal likelihoods
