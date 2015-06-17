@@ -232,23 +232,6 @@ setMethod("updateNu.0", "BatchModel", function(object){
   .Call("update_nu0_batch", object)
 })
 
-##.updateNu.0Batch <- function(NUMAX=100, beta, sigma2.0, sigma2.h, nu.0, k){
-.updateNu.0Batch <- function(object){
-  NUMAX <- 100
-  hypp <- hyperParams(object)
-  x <- seq_len(NUMAX)
-  k <- k(object)
-  P <- nBatch(object)
-  sigma2s <- as.numeric(sigma2(object))
-  lpnu0 <- (k*P) * (0.5 * x * log(sigma2.0(object) * x/2)-lgamma(x/2)) +
-      (x/2 - 1) * sum(log(1/sigma2s)) +
-          -x * (betas(hypp) + 0.5 * sigma2.0(object) * sum(1/sigma2s))
-  ##return(lpnu0)
-  prob <- exp(lpnu0 - max(lpnu0))
-  nu0 <- sample(x, 1, prob=prob)
-  nu0
-}
-
 ##
 ## z has length y.  Each observation is a sample.
 ##
