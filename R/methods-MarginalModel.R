@@ -135,14 +135,6 @@ setMethod("updateNu.0", "MarginalModel", function(object){
   .Call("update_nu0", object)
 })
 
-##
-## For the marginal model, mu and tau2 are hyper-parameters.  There is
-## no update.
-##
-setMethod("updateTau2", "MarginalModel", function(object){
-  .Call("update_tau2", object)
-})
-
 setReplaceMethod("tau2", "MarginalModel", function(object, value){
   object@tau2 <- value
   object

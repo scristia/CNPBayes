@@ -208,11 +208,6 @@ setMethod("updateSigma2", "BatchModel", function(object){
   .update_sigma2(object)
 })
 
-setMethod("updateTau2", "BatchModel", function(object){
-  ##.updateTau2Batch(object)
-  .Call("update_tau2_batch", object)
-})
-
 setMethod("updateSigma2.0", "BatchModel", function(object){
   ##.updateSigma2.0Batch(object)
   .Call("update_sigma20_batch", object)

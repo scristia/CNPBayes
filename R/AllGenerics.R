@@ -133,11 +133,8 @@ setGeneric("updateTheta", function(object, constrain) standardGeneric("updateThe
 setGeneric("updateSigma2", function(object) standardGeneric("updateSigma2"))
 setGeneric("updateSigma2.0", function(object) standardGeneric("updateSigma2.0"))
 setGeneric("updateNu.0", function(object) standardGeneric("updateNu.0"))
-setGeneric("updateTau2", function(object) standardGeneric("updateTau2"))
 
 setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
-
-setGeneric("updateWithPosteriorMeans", function(object) standardGeneric("updateWithPosteriorMeans"))
 
 #' Calculate BIC of a model
 #'
