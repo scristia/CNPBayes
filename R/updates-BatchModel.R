@@ -69,15 +69,6 @@ setMethod("posteriorMultinomial", "BatchModel", function(object){
   lik/rowSums(lik)
 }
 
-
-
-
-
-setMethod("updateMu", "BatchModel", function(object){
-  ##.updateMuBatch(object)
-  .Call("update_mu_batch", object)
-})
-
 ##.updateMu <- function(tau2.0, tau2, k, z, theta, mu.0){
 .updateMuBatch <- function(object){
   hypp <- hyperParams(object)

@@ -59,14 +59,6 @@ setMethod("computePotential", "MarginalModel", function(object){
   ll+ll.phi
 })
 
-##
-## For the marginal model, mu and tau2 are hyper-parameters.  There is
-## no update.
-##
-setMethod("updateMu", "MarginalModel", function(object){
-  .Call("update_mu", object)
-})
-
 setMethod("initializeSigma2.0", "MarginalModel", function(object){
   hypp <- hyperParams(object)
   sum(alpha(hypp)*sigma2(object))/sum(alpha(hypp))
