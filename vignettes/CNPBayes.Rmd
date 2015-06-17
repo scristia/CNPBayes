@@ -53,8 +53,8 @@ Hyperparameters for the mixture model are specified as an instance of class
 The type of model (batch or marginal) must also be specified when constructing
 an instance of class `Hyperparameters`, as follows:
 ```{r Hyperparameters}
-hypp.marginal <- Hyperparameters(type="marginal")
-hypp.batch <- Hyperparameters(type="batch")
+hypp.marginal <- Hyperparameters(type="marginal", k=3)
+hypp.batch <- Hyperparameters(type="batch", k=3)
 ```
 
 - graphical model
