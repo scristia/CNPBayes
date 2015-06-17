@@ -213,20 +213,6 @@ setMethod("updateTau2", "BatchModel", function(object){
   .Call("update_tau2_batch", object)
 })
 
-##.updateTau2Batch <- function(eta.0, m2.0, theta, mu, k){
-.updateTau2Batch <- function(object){
-  hypp <- hyperParams(object)
-  P <- nBatch(object)
-  eta.P <- eta.0(hypp)+P
-  mus <- mu(object)
-  mus <- matrix(mus, P, k(object), byrow=TRUE)
-  thetas <- theta(object)
-  s2.P <- colSums((thetas-mus)^2)
-  m2.P <- 1/eta.P * (eta.0(hypp) * m2.0(hypp) + s2.P)
-  tau2 <- 1/rgamma(k(object), shape=1/2 * eta.P, rate=1/2 * eta.P * m2.P)
-  tau2
-}
-
 setMethod("updateSigma2.0", "BatchModel", function(object){
   ##.updateSigma2.0Batch(object)
   .Call("update_sigma20_batch", object)
