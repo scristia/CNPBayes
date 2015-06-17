@@ -227,11 +227,6 @@ setMethod("updateSigma2.0", "BatchModel", function(object){
   sigma2.0
 }
 
-setMethod("updateNu.0", "BatchModel", function(object){
-  ##.updateNu.0Batch(object)
-  .Call("update_nu0_batch", object)
-})
-
 ##
 ## z has length y.  Each observation is a sample.
 ##

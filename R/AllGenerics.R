@@ -132,7 +132,6 @@ setGeneric("updateSigma2Cpp", function(object) standardGeneric("updateSigma2Cpp"
 setGeneric("updateTheta", function(object, constrain) standardGeneric("updateTheta"))
 setGeneric("updateSigma2", function(object) standardGeneric("updateSigma2"))
 setGeneric("updateSigma2.0", function(object) standardGeneric("updateSigma2.0"))
-setGeneric("updateNu.0", function(object) standardGeneric("updateNu.0"))
 
 setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
 

@@ -131,10 +131,6 @@ setMethod("updateSigma2.0", "MarginalModel", function(object){
   .Call("update_sigma2_0", object)
 })
 
-setMethod("updateNu.0", "MarginalModel", function(object){
-  .Call("update_nu0", object)
-})
-
 setReplaceMethod("tau2", "MarginalModel", function(object, value){
   object@tau2 <- value
   object
