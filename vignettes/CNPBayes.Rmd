@@ -30,9 +30,31 @@ mp <- McmcParams(iter=1000,
                  burnin=100,
                  thin=1)
 ```
-- McmcParams()
-- Hyperparameters()
+
+Hyperparameters for the mixture model are specified as an instance of class
+`Hyperparameters`. Hyperparameters include: 
+- `k` the number of components (or copy numbers). Defaults to 2. 
+- `mu.0` and `tau2.0` priors for $\mu \sim \text{N(mu.0, tau2.0)}$, the 
+  overall mean of components. Default to 0 and 100 respectively.
+- `eta.0` and `m2.0` priors for 
+  $\tau^2 \sim \text{Ga(rate=eta.0, shape=m2.0)}$, the overall variance across
+  components. Default to 1 and 0.1 respectively for marginal models and 1800
+  and 1/60 respectively for batch models.
+- `alpha` the prior mixture probabilities. Does not have to sum to 1. By
+  default, a noninformative prior of equal mixtures is used.
+- `beta` prior for $\nu_0$. Defaults to 0.1.
+- `a` and `b` priors for $\sigma^2_0 \sim \text{Ga(shape=a, rate=b)}$, the rate
+  parameter for $\sigma^2$, the variance for each batch and component.
+
+The type of model (batch or marginal) must also be specified when constructing
+an instance of class `Hyperparameters`, as follows:
+```{r Hyperparameters}
+hypp.marginal <- Hyperparameters(type="marginal")
+hypp.batch <- Hyperparameters(type="batch")
+```
+
 - graphical model
+
 - MarginalModel
 - BatchModel
 - visualization (DensityModel/plot)
