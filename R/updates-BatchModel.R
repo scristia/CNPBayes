@@ -69,33 +69,6 @@ setMethod("posteriorMultinomial", "BatchModel", function(object){
   lik/rowSums(lik)
 }
 
-##.updateMu <- function(tau2.0, tau2, k, z, theta, mu.0){
-.updateMuBatch <- function(object){
-  hypp <- hyperParams(object)
-  tau2.0.tilde <- 1/tau2.0(hypp)
-  tau2.tilde <- 1/tau2(object)
-  P <- nBatch(object)
-  post.prec <- tau2.0.tilde + P*tau2.tilde
-  n.h <- tablez(object)
-  ## guard against components with zero observations
-  n.h <- pmax(n.h, 1)
-  thetas <- theta(object)
-  thetas <- t(apply(thetas, 1, sort))
-  ##
-  ## weights for within-component average of thetas
-  w1 <- tau2.0.tilde/post.prec
-  w2 <- P*tau2.tilde/post.prec
-  ##
-  ## average thetas, giving more weight to batches with more
-  ## observations
-  ##
-  theta.bar <- colSums(n.h*thetas)/colSums(n.h)
-  ## when the prior is zero, mu.P is shrunk towards zero
-  mu.P <- w1*mu.0(hypp) + w2*theta.bar
-  s <- sqrt(1/post.prec)
-  rnorm(k(object), mu.P, s)
-}
-
 .update_sigma2 <- function(object){
   n.hp <- tablez(object)
   ##
