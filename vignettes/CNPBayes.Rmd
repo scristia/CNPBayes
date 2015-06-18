@@ -61,13 +61,102 @@ Hyperparameters for the mixture model are specified as an instance of class
 - `a` and `b` priors for $\sigma^2_0 \sim \text{Ga(shape=a, rate=b)}$, the rate
   parameter for $\sigma^2$, the variance for each batch and component.  
 
+```{r graph-marginal, echo=FALSE}
+library(grid)
+bayesianGrob <- function(x, r=unit(0.25, "inches")){
+  tg <- textGrob(x)
+  cg <- circleGrob(r=r)
+  boxedText <- gTree(children=gList(tg, cg))
+}
+
+grobY <- bayesianGrob(expression(y[i]))
+grobThetas <- bayesianGrob(expression(theta[h]))
+grobSigma2 <- bayesianGrob(expression(sigma[h]^2))
+grobH <- bayesianGrob(expression(z[i]))
+grobNu0 <- bayesianGrob(expression(nu[0]))
+grobSigma02 <- bayesianGrob(expression(sigma[0]^2))
+grobPi <- bayesianGrob(expression(pi[h]))
+grobMu <- bayesianGrob(expression(mu[h]))
+grobTau2 <- bayesianGrob(expression(tau[h]^2))
+
+h <- unit(0.25, "inches")
+e <- unit(0.05, "inches")
+d <- unit(0.025, "inches")
+
+ar <- arrow(ends="last", length=unit(0.075, "inches"), type="closed")
+grid.newpage()
+y.x <- 0.5; y.y <- 0.1
+h.x <- 0.1; h.y <- 0.3
+theta.x <- 0.5; theta.y <- 0.3
+sigma2.x <- 0.7; sigma2.y <- 0.3
+pi.x <- 0.1; pi.y <- 0.5
+mu.x <- 0.45; mu.y <- 0.5
+tau2.x <- 0.55; tau2.y <- 0.5
+nu0.x <- 0.65; nu0.y <- 0.5
+s20.x <- 0.75; s20.y <- 0.5
+grid.draw(editGrob(grobY, vp=viewport(y.x, y.y), gp=gpar(fill="gray")))
+grid.draw(editGrob(grobY, vp=viewport(y.x, y.y), gp=gpar(fill="transparent")))
+grid.draw(editGrob(grobH, vp=viewport(h.x, h.y)))
+
+grid.draw(editGrob(grobThetas, vp=viewport(theta.x, theta.y)))
+grid.draw(editGrob(grobSigma2, vp=viewport(sigma2.x, sigma2.y)))
+
+## theta -> y
+grid.move.to(unit(theta.x, "npc"), unit(theta.y, "npc") - h)
+grid.line.to(unit(y.x, "npc"), unit(y.y, "npc") + h, arrow=ar,
+             gp=gpar(fill="black"))
+## sigma2 -> y
+grid.move.to(unit(sigma2.x, "npc") - e, unit(sigma2.y, "npc") -h)
+grid.line.to(unit(y.x, "npc") + h, unit(y.y, "npc") + h, arrow=ar,
+             gp=gpar(fill="black"))
+
+## h -> theta
+grid.move.to(unit(h.x, "npc") + h, unit(h.y, "npc") - h)
+grid.line.to(unit(y.x, "npc") - h, unit(y.y, "npc") + h,  arrow=ar,
+             gp=gpar(fill="black"))
+
+##pi
+grid.draw(editGrob(grobPi, vp=viewport(pi.x, pi.y)))
+## pi -> h
+grid.move.to(x=unit(pi.x, "npc"), y=unit(pi.y, "npc") - h)
+grid.line.to(x=unit(h.x, "npc"),
+             y=unit(h.y, "npc")+h, arrow=ar,
+             gp=gpar(fill="black"))
+
+
+## mu_h
+grid.draw(editGrob(grobMu, vp=viewport(mu.x, mu.y)))
+## mu_h -> theta
+grid.move.to(x=unit(mu.x, "npc")+e, y=unit(mu.y, "npc") - h)
+grid.line.to(x=unit(theta.x, "npc")-e, y=unit(theta.y, "npc")+h, arrow=ar,
+             gp=gpar(fill="black"))
+
+
+## sigma2_h
+grid.draw(editGrob(grobTau2, vp=viewport(tau2.x, tau2.y)))
+## sigma2_h -> theta_h
+grid.move.to(x=unit(tau2.x, "npc")-e, y=unit(tau2.y, "npc") - h)
+grid.line.to(x=unit(theta.x, "npc")+e, y=unit(theta.y, "npc")+h, arrow=ar,
+             gp=gpar(fill="black"))
+
+grid.draw(editGrob(grobNu0, vp=viewport(nu0.x, nu0.y)))
+## nu_0 -> sigma2_0
+grid.move.to(x=unit(nu0.x, "npc")+e, y=unit(nu0.y, "npc") - h)
+grid.line.to(x=unit(sigma2.x, "npc")-e, y=unit(sigma2.y, "npc")+h, arrow=ar,
+             gp=gpar(fill="black"))
+
+grid.draw(editGrob(grobSigma02, vp=viewport(s20.x, s20.y)))
+## nu_0 -> sigma2_0
+grid.move.to(x=unit(s20.x, "npc")-e, y=unit(s20.y, "npc") - h)
+grid.line.to(x=unit(sigma2.x, "npc")+e, y=unit(sigma2.y, "npc")+h, arrow=ar,
+             gp=gpar(fill="black"))
+```
+
 Constructing an instance of class `Hyperparameters` for a `MarginalModel` can
 be performed as follows.
 ```{r Hyperparameters}
 hypp <- Hyperparameters(type="marginal", k=3)
 ```
-
-- graphical model
 
 ### simulateData
 
