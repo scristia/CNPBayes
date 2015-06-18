@@ -110,13 +110,6 @@ setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 #' @rdname hyperParams-method
 setGeneric("hyperParams<-", function(object,value) standardGeneric("hyperParams<-"))
 
-## JC revisit whether this should be exported after writing vignette.
-#' Initialize empty chain for model.
-#'
-#' @param object see \code{showMethods(McmcChains)}
-#' @export
-#' @docType methods
-#' @rdname McmcChains-method
 setGeneric("McmcChains", function(object) standardGeneric("McmcChains"))
 
 setGeneric("hist")

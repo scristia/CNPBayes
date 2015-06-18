@@ -11,7 +11,7 @@ test_constructor <- function(){
   mmod <- MarginalModel()
   checkTrue(validObject(mmod))
 
-  mc <- McmcChains()
+  mc <- CNPBayes:::McmcChains()
   checkTrue(validObject(mc))
 
   hp <- Hyperparameters()
