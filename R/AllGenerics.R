@@ -61,14 +61,6 @@ setGeneric("logpotential<-", function(object, value) standardGeneric("logpotenti
 setGeneric("dataMean<-", function(object, value) standardGeneric("dataMean<-"))
 setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 
-##
-## JC:  After writing the vignette, we should see whether this is
-## something we want to expose.
-#' Replace model's simulated MCMC chain.
-#' @param value object with which to replace the McmcChains
-#' @export
-#' @docType methods
-#' @rdname chains-method
 setGeneric("chains<-", function(object, value) standardGeneric("chains<-"))
 
 ## JC: remove \dontrun when this is  doable
