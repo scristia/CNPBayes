@@ -400,14 +400,6 @@ setGeneric("thetac", function(object) standardGeneric("thetac"))
 
 setGeneric("thetaMean", function(object) standardGeneric("thetaMean"))
 
-## JC: convenience function.  Don't export.
-#' Calculate mean variance of each component/batch.
-#'
-#' Mean is taken across simulated MCMC chain.
-#' @param object see \code{showMethods(sigmaMean)}
-#' @export
-#' @docType methods
-#' @rdname sigmaMean-method
 setGeneric("sigmaMean", function(object) standardGeneric("sigmaMean"))
 
 ## JC: convenience function.  Don't export.
