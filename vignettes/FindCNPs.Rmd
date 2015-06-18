@@ -1,0 +1,20 @@
+---
+title: "Identifying Copy Number Polymorphisms"
+author: 
+- Jacob Carey
+- Robert Scharpf
+- Steven Cristiano
+date: \today
+output: pdf_document
+vignette: >
+  %\VignetteIndexEntry{Identifying Copy Number Polymorphisms}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc} 
+---
+
+# Introduction
+
+# Finding CNPs
+- hidden Markov models
+- prior knowledge (HapMap / 1000 Genomes Project)
+

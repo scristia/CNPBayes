@@ -206,10 +206,6 @@ orderModels(x)
 - merging components
 - Alternative statistics for model selection (i.e., BIC)
 
-# Finding CNPs
-- hidden Markov models
-- prior knowledge (HapMap / 1000 Genomes Project)
-
 # Other applications
 - down-sampling 
 - modeling differences in variance (same mean)
