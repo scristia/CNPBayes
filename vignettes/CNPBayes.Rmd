@@ -182,7 +182,7 @@ the object, the `y` method can be used. After construction of a model, the
 
 ```{r model}
 model <- MarginalModel(data=y(sim.data), k=3,
-                       hypp=hypp.marginal,
+                       hypp=hypp,
                        mcmc.params=mp)
 
 model <- posteriorSimulation(model)
