@@ -24,6 +24,19 @@ chains(object)
 \description{
 Replace model's simulated MCMC chain.
 
-Retrieve simulated chains from model object.
+The method \code{chains} applied to a \code{MixtureModel}-derived
+class will return an object of class \code{McmcChains} that
+contains the chains for all simulated parameters. Typically, chains
+is called in conjunction with an accessor for one of these
+parameters.
+}
+\examples{
+\dontrun{
+   data(MarginalModelExample)
+   theta.chain <- theta(chains(MarginalModelExample))
+   dim(theta.chain)
+   plot.ts(theta.chain, plot.type="single",
+           col=seq_len(k(MarginalModelExample)))
+ }
 }
 

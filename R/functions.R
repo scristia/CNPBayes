@@ -11,12 +11,6 @@ stopif <- function(x) stopifnot(!x)
 
 precision <- function(x) 1/var(x, na.rm=TRUE)
 
-#' Identifty consensus start.
-#'
-#' Find the minimum basepair that is spanned by at least half of all identified CNVs. RS: Will you take a look at this description?
-#'
-#' @param g A GenomicRange with id metadata column.
-#' @export
 consensusRegion <- function(g){
   ## Defined the consensus start as the minimum basepair that is
   ## spanned by at least half of all identified CNVs
@@ -52,12 +46,6 @@ consensusRegion <- function(g){
   region
 }
 
-#' Define Copy Number Polymorphism regions
-#'
-#' The number of occurrences of disjoint regions are counted. A disjoint region is identified as a CNP if the number of disjoint regions contained in all of the GenomicRanges divided by the distinct GenomicRanges exceeds the argument \code{thr}. RS: will you read over this description?
-#' @param grl A GRangesList (list of GenomicRanges)
-#' @param thr Threshold for identified CNP regions.
-#' @export
 defineCnpRegions <- function(grl, thr=0.02){
   message("unlist GRangesList...")
   g <- GenomicRanges::unlist(grl)

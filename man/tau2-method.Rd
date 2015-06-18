@@ -6,7 +6,7 @@
 \alias{tau2,BatchModel-method}
 \alias{tau2,MarginalModel-method}
 \alias{tau2,McmcChains-method}
-\title{Retrieve overall variance across components/batches.}
+\title{Accessor for the tau2 parameter in the hierarchical mixture model}
 \usage{
 tau2(object)
 
@@ -20,6 +20,25 @@ tau2(object)
 \item{object}{see \code{showMethods(tau2)}}
 }
 \description{
-Retrieve overall variance across components/batches.
+The interpretation of \code{tau2} depends on whether \code{object}
+is a \code{MarginalModel} or a \code{BatchModel}.  For
+\code{BatchModel}, \code{tau2} is a vector with length equal to the
+number of components.  Each element of the \code{tau2} vector can
+be interpreted as the within-component variance of the batch means
+(\code{theta}).  For objects of class \code{MarginalModel}
+(assumes no batch effect), \code{tau2} is a length-one vector that
+describes the variance of the component means between batches.  The
+hyperparameters of \code{tau2} are [JC].  See the following
+examples for setting the hyperparameters, accessing the current
+value of \code{tau2} from a \code{MixtureModel}-derived object, and
+for plotting the chain of \code{tau2} values.
+}
+\examples{
+k(BatchModel())
+tau2(BatchModel())
+tau2(MarginalModel())
+}
+\seealso{
+\code{Hyperparameters}
 }
 

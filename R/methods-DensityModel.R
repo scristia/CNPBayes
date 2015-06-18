@@ -231,28 +231,29 @@ findModes <- function(quantiles, x){ ##quantiles, density
   modes
 }
 
-#' @rdname DensityModel-class
-#' @aliases plot,DensityModel-method
+#' @rdname plot
+#' @aliases plot,DensityModel,numeric-method
 setMethod("plot", "DensityModel", function(x, y, ...){
   .plotMarginal(x, y, ...)
 })
 
-#' @rdname MarginalModel-class
-#' @aliases plot,MarginalModel-method
+#' @rdname plot
+#' @aliases plot,MarginalModel,ANY-method
 setMethod("plot", "MarginalModel", function(x, y, ...){
   object <- DensityModel(x)
   return(object)
 })
 
-#' @rdname BatchModel-class
-#' @aliases plot,BatchModel-method
+#' @rdname plot
+#' @aliases plot,BatchModel,ANY-method
 setMethod("plot", "BatchModel", function(x, y, show.batch=TRUE, ...){
   object <- DensityModel(x)
   .plotBatch(object, oned(x), show.batch, ...)
   return(object)
 })
 
-
+#' @rdname plot
+#' @aliases plot,BatchModel,ANY-method
 setMethod("plot", "DensityBatchModel", function(x, y, show.batch=TRUE, ...){
   .plotBatch(x, y, show.batch, ...)
 })

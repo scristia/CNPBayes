@@ -7,7 +7,7 @@
 \alias{hyperParams<-}
 \alias{hyperParams<-,MixtureModel,Hyperparameters-method}
 \alias{hyperParams<-,MixtureModel-method}
-\title{Retried specified hyper parameters from model.}
+\title{Accessor for Hyperparameters object for a MixtureModel-derived object}
 \usage{
 hyperParams(object)
 
@@ -23,8 +23,23 @@ hyperParams(object) <- value
 \item{value}{an object of class 'Hyperparameters'}
 }
 \description{
-Retried specified hyper parameters from model.
+Accessor for Hyperparameters object for a MixtureModel-derived object
 
-Replace hyper paramaters of model.
+Replace the hyperparameters for a MixtureModel-derived object
+}
+\examples{
+\dontrun{
+    data(MarginalModelExample)
+    hyperParams(MixtureModelExample)
+}
+\dontrun{
+   data(MarginalModelExample)
+   hypp <- Hyperparameters(type="marginal",
+                           k=k(MarginalModelExample))
+   ## TODO: change one or two of the hyperparameters in the object
+   ## 'hypp'
+   ##
+   hyperParams(MarginalModelExample) <- hypp
+}
 }
 

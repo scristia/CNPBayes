@@ -6,18 +6,6 @@
 
 using namespace Rcpp;
 
-// compute_batch_variables
-RcppExport SEXP compute_batch_variables(Function kstest, SEXP xmod);
-RcppExport SEXP CNPBayes_compute_batch_variables(SEXP kstestSEXP, SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< Function >::type kstest(kstestSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(compute_batch_variables(kstest, xmod));
-    return __result;
-END_RCPP
-}
 // tableZ
 IntegerVector tableZ(int K, IntegerVector z);
 RcppExport SEXP CNPBayes_tableZ(SEXP KSEXP, SEXP zSEXP) {

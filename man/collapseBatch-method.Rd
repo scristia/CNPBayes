@@ -6,7 +6,7 @@
 \alias{collapseBatch,BatchModel-method}
 \alias{collapseBatch,SummarizedExperiment-method}
 \alias{collapseBatch,numeric-method}
-\title{Collapse batch data to fewer number of batches.}
+\title{Estimate batch from a collection of chemistry plates or some other}
 \usage{
 collapseBatch(object, plate, THR = 0.1)
 
@@ -24,6 +24,31 @@ collapseBatch(object, plate, THR = 0.1)
 \item{THR}{threshold below which the null hypothesis should be rejected and batches are collapsed.}
 }
 \description{
-For observations from different batches that are likely drawn from the same distribution, collapse the batches. This is done for computational efficiency. The Kolmogorov-Smirnov test is used.
+In high-throughput assays, low-level summaries of copy number at
+copy number polymorphic loci (e.g., the mean log R ratio for each
+sample, or a principal-component derived summary) often differ
+between groups of samples due to technical sources of variation
+such as reagents, technician, or laboratory.  Technical (as opposed
+to biological) differences between groups of samples are referred
+to as batch effects.  A useful surrogate for batch is the chemistry
+plate on which the samples were hybridized. In large studies, a
+Bayesian hierarchical mixture model with plate-specific means and
+variances is computationally prohibitive.  However, chemistry
+plates processed at similar times may be qualitatively similar in
+terms of the distribution of the copy number summary statistic.
+Further, we have observed that some copy number polymorphic loci
+exhibit very little evidence of a batch effect, while other loci
+are more prone to technical variation.  We suggest combining plates
+that are qualitatively similar in terms of the Kolmogorov-Smirnov
+two-sample test of the distribution and to implement this test
+independently for each candidate copy number polymophism identified
+in a study.  The \code{collapseBatch} function is a wrapper to the
+\code{ks.test} implemented in the \code{stats} package that
+compares all pairwise combinations of plates.  The \code{ks.test}
+is performed recursively on the batch variables defined for a given
+CNP until no batches can be combined.
+}
+\examples{
+## See unit tests for an example
 }
 

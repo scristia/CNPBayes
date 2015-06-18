@@ -27,12 +27,38 @@ setGeneric("p<-", function(object, value) standardGeneric("p<-"))
 setGeneric("mu", function(object) standardGeneric("mu"))
 setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
 
-#' Retrieve overall variance across components/batches.
+## JC: example for setting hyperparameters for tau2
+## -- might be useful to save a data/BatchModelExample.rda instance and a data/MarginalModel.rda
+## instance to use in examples such as this. e.g.,
+## data(BatchModelExample)
+## tau2(BatchModelExample)
+## plot.ts(tau(chains(BatchModelExample)))
+##
+#' Accessor for the tau2 parameter in the hierarchical mixture model
+#'
+#' The interpretation of \code{tau2} depends on whether \code{object}
+#' is a \code{MarginalModel} or a \code{BatchModel}.  For
+#' \code{BatchModel}, \code{tau2} is a vector with length equal to the
+#' number of components.  Each element of the \code{tau2} vector can
+#' be interpreted as the within-component variance of the batch means
+#' (\code{theta}).  For objects of class \code{MarginalModel}
+#' (assumes no batch effect), \code{tau2} is a length-one vector that
+#' describes the variance of the component means between batches.  The
+#' hyperparameters of \code{tau2} are [JC].  See the following
+#' examples for setting the hyperparameters, accessing the current
+#' value of \code{tau2} from a \code{MixtureModel}-derived object, and
+#' for plotting the chain of \code{tau2} values.
+#'
+#' @examples
+#' k(BatchModel())
+#' tau2(BatchModel())
+#' tau2(MarginalModel())
 #'
 #' @param object see \code{showMethods(tau2)}
 #' @export
 #' @docType methods
 #' @rdname tau2-method
+#' @seealso \code{Hyperparameters}
 setGeneric("tau2", function(object) standardGeneric("tau2"))
 setGeneric("tau2<-", function(object, value) standardGeneric("tau2<-"))
 setGeneric("nu.0<-", function(object, value) standardGeneric("nu.0<-"))
@@ -41,6 +67,9 @@ setGeneric("logpotential<-", function(object, value) standardGeneric("logpotenti
 setGeneric("dataMean<-", function(object, value) standardGeneric("dataMean<-"))
 setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 
+##
+## JC:  After writing the vignette, we should see whether this is
+## something we want to expose.
 #' Replace model's simulated MCMC chain.
 #' @param value object with which to replace the McmcChains
 #' @export
@@ -48,30 +77,61 @@ setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 #' @rdname chains-method
 setGeneric("chains<-", function(object, value) standardGeneric("chains<-"))
 
+## JC: remove \dontrun when this is  doable
 #' Retrieve simulated chains from model object.
 #'
+#' The method \code{chains} applied to a \code{MixtureModel}-derived
+#' class will return an object of class \code{McmcChains} that
+#' contains the chains for all simulated parameters. Typically, chains
+#' is called in conjunction with an accessor for one of these
+#' parameters.
+#' @examples
+#' \dontrun{
+#'    data(MarginalModelExample)
+#'    theta.chain <- theta(chains(MarginalModelExample))
+#'    dim(theta.chain)
+#'    plot.ts(theta.chain, plot.type="single",
+#'            col=seq_len(k(MarginalModelExample)))
+#'  }
 #' @param object \code{showMethods(chains)}
 #' @export
 #' @docType methods
 #' @rdname chains-method
 setGeneric("chains", function(object) standardGeneric("chains"))
 
-#' Retried specified hyper parameters from model.
+#' Accessor for Hyperparameters object for a MixtureModel-derived object
 #'
+#' @examples
+#' \dontrun{
+#'     data(MarginalModelExample)
+#'     hyperParams(MixtureModelExample)
+#' }
 #' @param object see \code{showMethods(hyperParams)}
 #' @export
 #' @docType methods
 #' @rdname hyperParams-method
 setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 
-#' Replace hyper paramaters of model.
+## JC see examples
+#' Replace the hyperparameters for a MixtureModel-derived object
 #'
+#' @examples
+#' \dontrun{
+#'    data(MarginalModelExample)
+#'    hypp <- Hyperparameters(type="marginal",
+#'                            k=k(MarginalModelExample))
+#'    ## TODO: change one or two of the hyperparameters in the object
+#'    ## 'hypp'
+#'    ##
+#'    hyperParams(MarginalModelExample) <- hypp
+#' }
 #' @param value an object of class 'Hyperparameters'
 #' @export
 #' @docType methods
 #' @rdname hyperParams-method
 setGeneric("hyperParams<-", function(object,value) standardGeneric("hyperParams<-"))
 
+## JC revisit whether this should be exported after writing vignette.
 #' Initialize empty chain for model.
 #'
 #' @param object see \code{showMethods(McmcChains)}
@@ -112,9 +172,15 @@ setGeneric("hist")
 #' @export
 setGeneric("plot")
 
+
 #' Retrieve batches from object.
 #'
 #' The batches are represented as a vector of integers.
+#' @examples
+#' \dontrun{
+#'      data(BatchModelExample)
+#'      batch(BatchModelExample)
+#' }
 #' @param object see \code{showMethods(batch)}
 #' @export
 #' @docType methods
@@ -318,9 +384,36 @@ setGeneric("m2.0<-", function(object,value) standardGeneric("m2.0<-"))
 setGeneric("showMeans", function(object) standardGeneric("showMeans"))
 setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 
-#' Collapse batch data to fewer number of batches.
+## JC this function could use a better name. See examples
+##
+#' Estimate batch from a collection of chemistry plates or some other
+#variable that captures the time in which the arrays were processed.
 #'
-#' For observations from different batches that are likely drawn from the same distribution, collapse the batches. This is done for computational efficiency. The Kolmogorov-Smirnov test is used.
+#' In high-throughput assays, low-level summaries of copy number at
+#' copy number polymorphic loci (e.g., the mean log R ratio for each
+#' sample, or a principal-component derived summary) often differ
+#' between groups of samples due to technical sources of variation
+#' such as reagents, technician, or laboratory.  Technical (as opposed
+#' to biological) differences between groups of samples are referred
+#' to as batch effects.  A useful surrogate for batch is the chemistry
+#' plate on which the samples were hybridized. In large studies, a
+#' Bayesian hierarchical mixture model with plate-specific means and
+#' variances is computationally prohibitive.  However, chemistry
+#' plates processed at similar times may be qualitatively similar in
+#' terms of the distribution of the copy number summary statistic.
+#' Further, we have observed that some copy number polymorphic loci
+#' exhibit very little evidence of a batch effect, while other loci
+#' are more prone to technical variation.  We suggest combining plates
+#' that are qualitatively similar in terms of the Kolmogorov-Smirnov
+#' two-sample test of the distribution and to implement this test
+#' independently for each candidate copy number polymophism identified
+#' in a study.  The \code{collapseBatch} function is a wrapper to the
+#' \code{ks.test} implemented in the \code{stats} package that
+#' compares all pairwise combinations of plates.  The \code{ks.test}
+#' is performed recursively on the batch variables defined for a given
+#' CNP until no batches can be combined.
+#' @examples
+#' ## See unit tests for an example
 #' @param object see \code{showMethods(collapseBatch)}
 #' @param plate a vector labelling from which batch each observation came from.
 #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
@@ -329,6 +422,8 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' @rdname collapseBatch-method
 setGeneric("collapseBatch", function(object, plate, THR=0.1) standardGeneric("collapseBatch"))
 
+## JC: See how tau2 was documented above.
+##
 #' Retrieve simulated thetas from a MixtureModel
 #'
 #' @param object see \code{showMethods(thetac)}
@@ -339,6 +434,7 @@ setGeneric("thetac", function(object) standardGeneric("thetac"))
 
 setGeneric("thetaMean", function(object) standardGeneric("thetaMean"))
 
+## JC: convenience function.  Don't export.
 #' Calculate mean variance of each component/batch.
 #'
 #' Mean is taken across simulated MCMC chain.
@@ -348,6 +444,7 @@ setGeneric("thetaMean", function(object) standardGeneric("thetaMean"))
 #' @rdname sigmaMean-method
 setGeneric("sigmaMean", function(object) standardGeneric("sigmaMean"))
 
+## JC: convenience function.  Don't export.
 #' Calculate mean mixture proportion of components.
 #'
 #' @param object see showMethods(pMean)
@@ -356,6 +453,7 @@ setGeneric("sigmaMean", function(object) standardGeneric("sigmaMean"))
 #' @rdname pMean-method
 setGeneric("pMean", function(object) standardGeneric("pMean"))
 
+## JC: see unit tests for examples
 #' Create a trace plot of a parameter estimated by MCMC.
 #'
 #' @param object see \code{showMethods(tracePlot)}
@@ -368,6 +466,7 @@ setGeneric("tracePlot", function(object, name, ...) standardGeneric("tracePlot")
 
 setGeneric("tablez", function(object) standardGeneric("tablez"))
 
+## JC: see unit tests for examples
 #' Number of MCMC chains.
 #'
 #' This function retrieves the number of chains used for an MCMC simulation.
@@ -377,6 +476,7 @@ setGeneric("tablez", function(object) standardGeneric("tablez"))
 #' @rdname nStarts-method
 setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 
+## JC: see unit tests for examples
 #' Reset number of MCMC chains in simulation.
 #'
 #' This function changes the number of chains used for an MCMC simulation.
@@ -392,6 +492,7 @@ setGeneric("alpha", function(object) standardGeneric("alpha"))
 setGeneric("orderTheta<-", function(object, value) standardGeneric("orderTheta<-"))
 setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))
 
+## JC: see unit tests for examples
 #' Retrieve log likelihood.
 #'
 #' @param object see showMethods(log_lik)
@@ -402,6 +503,7 @@ setGeneric("log_lik", function(object) standardGeneric("log_lik"))
 
 setGeneric("log_lik<-", function(object,value) standardGeneric("log_lik<-"))
 
+## JC: I don't think we need to export this.
 #' Compute log likelihood for a BatchModel or MarginalModel
 #'
 #' @param object see \code{showMethods(computeLoglik)}
@@ -410,6 +512,7 @@ setGeneric("log_lik<-", function(object,value) standardGeneric("log_lik<-"))
 #' @rdname computeLoglik-method
 setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 
+## JC: see unit tests for examples
 #' Number of burnin iterations.
 #'
 #' This function retrieves the number of burnin simulations to be discarded.
