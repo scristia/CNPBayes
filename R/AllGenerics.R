@@ -95,19 +95,15 @@ setGeneric("chains", function(object) standardGeneric("chains"))
 #' @rdname hyperParams-method
 setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 
-## JC see examples
-#' Replace the hyperparameters for a MixtureModel-derived object
+#' Replace the hyperparameters for a \code{MixtureModel}-derived object
 #'
 #' @examples
-#' \dontrun{
-#'    data(MarginalModelExample)
-#'    hypp <- Hyperparameters(type="marginal",
-#'                            k=k(MarginalModelExample))
-#'    ## TODO: change one or two of the hyperparameters in the object
-#'    ## 'hypp'
-#'    ##
-#'    hyperParams(MarginalModelExample) <- hypp
-#' }
+#' data(MarginalModelExample)
+#' hypp <- Hyperparameters(type="marginal",
+#'                         k=k(MarginalModelExample),
+#'                         alpha=c(9, 9, 10))
+#' hyperParams(MarginalModelExample) <- hypp
+#' 
 #' @param value an object of class 'Hyperparameters'
 #' @export
 #' @docType methods
