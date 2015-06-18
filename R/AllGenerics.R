@@ -453,13 +453,6 @@ setGeneric("log_lik", function(object) standardGeneric("log_lik"))
 
 setGeneric("log_lik<-", function(object,value) standardGeneric("log_lik<-"))
 
-## JC: I don't think we need to export this.
-#' Compute log likelihood for a BatchModel or MarginalModel
-#'
-#' @param object see \code{showMethods(computeLoglik)}
-#' @export
-#' @docType methods
-#' @rdname computeLoglik-method
 setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 
 ## JC: see unit tests for examples
