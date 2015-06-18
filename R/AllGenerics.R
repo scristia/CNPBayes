@@ -27,13 +27,6 @@ setGeneric("p<-", function(object, value) standardGeneric("p<-"))
 setGeneric("mu", function(object) standardGeneric("mu"))
 setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
 
-## JC: example for setting hyperparameters for tau2
-## -- might be useful to save a data/BatchModelExample.rda instance and a data/MarginalModel.rda
-## instance to use in examples such as this. e.g.,
-## data(BatchModelExample)
-## tau2(BatchModelExample)
-## plot.ts(tau(chains(BatchModelExample)))
-##
 #' Accessor for the tau2 parameter in the hierarchical mixture model
 #'
 #' The interpretation of \code{tau2} depends on whether \code{object}
@@ -44,15 +37,16 @@ setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
 #' (\code{theta}).  For objects of class \code{MarginalModel}
 #' (assumes no batch effect), \code{tau2} is a length-one vector that
 #' describes the variance of the component means between batches.  The
-#' hyperparameters of \code{tau2} are [JC].  See the following
-#' examples for setting the hyperparameters, accessing the current
+#' hyperparameters of \code{tau2} are \code{eta.0} and \code{m2.0}. See the 
+#' following examples for setting the hyperparameters, accessing the current
 #' value of \code{tau2} from a \code{MixtureModel}-derived object, and
 #' for plotting the chain of \code{tau2} values.
 #'
 #' @examples
-#' k(BatchModel())
-#' tau2(BatchModel())
-#' tau2(MarginalModel())
+#' data(BatchModelExample)
+#' k(BatchModelExample)
+#' tau2(BatchModelExample)
+#' plot.ts(tau2(chains(BatchModelExample)))
 #'
 #' @param object see \code{showMethods(tau2)}
 #' @export
