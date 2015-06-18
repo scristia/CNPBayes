@@ -5,7 +5,7 @@ author:
 - Robert Scharpf
 - Steven Cristiano
 date: \today
-output: rmarkdown::html_vignette
+output: pdf_document
 vignette: >
   %\VignetteIndexEntry{Bayesian mixture models for copy number estimation}
   %\VignetteEngine{knitr::rmarkdown}
