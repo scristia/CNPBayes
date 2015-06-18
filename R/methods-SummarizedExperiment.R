@@ -15,7 +15,8 @@ setAs("MixtureModel", "SummarizedExperiment", function(from, to){
 #' @aliases collapseBatch,SummarizedExperiment-method
 setMethod("collapseBatch", "SummarizedExperiment", function(object, plate, THR=0.1){
   plate <- as.character(object$plate)
-  collapseBatch(copyNumber(object)[1, ], plate, THR=THR)
+  ##collapseBatch(copyNumber(object)[1, ], plate, THR=THR)
+  collapseBatch(assays(object)[["medr"]][1, ]/1000)
 })
 
 #' @rdname collapseBatch-method
@@ -94,7 +95,6 @@ saveBatch <- function(se, batch.file, THR=0.1){
 
 
 ## RS: Can you write the documetnation here? I'm not familiar with the SummarizedExperiment class or the package from which it comes.
-#' @export
-setMethod("copyNumber", "SummarizedExperiment", function(object, ...){
-  assays(object)[["medr"]]/1000
-})
+## setMethod("copyNumber", "SummarizedExperiment", function(object, ...){
+##   assays(object)[["medr"]]/1000
+## })

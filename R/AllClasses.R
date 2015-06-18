@@ -226,7 +226,7 @@ setClass("ModelParams", representation(type="character",
                                        mcmc.params="McmcParams"))
 
 #' An object to store a list of MarginalModel or BatchModel
-#' 
+#'
 #' This class is primarily used internally for calculating the number of components of a mixture. MarginalModelList and BatchModelList inherit from this class depending on the model.
 #' @slot model_list A list of MarginalModel or BatchModel
 #' @slot names The names of each model
@@ -235,22 +235,21 @@ setClass("ModelList", representation(model_list="list", names="character",
                                      data="numeric"))
 
 #' An object to store a list of MarginalModel
-#' 
-#' This class is primarily used internally for calculating the number of components of a mixture. 
+#'
+#' This class is primarily used internally for calculating the number of components of a mixture.
 #' @slot model_list A list of MarginalModel
 #' @slot names The names of each model
 #' @slot data A vector containing the data
 setClass("MarginalModelList", contains="ModelList")
 
 #' An object to store a list of BatchModel
-#' 
-#' This class is primarily used internally for calculating the number of components of a mixture. 
+#'
+#' This class is primarily used internally for calculating the number of components of a mixture.
 #' @slot model_list A list of BatchModel
 #' @slot names The names of each model
 #' @slot data A vector containing the data
 setClass("BatchModelList", contains="ModelList")
 
-## RS: Check this out please!
 setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", berkhof="numeric",
                                             marginal="numeric", delta_marginal="numeric"))
 

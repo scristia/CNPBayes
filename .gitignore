@@ -10,8 +10,7 @@ TODO.org
 *.RDS
 *.csv
 temp.r
-x*-do.R
 Rplots.pdf
 .gitignore
-kolmogorov.cpp
+
 

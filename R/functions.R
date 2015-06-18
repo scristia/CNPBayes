@@ -12,7 +12,7 @@ stopif <- function(x) stopifnot(!x)
 precision <- function(x) 1/var(x, na.rm=TRUE)
 
 #' Identifty consensus start.
-#' 
+#'
 #' Find the minimum basepair that is spanned by at least half of all identified CNVs. RS: Will you take a look at this description?
 #'
 #' @param g A GenomicRange with id metadata column.
@@ -53,7 +53,7 @@ consensusRegion <- function(g){
 }
 
 #' Define Copy Number Polymorphism regions
-#' 
+#'
 #' The number of occurrences of disjoint regions are counted. A disjoint region is identified as a CNP if the number of disjoint regions contained in all of the GenomicRanges divided by the distinct GenomicRanges exceeds the argument \code{thr}. RS: will you read over this description?
 #' @param grl A GRangesList (list of GenomicRanges)
 #' @param thr Threshold for identified CNP regions.
@@ -70,8 +70,8 @@ defineCnpRegions <- function(grl, thr=0.02){
   is_cnp <- prop.cnv > thr
 
   ## throw-out large CNVs and CNVs that do not overlap any of the CNPs
-  gsmall <- g[width(g) < 200e3]
-  gsmall <- subsetByOverlaps(gsmall, dj[is_cnp])
+  ## gsmall <- g[width(g) < 200e3]
+  gsmall <- subsetByOverlaps(g, dj[is_cnp])
   regions <- reduce(gsmall) ## 267 regions
 
   ##library(GenomicRanges)
@@ -95,17 +95,106 @@ defineCnpRegions <- function(grl, thr=0.02){
   GenomicRanges::unlist(regions)
 }
 
-## RS: Can you document this one?
+#' Identify consensus start and stop coordinates of a copy number
+#' polymorphism
+#'
+#' The collection of copy number variants (CNVs) identified in a study
+#' can be encapulated in a GRangesList, where each element is a
+#' GRanges of the CNVs identified for an individual.  (For a study
+#' with 1000 subjects, the GRangesList object would have length 1000
+#' if each individual had 1 or more CNVs.)  For regions in which CNVs
+#' occur in more than 2 percent of study participants, the start and
+#' end boundaries of the CNVs may differ because of biological
+#' differences in the CNV size as well as due to technical noise of
+#' the assay and the uncertainty of the breakpoints identified by a
+#' segmentation of the genomic data.  Among subjects with a CNV called
+#' at a given locus, the \code{consensusCNP} function identifies the
+#' largest region that is copy number variant in half of these
+#' subjects.
+#'
+#' @examples
+#' require(BSgenome.Hsapiens.UCSC.hg19)
+#' genome <- BSgenome.Hsapiens.UCSC.hg19
+#'
+#' ##
+#' ## Simulate 2 loci at which CNVs are common
+#' ##
+#' set.seed(100)
+#' starts <- rpois(1000, 100) + 10e6L
+#' ends <- rpois(1000, 100) + 10.1e6L
+#' cnv1 <- GRanges("chr1", IRanges(starts, ends))
+#' cnv1$id <- paste0("sample", seq_along(cnv1))
+#' seqinfo(cnv1) <- seqinfo(genome)
+#'
+#' starts <- rpois(500, 1000) + 101e6L
+#' ends <- rpois(500, 1000) + 101.4e6L
+#' cnv2 <- GRanges("chr5", IRanges(starts, ends))
+#' cnv2$id <- paste0("sample", seq_along(cnv2))
+#' seqlevels(cnv2, force=TRUE) <- seqlevels(genome)
+#' seqinfo(cnv2) <- seqinfo(genome)
+#'
+#' ##
+#' ## Simulate a few other CNVs that are less common because they are
+#' ## very large, or because they occur in regions that in which copy
+#' ## number alerations are not common
+#' ##
+#' cnv3 <- GRanges("chr1", IRanges(9e6L, 15e6L), id="sample1400")
+#' starts <- seq(5e6L, 200e6L, 10e6L)
+#' ends <- starts + rpois(length(starts), 25e3L)
+#' cnv4 <- GRanges("chr1", IRanges(starts, ends),
+#'                 id=paste0("sample", sample(1000:1500, length(starts))))
+#'
+#' all_cnvs <- c(cnv1, cnv2, cnv3, cnv4)
+#' grl <- split(all_cnvs, all_cnvs$id)
+#' cnps <- consensusCNP(grl)
+#'
+#' ##
+#' ## 2nd CNP is filtered because of its size
+#' ##
+#' truth <- GRanges("chr1", IRanges(10000100L, 10100100L))
+#' seqinfo(truth) <- seqinfo(grl)
+#' identical(cnps, truth)
+#'
+#' ##
+#' ## Both CNVs identified
+#' ##
+#' cnps <- consensusCNP(grl, max.width=500e3)
+#' truth <- GRanges(c("chr1", "chr5"),
+#'                  IRanges(c(10000100L, 101000999L),
+#'                          c(10100100L, 101400999L)))
+#' seqlevels(truth, force=TRUE) <- seqlevels(grl)
+#' seqinfo(truth) <- seqinfo(grl)
+#' identical(cnps, truth)
+#'
+#' @param grl  A \code{GRangesList} of all CNVs in a study -- each
+#' element is the collection of CNVs for one individual.
+#' @param transcripts a \code{GRanges} object containing annotation of
+#' genes or transcripts (optional)
+#' @param min.width length-one integer vector specifying the minimum width of CNVs
+#' @param max.width length-one integer vector specifying the maximum
+#' width of CNVs
+#' @param min.prevalance a length-one numeric vector specifying the
+#' minimum prevalance of a copy number polymorphism.  Must be in the
+#' interval [0,1].  If less that 0, this function will return all CNV
+#' loci regardless of prevalance.  If greater than 1, this function
+#' will return a length-zero GRanges object
+#' @return a \code{GRanges} object providing the intervals of all
+#' identified CNPs above a user-specified prevalance cutoff.
 #' @export
-consensusCNP <- function(grl, transcripts, min.width=2e3, min.prevalance=0.02){
+consensusCNP <- function(grl, transcripts, min.width=2e3, max.width=200e3, min.prevalance=0.02){
   g <- as(unlist(grl), "GRanges")
+  si <- seqinfo(g)
   names(g) <- NULL
   grl <- split(g, g$id)
   ##grl <- grl[colnames(views)]
   regions <- defineCnpRegions(grl, thr=min.prevalance)
-  regions <- regions[ width(regions) > min.width ]
+  regions <- regions[ width(regions) > min.width  & width(regions) <= max.width ]
   regions <- reduce(regions)
-  regions <- annotateRegions(regions, transcripts)
+  if(!missing(transcripts)){
+    regions <- annotateRegions(regions, transcripts)
+  }
+  seqlevels(regions, force=TRUE) <- seqlevels(si)
+  seqinfo(regions) <- si
   regions
 }
 
@@ -216,7 +305,7 @@ permnK <- function(k, maxperm){
 
 
 #' Create tile labels for each observation
-#' 
+#'
 #' @param y vector containing data
 #' @param nt the number of tiles in a batch
 #' @param batch a vector containing the labels from which batch each observation came from.
@@ -244,7 +333,7 @@ downSampleEachBatch <- function(y, nt, batch){
 }
 
 #' Create tile labels for each observation
-#' 
+#'
 #' A wrapper for function downSampleEachBatch. Batches are automatically merged as needed.
 #' @param batch.file the name of a file contaning RDS data to be read in.
 #' @param plate a vector containing the labels  from which batch each observation came from.

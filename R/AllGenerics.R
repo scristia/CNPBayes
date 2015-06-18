@@ -82,7 +82,33 @@ setGeneric("McmcChains", function(object) standardGeneric("McmcChains"))
 
 setGeneric("hist")
 
-## RS: might need some help documenting this one
+#' Plot the densities estimated from a mixture model for a copy number polymorphism
+#'
+#' Plot estimates of the posterior density for each component and the
+#' overall, marginal density.  For batch models, one can additionally
+#' plot batch-specific density estimates.
+#'
+#' @param x a \code{DensityModel}-derived object, or a
+#' \code{MixtureModel}-derived object.
+#' @param y If \code{x} is a \code{DensityModel}, \code{y} is a
+#' numeric vector of the one-dimensional summaries for a given copy
+#' number polymorphism. If \code{x} is a \code{MixtureModel}, \code{y}
+#' is ignored.
+#' @param ... Additional arguments passed to \code{hist}.
+#' @examples
+#'   set.seed(100)
+#'   truth <- simulateData(N=2500,
+#'                         theta=c(-2, -0.4, 0),
+#'                         sds=c(0.3, 0.15, 0.15),
+#'                         p=c(0.05, 0.1, 0.8))
+#'
+#'   mcmcp <- McmcParams(iter=500, burnin=500, thin=2)
+#'   model <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
+#'   model <- CNPBayes:::startAtTrueValues(model, truth)
+#'   model <- posteriorSimulation(model)
+#'   par(mfrow=c(1,2), las=1)
+#'   plot(truth)
+#'   plot(model)
 #' @export
 setGeneric("plot")
 
@@ -532,8 +558,6 @@ setGeneric("paramUpdates", function(x) standardGeneric("paramUpdates"))
 
 setGeneric("computePrec", function(object) standardGeneric("computePrec"))
 
-## RS: Can you document the marginal method?
-#' @export
 setGeneric("marginal", function(object, batch, mcmc.params, K=1:4, maxperm=5, ...)
   standardGeneric("marginal"))
 
