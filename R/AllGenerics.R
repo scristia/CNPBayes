@@ -63,7 +63,6 @@ setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 
 setGeneric("chains<-", function(object, value) standardGeneric("chains<-"))
 
-## JC: remove \dontrun when this is  doable
 #' Retrieve simulated chains from model object.
 #'
 #' The method \code{chains} applied to a \code{MixtureModel}-derived
@@ -72,13 +71,11 @@ setGeneric("chains<-", function(object, value) standardGeneric("chains<-"))
 #' is called in conjunction with an accessor for one of these
 #' parameters.
 #' @examples
-#' \dontrun{
-#'    data(MarginalModelExample)
-#'    theta.chain <- theta(chains(MarginalModelExample))
-#'    dim(theta.chain)
-#'    plot.ts(theta.chain, plot.type="single",
-#'            col=seq_len(k(MarginalModelExample)))
-#'  }
+#' data(MarginalModelExample)
+#' theta.chain <- theta(chains(MarginalModelExample))
+#' dim(theta.chain)
+#' plot.ts(theta.chain, plot.type="single",
+#'         col=seq_len(k(MarginalModelExample)))
 #' @param object \code{showMethods(chains)}
 #' @export
 #' @docType methods
