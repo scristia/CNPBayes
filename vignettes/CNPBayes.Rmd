@@ -197,51 +197,24 @@ plot(DensityModel(model), y(sim.data),
 ```
 
 ## BatchModel
-### McmcParams
 
-In order to simulate the posterior distribution of a model, many parameters for
-the routine must be specified first. An instance of class `McmcParams` is used
-to specify the simulation options, such as number of iterations, length of
-burnin, and thinning interval.
-```{r McmcParams-batch}
-mp <- McmcParams(iter=1000,
-                 burnin=100,
-                 thin=1)
-```
+In general, the construction and simulation of a `BatchModel` is similar to
+that of a `MarginalModel`. The `BatchModel` is hierarchical over the batches,
+and thus requires information about the batches. Instances of `McmcParams` are
+equivalent between `BatchModel` and `MarginalModel`. However, an object of
+class `Hyperparameters` is constructed with a `type` of "batch". Additionally,
+simulated batch data is created using `simulateBatchData` which requires
+`theta` and `sds` to be specifed as $K \times B$ matrices, for $K$ components
+and $B$ batches. `simulateBatchData` also requires a `batch` parameter,
+labelling the batch of each observation. Finally, `BatchModel`s are constructed
+using the function `BatchModel` which operates similarly to `MarginalModel` but
+requires a `batch` parameter, similar to `Hyperparameters`.
 
-### Hyperparameters
-
-Hyperparameters for the mixture model are specified as an instance of class
-`Hyperparameters`. Hyperparameters include:  
-
-- `k` the number of components (or copy numbers). Defaults to 2.  
-- `mu.0` and `tau2.0` priors for $\mu \sim \text{N(mu.0, tau2.0)}$, the 
-  overall mean of components. Default to 0 and 100 respectively.  
-- `eta.0` and `m2.0` priors for 
-  $\tau^2 \sim \text{Ga(rate=eta.0, shape=m2.0)}$, the overall variance across
-  components. Default to 1 and 0.1 respectively for marginal models and 1800
-  and 1/60 respectively for batch models.  
-- `alpha` the prior mixture probabilities. Does not have to sum to 1. By
-  default, a noninformative prior of equal mixtures is used.  
-- `beta` prior for $\nu_0$. Defaults to 0.1.  
-- `a` and `b` priors for $\sigma^2_0 \sim \text{Ga(shape=a, rate=b)}$, the rate
-  parameter for $\sigma^2$, the variance for each batch and component.  
-
-Constructing an instance of class `Hyperparameters` for a `BatchModel` can
-be performed as follows. 
-```{r Hyperparameters-batch}
+```{r batch}
+## Create Hyperparameters for batch model
 hypp <- Hyperparameters(type="batch", k=3)
-```
 
-- graphical model
-
-### simulateData
-
-CNPBayes also allows for the simulation of test data. The number of
-observations, means for each component, standard deviations for each component,
-and mixture proportions must be specified. The batch label for each observation
-must be specified as well.
-```{r simulateData-batch}
+## simulate batch data
 k <- 3
 nbatch <- 3
 means <- matrix(c(-1.2, -1.0, -0.8,
@@ -254,21 +227,8 @@ sim.data <- simulateBatchData(N=N,
                               theta=means,
                               sds=sds,
                               p=c(1/5, 1/3, 1-1/3-1/5))
-```
 
-### posteriorSimulation
-
-To simulate the posterior distribution, an instance of class `BatchModel` 
-must first be constructed. Note that when initializing objects of these 
-classes, the parameters `data`, `k` (number of *a priori* components), 
-`hypp`, (object of class `Hyperparameters`) and `mcmc.params` (object of class
-`McmcParams`) should be specified. Additionally, a vector of batch labels 
-should be passed to the `batch` parameter.  Default values for `hypp` and 
-`mcmc.params` will be used if not specified. Note that to retrieve the 
-simulated data from the object, the `y` method can be used. After construction 
-of a model, the `posteriorSimulation` method should be used.
-
-```{r model-batch}
+# create BatchModel and run posteriorSimulation
 model <- BatchModel(data=y(sim.data), k=3,
                     batch=rep(letters[1:3], length.out=N),
                     hypp=hypp,
