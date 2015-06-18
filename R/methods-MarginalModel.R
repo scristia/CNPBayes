@@ -59,14 +59,6 @@ setMethod("computePotential", "MarginalModel", function(object){
   ll+ll.phi
 })
 
-##
-## For the marginal model, mu and tau2 are hyper-parameters.  There is
-## no update.
-##
-setMethod("updateMu", "MarginalModel", function(object){
-  .Call("update_mu", object)
-})
-
 setMethod("initializeSigma2.0", "MarginalModel", function(object){
   hypp <- hyperParams(object)
   sum(alpha(hypp)*sigma2(object))/sum(alpha(hypp))
@@ -129,18 +121,6 @@ setMethod("updateSigma2", "MarginalModel", function(object) {
 
 setMethod("updateSigma2.0", "MarginalModel", function(object){
   .Call("update_sigma2_0", object)
-})
-
-setMethod("updateNu.0", "MarginalModel", function(object){
-  .Call("update_nu0", object)
-})
-
-##
-## For the marginal model, mu and tau2 are hyper-parameters.  There is
-## no update.
-##
-setMethod("updateTau2", "MarginalModel", function(object){
-  .Call("update_tau2", object)
 })
 
 setReplaceMethod("tau2", "MarginalModel", function(object, value){
@@ -279,20 +259,6 @@ setMethod("relabel", "BatchModel", function(object, zindex){
   zFreq(object) <- as.integer(table(zz))
   dataMean(object) <- dataMean(object)[, zindex, drop=FALSE]
   dataPrec(object) <- dataPrec(object)[, zindex, drop=FALSE]
-  object
-})
-
-setMethod("updateWithPosteriorMeans", "MarginalModel", function(object){
-  mc <- chains(object)
-  theta(object) <- colMeans(theta(mc))
-  sigma2(object) <- colMeans(sigma2(mc))
-  p(object) <- colMeans(p(mc))
-  nu.0(object) <- median(nu.0(mc))
-  mu(object) <- mean(mu(object))
-  tau2(object) <- mean(tau2(object))
-  sigma2.0(object) <- mean(sigma2.0(object))
-  logpotential(object) <- computePotential(object)
-  z(object) <- factor(map(object), levels=seq_len(k(object)))
   object
 })
 

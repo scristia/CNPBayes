@@ -69,42 +69,6 @@ setMethod("posteriorMultinomial", "BatchModel", function(object){
   lik/rowSums(lik)
 }
 
-
-
-
-
-setMethod("updateMu", "BatchModel", function(object){
-  ##.updateMuBatch(object)
-  .Call("update_mu_batch", object)
-})
-
-##.updateMu <- function(tau2.0, tau2, k, z, theta, mu.0){
-.updateMuBatch <- function(object){
-  hypp <- hyperParams(object)
-  tau2.0.tilde <- 1/tau2.0(hypp)
-  tau2.tilde <- 1/tau2(object)
-  P <- nBatch(object)
-  post.prec <- tau2.0.tilde + P*tau2.tilde
-  n.h <- tablez(object)
-  ## guard against components with zero observations
-  n.h <- pmax(n.h, 1)
-  thetas <- theta(object)
-  thetas <- t(apply(thetas, 1, sort))
-  ##
-  ## weights for within-component average of thetas
-  w1 <- tau2.0.tilde/post.prec
-  w2 <- P*tau2.tilde/post.prec
-  ##
-  ## average thetas, giving more weight to batches with more
-  ## observations
-  ##
-  theta.bar <- colSums(n.h*thetas)/colSums(n.h)
-  ## when the prior is zero, mu.P is shrunk towards zero
-  mu.P <- w1*mu.0(hypp) + w2*theta.bar
-  s <- sqrt(1/post.prec)
-  rnorm(k(object), mu.P, s)
-}
-
 .update_sigma2 <- function(object){
   n.hp <- tablez(object)
   ##
@@ -208,25 +172,6 @@ setMethod("updateSigma2", "BatchModel", function(object){
   .update_sigma2(object)
 })
 
-setMethod("updateTau2", "BatchModel", function(object){
-  ##.updateTau2Batch(object)
-  .Call("update_tau2_batch", object)
-})
-
-##.updateTau2Batch <- function(eta.0, m2.0, theta, mu, k){
-.updateTau2Batch <- function(object){
-  hypp <- hyperParams(object)
-  P <- nBatch(object)
-  eta.P <- eta.0(hypp)+P
-  mus <- mu(object)
-  mus <- matrix(mus, P, k(object), byrow=TRUE)
-  thetas <- theta(object)
-  s2.P <- colSums((thetas-mus)^2)
-  m2.P <- 1/eta.P * (eta.0(hypp) * m2.0(hypp) + s2.P)
-  tau2 <- 1/rgamma(k(object), shape=1/2 * eta.P, rate=1/2 * eta.P * m2.P)
-  tau2
-}
-
 setMethod("updateSigma2.0", "BatchModel", function(object){
   ##.updateSigma2.0Batch(object)
   .Call("update_sigma20_batch", object)
@@ -245,44 +190,6 @@ setMethod("updateSigma2.0", "BatchModel", function(object){
   stopif(is.nan(sigma2.0))
   sigma2.0
 }
-
-setMethod("updateNu.0", "BatchModel", function(object){
-  ##.updateNu.0Batch(object)
-  .Call("update_nu0_batch", object)
-})
-
-##.updateNu.0Batch <- function(NUMAX=100, beta, sigma2.0, sigma2.h, nu.0, k){
-.updateNu.0Batch <- function(object){
-  NUMAX <- 100
-  hypp <- hyperParams(object)
-  x <- seq_len(NUMAX)
-  k <- k(object)
-  P <- nBatch(object)
-  sigma2s <- as.numeric(sigma2(object))
-  lpnu0 <- (k*P) * (0.5 * x * log(sigma2.0(object) * x/2)-lgamma(x/2)) +
-      (x/2 - 1) * sum(log(1/sigma2s)) +
-          -x * (betas(hypp) + 0.5 * sigma2.0(object) * sum(1/sigma2s))
-  ##return(lpnu0)
-  prob <- exp(lpnu0 - max(lpnu0))
-  nu0 <- sample(x, 1, prob=prob)
-  nu0
-}
-
-
-setMethod("updateWithPosteriorMeans", "BatchModel", function(object){
-  mc <- chains(object)
-  theta(object) <- matrix(colMeans(theta(mc)), nBatch(object), k(object))
-  sigma2(object) <- matrix(colMeans(sigma2(mc)), nBatch(object), k(object))
-  p(object) <- colMeans(p(mc))
-  nu.0(object) <- median(nu.0(mc))
-  mu(object) <- colMeans(mu(mc))
-  tau2(object) <- colMeans(tau2(mc))
-  sigma2.0(object) <- mean(sigma2.0(object))
-  logpotential(object) <- computePotential(object)
-  z(object) <- factor(map(object), levels=seq_len(k(object)))
-  object
-})
-
 
 ##
 ## z has length y.  Each observation is a sample.

@@ -182,15 +182,7 @@ setMethod("show", "MixtureModel", function(object){
   cat("     loglik (s)  :", round(log_lik(object), 2), "\n")
 })
 
-setMethod("updateMixProbs", "MixtureModel", function(object){
-  .Call("update_p", object)
-})
-
 setMethod("alpha", "MixtureModel", function(object) alpha(hyperParams(object)))
-
-setMethod("updateAlpha", "MixtureModel", function(object){
-  alpha(object) + table(z(object))
-})
 
 #' @rdname y-method
 #' @aliases y,MixtureModel-method

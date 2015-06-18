@@ -200,8 +200,6 @@ setGeneric("computePotential", function(object) standardGeneric("computePotentia
 setGeneric("dat", function(object) standardGeneric("dat"))
 setGeneric("dat<-", function(object,value) standardGeneric("dat<-"))
 
-setGeneric("updateMu", function(object) standardGeneric("updateMu"))
-
 setGeneric("initializeSigma2.0", function(object) standardGeneric("initializeSigma2.0"))
 
 setGeneric("initializeSigma2", function(object) standardGeneric("initializeSigma2"))
@@ -224,12 +222,8 @@ setGeneric("updateSigma2Cpp", function(object) standardGeneric("updateSigma2Cpp"
 setGeneric("updateTheta", function(object, constrain) standardGeneric("updateTheta"))
 setGeneric("updateSigma2", function(object) standardGeneric("updateSigma2"))
 setGeneric("updateSigma2.0", function(object) standardGeneric("updateSigma2.0"))
-setGeneric("updateNu.0", function(object) standardGeneric("updateNu.0"))
-setGeneric("updateTau2", function(object) standardGeneric("updateTau2"))
 
 setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
-
-setGeneric("updateWithPosteriorMeans", function(object) standardGeneric("updateWithPosteriorMeans"))
 
 #' Calculate BIC of a model
 #'
@@ -486,7 +480,6 @@ setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 #' @rdname nStarts-method
 setGeneric("nStarts<-", function(object, value) standardGeneric("nStarts<-"))
 
-setGeneric("updateAlpha", function(object) standardGeneric("updateAlpha"))
 setGeneric("alpha", function(object) standardGeneric("alpha"))
 
 setGeneric("orderTheta<-", function(object, value) standardGeneric("orderTheta<-"))
@@ -570,10 +563,6 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 setGeneric("posteriorSimulation", function(object) standardGeneric("posteriorSimulation"))
 
 setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
-
-setGeneric("updateLabels", function(object) standardGeneric("updateLabels"))
-
-setGeneric("updateMixProbs", function(object) standardGeneric("updateMixProbs"))
 
 setGeneric("posteriorTheta", function(object, mcmcp) standardGeneric("posteriorTheta"))
 setGeneric("posteriorSigma2", function(object, mcmcp) standardGeneric("posteriorSigma2"))
