@@ -34,27 +34,6 @@ setMethod("collapseBatch", "numeric", function(object, plate, THR=0.1){
   makeUnique(plate)
 })
 
-
-ksTest <- function(object){
-  B <- batch(object)
-  uB <- uniqueBatch(object)
-  yy <- y(object)
-  ks <- matrix(NA, choose(nBatch(object), 2), 4)
-  i <- 1
-  for(j in seq_along(uB)){
-    for(k in seq_along(uB)){
-      if(k <= j) next()
-      b1 <- uB[j]
-      b2 <- uB[k]
-      stat <- suppressWarnings(ks.test(yy[B==b1], yy[B==b2]))
-      ks[i, ] <- c(b1, b2, stat$statistic, stat$p.value)
-      i <- i+1
-    }
-  }
-  colnames(ks) <- c("batch1", "batch2", "stat", "pval")
-  ks
-}
-
 .collapseBatch <- function(yy, B, THR=0.1){
   uB <- unique(B)
   ## One plate can pair with many other plates.
