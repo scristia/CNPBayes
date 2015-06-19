@@ -433,10 +433,13 @@ setGeneric("tablez", function(object) standardGeneric("tablez"))
 #' @rdname nStarts-method
 setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 
-## JC: see unit tests for examples
 #' Reset number of MCMC chains in simulation.
 #'
 #' This function changes the number of chains used for an MCMC simulation.
+#' @examples
+#' data(MarginalModelExample)
+#' number_of_chains <- 3
+#' nStarts(MarginalModelExample) <- number_of_chains
 #' @param value new number of chains
 #' @export
 #' @docType methods
