@@ -408,9 +408,12 @@ setGeneric("sigmaMean", function(object) standardGeneric("sigmaMean"))
 
 setGeneric("pMean", function(object) standardGeneric("pMean"))
 
-## JC: see unit tests for examples
 #' Create a trace plot of a parameter estimated by MCMC.
 #'
+#' @examples
+#' data(BatchModelExample)
+#' tracePlot(BatchModelExample, "theta")
+#' tracePlot(BatchModelExample, "sigma")
 #' @param object see \code{showMethods(tracePlot)}
 #' @param name the name of the parameter for which to plot values. Can be 'theta', 'sigma', 'p', 'mu', or 'tau'.
 #' @param ... Other argument to pass to plot.
