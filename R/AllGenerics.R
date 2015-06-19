@@ -421,10 +421,12 @@ setGeneric("tracePlot", function(object, name, ...) standardGeneric("tracePlot")
 
 setGeneric("tablez", function(object) standardGeneric("tablez"))
 
-## JC: see unit tests for examples
 #' Number of MCMC chains.
 #'
 #' This function retrieves the number of chains used for an MCMC simulation.
+#' @examples
+#' data(MarginalModelExample)
+#' number_of_chains <- nStarts(MarginalModelExample)
 #' @param object see \code{showMethods(nStarts)}
 #' @export
 #' @docType methods
