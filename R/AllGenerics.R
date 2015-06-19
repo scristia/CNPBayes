@@ -467,10 +467,14 @@ setGeneric("log_lik<-", function(object,value) standardGeneric("log_lik<-"))
 
 setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 
-## JC: see unit tests for examples
 #' Number of burnin iterations.
 #'
 #' This function retrieves the number of burnin simulations to be discarded.
+#' @examples
+#' data(MarginalModelExample)
+#' burnin(MarginalModelExample)
+#' mp <- mcmcParams(MarginalModelExample)
+#' burnin(mp)
 #' @param object see \code{showMethods(burnin)}
 #' @export
 #' @docType methods
