@@ -19,4 +19,11 @@ log_lik(object)
 \description{
 Retrieve log likelihood.
 }
+\examples{
+data(MarginalModelExample)
+## retrieve log likelihood at each MCMC iteration
+log_lik(chains(MarginalModelExample))
+## retrieve log likelihood at last MCMC iteration
+log_lik(MarginalModelExample)
+}
 

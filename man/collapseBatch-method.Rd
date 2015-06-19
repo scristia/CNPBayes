@@ -6,7 +6,8 @@
 \alias{collapseBatch,BatchModel-method}
 \alias{collapseBatch,SummarizedExperiment-method}
 \alias{collapseBatch,numeric-method}
-\title{Estimate batch from a collection of chemistry plates or some other}
+\title{Estimate batch from a collection of chemistry plates or some other
+variable that captures the time in which the arrays were processed.}
 \usage{
 collapseBatch(object, plate, THR = 0.1)
 
@@ -49,6 +50,10 @@ is performed recursively on the batch variables defined for a given
 CNP until no batches can be combined.
 }
 \examples{
-## See unit tests for an example
+data(BatchModelExample)
+bt <- collapseBatch(y(BatchModelExample), batch(BatchModelExample))
+newBatchModel <- BatchModel(y(BatchModelExample), k(BatchModelExample),
+                            bt, Hyperparameters(BatchModelExample),
+                            mcmcParams(BatchModelExample))
 }
 

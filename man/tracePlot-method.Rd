@@ -20,4 +20,9 @@ tracePlot(object, name, ...)
 \description{
 Create a trace plot of a parameter estimated by MCMC.
 }
+\examples{
+data(BatchModelExample)
+tracePlot(BatchModelExample, "theta")
+tracePlot(BatchModelExample, "sigma")
+}
 

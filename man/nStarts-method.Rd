@@ -38,4 +38,11 @@ This function retrieves the number of chains used for an MCMC simulation.
 
 This function changes the number of chains used for an MCMC simulation.
 }
+\examples{
+data(MarginalModelExample)
+number_of_chains <- nStarts(MarginalModelExample)
+data(MarginalModelExample)
+number_of_chains <- 3
+nStarts(MarginalModelExample) <- number_of_chains
+}
 

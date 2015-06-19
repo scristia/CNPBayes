@@ -25,21 +25,17 @@ hyperParams(object) <- value
 \description{
 Accessor for Hyperparameters object for a MixtureModel-derived object
 
-Replace the hyperparameters for a MixtureModel-derived object
+Replace the hyperparameters for a \code{MixtureModel}-derived object
 }
 \examples{
 \dontrun{
     data(MarginalModelExample)
     hyperParams(MixtureModelExample)
 }
-\dontrun{
-   data(MarginalModelExample)
-   hypp <- Hyperparameters(type="marginal",
-                           k=k(MarginalModelExample))
-   ## TODO: change one or two of the hyperparameters in the object
-   ## 'hypp'
-   ##
-   hyperParams(MarginalModelExample) <- hypp
-}
+data(MarginalModelExample)
+hypp <- Hyperparameters(type="marginal",
+                        k=k(MarginalModelExample),
+                        alpha=c(9, 9, 10))
+hyperParams(MarginalModelExample) <- hypp
 }
 

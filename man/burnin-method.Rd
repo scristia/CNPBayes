@@ -38,4 +38,10 @@ This function retrieves the number of burnin simulations to be discarded.
 
 This function changes the number of burnin simulations to be discarded.
 }
+\examples{
+data(MarginalModelExample)
+burnin(MarginalModelExample)
+mp <- mcmcParams(MarginalModelExample)
+burnin(mp)
+}
 

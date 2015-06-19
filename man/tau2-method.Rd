@@ -28,15 +28,16 @@ be interpreted as the within-component variance of the batch means
 (\code{theta}).  For objects of class \code{MarginalModel}
 (assumes no batch effect), \code{tau2} is a length-one vector that
 describes the variance of the component means between batches.  The
-hyperparameters of \code{tau2} are [JC].  See the following
-examples for setting the hyperparameters, accessing the current
+hyperparameters of \code{tau2} are \code{eta.0} and \code{m2.0}. See the
+following examples for setting the hyperparameters, accessing the current
 value of \code{tau2} from a \code{MixtureModel}-derived object, and
 for plotting the chain of \code{tau2} values.
 }
 \examples{
-k(BatchModel())
-tau2(BatchModel())
-tau2(MarginalModel())
+data(BatchModelExample)
+k(BatchModelExample)
+tau2(BatchModelExample)
+plot.ts(tau2(chains(BatchModelExample)))
 }
 \seealso{
 \code{Hyperparameters}
