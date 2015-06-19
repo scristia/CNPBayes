@@ -235,7 +235,6 @@ setGeneric("bic", function(object) standardGeneric("bic"))
 #' @export
 #' @docType methods
 #' @rdname theta-method
-#' @seealso \code{Hyperparameters}
 setGeneric("theta", function(object) standardGeneric("theta"))
 
 #' Retrieve the variances of each component and batch distribution
@@ -416,8 +415,6 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' @rdname collapseBatch-method
 setGeneric("collapseBatch", function(object, plate, THR=0.1) standardGeneric("collapseBatch"))
 
-## JC: See how tau2 was documented above.
-##
 #' Retrieve simulated thetas from a MixtureModel
 #'
 #' @param object see \code{showMethods(thetac)}
