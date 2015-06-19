@@ -469,9 +469,14 @@ setGeneric("alpha", function(object) standardGeneric("alpha"))
 setGeneric("orderTheta<-", function(object, value) standardGeneric("orderTheta<-"))
 setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))
 
-## JC: see unit tests for examples
 #' Retrieve log likelihood.
 #'
+#' @examples
+#' data(MarginalModelExample)
+#' ## retrieve log likelihood at each MCMC iteration
+#' log_lik(chains(MarginalModelExample))
+#' ## retrieve log likelihood at last MCMC iteration
+#' log_lik(MarginalModelExample)
 #' @param object see showMethods(log_lik)
 #' @export
 #' @docType methods
