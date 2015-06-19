@@ -415,12 +415,6 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' @rdname collapseBatch-method
 setGeneric("collapseBatch", function(object, plate, THR=0.1) standardGeneric("collapseBatch"))
 
-#' Retrieve simulated thetas from a MixtureModel
-#'
-#' @param object see \code{showMethods(thetac)}
-#' @export
-#' @docType methods
-#' @rdname thetac-method
 setGeneric("thetac", function(object) standardGeneric("thetac"))
 
 setGeneric("thetaMean", function(object) standardGeneric("thetaMean"))
