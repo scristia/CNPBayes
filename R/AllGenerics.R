@@ -205,13 +205,37 @@ setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
 #' @export
 setGeneric("bic", function(object) standardGeneric("bic"))
 
-#' Retrieve theta.
+#' Accessor for the theta parameter in the hierarchical mixture model
 #'
-#' This function retrieves theta from an object. Theta is a vector or matrix representing the means of each component/batch.
+#' The interpretation of \code{theta} depends on whether \code{object}
+#' is a \code{MarginalModel} or a \code{BatchModel}.  For
+#' \code{BatchModel}, \code{theta} is a matrix of size B x K, where B is
+#' the number of batches and K is the number of components.
+#' Each column of the \code{theta} matrix can be interpreted as the 
+#' batch means for a particular component. For objects of class
+#' \code{MarginalModel} (assumes no batch effect), \code{theta} is a 
+#' vector of length K. Each element of \code{theta} can be interpreted
+#' as the mean for a component. See the following examples for accessing
+#' the current value of \code{theta} from a \code{MixtureModel}-derived
+#' object, and for plotting the chain of \code{theta} values.
+#' @examples
+#' ## MarginalModel
+#' data(MarginalModelExample)
+#' k(MarginalModelExample)
+#' theta(MarginalModelExample)
+#' plot.ts(theta(chains(MarginalModelExample)))
+#' ## BatchModel
+#' data(BatchModelExample)
+#' k(BatchModelExample)
+#' length(unique(batch(BatchModelExample)))
+#' theta(BatchModelExample)
+#' ## Plot means for batches in one component
+#' plot.ts(theta(chains(BatchModelExample))[, 1:3])
 #' @param object see \code{showMethods(theta)}
 #' @export
 #' @docType methods
 #' @rdname theta-method
+#' @seealso \code{Hyperparameters}
 setGeneric("theta", function(object) standardGeneric("theta"))
 
 #' Retrieve the variances of each component and batch distribution
