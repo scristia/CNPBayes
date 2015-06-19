@@ -34,6 +34,7 @@ Imports:
 Suggests:
     RUnit,
     knitr,
+    BiocStyle,
     BSgenome.Hsapiens.UCSC.hg19
 Collate:
     'help.R'
