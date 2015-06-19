@@ -353,7 +353,7 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 ## JC this function could use a better name. See examples
 ##
 #' Estimate batch from a collection of chemistry plates or some other
-#variable that captures the time in which the arrays were processed.
+#' variable that captures the time in which the arrays were processed.
 #'
 #' In high-throughput assays, low-level summaries of copy number at
 #' copy number polymorphic loci (e.g., the mean log R ratio for each
@@ -379,7 +379,11 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' is performed recursively on the batch variables defined for a given
 #' CNP until no batches can be combined.
 #' @examples
-#' ## See unit tests for an example
+#' data(BatchModelExample)
+#' bt <- collapseBatch(y(BatchModelExample), batch(BatchModelExample))
+#' newBatchModel <- BatchModel(y(BatchModelExample), k(BatchModelExample),
+#'                             bt, Hyperparameters(BatchModelExample),
+#'                             mcmcParams(BatchModelExample))
 #' @param object see \code{showMethods(collapseBatch)}
 #' @param plate a vector labelling from which batch each observation came from.
 #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
