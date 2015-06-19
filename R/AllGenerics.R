@@ -563,13 +563,6 @@ setGeneric("computeLogLikxPrior", function(object) standardGeneric("computeLogLi
 
 setGeneric("postFiles", function(object) standardGeneric("postFiles"))
 
-#' Switch labels of latent variables
-#'
-#' @param object see \code{showMethods(relabel)}
-#' @param zindex an integer vector containing the labels in the desired order
-#' @export
-#' @docType methods
-#' @rdname relabel-method
 setGeneric("relabel", function(object, zindex) standardGeneric("relabel"))
 
 setGeneric("HyperParameterList", function(hypp, K) standardGeneric("HyperParameterList"))

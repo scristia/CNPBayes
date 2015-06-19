@@ -9,7 +9,7 @@ test_relabel_marginal <- function(){
 
   ## relabel z:  3->1 and 1->3
   zindex <- c(3, 2, 1)
-  model2 <- relabel(model, zindex)
+  model2 <- CNPBayes:::relabel(model, zindex)
   checkIdentical(as.integer(CNPBayes:::tablez(model)), 
                  as.integer(CNPBayes:::tablez(model2)[zindex]))
   checkIdentical(CNPBayes:::dataMean(model), CNPBayes:::dataMean(model2)[zindex])
@@ -37,7 +37,7 @@ test_relabel_marginal <- function(){
     model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
     model <- posteriorSimulation(model)
     zindex <- c(3, 2, 1)
-    model2 <- relabel(model, zindex)
+    model2 <- CNPBayes:::relabel(model, zindex)
     burnin(model2) <- 0
     model2 <- posteriorSimulation(model2)
     par(mfrow=c(1,2))
