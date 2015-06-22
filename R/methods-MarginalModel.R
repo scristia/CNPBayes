@@ -228,8 +228,6 @@ newBatchModel <- function(object){
   object2
 }
 
-#' @rdname relabel-method
-#' @aliases relabel,MarginalModel-method
 setMethod("relabel", "MarginalModel", function(object, zindex){
   object <- newMarginalModel(object)
   if(identical(zindex, seq_len(k(object)))) return(object)
@@ -245,8 +243,6 @@ setMethod("relabel", "MarginalModel", function(object, zindex){
   object
 })
 
-#' @rdname relabel-method
-#' @aliases relabel,BatchModel-method
 setMethod("relabel", "BatchModel", function(object, zindex){
   object <- newBatchModel(object)
   if(identical(zindex, seq_len(k(object)))) return(object)
