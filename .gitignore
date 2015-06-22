@@ -12,5 +12,6 @@ TODO.org
 temp.r
 Rplots.pdf
 .gitignore
+*.DS_Store
 
 
