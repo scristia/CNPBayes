@@ -391,8 +391,6 @@ setMethod("fitMixtureModels", "numeric", function(object, mcmcp, K=1:5){
   fit
 })
 
-#' @rdname thetac-method
-#' @aliases thetac,MixtureModel-method
 setMethod("thetac", "MixtureModel", function(object) theta(chains(object)))
 
 setMethod("thetaMean", "MixtureModel", function(object) colMeans(thetac(object)))
