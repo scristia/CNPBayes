@@ -246,11 +246,53 @@ x <- computeMarginalLik(y(sim.data), K=2:3)
 orderModels(x)
 ```
 
-- computeMarginalLik
-    - Ref Chib estimator / Berkhof for estimating marginal likelihoods
-- computing a bayes factor
+It is worth noting that `computeMarginalLik` is the most computationally
+intensive routine included in `CNPBayes`. In spite of the most resource
+expensive portions being coded in C++, this procedure can still be time
+consuming, especially for batch data. In part this is because, by default, 3
+sequential instances of 10 `posteriorSimulation`s are run for each possible
+number of latent variables. Additionally, for each number of components, the
+mode of $\theta$ is identified, fixed, and the MCMC simulation is run again.
+After this simulation, the process is repeated, but with $\sigma^2$ being
+integrated over. While marginal likelihood is computed and used for determing
+*k*, the number of latent variable, Chib's Estimator and a variant of Chib's
+Estimator created by Berkhof et al is also calculated. The log Bayes Factor is
+computed comparing the two models with the highest marginal likelihood.
+
+```{r bayesFactor}
+logBayesFactor(x)
+```
+
+Alternative methods for selection of *k* are also included. As an example, the
+`bic` method can be used for calculating the Bayesian Information Criterion. 
+
+```{r bic}
+## simulate k=2 model
+sim.data <- simulateData(N=2500, p=rep(1/3, 3),
+                         theta=c(-1, 0, 1),
+                         sds=rep(0.1, 3))
+hypp1 <- Hyperparameters(k=2)
+m1 <- MarginalModel(data=y(sim.data), k=2,
+                    hypp=hypp1,
+                    mcmc.params=mp)
+m1 <- posteriorSimulation(m1)
+
+## simulate k=3 model
+hypp2 <- Hyperparameters(k=3)
+m2 <- MarginalModel(data=y(sim.data), k=3,
+                    hypp=hypp2,
+                    mcmc.params=mp)
+m2 <- posteriorSimulation(m2)
+
+bic(m1)
+bic(m2)
+```
+
+As the data is simulated from a three component distribution, `m2` should be
+chosen. Using the Bayesian Information Criterion, the correct model is chosen
+in this simple example.
+
 - merging components
-- Alternative statistics for model selection (i.e., BIC)
 
 # Other applications
 - down-sampling 
