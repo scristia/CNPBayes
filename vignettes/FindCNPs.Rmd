@@ -1,6 +1,6 @@
 ---
 title: "Identifying Copy Number Polymorphisms"
-author: "Jacob Carey, Robert Scharpf, and Steve Cristiano"
+author: "Jacob Carey, Robert Scharpf, and Steven Cristiano"
 date: \today
 output: BiocStyle::pdf_document
 vignette: >
