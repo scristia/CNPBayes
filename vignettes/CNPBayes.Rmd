@@ -1,15 +1,12 @@
 ---
 title: "Bayesian mixture models for copy number estimation"
-author: 
-- Jacob Carey
-- Robert Scharpf
-- Steven Cristiano
+author: "Jacob Carey, Robert Scharpf, and Steve Cristiano"
 date: \today
 output: BiocStyle::pdf_document
 vignette: >
   %\VignetteIndexEntry{Bayesian mixture models for copy number estimation}
   %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc} 
+  %\usepackage[utf8]{inputenc} 
 ---
 
 # Introduction
