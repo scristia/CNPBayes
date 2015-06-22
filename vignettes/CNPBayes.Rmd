@@ -292,7 +292,23 @@ As the data is simulated from a three component distribution, `m2` should be
 chosen. Using the Bayesian Information Criterion, the correct model is chosen
 in this simple example.
 
-- merging components
+Finally, in an overfit model (one with too many components), merging components
+is supported.
+
+```{r merge}
+hypp <- Hyperparameters(k=4)
+model <- MarginalModel(data=y(sim.data), k=4,
+                       hypp=Hyperparameters(k=4),
+                       mcmc.params=mp)
+model <- posteriorSimulation(model)
+dm <- DensityModel(model)
+modes(dm)
+dm_merged <- DensityModel(model, merge=TRUE)
+
+par(mfrow=c(1,2), las=1)
+plot(dm, y(sim.data))
+plot(dm_merged, y(sim.data))
+```
 
 # Other applications
 - down-sampling 
