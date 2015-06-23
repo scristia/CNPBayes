@@ -261,7 +261,7 @@ test_hard3 <- function(){
   pmns <- CNPBayes:::thetaMean(mmodel)
   j <- order(pmns[1,])
   ps <- CNPBayes:::sigmaMean(mmodel)[, j]
-  pmix <- pMean(mmodel)[j]
+  pmix <- CNPBayes:::pMean(mmodel)[j]
   checkEquals(pmns[, j], theta(truth), tolerance=0.04)
   checkEquals(ps, sigma(truth), tolerance=0.15)
   checkEquals(pmix, p(truth), tolerance=0.04)
@@ -277,7 +277,7 @@ test_hard3 <- function(){
   pmns <- CNPBayes:::thetaMean(mmodel)
   j <- order(pmns[1,])
   ps <- sigmaMean(mmodel)[, j]
-  pmix <- pMean(mmodel)[j]
+  pmix <- CNPBayes:::pMean(mmodel)[j]
   checkEquals(pmns[, j], theta(truth), tolerance=0.04)
   checkEquals(ps, sigma(truth), tolerance=0.15)
   checkEquals(pmix, p(truth), tolerance=0.04)
