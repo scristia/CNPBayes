@@ -3,6 +3,7 @@ title: "Bayesian mixture models for copy number estimation"
 author: "Jacob Carey, Robert Scharpf, and Steven Cristiano"
 date: \today
 output: BiocStyle::pdf_document
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Bayesian mixture models for copy number estimation}
   %\VignetteEngine{knitr::rmarkdown}
@@ -13,7 +14,7 @@ vignette: >
 
 CNPBayes allows for copy number estimation via a Bayesian mixture model. Models
 can be marginal or hierarchical over batches. The long-running, Markov Chain
-Monte Carlo portions of the code are written in C++ (using Rcpp) for fast
+Monte Carlo portions of the code are written in C++ using Rcpp [@Rcpp] for fast
 performance.
 
 ```{r lib}
@@ -323,3 +324,4 @@ skewness with modeling batch. Can we simulate something that shows this well?
 If you have three batches, and two components (three means for hemizygous and
 three means for diploid). won't be quite normal, skewed/asymmetric. 
 
+# References
