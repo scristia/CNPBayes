@@ -14,8 +14,10 @@ test_marginalEasy <- function(){
   model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
   model <- CNPBayes:::startAtTrueValues(model, truth)
   model <- posteriorSimulation(model)
-  MarginalModelExample <- model
-  save(MarginalModelExample, file="data/MarginalModelExample.RData")
+  if(FALSE){
+    MarginalModelExample <- model
+    save(MarginalModelExample, file="data/MarginalModelExample.RData")
+  }
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth)

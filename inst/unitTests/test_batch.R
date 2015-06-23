@@ -50,8 +50,10 @@ test_batchEasy <- function(){
   mcmcp <- McmcParams(iter=300, burnin=100, nStarts=5)
   model <- BatchModel(y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp)
   model <- posteriorSimulation(model)
-  BatchModelExample <- model
-  save(BatchModelExample, file="data/BatchModelExample.RData")
+  if(FALSE){
+    BatchModelExample <- model
+    save(BatchModelExample, file="data/BatchModelExample.RData")
+  }
   i <- order(theta(model)[1, ])
   checkEquals(theta(model)[, i], theta(truth), tolerance=0.1)
   if(FALSE){
