@@ -206,7 +206,9 @@ simulated batch data is created using `simulateBatchData` which requires
 and $B$ batches. `simulateBatchData` also requires a `batch` parameter,
 labelling the batch of each observation. Finally, `BatchModel`s are constructed
 using the function `BatchModel` which operates similarly to `MarginalModel` but
-requires a `batch` parameter, similar to `Hyperparameters`.
+requires a `batch` parameter, similar to `Hyperparameters`. A `plot` method is
+provided for both `BatchModel` and `MarginalModel`. `plot`s of `BatchModel`s
+include batch specific density estimates.
 
 ```{r batch}
 ## Create Hyperparameters for batch model
@@ -233,9 +235,8 @@ model <- BatchModel(data=y(sim.data), k=3,
                     mcmc.params=mp)
 
 model <- posteriorSimulation(model)
+plot(model)
 ```
-
-- merging (if needed)
 
 # K unknown
 
@@ -294,11 +295,9 @@ chosen. Using the Bayesian Information Criterion, the correct model is chosen
 in this simple example.
 
 Finally, in an overfit model (one with too many components), merging components
-is supported. We can also show that there is no underfitting by merging so show
-using merge with correct three component model.
+is supported. This merging procedure also ensures 
 
 ```{r merge}
-hypp <- Hyperparameters(k=4)
 model <- MarginalModel(data=y(sim.data), k=4,
                        hypp=Hyperparameters(k=4),
                        mcmc.params=mp)
@@ -306,10 +305,26 @@ model <- posteriorSimulation(model)
 dm <- DensityModel(model)
 modes(dm)
 dm_merged <- DensityModel(model, merge=TRUE)
+k(dm_merged)
 
 par(mfrow=c(1,2), las=1)
 plot(dm, y(sim.data))
 plot(dm_merged, y(sim.data))
+```
+
+This merging procedure also ensures that there is no underfitting. For example,
+merging a model with three true components will yield a model with three
+components.
+
+```{r merge-under}
+model <- MarginalModel(data=y(sim.data), k=3,
+                       hypp=Hyperparameters(k=3),
+                       mcmc.params=mp)
+model <- posteriorSimulation(model)
+dm <- DensityModel(model)
+dm_merged <- DensityModel(model, merge=TRUE)
+k(dm)
+k(dm_merged)
 ```
 
 Need to also include plot of the batch model to show multiple densities for
