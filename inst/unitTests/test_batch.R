@@ -276,7 +276,7 @@ test_hard3 <- function(){
   mmodel <- posteriorSimulation(modelk)
   pmns <- CNPBayes:::thetaMean(mmodel)
   j <- order(pmns[1,])
-  ps <- sigmaMean(mmodel)[, j]
+  ps <- CNPBayes:::sigmaMean(mmodel)[, j]
   pmix <- CNPBayes:::pMean(mmodel)[j]
   checkEquals(pmns[, j], theta(truth), tolerance=0.04)
   checkEquals(ps, sigma(truth), tolerance=0.15)
