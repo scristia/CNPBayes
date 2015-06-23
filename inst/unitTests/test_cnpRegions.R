@@ -7,7 +7,7 @@ test_cnpRegions <- function(){
   all_g <- c(g, g2, g3, g4)
   all_g$id <- paste0("sample", seq_along(all_g))
   grl <- split(all_g, all_g$id)
-  cnp <- defineCnpRegions(grl, thr=0.02)
+  cnp <- CNPBayes:::defineCnpRegions(grl, thr=0.02)
   true_consensus <- GRanges("chr1", IRanges(10,20))
   checkIdentical(cnp, true_consensus)
 }
