@@ -326,8 +326,7 @@ k(dm)
 k(dm_merged)
 ```
 
-Need to also include plot of the batch model to show multiple densities for
-single component. A lot of the work for merging is in CNVTools. Can capture
+A lot of the work for merging is in CNVTools. Can capture
 skewness with modeling batch. Can we simulate something that shows this well?
 If you have three batches, and two components (three means for hemizygous and
 three means for diploid). won't be quite normal, skewed/asymmetric. 
