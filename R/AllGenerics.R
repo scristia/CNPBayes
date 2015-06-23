@@ -399,7 +399,7 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' data(BatchModelExample)
 #' bt <- collapseBatch(y(BatchModelExample), batch(BatchModelExample))
 #' newBatchModel <- BatchModel(y(BatchModelExample), k(BatchModelExample),
-#'                             bt, Hyperparameters(BatchModelExample),
+#'                             bt, hyperParams(BatchModelExample),
 #'                             mcmcParams(BatchModelExample))
 #' @param object see \code{showMethods(collapseBatch)}
 #' @param plate a vector labelling from which batch each observation came from.
