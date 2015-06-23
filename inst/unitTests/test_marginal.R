@@ -41,7 +41,7 @@ test_marginalEasy <- function(){
   i <- CNPBayes:::argMax(model)
   checkTrue(i == which.max(logPrior(chains(model)) + log_lik(chains(model))))
   ## Check the modes
-  checkIdentical(modes(model)[["theta"]], thetac(model)[i, ])
+  checkIdentical(modes(model)[["theta"]], CNPBayes:::thetac(model)[i, ])
   checkIdentical(sqrt(modes(model)[["sigma2"]]), sigmac(model)[i, ])
 }
 
@@ -83,7 +83,7 @@ test_marginal_Moderate <- function(){
   model <- posteriorSimulation(model)
   checkEquals(sort(theta(model)), theta(truth), tolerance=0.15)
   if(FALSE){
-    plot.ts(thetac(model), plot.type="single")
+    plot.ts(CNPBayes:::thetac(model), plot.type="single")
     plot.ts(sigmac(model), plot.type="single")
     plot.ts(pic(model), plot.type="single")
     op <- par(mfrow=c(1,2),las=1)
