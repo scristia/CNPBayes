@@ -12,7 +12,7 @@ test_cnProbability <- function(){
   map_model <- CNPBayes:::mapModel(model)
   checkIdentical(CNPBayes:::zChain(model)[CNPBayes:::argMax(model), ],
                  z(map_model))
-  checkIdentical(thetac(model)[CNPBayes:::argMax(model), ],
+  checkIdentical(CNPBayes:::thetac(model)[CNPBayes:::argMax(model), ],
                  theta(map_model))
   probs <- mapCnProbability(model)
   ## the maximum a posteriori estimate should not be too far from the
