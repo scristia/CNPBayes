@@ -126,6 +126,8 @@ setGeneric("hist")
 #' numeric vector of the one-dimensional summaries for a given copy
 #' number polymorphism. If \code{x} is a \code{MixtureModel}, \code{y}
 #' is ignored.
+#' @param show.batch a logical. If true, batch specific densities 
+#' will be plotted.
 #' @param ... Additional arguments passed to \code{hist}.
 #' @examples
 #'   set.seed(100)
