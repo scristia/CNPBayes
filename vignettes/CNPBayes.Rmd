@@ -312,12 +312,6 @@ plot(dm, y(sim.data))
 plot(dm_merged, y(sim.data))
 ```
 
-# Other applications
-- down-sampling 
-- modeling differences in variance (same mean)
-   - paramUpdates
-
-
 Need to also include plot of the batch model to show multiple densities for
 single component. A lot of the work for merging is in CNVTools. Can capture
 skewness with modeling batch. Can we simulate something that shows this well?
