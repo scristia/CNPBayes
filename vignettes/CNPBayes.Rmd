@@ -206,9 +206,8 @@ simulated batch data is created using `simulateBatchData` which requires
 and $B$ batches. `simulateBatchData` also requires a `batch` parameter,
 labelling the batch of each observation. Finally, `BatchModel`s are constructed
 using the function `BatchModel` which operates similarly to `MarginalModel` but
-requires a `batch` parameter, similar to `Hyperparameters`. A `plot` method is
-provided for both `BatchModel` and `MarginalModel`. `plot`s of `BatchModel`s
-include batch specific density estimates.
+requires a `batch` parameter, similar to `Hyperparameters`. `plot`s of 
+`BatchModel`s include batch specific density estimates.
 
 ```{r batch}
 ## Create Hyperparameters for batch model
