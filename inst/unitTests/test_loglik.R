@@ -6,7 +6,7 @@ test_loglik <- function(){
                         sds=c(0.3, 0.15, 0.15),
                         p=c(0.005, 1/10, 1-0.005-1/10))
   ll.truth <- log_lik(truth)
-  checkEquals(ll.truth, computeLoglik(truth))
+  checkEquals(ll.truth, CNPBayes:::computeLoglik(truth))
 
   yy <- y(truth)
   th <- theta(truth)
@@ -27,7 +27,7 @@ test_loglik <- function(){
   nStarts(model) <- 5
   model <- posteriorSimulation(model)
   ll1 <- log_lik(model)
-  ll2 <- computeLoglik(model)
+  ll2 <- CNPBayes:::computeLoglik(model)
   checkEquals(ll1, ll2, tolerance=0.005)
 
   yy <- y(model)
