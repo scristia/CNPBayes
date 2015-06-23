@@ -40,16 +40,16 @@ test_constructor <- function(){
   ## burnin does not affect  the chains
   checkTrue(burnin(mmod) == 100)
   checkTrue(nStarts(mmod) == 1)
-  checkTrue(nrow(thetac(mmod))==1001)
+  checkTrue(nrow(CNPBayes:::thetac(mmod))==1001)
 
   mp <- McmcParams(iter=10, thin=10, burnin=100)
   ## replacement method triggers a change in the size of the chains
   checkException(mcmcParams(mmod) <- mp)
   mcmcParams(mmod, force=TRUE) <- mp
-  checkTrue(nrow(thetac(mmod)) == 10)
+  checkTrue(nrow(CNPBayes:::thetac(mmod)) == 10)
 
   iter(mmod, force=TRUE) <- 1000
-  checkTrue(nrow(thetac(mmod)) == 1000)
+  checkTrue(nrow(CNPBayes:::thetac(mmod)) == 1000)
 
   ##
   ## Batch model
@@ -81,11 +81,11 @@ test_constructor <- function(){
   checkTrue(iter(bmod) == 1000)
   checkTrue(burnin(bmod) == 100)
   checkTrue(nStarts(bmod) == 1)
-  checkTrue(nrow(thetac(bmod))==1000)
+  checkTrue(nrow(CNPBayes:::thetac(bmod))==1000)
 
   checkException(iter(bmod) <- 10)
   iter(bmod, force=TRUE) <- 10
-  checkTrue(nrow(thetac(bmod))==10)
+  checkTrue(nrow(CNPBayes:::thetac(bmod))==10)
   ##model.list <- CNPBayes:::modelOtherModes(bmod)
   ##checkTrue(all(sapply(model.list, validObject)))
 
@@ -95,9 +95,9 @@ test_constructor <- function(){
   iter(mmod, force=TRUE) <- 5
   burnin(mmod) <- 0
   mmod2 <- posteriorSimulation(mmod)
-  checkTrue(!identical(thetac(mmod), thetac(mmod2)))
-  checkTrue(all(is.na(thetac(mmod))))
+  checkTrue(!identical(CNPBayes:::thetac(mmod), CNPBayes:::thetac(mmod2)))
+  checkTrue(all(is.na(CNPBayes:::thetac(mmod))))
   ## changing the burnin should not reinitialize the chains
   burnin(mmod2) <- 2
-  checkTrue(!all(is.na(thetac(mmod2))))
+  checkTrue(!all(is.na(CNPBayes:::thetac(mmod2))))
 }
