@@ -255,10 +255,10 @@ sequential instances of 10 `posteriorSimulation`s are run for each possible
 number of latent variables. Additionally, for each number of components, the
 mode of $\theta$ is identified, fixed, and the MCMC simulation is run again.
 After this simulation, the process is repeated, but with $\sigma^2$ being
-integrated over. While marginal likelihood is computed and used for determing
-*k*, the number of latent variable, Chib's Estimator and a variant of Chib's
-Estimator created by Berkhof et al is also calculated. The log Bayes Factor is
-computed comparing the two models with the highest marginal likelihood.
+integrated over. While the marginal likelihood is computed and used for 
+determining *k*, the number of latent variable, Chib's Estimator [@chib] and a 
+variant of Chib's Estimator [@berkhof] is also calculated. The log Bayes Factor
+is computed comparing the two models with the highest marginal likelihood.
 
 ```{r bayesFactor}
 logBayesFactor(x)
