@@ -19,6 +19,13 @@ test:
 	cd ${TOP}/tests;\
 	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 --vanilla --slave < ${SUITE}
 
+##  test all unit tests
+test_jc:
+	export RCMDCHECK=FALSE;\
+	export RUNITFILEPATTERN="$(file)";\
+	cd ${TOP}/tests;\
+	R_LIBS_USER=~/.Rlibs R --vanilla --slave < ${SUITE}
+
 ## install CNPBayes and then test unit tests
 devel:
 	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 CMD INSTALL --no-lock ${PKG}
