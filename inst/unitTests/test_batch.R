@@ -260,7 +260,7 @@ test_hard3 <- function(){
   ##mc <- chains(mmodel)
   pmns <- CNPBayes:::thetaMean(mmodel)
   j <- order(pmns[1,])
-  ps <- sigmaMean(mmodel)[, j]
+  ps <- CNPBayes:::sigmaMean(mmodel)[, j]
   pmix <- pMean(mmodel)[j]
   checkEquals(pmns[, j], theta(truth), tolerance=0.04)
   checkEquals(ps, sigma(truth), tolerance=0.15)
