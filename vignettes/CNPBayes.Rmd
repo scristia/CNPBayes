@@ -293,7 +293,8 @@ chosen. Using the Bayesian Information Criterion, the correct model is chosen
 in this simple example.
 
 Finally, in an overfit model (one with too many components), merging components
-is supported.
+is supported. We can also show that there is no underfitting by merging so show
+using merge with correct three component model.
 
 ```{r merge}
 hypp <- Hyperparameters(k=4)
@@ -316,5 +317,9 @@ plot(dm_merged, y(sim.data))
    - paramUpdates
 
 
-
+Need to also include plot of the batch model to show multiple densities for
+single component. A lot of the work for merging is in CNVTools. Can capture
+skewness with modeling batch. Can we simulate something that shows this well?
+If you have three batches, and two components (three means for hemizygous and
+three means for diploid). won't be quite normal, skewed/asymmetric. 
 
