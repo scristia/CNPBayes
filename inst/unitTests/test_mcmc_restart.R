@@ -94,6 +94,6 @@ test_mcmc_restart <- function(){
                         batch=batch(truth))
   th1 <- as.numeric(theta(modelk1))
   modelk <- posteriorSimulation(modelk1)
-  th2 <- thetac(modelk)[1,]
+  th2 <- CNPBayes:::thetac(modelk)[1,]
   checkIdentical(th1, th2)
 }
