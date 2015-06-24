@@ -32,6 +32,9 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
   if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
   zz <- integer(length(data))
   zfreq <- as.integer(table(zz))
+  if(length(data) != length(batch)) {
+    stop("batch vector must be the same length as data")
+  }
   obj <- new("BatchModel",
              k=as.integer(k),
              hyperparams=hypp,
@@ -139,7 +142,7 @@ setValidity("BatchModel", function(object){
 #' @param j Not used.
 #' @param ... Not used.
 #' @param drop Not used.
-#' @aliases [,BatchModel-method [,BatchModel,ANY,ANY,ANY-method 
+#' @aliases [,BatchModel-method [,BatchModel,ANY,ANY,ANY-method
 #' @docType methods
 #' @rdname extract-methods
 setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){

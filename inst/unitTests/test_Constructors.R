@@ -77,6 +77,9 @@ test_constructor <- function(){
   checkEquals(y(truth), y(bmod))
   checkEquals(batch(truth), batch(bmod))
 
+  ## Batch should be the same length as y.  If not, it should fail.
+  checkException(BatchModel(data=y(truth), batch=rep(1:3, each=2), k=3))
+
   ## default n. of iterations
   checkTrue(iter(bmod) == 1000)
   checkTrue(burnin(bmod) == 100)
