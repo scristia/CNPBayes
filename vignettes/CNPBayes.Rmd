@@ -42,17 +42,17 @@ MCMC simulation, reducing the need for functions with a large number
 of arguments and providing an explicit contract for the arguments
 passed to the C++ back-end. The three core classes are
 
-- McmcParams: parameters for the number of burnin simulations, the
+- `McmcParams`: parameters for the number of burnin simulations, the
   number of chains to initialize, the number of simulations after
   burnin, and how often simulated values are to be saved.
 
-- Hyperparameters: a virtual class extended by HyperparametersMarginal
-  and HyperparametersBatch for the marginal and batch mixture model
+- `Hyperparameters`: a virtual class extended by `HyperparametersMarginal`
+  and `HyperparametersBatch` for the marginal and batch mixture model
   implementations, respectively.
 
-- MixtureModel: a virtual class with slots for data and
+- `MixtureModel`: a virtual class with slots for data and
   hyperparameters, as well as a slot for each parameter. The class is
-  extended by MarginalModel and BatchModel for the *marginal* and
+  extended by `MarginalModel` and `BatchModel` for the *marginal* and
   *batch* implementations, respectively. S4 dispatch on these classes
   is used to handle MCMC updates that are specific to the marginal or
   batch models.
