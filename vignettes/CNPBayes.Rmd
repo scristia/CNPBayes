@@ -12,10 +12,13 @@ vignette: >
 
 # Introduction
 
-CNPBayes allows for copy number estimation via a Bayesian mixture model. Models
-can be marginal or hierarchical over batches. The long-running, Markov Chain
-Monte Carlo portions of the code are written in C++ using Rcpp [@Rcpp] for fast
-performance.
+*CNPBayes* allows for copy number estimation via a Bayesian mixture model. 
+Models can be marginal or hierarchical over batches. The long-running, Markov 
+Chain Monte Carlo portions of the code are written in C++ using Rcpp [@Rcpp] 
+for fast performance.
+
+Unlike *CNVtools* [@CNVtools], which uses Expectation-Maximation for mixture
+modeling, *CNPBayes* uses an MCMC routine.
 
 ```{r lib}
 library(CNPBayes)
