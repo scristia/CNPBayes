@@ -1,6 +1,6 @@
 ---
 title: "Bayesian mixture models for copy number estimation"
-author: "Jacob Carey, Robert Scharpf, and Steven Cristiano"
+author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
 date: \today
 output: BiocStyle::pdf_document
 bibliography: references.bib
