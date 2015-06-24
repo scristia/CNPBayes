@@ -70,10 +70,3 @@ saveBatch <- function(se, batch.file, THR=0.1){
   saveRDS(bt, file=batch.file)
   bt
 }
-
-
-
-## RS: Can you write the documetnation here? I'm not familiar with the SummarizedExperiment class or the package from which it comes.
-## setMethod("copyNumber", "SummarizedExperiment", function(object, ...){
-##   assays(object)[["medr"]]/1000
-## })
