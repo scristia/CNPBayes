@@ -10,7 +10,7 @@ TODO.org
 *.RDS
 *.csv
 temp.r
-Rplots.pdf
+*.pdf
 .gitignore
 *.DS_Store
 

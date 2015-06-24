@@ -80,7 +80,7 @@ test_kbatch <- function(){
                     rnorm(5, 1, 0.1)), 5, k, byrow=FALSE)
   sds <- matrix(0.1, 5, k)
   ##N <- 1500
-  N <- 9000
+  N <- 3000
   probs <- c(1/3, 1/3, 3/10, 0.02, 0.013)
   probs <- probs/sum(probs)
   batch <- sample(1:5, size=N, prob=probs, replace=TRUE)
@@ -98,7 +98,7 @@ test_kbatch <- function(){
   cn <- map(kmod)
 
   set.seed(1000)
-  index <- sample(seq_len(N), 3000)
+  index <- sample(seq_len(N), 1000)
   kmod2 <- BatchModel(y(truth)[index], batch(truth)[index], k=3, mcmc.params=mp)
   kmod2 <- posteriorSimulation(kmod2)
   yy <- setNames(y(truth), seq_along(y(truth)))
