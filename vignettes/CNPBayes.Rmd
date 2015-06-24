@@ -64,8 +64,8 @@ passed to the C++ back-end. The three core classes are
 
 
 The class `McmcParams` specifies several MCMC options, including the
-number of saved iterations (~iter~), length of burnin (~burnin~), and
-the thinning interval (~thin~).  The following code indicates that we
+number of saved iterations (`iter`), length of burnin (`burnin`), and
+the thinning interval (`thin`).  The following code indicates that we
 will run a burnin of 100 iterations saving the first 1000 iterations
 after burnin.
 
@@ -73,7 +73,7 @@ after burnin.
 mp <- McmcParams(iter=1000, burnin=100, thin=1)
 ```
 
-If we instead specified ~thin=10~, we would need to run 10,000 MCMC
+If we instead specified `thin=10`, we would need to run 10,000 MCMC
 iterations in order to have a chain of length 1000 (every 10th
 observation is saved).
 
