@@ -11,6 +11,24 @@ vignette: >
 
 # Introduction
 
+Identify consensus start and stop coordinates of a copy number
+polymorphism
+
+The collection of copy number variants (CNVs) identified in a study
+can be encapulated in a GRangesList, where each element is a
+GRanges of the CNVs identified for an individual.  (For a study
+with 1000 subjects, the GRangesList object would have length 1000
+if each individual had 1 or more CNVs.)  For regions in which CNVs
+occur in more than 2 percent of study participants, the start and
+end boundaries of the CNVs may differ because of biological
+differences in the CNV size as well as due to technical noise of
+the assay and the uncertainty of the breakpoints identified by a
+segmentation of the genomic data.  Among subjects with a CNV called
+at a given locus, the \code{consensusCNP} function identifies the
+largest region that is copy number variant in half of these
+subjects.
+ 
+
 # Finding CNPs
 - hidden Markov models
 - prior knowledge (HapMap / 1000 Genomes Project)
