@@ -2,15 +2,16 @@
 % Please edit documentation in R/methods-MarginalModel.R
 \name{computeMarginalLik}
 \alias{computeMarginalLik}
-\title{Compute Marginal Likelihood}
+\title{Estimate the marginal density of a mixture model with k components}
 \usage{
 computeMarginalLik(y, batch, K = 1:4, T = 1000, burnin = 200, T2 = 200,
   maxperm = 3, nchains = 3, thin = 1)
 }
 \arguments{
-\item{y}{data on which to perform MCMC simulation}
+\item{y}{a numeric vector, possibly multi-modal}
 
-\item{batch}{a vector labelling from which batch each observation came from}
+\item{batch}{an integer-vector indicating the batch for each
+observation was derived}
 
 \item{K}{integer vector of possible copy numbers (latent variable states)}
 
@@ -18,15 +19,25 @@ computeMarginalLik(y, batch, K = 1:4, T = 1000, burnin = 200, T2 = 200,
 
 \item{burnin}{number of MCMC burnin iterations to be discarded}
 
-\item{T2}{RS: Can you help with this paramaeter?}
+\item{T2}{number of MCMC iterations after permuting the modes.  See \code{maxperm}.}
 
-\item{maxperm}{RS: Can you help with this paramaeter?}
+\item{maxperm}{a length-one integer vector.  For a mixture model
+with K components, there are K! possible modes.  \code{maxperm}
+indicates the maximum number of permutations to explore.}
 
 \item{nchains}{number of parallel MCMC chains to run}
 
 \item{thin}{number of thinning intervals}
 }
 \description{
-This function is used to compute marginal likelihoods of posterior simulations for chains of different component sizes. Likelihoods are computed using marginal, berkhof and chibs. Summaries are calculated for each chain of each component size.
+This function is used to estimate the marginal density of a mixture
+model with k components.  If k is specified as an integer vector,
+the marginal density is estimated for each k.
+}
+\seealso{
+\code{\link{logBayesFactor}} for computing the bayes
+factor for two models, \code{\link{orderModels}} for ordering a
+list of models by decreasing marginal density, and \code{plot} for
+visualizing the component densities.
 }
 

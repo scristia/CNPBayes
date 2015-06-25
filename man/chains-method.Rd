@@ -4,14 +4,11 @@
 \name{chains}
 \alias{chains}
 \alias{chains,MixtureModel-method}
-\alias{chains<-,MixtureModel-method}
 \title{Retrieve simulated chains from model object.}
 \usage{
 chains(object)
 
 \S4method{chains}{MixtureModel}(object)
-
-\S4method{chains}{MixtureModel}(object) <- value
 }
 \arguments{
 \item{object}{\code{showMethods(chains)}}

@@ -30,6 +30,9 @@ number polymorphism. If \code{x} is a \code{MixtureModel}, \code{y}
 is ignored.}
 
 \item{...}{Additional arguments passed to \code{hist}.}
+
+\item{show.batch}{a logical. If true, batch specific densities
+will be plotted.}
 }
 \description{
 Plot estimates of the posterior density for each component and the

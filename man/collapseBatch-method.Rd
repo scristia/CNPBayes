@@ -53,7 +53,7 @@ CNP until no batches can be combined.
 data(BatchModelExample)
 bt <- collapseBatch(y(BatchModelExample), batch(BatchModelExample))
 newBatchModel <- BatchModel(y(BatchModelExample), k(BatchModelExample),
-                            bt, Hyperparameters(BatchModelExample),
+                            bt, hyperParams(BatchModelExample),
                             mcmcParams(BatchModelExample))
 }
 
