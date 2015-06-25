@@ -628,7 +628,6 @@ modalLoglik <- function(x) modes(x)[["loglik"]]
 #' factor for two models, \code{\link{orderModels}} for ordering a
 #' list of models by decreasing marginal density, and \code{plot} for
 #' visualizing the component densities.
-#' @references
 computeMarginalLik <- function(y, batch, K=1:4,
                                T=1000, burnin=200,
                                T2=200,
