@@ -52,6 +52,8 @@ cnv2$id <- paste0("sample", seq_along(cnv2))
 seqlevels(cnv2, force=TRUE) <- seqlevels(genome)
 seqinfo(cnv2) <- seqinfo(genome)
 
+all_cnvs <- c(cnv1, cnv2)
+
 ##
 ## Simulate a few other CNVs that are less common because they are
 ## very large, or because they occur in regions that in which copy
@@ -63,7 +65,6 @@ ends <- starts + rpois(length(starts), 25e3L)
 cnv4 <- GRanges("chr1", IRanges(starts, ends),
                 id=paste0("sample", sample(1000:1500, length(starts))))
 
-all_cnvs <- c(cnv1, cnv2, cnv3, cnv4)
 grl <- split(all_cnvs, all_cnvs$id)
 cnps <- consensusCNP(grl)
 
@@ -85,3 +86,31 @@ seqlevels(truth, force=TRUE) <- seqlevels(grl)
 seqinfo(truth) <- seqinfo(grl)
 identical(cnps, truth)
 ```
+# Outline from Rob
+1
+cnps <- consensusCNP()
+
+2
+create a GRanges object for the markers
+affy 6.0
+- find annotation for SNPs and nonpolymorphic markers
+
+features.granges - create a GRanges object
+
+3 
+findOverlaps(cnps, features)
+            query  subject
+
+4
+SummarizedExperiment w/ findOverlaps
+2 assays: log R ratios, BAFs
+
+5 create a 1d summary of the log r ratios 
+mention PCA, but use mean
+
+6
+SummarizedExperiment for the 1-d summary.
+rowRanges: CNPs in step 1
+
+7
+Fit the MM to each row of the object in step 6.
