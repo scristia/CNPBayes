@@ -13,5 +13,5 @@ temp.r
 *.pdf
 .gitignore
 *.DS_Store
-
+inst/doc/*
 
