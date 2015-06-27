@@ -24,7 +24,7 @@ end boundaries of the CNVs may differ because of biological
 differences in the CNV size as well as due to technical noise of
 the assay and the uncertainty of the breakpoints identified by a
 segmentation of the genomic data.  Among subjects with a CNV called
-at a given locus, the \code{consensusCNP} function identifies the
+at a given locus, the `consensusCNP` function identifies the
 largest region that is copy number variant in half of these
 subjects.
 
