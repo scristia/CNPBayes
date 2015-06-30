@@ -345,9 +345,10 @@ chosen. Using the Bayesian Information Criterion, the correct model is chosen
 in this simple example.
 
 Finally, in an overfit model (one with too many components), merging components
-is supported. This merging procedure also ensures 
+is supported. 
 
 ```{r merge}
+mp <- McmcParams(iter=5000, burnin=1000, thin=1)
 model <- MarginalModel(data=y(sim.data), k=4,
                        hypp=Hyperparameters(k=4),
                        mcmc.params=mp)
