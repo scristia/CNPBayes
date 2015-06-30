@@ -1,7 +1,7 @@
 #' Create an object for running hierarchical MCMC simulations.
 #' @param data the data for the simulation.
 #' @param k An integer value specifying the number of latent classes.
-#' @param batch a vector of the different batch numbers
+#' @param batch a vector of the different batch numbers (must be sorted)
 #' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @param mcmc.params An object of class 'McmcParams'
 #' @export
