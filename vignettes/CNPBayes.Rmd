@@ -18,9 +18,9 @@ estimation of copy number at copy number polymorphic loci (CNPs). Two
 versions of the mixture model are implemented.  A *standard* model,
 referred to as a *marginal* model, that has one mean and standard
 deviation for each component, and a *batch* model with one mean and
-standard deviation for each batch. Estimation of the posterior is by
-Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp package
-[@Rcpp].
+standard deviation for each batch of each component. Estimation of the 
+posterior is by Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp 
+package [@Rcpp].
 
 For an EM-implementation of Gaussian mixture models for CNPs, see the
 Bioconductor package CNVtools [@Barnes2008].  A Bayesian extension of
@@ -42,7 +42,7 @@ MCMC simulation, reducing the need for functions with a large number
 of arguments and providing an explicit contract for the arguments
 passed to the C++ back-end. The three core classes are
 
-- `McmcParams`: parameters for the number of burnin simulations, the
+- `McmcParams`: parameters for the number of burnin simulations - the
   number of chains to initialize, the number of simulations after
   burnin, and how often simulated values are to be saved.
 
@@ -251,8 +251,11 @@ requires a `batch` parameter, similar to `Hyperparameters`. `plot`s of
 `BatchModel`s include batch specific density estimates.
 
 ```{r batch}
+## Create McmcParams for batch model
+mp <- McmcParams(iter=5000, burnin=1000, thin=1)
+
 ## Create Hyperparameters for batch model
-hypp <- Hyperparameters(type="batch", k=3)
+hypp <- Hyperparameters(type="batch", k=3, eta.0=1, m2.0=0.3)
 
 ## simulate batch data
 k <- 3
@@ -268,6 +271,13 @@ sim.data <- simulateBatchData(N=N,
                               sds=sds,
                               p=c(1/5, 1/3, 1-1/3-1/5))
 
+## Create McmcParams for batch model
+mp <- McmcParams(iter=5000, burnin=1000, thin=1)
+
+## Create Hyperparameters for batch model
+hypp <- Hyperparameters(type="batch", k=3, eta.0=600, 
+                        m2.0=(600 ^ 2) / 194400000)
+
 # create BatchModel and run posteriorSimulation
 model <- BatchModel(data=y(sim.data), k=3,
                     batch=rep(letters[1:3], length.out=N),
@@ -275,6 +285,7 @@ model <- BatchModel(data=y(sim.data), k=3,
                     mcmc.params=mp)
 
 model <- posteriorSimulation(model)
+theta(model)
 plot(model)
 ```
 
