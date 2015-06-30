@@ -282,3 +282,7 @@ test_hard3 <- function(){
   checkEquals(ps, sigma(truth), tolerance=0.15)
   checkEquals(pmix, p(truth), tolerance=0.04)
 }
+
+test_unequal_batch_data <- function() {
+    checkException(BatchModel(data=1:10, batch=1:9))
+}
