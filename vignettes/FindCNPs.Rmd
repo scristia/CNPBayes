@@ -33,6 +33,13 @@ subjects.
 - prior knowledge (HapMap / 1000 Genomes Project)
 
 # Outline from Rob
+Preliminary
+```{r prelim}
+library(CNPBayes)
+library(pd.genomewidesnp.6)
+genome <- pd.genomewidesnp.6
+```
+
 Step 1
 
 ```{r step-1}
