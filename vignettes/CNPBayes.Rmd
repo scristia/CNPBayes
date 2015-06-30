@@ -281,7 +281,7 @@ hypp <- Hyperparameters(type="batch", k=3, eta.0=600,
 
 # create BatchModel and run posteriorSimulation
 model <- BatchModel(data=y(sim.data), k=3,
-                    batch=rep(letters[1:3], length.out=N),
+                    batch=batch(sim.data),
                     hypp=hypp,
                     mcmc.params=mp)
 
