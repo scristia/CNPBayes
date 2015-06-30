@@ -64,10 +64,10 @@ passed to the C++ back-end. The three core classes are
 
 
 The class `McmcParams` specifies several MCMC options, including the
-number of saved iterations (`iter`), length of burnin (`burnin`), and
+number of saved iterations (`iter`), length of burn-in (`burnin`), and
 the thinning interval (`thin`).  The following code indicates that we
 will run a burnin of 100 iterations saving the first 1000 iterations
-after burnin.
+after burnin, with no iterations discarded for thinning.
 
 ```{r McmcParams} 
 mp <- McmcParams(iter=1000, burnin=100, thin=1)
@@ -82,23 +82,23 @@ observation is saved).
 Hyperparameters for the mixture model are specified as an instance of class
 `Hyperparameters`. Hyperparameters include:  
 
-- `k` the number of components (or copy numbers). Defaults to 2.  
+- `k` the number of components (or copy number). Defaults to 2.  
 
-- `mu.0` and `tau2.0` priors for $\mu \sim \text{N(mu.0, tau2.0)}$, the 
+- `mu.0` and `tau2.0` priors for $\mu \sim \text{N(`mu.0`, `tau2.0`)}$, the 
   overall mean of components. Default to 0 and 100 respectively.  
 
 - `eta.0` and `m2.0` priors for 
-  $\tau^2 \sim \text{Ga(rate=eta.0, shape=m2.0)}$, the overall variance across
-  components. Default to 1 and 0.1 respectively for marginal models and 1800
-  and 1/60 respectively for batch models.  
+  $\tau^2 \sim \text{Ga(rate=`eta.0`, shape=`m2.0`)}$, the overall variance 
+  across components. Default to 1 and 0.1 respectively for *marginal* models 
+  and 1800 and 1/60 respectively for *batch* models.  
 
 - `alpha` the prior mixture probabilities. Does not have to sum to 1. By
   default, a noninformative prior of equal mixtures is used.  
 
 - `beta` prior for $\nu_0$. Defaults to 0.1.  
 
-- `a` and `b` priors for $\sigma^2_0 \sim \text{Ga(shape=a, rate=b)}$, the rate
-  parameter for $\sigma^2$, the variance for each batch and component.  
+- `a` and `b` priors for $\sigma^2_0 \sim \text{Ga(shape=`a`, rate=`b`)}$, the 
+  rate parameter for $\sigma^2$, the variance for each batch and component.  
 
 ```{r graph-marginal, echo=FALSE}
 library(grid)
@@ -199,9 +199,9 @@ hypp <- Hyperparameters(type="marginal", k=3)
 
 ### simulateData
 
-CNPBayes also allows for the simulation of test data. The number of
-observations, means for each component, standard deviations for each component,
-and mixture proportions must be specified. 
+CNPBayes allows for the simulation of test data. The number of observations, 
+mixture proportions, means for each component, and standard deviations for 
+each component must be specified. 
 ```{r simulateData}
 sim.data <- simulateData(N=2500, p=rep(1/3, 3),
                          theta=c(-1, 0, 1),
@@ -210,14 +210,14 @@ sim.data <- simulateData(N=2500, p=rep(1/3, 3),
 
 ### posteriorSimulation
 
-To simulate the posterior distribution, an instance of class MarginalModel or
-must first be constructed. Note that when initializing objects of these 
-classes, the parameters `data`, `k` (number of *a priori* components), 
+To simulate the posterior distribution, an instance of class `MarginalModel`
+must first be constructed. Note that when initializing objects of this
+class, the parameters `data`, `k` (number of *a priori* components), 
 `hypp`, (object of class `Hyperparameters`) and `mcmc.params` (object of class
 `McmcParams`) should be specified. Default values for `hypp` and `mcmc.params`
-will be used if not specified. Note that to retrieve the simulated data from
-the object, the `y` method can be used. After construction of a model, the
-`posteriorSimulation` method should be used.
+will be used if not specified. The `y` method should be used to retrieve the 
+data from an object. After construction of a model, the `posteriorSimulation` 
+method should be used.
 
 ```{r model}
 model <- MarginalModel(data=y(sim.data), k=3,
@@ -228,7 +228,7 @@ model <- posteriorSimulation(model)
 ```
 
 The results of a `DensityModel` call returns an object of class
-`DensityModel`. This object can be used, along with the data, for plotting.
+`DensityModel`. Use the data and a `DensityModel` for plotting.
 
 ```{r plot}
 plot(DensityModel(model), y(sim.data), 
@@ -237,18 +237,19 @@ plot(DensityModel(model), y(sim.data),
 
 ## BatchModel
 
-In general, the construction and simulation of a `BatchModel` is similar to
-that of a `MarginalModel`. The `BatchModel` is hierarchical over the batches,
-and thus requires information about the batches. Instances of `McmcParams` are
-equivalent between `BatchModel` and `MarginalModel`. However, an object of
-class `Hyperparameters` is constructed with a `type` of "batch". Additionally,
-simulated batch data is created using `simulateBatchData` which requires
-`theta` and `sds` to be specifed as $K \times B$ matrices, for $K$ components
-and $B$ batches. `simulateBatchData` also requires a `batch` parameter,
-labelling the batch of each observation. Finally, `BatchModel`s are constructed
-using the function `BatchModel` which operates similarly to `MarginalModel` but
-requires a `batch` parameter, similar to `Hyperparameters`. `plot`s of 
-`BatchModel`s include batch specific density estimates.
+In general, the construction and posterior simulation of a `BatchModel` is 
+similar to that of a `MarginalModel`. The `BatchModel` is hierarchical over 
+the batches, and thus requires information about the batches. Instances of 
+`McmcParams` are equivalent between `BatchModel` and `MarginalModel`. 
+However, an object of class `Hyperparameters` is constructed with a `type` 
+of "batch". Additionally, simulated batch data is created using 
+`simulateBatchData` which requires `theta` and `sds` to be specifed as 
+$B \times K$ matrices, for $K$ components and $B$ batches. `simulateBatchData` 
+also requires a `batch` parameter, labelling the batch of each observation. 
+Finally, `BatchModel`s are constructed using the function `BatchModel` which 
+operates similarly to `MarginalModel` but requires a `batch` parameter, 
+similar to `Hyperparameters`. `plot`s of `BatchModel`s include batch specific 
+density estimates.
 
 ```{r batch}
 ## Create McmcParams for batch model
@@ -291,7 +292,7 @@ plot(model)
 
 # K unknown
 
-Often times, the number of components is not known $a priori$. In order to
+Often times, the number of components is not known *a priori*. In order to
 estimate the number, the `computeMarginalLik` function is used. 
 
 ```{r computeMarginalLik}
