@@ -84,11 +84,11 @@ Hyperparameters for the mixture model are specified as an instance of class
 
 - `k` the number of components (or copy number). Defaults to 2.  
 
-- `mu.0` and `tau2.0` priors for $\mu \sim \text{N(`mu.0`, `tau2.0`)}$, the 
+- `mu.0` and `tau2.0` priors for $\mu \sim$ N(`mu.0`, `tau2.0`), the 
   overall mean of components. Default to 0 and 100 respectively.  
 
 - `eta.0` and `m2.0` priors for 
-  $\tau^2 \sim \text{Ga(rate=`eta.0`, shape=`m2.0`)}$, the overall variance 
+  $\tau^2 \sim$ Ga(rate=`eta.0`, shape=`m2.0`), the overall variance 
   across components. Default to 1 and 0.1 respectively for *marginal* models 
   and 1800 and 1/60 respectively for *batch* models.  
 
@@ -97,7 +97,7 @@ Hyperparameters for the mixture model are specified as an instance of class
 
 - `beta` prior for $\nu_0$. Defaults to 0.1.  
 
-- `a` and `b` priors for $\sigma^2_0 \sim \text{Ga(shape=`a`, rate=`b`)}$, the 
+- `a` and `b` priors for $\sigma^2_0 \sim$ Ga(shape=`a`, rate=`b`), the 
   rate parameter for $\sigma^2$, the variance for each batch and component.  
 
 ```{r graph-marginal, echo=FALSE}
@@ -253,10 +253,10 @@ density estimates.
 
 ```{r batch}
 ## Create McmcParams for batch model
-mp <- McmcParams(iter=5000, burnin=1000, thin=1)
+mp <- McmcParams(iter=2000, burnin=1000, thin=1)
 
 ## Create Hyperparameters for batch model
-hypp <- Hyperparameters(type="batch", k=3, eta.0=1, m2.0=0.3)
+hypp <- Hyperparameters(type="batch", k=3)
 
 ## simulate batch data
 k <- 3
@@ -272,13 +272,6 @@ sim.data <- simulateBatchData(N=N,
                               sds=sds,
                               p=c(1/5, 1/3, 1-1/3-1/5))
 
-## Create McmcParams for batch model
-mp <- McmcParams(iter=5000, burnin=1000, thin=1)
-
-## Create Hyperparameters for batch model
-hypp <- Hyperparameters(type="batch", k=3, eta.0=600, 
-                        m2.0=(600 ^ 2) / 194400000)
-
 # create BatchModel and run posteriorSimulation
 model <- BatchModel(data=y(sim.data), k=3,
                     batch=batch(sim.data),
@@ -286,9 +279,14 @@ model <- BatchModel(data=y(sim.data), k=3,
                     mcmc.params=mp)
 
 model <- posteriorSimulation(model)
-theta(model)
-plot(model)
+plot(DensityModel(model), y(sim.data),
+     breaks=100)
 ```
+
+While aspects of the `BatchModel` look somewhat Gaussian, there is some 
+evidence of departure from a normal distribution. Due to this skewness, a
+`MarginalModel` would not capture the distribution well. However, the
+`BatchModel` does a good job of capturing the shape.
 
 # K unknown
 
@@ -377,6 +375,45 @@ dm <- DensityModel(model)
 dm_merged <- DensityModel(model, merge=TRUE)
 k(dm)
 k(dm_merged)
+```
+
+# Batch Estimation
+
+Batch effect can vary by CNP locus. Thus, we have to estimate copy number at
+each locus. 
+
+Batch effect refers to the differences between groups of samples due to
+technical reasons. These reasons can include differences in date, temperature,
+or lab technician. Since batch is unknown *a priori*, we use chemistry plates
+as a surrogate, since samples on a chemistry plate are processed at the same,
+and are run on the same PCR. It is not computationally feasible to fit a model
+that is hierarchical over all plates. However not all plates are from
+different distributions. In order to identify these plates with no differences,
+`collapseBatch` is included in CNPBayes. `collapseBatch` uses the
+Kolmogorov-Smirnov test to identify plates that give rise to the same
+distributions.
+
+```{r collapseBatch}
+k <- 3
+nbatch <- 3
+means <- matrix(c(-1.2, -1.0, -1.0,
+                -0.2, 0, 0,
+                0.8, 1, 1), nbatch, k, byrow=FALSE)
+sds <- matrix(0.1, nbatch, k)
+N <- 1500
+sim.data <- simulateBatchData(N=N,
+                              batch=rep(letters[1:3], length.out=N),
+                              theta=means,
+                              sds=sds,
+                              p=c(1/5, 1/3, 1-1/3-1/5))
+
+model <- BatchModel(data=y(sim.data), k=3,
+                    batch=batch(sim.data))
+
+model <- BatchModel(data=y(sim.data), k=3,
+                    batch=collapseBatch(model))
+
+unique(batch(model))
 ```
 
 # References
