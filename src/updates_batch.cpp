@@ -174,14 +174,7 @@ RcppExport SEXP update_tau2_batch(SEXP xmod){
     m2_k = 1.0/eta_B*(eta_0*m2_0 + s2_k[k]) ;
     tau2[k] = 1.0/as<double>(rgamma(1, 0.5*eta_B, 2.0/(eta_B*m2_k))) ;
   }
-  LogicalVector isnan = is_nan(tau2) ;
-  if(!is_true(any(isnan)))
-    return tau2 ;
-  
-  for(int k = 0; k < K; ++k){
-    if(isnan[k])
-      tau2[k] = 1.0/as<double>(rgamma(1, 0.5*eta_0, 1.0/(0.5*eta_0*m2_0))) ;
-  }  
+
   return tau2 ;
 }
 
