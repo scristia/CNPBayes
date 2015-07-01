@@ -380,12 +380,11 @@ k(dm_merged)
 
 # Batch Estimation
 
-Batch effect can vary by CNP locus. Thus, we have to estimate copy number at
-each locus. 
-
 Batch effect refers to the differences between groups of samples due to
-technical reasons. These reasons can include differences in date, temperature,
-or lab technician. Since batch is unknown *a priori*, we use chemistry plates
+technical reasons and can vary by CNP locus. This variation can be due to 
+differences in date, temperature, or lab technician [@batch-effect]. In order
+to model batch effect, copy number must be estimated by CNP locus.
+Since batch is unknown *a priori*, we use chemistry plates
 as a surrogate, since samples on a chemistry plate are processed at the same,
 and are run on the same PCR. It is not computationally feasible to fit a model
 that is hierarchical over all plates. However not all plates are from
