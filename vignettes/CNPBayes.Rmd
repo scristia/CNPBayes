@@ -407,13 +407,19 @@ sim.data <- simulateBatchData(N=N,
                               sds=sds,
                               p=c(1/5, 1/3, 1-1/3-1/5))
 
+plot(sim.data)
+
 model <- BatchModel(data=y(sim.data), k=3,
                     batch=batch(sim.data))
 
 model <- BatchModel(data=y(sim.data), k=3,
                     batch=collapseBatch(model))
 
-unique(batch(model))
+model <- posteriorSimulation(model)
+plot(model)
 ```
+
+As is shown, the model correctly collapses batches two and three, since they
+are drawn from the same distribution.
 
 # References
