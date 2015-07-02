@@ -240,14 +240,14 @@ setMethod("y", "DensityModel", function(object) object@data)
 #' @rdname plot
 #' @aliases plot,DensityModel,numeric-method
 setMethod("plot", "DensityModel", function(x, y, ...){
-  .plotMarginal(x, y(x), ...)
+  .plotMarginal(x, x@data, ...)
 })
 
 #' @rdname plot
 #' @aliases plot,MarginalModel,ANY-method
 setMethod("plot", "MarginalModel", function(x, y, ...){
   object <- DensityModel(x)
-  .plotMarginal(object, y(object), ...)
+  .plotMarginal(x=object, y=object@data, ...)
   return(object)
 })
 
