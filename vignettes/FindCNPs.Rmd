@@ -34,17 +34,37 @@ subjects.
 
 # Outline from Rob
 Preliminary
+
 ```{r prelim}
 knitr::opts_chunk$set(eval=FALSE)
 library(CNPBayes)
-library(pd.genomewidesnp.6)
-genome <- pd.genomewidesnp.6
+# library(pd.genomewidesnp.6)
+# genome <- pd.genomewidesnp.6
+
+library(BSgenome.Hsapiens.UCSC.hg19)
+genome <- BSgenome.Hsapiens.UCSC.hg19
+
+set.seed(100)
+starts <- rpois(1000, 100) + 10e6L
+ends <- rpois(1000, 100) + 10.1e6L
+cnv1 <- GRanges("chr1", IRanges(starts, ends))
+cnv1$id <- paste0("sample", seq_along(cnv1))
+seqinfo(cnv1) <- seqinfo(genome)
+
+starts <- rpois(500, 1000) + 101e6L
+ends <- rpois(500, 1000) + 101.4e6L
+cnv2 <- GRanges("chr5", IRanges(starts, ends))
+cnv2$id <- paste0("sample", seq_along(cnv2))
+seqlevels(cnv2, force=TRUE) <- seqlevels(genome)
+seqinfo(cnv2) <- seqinfo(genome)
+
+all_cnvs <- c(cnv1, cnv2)
 ```
 
 Step 1
 
 ```{r step-1}
-cnps <- consensusCNP()
+cnps <- consensusCNP(all_cnvs)
 ```
 
 Step 2
