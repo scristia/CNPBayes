@@ -240,7 +240,7 @@ setMethod("y", "DensityModel", function(object) object@data)
 #' @rdname plot
 #' @aliases plot,DensityModel,numeric-method
 setMethod("plot", "DensityModel", function(x, y, ...){
-  .plotMarginal(x, y, ...)
+  .plotMarginal(x, y(x), ...)
 })
 
 #' @rdname plot
