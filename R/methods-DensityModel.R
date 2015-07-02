@@ -261,8 +261,8 @@ setMethod("plot", "BatchModel", function(x, y, show.batch=TRUE, ...){
 
 #' @rdname plot
 #' @aliases plot,BatchModel,ANY-method
-setMethod("plot", "DensityBatchModel", function(x, y, show.batch=TRUE, ...){
-  .plotBatch(x, y, show.batch, ...)
+setMethod("plot", "DensityBatchModel", function(x, show.batch=TRUE, ...){
+  .plotBatch(x, x@data, show.batch, ...)
 })
 
 
