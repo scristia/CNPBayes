@@ -247,6 +247,7 @@ setMethod("plot", "DensityModel", function(x, y, ...){
 #' @aliases plot,MarginalModel,ANY-method
 setMethod("plot", "MarginalModel", function(x, y, ...){
   object <- DensityModel(x)
+  .plotMarginal(object, y(object), ...)
   return(object)
 })
 
