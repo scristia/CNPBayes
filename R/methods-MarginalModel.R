@@ -628,6 +628,19 @@ modalLoglik <- function(x) modes(x)[["loglik"]]
 #' factor for two models, \code{\link{orderModels}} for ordering a
 #' list of models by decreasing marginal density, and \code{plot} for
 #' visualizing the component densities.
+# maxperm, burnin, T, T2, thin go to gether, should go to gether and be encapsulated.
+# nchains stays separate.
+# y batch and k will disappear b/c were giving list of models.k
+# will still be slow, most of the work is the berkhofEstimate, which we will
+# still be using. we'll be faster, since we are starting at modes and evaluating
+# convergence.
+# there's still a lot of code esp when downsampling to make things faster
+# then we have to go back to original scale. lot of work looping through CNP
+# loci. as we gothrough kleins data, how do we do this systematically. give it a
+# summarizedexperiment object and loop thorugh all thr loci and select model(s)
+# based on bic, icl and then we prioritize. (this is for kleins analysis, but
+# not vignette. shouldn't have to by i go through everything, should be able to
+# come up with reasonable answers by giving it experiment.
 computeMarginalLik <- function(y, batch, K=1:4,
                                T=1000, burnin=200,
                                T2=200,
@@ -641,6 +654,8 @@ computeMarginalLik <- function(y, batch, K=1:4,
   for(i in seq_along(K)){
     k <- K[i]
     kmodlist <- simulateMultipleChains(nchains=nchains, y=y, batch=batch, k=k, mp=mp)
+    # this is starting point, use berkhofEstimate on list of models
+
     mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
     ll <- sapply(kmodlist, modalLoglik)
     mlist[[i]] <- kmodlist[[which.max(ll)]]
