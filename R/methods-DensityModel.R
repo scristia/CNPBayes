@@ -233,6 +233,10 @@ findModes <- function(quantiles, x){ ##quantiles, density
   modes
 }
 
+#' @rdname y-method
+#' @aliases y,DensityModel-method
+setMethod("y", "DensityModel", function(object) object@data)
+
 #' @rdname plot
 #' @aliases plot,DensityModel,numeric-method
 setMethod("plot", "DensityModel", function(x, y, ...){
