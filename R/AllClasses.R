@@ -289,7 +289,7 @@ setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", be
 #' ## does not change the resulting clusters
 #' identical(clusters(dm), clusters(dm.merged))
 #' ## These objects can be plotted
-#' plot(dm, oned(truth))
+#' plot(dm)
 #' ## Note that calling plot on a MixtureModel-derived object returns
 #' ## a density object as a side-effect of the plotting
 #' dm2 <- CNPBayes::plot(truth)
@@ -313,7 +313,7 @@ setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", be
 #' dm2 <- CNPBayes::plot(truth)
 #' identical(dm, dm2)
 #' ## suppress plotting of the batch-specific densities
-#' CNPBayes::plot(dm2, oned(truth), show.batch=FALSE)
+#' CNPBayes::plot(dm2, show.batch=FALSE)
 #' @aliases DensityBatchModel-class
 #' @seealso \code{\link{DensityModel}}
 #' @export
