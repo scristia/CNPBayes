@@ -186,7 +186,7 @@ setMethod("alpha", "MixtureModel", function(object) alpha(hyperParams(object)))
 #' @aliases y,MixtureModel-method
 setMethod("y", "MixtureModel", function(object) object@data)
 
-setReplaceMethod("y", "MixtureModel", function(object, value){ 
+setReplaceMethod("y", "MixtureModel", function(object, value){
   object@data <- value
   object
 })
@@ -248,9 +248,10 @@ setMethod("runMcmc", "BatchModel", function(object){
 multipleStarts <- function(object){
   if(k(object)==1) return(object)
   mcmcp <- mcmcParams(object)
-  message("Running ", nStarts(mcmcp), " chains for model k=", k(object))
+  ##message("Running ", nStarts(mcmcp), " chains for model k=", k(object))
   mmod <- replicate(nStarts(mcmcp), MarginalModel(y(object), mcmc.params=mcmcp,
                                                   hypp=hyperParams(object), k=k(object)))
+
   models <- suppressMessages(lapply(mmod, runBurnin))
   lp <- sapply(models, log_lik)
   model <- models[[which.max(lp)]]
