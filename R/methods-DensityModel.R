@@ -32,7 +32,7 @@ setMethod("densitiesCluster", "BatchModel", function(object){
   modes <- findModes(dens$quantiles, overall) ## should be the same
   list(batch=batch, component=component, overall=overall, modes=modes,
        quantiles=dens$quantiles,
-       clusters=km)
+       clusters=km, data=dens$data)
 })
 
 doKmeans <- function(thetas, modes) length(thetas) > length(modes) && length(modes) > 1
@@ -65,7 +65,7 @@ setMethod("densitiesCluster", "MarginalModel", function(object){
   overall <- rowSums(do.call(cbind, component))
   modes <- findModes(dens$quantiles, overall) ## should be the same
   list(component=component, overall=overall, modes=modes,
-       clusters=km, quantiles=dens$quantiles)
+       clusters=km, quantiles=dens$quantiles, data=dens$data)
 })
 
 #' Constructor for DensityModel class
@@ -91,6 +91,7 @@ DensityModel <- function(object, merge=FALSE){
     component <- dens$component
     overall <- dens$overall
     modes <- dens$modes
+    data <- dens$data
   } else{
     ## object not provided
     component <- list()
@@ -98,17 +99,18 @@ DensityModel <- function(object, merge=FALSE){
     modes <- numeric()
     clusters <- numeric()
     quantiles <- numeric()
+    data <- numeric()
   }
   if(isMarginalModel(object)){
     obj <- new("DensityModel", component=component, overall=overall, modes=modes,
-               clusters=clusters, quantiles=quantiles)
+               clusters=clusters, data=data, quantiles=quantiles)
     return(obj)
   }
   if(!missing(object)){
     batch <- dens$batch
   } else batch <- list()
   new("DensityBatchModel", batch=batch, component=component, overall=overall,
-      modes=modes, clusters=clusters, quantiles=quantiles)
+      modes=modes, clusters=clusters, data=data, quantiles=quantiles)
 }
 
 setMethod("component", "DensityModel", function(object) object@component)
@@ -283,6 +285,7 @@ setMethod("densities", "BatchModel", function(object){
   if(length(modes(object)) > 0){
     object <- useModes(object)
   }
+  data <- y(object)
   thetas <- theta(object)
   sds <- sigma(object)
   P <- p(object)
@@ -301,7 +304,7 @@ setMethod("densities", "BatchModel", function(object){
   clusters <- seq_len(k(object))
   names(clusters) <- ix
   list(batch=dens.list, component=component, overall=overall, modes=modes,
-       clusters=clusters, quantiles=quantiles)
+       clusters=clusters, quantiles=quantiles, data=data)
 })
 
 setMethod("densities", "MarginalModel", function(object){
@@ -310,6 +313,7 @@ setMethod("densities", "MarginalModel", function(object){
   if(length(modes(object)) > 0){
     object <- useModes(object)
   }
+  data <- y(object)
   thetas <- theta(object)
   sds <- sigma(object)
   P <- p(object)
@@ -327,7 +331,7 @@ setMethod("densities", "MarginalModel", function(object){
   clusters <- seq_len(k(object))
   names(clusters) <- ix
   list(component=dens.list, overall=overall, modes=modes,
-       clusters=clusters, quantiles=quantiles)
+       clusters=clusters, quantiles=quantiles, data=data)
 })
 
 #' @rdname clusters-method

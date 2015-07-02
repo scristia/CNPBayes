@@ -271,6 +271,7 @@ setClass("PosteriorSummary", representation(p_theta="matrix", chib="numeric", be
 #' @slot modes A numeric vector providing the estimated modes in the
 #' overall density.  The modes are defined by a crude estimate of the
 #' first derivative of the overall density (see \code{findModes}).
+#' @slot data A numeric vector containing the data
 #' @slot clusters A vector providing the k-means clustering of the
 #' component means using the modes as centers.  If an object of class
 #' \code{DensityModel} is instantiated with \code{merge=FALSE}, this
@@ -320,6 +321,7 @@ setClass("DensityModel", representation(component="list",
                                         overall="numeric",
                                         modes="numeric",
                                         clusters="numeric",
+                                        data="numeric",
                                         quantiles="numeric"))
 
 #' @export
