@@ -1,0 +1,14 @@
+start with simulating data even if unrealistic. help get models that works in
+ideal situation. RS and SC discussed - would like to have an interpretation of
+the copy number, the components themselves. the BAF will help to some degree,
+at least with the bigger ones. some other thigns that SC worked on that will be
+help. BAF is interesting as application of MixtureModel. Nice QC for HMM. any
+big CNP you find w/ HMM, nice way to verify it. This can be rare. This will be
+best as a standalone vignette and another app of MixtureModel. show how it ties
+in QC analyses. At the end of main vignette, talk about interpreting copy
+number. maing thing prev done was look at variances of components and
+separation of components. looked at starting value. if first component mean is
+< -1, it means that first component is copy number 0 (homozygous deletion). for 
+some CNPs is it diploid? deletion? copy number 2, 3 for purposes of vignette,
+what we can use is data is HapMap data? potentially a lot of work. Extract what
+we need to do 10? RS is looking into what HapMap data is available.
