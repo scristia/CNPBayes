@@ -35,11 +35,15 @@ subjects.
 # Outline from Rob
 Preliminary
 
+RS: help!!
 ```{r prelim}
 knitr::opts_chunk$set(eval=FALSE)
 library(CNPBayes)
 # library(pd.genomewidesnp.6)
 # genome <- pd.genomewidesnp.6
+ 
+# change this to include subset of SNP
+# have set of SNPs with log r ratios and then summarize in some way. use some of the data from the vanilla ices vignette and then use that here. has SNP data for chromosome and we just have to simulate more of it.
 
 library(BSgenome.Hsapiens.UCSC.hg19)
 genome <- BSgenome.Hsapiens.UCSC.hg19
@@ -104,60 +108,3 @@ Step 7
 ```{r step-7}
 Fit the `MixtureModel` to each row of the object in step 6.
 ```
-
-```{r}
-require(BSgenome.Hsapiens.UCSC.hg19)
-genome <- BSgenome.Hsapiens.UCSC.hg19
-
-##
-## Simulate 2 loci at which CNVs are common
-##
-set.seed(100)
-starts <- rpois(1000, 100) + 10e6L
-ends <- rpois(1000, 100) + 10.1e6L
-cnv1 <- GRanges("chr1", IRanges(starts, ends))
-cnv1$id <- paste0("sample", seq_along(cnv1))
-seqinfo(cnv1) <- seqinfo(genome)
-
-starts <- rpois(500, 1000) + 101e6L
-ends <- rpois(500, 1000) + 101.4e6L
-cnv2 <- GRanges("chr5", IRanges(starts, ends))
-cnv2$id <- paste0("sample", seq_along(cnv2))
-seqlevels(cnv2, force=TRUE) <- seqlevels(genome)
-seqinfo(cnv2) <- seqinfo(genome)
-
-all_cnvs <- c(cnv1, cnv2)
-
-##
-## Simulate a few other CNVs that are less common because they are
-## very large, or because they occur in regions that in which copy
-## number alerations are not common
-##
-cnv3 <- GRanges("chr1", IRanges(9e6L, 15e6L), id="sample1400")
-starts <- seq(5e6L, 200e6L, 10e6L)
-ends <- starts + rpois(length(starts), 25e3L)
-cnv4 <- GRanges("chr1", IRanges(starts, ends),
-                id=paste0("sample", sample(1000:1500, length(starts))))
-
-grl <- split(all_cnvs, all_cnvs$id)
-cnps <- consensusCNP(grl)
-
-##
-## 2nd CNP is filtered because of its size
-##
-truth <- GRanges("chr1", IRanges(10000100L, 10100100L))
-seqinfo(truth) <- seqinfo(grl)
-identical(cnps, truth)
-
-##
-## Both CNVs identified
-##
-cnps <- consensusCNP(grl, max.width=500e3)
-truth <- GRanges(c("chr1", "chr5"),
-                 IRanges(c(10000100L, 101000999L),
-                         c(10100100L, 101400999L)))
-seqlevels(truth, force=TRUE) <- seqlevels(grl)
-seqinfo(truth) <- seqinfo(grl)
-identical(cnps, truth)
-```
-
