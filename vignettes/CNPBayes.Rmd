@@ -17,16 +17,16 @@ Gaussian mixture model.  The major application of this model is the
 estimation of copy number at copy number polymorphic loci (CNPs). Two
 versions of the mixture model are implemented.  A *standard* model,
 referred to as a *marginal* model, that has one mean and standard
-deviation for each component, and a *batch* model with one mean and
-standard deviation for each batch of each component. Approximation of
-the posterior is by Markov Chain Monte Carlo (MCMC) written in C++
-using the Rcpp package [@Rcpp].
+deviation for each component, and a *batch* model with batch-specific
+means and standard deviations. Approximation of the posterior is by
+Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp package
+[@Rcpp].
 
 For an EM-implementation of Gaussian mixture models for CNPs, see the
 Bioconductor package CNVtools [@Barnes2008].  A Bayesian extension of
-this model by some of the same authors was developed to fully automate
-the analysis of the Welcome Trust Case Control Consortium (WTCCC)
-genotype data [@cardin] and implemented in the R package CNVCALL
+this model by some of the same authors was developed to automate the
+analysis of the Welcome Trust Case Control Consortium (WTCCC) genotype
+data [@cardin] and implemented in the R package CNVCALL
 (http://niallcardin.com/CNVCALL).
 
 <!-- how cnpbayes extends / differs from these tools -->
