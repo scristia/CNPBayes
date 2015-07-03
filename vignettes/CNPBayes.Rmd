@@ -18,9 +18,9 @@ estimation of copy number at copy number polymorphic loci (CNPs). Two
 versions of the mixture model are implemented.  A *standard* model,
 referred to as a *marginal* model, that has one mean and standard
 deviation for each component, and a *batch* model with one mean and
-standard deviation for each batch of each component. Estimation of the 
-posterior is by Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp 
-package [@Rcpp].
+standard deviation for each batch of each component. Approximation of
+the posterior is by Markov Chain Monte Carlo (MCMC) written in C++
+using the Rcpp package [@Rcpp].
 
 For an EM-implementation of Gaussian mixture models for CNPs, see the
 Bioconductor package CNVtools [@Barnes2008].  A Bayesian extension of
@@ -290,8 +290,9 @@ evidence of departure from a normal distribution. Due to this skewness, a
 
 # K unknown
 
-Often times, the number of components is not known *a priori*. In order to
-estimate the number, the `computeMarginalLik` function is used. 
+Generally, the number of components is not known *a priori*. To
+estimate the number of components *K*, the `computeMarginalLik`
+function is used.
 
 ```{r computeMarginalLik}
 x <- computeMarginalLik(y(sim.data), K=2:3)
@@ -380,18 +381,27 @@ k(dm_merged)
 
 # Batch Estimation
 
-Batch effect refers to the differences between groups of samples due to
-technical reasons and can vary by CNP locus. This variation can be due to 
-differences in date, temperature, or lab technician [@batch-effect]. In order
-to model batch effect, copy number must be estimated by CNP locus.
-Since batch is unknown *a priori*, we use chemistry plates
-as a surrogate, since samples on a chemistry plate are processed at the same,
-and are run on the same PCR. It is not computationally feasible to fit a model
-that is hierarchical over all plates. However not all plates are from
-different distributions. In order to identify these plates with no differences,
-`collapseBatch` is included in CNPBayes. `collapseBatch` uses the
-Kolmogorov-Smirnov test to identify plates that give rise to the same
-distributions.
+Differences in the one-dimensional summaries between groups of samples
+can arise due to technical sources of variation referred to as *batch
+effects*.  For example, date, temperature, machine calibration, and
+lab technician are all potentially important technical sources of
+variation [@batch-effect].  Batch effects can vary by locus, with some
+loci more susceptible to technical factors that may affect
+measurement.  The 96 well chemistry plate on which the samples were
+processed is often a useful surrogate for batch effects since this
+tends to capture samples that were processed (e.g., PCR amplification)
+and scanned at approximately the same time. However, in large studies
+involving potentially hundreds of chemistry plates, it is not
+computationally feasible to fit fully Bayesian plate-specific mixture
+models.  Because chemistry plates are often processed at similar times
+and may be comparable in terms of the distribution of a statistic of
+interest, it may be more useful (and computationally scalable) to
+*batch* the chemistry plates.  Here, we implement a simple two-sample
+Kolmogorov-Smirnov (KS) test for each pairwise combination of
+chemistry plates in the function `collapseBatch`. The two-sample KS
+test is applied recursively until no two combinations of grouped
+plates can be combined.  We illustrate with a trivial example.
+
 
 ```{r collapseBatch}
 k <- 3
