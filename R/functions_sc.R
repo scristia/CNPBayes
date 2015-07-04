@@ -10,7 +10,7 @@ inits <- function(r, K, model="Normal"){
         hdel <- min(r) < -0.9 & (length(r[r < -0.75]) > 1)
         ## if no: kmeans
         if(!hdel | sum(r < -0.75) > 1000) {
-            pars <- kmeans(r, centers=K, nstart=50)	
+            pars <- kmeans(r, centers=K, nstart=50)
             mu0 <- sort(pars$centers)
             s20 <- pars$withinss/(pars$size - 1)[order(pars$centers)]
             nn <- pars$size[order(pars$centers)]
@@ -48,7 +48,7 @@ inits <- function(r, K, model="Normal"){
         hdel <- min(r) < -0.9 & (length(r[r < -0.75]) > 1)
         ## if no: kmeans
         if(!hdel | sum(r < -0.75) > 1000) {
-            pars <- kmeans(r, centers=K, nstart=50)	
+            pars <- kmeans(r, centers=K, nstart=50)
             mu0 <- sort(pars$centers)
             s20 <- pars$withinss/(pars$size - 1)[order(pars$centers)]
             nn <- pars$size[order(pars$centers)]
@@ -187,11 +187,11 @@ dppgibbs <- function(r, ## data
         pi <- ns/n
     }
 
-    #    pi<-ns<-rep(0,H) 	# Mixing weights and number of subjects per cluster
-    v<-rep(1/H,H)		# Conditional weights -- pr(c_i=h|c_i not in l<h)
-    v[H]<-1			# Apply DP truncation to H classes
-    #    mu<-rep(0,H)		# Cluster-specific means
-    #    tau<-sigma2<-rep(1,H)	
+    #    pi<-ns<-rep(0,H)       # Mixing weights and number of subjects per cluster
+    v<-rep(1/H,H)               # Conditional weights -- pr(c_i=h|c_i not in l<h)
+    v[H]<-1                     # Apply DP truncation to H classes
+    #    mu<-rep(0,H)           # Cluster-specific means
+    #    tau<-sigma2<-rep(1,H)
     p<-tmp2<-matrix(0,n,H) # p[i,h] = posterior prob that subject i belongs to cluster h
 
     #########
@@ -224,13 +224,13 @@ dppgibbs <- function(r, ## data
         # Update mu and sigma2 and Yhat (density estimate)
         for (h in 1:H) {
             var<-1/(tau20+tau[h]*ns[h])
-            m<-var*(tau20*mu0+tau[h]*sum(r[c==h])) 
+            m<-var*(tau20*mu0+tau[h]*sum(r[c==h]))
             Mu[i,h]<-mu[h]<-rnorm(1,m,sqrt(var))
             tau[h]<-rgamma(1,a+ns[h]/2,b+sum((r[c==h]-mu[h])^2)/2)
             Sigma[i,h]<-sigma2[h]<-1/tau[h]
             Y[i,,h]<-pi[h]*dnorm(grid,mu[h],sqrt(sigma2[h]))
         }
-        N[i,]<-ns  		# Number per cluster
+        N[i,]<-ns               # Number per cluster
         if (i%%100==0) print(i)
 
     }
@@ -238,67 +238,67 @@ dppgibbs <- function(r, ## data
 }
 dppgibbs <-
 function(r, ## data
-		     H, ## max number of clusters in block DP
-		     alpha=1, ## concentration parameter
-		     mu0=0, ## prior mean of theta for all clusters
-		     tau20=0.1, ## prior prec for theta, all clusters
-		     a=0.1,
-		     b=0.1,
-		     S=100
-		     ){
-	if(missing(H)) stop("H missing")
-	n <- length(r) ## number of subjects
-	##
-	#########
-	# Inits #
-	#########
-	 pi<-ns<-rep(0,H) 	# Mixing weights and number of subjects per cluster
-	 v<-rep(1/H,H)		# Conditional weights -- pr(c_i=h|c_i not in l<h)
-	 v[H]<-1			# Apply DP truncation to H classes
-	 mu<-rep(0,H)		# Cluster-specific means
-	 tau<-sigma2<-rep(1,H)
-	 p<-tmp2<-matrix(0,n,H) # p[i,h] = posterior prob that subject i belongs to cluster h
+                     H, ## max number of clusters in block DP
+                     alpha=1, ## concentration parameter
+                     mu0=0, ## prior mean of theta for all clusters
+                     tau20=0.1, ## prior prec for theta, all clusters
+                     a=0.1,
+                     b=0.1,
+                     S=100
+                     ){
+        if(missing(H)) stop("H missing")
+        n <- length(r) ## number of subjects
+        ##
+        #########
+        # Inits #
+        #########
+         pi<-ns<-rep(0,H)       # Mixing weights and number of subjects per cluster
+         v<-rep(1/H,H)          # Conditional weights -- pr(c_i=h|c_i not in l<h)
+         v[H]<-1                        # Apply DP truncation to H classes
+         mu<-rep(0,H)           # Cluster-specific means
+         tau<-sigma2<-rep(1,H)
+         p<-tmp2<-matrix(0,n,H) # p[i,h] = posterior prob that subject i belongs to cluster h
 
-	#########
-	# Store #
-	#########
-	 V<-Mu<-Sigma<-N<-Pi<-matrix(0,S,H)
-	 C<-matrix(0,S,n)
-	 grid<-seq(min(y),max(y),length=500)
-	 Y<-array(0,dim=c(S,length(grid),H))
+        #########
+        # Store #
+        #########
+         V<-Mu<-Sigma<-N<-Pi<-matrix(0,S,H)
+         C<-matrix(0,S,n)
+         grid<-seq(min(y),max(y),length=500)
+         Y<-array(0,dim=c(S,length(grid),H))
 
-	#########
-	# GIBBS #
-	#########
-	for (i in 1:S) {
-	 # Update c, cluster indicator
-	  cumv<-cumprod(1-v)
-	  pi[1]<-v[1]
-	  for (h in 2:H) pi[h]<-v[h]*cumv[h-1]
-	  for (h in 1:H) tmp2[,h]<-pi[h]*dnorm(y,mu[h],sqrt(sigma2[h]))
-	  p<-tmp2/apply(tmp2,1,sum)
-	  C[i,]<-c<-rMultinom(p,1)
-	  Pi[i,]<-pi
-	  for (h in 1:H) ns[h]<-length(c[c==h])  # Must allow zeros for empty clusters
+        #########
+        # GIBBS #
+        #########
+        for (i in 1:S) {
+         # Update c, cluster indicator
+          cumv<-cumprod(1-v)
+          pi[1]<-v[1]
+          for (h in 2:H) pi[h]<-v[h]*cumv[h-1]
+          for (h in 1:H) tmp2[,h]<-pi[h]*dnorm(y,mu[h],sqrt(sigma2[h]))
+          p<-tmp2/apply(tmp2,1,sum)
+          C[i,]<-c<-rMultinom(p,1)
+          Pi[i,]<-pi
+          for (h in 1:H) ns[h]<-length(c[c==h])  # Must allow zeros for empty clusters
 
-	 # Update v
-	  for (h in 1:(H-1)) v[h]<-rbeta(1,1+ns[h],alpha+sum(ns[(h+1):H]))
-	  V[i,]<-v
+         # Update v
+          for (h in 1:(H-1)) v[h]<-rbeta(1,1+ns[h],alpha+sum(ns[(h+1):H]))
+          V[i,]<-v
 
-	 # Update mu and sigma2 and Yhat (density estimate)
-	 for (h in 1:H) {
-	   var<-1/(tau20+tau[h]*ns[h])
-	   m<-var*(tau20*mu0+tau[h]*sum(y[c==h]))
-	   Mu[i,h]<-mu[h]<-rnorm(1,m,sqrt(var))
-	   tau[h]<-rgamma(1,a+ns[h]/2,b+sum((y[c==h]-mu[h])^2)/2)
-	   Sigma[i,h]<-sigma2[h]<-1/tau[h]
-	   Y[i,,h]<-pi[h]*dnorm(grid,mu[h],sqrt(sigma2[h]))
-	 }
-	 N[i,]<-ns  		# Number per cluster
-	 if (i%%100==0) print(i)
+         # Update mu and sigma2 and Yhat (density estimate)
+         for (h in 1:H) {
+           var<-1/(tau20+tau[h]*ns[h])
+           m<-var*(tau20*mu0+tau[h]*sum(y[c==h]))
+           Mu[i,h]<-mu[h]<-rnorm(1,m,sqrt(var))
+           tau[h]<-rgamma(1,a+ns[h]/2,b+sum((y[c==h]-mu[h])^2)/2)
+           Sigma[i,h]<-sigma2[h]<-1/tau[h]
+           Y[i,,h]<-pi[h]*dnorm(grid,mu[h],sqrt(sigma2[h]))
+         }
+         N[i,]<-ns              # Number per cluster
+         if (i%%100==0) print(i)
 
-	}
-	list(P=Pi, means=Mu, precs=1/Sigma, Z=C, N=N)
+        }
+        list(P=Pi, means=Mu, precs=1/Sigma, Z=C, N=N)
 }
 ## Convenience function for model selection and plotting
 getPost <-
@@ -388,7 +388,7 @@ gibbs <-
         rbar <- means[1, ] <- rnorm(K, mu0, tau20)
         Z <- matrix(NA, length(r), S-1)
         ## just use marginal variance as guess of variance -- very diffuse
-        #	precs[1,] <- 1/rep(s2, K)
+        #       precs[1,] <- 1/rep(s2, K)
         precs[1,] <- 1/sigma20
         PI <- matrix(NA,S, K)
         theta <- c()
@@ -408,9 +408,9 @@ gibbs <-
             ##
             ## simulate from full conditional for theta
             ## samples from the constrained distributions for each theta
-            ## 
+            ##
             ## This is not working properly.
-            #		browser()
+            #           browser()
             theta <- means[s-1,]
             fint <- which(is.finite(theta))
             endpoints <- c(a0, theta[fint], b0)
@@ -430,12 +430,12 @@ gibbs <-
             ## homozygous deletions should have large variance, so
             ## only keep prec for theta < 1 if std dev > 0.1
             prec <- rgamma(K, nun/2, nun/2 * s2n)
-            #		homdel <- theta[is.finite(theta)] < -1
-            #		if(any(homdel)){
-            #			if(any(1/sqrt(prec[which(homdel)]) < 0.1) & is.finite(prec[which(homdel)])){
-            #			       	prec[which(homdel)] <- precs[s-1, which(homdel)]
-            #			}
-            #		}	
+            #           homdel <- theta[is.finite(theta)] < -1
+            #           if(any(homdel)){
+            #                   if(any(1/sqrt(prec[which(homdel)]) < 0.1) & is.finite(prec[which(homdel)])){
+            #                           prec[which(homdel)] <- precs[s-1, which(homdel)]
+            #                   }
+            #           }
             means[s, ] <- theta
             precs[s, ] <- prec
 
@@ -453,16 +453,16 @@ gibbs <-
                 for(i in 2:K){
                     z[tmp < u & u < tmp + p[, i]] <- i-1
                     tmp <- tmp + p[, i]
-                }	
+                }
             }
             ##
             ## update [pi|data]
             ##
-            for(i in 1:K) nn[i] <- sum(z==(i-1)) 
+            for(i in 1:K) nn[i] <- sum(z==(i-1))
 
-            ## Make sampling robust to when 1 observation is in a component 
-            ## or when 0 observations are in a component. Set as NA and only 
-            ## update remainder of the components. 
+            ## Make sampling robust to when 1 observation is in a component
+            ## or when 0 observations are in a component. Set as NA and only
+            ## update remainder of the components.
             ##
             if(all(nn > 1)){
                 rbar <- sapply(split(r, z), mean, na.rm=TRUE)
@@ -480,14 +480,14 @@ gibbs <-
                     s2[nn == 0] <- NA
                     rbar[nn != 0] <- sapply(split(r,z)[which(nn != 0)], mean, na.rm=TRUE)
                     rbar[nn == 0] <- NA
-                }		
+                }
             }
 
             ## for identifiability
-            #		if(any(diff(rbar[is.finite(rbar)]) < 0)){
-            #			i <- which(diff(rbar[is.finite(rbar)]) < 0)
-            #			rbar[is.finite(rbar)][i+1] <- rbar[is.finite(rbar)][i]+0.01
-            #		}
+            #           if(any(diff(rbar[is.finite(rbar)]) < 0)){
+            #                   i <- which(diff(rbar[is.finite(rbar)]) < 0)
+            #                   rbar[is.finite(rbar)][i+1] <- rbar[is.finite(rbar)][i]+0.01
+            #           }
 
             Z[, s-1] <- z
             PI[s, ] <- pi
@@ -497,7 +497,7 @@ gibbs <-
         bic <- -2*loglik + (3*K-1)*log(length(r))
 
         c(post, "loglik"=loglik, "bic"=bic, "K"=K)
-        #	list(P=PI, means=means, precs=precs, Z=Z, n=nn)
+        #       list(P=PI, means=means, precs=precs, Z=Z, n=nn)
     }
 gibbs.mix <- function(r, S=1000, k, delta=0.15, mu0, tau20,
                       nu0, sigma20, kappa0, burnin=100, outliers.rm=FALSE) {
@@ -636,25 +636,6 @@ loglik.normmix <-
     return(sum(loglike))
   }
 
-setMethod("computeLoglik", "BatchModel", function(object){
-  .Call("compute_loglik_batch", object)
-})
-
-setMethod("computeLoglik", "MarginalModel", function(object){
-  .Call("loglik", object)
-})
-
-
-setMethod("computePotential", "BatchModel", function(object){
-  computeLogLikxPrior(object)
-})
-
-setMethod("computeLogLikxPrior", "MixtureModel", function(object){
-  ##   log.prior <- computePrior(object)
-  ##   loglik <- computeLoglik(object)
-  ##   loglik + log.prior
-  .Call("compute_llxprior", object)
-})
 
 
 logLikData <- function(object){

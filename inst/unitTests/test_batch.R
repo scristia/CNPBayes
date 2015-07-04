@@ -153,27 +153,21 @@ test_batch_moderate <- function(){
                     -0.1, 0, 0.05), nbatch, k, byrow=FALSE)
   sds <- matrix(0.15, nbatch, k)
   sds[, 1] <- 0.3
-  truth <- simulateBatchData(N=2500,
-                             batch=rep(letters[1:3], length.out=2500),
+  N <- 1000
+  truth <- simulateBatchData(N=N,
+                             batch=rep(letters[1:3], length.out=N),
                              p=c(1/10, 1/5, 1-0.1-0.2),
                              theta=means,
                              sds=sds)
-  mcmcp <- McmcParams(iter=150, burnin=0)
-  hypp <- CNPBayes:::HyperparametersBatch(m2.0=1/60, eta.0=1800, k=3)
-  model <- BatchModel(data=y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp,
-                      hypp=hypp)
-  model <- CNPBayes:::startAtTrueValues(model, truth)
-  model <- posteriorSimulation(model)
-  i <- order(theta(model)[1, ])
-  checkEquals(theta(model)[, i], theta(truth), tolerance=0.1)
-  ## random starts
-  mcmcp <- McmcParams(iter=100, burnin=100, nStarts=20)
-  model <- BatchModel(data=y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp,
+  mcmcp <- McmcParams(iter=1000, burnin=500, thin=1, nStarts=10)
+  hypp <- CNPBayes:::HyperparametersBatch(m2.0=1/60, eta.0=1800, k=3,
+                                          a=1/6, b=180)
+  model <- BatchModel(data=y(truth), batch=batch(truth), k=3,
+                      mcmc.params=mcmcp,
                       hypp=hypp)
   model <- posteriorSimulation(model)
   i <- order(theta(model)[1, ])
   checkEquals(theta(model)[, i], theta(truth), tolerance=0.1)
-  checkEquals(mu(model)[i], mu(truth), tolerance=0.15)
   if(FALSE){
     zz <- as.integer(z(truth))
     ps <- c(mean(zz==1), mean(zz==2), mean(zz==3))

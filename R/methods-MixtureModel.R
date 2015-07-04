@@ -248,10 +248,8 @@ setMethod("runMcmc", "BatchModel", function(object){
 multipleStarts <- function(object){
   if(k(object)==1) return(object)
   mcmcp <- mcmcParams(object)
-  ##message("Running ", nStarts(mcmcp), " chains for model k=", k(object))
   mmod <- replicate(nStarts(mcmcp), MarginalModel(y(object), mcmc.params=mcmcp,
                                                   hypp=hyperParams(object), k=k(object)))
-
   models <- suppressMessages(lapply(mmod, runBurnin))
   lp <- sapply(models, log_lik)
   model <- models[[which.max(lp)]]

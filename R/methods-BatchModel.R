@@ -22,13 +22,11 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
     obj <- MarginalModel(data, k, hypp, mcmc.params)
     return(obj)
   }
-   if(k == 1) {
-     if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
-     obj <- UnivariateBatchModel(data, k, batch, hypp, mcmc.params)
-     return(obj)
-   }
-  ##browser()
-  ##B <- length(ub)
+  if(k == 1) {
+    if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
+    obj <- UnivariateBatchModel(data, k, batch, hypp, mcmc.params)
+    return(obj)
+  }
   if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
   zz <- integer(length(data))
   zfreq <- as.integer(table(zz))

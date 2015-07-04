@@ -845,3 +845,19 @@ NestedMarginalModel <- function(model){
   chains(kmod) <- McmcChains(kmod)
   kmod
 }
+
+setMethod("computeLoglik", "BatchModel", function(object){
+  .Call("compute_loglik_batch", object)
+})
+
+setMethod("computePotential", "BatchModel", function(object){
+  computeLogLikxPrior(object)
+})
+
+setMethod("computeLoglik", "MarginalModel", function(object){
+  .Call("loglik", object)
+})
+
+setMethod("computeLogLikxPrior", "MixtureModel", function(object){
+  .Call("compute_llxprior", object)
+})
