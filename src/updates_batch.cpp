@@ -174,7 +174,6 @@ RcppExport SEXP update_tau2_batch(SEXP xmod){
     m2_k = 1.0/eta_B*(eta_0*m2_0 + s2_k[k]) ;
     tau2[k] = 1.0/as<double>(rgamma(1, 0.5*eta_B, 2.0/(eta_B*m2_k))) ;
   }
-
   return tau2 ;
 }
 
@@ -205,7 +204,7 @@ RcppExport SEXP update_sigma20_batch(SEXP xmod){
   rate = 1.0/b_k[0] ;
   //return b_k ;
   NumericVector sigma2_0(1) ;
-  sigma2_0[0] = as<double>(rgamma(1, a_k[0], rate)) ;
+  sigma2_0[0] = 1.0/as<double>(rgamma(1, a_k[0], rate)) ;
   return sigma2_0 ;
 }
 
