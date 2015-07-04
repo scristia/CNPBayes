@@ -51,10 +51,10 @@ test_selectK_easy <- function(){
   set.seed(1000)
   means <- c(-1, 0, 1)
   sds <- c(0.1, 0.2, 0.2)
-  truth <- simulateData(N=2500, p=rep(1/3, 3), theta=means, sds=sds)
+  truth <- simulateData(N=250, p=rep(1/3, 3), theta=means, sds=sds)
   ## When the proportion of observations in each state is the same, we
   ## tend to over fit
-  x1 <- computeMarginalLik(y(truth), nchains=3, K=1:4)
+  x1 <- computeMarginalLik(y(truth), nchains=3, K=2:4)
   m1 <- orderModels(x1)
   checkTrue(k(m1)[1] >= 3)
 
