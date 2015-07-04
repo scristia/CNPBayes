@@ -99,18 +99,19 @@ test_marginal_hard <- function(){
   ## Rare components
   ##
   set.seed(2000)
-  truth <- simulateData(N=5e3,
+  truth <- simulateData(N=1e3,
                         theta=c(-2, -0.4, 0),
                         sds=c(0.3, 0.15, 0.15),
                         p=c(0.005, 1/10, 1-0.005-1/10))
   if(FALSE) plot(truth)
-  mcmcp <- McmcParams(iter=1000, burnin=100, thin=10)
-  modelk <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
-  model <- posteriorSimulation(modelk)
+  mcmcp <- McmcParams(iter=1000, burnin=500, thin=10, nStarts=20)
+  model <- MarginalModel(y(truth), k=3)
+  model <- posteriorSimulation(model)
+
   i <- order(theta(model))
-  checkEquals(theta(model)[i], theta(truth), tolerance=0.1)
+  checkEquals(theta(model)[i], theta(truth), tolerance=0.15)
   checkEquals(colMeans(sigmac(model))[i], sigma(truth), tolerance=0.1)
-  checkEquals(colMeans(pic(model))[i], p(truth), tolerance=0.15)
+  checkEquals(colMeans(pic(model))[i], p(truth), tolerance=0.18)
   if(FALSE){
     op <- par(mfrow=c(1,2),las=1)
     plot(truth)

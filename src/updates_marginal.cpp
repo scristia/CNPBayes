@@ -112,16 +112,13 @@ RcppExport SEXP update_sigma2_0(SEXP xmod) {
   double b = hypp.slot("b") ;
   double nu_0 = model.slot("nu.0") ;
   NumericVector sigma2 = model.slot("sigma2") ;
-  //  return sigma2 ;
   int K = getK(hypp) ;
   double a_k = a + 0.5*K*nu_0 ;
-  //NumericVector b_k(1) ;
   double b_k ;
-  for(int k=0; k < K; k++) b_k += 0.5*1.0/sigma2[k] ;
+  for(int k=0; k < K; k++) b_k += 0.5*nu_0/sigma2[k] ;
   b_k += b ;
-  //  return b_k ;
   NumericVector sigma2_0(1);
-  sigma2_0[0] = 1.0/as<double>(rgamma(1, a_k, 1.0/b_k)) ;
+  sigma2_0[0] = as<double>(rgamma(1, a_k, 1.0/b_k)) ;
   return sigma2_0 ;
 }
 

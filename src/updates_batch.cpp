@@ -199,12 +199,12 @@ RcppExport SEXP update_sigma20_batch(SEXP xmod){
   NumericVector a_k(1) ;
   NumericVector b_k(1) ;
   a_k[0] = a[0] + 0.5*(K * B)*nu_0[0] ;
-  b_k[0] = b[0] + 0.5*prec[0] ;
+  b_k[0] = b[0] + 0.5*nu_0[0]*prec[0] ;
   double rate ;
   rate = 1.0/b_k[0] ;
   //return b_k ;
   NumericVector sigma2_0(1) ;
-  sigma2_0[0] = 1.0/as<double>(rgamma(1, a_k[0], rate)) ;
+  sigma2_0[0] = as<double>(rgamma(1, a_k[0], rate)) ;
   return sigma2_0 ;
 }
 
