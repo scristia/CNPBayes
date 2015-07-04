@@ -28,11 +28,11 @@ test_jc:
 
 ## install CNPBayes and then test unit tests
 devel:
-	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 CMD INSTALL --no-lock ${PKG}
+	R_LIBS_USER=~/Library/R/3.2-bioc-devel	R-3.2.0 CMD INSTALL --no-lock ${PKG}
 	export RCMDCHECK=FALSE;\
 	export RUNITFILEPATTERN="$(file)";\
 	cd ${TOP}/tests;\
-	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 --vanilla --slave < ${SUITE}
+	R_LIBS_USER=~/Library/R/3.2-bioc-devel R-3.2.0 --vanilla --slave < ${SUITE}
 
 ## RS: I'll be testing with the following setup
 install:

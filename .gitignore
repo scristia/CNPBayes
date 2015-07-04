@@ -14,4 +14,5 @@ temp.r
 .gitignore
 *.DS_Store
 inst/doc/*
+inst/unitTests/report.html
 
