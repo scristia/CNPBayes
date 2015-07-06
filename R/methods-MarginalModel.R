@@ -537,7 +537,7 @@ berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5){
 }
 
 summarizeMarginalEstimates <- function(x){
-  chibs <- round(sapply(x, chib), 2)
+  chibs <- round(sapply(x, CNPBayes:::chib), 2)
   berk <- round(sapply(x, berkhof), 2)
   my <- sapply(x, marginal)
   ly <- sapply(my, length)
@@ -549,6 +549,15 @@ summarizeMarginalEstimates <- function(x){
   xx <- cbind(chibs, berk, my)
   colnames(xx) <- c("chib", "berkhof", "marginal")
   xx
+}
+
+summarizeMarginalEstimates2 <- function(x){
+    chibs <- chib(round(x, 2))
+    berk <- berkhof(round(x, 2))
+    my <- marginal(x)
+    xx <- c(chibs, berk, my)
+    names(xx) <- c("chib", "berkhof", "marginal")
+    xx
 }
 
 simulateMultipleChains <- function(nchains, y, batch, k, mp){
@@ -673,6 +682,48 @@ computeMarginalLik <- function(y, batch, K=1:4,
   names(my) <- nms
   results <- list(models=mlist, marginal=my)
   results
+}
+
+#' Estimate the marginal density of a mixture model with k components
+#'
+#' This function is used to estimate the marginal density of a mixture
+#' model with k components.  
+#' @param modlist A list of converged models with different component sizes.
+#' @param T2 number of MCMC iterations after permuting the modes.  See \code{maxperm}.
+#' @param maxperm a length-one integer vector.  For a mixture model
+#' with K components, there are K! possible modes.  \code{maxperm}
+#' indicates the maximum number of permutations to explore.
+#' @export
+#' @seealso \code{\link{logBayesFactor}} for computing the bayes
+#' factor for two models, \code{\link{orderModels}} for ordering a
+#' list of models by decreasing marginal density, and \code{plot} for
+#' visualizing the component densities.
+computeMarginalLik2 <- function(modlist,
+                                T2=200,
+                                maxperm=3){
+    my <- vector("list", length(K))
+    mlist <- vector("list", length(K))
+  
+    for (model in modlist) {
+        model_lik <- CNPBayes:::berkhofEstimate(model, T2=T2, maxperm=maxperm)  
+#         log_lik <- CNPBayes:::modalLoglik(model)
+        xx <- summarizeMarginalEstimates2(model_lik)
+        my[[i]] <- xx
+#         mlist[[i]] <- modlist[[i]]
+    }
+
+    if(is(modlist[[1]], "MarginalModel")){
+        nms <- paste0("M", K)
+        mlist <- MarginalModelList(modlist, names=nms)
+    } else {
+        nms <- paste0("B", K)
+        mlist <- BatchModelList(modlist, names=nms)
+    }
+
+    names(my) <- nms
+
+    results <- list(models=mlist, marginal=my)
+    results
 }
 
 modelOtherModes <- function(model, maxperm=5){
