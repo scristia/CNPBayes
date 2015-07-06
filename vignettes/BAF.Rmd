@@ -62,6 +62,9 @@ vars <- c(0.005558076,
           0.006794232,
           0.007428676)
 
+means <- as.matrix(means)
+vars <- as.matrix(vars)
+
 sim.data <- simulateBatchData(N=sum(obs),
                               batch=obs.label,
                               theta=means,
