@@ -1,3 +1,17 @@
+---
+title: "B Allele Frequencies"
+author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
+date: \today
+output: BiocStyle::pdf_document
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{B Allele Frequencies}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc} 
+---
+
+# Introduction
+
 start with simulating data even if unrealistic. help get models that works in
 ideal situation. RS and SC discussed - would like to have an interpretation of
 the copy number, the components themselves. the BAF will help to some degree,
@@ -12,3 +26,45 @@ separation of components. looked at starting value. if first component mean is
 some CNPs is it diploid? deletion? copy number 2, 3 for purposes of vignette,
 what we can use is data is HapMap data? potentially a lot of work. Extract what
 we need to do 10? RS is looking into what HapMap data is available.
+
+```{r lib} 
+library(CNPBayes)
+```
+
+# Simulation
+```{r sim}
+obs <- c(250, 231, 329, 250, 187, 328, 250, 250, 500, 288)
+obs.label <- character(0)
+
+for (batch in 1:length(obs)) {
+   obs.label <- c(obs.label, rep(letters[batch], obs[batch])) 
+}
+
+means <- c(0.03856340,
+           -0.17588675,
+           -0.02816801,
+           -0.08564261,
+           -0.21721350,
+           0.12363354,
+           -0.13442788,
+           0.01568428,
+           0.07118810,
+           0.17810444)
+
+vars <- c(0.005558076,
+          0.008895078,
+          0.009313795,
+          0.008954961,
+          0.007649359,
+          0.008733442,
+          0.010344712,
+          0.007078906,
+          0.006794232,
+          0.007428676)
+
+sim.data <- simulateBatchData(N=sum(obs),
+                              batch=obs.label,
+                              theta=means,
+                              sds=sqrt(vars),
+                              p=1)
+```
