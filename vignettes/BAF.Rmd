@@ -33,6 +33,7 @@ library(CNPBayes)
 
 # Simulation
 ```{r sim}
+# LRR
 obs <- c(250, 231, 329, 250, 187, 328, 250, 250, 500, 288)
 obs.label <- character(0)
 
@@ -70,4 +71,22 @@ sim.data <- simulateBatchData(N=sum(obs),
                               theta=means,
                               sds=sqrt(vars),
                               p=1)
+
+plot(sim.data)
+
+# BAF
+baf <- c(msm::rtnorm(floor(sum(obs) / 3), 0, 0.06, lower=0),
+         msm::rtnorm(ceiling(sum(obs) / 3), 0.5, 0.06),
+         msm::rtnorm(floor(sum(obs) / 3), 1, 0.06, upper=1))
+hist(baf, breaks=100)
+```
+
+Fit CNPBayes to to B Allele Frequencies.
+
+```{r fit}
+model <- MarginalModel(baf, k=3)
+model <- posteriorSimulation(model)
+plot(model)
+modlist <- computeMarginalLik(baf)
+orderModels(modlist)
 ```
