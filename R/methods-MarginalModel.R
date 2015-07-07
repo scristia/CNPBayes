@@ -536,8 +536,9 @@ berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5){
                    marginal=results$marginal)
 }
 
+# get rid of this function after finalized.
 summarizeMarginalEstimates <- function(x){
-  chibs <- round(sapply(x, CNPBayes:::chib), 2)
+  chibs <- round(sapply(x, chib), 2)
   berk <- round(sapply(x, berkhof), 2)
   my <- sapply(x, marginal)
   ly <- sapply(my, length)
@@ -684,6 +685,10 @@ computeMarginalLik <- function(y, batch, K=1:4,
   results
 }
 
+## rename T2 to T or some other good name once finalized
+## iter? additional.iter?
+# once SC finished, have option for Laplace or Chib. Chib is what is done right now, Laplace will be what Steven has done.
+
 #' Estimate the marginal density of a mixture model with k components
 #'
 #' This function is used to estimate the marginal density of a mixture
@@ -705,7 +710,7 @@ computeMarginalLik2 <- function(modlist,
     mlist <- vector("list", length(K))
   
     for (model in modlist) {
-        model_lik <- CNPBayes:::berkhofEstimate(model, T2=T2, maxperm=maxperm)  
+        model_lik <- berkhofEstimate(model, T2=T2, maxperm=maxperm)  
 #         log_lik <- CNPBayes:::modalLoglik(model)
         xx <- summarizeMarginalEstimates2(model_lik)
         my[[i]] <- xx
