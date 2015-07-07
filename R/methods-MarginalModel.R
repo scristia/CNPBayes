@@ -741,29 +741,6 @@ modelOtherModes <- function(model, maxperm=5){
   model.list
 }
 
-
-updateMarginalLik <- function(modellist, T=1000, burnin=200,
-                              T2=200,
-                              maxperm=5,
-                              nchains=2){
-  my <- vector("list", length(modellist))
-  mp <- McmcParams(iter=T, nStarts=1, burnin=burnin)
-  for(i in seq_along(modellist)){
-    model <- modellist[[i]]
-    mcmcParams(model, force=TRUE) <- mp
-    kmodlist <- modelOtherModes(model, nchains)
-    kmodlist <- lapply(kmodlist, posteriorSimulation)
-    mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
-    ll <- sapply(kmodlist, modalLoglik)
-    modellist[[i]] <- kmodlist[[which.max(ll)]]
-    xx <- summarizeMarginalEstimates(mlik)
-    my[[i]] <- xx
-  }
-  names(my) <- names(modellist)
-  results <- list(models=modellist, marginal=my)
-  results
-}
-
 #' Reorder models of varying component sizes.
 #'
 #' Models are ordered according to marginal likelihood. The marginal likelihood is computed for each chain of each component size model separately. The mean is taken by model, and ordering by this mean marginal is performed. For each model, the difference of marginal likelihoods is calculated for each chain and the range is taken. If the sum of these ranges across models is greater than \code{maxdev}, a NULL is returned and a warning message printed.
