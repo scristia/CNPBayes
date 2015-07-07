@@ -31,9 +31,12 @@ we need to do 10? RS is looking into what HapMap data is available.
 library(CNPBayes)
 ```
 
+Here we simulate batch data with 10 batches but only 1 component. As can be
+seen in the plot, there is a batch effect. If batches were ignored, a
+MarginalModel would likely find 2 components, when there is in truth only 1.
+
 # Simulation
-```{r sim}
-# LRR
+```{r lrr-sim}
 obs <- c(250, 231, 329, 250, 187, 328, 250, 250, 500, 288)
 obs.label <- character(0)
 
@@ -41,27 +44,11 @@ for (batch in 1:length(obs)) {
    obs.label <- c(obs.label, rep(letters[batch], obs[batch])) 
 }
 
-means <- c(0.03856340,
-           -0.17588675,
-           -0.02816801,
-           -0.08564261,
-           -0.21721350,
-           0.12363354,
-           -0.13442788,
-           0.01568428,
-           0.07118810,
-           0.17810444)
+means <- c(0.03856340, -0.17588675, -0.02816801, -0.08564261, -0.21721350,
+           0.12363354, -0.13442788, 0.01568428, 0.07118810, 0.17810444)
 
-vars <- c(0.005558076,
-          0.008895078,
-          0.009313795,
-          0.008954961,
-          0.007649359,
-          0.008733442,
-          0.010344712,
-          0.007078906,
-          0.006794232,
-          0.007428676)
+vars <- c(0.005558076, 0.008895078, 0.009313795, 0.008954961, 0.007649359,
+          0.008733442, 0.010344712, 0.007078906, 0.006794232, 0.007428676)
 
 means <- as.matrix(means)
 vars <- as.matrix(vars)
@@ -72,9 +59,13 @@ sim.data <- simulateBatchData(N=sum(obs),
                               sds=sqrt(vars),
                               p=1)
 
-plot(sim.data)
+plot <- plot(sim.data)
+```
 
-# BAF
+Next we simulate possible B Allele Frequency data corresonding to the above log
+R ratio data. 
+
+```{r baf-sim}
 baf <- c(rnorm(floor(sum(obs) / 3), 0, 0.06),
          rnorm(floor(sum(obs) / 3), 0.5, 0.06),
          rnorm(floor(sum(obs) / 3), 1, 0.06))
@@ -84,12 +75,21 @@ baf[baf > 1] <- 1
 hist(baf, breaks=100)
 ```
 
-Fit CNPBayes to to B Allele Frequencies.
+Finally, we fit mixture models of varying component sizes to the B Allele
+Frequency data and use `bic` to identify the best fit.
 
 ```{r fit}
-model <- MarginalModel(baf, k=3)
-model <- posteriorSimulation(model)
-plot(model)
-modlist <- computeMarginalLik(baf)
-orderModels(modlist)
+model1 <- MarginalModel(baf, k=1)
+model2 <- MarginalModel(baf, k=2)
+model3 <- MarginalModel(baf, k=3)
+
+model1 <- posteriorSimulation(model1)
+model2 <- posteriorSimulation(model2)
+model3 <- posteriorSimulation(model3)
+
+bic(model1)
+bic(model2)
+bic(model3)
 ```
+
+As is seen, `bic` correctly selects the three component model.
