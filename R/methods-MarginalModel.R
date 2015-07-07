@@ -685,27 +685,27 @@ computeMarginalLik <- function(y, batch, K=1:4,
   results
 }
 
-## rename T2 to T or some other good name once finalized
-## iter? additional.iter?
-# once SC finished, have option for Laplace or Chib. Chib is what is done right now, Laplace will be what Steven has done.
-
 #' Estimate the marginal density of a mixture model with k components
 #'
 #' This function is used to estimate the marginal density of a mixture
-#' model with k components.  
+#' model with k components. A list of coverged models is passed by the user
+#' to this function. Each model must have already converged and should be of
+#' a different component size.
 #' @param modlist A list of converged models with different component sizes.
-#' @param T2 number of MCMC iterations after permuting the modes.  See \code{maxperm}.
+#' @param post.iter number of MCMC iterations after permuting the modes.  See \code{maxperm}.
 #' @param maxperm a length-one integer vector.  For a mixture model
 #' with K components, there are K! possible modes.  \code{maxperm}
 #' indicates the maximum number of permutations to explore.
+#' @param method specifies chib or laplace method
 #' @export
 #' @seealso \code{\link{logBayesFactor}} for computing the bayes
 #' factor for two models, \code{\link{orderModels}} for ordering a
 #' list of models by decreasing marginal density, and \code{plot} for
 #' visualizing the component densities.
 computeMarginalLik2 <- function(modlist,
-                                T2=200,
-                                maxperm=3){
+                                post.iter=200,
+                                maxperm=3,
+                                method='chib'){
     my <- vector("list", length(K))
     mlist <- vector("list", length(K))
   
