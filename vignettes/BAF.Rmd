@@ -22,7 +22,7 @@ best as a standalone vignette and another app of MixtureModel. show how it ties
 in QC analyses. At the end of main vignette, talk about interpreting copy
 number. maing thing prev done was look at variances of components and
 separation of components. looked at starting value. if first component mean is
-< -1, it means that first component is copy number 0 (homozygous deletion). for 
+< -1, it means that first component is copy number 0 (homozygous deletion). for
 some CNPs is it diploid? deletion? copy number 2, 3 for purposes of vignette,
 what we can use is data is HapMap data? potentially a lot of work. Extract what
 we need to do 10? RS is looking into what HapMap data is available.
@@ -75,9 +75,12 @@ sim.data <- simulateBatchData(N=sum(obs),
 plot(sim.data)
 
 # BAF
-baf <- c(msm::rtnorm(floor(sum(obs) / 3), 0, 0.06, lower=0),
-         msm::rtnorm(ceiling(sum(obs) / 3), 0.5, 0.06),
-         msm::rtnorm(floor(sum(obs) / 3), 1, 0.06, upper=1))
+baf <- c(rnorm(floor(sum(obs) / 3), 0, 0.06),
+         rnorm(floor(sum(obs) / 3), 0.5, 0.06),
+         rnorm(floor(sum(obs) / 3), 1, 0.06))
+baf[baf < 0] <- 0
+baf[baf > 1] <- 1
+
 hist(baf, breaks=100)
 ```
 
