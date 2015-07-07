@@ -796,21 +796,6 @@ orderModels <- function(x, maxdev=5){
   return(models)
 }
 
-trimModels <- function(models){
-  mod <- models[[1]]
-  if(k(mod) > 1){
-    pz <- probz(mod)
-    maxp <- apply(pz, 2, max)
-    cn <- map(mod)
-    maxp <- maxp > 0.5
-    atleast3 <- table(cn) >= 3
-    if(all(maxp & atleast3)) return(models)
-    kk <- paste0(c("M", "B"), sum(maxp & atleast3))
-    models <- models[names(models) %in% kk]
-  }
-  models
-}
-
 .trimNA <- function(object){
   mm <- object$marginal
   mm <- lapply(mm, function(x) x[rowSums(is.na(x)) == 0, , drop=FALSE] )
