@@ -244,24 +244,6 @@ setMethod("initializeSigma2.0", "BatchModel", function(object){
   sum(alpha(hypp)*colMeans(sigma2(object)))/sum(alpha(hypp))
 })
 
-setMethod("moveChain", "BatchModel", function(object, s){
-  mcmc <- chains(object)
-  theta(mcmc)[s, ] <- as.numeric(theta(object))
-  sigma2(mcmc)[s, ] <- as.numeric(sigma2(object))
-  p(mcmc)[s, ] <- p(object)
-  mu(mcmc)[s, ] <- mu(object)
-  tau2(mcmc)[s, ] <- tau2(object)
-  nu.0(mcmc)[s] <- nu.0(object)
-  sigma2.0(mcmc)[s] <- sigma2.0(object)
-  ##logpotential(mcmc)[s] <- computeLogLikxPrior(object)
-  logPrior(mcmc)[s] <- computePrior(object)
-  log_lik(mcmc)[s] <- computeLoglik(object)
-  chains(object) <- mcmc
-  object
-})
-
-
-
 ## y: length n_b vector  (number of samples in batch b)
 ## theta: length K vector for batch b
 ## sd:  length K vector for batch b

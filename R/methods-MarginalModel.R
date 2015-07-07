@@ -87,26 +87,6 @@ setMethod("simulateY", "MarginalModel", function(object){
   yy <- rnorm(length(zz), mean=theta(object)[zz], sd=sigma(object)[zz])
 })
 
-setMethod("moveChain", "MarginalModel", function(object, s){
-  mcmc <- chains(object)
-  K <- k(object)
-  theta(mcmc)[s, ] <- as.numeric(theta(object))
-  sigma2(mcmc)[s, ] <- as.numeric(sigma2(object))
-  p(mcmc)[s, ] <- p(object)
-  ##
-  mu(mcmc)[s] <- mu(object)
-  tau2(mcmc)[s] <- tau2(object)
-  ##
-  nu.0(mcmc)[s] <- nu.0(object)
-  sigma2.0(mcmc)[s] <- sigma2.0(object)
-  ##logpotential(mcmc)[s] <- logpotential(object)
-  log_lik(mcmc)[s] <- log_lik(object)
-  ##zz <- factor(z(object), levels=seq_len(K))
-  zFreq(mcmc)[s, ] <- as.integer(table(z(object)))
-  chains(object) <- mcmc
-  object
-})
-
 setMethod("updateThetaCpp", "MarginalModel", function(object, constrain) {
   .Call("update_theta", object, constrain=constrain)
 })
