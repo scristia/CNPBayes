@@ -553,8 +553,8 @@ summarizeMarginalEstimates <- function(x){
 }
 
 summarizeMarginalEstimates2 <- function(x){
-    chibs <- chib(round(x, 2))
-    berk <- berkhof(round(x, 2))
+    chibs <- round(chib(x), 2)
+    berk <- round(berkhof(x), 2)
     my <- marginal(x)
     xx <- c(chibs, berk, my)
     names(xx) <- c("chib", "berkhof", "marginal")
@@ -706,11 +706,12 @@ computeMarginalLik2 <- function(modlist,
                                 post.iter=200,
                                 maxperm=3,
                                 method='chib'){
+    K <- sapply(modlist, k)
     my <- vector("list", length(K))
     mlist <- vector("list", length(K))
   
-    for (model in modlist) {
-        model_lik <- berkhofEstimate(model, T2=T2, maxperm=maxperm)  
+    for (i in seq_along(K)) {
+        model_lik <- berkhofEstimate(modlist[[i]], T2=T2, maxperm=maxperm)
 #         log_lik <- CNPBayes:::modalLoglik(model)
         xx <- summarizeMarginalEstimates2(model_lik)
         my[[i]] <- xx
