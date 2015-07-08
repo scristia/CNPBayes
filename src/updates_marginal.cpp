@@ -380,14 +380,25 @@ RcppExport SEXP compute_logprior(SEXP xmod) {
   double tau2_0 = hypp.slot("tau2.0") ;
   double tau_0 = sqrt(tau2_0) ;
   double betas = hypp.slot("beta") ;
+  NumericVector pi(K) ;
+
+  double eta = hypp.slot("eta.0") ;
+  double m2 = hypp.slot("m2.0") ;
+  double tau2 = model.slot("tau2") ;
+  NumericVector alpha = hypp.slot("alpha") ;
+  
   NumericVector p_sigma2_0(1) ;
   NumericVector p_mu(1) ;
-  NumericVector p_nu_0(1) ;  
+  NumericVector p_nu_0(1) ;
+  NumericVector p_tau2(1) ;
+  NumericVector p_alpha(1) ;
+
+  p_tau2 = dgamma(1.0/tau2, 0.5*eta, 2.0/(eta * m2)) ;
   p_sigma2_0 = dgamma(sigma2_0, a, 1/b) ;
   p_nu_0 = dgeom(nu_0, betas) ;
   p_mu = dnorm(mu, mu_0, tau_0) ;
   NumericVector prior_prob(1) ;
-  prior_prob = log(p_sigma2_0) + log(p_nu_0) + log(p_mu) ;
+  prior_prob = log(p_sigma2_0) + log(p_nu_0) + log(p_mu) + log(p_tau2) ;
   return prior_prob ;
 }
 
