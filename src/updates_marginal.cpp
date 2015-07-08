@@ -384,7 +384,7 @@ RcppExport SEXP compute_logprior(SEXP xmod) {
 
   double eta = hypp.slot("eta.0") ;
   double m2 = hypp.slot("m2.0") ;
-  double tau2 = model.slot("tau2") ;
+  NumericVector tau2 = model.slot("tau2") ;
   NumericVector alpha = hypp.slot("alpha") ;
   
   NumericVector p_sigma2_0(1) ;
