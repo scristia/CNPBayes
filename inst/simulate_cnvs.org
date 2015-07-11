@@ -30,6 +30,8 @@ object ~fit~, an object of class ~HMMList~ that can be coerced to a
   gr <- reduce(g, min.gapwidth=500e3)
 #+end_src
 
+* Simulate ranges for deletions
+
 
 Simulate a ~GRangesList~ containing 25 samples with a hemizygous
 deletion at this locus, but with differences in the start and end.
@@ -65,13 +67,12 @@ deletion at this locus, but with differences in the start and end.
        col="gray", border="gray")
 #+end_src
 
-For the one-dimensional summaries, one could find the markers for the
-entire region and use the first principal component (PC) to summarize
-the log R ratios.  The potential disadvantage of this approach is that
-the scale of the loadings makes it more difficult to interpret the
-copy number of the mixture components.  An alternative is to find the
-consensus region of the CNP and summarize the log R ratios in the
-consensus region by an average.  Here, we simulate log R ratios and
+* Simulate log R ratios and BAFs for 7Mb region
+
+
+** Sample with replacment from empirical data
+
+Here, we simulate log R ratios and
 BAFs by sampling with replacement the empirical data.
 
 #+begin_src R :tangle scripts/simulate_cnp.R
@@ -110,6 +111,25 @@ BAFs by sampling with replacement the empirical data.
                                rowRanges=rowRanges(snp_exp2))
   saveRDS(sim.se, file="~/Software/CNPBayes/inst/extdata/simulated_se.rds")
 #+end_src
+
+** Summaries
+
+To summarize the log R ratios in the CNV regions, one could find the
+markers for the entire region and use the first principal component
+(PC) to summarize the log R ratios as advocated by Cardin \textit{et
+al}.  The potential disadvantage of this approach is that the scale of
+the loadings makes it more difficult to interpret the copy number of
+the mixture components.  Often the median log R ratio is adequate, and
+retains the original scale.
+
+*** Median summary
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+grl_
+cnv.region_
+#+end_src
+
+
 
 
 
