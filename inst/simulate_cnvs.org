@@ -1,0 +1,44 @@
+* An example CNV
+
+Sweave the VanillaICE vignette to obtain an example CNV.
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  vi <- vignette("VanillaICE", package="VanillaICE")
+  vi.Rnw <- file.path(v1$Dir, file.path("doc", v1$File))
+  vi.R <- v1$R
+  Stangle(vi.Rnw)
+  source(vi.R)
+#+end_src
+
+The object ~snp_exp~ contains log R ratios and BAFs from a region on
+chromosome 22 encapsulating the DiGeorge critical region.
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  ## SNP experiment
+  snp_exp 
+#+end_src
+
+The results from fitting the hidden Markov model (HMM) are stored in
+object ~fit~, an object of class ~HMMList~ that can be coerced to a
+~GRanges~ object.
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  g <- unlist(fit)
+  g <- g[g$state == 2]
+  ## for simplicity, we assume it is one big deletion (the data suggests
+  ## that there might be multiple deletions) 
+  gr <- reduce(g, min.gapwidth=500e3)
+#+end_src
+
+
+Simulate a ~GRangesList~ containing 25 samples with a hemizygous
+deletion at this locus, but with differences in the start and end.
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+
+#+end_src
+
+
+
+
+
