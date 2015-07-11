@@ -35,8 +35,85 @@ Simulate a ~GRangesList~ containing 25 samples with a hemizygous
 deletion at this locus, but with differences in the start and end.
 
 #+begin_src R :tangle scripts/simulate_cnp.R
+  true.start <- GRanges(seqnames(gr), IRanges(start(gr), width=1))
+  true.end <- GRanges(seqnames(gr), IRanges(end(gr), width=1))
+  index.start <- findOverlaps(true.start, snp_exp, select="first")
+  index.end <- findOverlaps(true.end, snp_exp, select="first")
+  delta.start <- as.integer(runif(25, -1, 1)*50)
+  delta.end <- as.integer(runif(25, -1, 1)*50)
+  indices.start <- index.start + delta.start
+  indices.end <- index.end + delta.end
 
+  cnvs <- GRanges(rep(seqnames(gr), 25),
+                  IRanges(start(snp_exp)[indices.start],
+                          end(snp_exp)[indices.end]),
+                  id=paste0("sample", 1:25))
 #+end_src
+
+
+
+#+begin_src :tangle scripts/simulate_cnp.R
+  ## plot the cnvs
+  xlim <- c(min(start(snp_exp)), max(end(snp_exp)))
+  xlim <- c(10e6, 40e6)
+  par(las=1)
+  plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
+       xaxt="n")
+  at <- pretty(xlim, n=10)
+  axis(1, at=at, labels=round(at/1e6, 1), cex.axis=0.8)
+  rect(start(cnvs), seq_along(cnvs)-0.2, end(cnvs), seq_along(cnvs)+0.2,
+       col="gray", border="gray")
+#+end_src
+
+For the one-dimensional summaries, one could find the markers for the
+entire region and use the first principal component (PC) to summarize
+the log R ratios.  The potential disadvantage of this approach is that
+the scale of the loadings makes it more difficult to interpret the
+copy number of the mixture components.  An alternative is to find the
+consensus region of the CNP and summarize the log R ratios in the
+consensus region by an average.  Here, we simulate log R ratios and
+BAFs by sampling with replacement the empirical data.
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  ## Simulate a 7Mb stretch of log R ratios / BAFs that encapsulates the
+  ## simulated CNV, sampling with replacement from the empirical data.
+  region <- GRanges("chr22", IRanges(15e6, 22e6))
+  hits <- findOverlaps(region, snp_exp)
+  snp_exp2 <- snp_exp[subjectHits(hits), ]
+  log.r.empirical <- lrr(snp_exp2)[, "FinalReport6872.txt"]
+  baf.empirical <- baf(snp_exp2)[, "FinalReport6872.txt"]
+  indices.deletion <- subjectHits(findOverlaps(gr, snp_exp2))
+  ## Assume that all the other observations are diploid (even though
+  ## this is not true for this sample)
+  indices.diploid <- seq_along(snp_exp2)[-indices.deletion]
+
+  rr <- rowRanges(snp_exp2)
+  nr <- length(rr)
+  nc <- 25
+  b.a.f <- log.r.ratios <- matrix(NA, nr, nc)
+  b <- r <- rep(NA, nr)
+  set.seed(123)
+  for(i in seq_len(25)){
+    g.cnv <- cnvs[i]
+    J <- subjectHits(findOverlaps(g.cnv, rr))
+    r[J] <- sample(log.r.empirical[indices.deletion], length(J), replace=TRUE)
+    b[J] <- sample(baf.empirical[indices.deletion], length(J), replace=TRUE)
+    ndiploid <- length(snp_exp2) - length(J)
+    r[-J] <- sample(log.r.empirical[indices.diploid], ndiploid, replace=TRUE)
+    b[-J] <- sample(baf.empirical[indices.diploid], ndiploid, replace=TRUE)
+    b.a.f[, i] <- b
+    log.r.ratios[, i] <- r
+  }
+  dimnames(log.r.ratios) <- dimnames(b.a.f) <- list(rownames(snp_exp2),
+                                                    cnvs$id)
+  sim.se <- SnpArrayExperiment(cn=log.r.ratios, baf=b.a.f,
+                               rowRanges=rowRanges(snp_exp2))
+  saveRDS(sim.se, file="~/Software/CNPBayes/inst/extdata/simulated_se.rds")
+#+end_src
+
+
+
+
 
 
 
