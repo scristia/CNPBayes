@@ -176,7 +176,11 @@ consensusCNP <- function(grl, transcripts, min.width=2e3, max.width=200e3, min.p
   grl <- split(g, g$id)
   ##grl <- grl[colnames(views)]
   regions <- defineCnpRegions(grl, thr=min.prevalance)
-  regions <- regions[ width(regions) > min.width  & width(regions) <= max.width ]
+  filters <- width(regions) > min.width  & width(regions) <= max.width
+  if(any(filters)){
+    message("Dropping CNV regions failing min.width and max.width criteria. See ?consensusCNP to relax these settings.")
+    regions <- regions[ filters ]
+  }
   regions <- reduce(regions)
   if(!missing(transcripts)){
     regions <- annotateRegions(regions, transcripts)
