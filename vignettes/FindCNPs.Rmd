@@ -39,6 +39,9 @@ RS: help!!
 knitr::opts_chunk$set(eval=FALSE)
 library(CNPBayes)
 library(VanillaICE)
+se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
+grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
+
 # library(pd.genomewidesnp.6)
 # genome <- pd.genomewidesnp.6
  
