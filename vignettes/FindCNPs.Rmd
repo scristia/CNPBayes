@@ -28,89 +28,70 @@ genomic data.  Among subjects with a CNV called at a given locus, the
 number variant in half of these subjects.
 
 # Finding CNPs
-- hidden Markov models
-- prior knowledge (HapMap / 1000 Genomes Project)
+Included in the CNPBayes package are an objects of class `SnpArrayExperiment`
+and `GRangesList`. We begin by loading the necessary libraries and data.
 
-# Outline from Rob
-Preliminary
-
-RS: help!!
 ```{r prelim}
 knitr::opts_chunk$set(eval=FALSE)
 library(CNPBayes)
 library(VanillaICE)
 se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
 grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
-
-# library(pd.genomewidesnp.6)
-# genome <- pd.genomewidesnp.6
- 
-# change this to include subset of SNP
-# have set of SNPs with log r ratios and then summarize in some
-# way. use some of the data from the vanilla ices vignette and then
-# use that here. has SNP data for chromosome and we just have to
-                                        # simulate more of it.
-
-library(BSgenome.Hsapiens.UCSC.hg19)
-genome <- BSgenome.Hsapiens.UCSC.hg19
-
-set.seed(100)
-starts <- rpois(1000, 100) + 10e6L
-ends <- rpois(1000, 100) + 10.1e6L
-cnv1 <- GRanges("chr1", IRanges(starts, ends))
-cnv1$id <- paste0("sample", seq_along(cnv1))
-seqinfo(cnv1) <- seqinfo(genome)
-
-starts <- rpois(500, 1000) + 101e6L
-ends <- rpois(500, 1000) + 101.4e6L
-cnv2 <- GRanges("chr5", IRanges(starts, ends))
-cnv2$id <- paste0("sample", seq_along(cnv2))
-seqlevels(cnv2, force=TRUE) <- seqlevels(genome)
-seqinfo(cnv2) <- seqinfo(genome)
-
-all_cnvs <- c(cnv1, cnv2)
 ```
 
-Step 1
+The object `se` contains log R ratios and B Allele Frequencies, and the object
+`grl` is a `GRangesList` of simulated deletions. 
 
-```{r step-1}
-cnps <- consensusCNP(all_cnvs)
+After reading this saved data, we visualize the CNVs.
+
+```{r plot-cnvs}
+    xlim <- c(min(start(se)), max(end(se)))
+    xlim <- c(10e6, 40e6)
+    par(las=1)
+    plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
+         xaxt="n")
+    at <- pretty(xlim, n=10)
+    axis(1, at=at, labels=round(at/1e6, 1), cex.axis=0.8)
+    rect(start(cnvs), seq_along(cnvs)-0.2, end(cnvs), seq_along(cnvs)+0.2,
+         col="gray", border="gray")
 ```
 
-Step 2
-```{r step-2}
-create a GRanges object for the markers
-affy 6.0
-- find annotation for SNPs and nonpolymorphic markers
+Before a `MixtureModel` can be fit, the log R ratios must be summarized. One
+method for summary is to use the first principal component to summarize the log
+R ratios. A possible disadvantage of this approach is that the scale of the
+loadings makes it more difficult to interpret the copy number of the mixture
+components. Instead, the median log R ratio is adequate and retains the
+original scale.
 
-features.granges - create a GRanges object
+To summarize samples by the median log R ratios, we define the largest region
+that spans 50 percent of the samples using the function `consensusCNP`. Because
+the deletions in this example are large (great than 2 Mb), we specify a large
+value for `max.width` to avoid filter ing these CNVs.
+
+```{r summary}
+# median
+cnv.region <- consensusCNP(grl, max.width=5e6)
+i <- subjectHits(findOverlaps(cnv.regions, se))
+med.summary <- matrixStats::colMedians(lrr(se)[i, ], na.rm=TRUE)
+
+# PCA
+cnv.region2 <- reduce(grl)
+i.pc <- subjectHits(findOverlaps(cnv.region2, se))
+x <- lrr(se)[i.pc, ]
+nas <- rowSums(is.na(x))
+na.index <- which(nas > 0)
+x <- x[-na.index, , drop=FALSE]
+pc.summary <- prcomp(t(x))$x[, 1]
+meds.for.pc <- matrixStats::colMedians(x, na.rm=TRUE)
+if(cor(pc.summary, meds.for.pc) < 1) pc.summary <- -1*pc.summary
 ```
 
-Step 3 
-```{r step-3}
-findOverlaps(cnps, features)
-            query  subject
+Finally we plot the one dimensional summaries.
+
+```{r summary-plots}
+par(mfrow=c(1,2), las=1)
+plot(med.summary, main="median summary of\nconsensus CNP", cex.main=0.7, pch=20)
+plot(pc.summary, main="PC summary of\nreduced CNV ranges", cex.main=0.7, pch=20)
 ```
 
-Step 4
-```{r step-4}
-SummarizedExperiment w/ findOverlaps
-2 assays: log R ratios, BAFs
-```
-
-Step 5 
-```{r step-5}
-create a 1d summary of the log r ratios 
-mention PCA, but use mean
-```
-
-Step 6
-```{r step-6}
-SummarizedExperiment for the 1-d summary.
-rowRanges: CNPs in step 1
-```
-
-Step 7
-```{r step-7}
-Fit the `MixtureModel` to each row of the object in step 6.
-```
+Please refer to the CNPBayes vignette for fitting a `MixtureModel`.
