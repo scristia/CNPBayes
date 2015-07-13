@@ -117,6 +117,10 @@ loglik <- function(xmod) {
     .Call('CNPBayes_loglik', PACKAGE = 'CNPBayes', xmod)
 }
 
+log_ddirichlet_ <- function(x_, alpha_) {
+    .Call('CNPBayes_log_ddirichlet_', PACKAGE = 'CNPBayes', x_, alpha_)
+}
+
 update_mu <- function(xmod) {
     .Call('CNPBayes_update_mu', PACKAGE = 'CNPBayes', xmod)
 }
@@ -207,10 +211,6 @@ permutedz_reduced2 <- function(xmod) {
 
 p_sigma2_zpermuted <- function(xmod) {
     .Call('CNPBayes_p_sigma2_zpermuted', PACKAGE = 'CNPBayes', xmod)
-}
-
-log_ddirichlet_ <- function(x_, alpha_) {
-    .Call('CNPBayes_log_ddirichlet_', PACKAGE = 'CNPBayes', x_, alpha_)
 }
 
 p_pmix_reduced <- function(xmod) {
