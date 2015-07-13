@@ -15,4 +15,7 @@ temp.r
 *.DS_Store
 inst/doc/*
 inst/unitTests/report.html
+inst/scripts/*
+inst/*.html
+
 

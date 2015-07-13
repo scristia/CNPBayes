@@ -30,6 +30,31 @@ RcppExport SEXP loglik(SEXP xmod) {
   return loglik;
 }
 
+// [[Rcpp::export]]
+NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
+  // NumericVector x = as<NumericVector>(x_) ;
+  NumericVector x = clone(x_) ;
+  int K = x.size() ;
+  NumericVector alpha = clone(alpha_) ;
+  // NumericVector alpha = as<NumericVector>(alpha_) ;
+  NumericVector total_lg(1) ;
+  NumericVector tmp(1);
+  NumericVector total_lalpha(1) ;
+  NumericVector logD(1) ;
+  NumericVector result(1) ;
+  double s = 0.0 ;
+  for(int k=0; k < K; ++k){
+    total_lg[0] += lgamma(alpha[k]) ;
+    tmp[0] += alpha[k] ;
+    s += (alpha[k] - 1.0) * log(x[k]) ;
+  }
+  total_lalpha = lgamma(tmp[0]) ;
+  logD[0] = total_lg[0] - total_lalpha[0] ;
+  result[0] = s - logD[0] ;
+  return result ;
+}
+
+
 //
 // This function does not reproduce the R update .updateMu when the
 // same seed is used...
@@ -380,14 +405,26 @@ RcppExport SEXP compute_logprior(SEXP xmod) {
   double tau2_0 = hypp.slot("tau2.0") ;
   double tau_0 = sqrt(tau2_0) ;
   double betas = hypp.slot("beta") ;
+  NumericVector pmix = model.slot("pi") ;
+
+  double eta = hypp.slot("eta.0") ;
+  double m2 = hypp.slot("m2.0") ;
+  NumericVector tau2 = model.slot("tau2") ;
+  NumericVector alpha = hypp.slot("alpha") ;
+  
   NumericVector p_sigma2_0(1) ;
   NumericVector p_mu(1) ;
-  NumericVector p_nu_0(1) ;  
+  NumericVector p_nu_0(1) ;
+  NumericVector p_tau2(1) ;
+  NumericVector logp_pmix(1) ;
+
+  logp_pmix = log_ddirichlet_(pmix, alpha) ;
+  p_tau2 = dgamma(1.0/tau2, 0.5*eta, 2.0/(eta * m2)) ;
   p_sigma2_0 = dgamma(sigma2_0, a, 1/b) ;
   p_nu_0 = dgeom(nu_0, betas) ;
   p_mu = dnorm(mu, mu_0, tau_0) ;
   NumericVector prior_prob(1) ;
-  prior_prob = log(p_sigma2_0) + log(p_nu_0) + log(p_mu) ;
+  prior_prob = log(p_sigma2_0) + log(p_nu_0) + log(p_mu) + log(p_tau2) + logp_pmix ;
   return prior_prob ;
 }
 
@@ -1130,29 +1167,6 @@ RcppExport SEXP p_sigma2_zpermuted(SEXP xmod) {
 // 
 // RcppExport SEXP log_ddirichlet_(SEXP x_, SEXP alpha_) {
 
-// [[Rcpp::export]]
-NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
-  // NumericVector x = as<NumericVector>(x_) ;
-  NumericVector x = clone(x_) ;
-  int K = x.size() ;
-  NumericVector alpha = clone(alpha_) ;
-  // NumericVector alpha = as<NumericVector>(alpha_) ;
-  NumericVector total_lg(1) ;
-  NumericVector tmp(1);
-  NumericVector total_lalpha(1) ;
-  NumericVector logD(1) ;
-  NumericVector result(1) ;
-  double s = 0.0 ;
-  for(int k=0; k < K; ++k){
-    total_lg[0] += lgamma(alpha[k]) ;
-    tmp[0] += alpha[k] ;
-    s += (alpha[k] - 1.0) * log(x[k]) ;
-  }
-  total_lalpha = lgamma(tmp[0]) ;
-  logD[0] = total_lg[0] - total_lalpha[0] ;
-  result[0] = s - logD[0] ;
-  return result ;
-}
 
 
 // [[Rcpp::export]]
