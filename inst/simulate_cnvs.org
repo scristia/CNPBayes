@@ -4,8 +4,8 @@ Sweave the VanillaICE vignette to obtain an example CNV.
 
 #+begin_src R :tangle scripts/simulate_cnp.R
   vi <- vignette("VanillaICE", package="VanillaICE")
-  vi.Rnw <- file.path(v1$Dir, file.path("doc", v1$File))
-  vi.R <- v1$R
+  vi.Rnw <- file.path(vi$Dir, file.path("doc", vi$File))
+  vi.R <- vi$R
   Stangle(vi.Rnw)
   source(vi.R)
 #+end_src
@@ -132,7 +132,7 @@ Save the simulated CNVs as a ~GRangesList~
   grl.file <- "~/Software/CNPBayes/inst/extdata/grl_deletions.rds"
   if(!file.exists(grl.file)){
     grl <- split(cnvs, cnvs$id)
-    saveRDS(grl.file, file=grl.file)
+    saveRDS(grl, file=grl.file)
   }
 #+end_src
 
