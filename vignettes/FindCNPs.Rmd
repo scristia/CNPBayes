@@ -52,7 +52,7 @@ After reading this saved data, we visualize the CNVs.
          xaxt="n")
     at <- pretty(xlim, n=10)
     axis(1, at=at, labels=round(at/1e6, 1), cex.axis=0.8)
-    rect(start(cnvs), seq_along(cnvs)-0.2, end(cnvs), seq_along(cnvs)+0.2,
+    rect(start(se), seq_along(se)-0.2, end(se), seq_along(se)+0.2,
          col="gray", border="gray")
 ```
 
