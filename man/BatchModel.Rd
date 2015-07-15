@@ -11,7 +11,7 @@ BatchModel(data = numeric(), k = 2L, batch, hypp, mcmc.params)
 
 \item{k}{An integer value specifying the number of latent classes.}
 
-\item{batch}{a vector of the different batch numbers}
+\item{batch}{a vector of the different batch numbers (must be sorted)}
 
 \item{hypp}{An object of class `Hyperparameters` used to specify the hyperparameters of the model.}
 

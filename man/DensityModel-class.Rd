@@ -29,6 +29,8 @@ may be useful.
 overall density.  The modes are defined by a crude estimate of the
 first derivative of the overall density (see \code{findModes}).}
 
+\item{\code{data}}{A numeric vector containing the data}
+
 \item{\code{clusters}}{A vector providing the k-means clustering of the
 component means using the modes as centers.  If an object of class
 \code{DensityModel} is instantiated with \code{merge=FALSE}, this
@@ -47,7 +49,7 @@ print(dm.merged)
 ## does not change the resulting clusters
 identical(clusters(dm), clusters(dm.merged))
 ## These objects can be plotted
-plot(dm, oned(truth))
+plot(dm)
 ## Note that calling plot on a MixtureModel-derived object returns
 ## a density object as a side-effect of the plotting
 dm2 <- CNPBayes::plot(truth)
@@ -71,7 +73,7 @@ print(dm)
 dm2 <- CNPBayes::plot(truth)
 identical(dm, dm2)
 ## suppress plotting of the batch-specific densities
-CNPBayes::plot(dm2, oned(truth), show.batch=FALSE)
+CNPBayes::plot(dm2, show.batch=FALSE)
 }
 \seealso{
 \code{\link{DensityModel}}

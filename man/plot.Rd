@@ -18,7 +18,7 @@ plot(x, y, ...)
 
 \S4method{plot}{BatchModel,ANY}(x, y, show.batch = TRUE, ...)
 
-\S4method{plot}{DensityBatchModel,ANY}(x, y, show.batch = TRUE, ...)
+\S4method{plot}{DensityBatchModel,ANY}(x, show.batch = TRUE, ...)
 }
 \arguments{
 \item{x}{a \code{DensityModel}-derived object, or a
