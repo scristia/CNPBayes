@@ -292,19 +292,23 @@ evidence of departure from a normal distribution. Due to this skewness, a
 
 Generally, the number of components is not known *a priori*. To
 estimate the number of components *K*, the `computeMarginalLik`
-function is used.
+function is used. It is important to note that a list of models passed to this
+function must have converged.
 
 ```{r computeMarginalLik}
-x <- computeMarginalLik(y(sim.data), K=2:3)
-orderModels(x)
+mp <- McmcParams(iter=2e3, burnin=1e3)
+model2 <- MarginalModel(data=y(sim.data), k=2, mcmc.params=mp)
+model3 <- MarginalModel(data=y(sim.data), k=3, mcmc.params=mp)
+mlist <- list(posteriorSimulation(model2),
+              posteriorSimulation(model3))
+x <- computeMarginalLik2(mlist)
+orderModels2(x)
 ```
 
 It is worth noting that `computeMarginalLik` is the most computationally
 intensive routine included in `CNPBayes`. In spite of the most resource
 expensive portions being coded in C++, this procedure can still be time
-consuming, especially for batch data. In part this is because, by default, 3
-sequential instances of 10 `posteriorSimulation`s are run for each possible
-number of latent variables. Additionally, for each number of components, the
+consuming, especially for batch data. For each number of components, the
 mode of $\theta$ is identified, fixed, and the MCMC simulation is run again.
 After this simulation, the process is repeated, but with $\sigma^2$ being
 integrated over. While the marginal likelihood is computed and used for 
@@ -313,7 +317,7 @@ variant of Chib's Estimator [@berkhof] is also calculated. The log Bayes Factor
 is computed comparing the two models with the highest marginal likelihood.
 
 ```{r bayesFactor}
-logBayesFactor(x)
+logBayesFactor2(x)
 ```
 
 Alternative methods for selection of *k* are also included. As an example, the
