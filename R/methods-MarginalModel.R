@@ -691,7 +691,7 @@ computeMarginalLik2 <- function(modlist,
     mlist <- vector("list", length(K))
   
     for (i in seq_along(K)) {
-        model_lik <- berkhofEstimate(modlist[[i]], T2=T2, maxperm=maxperm)
+        model_lik <- berkhofEstimate(modlist[[i]], T2=post.iter, maxperm=maxperm)
 #         log_lik <- CNPBayes:::modalLoglik(model)
         xx <- summarizeMarginalEstimates2(model_lik)
         my[[i]] <- xx
