@@ -45,18 +45,17 @@ The object `se` contains log R ratios and B Allele Frequencies, and the object
 After reading this saved data, we visualize the CNVs.
 
 ```{r plot-cnvs}
-# xlim <- c(min(start(se)), max(end(se)))
-# # xlim <- c(10e6, 40e6)
-# par(las=1)
-# plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
-#      xaxt="n")
-# at <- pretty(xlim, n=10)
-# axis(1, at=at, labels=round(at/1e6, 1), cex.axis=0.8)
-# rect(start(se), seq_along(se)-0.2, end(se), seq_along(se)+0.2,
-#      col="gray", border="gray")
+trellis_param <- HmmTrellisParam()
+cnvList <- split(cnvs, cnvs$id)
+figList <- xyplotList(cnvList, snp_exp, trellis_param)
+
 figList <- xyplotList(grl, se[, 1:25])
 ```
 
+# One Dimensional Summary
+
+Before further analysis can be performed, the log R ratios in a CNV region must
+be summarized to a one dimensional object. 
 Before a `MixtureModel` can be fit, the log R ratios must be summarized. One
 method for summary is to use the first principal component to summarize the log
 R ratios. A possible disadvantage of this approach is that the scale of the
@@ -69,6 +68,33 @@ that spans 50 percent of the samples using the function `consensusCNP`. Because
 the deletions in this example are large (great than 2 Mb), we specify a large
 value for `max.width` to avoid filter ing these CNVs.
 
+** Summaries
+
+To summarize the log R ratios in the CNV regions, one could find the
+markers for the entire region and use the first principal component
+(PC) to summarize the log R ratios as advocated by Cardin \textit{et
+al}.  The potential disadvantage of this approach is that the scale of
+the loadings makes it more difficult to interpret the copy number of
+the mixture components.  Often the median log R ratio is adequate, and
+retains the original scale.
+
+*** Median summary
+
+To summarize samples by the median log R ratios, we define the largest
+region that spans 50 percent of the samples using the function
+~consensusCNP~.  Because the deletions in this example are large ($>$
+2Mb), we specify a large value for ~max.width~ to avoid filtering
+these CNVs.
+
+A median summary of the log R ratios for each sample is straight
+forward.  
+
+*** PC summary
+
+An advantage of PC is that we can simply use the minimum start and
+maximum end to define the CNV region -- PC should automatically
+downweight markers that are not consistent with the CNV. 
+
 # Median
 
 # PCA
@@ -76,7 +102,7 @@ value for `max.width` to avoid filter ing these CNVs.
 ```{r summary}
 # median
 cnv.region <- consensusCNP(grl, max.width=5e6)
-i <- subjectHits(findOverlaps(cnv.regions, se))
+i <- subjectHits(findOverlaps(cnv.region, se))
 med.summary <- matrixStats::colMedians(lrr(se)[i, ], na.rm=TRUE)
 
 # PCA
