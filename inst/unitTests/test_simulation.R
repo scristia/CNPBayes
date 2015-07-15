@@ -22,11 +22,18 @@ test_simulation_moderate <- function(){
   pc <- prcomp(xx, center=TRUE, scale.=TRUE)$x[, 1]
   if(cor(pc, mns) < cor(-pc, mns)) pc <- -pc
 
-  x <- computeMarginalLik(pc, nchains=3,
-                          T=1000, T2=500,
-                          burnin=200,
-                          K=1:4)
-  models <- orderModels(x)
+  mp <- McmcParams(iter=1e3, burnin=500, nStarts=1)
+  model1 <- MarginalModel(data=pc, k=1, mcmc.params=mp)
+  model2 <- MarginalModel(data=pc, k=2, mcmc.params=mp)
+  model3 <- MarginalModel(data=pc, k=3, mcmc.params=mp)
+  model4 <- MarginalModel(data=pc, k=4, mcmc.params=mp)
+
+  mlist <- list(posteriorSimulation(model1),
+                posteriorSimulation(model2),
+                posteriorSimulation(model3),
+                posteriorSimulation(model4))
+  x <- computeMarginalLik2(mlist, post.iter=500)
+  models <- orderModels2(x)
   checkTrue(k(models)[1] == 4)
   if(FALSE) hist(pc, breaks=100, col="gray", border="gray")
 }
