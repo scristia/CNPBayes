@@ -61,18 +61,9 @@ test_selectK_easy <- function(){
   mlist <- list(posteriorSimulation(model2),
                 posteriorSimulation(model3),
                 posteriorSimulation(model4))
-
-  model <- CNPBayes:::startAtTrueValues(model, truth)
-  model <- posteriorSimulation(model)
-  x1 <- computeMarginalLik(y(truth), nchains=3, K=2:4)
-  m1 <- orderModels(x1)
+  x1 <- computeMarginalLik2(mlist)
+  m1 <- orderModels2(x1)
   checkTrue(k(m1)[1] >= 3)
-
-   ## T must be >= T2
-  checkException(computeMarginalLik(y(truth),
-                                    nchains=3,
-                                    K=1:4,
-                                    T=10, T2=20, burnin=1000))
 }
 
 test_marginal_Moderate <- function(){
