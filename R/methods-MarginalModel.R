@@ -796,6 +796,25 @@ logBayesFactor <- function(x){
   bf
 }
 
+#' Compute the log bayes factor between models.
+#'
+#' Models of varying component sizes are compared. The log bayes factor is calculated comparing the two models with the highest marginal likelihood, as computed by \code{computeMarginalLik}.
+#' @param x the result of a call to \code{computeMarginalLik}.
+#' @export
+logBayesFactor2 <- function(x){
+  models <- orderModels2(x)
+  if(length(models) <= 1) {
+    return(NA)
+  }
+  K <- k(models)
+  ##nms <- names(orderModels(x))
+  nms <- names(models)
+  ml <- sapply(x$marginal[nms], function(x) x["marginal"])
+  names(ml) <- substr(names(ml), 1, 2)
+  bf <- setNames(ml[1]-ml[2], paste0(names(ml[1:2]), collapse="-"))
+  bf
+}
+
 setMethod("updateMultinomialProb", "MarginalModel", function(object){
   .Call("update_multinomialPr", object)
 })
