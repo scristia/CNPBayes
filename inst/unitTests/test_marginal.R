@@ -54,6 +54,16 @@ test_selectK_easy <- function(){
   truth <- simulateData(N=250, p=rep(1/3, 3), theta=means, sds=sds)
   ## When the proportion of observations in each state is the same, we
   ## tend to over fit
+  mp <- McmcParams(iter=5e3, burnin=1000, nStarts=1)
+  model2 <- MarginalModel(data=y(truth), k=2, mcmc.params=mp)
+  model3 <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
+  model4 <- MarginalModel(data=y(truth), k=4, mcmc.params=mp)
+  mlist <- list(posteriorSimulation(model2),
+                posteriorSimulation(model3),
+                posteriorSimulation(model4))
+
+  model <- CNPBayes:::startAtTrueValues(model, truth)
+  model <- posteriorSimulation(model)
   x1 <- computeMarginalLik(y(truth), nchains=3, K=2:4)
   m1 <- orderModels(x1)
   checkTrue(k(m1)[1] >= 3)
