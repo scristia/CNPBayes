@@ -33,7 +33,7 @@ test_simulation_moderate <- function(){
                 posteriorSimulation(model3),
                 posteriorSimulation(model4))
   x <- computeMarginalLik(mlist, post.iter=500)
-  models <- orderModels2(x)
+  models <- orderModels(x)
   checkTrue(k(models)[1] == 4)
   if(FALSE) hist(pc, breaks=100, col="gray", border="gray")
 }

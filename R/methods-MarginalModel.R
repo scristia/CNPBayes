@@ -638,7 +638,7 @@ orderModels <- function(x, maxdev=5){
 #' @param x the result of a call to \code{computeMarginalLik}.
 #' @export
 logBayesFactor <- function(x){
-  models <- orderModels2(x)
+  models <- orderModels(x)
   if(length(models) <= 1) {
     return(NA)
   }

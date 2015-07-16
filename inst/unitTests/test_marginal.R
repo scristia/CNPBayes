@@ -75,7 +75,7 @@ test_selectK_easy <- function(){
                 posteriorSimulation(model3),
                 posteriorSimulation(model4))
   x1 <- computeMarginalLik(mlist)
-  m1 <- orderModels2(x1)
+  m1 <- orderModels(x1)
   checkTrue(k(m1)[1] >= 3)
 }
 
