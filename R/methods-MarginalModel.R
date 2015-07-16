@@ -632,13 +632,6 @@ orderModels2 <- function(x, maxdev=5){
   return(models)
 }
 
-.trimNA <- function(object){
-  mm <- object$marginal
-  mm <- lapply(mm, function(x) x[rowSums(is.na(x)) == 0, , drop=FALSE] )
-  object$marginal <- mm
-  object
-}
-
 #' Compute the log bayes factor between models.
 #'
 #' Models of varying component sizes are compared. The log bayes factor is calculated comparing the two models with the highest marginal likelihood, as computed by \code{computeMarginalLik}.
