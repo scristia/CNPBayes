@@ -118,13 +118,14 @@ setReplaceMethod("mu", "MarginalModel", function(object, value){
 setReplaceMethod("k", "MarginalModel", 
     function(object, value) {
         k <- as.integer(value)
-        mp <- mcmcParams(object)
         hypp <- hyperParams(object)
         hypp@k <- k
-        data <- y(object)
-        model <- MarginalModel(data=y(sim.data), k=k,
-                               hypp=hypp, mcmc.params=mp)
-        model
+        hypp@alpha <- rep(1, k)
+        hyperParams(object) <- hypp
+        object@k <- k
+        object@pi <- rep(1/k, k)
+        object <- startingValues(object)
+        object
     }
 )
 
