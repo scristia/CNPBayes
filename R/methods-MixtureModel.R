@@ -299,6 +299,24 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
   .posteriorSimulation(object)
 })
 
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,MixtureModel-method
+setMethod("posteriorSimulation", c("MixtureModel", "integer"), 
+    function(object, value) {
+        k(object) <- value
+        .posteriorSimulation(object)
+    }
+)
+
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,MixtureModel-method
+setMethod("posteriorSimulation", c("MixtureModel", "numeric"), 
+    function(object, value) {
+        k(object) <- value
+        .posteriorSimulation(object)
+    }
+)
+
 .posteriorSimulation <- function(post){
   if(nStarts(post) > 1){
     post <- multipleStarts(post)

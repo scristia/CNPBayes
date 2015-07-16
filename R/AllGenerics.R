@@ -552,7 +552,7 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 #' @export
 #' @docType methods
 #' @rdname posteriorSimulation-method
-setGeneric("posteriorSimulation", function(object) standardGeneric("posteriorSimulation"))
+setGeneric("posteriorSimulation", function(object, value) standardGeneric("posteriorSimulation"))
 
 setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
 
