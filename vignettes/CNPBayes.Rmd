@@ -293,14 +293,15 @@ evidence of departure from a normal distribution. Due to this skewness, a
 Generally, the number of components is not known *a priori*. To
 estimate the number of components *K*, the `computeMarginalLik`
 function is used. It is important to note that a list of models passed to this
-function must have converged.
+function must have converged. For ease of use, one can specify `k` in the 
+posteriorSimulation to use the same data, `Hyperparameters`, and `mcmc.params`,
+but with a different number of components.
 
 ```{r computeMarginalLik}
 mp <- McmcParams(iter=2e3, burnin=1e3)
-model2 <- MarginalModel(data=y(sim.data), k=2, mcmc.params=mp)
-model3 <- MarginalModel(data=y(sim.data), k=3, mcmc.params=mp)
-mlist <- list(posteriorSimulation(model2),
-              posteriorSimulation(model3))
+model <- MarginalModel(data=y(sim.data), k=2, mcmc.params=mp)
+mlist <- list(posteriorSimulation(model),
+              posteriorSimulation(model, 3))
 x <- computeMarginalLik(mlist)
 orderModels(x)
 ```
