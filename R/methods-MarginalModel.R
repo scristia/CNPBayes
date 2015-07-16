@@ -618,38 +618,6 @@ modelOtherModes <- function(model, maxperm=5){
 #'
 #' Models are ordered according to marginal likelihood. The marginal likelihood is computed for each chain of each component size model separately. The mean is taken by model, and ordering by this mean marginal is performed. For each model, the difference of marginal likelihoods is calculated for each chain and the range is taken. If the sum of these ranges across models is greater than \code{maxdev}, a NULL is returned and a warning message printed.
 #' @param x the result of a call to \code{computeMarginalLik}.
-#' @param maxdev the maximum of the sum of ranges of marginal likelihoods that is considered acceptable.
-#' @export
-orderModels <- function(x, maxdev=5){
-  x <- .trimNA(x)
-  models <- x$models
-  ##K <- k(models)
-  K <- names(models)
-  ##maxdev <- sapply(K, function(x) log(factorial(x))) + 0.5
-  marginal.est.list <- x$marginal
-  m <- lapply(marginal.est.list, function(x) x[, "marginal"])
-  my <- sapply(m, mean)
-  d <- sapply(m, function(x) diff(range(x)))
-  keep <- !is.nan(d) & is.finite(d)
-  my <- my[keep]
-  K <- K[keep]
-  d <- d[keep]
-  if(sum(d < maxdev, na.rm=TRUE) >= 1){
-    K <- K[ d < maxdev ]
-  } else {
-    warning("Marginal likelihood estimates are dissimilar for all models.  More iterations are needed")
-    return(NULL)
-  }
-  K <- K[order(my[K], decreasing=TRUE)]
-  ix <- match(K, names(models))
-  models <- models[ix]
-  return(models)
-}
-
-#' Reorder models of varying component sizes.
-#'
-#' Models are ordered according to marginal likelihood. The marginal likelihood is computed for each chain of each component size model separately. The mean is taken by model, and ordering by this mean marginal is performed. For each model, the difference of marginal likelihoods is calculated for each chain and the range is taken. If the sum of these ranges across models is greater than \code{maxdev}, a NULL is returned and a warning message printed.
-#' @param x the result of a call to \code{computeMarginalLik}.
 #' @export
 orderModels2 <- function(x, maxdev=5){
   models <- x$models
