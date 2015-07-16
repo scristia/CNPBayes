@@ -44,6 +44,14 @@ The object `se` contains log R ratios and B Allele Frequencies, and the object
 After reading this saved data, we visualize the CNVs.
 
 ```{r plot-cnvs}
+xlim <- c(min(start(se)), max(end(se)))
+par(las=1)
+plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
+     xaxt="n")
+at <- pretty(xlim, n=10)
+axis(1, at=at, labels=round(at/1e6, 1), cex.axis=0.8)
+rect(start(grl), seq_along(grl)-0.2, end(grl), seq_along(grl)+0.2,
+     col="gray", border="gray")
 # trellis_param <- HmmTrellisParam()
 # cnvList <- split(cnvs, cnvs$id)
 # figList <- xyplotList(cnvList, snp_exp, trellis_param)
