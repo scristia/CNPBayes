@@ -45,6 +45,19 @@ test_marginalEasy <- function(){
   checkIdentical(sqrt(modes(model)[["sigma2"]]), sigmac(model)[i, ])
 }
 
+test_marginalDiffK <- function() {
+    set.seed(1)
+    truth <- simulateData(N=500, p=rep(1/3, 3),
+                          theta=c(-1, 0, 1),
+                          sds=rep(0.1, 3))
+    mp <- McmcParams(iter=5, burnin=5, nStarts=1)
+    model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
+    model <- posteriorSimulation(model)
+    model <- posteriorSimulation(model, 2)
+    checkTrue(k(model) == 2)
+    checkTrue(length(theta(model)) == 2)
+}
+
 
 test_selectK_easy <- function(){
   library(GenomicRanges)
