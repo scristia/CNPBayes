@@ -79,13 +79,11 @@ Finally, we fit mixture models of varying component sizes to the B Allele
 Frequency data and use `bic` to identify the best fit.
 
 ```{r fit}
-model1 <- MarginalModel(baf, k=1)
-model2 <- MarginalModel(baf, k=2)
-model3 <- MarginalModel(baf, k=3)
+model <- MarginalModel(baf, k=1)
 
-model1 <- posteriorSimulation(model1)
-model2 <- posteriorSimulation(model2)
-model3 <- posteriorSimulation(model3)
+model1 <- posteriorSimulation(model)
+model2 <- posteriorSimulation(model, k=2)
+model3 <- posteriorSimulation(model, k=3)
 
 bic(model1)
 bic(model2)
