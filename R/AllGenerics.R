@@ -10,6 +10,17 @@ NULL
 #' @rdname k-method
 setGeneric("k", function(object) standardGeneric("k"))
 
+#' Change the number of components.
+#'
+#' Creates a new MarginalModel or BatchModel with the same data, 
+#' hyperparameters, MCMC options, and batch (for BatchModel).
+#' @examples
+#' data(MarginalModelExample)
+#' k(MarginalModelExample) <- 5
+#' @param value An integer for the new number of components.
+#' @export
+#' @docType methods
+#' @rdname k-method
 setGeneric("k<-", function(object, value) standardGeneric("k<-"))
 
 setGeneric("z<-", function(object, value) standardGeneric("z<-"))

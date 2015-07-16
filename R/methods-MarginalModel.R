@@ -113,6 +113,22 @@ setReplaceMethod("mu", "MarginalModel", function(object, value){
   object
 })
 
+#' @rdname k-method
+#' @aliases k<-,MarginalModel-method
+setReplaceMethod("k", "MarginalModel", 
+    function(object, value) {
+        k <- as.integer(value)
+        mp <- mcmcParams(object)
+        hypp <- hyperParams(object)
+        hypp@k <- k
+        data <- y(object)
+        model <- MarginalModel(data=y(sim.data), k=k,
+                               hypp=hypp, mcmc.params=mp)
+        model
+    }
+)
+
+
 ##
 ## For the marginal model, mu has already been initialized in the hyperparameters
 ##
