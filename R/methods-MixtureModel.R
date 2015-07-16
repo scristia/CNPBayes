@@ -302,8 +302,8 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", c("MixtureModel", "integer"), 
-    function(object, value) {
-        k(object) <- value
+    function(object, k) {
+        k(object) <- k
         .posteriorSimulation(object)
     }
 )
@@ -311,8 +311,8 @@ setMethod("posteriorSimulation", c("MixtureModel", "integer"),
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", c("MixtureModel", "numeric"), 
-    function(object, value) {
-        k(object) <- value
+    function(object, k) {
+        k(object) <- k
         .posteriorSimulation(object)
     }
 )
