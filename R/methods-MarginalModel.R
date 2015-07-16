@@ -532,7 +532,7 @@ summarizeMarginalEstimates <- function(x){
   xx
 }
 
-summarizeMarginalEstimates2 <- function(x){
+summarizeMarginalEstimates <- function(x){
     chibs <- round(chib(x), 2)
     berk <- round(berkhof(x), 2)
     my <- marginal(x)
@@ -575,7 +575,7 @@ updateMultipleChains <- function(nchains, modellist, mp){
 #' factor for two models, \code{\link{orderModels}} for ordering a
 #' list of models by decreasing marginal density, and \code{plot} for
 #' visualizing the component densities.
-computeMarginalLik2 <- function(modlist,
+computeMarginalLik <- function(modlist,
                                 post.iter=200,
                                 maxperm=3,
                                 method='chib'){
@@ -586,7 +586,7 @@ computeMarginalLik2 <- function(modlist,
     for (i in seq_along(K)) {
         model_lik <- berkhofEstimate(modlist[[i]], T2=post.iter, maxperm=maxperm)
 #         log_lik <- CNPBayes:::modalLoglik(model)
-        xx <- summarizeMarginalEstimates2(model_lik)
+        xx <- summarizeMarginalEstimates(model_lik)
         my[[i]] <- xx
 #         mlist[[i]] <- modlist[[i]]
     }
@@ -619,7 +619,7 @@ modelOtherModes <- function(model, maxperm=5){
 #' Models are ordered according to marginal likelihood. The marginal likelihood is computed for each chain of each component size model separately. The mean is taken by model, and ordering by this mean marginal is performed. For each model, the difference of marginal likelihoods is calculated for each chain and the range is taken. If the sum of these ranges across models is greater than \code{maxdev}, a NULL is returned and a warning message printed.
 #' @param x the result of a call to \code{computeMarginalLik}.
 #' @export
-orderModels2 <- function(x, maxdev=5){
+orderModels <- function(x, maxdev=5){
   models <- x$models
   ##K <- k(models)
   K <- names(models)
@@ -637,7 +637,7 @@ orderModels2 <- function(x, maxdev=5){
 #' Models of varying component sizes are compared. The log bayes factor is calculated comparing the two models with the highest marginal likelihood, as computed by \code{computeMarginalLik}.
 #' @param x the result of a call to \code{computeMarginalLik}.
 #' @export
-logBayesFactor2 <- function(x){
+logBayesFactor <- function(x){
   models <- orderModels2(x)
   if(length(models) <= 1) {
     return(NA)

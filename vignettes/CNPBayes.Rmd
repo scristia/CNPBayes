@@ -301,8 +301,8 @@ model2 <- MarginalModel(data=y(sim.data), k=2, mcmc.params=mp)
 model3 <- MarginalModel(data=y(sim.data), k=3, mcmc.params=mp)
 mlist <- list(posteriorSimulation(model2),
               posteriorSimulation(model3))
-x <- computeMarginalLik2(mlist)
-orderModels2(x)
+x <- computeMarginalLik(mlist)
+orderModels(x)
 ```
 
 It is worth noting that `computeMarginalLik` is the most computationally
@@ -317,7 +317,7 @@ variant of Chib's Estimator [@berkhof] is also calculated. The log Bayes Factor
 is computed comparing the two models with the highest marginal likelihood.
 
 ```{r bayesFactor}
-logBayesFactor2(x)
+logBayesFactor(x)
 ```
 
 Alternative methods for selection of *k* are also included. As an example, the
