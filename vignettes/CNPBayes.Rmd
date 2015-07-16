@@ -323,6 +323,8 @@ logBayesFactor2(x)
 Alternative methods for selection of *k* are also included. As an example, the
 `bic` method can be used for calculating the Bayesian Information Criterion. 
 
+JC: Caution for cmpring nontested models.
+
 ```{r bic}
 ## simulate k=2 model
 sim.data <- simulateData(N=2500, p=rep(1/3, 3),
