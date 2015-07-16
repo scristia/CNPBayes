@@ -152,24 +152,6 @@ setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
   x
 })
 
-#' @rdname k-method
-#' @aliases k<-,BatchModel-method
-setReplaceMethod("k", "MarginalModel", 
-    function(object, value) {
-        k <- as.integer(value)
-        mp <- mcmcParams(object)
-        hypp <- hyperParams(object)
-        hypp@k <- k
-        data <- y(object)
-        batch <- batch(object)
-        model <- BatchModel(data=y(sim.data), k=k,
-                            hypp=hypp, mcmc.params=mp,
-                            batch=batch)
-        model
-    }
-)
-
-
 setMethod("batchCorrect", "BatchModel", function(object){
   B <- factor(batch(object))
   yy <- dat(object)

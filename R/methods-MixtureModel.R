@@ -109,6 +109,22 @@ logpotential <- function(object) object@logpotential
 #' @aliases k,MixtureModel-method
 setMethod("k", "MixtureModel", function(object) object@k)
 
+#' @rdname k-method
+#' @aliases k<-,MixtureModel-method
+setReplaceMethod("k", "MixtureModel", 
+    function(object, value) {
+        k <- as.integer(value)
+        hypp <- hyperParams(object)
+        hypp@k <- k
+        hypp@alpha <- rep(1, k)
+        hyperParams(object) <- hypp
+        object@k <- k
+        object@pi <- rep(1/k, k)
+        object <- startingValues(object)
+        object
+    }
+)
+
 setReplaceMethod("z", "MixtureModel", function(object, value){
   ##object@z <- factor(value, levels=seq_len(k(object)))
   object@z <- value
