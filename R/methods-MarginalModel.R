@@ -541,42 +541,6 @@ summarizeMarginalEstimates2 <- function(x){
     xx
 }
 
-simulateMultipleChains <- function(nchains, y, batch, k, mp){
-  ##if(k==1) nchains <- 1
-  if(missing(batch)){
-    kmodlist <- replicate(nchains, {
-      kmod <- MarginalModel(y, k=k, mcmc.params=mp)
-      nStarts(kmod) <- 10
-      burnin(kmod) <- 100
-      iter(kmod, force=TRUE) <- 1
-      ## run burnin with multiple chains to find suitable starting values
-      kmod <- posteriorSimulation(kmod)
-      mcmcParams(kmod, force=TRUE) <- mp
-      kmod <- posteriorSimulation(kmod)
-      return(kmod)
-    })
-    return(kmodlist)
-  }
-  ## batch not missing
-  kmodlist <- vector("list", nchains)
-  for(i in seq_along(kmodlist)){
-    ##message("Initializing batch model", i)
-    kmod <- BatchModel(data=y, batch=batch, k=k, mcmc.params=mp)
-    kmod <- ensureAllComponentsObserved(kmod)
-    ##message("Entering posteriorSimulation")
-    nStarts(kmod) <- 10
-    burnin(kmod) <- 100
-    iter(kmod, force=TRUE) <- 1
-    ## run burnin (fitting the marginal model) with multiple chains to
-    ## find suitable starting values
-    kmod <- posteriorSimulation(kmod)
-    mcmcParams(kmod, force=TRUE) <- mp
-    ##saveRDS(kmod, file="kmod.rds")
-    kmodlist[[i]] <- posteriorSimulation(kmod)
-  }
-  return(kmodlist)
-}
-
 updateMultipleChains <- function(nchains, modellist, mp){
   if(k==1) nchains <- 1
   if(missing(batch)){
