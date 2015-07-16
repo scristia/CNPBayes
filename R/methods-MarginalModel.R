@@ -594,8 +594,6 @@ updateMultipleChains <- function(nchains, modellist, mp){
   return(kmodlist)
 }
 
-modalLoglik <- function(x) modes(x)[["loglik"]]
-
 #' Estimate the marginal density of a mixture model with k components
 #'
 #' This function is used to estimate the marginal density of a mixture
