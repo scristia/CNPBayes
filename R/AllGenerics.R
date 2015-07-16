@@ -12,11 +12,12 @@ setGeneric("k", function(object) standardGeneric("k"))
 
 #' Change the number of components.
 #'
-#' Creates a new MarginalModel or BatchModel with the same data, 
-#' hyperparameters, MCMC options, and batch (for BatchModel).
+#' Updates the number of components and erases chains from a previous
+#' posteriorSimulation (if one was performed). Draws from prior to guess
+#' new starting values.
 #' @examples
 #' data(MarginalModelExample)
-#' k(MarginalModelExample) <- 5
+#' k(MarginalModelExample) <- 2
 #' @param value An integer for the new number of components.
 #' @export
 #' @docType methods
