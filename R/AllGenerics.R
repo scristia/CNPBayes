@@ -552,13 +552,13 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 #' an alternative number of components.
 #' The mode of the MCMC simulation is also calculated.
 #' @param object see showMethods(posteriorSimulation)
-#' @param value The number of a priori components. This is optional and if not 
+#' @param k The number of a priori components. This is optional and if not 
 #' specified, the stored k model components are used. This parameters is 
 #' useful for running multiple models of varying components.
 #' @export
 #' @docType methods
 #' @rdname posteriorSimulation-method
-setGeneric("posteriorSimulation", function(object, value) standardGeneric("posteriorSimulation"))
+setGeneric("posteriorSimulation", function(object, k) standardGeneric("posteriorSimulation"))
 
 setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
 
