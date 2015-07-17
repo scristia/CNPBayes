@@ -55,7 +55,8 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
              mcmc.params=mcmc.params,
              batch=batch[ix],
              batchElements=nbatch,
-             hwe=numeric())
+             hwe=numeric(),
+             .internal.constraint=5e-4)
   obj <- startingValues(obj)
   obj <- ensureAllComponentsObserved(obj)
   obj
