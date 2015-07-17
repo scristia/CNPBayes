@@ -32,13 +32,18 @@ RcppExport SEXP update_theta(SEXP xmod) {
     double w1;
     double w2;
     NumericVector thetas(K);
+
     for(int k = 0; k < K; ++k) {
-      post_prec = tau2_tilde + sigma2_tilde[k] * nn[k];
-      tau_n = sqrt(1/post_prec);
-      w1 = tau2_tilde/post_prec;
-      w2 = nn[k]*sigma2_tilde[k]/post_prec;
-      mu_n = w1*mu_prior + w2*data_mean[k];
-      thetas[k] = as<double>(rnorm(1, mu_n, tau_n));
+        post_prec = tau2_tilde + sigma2_tilde[k] * nn[k];
+        tau_n = sqrt(1/post_prec);
+        w1 = tau2_tilde/post_prec;
+        w2 = nn[k]*sigma2_tilde[k]/post_prec;
+        mu_n = w1*mu_prior + w2*data_mean[k];
+        thetas[k] = as<double>(rnorm(1, mu_n, tau_n));
+
+        if (Rcpp::NumericVector::is_na(thetas[k])) {
+            Rcpp::stop("Bad simulation. Run again with different start.");
+        }
     }
     return thetas;
 }
