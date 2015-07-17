@@ -511,27 +511,31 @@ IntegerVector ordertheta_(NumericVector x) {
 //
 // [[Rcpp::export]]
 RcppExport SEXP compute_probz(SEXP xmod){
-  Rcpp::S4 model(xmod) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = hypp.slot("k") ;
-  IntegerVector z = model.slot("z") ;
-  int N = z.size() ;
-  IntegerMatrix pZ = model.slot("probz") ;
-  NumericVector theta = model.slot("theta") ;
-  NumericVector cn(K) ;
-  NumericVector ordering(K) ;
-  cn = ordertheta_(theta) ;
-  for(int k = 0; k < K; ++k) cn[k] = cn[k] - 1 ;
-  
-  NumericVector is_z(N) ;
-  for(int i = 0; i < N; ++i){
-    for(int k = 0; k < K; ++k){
-      if(z[i] == (k + 1)){
-        pZ(i, cn[k]) += 1;
-      }
+    Rcpp::S4 model(xmod);
+    Rcpp::S4 hypp(model.slot("hyperparams"));
+    int K = hypp.slot("k");
+    IntegerVector z = model.slot("z");
+    int N = z.size();
+    IntegerMatrix pZ = model.slot("probz");
+    NumericVector theta = model.slot("theta");
+    NumericVector cn(K);
+    NumericVector ordering(K);
+    cn = ordertheta_(theta);
+
+    for (int k = 0; k < K; ++k) {
+        cn[k] = cn[k] - 1;
     }
-  }
-  return pZ ;
+    
+    NumericVector is_z(N);
+    for (int i = 0; i < N; ++i) {
+        for (int k = 0; k < K; ++k) {
+            if (z[i] == (k + 1)) {
+                pZ(i, cn[k]) += 1;
+            }
+        }
+    }
+
+    return pZ;
 }
   
 
