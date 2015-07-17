@@ -149,7 +149,7 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         hwe="numeric",
                                         modes="list",
                                         mcmc.params="McmcParams",
-                                        .internal.constraint=4e-5))
+                                        .internal.constraint="numeric"))
 
 #' An object for running MCMC simulations.
 #'
