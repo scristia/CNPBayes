@@ -123,6 +123,7 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot hwe Hardy Weinberg Equilibrium
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot mcmc.params An object of class 'McmcParams'
+#' @slot .internal.constraint Constraint on parameters. For internal use only.
 setClass("MixtureModel", representation("VIRTUAL",
                                         k = "integer",
                                         hyperparams="Hyperparameters",
@@ -147,7 +148,8 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         batchElements="integer",
                                         hwe="numeric",
                                         modes="list",
-                                        mcmc.params="McmcParams"))
+                                        mcmc.params="McmcParams",
+                                        .internal.constraint=4e-5))
 
 #' An object for running MCMC simulations.
 #'
@@ -175,6 +177,7 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot hwe Hardy Weinberg Equilibrium
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot mcmc.params An object of class 'McmcParams'
+#' @slot .internal.constraint Constraint on parameters. For internal use only.
 setClass("BatchModel", contains="MixtureModel")
 
 
@@ -204,6 +207,7 @@ setClass("BatchModel", contains="MixtureModel")
 #' @slot hwe Hardy Weinberg Equilibrium
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot mcmc.params An object of class 'McmcParams'
+#' @slot .internal.constraint Constraint on parameters. For internal use only.
 setClass("MarginalModel", contains="MixtureModel")
 
 setClass("UnivariateBatchModel", contains="BatchModel")
