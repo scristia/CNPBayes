@@ -149,11 +149,17 @@ RcppExport SEXP update_sigma2_0(SEXP xmod) {
     b_k += b ;
     NumericVector sigma2_0(1);
     sigma2_0[0] = as<double>(rgamma(1, a_k, 1.0/b_k)) ;
-    if (sigma2_0[0] < 5.0e-4) {
-        return sigma2_0_old;
+    double constraint = model.slot(".internal.constraint");
+    if (constraint > 0) {
+        if (sigma2_0[0] < constraint) {
+            return sigma2_0_old;
+        }
+        else {
+            return sigma2_0;
+        }
     }
     else {
-        return sigma2_0 ;
+        return sigma2_0;
     }
 }
 
