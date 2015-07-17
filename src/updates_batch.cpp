@@ -179,33 +179,47 @@ RcppExport SEXP update_tau2_batch(SEXP xmod){
 
 // [[Rcpp::export]]
 RcppExport SEXP update_sigma20_batch(SEXP xmod){
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
-  int B = ub.size() ;
-  NumericVector a = hypp.slot("a") ;
-  NumericVector b = hypp.slot("b") ;
-  NumericVector nu_0 = model.slot("nu.0") ;  
-  NumericMatrix sigma2 = model.slot("sigma2") ;
-  NumericVector prec(1) ;
-  for(int i = 0; i < B; ++i){
-    for(int k = 0; k < K; ++k){
-      prec[0] += 1.0/sigma2(i, k) ;
+    RNGScope scope ;
+    Rcpp::S4 model(xmod) ;
+    Rcpp::S4 hypp(model.slot("hyperparams")) ;
+    int K = getK(hypp) ;
+    IntegerVector batch = model.slot("batch") ;
+    IntegerVector ub = uniqueBatch(batch) ;
+    int B = ub.size() ;
+    NumericVector a = hypp.slot("a") ;
+    NumericVector b = hypp.slot("b") ;
+    NumericVector nu_0 = model.slot("nu.0") ;  
+    NumericMatrix sigma2 = model.slot("sigma2") ;
+    Rcpp::NumericVector sigma2_0_old = model.slot("sigma2.0");
+    NumericVector prec(1) ;
+
+    for(int i = 0; i < B; ++i){
+        for(int k = 0; k < K; ++k){
+            prec[0] += 1.0/sigma2(i, k) ;
+        }
     }
-  }
-  NumericVector a_k(1) ;
-  NumericVector b_k(1) ;
-  a_k[0] = a[0] + 0.5*(K * B)*nu_0[0] ;
-  b_k[0] = b[0] + 0.5*nu_0[0]*prec[0] ;
-  double rate ;
-  rate = 1.0/b_k[0] ;
-  //return b_k ;
-  NumericVector sigma2_0(1) ;
-  sigma2_0[0] = as<double>(rgamma(1, a_k[0], rate)) ;
-  return sigma2_0 ;
+
+    NumericVector a_k(1) ;
+    NumericVector b_k(1) ;
+    a_k[0] = a[0] + 0.5*(K * B)*nu_0[0] ;
+    b_k[0] = b[0] + 0.5*nu_0[0]*prec[0] ;
+    double rate ;
+    rate = 1.0/b_k[0] ;
+    //return b_k ;
+    NumericVector sigma2_0(1) ;
+    sigma2_0[0] = as<double>(rgamma(1, a_k[0], rate)) ;
+    double constraint = model.slot(".internal.constraint");
+    if (constraint > 0) {
+        if (sigma2_0[0] < constraint) {
+            return sigma2_0_old;
+        }
+        else {
+            return sigma2_0;
+        }
+    }
+    else {
+        return sigma2_0;
+    }
 }
 
 // [[Rcpp::export]]
