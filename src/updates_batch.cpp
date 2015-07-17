@@ -523,36 +523,40 @@ RcppExport SEXP compute_logprior_batch(SEXP xmod){
 
 // [[Rcpp::export]]
 RcppExport SEXP update_theta_batch(SEXP xmod){
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  NumericVector x = model.slot("data") ;
-  // NumericMatrix theta = model.slot("theta") ;
-  NumericVector tau2 = model.slot("tau2") ;
-  NumericMatrix sigma2 = model.slot("sigma2") ;
-  NumericMatrix n_hb = tableBatchZ(xmod) ;
-  NumericVector mu = model.slot("mu") ;
-  int B = n_hb.nrow() ;
-  NumericMatrix ybar = model.slot("data.mean") ;
-  NumericMatrix theta_new(B, K) ;
-  double w1 = 0.0 ;
-  double w2 = 0.0 ;
-  double mu_n = 0.0 ;
-  double tau_n = 0.0 ;
-  double post_prec = 0.0 ;
-  for(int b = 0; b < B; ++b){
-    for(int k = 0; k < K; ++k){
-      post_prec = 1.0/tau2[k] + n_hb(b, k)*1.0/sigma2(b, k) ;
-      tau_n = sqrt(1.0/post_prec) ;
-      w1 = (1.0/tau2[k])/post_prec ;
-      w2 = (n_hb(b, k) * 1.0/sigma2(b, k))/post_prec ;
-      mu_n = w1*mu[k] + w2*ybar(b, k) ;
-      theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
+    RNGScope scope ;
+    Rcpp::S4 model(xmod) ;
+    Rcpp::S4 hypp(model.slot("hyperparams")) ;
+    int K = getK(hypp) ;
+    NumericVector x = model.slot("data") ;
+    // NumericMatrix theta = model.slot("theta") ;
+    NumericVector tau2 = model.slot("tau2") ;
+    NumericMatrix sigma2 = model.slot("sigma2") ;
+    NumericMatrix n_hb = tableBatchZ(xmod) ;
+    NumericVector mu = model.slot("mu") ;
+    int B = n_hb.nrow() ;
+    NumericMatrix ybar = model.slot("data.mean") ;
+    NumericMatrix theta_new(B, K) ;
+    double w1 = 0.0 ;
+    double w2 = 0.0 ;
+    double mu_n = 0.0 ;
+    double tau_n = 0.0 ;
+    double post_prec = 0.0 ;
+
+    for (int b = 0; b < B; ++b) {
+        for(int k = 0; k < K; ++k){
+            post_prec = 1.0/tau2[k] + n_hb(b, k)*1.0/sigma2(b, k) ;
+            if (post_prec == R_PosInf) {
+                Rcpp::stop("Bad simulation. Run again with different start.");
+            }
+            tau_n = sqrt(1.0/post_prec) ;
+            w1 = (1.0/tau2[k])/post_prec ;
+            w2 = (n_hb(b, k) * 1.0/sigma2(b, k))/post_prec ;
+            mu_n = w1*mu[k] + w2*ybar(b, k) ;
+            theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
+        }
     }
-  }
-  // if(is_true(any(is_nan(theta_new)))) stop("missing values in theta") ;
-  return theta_new ;
+    // if(is_true(any(is_nan(theta_new)))) stop("missing values in theta") ;
+    return theta_new ;
 }
 
 // [[Rcpp::export]]
