@@ -55,5 +55,7 @@ Run hierarchical MCMC for batch model.
 \item{\code{modes}}{the values of parameters from the iteration which maximizes log likelihood and log prior}
 
 \item{\code{mcmc.params}}{An object of class 'McmcParams'}
+
+\item{\code{.internal.constraint}}{Constraint on parameters. For internal use only.}
 }}
 
