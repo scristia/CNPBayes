@@ -468,26 +468,6 @@ RcppExport SEXP compute_vars_batch(SEXP xmod) {
     }
   }
   return vars ;
-    
-//   for(int i = 0; i < n; ++i){
-//     for(int b = 0; b < B; ++b){
-//       if(batch[i] != ub[b]) continue ;
-//       for(int k = 0; k < K; ++k){
-//         if(z[i] == k+1){
-//           vars(b, k) += (pow(x[i] - mn(b, k), 2.0)/(tabz(b, k)-1)) ;
-//         }
-//       }
-//     }
-//   }
-//   if(is_true(any(vars < 0.0001))){
-//     for(int b = 0; b < B; ++b){
-//       for(int k = 0; k < K; ++k){
-//         if(vars(b, k) > 0.0001) continue ;
-//         vars(b, k) = 1000 ;
-//       }
-//     }
-//   }  
-//   return vars ;
 }
 
 
