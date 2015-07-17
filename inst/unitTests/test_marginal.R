@@ -45,6 +45,21 @@ test_marginalEasy <- function(){
   checkIdentical(sqrt(modes(model)[["sigma2"]]), sigmac(model)[i, ])
 }
 
+test_constraint <- function() {
+    baf <- readRDS(system.file("extdata", "baf.rds", package="CNPBayes"))
+    set.seed(17)
+    model <- MarginalModel(baf, k=2)
+    model <- posteriorSimulation(model)
+}
+
+test_segfaultExcept <- function() {
+    baf <- readRDS(system.file("extdata", "baf.rds", package="CNPBayes"))
+    set.seed(17)
+    model <- MarginalModel(baf, k=2)
+    model@.internal.constraint <- -1
+    checkException(model <- posteriorSimulation(model))
+}
+
 test_marginalDiffK <- function() {
     set.seed(1)
     truth <- simulateData(N=500, p=rep(1/3, 3),
