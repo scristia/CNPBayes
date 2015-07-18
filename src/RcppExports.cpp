@@ -650,3 +650,25 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// reduced_tau
+RcppExport SEXP reduced_tau(SEXP xmod);
+RcppExport SEXP CNPBayes_reduced_tau(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(reduced_tau(xmod));
+    return __result;
+END_RCPP
+}
+// p_tau_reduced
+RcppExport SEXP p_tau_reduced(SEXP xmod);
+RcppExport SEXP CNPBayes_p_tau_reduced(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(p_tau_reduced(xmod));
+    return __result;
+END_RCPP
+}

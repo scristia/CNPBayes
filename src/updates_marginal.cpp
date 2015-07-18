@@ -1580,15 +1580,30 @@ RcppExport SEXP p_tau_reduced(SEXP xmod) {
   NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
   NumericVector theta_=as<NumericVector>(modes["theta"]) ;
   NumericVector mu_=as<NumericVector>(modes["mu"]) ;
+  NumericVector tau2_=as<NumericVector>(modes["tau2"]) ;
   NumericVector pstar = clone(p_) ;
   NumericVector mustar = clone(mu_) ;
+  NumericVector tau2star = clone(tau2_) ;
   NumericVector thetastar = clone(theta_) ;
-  NumericVector mustar = clone(mu_) ;
   IntegerMatrix Z = chains.slot("z") ;
   IntegerVector zz(N) ;
   NumericVector p_tau(S) ;
 
 
+  double m2_0 = hypp.slot("m2.0") ;
+  double eta_0 = hypp.slot("eta.0") ;
+  double eta_k = eta_0 + K ;
+  NumericVector s2_k(1) ;
+  for(int k = 0; k < K; k++) s2_k[0] += pow(thetastar[k] - mustar[0], 2.0) ;
+  NumericVector m2_k(1) ;
+  m2_k[0] = 1/eta_k*(eta_0*m2_0 + s2_k[0]) ;
+  NumericVector tmp(1) ;
+
+//  for(int s = 0; s < S; ++s) {
+//    tmp = dgamma(1.0/tau2star, 0.5 * eta_k, 1.0/(0.5 * eta_k * m2_k[0])) ;
+//    p_tau[s] = tmp ;
+//  }
+  p_tau = dgamma(1.0/tau2star, 0.5 * eta_k, 1.0/(0.5 * eta_k * m2_k[0])) ;
   return p_tau ;
 }
 

@@ -233,3 +233,11 @@ p_mu_reduced <- function(xmod) {
     .Call('CNPBayes_p_mu_reduced', PACKAGE = 'CNPBayes', xmod)
 }
 
+reduced_tau <- function(xmod) {
+    .Call('CNPBayes_reduced_tau', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_tau_reduced <- function(xmod) {
+    .Call('CNPBayes_p_tau_reduced', PACKAGE = 'CNPBayes', xmod)
+}
+
