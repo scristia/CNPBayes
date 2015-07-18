@@ -175,7 +175,7 @@ RcppExport SEXP update_nu0(SEXP xmod) {
   //
   // sample nu0 from an unnormalized probability distribution
   //
-  NumericVector x(100) ;
+  NumericVector x(100) ;  // 100 is the maximum allowed value for nu_0
   NumericVector lpnu0(100);
   double prec = 0.0 ;
   double lprec = 0.0 ;
@@ -1526,7 +1526,7 @@ RcppExport SEXP reduced_tau(SEXP xmod) {
   NumericVector logp_prec(S) ;
   NumericVector tmp(K) ;
   NumericVector y = model.slot("data") ;
-  NumericVector tau2chain(S) ;
+  //NumericVector s20chain(S) ;
   int N = y.size() ;
   //
   // We need to keep the Z|y,theta* chain
@@ -1555,8 +1555,10 @@ RcppExport SEXP reduced_tau(SEXP xmod) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma2_0(model) ;
+    //s20chain[s] = model.slot("sigma2.0") ;
   }
   chains.slot("z") = Z ;
+  //chains.slot("sigma2.0") = s20chain ;
   model.slot("mcmc.chains") = chains ;
   return model ;
 }
@@ -1607,3 +1609,59 @@ RcppExport SEXP p_tau_reduced(SEXP xmod) {
   return p_tau ;
 }
 
+RcppExport SEXP reduced_nu0(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model_(xmod) ;
+  Rcpp::S4 model = clone(model_) ;
+  Rcpp::S4 params=model.slot("mcmc.params") ;
+  Rcpp::S4 chains=model.slot("mcmc.chains") ;
+  int S = params.slot("iter") ;
+  List modes = model.slot("modes") ;
+  NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
+  NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
+  NumericVector pi_ = as<NumericVector>(modes["mixprob"]) ;
+  NumericVector mu_ = as<NumericVector>(modes["mu"]) ;
+  NumericVector tau2_ = as<NumericVector>(modes["tau2"]) ;
+  NumericVector sigma2star=clone(sigma2_) ;
+  NumericVector thetastar=clone(theta_) ;
+  NumericVector pistar=clone(pi_) ;
+  NumericVector mustar=clone(mu_) ;
+  NumericVector tau2star=clone(tau2_) ;
+  int K = thetastar.size() ;
+  NumericVector prec(K) ;
+  NumericVector logp_prec(S) ;
+  NumericVector tmp(K) ;
+  NumericVector y = model.slot("data") ;
+  NumericVector s20chain(S) ;
+  int N = y.size() ;
+  //
+  // We need to keep the Z|y,theta* chain
+  //
+  IntegerMatrix Z = chains.slot("z") ;
+  IntegerVector zz(N) ;
+  model.slot("theta") = thetastar ;
+  model.slot("sigma2") = sigma2star ;
+  model.slot("pi") = pistar ;
+  model.slot("mu") = mustar ;
+  model.slot("tau2") = tau2star ;
+
+  for(int s=0; s < S; ++s){
+    zz = update_z(model) ;
+    model.slot("z") = zz ;
+    Z(s, _) = zz ;    
+    model.slot("data.mean") = compute_means(model) ;
+    model.slot("data.prec") = compute_prec(model) ;
+    // model.slot("theta") = update_theta(model) ; Do not update theta !
+    // model.slot("sigma2") = update_sigma2(model) ;
+    // model.slot("pi") = update_p(model) ;
+    // model.slot("mu") = update_mu(model) ;
+    // model.slot("tau2") = update_tau2(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("sigma2.0") = update_sigma2_0(model) ;
+    s20chain[s] = model.slot("sigma2.0") ;
+  }
+  chains.slot("z") = Z ;
+  chains.slot("sigma2.0") = s20chain ;
+  model.slot("mcmc.chains") = chains ;
+  return model ;
+}
