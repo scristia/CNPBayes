@@ -1758,7 +1758,7 @@ RcppExport SEXP reduced_s20(SEXP xmod) {
   model.slot("pi") = pistar ;
   model.slot("mu") = mustar ;
   model.slot("tau2") = tau2star ;
-  model.slot("nu0") = nu0star ;
+  model.slot("nu.0") = nu0star ;
 
   for(int s=0; s < S; ++s){
     zz = update_z(model) ;
@@ -1777,5 +1777,51 @@ RcppExport SEXP reduced_s20(SEXP xmod) {
   chains.slot("z") = Z ;
   model.slot("mcmc.chains") = chains ;
   return model ;
+}
+
+
+RcppExport SEXP p_s20_reduced(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
+  Rcpp::S4 chains = model.slot("mcmc.chains") ;
+  Rcpp::S4 hypp = model.slot("hyperparams") ;
+  List modes = model.slot("modes") ;
+  //
+  //
+  NumericVector x = model.slot("data") ;    
+  int K = hypp.slot("k") ;
+  int S = mcmcp.slot("iter") ;  
+  int N = x.size() ;
+  //
+  NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
+  NumericVector theta_=as<NumericVector>(modes["theta"]) ;
+  NumericVector mu_=as<NumericVector>(modes["mu"]) ;
+  NumericVector tau2_=as<NumericVector>(modes["tau2"]) ;
+  IntegerVector nu0_=as<IntegerVector>(modes["nu0"]) ;
+  NumericVector sigma2_=as<NumericVector>(modes["sigma2"]) ;
+  NumericVector s20_=as<NumericVector>(modes["sigma2.0"]) ;
+  NumericVector pstar = clone(p_) ;
+  NumericVector mustar = clone(mu_) ;
+  NumericVector tau2star = clone(tau2_) ;
+  NumericVector thetastar = clone(theta_) ;
+  NumericVector sigma2star = clone(sigma2_) ;
+  NumericVector s20star = clone(s20_) ;
+  IntegerVector nu0=clone(nu0_) ;
+  int nu0star = nu0[0] ;
+  
+  NumericVector p_s20(S) ;
+
+  double a = hypp.slot("a") ;
+  double b = hypp.slot("b") ;  
+  double a_k = a + 0.5*K*nu0star ;
+  double b_k ;
+
+  for (int k=0; k < K; k++) {
+    b_k += 0.5*nu0star/sigma2star[k];
+  }
+  b_k += b ;
+  p_s20 = dgamma(s20star, a_k, 1.0/b_k) ;
+  return p_s20 ;
 }
 
