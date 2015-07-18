@@ -795,14 +795,44 @@ RcppExport SEXP marginal_theta(SEXP xmod) {
   NumericVector p_theta(S) ;
   NumericVector muc = chains.slot("mu") ;
   NumericVector tau2c = chains.slot("tau2") ;
+  NumericMatrix sigma2 = chains.slot("sigma2") ;
   NumericVector tauc = sqrt(tau2c) ;
   NumericVector tmp(K) ;
+  //IntegerVector z = model.slot("z");
+
+  IntegerMatrix Z = chains.slot("z") ;
+  IntegerVector zz ;
+
+  double tau2_tilde ;
+  NumericVector sigma2_tilde(K) ;
+
+  // this should be updated for each iteration
+  NumericVector data_mean(K) ;
+  IntegerVector nn(K) ;
+  double post_prec;
+  double tau_n;
+  double mu_n;
+  double w1;
+  double w2;
+  double prod ;
 
   for(int s=0; s < S; ++s){
-    tmp = dnorm(thetastar, muc[s], tauc[s]) ;
-    double prod = 0.0;
+    zz = Z(s, _) ;
+    model.slot("z") = zz ;
+    nn = tableZ(K, zz) ;
+    data_mean = compute_means(model_) ;
+    tau2_tilde = 1/tau2c[s] ;
+    sigma2_tilde = 1.0/sigma2(s, _) ;
+    //tmp = dnorm(thetastar, muc[s], tauc[s]) ;
+    double prod = 1.0;
     for(int k = 0; k < K; ++k) {
-      prod += log(tmp[k]) ;
+      post_prec = tau2_tilde + sigma2_tilde[k] * nn[k];
+      tau_n = sqrt(1/post_prec);
+      w1 = tau2_tilde/post_prec;
+      w2 = nn[k]*sigma2_tilde[k]/post_prec;
+      mu_n = w1*muc[s] + w2*data_mean[k];
+      tmp = dnorm(thetastar, mu_n, tau_n) ;
+      prod = prod * tmp[k] ;
     }
     p_theta[s] = prod ;
   }
@@ -1149,6 +1179,8 @@ RcppExport SEXP p_sigma2_zpermuted(SEXP xmod) {
   Rcpp::S4 model = clone(model_) ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
   Rcpp::S4 params=model.slot("mcmc.params") ;
+  NumericVector x = model.slot("data") ;
+  int n = x.size() ;
   int S = params.slot("iter") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
@@ -1157,30 +1189,55 @@ RcppExport SEXP p_sigma2_zpermuted(SEXP xmod) {
   NumericVector thetastar=clone(theta_) ;
   int K = thetastar.size() ;
   NumericVector prec(K) ;
-  NumericVector logp_prec(S) ;
+  NumericVector p_prec(S) ;
   NumericVector tmp(K) ;
   NumericVector nu0 (1) ;
   NumericVector s20 (1) ;
+  IntegerMatrix Z = chains.slot("z") ;
+  IntegerVector zz ;
+  IntegerVector nn(K) ;
+  NumericVector nu_n(K) ;
   //
   // We need to keep the Z|y,theta* chain
   //
   NumericVector nu0chain = chains.slot("nu.0") ;
   NumericVector s20chain = chains.slot("sigma2.0") ;
   //
+  NumericVector sigma2_n(1) ;
+  NumericVector sigma2_new(K) ;  
+  //
   // Run reduced Gibbs  -- theta is fixed at modal ordinate
   //
   prec = 1.0/sigma2star ;
   for(int s=0; s < S; ++s){
+    zz = Z(s, _) ;
+    nn = tableZ(K, zz) ;
     s20 = s20chain[s] ;
     nu0 = nu0chain[s] ;
-    tmp = dgamma(prec, 0.5*nu0[0], 2.0 / (nu0[0]*s20[0])) ;
-    double total = 0.0 ;
-    for(int k = 0; k < K; ++k){
-      total += log(tmp[k]) ;
+
+    NumericVector ss(K) ;
+    for(int i = 0; i < n; i++){
+      int k = 0 ;
+      while(k <= K) {
+        if( zz[i] == k + 1 ){
+          ss[k] += pow(x[i] - thetastar[k], 2.0) ;
+          break ;
+        }
+        k++ ;
+      }
     }
-    logp_prec[s] = total ;
+    
+    double total = 1.0 ;    
+    for(int k = 0; k < K; ++k){
+      nu_n = nu0 + nn[k] ;
+      sigma2_n = 1.0/nu_n[0]*(nu0*s20 + ss[k]) ;
+      tmp = dgamma(prec, 0.5*nu_n[0], 2.0 / (nu_n[0]*sigma2_n[0])) ;
+      total = total*tmp[k] ;
+    }
+    p_prec[s] = total ;
+    //logp_prec[s] = total ;
   }
-  return logp_prec ;
+  return p_prec ;
 }
 
 
@@ -1254,13 +1311,14 @@ RcppExport SEXP reduced_thetafixed(SEXP xmod) {
   NumericVector s20chain = chains.slot("sigma2.0") ;
   IntegerVector h(N) ;
   model.slot("theta") = thetastar ;
+  IntegerVector zz ;
   //
   // Run reduced Gibbs  -- theta is fixed at modal ordinate
   //  
   for(int s=0; s < S; ++s){
-    // h = Z(s, _) ;
-    model.slot("z") = update_z(xmod) ;
-    // model.slot("z") = h ;
+    zz = update_z(model) ;
+    model.slot("z") = zz ;
+    Z(s, _) = zz ;
     model.slot("data.mean") = compute_means(model) ;
     model.slot("data.prec") = compute_prec(model) ;
     //model.slot("theta") = update_theta(model) ; Do not update theta !
@@ -1274,7 +1332,7 @@ RcppExport SEXP reduced_thetafixed(SEXP xmod) {
     s20chain[s] = model.slot("sigma2.0") ;
   }
   //return logp_prec ;
-  // chains.slot("z") = Z ;
+  chains.slot("z") = Z ;
   chains.slot("nu.0") = nu0chain ;
   chains.slot("sigma2.0") = s20chain ;
   model.slot("mcmc.chains") = chains ;

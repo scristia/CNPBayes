@@ -6,25 +6,20 @@ using namespace Rcpp;
 // create accessor functions for s4 slots
 // Update theta in marginal model
 RcppExport SEXP update_theta(SEXP xmod) {
-    // Rcpp::RNGScope scope;
-    // initialize objects that are passed from R
-    RNGScope scope;
-    Rcpp::S4 model(xmod);
-    NumericVector theta = model.slot("theta");
-    double tau2 = model.slot("tau2");
-    double tau2_tilde = 1/tau2;
-    NumericVector sigma2 = model.slot("sigma2");
-    NumericVector data_mean = model.slot("data.mean");
-    NumericVector sigma2_tilde = 1.0/sigma2;
+    RNGScope scope ;
+    Rcpp::S4 model(xmod) ;
+    NumericVector theta = model.slot("theta") ;
+    double tau2 = model.slot("tau2") ;
+    double tau2_tilde = 1/tau2 ;
+    NumericVector sigma2 = model.slot("sigma2") ;
+    NumericVector data_mean = model.slot("data.mean") ;
+    NumericVector sigma2_tilde = 1.0/sigma2 ;
     IntegerVector z = model.slot("z");
     int K = getK(model.slot("hyperparams"));
-    //NumericVector mu_prior = getMu(model.slot("hyperparams"));
     double mu_prior = model.slot("mu");
     //
     // Initialize nn, vector of component-wise sample size
-    // TODO: abstract this and check for zero's
     //
-    // IntegerVector nn = model.slot("zfreq") ;
     IntegerVector nn = tableZ(K, z) ;
     double post_prec;
     double tau_n;
