@@ -628,14 +628,25 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// reduced_pi_fixed
-RcppExport SEXP reduced_pi_fixed(SEXP xmod);
-RcppExport SEXP CNPBayes_reduced_pi_fixed(SEXP xmodSEXP) {
+// reduced_mu
+RcppExport SEXP reduced_mu(SEXP xmod);
+RcppExport SEXP CNPBayes_reduced_mu(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(reduced_pi_fixed(xmod));
+    __result = Rcpp::wrap(reduced_mu(xmod));
+    return __result;
+END_RCPP
+}
+// p_mu_reduced
+RcppExport SEXP p_mu_reduced(SEXP xmod);
+RcppExport SEXP CNPBayes_p_mu_reduced(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(p_mu_reduced(xmod));
     return __result;
 END_RCPP
 }

@@ -225,7 +225,11 @@ reduced_theta_sigma_fixed <- function(xmod) {
     .Call('CNPBayes_reduced_theta_sigma_fixed', PACKAGE = 'CNPBayes', xmod)
 }
 
-reduced_pi_fixed <- function(xmod) {
-    .Call('CNPBayes_reduced_pi_fixed', PACKAGE = 'CNPBayes', xmod)
+reduced_mu <- function(xmod) {
+    .Call('CNPBayes_reduced_mu', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_mu_reduced <- function(xmod) {
+    .Call('CNPBayes_p_mu_reduced', PACKAGE = 'CNPBayes', xmod)
 }
 

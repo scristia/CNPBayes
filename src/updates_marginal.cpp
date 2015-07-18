@@ -1340,7 +1340,6 @@ RcppExport SEXP reduced_thetafixed(SEXP xmod) {
   return model ;
 }
 
-
 // [[Rcpp::export]]
 RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod) {
   RNGScope scope ;
@@ -1352,6 +1351,7 @@ RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod) {
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
+  NumericVector pi_ = as<NumericVector>(modes["mixprob"]) ;
   NumericVector sigma2star=clone(sigma2_) ;
   NumericVector thetastar=clone(theta_) ;
   int K = thetastar.size() ;
@@ -1366,6 +1366,7 @@ RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod) {
   IntegerMatrix Z = chains.slot("z") ;
   NumericVector zz(N) ;
   model.slot("theta") = thetastar ;
+  model.slot("sigma2") = sigma2star ;
   //
   // Run reduced Gibbs:
   //   -- theta is fixed at modal ordinate
@@ -1390,8 +1391,6 @@ RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod) {
   return model ;
 }
 
-
-
 // [[Rcpp::export]]
 RcppExport SEXP reduced_mu(SEXP xmod) {
   RNGScope scope ;
@@ -1412,26 +1411,25 @@ RcppExport SEXP reduced_mu(SEXP xmod) {
   NumericVector logp_prec(S) ;
   NumericVector tmp(K) ;
   NumericVector y = model.slot("data") ;
+  NumericVector tau2chain(S) ;
   int N = y.size() ;
-  NumericVector tau2(1) ;
-  NumericVector nu0 (1) ;
-  NumericVector s20 (1) ;
-  NumericVector s2 (1) ;
   //
   // We need to keep the Z|y,theta* chain
   //
   IntegerMatrix Z = chains.slot("z") ;
-  NumericVector nu0chain = chains.slot("nu.0") ;
-  NumericVector s20chain = chains.slot("sigma2.0") ;
-  IntegerVector h(N) ;
+  IntegerVector zz(N) ;
   model.slot("theta") = thetastar ;
+  model.slot("sigma2") = sigma2star ;
+  model.slot("pi") = pistar ;
   //
   // Run reduced Gibbs:
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
   //  
   for(int s=0; s < S; ++s){
-    model.slot("z") = update_z(xmod) ;
+    zz = update_z(model) ;
+    model.slot("z") = zz ;
+    Z(s, _) = zz ;    
     model.slot("data.mean") = compute_means(model) ;
     model.slot("data.prec") = compute_prec(model) ;
     // model.slot("theta") = update_theta(model) ; Do not update theta !
@@ -1441,11 +1439,68 @@ RcppExport SEXP reduced_mu(SEXP xmod) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma2_0(model) ;
-    nu0chain[s] = model.slot("nu.0") ;
-    s20chain[s] = model.slot("sigma2.0") ;
+    tau2chain[s] = model.slot("tau2") ;
   }
-  chains.slot("nu.0") = nu0chain ;
-  chains.slot("sigma2.0") = s20chain ;
+  chains.slot("tau2") = tau2chain ;
+  chains.slot("z") = Z ;
   model.slot("mcmc.chains") = chains ;
   return model ;
 }
+
+
+// [[Rcpp::export]]
+RcppExport SEXP p_mu_reduced(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
+  Rcpp::S4 chains = model.slot("mcmc.chains") ;
+  Rcpp::S4 hypp = model.slot("hyperparams") ;
+  List modes = model.slot("modes") ;
+  //
+  //
+  NumericVector x = model.slot("data") ;    
+  int K = hypp.slot("k") ;
+  int S = mcmcp.slot("iter") ;  
+  int N = x.size() ;
+  //
+  NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
+  NumericVector theta_=as<NumericVector>(modes["theta"]) ;
+  NumericVector mu_=as<NumericVector>(modes["mu"]) ;
+  NumericVector pstar = clone(p_) ;
+  NumericVector mustar = clone(mu_) ;
+  NumericVector thetastar = clone(theta_) ;
+  IntegerMatrix Z = chains.slot("z") ;
+  NumericVector tau2chain = chains.slot("tau2") ;
+  IntegerVector zz(N) ;
+
+  IntegerVector nn(K) ;
+  NumericVector mu0=hypp.slot("mu.0") ;
+  double mu_0 = mu0[0] ;
+  NumericVector tau2_0 = hypp.slot("tau2.0") ;
+  double tau20_tilde = 1.0/tau2_0[0] ;
+  double thetabar ;
+  double mu_k ;
+  NumericVector tau2_tilde = 1.0/tau2chain ;
+  double w1 ;
+  double w2 ;
+  double tau_k ;
+  NumericVector p_mu(S) ;
+  NumericVector tmp(1) ;
+  
+  for(int s = 0; s < S; ++s){
+    zz = Z(s, _) ;
+    nn = tableZ(K, zz) ;
+    double total = 0.0 ;
+    for(int k = 0; k < K; k++) total += nn[k] ;
+    for(int k = 0; k < K; k++) thetabar += nn[k] * thetastar[k] / total ;
+    double post_prec = 1.0/tau2_0[0] + K*tau2_tilde[s] ;
+    w1 = tau20_tilde/post_prec ;
+    w2 = K*tau2_tilde[s]/post_prec ;
+    mu_k =  w1*mu_0 +  w2*thetabar ;
+    tau_k = sqrt(1.0/post_prec) ;
+    tmp  = dnorm(mustar, mu_k, tau_k) ;
+    p_mu[s] = tmp[0] ;
+  }
+  return p_mu ;
+}
+
