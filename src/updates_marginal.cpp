@@ -1665,3 +1665,62 @@ RcppExport SEXP reduced_nu0(SEXP xmod) {
   model.slot("mcmc.chains") = chains ;
   return model ;
 }
+
+
+RcppExport SEXP p_nu0_reduced(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
+  Rcpp::S4 chains = model.slot("mcmc.chains") ;
+  Rcpp::S4 hypp = model.slot("hyperparams") ;
+  List modes = model.slot("modes") ;
+  //
+  //
+  NumericVector x = model.slot("data") ;    
+  int K = hypp.slot("k") ;
+  int S = mcmcp.slot("iter") ;  
+  int N = x.size() ;
+  //
+  NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
+  NumericVector theta_=as<NumericVector>(modes["theta"]) ;
+  NumericVector mu_=as<NumericVector>(modes["mu"]) ;
+  NumericVector tau2_=as<NumericVector>(modes["tau2"]) ;
+  IntegerVector nu0_=as<IntegerVector>(modes["nu0"]) ;
+  NumericVector sigma2_=as<NumericVector>(modes["sigma2"]) ;
+  NumericVector pstar = clone(p_) ;
+  NumericVector mustar = clone(mu_) ;
+  NumericVector tau2star = clone(tau2_) ;
+  NumericVector thetastar = clone(theta_) ;
+  NumericVector sigma2star = clone(sigma2_) ;
+  IntegerVector nu0=clone(nu0_) ;
+  NumericVector p_nu0(S) ;
+  int nu0star = nu0[0] ;
+
+  NumericVector s20chain = chains.slot("sigma2.0") ;
+  double betas = hypp.slot("beta") ;
+
+  //
+  // compute p(nu0*, ) from *normalized* probabilities
+  //
+  NumericVector d(100) ;  // 100 is the maximum allowed value for nu_0
+  NumericVector lpnu0(100);
+  double prec = 0.0 ;
+  double lprec = 0.0 ;
+  for(int k = 0; k < K; k++) prec += 1.0/sigma2star[k] ;
+  for(int k = 0; k < K; k++) lprec += log(1.0/sigma2star[k]) ;
+  d = seq_len(100) ;
+  NumericVector y1(100) ;
+  NumericVector y2(100) ;
+  NumericVector y3(100) ;
+  for(int s = 0; s < S; ++s) {
+    y1 = K*(0.5*d*log(s20chain[s]*0.5*d) - lgamma(d*0.5)) ;
+    y2 = (0.5*d - 1.0) * lprec ;
+    y3 = d*(betas + 0.5*s20chain[s]*prec) ;
+    lpnu0 =  y1 + y2 - y3 ;
+    NumericVector prob(100) ;
+    prob = exp(lpnu0) ; // - maxprob) ;
+    prob = prob/sum(prob) ;  // this is now normalized
+    p_nu0[s] = prob[nu0star] ;
+  }
+  return p_nu0 ;
+}
