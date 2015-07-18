@@ -1260,7 +1260,7 @@ RcppExport SEXP p_pmix_reduced(SEXP xmod) {
   NumericVector pstar = clone(p_) ;
   NumericMatrix Z = chains.slot("z") ;
   NumericVector alpha = hypp.slot("alpha") ;
-  NumericVector log_pmix(S) ;
+  NumericVector pmix(S) ;
   //
   // Run reduced Gibbs  -- theta,sigma2 fixed at modal ordinates
   //
@@ -1273,10 +1273,10 @@ RcppExport SEXP p_pmix_reduced(SEXP xmod) {
       alpha_n[k] = sum(h == k+1) + alpha[k] ;
     }
     tmp = log_ddirichlet_(pstar, alpha_n) ;
-    log_pmix[s] = tmp[0] ;
+    pmix[s] = exp(tmp[0]) ;
   }
   // return tmp ;
-  return log_pmix ;
+  return pmix ;
 }
 
 
@@ -1368,6 +1368,7 @@ RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod) {
   // We need to keep the Z|y,theta* chain
   //
   IntegerMatrix Z = chains.slot("z") ;
+  NumericVector zz(N) ;
   NumericVector nu0chain = chains.slot("nu.0") ;
   NumericVector s20chain = chains.slot("sigma2.0") ;
   IntegerVector h(N) ;
