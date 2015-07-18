@@ -1504,3 +1504,91 @@ RcppExport SEXP p_mu_reduced(SEXP xmod) {
   return p_mu ;
 }
 
+// [[Rcpp::export]]
+RcppExport SEXP reduced_tau(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model_(xmod) ;
+  Rcpp::S4 model = clone(model_) ;
+  Rcpp::S4 params=model.slot("mcmc.params") ;
+  Rcpp::S4 chains=model.slot("mcmc.chains") ;
+  int S = params.slot("iter") ;
+  List modes = model.slot("modes") ;
+  NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
+  NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
+  NumericVector pi_ = as<NumericVector>(modes["mixprob"]) ;
+  NumericVector mu_ = as<NumericVector>(modes["mu"]) ;
+  NumericVector sigma2star=clone(sigma2_) ;
+  NumericVector thetastar=clone(theta_) ;
+  NumericVector pistar=clone(pi_) ;
+  NumericVector mustar=clone(mu_) ;
+  int K = thetastar.size() ;
+  NumericVector prec(K) ;
+  NumericVector logp_prec(S) ;
+  NumericVector tmp(K) ;
+  NumericVector y = model.slot("data") ;
+  NumericVector tau2chain(S) ;
+  int N = y.size() ;
+  //
+  // We need to keep the Z|y,theta* chain
+  //
+  IntegerMatrix Z = chains.slot("z") ;
+  IntegerVector zz(N) ;
+  model.slot("theta") = thetastar ;
+  model.slot("sigma2") = sigma2star ;
+  model.slot("pi") = pistar ;
+  model.slot("mu") = mustar ;
+  //
+  // Run reduced Gibbs:
+  //   -- theta is fixed at modal ordinate
+  //   -- sigma2 is fixed at modal ordinate
+  //  
+  for(int s=0; s < S; ++s){
+    zz = update_z(model) ;
+    model.slot("z") = zz ;
+    Z(s, _) = zz ;    
+    model.slot("data.mean") = compute_means(model) ;
+    model.slot("data.prec") = compute_prec(model) ;
+    // model.slot("theta") = update_theta(model) ; Do not update theta !
+    // model.slot("sigma2") = update_sigma2(model) ;
+    // model.slot("pi") = update_p(model) ;
+    // model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("sigma2.0") = update_sigma2_0(model) ;
+  }
+  chains.slot("z") = Z ;
+  model.slot("mcmc.chains") = chains ;
+  return model ;
+}
+
+
+// [[Rcpp::export]]
+RcppExport SEXP p_tau_reduced(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
+  Rcpp::S4 chains = model.slot("mcmc.chains") ;
+  Rcpp::S4 hypp = model.slot("hyperparams") ;
+  List modes = model.slot("modes") ;
+  //
+  //
+  NumericVector x = model.slot("data") ;    
+  int K = hypp.slot("k") ;
+  int S = mcmcp.slot("iter") ;  
+  int N = x.size() ;
+  //
+  NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
+  NumericVector theta_=as<NumericVector>(modes["theta"]) ;
+  NumericVector mu_=as<NumericVector>(modes["mu"]) ;
+  NumericVector pstar = clone(p_) ;
+  NumericVector mustar = clone(mu_) ;
+  NumericVector thetastar = clone(theta_) ;
+  NumericVector mustar = clone(mu_) ;
+  IntegerMatrix Z = chains.slot("z") ;
+  IntegerVector zz(N) ;
+  NumericVector p_tau(S) ;
+
+
+  return p_tau ;
+}
+
