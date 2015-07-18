@@ -179,33 +179,47 @@ RcppExport SEXP update_tau2_batch(SEXP xmod){
 
 // [[Rcpp::export]]
 RcppExport SEXP update_sigma20_batch(SEXP xmod){
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
-  int B = ub.size() ;
-  NumericVector a = hypp.slot("a") ;
-  NumericVector b = hypp.slot("b") ;
-  NumericVector nu_0 = model.slot("nu.0") ;  
-  NumericMatrix sigma2 = model.slot("sigma2") ;
-  NumericVector prec(1) ;
-  for(int i = 0; i < B; ++i){
-    for(int k = 0; k < K; ++k){
-      prec[0] += 1.0/sigma2(i, k) ;
+    RNGScope scope ;
+    Rcpp::S4 model(xmod) ;
+    Rcpp::S4 hypp(model.slot("hyperparams")) ;
+    int K = getK(hypp) ;
+    IntegerVector batch = model.slot("batch") ;
+    IntegerVector ub = uniqueBatch(batch) ;
+    int B = ub.size() ;
+    NumericVector a = hypp.slot("a") ;
+    NumericVector b = hypp.slot("b") ;
+    NumericVector nu_0 = model.slot("nu.0") ;  
+    NumericMatrix sigma2 = model.slot("sigma2") ;
+    Rcpp::NumericVector sigma2_0_old = model.slot("sigma2.0");
+    NumericVector prec(1) ;
+
+    for(int i = 0; i < B; ++i){
+        for(int k = 0; k < K; ++k){
+            prec[0] += 1.0/sigma2(i, k) ;
+        }
     }
-  }
-  NumericVector a_k(1) ;
-  NumericVector b_k(1) ;
-  a_k[0] = a[0] + 0.5*(K * B)*nu_0[0] ;
-  b_k[0] = b[0] + 0.5*nu_0[0]*prec[0] ;
-  double rate ;
-  rate = 1.0/b_k[0] ;
-  //return b_k ;
-  NumericVector sigma2_0(1) ;
-  sigma2_0[0] = as<double>(rgamma(1, a_k[0], rate)) ;
-  return sigma2_0 ;
+
+    NumericVector a_k(1) ;
+    NumericVector b_k(1) ;
+    a_k[0] = a[0] + 0.5*(K * B)*nu_0[0] ;
+    b_k[0] = b[0] + 0.5*nu_0[0]*prec[0] ;
+    double rate ;
+    rate = 1.0/b_k[0] ;
+    //return b_k ;
+    NumericVector sigma2_0(1) ;
+    sigma2_0[0] = as<double>(rgamma(1, a_k[0], rate)) ;
+    double constraint = model.slot(".internal.constraint");
+    if (constraint > 0) {
+        if (sigma2_0[0] < constraint) {
+            return sigma2_0_old;
+        }
+        else {
+            return sigma2_0;
+        }
+    }
+    else {
+        return sigma2_0;
+    }
 }
 
 // [[Rcpp::export]]
@@ -454,26 +468,6 @@ RcppExport SEXP compute_vars_batch(SEXP xmod) {
     }
   }
   return vars ;
-    
-//   for(int i = 0; i < n; ++i){
-//     for(int b = 0; b < B; ++b){
-//       if(batch[i] != ub[b]) continue ;
-//       for(int k = 0; k < K; ++k){
-//         if(z[i] == k+1){
-//           vars(b, k) += (pow(x[i] - mn(b, k), 2.0)/(tabz(b, k)-1)) ;
-//         }
-//       }
-//     }
-//   }
-//   if(is_true(any(vars < 0.0001))){
-//     for(int b = 0; b < B; ++b){
-//       for(int k = 0; k < K; ++k){
-//         if(vars(b, k) > 0.0001) continue ;
-//         vars(b, k) = 1000 ;
-//       }
-//     }
-//   }  
-//   return vars ;
 }
 
 
@@ -523,36 +517,40 @@ RcppExport SEXP compute_logprior_batch(SEXP xmod){
 
 // [[Rcpp::export]]
 RcppExport SEXP update_theta_batch(SEXP xmod){
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  NumericVector x = model.slot("data") ;
-  // NumericMatrix theta = model.slot("theta") ;
-  NumericVector tau2 = model.slot("tau2") ;
-  NumericMatrix sigma2 = model.slot("sigma2") ;
-  NumericMatrix n_hb = tableBatchZ(xmod) ;
-  NumericVector mu = model.slot("mu") ;
-  int B = n_hb.nrow() ;
-  NumericMatrix ybar = model.slot("data.mean") ;
-  NumericMatrix theta_new(B, K) ;
-  double w1 = 0.0 ;
-  double w2 = 0.0 ;
-  double mu_n = 0.0 ;
-  double tau_n = 0.0 ;
-  double post_prec = 0.0 ;
-  for(int b = 0; b < B; ++b){
-    for(int k = 0; k < K; ++k){
-      post_prec = 1.0/tau2[k] + n_hb(b, k)*1.0/sigma2(b, k) ;
-      tau_n = sqrt(1.0/post_prec) ;
-      w1 = (1.0/tau2[k])/post_prec ;
-      w2 = (n_hb(b, k) * 1.0/sigma2(b, k))/post_prec ;
-      mu_n = w1*mu[k] + w2*ybar(b, k) ;
-      theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
+    RNGScope scope ;
+    Rcpp::S4 model(xmod) ;
+    Rcpp::S4 hypp(model.slot("hyperparams")) ;
+    int K = getK(hypp) ;
+    NumericVector x = model.slot("data") ;
+    // NumericMatrix theta = model.slot("theta") ;
+    NumericVector tau2 = model.slot("tau2") ;
+    NumericMatrix sigma2 = model.slot("sigma2") ;
+    NumericMatrix n_hb = tableBatchZ(xmod) ;
+    NumericVector mu = model.slot("mu") ;
+    int B = n_hb.nrow() ;
+    NumericMatrix ybar = model.slot("data.mean") ;
+    NumericMatrix theta_new(B, K) ;
+    double w1 = 0.0 ;
+    double w2 = 0.0 ;
+    double mu_n = 0.0 ;
+    double tau_n = 0.0 ;
+    double post_prec = 0.0 ;
+
+    for (int b = 0; b < B; ++b) {
+        for(int k = 0; k < K; ++k){
+            post_prec = 1.0/tau2[k] + n_hb(b, k)*1.0/sigma2(b, k) ;
+            if (post_prec == R_PosInf) {
+                Rcpp::stop("Bad simulation. Run again with different start.");
+            }
+            tau_n = sqrt(1.0/post_prec) ;
+            w1 = (1.0/tau2[k])/post_prec ;
+            w2 = (n_hb(b, k) * 1.0/sigma2(b, k))/post_prec ;
+            mu_n = w1*mu[k] + w2*ybar(b, k) ;
+            theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
+        }
     }
-  }
-  // if(is_true(any(is_nan(theta_new)))) stop("missing values in theta") ;
-  return theta_new ;
+    // if(is_true(any(is_nan(theta_new)))) stop("missing values in theta") ;
+    return theta_new ;
 }
 
 // [[Rcpp::export]]

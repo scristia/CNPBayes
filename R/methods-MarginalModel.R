@@ -34,7 +34,8 @@ MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
                 batchElements=nbatch,
                 hwe=numeric(),
                 modes=list(),
-                mcmc.params=mcmc.params)
+                mcmc.params=mcmc.params,
+                .internal.constraint=5e-4)
   object <- startingValues(object)
 }
 
@@ -532,49 +533,13 @@ summarizeMarginalEstimates <- function(x){
   xx
 }
 
-summarizeMarginalEstimates2 <- function(x){
+summarizeMarginalEstimates <- function(x){
     chibs <- round(chib(x), 2)
     berk <- round(berkhof(x), 2)
     my <- marginal(x)
     xx <- c(chibs, berk, my)
     names(xx) <- c("chib", "berkhof", "marginal")
     xx
-}
-
-simulateMultipleChains <- function(nchains, y, batch, k, mp){
-  ##if(k==1) nchains <- 1
-  if(missing(batch)){
-    kmodlist <- replicate(nchains, {
-      kmod <- MarginalModel(y, k=k, mcmc.params=mp)
-      nStarts(kmod) <- 10
-      burnin(kmod) <- 100
-      iter(kmod, force=TRUE) <- 1
-      ## run burnin with multiple chains to find suitable starting values
-      kmod <- posteriorSimulation(kmod)
-      mcmcParams(kmod, force=TRUE) <- mp
-      kmod <- posteriorSimulation(kmod)
-      return(kmod)
-    })
-    return(kmodlist)
-  }
-  ## batch not missing
-  kmodlist <- vector("list", nchains)
-  for(i in seq_along(kmodlist)){
-    ##message("Initializing batch model", i)
-    kmod <- BatchModel(data=y, batch=batch, k=k, mcmc.params=mp)
-    kmod <- ensureAllComponentsObserved(kmod)
-    ##message("Entering posteriorSimulation")
-    nStarts(kmod) <- 10
-    burnin(kmod) <- 100
-    iter(kmod, force=TRUE) <- 1
-    ## run burnin (fitting the marginal model) with multiple chains to
-    ## find suitable starting values
-    kmod <- posteriorSimulation(kmod)
-    mcmcParams(kmod, force=TRUE) <- mp
-    ##saveRDS(kmod, file="kmod.rds")
-    kmodlist[[i]] <- posteriorSimulation(kmod)
-  }
-  return(kmodlist)
 }
 
 updateMultipleChains <- function(nchains, modellist, mp){
@@ -594,77 +559,6 @@ updateMultipleChains <- function(nchains, modellist, mp){
   return(kmodlist)
 }
 
-modalLoglik <- function(x) modes(x)[["loglik"]]
-
-#' Estimate the marginal density of a mixture model with k components
-#'
-#' This function is used to estimate the marginal density of a mixture
-#' model with k components.  If k is specified as an integer vector,
-#' the marginal density is estimated for each k.
-#' @param y a numeric vector, possibly multi-modal
-#' @param batch an integer-vector indicating the batch for each
-#' observation was derived
-#' @param K integer vector of possible copy numbers (latent variable states)
-#' @param T number of MCMC iterations
-#' @param burnin number of MCMC burnin iterations to be discarded
-#' @param T2 number of MCMC iterations after permuting the modes.  See \code{maxperm}.
-#' @param maxperm a length-one integer vector.  For a mixture model
-#' with K components, there are K! possible modes.  \code{maxperm}
-#' indicates the maximum number of permutations to explore.
-#' @param nchains number of parallel MCMC chains to run
-#' @param thin number of thinning intervals
-#' @export
-#' @seealso \code{\link{logBayesFactor}} for computing the bayes
-#' factor for two models, \code{\link{orderModels}} for ordering a
-#' list of models by decreasing marginal density, and \code{plot} for
-#' visualizing the component densities.
-# maxperm, burnin, T, T2, thin go to gether, should go to gether and be encapsulated.
-# nchains stays separate.
-# y batch and k will disappear b/c were giving list of models.k
-# will still be slow, most of the work is the berkhofEstimate, which we will
-# still be using. we'll be faster, since we are starting at modes and evaluating
-# convergence.
-# there's still a lot of code esp when downsampling to make things faster
-# then we have to go back to original scale. lot of work looping through CNP
-# loci. as we gothrough kleins data, how do we do this systematically. give it a
-# summarizedexperiment object and loop thorugh all thr loci and select model(s)
-# based on bic, icl and then we prioritize. (this is for kleins analysis, but
-# not vignette. shouldn't have to by i go through everything, should be able to
-# come up with reasonable answers by giving it experiment.
-computeMarginalLik <- function(y, batch, K=1:4,
-                               T=1000, burnin=200,
-                               T2=200,
-                               maxperm=3,
-                               nchains=3,
-                               thin=1){
-  if(T < T2) stop("T must be >= T2")
-  my <- vector("list", length(K))
-  mlist <- vector("list", length(K))
-  mp <- McmcParams(iter=T, nStarts=1, burnin=burnin, thin=thin)
-  for(i in seq_along(K)){
-    k <- K[i]
-    kmodlist <- simulateMultipleChains(nchains=nchains, y=y, batch=batch, k=k, mp=mp)
-    # this is starting point, use berkhofEstimate on list of models
-
-    mlik <- lapply(kmodlist, berkhofEstimate, T2=T2, maxperm=maxperm)
-    ll <- sapply(kmodlist, modalLoglik)
-    mlist[[i]] <- kmodlist[[which.max(ll)]]
-    xx <- summarizeMarginalEstimates(mlik)
-    my[[i]] <- xx
-    mlist[[i]] <- kmodlist[[1]]
-  }
-  if(is(mlist[[1]], "MarginalModel")){
-    nms <- paste0("M", K)
-    mlist <- MarginalModelList(mlist, names=nms)
-  } else {
-    nms <- paste0("B", K)
-    mlist <- BatchModelList(mlist, names=nms)
-  }
-  names(my) <- nms
-  results <- list(models=mlist, marginal=my)
-  results
-}
-
 #' Estimate the marginal density of a mixture model with k components
 #'
 #' This function is used to estimate the marginal density of a mixture
@@ -682,7 +576,7 @@ computeMarginalLik <- function(y, batch, K=1:4,
 #' factor for two models, \code{\link{orderModels}} for ordering a
 #' list of models by decreasing marginal density, and \code{plot} for
 #' visualizing the component densities.
-computeMarginalLik2 <- function(modlist,
+computeMarginalLik <- function(modlist,
                                 post.iter=200,
                                 maxperm=3,
                                 method='chib'){
@@ -693,7 +587,7 @@ computeMarginalLik2 <- function(modlist,
     for (i in seq_along(K)) {
         model_lik <- berkhofEstimate(modlist[[i]], T2=post.iter, maxperm=maxperm)
 #         log_lik <- CNPBayes:::modalLoglik(model)
-        xx <- summarizeMarginalEstimates2(model_lik)
+        xx <- summarizeMarginalEstimates(model_lik)
         my[[i]] <- xx
 #         mlist[[i]] <- modlist[[i]]
     }
@@ -725,40 +619,8 @@ modelOtherModes <- function(model, maxperm=5){
 #'
 #' Models are ordered according to marginal likelihood. The marginal likelihood is computed for each chain of each component size model separately. The mean is taken by model, and ordering by this mean marginal is performed. For each model, the difference of marginal likelihoods is calculated for each chain and the range is taken. If the sum of these ranges across models is greater than \code{maxdev}, a NULL is returned and a warning message printed.
 #' @param x the result of a call to \code{computeMarginalLik}.
-#' @param maxdev the maximum of the sum of ranges of marginal likelihoods that is considered acceptable.
 #' @export
 orderModels <- function(x, maxdev=5){
-  x <- .trimNA(x)
-  models <- x$models
-  ##K <- k(models)
-  K <- names(models)
-  ##maxdev <- sapply(K, function(x) log(factorial(x))) + 0.5
-  marginal.est.list <- x$marginal
-  m <- lapply(marginal.est.list, function(x) x[, "marginal"])
-  my <- sapply(m, mean)
-  d <- sapply(m, function(x) diff(range(x)))
-  keep <- !is.nan(d) & is.finite(d)
-  my <- my[keep]
-  K <- K[keep]
-  d <- d[keep]
-  if(sum(d < maxdev, na.rm=TRUE) >= 1){
-    K <- K[ d < maxdev ]
-  } else {
-    warning("Marginal likelihood estimates are dissimilar for all models.  More iterations are needed")
-    return(NULL)
-  }
-  K <- K[order(my[K], decreasing=TRUE)]
-  ix <- match(K, names(models))
-  models <- models[ix]
-  return(models)
-}
-
-#' Reorder models of varying component sizes.
-#'
-#' Models are ordered according to marginal likelihood. The marginal likelihood is computed for each chain of each component size model separately. The mean is taken by model, and ordering by this mean marginal is performed. For each model, the difference of marginal likelihoods is calculated for each chain and the range is taken. If the sum of these ranges across models is greater than \code{maxdev}, a NULL is returned and a warning message printed.
-#' @param x the result of a call to \code{computeMarginalLik}.
-#' @export
-orderModels2 <- function(x, maxdev=5){
   models <- x$models
   ##K <- k(models)
   K <- names(models)
@@ -771,13 +633,6 @@ orderModels2 <- function(x, maxdev=5){
   return(models)
 }
 
-.trimNA <- function(object){
-  mm <- object$marginal
-  mm <- lapply(mm, function(x) x[rowSums(is.na(x)) == 0, , drop=FALSE] )
-  object$marginal <- mm
-  object
-}
-
 #' Compute the log bayes factor between models.
 #'
 #' Models of varying component sizes are compared. The log bayes factor is calculated comparing the two models with the highest marginal likelihood, as computed by \code{computeMarginalLik}.
@@ -785,24 +640,6 @@ orderModels2 <- function(x, maxdev=5){
 #' @export
 logBayesFactor <- function(x){
   models <- orderModels(x)
-  if(length(models) <= 1) {
-    return(NA)
-  }
-  K <- k(models)
-  ##nms <- names(orderModels(x))
-  nms <- names(models)
-  ml <- sapply(x$marginal[nms], function(x) mean(x[, "marginal"]))
-  bf <- setNames(ml[1]-ml[2], paste0(names(ml[1:2]), collapse="-"))
-  bf
-}
-
-#' Compute the log bayes factor between models.
-#'
-#' Models of varying component sizes are compared. The log bayes factor is calculated comparing the two models with the highest marginal likelihood, as computed by \code{computeMarginalLik}.
-#' @param x the result of a call to \code{computeMarginalLik}.
-#' @export
-logBayesFactor2 <- function(x){
-  models <- orderModels2(x)
   if(length(models) <= 1) {
     return(NA)
   }

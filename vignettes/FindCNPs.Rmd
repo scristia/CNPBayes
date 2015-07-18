@@ -99,7 +99,7 @@ na.index <- which(nas > 0)
 x <- x[-na.index, , drop=FALSE]
 pc.summary <- prcomp(t(x))$x[, 1]
 meds.for.pc <- matrixStats::colMedians(x, na.rm=TRUE)
-if(cor(pc.summary, meds.for.pc) < 1) pc.summary <- -1*pc.summary
+if(cor(pc.summary, meds.for.pc) < 0) pc.summary <- -1*pc.summary
 ```
 
 ## Summary Plots

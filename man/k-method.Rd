@@ -7,13 +7,19 @@
 \alias{k,MixtureModel-method}
 \alias{k,ModelList-method}
 \alias{k,ModelParams-method}
+\alias{k<-}
+\alias{k<-,MixtureModel-method}
 \title{Number of components.}
 \usage{
 k(object)
 
+k(object) <- value
+
 \S4method{k}{DensityModel}(object)
 
 \S4method{k}{MixtureModel}(object)
+
+\S4method{k}{MixtureModel}(object) <- value
 
 \S4method{k}{ModelList}(object)
 
@@ -21,8 +27,18 @@ k(object)
 }
 \arguments{
 \item{object}{see \code{showMethods(k)}}
+
+\item{value}{An integer for the new number of components.}
 }
 \description{
 This function retrieves the number of a priori components.
+
+Updates the number of components and erases chains from a previous
+posteriorSimulation (if one was performed). Draws from prior to guess
+new starting values.
+}
+\examples{
+data(MarginalModelExample)
+k(MarginalModelExample) <- 2
 }
 

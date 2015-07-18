@@ -4,35 +4,24 @@
 \alias{computeMarginalLik}
 \title{Estimate the marginal density of a mixture model with k components}
 \usage{
-computeMarginalLik(y, batch, K = 1:4, T = 1000, burnin = 200, T2 = 200,
-  maxperm = 3, nchains = 3, thin = 1)
+computeMarginalLik(modlist, post.iter = 200, maxperm = 3, method = "chib")
 }
 \arguments{
-\item{y}{a numeric vector, possibly multi-modal}
+\item{modlist}{A list of converged models with different component sizes.}
 
-\item{batch}{an integer-vector indicating the batch for each
-observation was derived}
-
-\item{K}{integer vector of possible copy numbers (latent variable states)}
-
-\item{T}{number of MCMC iterations}
-
-\item{burnin}{number of MCMC burnin iterations to be discarded}
-
-\item{T2}{number of MCMC iterations after permuting the modes.  See \code{maxperm}.}
+\item{post.iter}{number of MCMC iterations after permuting the modes.  See \code{maxperm}.}
 
 \item{maxperm}{a length-one integer vector.  For a mixture model
 with K components, there are K! possible modes.  \code{maxperm}
 indicates the maximum number of permutations to explore.}
 
-\item{nchains}{number of parallel MCMC chains to run}
-
-\item{thin}{number of thinning intervals}
+\item{method}{specifies chib or laplace method}
 }
 \description{
 This function is used to estimate the marginal density of a mixture
-model with k components.  If k is specified as an integer vector,
-the marginal density is estimated for each k.
+model with k components. A list of coverged models is passed by the user
+to this function. Each model must have already converged and should be of
+a different component size.
 }
 \seealso{
 \code{\link{logBayesFactor}} for computing the bayes

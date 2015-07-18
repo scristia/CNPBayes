@@ -130,21 +130,37 @@ RcppExport SEXP update_tau2(SEXP xmod) {
 
 // [[Rcpp::export]]
 RcppExport SEXP update_sigma2_0(SEXP xmod) {
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;  
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  double a = hypp.slot("a") ;
-  double b = hypp.slot("b") ;
-  double nu_0 = model.slot("nu.0") ;
-  NumericVector sigma2 = model.slot("sigma2") ;
-  int K = getK(hypp) ;
-  double a_k = a + 0.5*K*nu_0 ;
-  double b_k ;
-  for(int k=0; k < K; k++) b_k += 0.5*nu_0/sigma2[k] ;
-  b_k += b ;
-  NumericVector sigma2_0(1);
-  sigma2_0[0] = as<double>(rgamma(1, a_k, 1.0/b_k)) ;
-  return sigma2_0 ;
+    RNGScope scope ;
+    Rcpp::S4 model(xmod) ;  
+    Rcpp::S4 hypp(model.slot("hyperparams")) ;
+    double a = hypp.slot("a") ;
+    double b = hypp.slot("b") ;
+    double nu_0 = model.slot("nu.0") ;
+    NumericVector sigma2 = model.slot("sigma2") ;
+    Rcpp::NumericVector sigma2_0_old = model.slot("sigma2.0");
+    int K = getK(hypp) ;
+    double a_k = a + 0.5*K*nu_0 ;
+    double b_k ;
+
+    for (int k=0; k < K; k++) {
+        b_k += 0.5*nu_0/sigma2[k];
+    }
+
+    b_k += b ;
+    NumericVector sigma2_0(1);
+    sigma2_0[0] = as<double>(rgamma(1, a_k, 1.0/b_k)) ;
+    double constraint = model.slot(".internal.constraint");
+    if (constraint > 0) {
+        if (sigma2_0[0] < constraint) {
+            return sigma2_0_old;
+        }
+        else {
+            return sigma2_0;
+        }
+    }
+    else {
+        return sigma2_0;
+    }
 }
 
 // [[Rcpp::export]]
@@ -495,27 +511,31 @@ IntegerVector ordertheta_(NumericVector x) {
 //
 // [[Rcpp::export]]
 RcppExport SEXP compute_probz(SEXP xmod){
-  Rcpp::S4 model(xmod) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = hypp.slot("k") ;
-  IntegerVector z = model.slot("z") ;
-  int N = z.size() ;
-  IntegerMatrix pZ = model.slot("probz") ;
-  NumericVector theta = model.slot("theta") ;
-  NumericVector cn(K) ;
-  NumericVector ordering(K) ;
-  cn = ordertheta_(theta) ;
-  for(int k = 0; k < K; ++k) cn[k] = cn[k] - 1 ;
-  
-  NumericVector is_z(N) ;
-  for(int i = 0; i < N; ++i){
-    for(int k = 0; k < K; ++k){
-      if(z[i] == (k + 1)){
-        pZ(i, cn[k]) += 1;
-      }
+    Rcpp::S4 model(xmod);
+    Rcpp::S4 hypp(model.slot("hyperparams"));
+    int K = hypp.slot("k");
+    IntegerVector z = model.slot("z");
+    int N = z.size();
+    IntegerMatrix pZ = model.slot("probz");
+    NumericVector theta = model.slot("theta");
+    NumericVector cn(K);
+    NumericVector ordering(K);
+    cn = ordertheta_(theta);
+
+    for (int k = 0; k < K; ++k) {
+        cn[k] = cn[k] - 1;
     }
-  }
-  return pZ ;
+    
+    NumericVector is_z(N);
+    for (int i = 0; i < N; ++i) {
+        for (int k = 0; k < K; ++k) {
+            if (z[i] == (k + 1)) {
+                pZ(i, cn[k]) += 1;
+            }
+        }
+    }
+
+    return pZ;
 }
   
 

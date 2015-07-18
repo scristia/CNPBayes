@@ -3,17 +3,31 @@
 \docType{methods}
 \name{posteriorSimulation}
 \alias{posteriorSimulation}
+\alias{posteriorSimulation,MixtureModel,ANY-method}
+\alias{posteriorSimulation,MixtureModel,integer-method}
+\alias{posteriorSimulation,MixtureModel,numeric-method}
 \alias{posteriorSimulation,MixtureModel-method}
 \title{Run the MCMC simulation.}
 \usage{
-posteriorSimulation(object)
+posteriorSimulation(object, k)
 
-\S4method{posteriorSimulation}{MixtureModel}(object)
+\S4method{posteriorSimulation}{MixtureModel,ANY}(object)
+
+\S4method{posteriorSimulation}{MixtureModel,integer}(object, k)
+
+\S4method{posteriorSimulation}{MixtureModel,numeric}(object, k)
 }
 \arguments{
 \item{object}{see showMethods(posteriorSimulation)}
+
+\item{k}{The number of a priori components. This is optional and if not
+specified, the stored k model components are used. This parameters is
+useful for running multiple models of varying components.}
 }
 \description{
-nStarts chains are run. b burnin iterations are run and then discarded. Next, s iterations are run in each train. The mode of the MCMC simulation is also calculated.
+nStarts chains are run. b burnin iterations are run and then discarded.
+Next, s iterations are run in each train. The user can also specify
+an alternative number of components.
+The mode of the MCMC simulation is also calculated.
 }
 

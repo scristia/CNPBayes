@@ -4,9 +4,9 @@
 \name{MarginalModelExample}
 \alias{MarginalModelExample}
 \title{This data is a simulated example of Marginal data}
-\format{\preformatted{Formal class 'MarginalModel' [package "CNPBayes"] with 23 slots
-  ..@ k            : int 3
-  ..@ hyperparams  :Formal class 'HyperparametersMarginal' [package "CNPBayes"] with 9 slots
+\format{\preformatted{Formal class 'MarginalModel' [package "CNPBayes"] with 24 slots
+  ..@ k                   : int 3
+  ..@ hyperparams         :Formal class 'HyperparametersMarginal' [package "CNPBayes"] with 9 slots
   .. .. ..@ k     : int 3
   .. .. ..@ mu.0  : num 0
   .. .. ..@ tau2.0: num 100
@@ -16,22 +16,22 @@
   .. .. ..@ beta  : num 0.1
   .. .. ..@ a     : num 1.8
   .. .. ..@ b     : num 6
-  ..@ theta        : num [1:3] -1.00233 0.00933 0.99694
-  ..@ sigma2       : num [1:3] 0.00955 0.00983 0.01099
-  ..@ nu.0         : num 1
-  ..@ sigma2.0     : num 0.0466
-  ..@ pi           : num [1:3] 0.328 0.325 0.348
-  ..@ mu           : num 821
-  ..@ tau2         : num 432668
-  ..@ data         : num [1:2500] -1.014 0.0309 -1.1111 -1.0109 -0.9549 ...
-  ..@ data.mean    : num [1:3] -0.9944 0.00378 0.99725
-  ..@ data.prec    : num [1:3] 97.8 103.9 89.3
-  ..@ z            : int [1:2500] 1 2 1 1 1 1 2 2 3 2 ...
-  ..@ zfreq        : int [1:3] 820 822 858
-  ..@ probz        : int [1:2500, 1:3] 4 0 4 4 4 4 0 0 0 0 ...
-  ..@ logprior     : num -5.24
-  ..@ loglik       : num -595
-  ..@ mcmc.chains  :Formal class 'McmcChains' [package "CNPBayes"] with 11 slots
+  ..@ theta               : num [1:3] -1.00233 0.00933 0.99694
+  ..@ sigma2              : num [1:3] 0.00955 0.00983 0.01099
+  ..@ nu.0                : num 1
+  ..@ sigma2.0            : num 0.0466
+  ..@ pi                  : num [1:3] 0.328 0.325 0.348
+  ..@ mu                  : num 821
+  ..@ tau2                : num 432668
+  ..@ data                : num [1:2500] -1.014 0.0309 -1.1111 -1.0109 -0.9549 ...
+  ..@ data.mean           : num [1:3] -0.9944 0.00378 0.99725
+  ..@ data.prec           : num [1:3] 97.8 103.9 89.3
+  ..@ z                   : int [1:2500] 1 2 1 1 1 1 2 2 3 2 ...
+  ..@ zfreq               : int [1:3] 820 822 858
+  ..@ probz               : int [1:2500, 1:3] 4 0 4 4 4 4 0 0 0 0 ...
+  ..@ logprior            : num -5.24
+  ..@ loglik              : num -595
+  ..@ mcmc.chains         :Formal class 'McmcChains' [package "CNPBayes"] with 11 slots
   .. .. ..@ theta   : num [1:5, 1:3] -0.996 -0.993 -0.993 -0.994 -0.992 ...
   .. .. ..@ sigma2  : num [1:5, 1:3] 0.01042 0.01055 0.00927 0.01055 0.0132 ...
   .. .. ..@ pi      : num [1:5, 1:3] 0.328 0.324 0.343 0.329 0.333 ...
@@ -43,10 +43,10 @@
   .. .. ..@ loglik  : num [1:5] -577 -577 -580 -577 -595
   .. .. ..@ zfreq   : num [1:5, 1:3] 820 820 820 820 820 822 822 822 822 822 ...
   .. .. ..@ z       : int [1:5, 1:2500] 1 1 1 1 1 2 2 2 2 2 ...
-  ..@ batch        : int [1:2500] 1 1 1 1 1 1 1 1 1 1 ...
-  ..@ batchElements: int 2500
-  ..@ hwe          : num(0) 
-  ..@ modes        :List of 10
+  ..@ batch               : int [1:2500] 1 1 1 1 1 1 1 1 1 1 ...
+  ..@ batchElements       : int 2500
+  ..@ hwe                 : num(0) 
+  ..@ modes               :List of 10
   .. ..$ theta   : num [1:3] -9.94e-01 3.32e-05 9.98e-01
   .. ..$ sigma2  : num [1:3] 0.01055 0.00985 0.01228
   .. ..$ mixprob : num [1:3] 0.329 0.327 0.344
@@ -57,13 +57,14 @@
   .. ..$ zfreq   : num [1:3] 820 822 858
   .. ..$ loglik  : num -577
   .. ..$ logprior: num -6.08
-  ..@ mcmc.params  :Formal class 'McmcParams' [package "CNPBayes"] with 5 slots
+  ..@ mcmc.params         :Formal class 'McmcParams' [package "CNPBayes"] with 5 slots
   .. .. ..@ thin         : int 1
   .. .. ..@ iter         : int 5
   .. .. ..@ burnin       : int 5
   .. .. ..@ nstarts      : int 1
   .. .. ..@ param_updates: Named int [1:8] 1 1 1 1 1 1 1 1
   .. .. .. ..- attr(*, "names")= chr [1:8] "theta" "sigma2" "p" "mu" ...
+  ..@ .internal.constraint: num 5e-04
 }}
 \usage{
 MarginalModelExample
