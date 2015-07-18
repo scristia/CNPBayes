@@ -1360,18 +1360,11 @@ RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod) {
   NumericVector tmp(K) ;
   NumericVector y = model.slot("data") ;
   int N = y.size() ;
-  NumericVector tau2(1) ;
-  NumericVector nu0 (1) ;
-  NumericVector s20 (1) ;
-  NumericVector s2 (1) ;
   //
   // We need to keep the Z|y,theta* chain
   //
   IntegerMatrix Z = chains.slot("z") ;
   NumericVector zz(N) ;
-  NumericVector nu0chain = chains.slot("nu.0") ;
-  NumericVector s20chain = chains.slot("sigma2.0") ;
-  IntegerVector h(N) ;
   model.slot("theta") = thetastar ;
   //
   // Run reduced Gibbs:
@@ -1391,20 +1384,16 @@ RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma2_0(model) ;
-    nu0chain[s] = model.slot("nu.0") ;
-    s20chain[s] = model.slot("sigma2.0") ;
   }
-  //return logp_prec ;
   chains.slot("z") = Z ;
-  chains.slot("nu.0") = nu0chain ;
-  chains.slot("sigma2.0") = s20chain ;
   model.slot("mcmc.chains") = chains ;
-  //return logp_prec ;
   return model ;
 }
 
+
+
 // [[Rcpp::export]]
-RcppExport SEXP reduced_pi_fixed(SEXP xmod) {
+RcppExport SEXP reduced_mu(SEXP xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
