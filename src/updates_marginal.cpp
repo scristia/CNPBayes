@@ -1378,9 +1378,9 @@ RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod) {
   //   -- sigma2 is fixed at modal ordinate
   //  
   for(int s=0; s < S; ++s){
-    // h = Z(s, _) ;
-    model.slot("z") = update_z(xmod) ;
-    // model.slot("z") = h ;
+    zz = update_z(model) ;
+    model.slot("z") = zz ;
+    Z(s, _) = zz ;
     model.slot("data.mean") = compute_means(model) ;
     model.slot("data.prec") = compute_prec(model) ;
     // model.slot("theta") = update_theta(model) ; Do not update theta !
@@ -1394,7 +1394,7 @@ RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod) {
     s20chain[s] = model.slot("sigma2.0") ;
   }
   //return logp_prec ;
-  // chains.slot("z") = Z ;
+  chains.slot("z") = Z ;
   chains.slot("nu.0") = nu0chain ;
   chains.slot("sigma2.0") = s20chain ;
   model.slot("mcmc.chains") = chains ;
