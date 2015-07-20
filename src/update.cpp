@@ -42,23 +42,6 @@ RcppExport SEXP update_theta(SEXP xmod) {
     return thetas;
 }
 
-// RcppExport SEXP update_sigma2(SEXP xmod) {
-//     // Rcpp::RNGScope scope;
-//     // initialize objects that are passed from R
-//     RNGScope scope;
-//     Rcpp::S4 model(xmod);
-
-//     NumericVector y = getData(model);
-//     //int K = getK(model.slot("hyperparams"));
-//     IntegerVector z = getZ(model);
-//     LogicalVector nz = nonZeroCopynumber(z);
-//     Rcpp::Rcout << which_min(y);
-//     if(nz.size() == 1) {
-//        nz[which_min(y)] = FALSE;
-//     }
-//     return nz;
-// }
- 
 // Accessors
 Rcpp::IntegerVector getZ(Rcpp::S4 model) {
     IntegerVector z = model.slot("z");
