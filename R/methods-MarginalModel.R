@@ -617,14 +617,16 @@ modelOtherModes <- function(model, maxperm=5){
 
 #' Reorder models of varying component sizes.
 #'
-#' Models are ordered according to marginal likelihood. The marginal likelihood is computed for each chain of each component size model separately. The mean is taken by model, and ordering by this mean marginal is performed. For each model, the difference of marginal likelihoods is calculated for each chain and the range is taken. If the sum of these ranges across models is greater than \code{maxdev}, a NULL is returned and a warning message printed.
+#' Models are ordered according to marginal likelihood. The marginal 
+#' likelihood is computed for each chain of each component size model 
+#' separately. The mean is taken by model, and ordering by this mean 
+#' marginal is performed. 
 #' @param x the result of a call to \code{computeMarginalLik}.
 #' @export
-orderModels <- function(x, maxdev=5){
+orderModels <- function(x){
   models <- x$models
   ##K <- k(models)
   K <- names(models)
-  ##maxdev <- sapply(K, function(x) log(factorial(x))) + 0.5
   marginal.est.list <- x$marginal
   m <- sapply(marginal.est.list, function(x) x["marginal"])
   K <- K[order(m, decreasing=TRUE)]
