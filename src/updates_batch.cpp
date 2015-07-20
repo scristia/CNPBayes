@@ -540,7 +540,7 @@ RcppExport SEXP update_theta_batch(SEXP xmod){
         for(int k = 0; k < K; ++k){
             post_prec = 1.0/tau2[k] + n_hb(b, k)*1.0/sigma2(b, k) ;
             if (post_prec == R_PosInf) {
-                Rcpp::stop("Bad simulation. Run again with different start.");
+                throw std::runtime_error("Bad simulation. Run again with different start.");
             }
             tau_n = sqrt(1.0/post_prec) ;
             w1 = (1.0/tau2[k])/post_prec ;
@@ -549,7 +549,6 @@ RcppExport SEXP update_theta_batch(SEXP xmod){
             theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
         }
     }
-    // if(is_true(any(is_nan(theta_new)))) stop("missing values in theta") ;
     return theta_new ;
 }
 
@@ -658,7 +657,13 @@ RcppExport SEXP mcmc_batch_burnin(SEXP xmod, SEXP mcmcp) {
   }
   for(int s = 0; s < S; ++s){
     if(up[0] > 0)
-      model.slot("theta") = update_theta_batch(xmod) ;
+      try {
+        model.slot("theta") = update_theta_batch(xmod) ;
+      } catch(std::runtime_error &ex) {
+          forward_exception_to_r(ex);
+      } catch(...) {
+          ::Rf_error("c++ exception (unknown reason)");
+      }
     if(up[1] > 0)
       model.slot("sigma2") = update_sigma2_batch(xmod) ;
     if(up[3] > 0)
