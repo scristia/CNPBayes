@@ -431,17 +431,6 @@ RcppExport SEXP compute_logprior(SEXP xmod) {
   return prior_prob ;
 }
 
-//  SEXP compute_llxprior(SEXP xmod) {
-//   RNGScope scope ;
-//   NumericVector ll(1);
-//   NumericVector lprior(1);
-//   NumericVector result(1);
-//   ll = loglik(xmod) ;
-//   lprior = compute_priorPr(xmod) ;
-//   result = ll + lprior ;
-//   return result ;
-// }
-
 // [[Rcpp::export]]
 RcppExport SEXP update_sigma2(SEXP xmod){
   RNGScope scope ;
