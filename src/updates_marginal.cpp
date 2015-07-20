@@ -664,7 +664,13 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
   // start at 1 instead of zero. Initial values are as above
   for(int s = 1; s < S; ++s){
     if(up[0] > 0) {
-      th = update_theta(xmod) ;
+      try {
+          th = update_theta(xmod) ;
+      } catch(std::runtime_error &ex) {
+          forward_exception_to_r(ex);
+      } catch(...) {
+          ::Rf_error("c++ exception (unknown reason)");
+      }
       model.slot("theta") = th ;      
     } else {
       th = model.slot("theta") ;

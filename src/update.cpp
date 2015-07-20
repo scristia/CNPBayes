@@ -31,7 +31,7 @@ RcppExport SEXP update_theta(SEXP xmod) {
     for(int k = 0; k < K; ++k) {
         post_prec = tau2_tilde + sigma2_tilde[k] * nn[k];
         if (post_prec == R_PosInf) {
-            Rcpp::stop("Bad simulation. Run again with different start.");
+            throw std::runtime_error("Bad simulation. Run again with different start.");
         }
         tau_n = sqrt(1/post_prec);
         w1 = tau2_tilde/post_prec;
