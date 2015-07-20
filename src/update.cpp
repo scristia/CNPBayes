@@ -42,14 +42,6 @@ RcppExport SEXP update_theta(SEXP xmod) {
     return thetas;
 }
 
-// RcppExport IntegerVector  component_frequencies(IntegerVector z, int K){
-//   IntegerVector nn(K);
-//   for(int k = 0; k < K; k++) nn[k] = sum(z == (k+1)) ;
-//   return nn ;
-// }
-// 
-
-// 
 // RcppExport SEXP update_sigma2(SEXP xmod) {
 //     // Rcpp::RNGScope scope;
 //     // initialize objects that are passed from R
