@@ -631,12 +631,6 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
   pmix(0, _) = p ;
   zfreq(0, _) = zf ;
   Z(0, _) = z ;
-//   for(int k = 0; k < K; k++){  // need update 'xmod' after each update
-//     theta(0, k) = th[k] ;
-//     sigma2(0, k) = s2[k] ;
-//     pmix(0, k) = p[k] ;
-//     zfreq(0, k) = zf[k] ;
-//   }
   // start at 1 instead of zero. Initial values are as above
   for(int s = 1; s < S; ++s){
     if(up[0] > 0) {
