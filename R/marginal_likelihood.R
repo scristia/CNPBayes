@@ -14,13 +14,13 @@ blockUpdates <- function(model, mp){
   ## Block updates for stage 1 parameters
   ##
   pstar <- setNames(rep(NA, 7),
-                    "theta",
-                    "sigma",
-                    "pi",
-                    "mu",
-                    "tau",
-                    "nu0",
-                    "s20")
+                    c("theta",
+                      "sigma",
+                      "pi",
+                      "mu",
+                      "tau",
+                      "nu0",
+                      "s20"))
 
   ptheta.star <- .Call("marginal_theta", model)
   pstar["theta"] <- log(mean(ptheta.star))
@@ -42,8 +42,9 @@ blockUpdates <- function(model, mp){
   ## Block updates for stage 2 parameters
   ##
   model.mustar <- .Call("reduced_mu", model.reduced)
-  identical(modes(model.mustar), modes(model))
-  pstar["mu"] <- .Call("p_mu_reduced", model.mustar)
+  stopifnot(identical(modes(model.mustar), modes(model)))
+  p.mustar <- .Call("p_mu_reduced", model.mustar)
+  pstar["mu"] <- log(mean(p.mustar))
 
   model.taustar <- .Call("reduced_tau", model.reduced)
   identical(modes(model.taustar), modes(model))

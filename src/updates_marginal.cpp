@@ -30,6 +30,8 @@ RcppExport SEXP loglik(SEXP xmod) {
   return loglik;
 }
 
+
+
 // [[Rcpp::export]]
 NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
   // NumericVector x = as<NumericVector>(x_) ;
@@ -1486,12 +1488,12 @@ RcppExport SEXP p_mu_reduced(SEXP xmod) {
   double tau_k ;
   NumericVector p_mu(S) ;
   NumericVector tmp(1) ;
-  
+
+  double total = 0.0 ;
+  for(int k = 0; k < K; k++) total += nn[k] ;
   for(int s = 0; s < S; ++s){
     zz = Z(s, _) ;
     nn = tableZ(K, zz) ;
-    double total = 0.0 ;
-    for(int k = 0; k < K; k++) total += nn[k] ;
     for(int k = 0; k < K; k++) thetabar += nn[k] * thetastar[k] / total ;
     double post_prec = 1.0/tau2_0[0] + K*tau2_tilde[s] ;
     w1 = tau20_tilde/post_prec ;
