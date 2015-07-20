@@ -119,6 +119,8 @@ Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="batch") return(HyperparametersBatch(k, ...))
 }
 
+#' @rdname k-method
+#' @aliases k<-,Hyperparemeters-method
 setReplaceMethod("k", "Hyperparameters", function(object, value){
   object@k <- as.integer(value)
   object@alpha <- rep(1L, value)
