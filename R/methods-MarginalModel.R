@@ -517,22 +517,6 @@ berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5){
                    marginal=results$marginal)
 }
 
-# get rid of this function after finalized.
-summarizeMarginalEstimates <- function(x){
-  chibs <- round(sapply(x, chib), 2)
-  berk <- round(sapply(x, berkhof), 2)
-  my <- sapply(x, marginal)
-  ly <- sapply(my, length)
-  if(any(ly == 0)){
-    my[[which(ly==0)]] <- NA
-    my <- unlist(my)
-  }
-  my <- round(my, 2)
-  xx <- cbind(chibs, berk, my)
-  colnames(xx) <- c("chib", "berkhof", "marginal")
-  xx
-}
-
 summarizeMarginalEstimates <- function(x){
     chibs <- round(chib(x), 2)
     berk <- round(berkhof(x), 2)
