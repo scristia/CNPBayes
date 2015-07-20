@@ -383,7 +383,7 @@ setMethod("simulateY", "BatchModel", function(object){
     m <- thetas[b, ]
     s <- sigmas[b, ]
     Z <- zbatch[[b]]
-    setNames(rnorm(length(Z), mean=m[Z], s=s[Z]), names(Z))
+    setNames(rnorm(length(Z), mean=m[Z], sd=s[Z]), names(Z))
   }
   ysim[names(zz)]
 })
