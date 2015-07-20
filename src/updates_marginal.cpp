@@ -375,19 +375,6 @@ RcppExport SEXP compute_vars(SEXP xmod) {
       vars[k] = sum(pow(x - mn[k], 2.0) * is_z) / (nn[k]-1) ;
     }      
   }
-  //  for(int k = 0; k < K; k++){
-  //    vars[k] /= nn[k] ;
-  //    if(nn[k] <= 2 ) vars[k] = 1000 ;
-  //  }
-  //  //
-  //  // if there is only one observation, the sample mean is the
-  //  // data point and the variance is 0
-  //  //
-  //  if(is_true(any(vars < 0.0001))){
-  //    for(int k = 0; k < K; ++k){
-  //      if(vars[k] < 0.0001) vars[k] = 1000 ;
-  //    }
-  //  }
   return vars ;
 }
 
