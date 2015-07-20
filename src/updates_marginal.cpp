@@ -30,7 +30,33 @@ RcppExport SEXP loglik(SEXP xmod) {
   return loglik;
 }
 
-
+// [[Rcpp::export]]
+RcppExport SEXP stageTwoLogLik(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  int K = getK(model.slot("hyperparams")) ;
+  NumericVector theta = model.slot("theta") ;
+  NumericVector tau2 = model.slot("tau2") ;
+  NumericVector mu = model.slot("mu") ;
+  NumericVector nu0 = model.slot("nu.0") ;
+  NumericVector s20 = model.slot("sigma2.0") ;
+  NumericVector sigma2=model.slot("sigma2") ;
+  NumericVector sigma2_tilde = 1.0/sigma2 ;
+  NumericVector loglik(1) ;
+  double tau = sqrt(tau2[0]) ;
+  NumericVector liknorm(K) ;
+  NumericVector likprec(K) ;
+  liknorm = dnorm(theta, mu[0], tau) ;
+  likprec = dgamma(sigma2_tilde, 0.5*nu0[0], 1.0/(0.5 * nu0[0] * s20[0])) ;
+  NumericVector LL(K) ;
+  LL = log(liknorm * likprec) ;
+  double tmp = 0.0 ;
+  for(int k = 0; k < K; k++) {
+    tmp += LL[k] ;
+  }
+  loglik[0] = tmp ;
+  return loglik ;
+}
 
 // [[Rcpp::export]]
 NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
@@ -615,6 +641,7 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
   NumericVector nu0 = chain.slot("nu.0") ;
   NumericVector sigma2_0 = chain.slot("sigma2.0") ;
   NumericVector loglik_ = chain.slot("loglik") ;
+  //NumericVector stage2chai_ = chain.slot("stage2loglik") ;
   NumericVector logprior_ = chain.slot("logprior") ;
   IntegerMatrix pz(N, K) ;
   // initialize probabilities to zero
@@ -631,6 +658,7 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
   NumericVector precs(1) ;
   NumericVector ll(1) ;
   NumericVector lp(1) ;
+  NumericVector stage2(1) ;
   IntegerVector tmp(K) ;
   IntegerVector zf(K) ;
   // Initial values
@@ -644,6 +672,7 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
   zf = model.slot("zfreq") ;
   z = model.slot("z") ;
   ll = model.slot("loglik") ;
+  //  stagetwo = model.slot("stage2loglik") ;
   lp = model.slot("logprior") ;
   // Record initial values in chains
   mu[0] = m[0] ;
@@ -652,6 +681,7 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
   sigma2_0[0] = s20[0] ;
   loglik_[0] = ll[0] ;
   logprior_[0] = lp[0] ;
+  //  stagetwo = stage2[0] ;
   theta(0, _) = th ;
   sigma2(0, _) = s2 ;
   pmix(0, _) = p ;
@@ -730,6 +760,7 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
     loglik_[s] = ll[0] ;
     model.slot("loglik") = ll ;
     lp = compute_logprior(xmod) ;
+    // stagetwo = stageTwoLogLik(xmod) ;
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
     // Thinning

@@ -328,6 +328,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// stageTwoLogLik
+RcppExport SEXP stageTwoLogLik(SEXP xmod);
+RcppExport SEXP CNPBayes_stageTwoLogLik(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(stageTwoLogLik(xmod));
+    return __result;
+END_RCPP
+}
 // log_ddirichlet_
 NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_);
 RcppExport SEXP CNPBayes_log_ddirichlet_(SEXP x_SEXP, SEXP alpha_SEXP) {
