@@ -213,8 +213,8 @@ permutedz_reduced2 <- function(xmod) {
     .Call('CNPBayes_permutedz_reduced2', PACKAGE = 'CNPBayes', xmod)
 }
 
-p_sigma_reduced <- function(xmod) {
-    .Call('CNPBayes_p_sigma_reduced', PACKAGE = 'CNPBayes', xmod)
+p_pmix_reduced <- function(xmod) {
+    .Call('CNPBayes_p_pmix_reduced', PACKAGE = 'CNPBayes', xmod)
 }
 
 p_pmix_reduced <- function(xmod) {

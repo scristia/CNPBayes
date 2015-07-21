@@ -595,14 +595,14 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// p_sigma_reduced
-RcppExport SEXP p_sigma_reduced(SEXP xmod);
-RcppExport SEXP CNPBayes_p_sigma_reduced(SEXP xmodSEXP) {
+// p_pmix_reduced
+// [[Rcpp::export]] RcppExport SEXP p_pmix_reduced(SEXP xmod);
+RcppExport SEXP CNPBayes_p_pmix_reduced(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(p_sigma_reduced(xmod));
+    __result = Rcpp::wrap(p_pmix_reduced(xmod));
     return __result;
 END_RCPP
 }
