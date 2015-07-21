@@ -1483,6 +1483,17 @@ RcppExport SEXP reduced_mu(SEXP xmod) {
   model.slot("theta") = thetastar ;
   model.slot("sigma2") = sigma2star ;
   model.slot("pi") = pistar ;
+
+  // keep chains for debugging
+  NumericVector nu0chain = chains.slot("nu.0") ;
+  NumericVector s20chain = chains.slot("sigma2.0") ;
+  NumericVector muchain = chains.slot("mu") ;
+  NumericVector tauchain = chains.slot("tau2") ;
+  NumericVector mu = model.slot("mu") ;
+  NumericVector nu0 = model.slot("nu.0") ;
+  NumericVector s20 = model.slot("sigma2.0") ;
+  NumericVector tau2 = model.slot("tau2") ;  
+  
   //
   // Run reduced Gibbs:
   //   -- theta is fixed at modal ordinate
@@ -1497,13 +1508,24 @@ RcppExport SEXP reduced_mu(SEXP xmod) {
     // model.slot("theta") = update_theta(model) ; Do not update theta !
     // model.slot("sigma2") = update_sigma2(model) ;
     // model.slot("pi") = update_p(model) ;
-    model.slot("mu") = update_mu(model) ;
-    model.slot("tau2") = update_tau2(model) ;
-    model.slot("nu.0") = update_nu0(model) ;
-    model.slot("sigma2.0") = update_sigma2_0(model) ;
-    tau2chain[s] = model.slot("tau2") ;
+    mu = update_mu(model) ;
+    tau2 = update_tau2(model) ;
+    nu0 = update_nu0(model) ;
+    s20 = update_sigma2_0(model) ;
+    
+    model.slot("mu") = mu ;
+    model.slot("tau2") = tau2 ;
+    model.slot("nu.0") = nu0 ;
+    model.slot("sigma2.0") = s20 ;
+    nu0chain[s] = nu0[0] ;
+    s20chain[s] = s20[0] ;
+    muchain[s] = mu[0] ;
+    tau2chain[s] = tau2[0] ;
   }
   chains.slot("tau2") = tau2chain ;
+  chains.slot("mu") = muchain ;
+  chains.slot("nu.0") = nu0chain ;
+  chains.slot("sigma2.0") = s20chain ;  
   chains.slot("z") = Z ;
   model.slot("mcmc.chains") = chains ;
   return model ;
@@ -1540,7 +1562,7 @@ RcppExport SEXP p_mu_reduced(SEXP xmod) {
   double mu_0 = mu0[0] ;
   NumericVector tau2_0 = hypp.slot("tau2.0") ;
   double tau20_tilde = 1.0/tau2_0[0] ;
-  double thetabar ;
+
   double mu_k ;
   NumericVector tau2_tilde = 1.0/tau2chain ;
   double w1 ;
@@ -1552,6 +1574,7 @@ RcppExport SEXP p_mu_reduced(SEXP xmod) {
     zz = Z(s, _) ;
     nn = tableZ(K, zz) ;
     double total = 0.0 ;
+    double thetabar = 0.0 ;    
     for(int k = 0; k < K; k++) total += nn[k] ;    
     for(int k = 0; k < K; k++) thetabar += nn[k] * thetastar[k] / total ;
     double post_prec = tau20_tilde + K*tau2_tilde[s] ;
