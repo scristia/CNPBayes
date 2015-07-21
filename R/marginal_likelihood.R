@@ -1,14 +1,3 @@
-completeLogLik <- function(model){
-  model <- useModes(model)
-  loglik <- modes(model)[["loglik"]]
-  n0 <- nu.0(model)
-  sigma2.0 <- sigma2.0(model)
-  stage2.loglik <- sum(log(dnorm(theta(model), mu(model), tau(model)) *
-                               dgamma(1/sigma2(model), 1/2*n0, 1/2*n0*sigma2.0)))
-  result <- loglik + stage2.loglik
-  result
-}
-
 blockUpdates <- function(model, mp){
   ##
   ## Block updates for stage 1 parameters
@@ -64,7 +53,7 @@ blockUpdates <- function(model, mp){
 }
 
 marginalLikelihood <- function(model, mp){
-  logLik <- completeLogLik(model) ## includes 2nd stage
+  logLik <- modes(model)[["loglik"]] ## includes 2nd stage
   logPrior <- modes(model)[["logprior"]]
   pstar <- blockUpdates(model, mp)
   m.y <- logLik + logPrior - sum(pstar)

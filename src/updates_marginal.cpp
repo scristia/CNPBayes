@@ -607,7 +607,9 @@ RcppExport SEXP mcmc_marginal_burnin(SEXP xmod, SEXP mcmcp) {
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
-  model.slot("loglik") = loglik(xmod) ;
+  NumericVector ll = loglik(xmod) ;
+  NumericVector lls2 = stageTwoLogLik(xmod) ;
+  model.slot("loglik") = ll + lls2 ;
   model.slot("logprior") = compute_logprior(xmod) ;    
   return xmod ;
 }
@@ -641,7 +643,6 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
   NumericVector nu0 = chain.slot("nu.0") ;
   NumericVector sigma2_0 = chain.slot("sigma2.0") ;
   NumericVector loglik_ = chain.slot("loglik") ;
-  //NumericVector stage2chai_ = chain.slot("stage2loglik") ;
   NumericVector logprior_ = chain.slot("logprior") ;
   IntegerMatrix pz(N, K) ;
   // initialize probabilities to zero
@@ -657,6 +658,7 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
   NumericVector mns(1) ;   
   NumericVector precs(1) ;
   NumericVector ll(1) ;
+  NumericVector lls2(1) ; // stage 2 log likelihood
   NumericVector lp(1) ;
   NumericVector stage2(1) ;
   IntegerVector tmp(K) ;
@@ -672,7 +674,6 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
   zf = model.slot("zfreq") ;
   z = model.slot("z") ;
   ll = model.slot("loglik") ;
-  //  stagetwo = model.slot("stage2loglik") ;
   lp = model.slot("logprior") ;
   // Record initial values in chains
   mu[0] = m[0] ;
@@ -757,10 +758,11 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
     model.slot("data.mean") = compute_means(xmod) ;
     model.slot("data.prec") = compute_prec(xmod) ;
     ll = loglik(xmod) ;
+    lls2 = stageTwoLogLik(xmod) ;
+    ll = ll + lls2 ;
     loglik_[s] = ll[0] ;
     model.slot("loglik") = ll ;
     lp = compute_logprior(xmod) ;
-    // stagetwo = stageTwoLogLik(xmod) ;
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
     // Thinning
@@ -1519,14 +1521,13 @@ RcppExport SEXP p_mu_reduced(SEXP xmod) {
   double tau_k ;
   NumericVector p_mu(S) ;
   NumericVector tmp(1) ;
-
-  double total = 0.0 ;
-  for(int k = 0; k < K; k++) total += nn[k] ;
   for(int s = 0; s < S; ++s){
     zz = Z(s, _) ;
     nn = tableZ(K, zz) ;
+    double total = 0.0 ;
+    for(int k = 0; k < K; k++) total += nn[k] ;    
     for(int k = 0; k < K; k++) thetabar += nn[k] * thetastar[k] / total ;
-    double post_prec = 1.0/tau2_0[0] + K*tau2_tilde[s] ;
+    double post_prec = tau20_tilde + K*tau2_tilde[s] ;
     w1 = tau20_tilde/post_prec ;
     w2 = K*tau2_tilde[s]/post_prec ;
     mu_k =  w1*mu_0 +  w2*thetabar ;
@@ -1624,20 +1625,18 @@ RcppExport SEXP p_tau_reduced(SEXP xmod) {
   IntegerVector zz(N) ;
   NumericVector p_tau(S) ;
 
-
   double m2_0 = hypp.slot("m2.0") ;
   double eta_0 = hypp.slot("eta.0") ;
   double eta_k = eta_0 + K ;
   NumericVector s2_k(1) ;
   for(int k = 0; k < K; k++) s2_k[0] += pow(thetastar[k] - mustar[0], 2.0) ;
   NumericVector m2_k(1) ;
-  m2_k[0] = 1/eta_k*(eta_0*m2_0 + s2_k[0]) ;
-  NumericVector tmp(1) ;
-
-//  for(int s = 0; s < S; ++s) {
-//    tmp = dgamma(1.0/tau2star, 0.5 * eta_k, 1.0/(0.5 * eta_k * m2_k[0])) ;
-//    p_tau[s] = tmp ;
-//  }
+  m2_k[0] = 1/eta_k * (eta_0 * m2_0 + s2_k[0]) ;
+  //  NumericVector tmp(1) ;
+  //  for(int s = 0; s < S; ++s) {
+  //    tmp = dgamma(1.0/tau2star, 0.5 * eta_k, 1.0/(0.5 * eta_k * m2_k[0])) ;
+  //    p_tau[s] = tmp ;
+  //  }
   p_tau = dgamma(1.0/tau2star, 0.5 * eta_k, 1.0/(0.5 * eta_k * m2_k[0])) ;
   return p_tau ;
 }
