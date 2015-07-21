@@ -371,7 +371,7 @@ setMethod("reducedGibbsZThetaFixed", "BatchModel", function(object){
 })
 
 setMethod("pSigma2", "MarginalModel", function(object) {
-  exp(.Call("p_sigma2_zpermuted", object))
+  exp(.Call("p_sigma_reduced", object))
 })
 
 setMethod("pSigma2", "BatchModel", function(object) {

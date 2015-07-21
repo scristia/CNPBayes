@@ -17,9 +17,9 @@ blockUpdates <- function(model, mp){
   model.reduced <- model
   mcmcParams(model.reduced, force=TRUE) <- mp
 
-  model.psigma2 <- .Call("reduced_thetafixed", model.reduced)
+  model.psigma2 <- .Call("reduced_sigma", model.reduced)
   identical(modes(model.psigma2), modes(model))
-  psigma.star <- .Call("p_sigma2_zpermuted", model.psigma2)
+  psigma.star <- .Call("p_sigma_reduced", model.psigma2)
   pstar["sigma"] <- log(mean(psigma.star))
 
 

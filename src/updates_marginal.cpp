@@ -1208,7 +1208,7 @@ RcppExport SEXP permutedz_reduced2(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP p_sigma2_zpermuted(SEXP xmod) {
+RcppExport SEXP p_sigma_reduced(SEXP xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
