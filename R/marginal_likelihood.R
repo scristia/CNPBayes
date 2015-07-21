@@ -23,7 +23,7 @@ blockUpdates <- function(model, mp){
   pstar["sigma"] <- log(mean(psigma.star))
 
 
-  model.pistar <- .Call("reduced_theta_sigma_fixed", model.reduced)
+  model.pistar <- .Call("reduced_pi", model.reduced)
   identical(modes(model.pistar), modes(model))
   p.pi.star <- .Call("p_pmix_reduced", model.pistar)
   pstar["pi"] <- log(mean(p.pi.star))
