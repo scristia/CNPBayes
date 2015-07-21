@@ -3,6 +3,7 @@ title: "Identifying Copy Number Polymorphisms"
 author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
 date: \today
 output: BiocStyle::pdf_document
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Identifying Copy Number Polymorphisms}
   %\VignetteEngine{knitr::rmarkdown}
@@ -44,6 +45,9 @@ The object `se` contains log R ratios and B Allele Frequencies, and the object
 After reading this saved data, we visualize the CNVs.
 
 ```{r plot-cnvs}
+cnv.region <- consensusCNP(grl[1], max.width=5e6)
+i <- subjectHits(findOverlaps(cnv.region, se))
+
 xlim <- c(min(start(se)), max(end(se)))
 par(las=1)
 plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
@@ -82,13 +86,14 @@ med.summary <- matrixStats::colMedians(lrr(se)[i, ], na.rm=TRUE)
 
 ## Principal Component
 Another method for summarizing the log R ratops is by the first principal 
-component on the markers for the entire region. A possible disadvantage of 
-this approach is that the scale of the loadings makes it more difficult to 
-interpret the copy number of the mixture components. Instead, the median log R 
-ratio is adequate and retains the original scale. An advantage of the principal
-component method is that the minimum `start` and maximum `end` can be used to
-define the CNV region. The principal component method should downweight markers
-that are not consistent with the Copy Number Variation.
+component on the markers for the entire region [@cardin]. A possible 
+disadvantage of this approach is that the scale of the loadings makes it more 
+difficult to interpret the copy number of the mixture components. Instead, 
+the median log R ratio is adequate and retains the original scale. An 
+advantage of the principal component method is that the minimum `start` and 
+maximum `end` can be used to define the CNV region. The principal component 
+method should downweight markers that are not consistent with the Copy Number 
+Variation.
 
 ```{r pca}
 cnv.region2 <- reduce(grl)
@@ -116,3 +121,5 @@ After deciding which one dimensional summary to use and summary of the data is
 complete, one can proceed to fitting a `MixtureModel` to the data. Models can
 be hierarchical over the batches, or marginal over the batches.  Please refer 
 to the CNPBayes vignette for fitting a `MixtureModel`.
+
+# References
