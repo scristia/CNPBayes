@@ -1278,8 +1278,14 @@ RcppExport SEXP reduced_sigma(SEXP xmod) {
   NumericVector s20chain = chains.slot("sigma2.0") ;
   NumericVector muchain = chains.slot("mu") ;
   NumericVector tauchain = chains.slot("tau2") ;
-  NumericVector pichain = chains.slot("pi") ;
-  NumericVector sigmachain = chains.slot("sigma2") ;
+  NumericMatrix pichain = chains.slot("pi") ;
+  NumericMatrix sigmachain = chains.slot("sigma2") ;
+  
+  NumericVector sigma2 = model.slot("sigma2") ;
+  NumericVector pi = model.slot("pi") ;
+  NumericVector tau = model.slot("tau2") ;
+  NumericVector mu = model.slot("mu") ;
+
   
   IntegerVector h(N) ;
   model.slot("theta") = thetastar ;
@@ -1303,10 +1309,14 @@ RcppExport SEXP reduced_sigma(SEXP xmod) {
     nu0chain[s] = model.slot("nu.0") ;
     s20chain[s] = model.slot("sigma2.0") ;
     // update the following chains for debugging small sigma2.0 values
-    sigmachain[s] = model.slot("sigma2") ;
-    pichain[s] = model.slot("pi") ;
-    tauchain[s] = model.slot("tau2") ;
-    muchain[s] = model.slot("mu") ;
+    sigma2 = model.slot("sigma2") ;
+    sigmachain(s, _) = sigma2 ;
+    pi = model.slot("pi") ;
+    pichain(s, _) = pi ;
+    tau = model.slot("tau2") ;
+    tauchain[s] = tau[0] ;
+    mu = model.slot("mu") ;
+    muchain[s] = mu[0] ;
   }
   //return logp_prec ;
   chains.slot("z") = Z ;
@@ -1393,7 +1403,7 @@ RcppExport SEXP p_sigma_reduced(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod) {
+RcppExport SEXP reduced_pi(SEXP xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;

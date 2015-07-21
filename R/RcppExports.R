@@ -217,12 +217,12 @@ p_pmix_reduced <- function(xmod) {
     .Call('CNPBayes_p_pmix_reduced', PACKAGE = 'CNPBayes', xmod)
 }
 
-p_pmix_reduced <- function(xmod) {
-    .Call('CNPBayes_p_pmix_reduced', PACKAGE = 'CNPBayes', xmod)
-}
-
 reduced_sigma <- function(xmod) {
     .Call('CNPBayes_reduced_sigma', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_sigma_reduced <- function(xmod) {
+    .Call('CNPBayes_p_sigma_reduced', PACKAGE = 'CNPBayes', xmod)
 }
 
 reduced_theta_sigma_fixed <- function(xmod) {
