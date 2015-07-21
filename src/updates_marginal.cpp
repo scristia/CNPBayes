@@ -1316,7 +1316,7 @@ RcppExport SEXP p_pmix_reduced(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP reduced_thetafixed(SEXP xmod) {
+RcppExport SEXP reduced_sigma(SEXP xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
