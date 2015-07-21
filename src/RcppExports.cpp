@@ -628,14 +628,14 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// reduced_theta_sigma_fixed
-RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod);
-RcppExport SEXP CNPBayes_reduced_theta_sigma_fixed(SEXP xmodSEXP) {
+// reduced_pi
+RcppExport SEXP reduced_pi(SEXP xmod);
+RcppExport SEXP CNPBayes_reduced_pi(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(reduced_theta_sigma_fixed(xmod));
+    __result = Rcpp::wrap(reduced_pi(xmod));
     return __result;
 END_RCPP
 }
