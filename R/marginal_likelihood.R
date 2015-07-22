@@ -56,6 +56,6 @@ marginalLikelihood <- function(model, mp){
   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
   logPrior <- modes(model)[["logprior"]]
   pstar <- blockUpdates(model, mp)
-  m.y <- logLik + logPrior - sum(pstar)
+  m.y <- logLik + logPrior - sum(pstar) + log(factorial(k(model)))
   m.y
 }
