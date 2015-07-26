@@ -556,9 +556,9 @@ updateMultipleChains <- function(nchains, modellist, mp){
 #' list of models by decreasing marginal density, and \code{plot} for
 #' visualizing the component densities.
 computeMarginalLik <- function(modlist,
-                                post.iter=200,
-                                maxperm=3,
-                                method='chib'){
+                               post.iter=200,
+                               maxperm=3,
+                               method='chib'){
     K <- sapply(modlist, k)
     my <- vector("list", length(K))
     mlist <- vector("list", length(K))
@@ -596,10 +596,10 @@ modelOtherModes <- function(model, maxperm=5){
 
 #' Reorder models of varying component sizes.
 #'
-#' Models are ordered according to marginal likelihood. The marginal 
-#' likelihood is computed for each chain of each component size model 
-#' separately. The mean is taken by model, and ordering by this mean 
-#' marginal is performed. 
+#' Models are ordered according to marginal likelihood. The marginal
+#' likelihood is computed for each chain of each component size model
+#' separately. The mean is taken by model, and ordering by this mean
+#' marginal is performed.
 #' @param x the result of a call to \code{computeMarginalLik}.
 #' @export
 orderModels <- function(x){
