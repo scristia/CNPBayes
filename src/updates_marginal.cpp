@@ -31,6 +31,30 @@ RcppExport SEXP loglik(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
+NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
+  // NumericVector x = as<NumericVector>(x_) ;
+  NumericVector x = clone(x_) ;
+  int K = x.size() ;
+  NumericVector alpha = clone(alpha_) ;
+  // NumericVector alpha = as<NumericVector>(alpha_) ;
+  NumericVector total_lg(1) ;
+  NumericVector tmp(1);
+  NumericVector total_lalpha(1) ;
+  NumericVector logD(1) ;
+  NumericVector result(1) ;
+  double s = 0.0 ;
+  for(int k=0; k < K; ++k){
+    total_lg[0] += lgamma(alpha[k]) ;
+    tmp[0] += alpha[k] ;
+    s += (alpha[k] - 1.0) * log(x[k]) ;
+  }
+  total_lalpha = lgamma(tmp[0]) ;
+  logD[0] = total_lg[0] - total_lalpha[0] ;
+  result[0] = s - logD[0] ;
+  return result ;
+}
+
+// [[Rcpp::export]]
 RcppExport SEXP stageTwoLogLik(SEXP xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
@@ -57,31 +81,6 @@ RcppExport SEXP stageTwoLogLik(SEXP xmod) {
   loglik[0] = tmp ;
   return loglik ;
 }
-
-// [[Rcpp::export]]
-NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
-  // NumericVector x = as<NumericVector>(x_) ;
-  NumericVector x = clone(x_) ;
-  int K = x.size() ;
-  NumericVector alpha = clone(alpha_) ;
-  // NumericVector alpha = as<NumericVector>(alpha_) ;
-  NumericVector total_lg(1) ;
-  NumericVector tmp(1);
-  NumericVector total_lalpha(1) ;
-  NumericVector logD(1) ;
-  NumericVector result(1) ;
-  double s = 0.0 ;
-  for(int k=0; k < K; ++k){
-    total_lg[0] += lgamma(alpha[k]) ;
-    tmp[0] += alpha[k] ;
-    s += (alpha[k] - 1.0) * log(x[k]) ;
-  }
-  total_lalpha = lgamma(tmp[0]) ;
-  logD[0] = total_lg[0] - total_lalpha[0] ;
-  result[0] = s - logD[0] ;
-  return result ;
-}
-
 
 //
 // This function does not reproduce the R update .updateMu when the
@@ -759,7 +758,7 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
     model.slot("data.prec") = compute_prec(xmod) ;
     ll = loglik(xmod) ;
     lls2 = stageTwoLogLik(xmod) ;
-    ll = ll + lls2 ;
+    // ll = ll + lls2 ;
     loglik_[s] = ll[0] ;
     model.slot("loglik") = ll ;
     lp = compute_logprior(xmod) ;

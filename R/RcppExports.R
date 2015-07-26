@@ -117,12 +117,12 @@ loglik <- function(xmod) {
     .Call('CNPBayes_loglik', PACKAGE = 'CNPBayes', xmod)
 }
 
-stageTwoLogLik <- function(xmod) {
-    .Call('CNPBayes_stageTwoLogLik', PACKAGE = 'CNPBayes', xmod)
-}
-
 log_ddirichlet_ <- function(x_, alpha_) {
     .Call('CNPBayes_log_ddirichlet_', PACKAGE = 'CNPBayes', x_, alpha_)
+}
+
+stageTwoLogLik <- function(xmod) {
+    .Call('CNPBayes_stageTwoLogLik', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_mu <- function(xmod) {
