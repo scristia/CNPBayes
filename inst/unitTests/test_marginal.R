@@ -89,9 +89,11 @@ test_selectK_easy <- function(){
   mlist <- list(posteriorSimulation(model2),
                 posteriorSimulation(model3),
                 posteriorSimulation(model4))
-  x1 <- computeMarginalLik(mlist)
-  m1 <- orderModels(x1)
-  checkTrue(k(m1)[1] >= 3)
+  m.y <- sapply(mlist, CNPBayes:::marginalLikelihood)
+  checkTrue(which.max(m.y) == 2L)
+  ##x1 <- computeMarginalLik(mlist)
+  ##m1 <- orderModels(x1)
+  ##checkTrue(k(m1)[1] >= 3)
 }
 
 test_marginal_Moderate <- function(){

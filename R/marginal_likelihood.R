@@ -52,7 +52,8 @@ blockUpdates <- function(model, mp){
   pstar
 }
 
-marginalLikelihood <- function(model, mp){
+marginalLikelihood <- function(model, niter=1000L){
+  mp <- McmcParams(iter=niter)
   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
   model2 <- useModes(model)
   stage2.loglik <- .Call("stageTwoLogLik", model2)
