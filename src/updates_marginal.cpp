@@ -808,7 +808,6 @@ RcppExport SEXP marginal_theta(SEXP xmod) {
   NumericMatrix sigma2 = chains.slot("sigma2") ;
   NumericVector tauc = sqrt(tau2c) ;
   NumericVector tmp(K) ;
-  //IntegerVector z = model.slot("z");
 
   IntegerMatrix Z = chains.slot("z") ;
   IntegerVector zz ;
@@ -830,7 +829,7 @@ RcppExport SEXP marginal_theta(SEXP xmod) {
     zz = Z(s, _) ;
     model.slot("z") = zz ;
     nn = tableZ(K, zz) ;
-    data_mean = compute_means(model_) ;
+    data_mean = compute_means(model) ;
     tau2_tilde = 1/tau2c[s] ;
     sigma2_tilde = 1.0/sigma2(s, _) ;
     //tmp = dnorm(thetastar, muc[s], tauc[s]) ;
