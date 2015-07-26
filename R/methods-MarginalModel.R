@@ -53,12 +53,7 @@ setMethod("mu", "MarginalModel", function(object) object@mu)
 #' @aliases tau2,MarginalModel-method
 setMethod("tau2", "MarginalModel", function(object) object@tau2)
 
-## compute p(theta) * p(y | theta)
-setMethod("computePotential", "MarginalModel", function(object){
-  ll <- computeLogLikxPrior(object)
-  ll.phi <- .loglikPhiMarginal(object)
-  ll+ll.phi
-})
+
 
 setMethod("initializeSigma2.0", "MarginalModel", function(object){
   hypp <- hyperParams(object)
@@ -376,7 +371,7 @@ setMethod("reducedGibbsZThetaFixed", "BatchModel", function(object){
 })
 
 setMethod("pSigma2", "MarginalModel", function(object) {
-  exp(.Call("p_sigma2_zpermuted", object))
+  exp(.Call("p_sigma_reduced", object))
 })
 
 setMethod("pSigma2", "BatchModel", function(object) {
@@ -567,7 +562,7 @@ computeMarginalLik <- function(modlist,
     K <- sapply(modlist, k)
     my <- vector("list", length(K))
     mlist <- vector("list", length(K))
-  
+
     for (i in seq_along(K)) {
         model_lik <- berkhofEstimate(modlist[[i]], T2=post.iter, maxperm=maxperm)
 #         log_lik <- CNPBayes:::modalLoglik(model)
@@ -709,9 +704,6 @@ setMethod("computeLoglik", "BatchModel", function(object){
   .Call("compute_loglik_batch", object)
 })
 
-setMethod("computePotential", "BatchModel", function(object){
-  computeLogLikxPrior(object)
-})
 
 setMethod("computeLoglik", "MarginalModel", function(object){
   .Call("loglik", object)
