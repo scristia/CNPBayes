@@ -84,7 +84,7 @@ setClass("McmcChains", representation(theta="matrix",
 #' @slot iter A one length numeric to specify how many MCMC iterations should be sampled.
 #' @slot burnin A one length numeric to specify burnin. The first $n$ samples will be discarded.
 #' @slot nstarts A one length numeric to specify the number of chains in a simulation.
-#' @slot param_updates Still looking.
+#' @slot param_updates Indicates whether each parameter should be updated (1) or fixed (0).
 #' @examples
 #' McmcParams()
 #' McmcParams(iter=1000)
