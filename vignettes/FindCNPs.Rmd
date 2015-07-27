@@ -42,7 +42,7 @@ suppressMessages(library(VanillaICE))
 The object `se` contains log R ratios and B Allele Frequencies, and the object
 `grl` is a `GRangesList` of simulated deletions. 
 
-```{r offset}
+```{r offset, eval=FALSE}
 region <- GRanges("chr22", IRanges(15e6, 22e6))
 hits <- findOverlaps(region, snp_exp)
 snp_exp2 <- snp_exp[subjectHits(hits), ]
