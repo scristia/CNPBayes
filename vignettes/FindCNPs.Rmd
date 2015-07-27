@@ -3,6 +3,7 @@ title: "Identifying Copy Number Polymorphisms"
 author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
 date: \today
 output: BiocStyle::pdf_document
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Identifying Copy Number Polymorphisms}
   %\VignetteEngine{knitr::rmarkdown}
@@ -41,9 +42,57 @@ suppressMessages(library(VanillaICE))
 The object `se` contains log R ratios and B Allele Frequencies, and the object
 `grl` is a `GRangesList` of simulated deletions. 
 
+```{r offset}
+region <- GRanges("chr22", IRanges(15e6, 22e6))
+hits <- findOverlaps(region, snp_exp)
+snp_exp2 <- snp_exp[subjectHits(hits), ]
+log.r.empirical <- lrr(snp_exp2)[, "FinalReport6872.txt"]
+baf.empirical <- baf(snp_exp2)[, "FinalReport6872.txt"]
+indices.deletion <- subjectHits(findOverlaps(gr, snp_exp2))
+## Assume that all the other observations are diploid (even though
+## this is not true for this sample)
+indices.diploid <- seq_along(snp_exp2)[-indices.deletion]
+
+## simulate 25 samples with deletion and 10 samples without deletion
+rr <- rowRanges(snp_exp2)
+nr <- length(rr)
+nc <- 35
+b.a.f <- log.r.ratios <- matrix(NA, nr, nc)
+b <- r <- rep(NA, nr)
+set.seed(123)
+for(i in seq_len(nc)){
+  if(i <= 25){
+    ## sample with deletion
+    g.cnv <- cnvs[i]
+    J <- subjectHits(findOverlaps(g.cnv, rr))
+    i.deletion <- sample(indices.deletion, length(J), replace=TRUE)
+    r[J] <- log.r.empirical[i.deletion]
+    b[J] <- baf.empirical[i.deletion]
+    ndiploid <- length(snp_exp2) - length(J)
+    i.diploid <- sample(indices.diploid, ndiploid, replace=TRUE)
+    r[-J] <- log.r.empirical[i.diploid]
+    b[-J] <- baf.empirical[i.diploid]
+  } else {
+    ## diploid sample
+    i.diploid <- sample(indices.diploid, length(r), replace=TRUE)
+    r <- log.r.empirical[i.diploid]
+    b <- baf.empirical[i.diploid]
+  }
+  b.a.f[, i] <- b
+  log.r.ratios[, i] <- r    
+}
+dimnames(log.r.ratios) <- dimnames(b.a.f) <- list(rownames(snp_exp2),
+                                                  paste0("sample", 1:35))
+sim.se <- SnpArrayExperiment(cn=log.r.ratios, baf=b.a.f,
+                             rowRanges=rowRanges(snp_exp2))
+```
+
 After reading this saved data, we visualize the CNVs.
 
 ```{r plot-cnvs}
+cnv.region <- consensusCNP(grl[1], max.width=5e6)
+i <- subjectHits(findOverlaps(cnv.region, se))
+
 xlim <- c(min(start(se)), max(end(se)))
 par(las=1)
 plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
@@ -82,13 +131,14 @@ med.summary <- matrixStats::colMedians(lrr(se)[i, ], na.rm=TRUE)
 
 ## Principal Component
 Another method for summarizing the log R ratops is by the first principal 
-component on the markers for the entire region. A possible disadvantage of 
-this approach is that the scale of the loadings makes it more difficult to 
-interpret the copy number of the mixture components. Instead, the median log R 
-ratio is adequate and retains the original scale. An advantage of the principal
-component method is that the minimum `start` and maximum `end` can be used to
-define the CNV region. The principal component method should downweight markers
-that are not consistent with the Copy Number Variation.
+component on the markers for the entire region [@cardin]. A possible 
+disadvantage of this approach is that the scale of the loadings makes it more 
+difficult to interpret the copy number of the mixture components. Instead, 
+the median log R ratio is adequate and retains the original scale. An 
+advantage of the principal component method is that the minimum `start` and 
+maximum `end` can be used to define the CNV region. The principal component 
+method should downweight markers that are not consistent with the Copy Number 
+Variation.
 
 ```{r pca}
 cnv.region2 <- reduce(grl)
@@ -116,3 +166,5 @@ After deciding which one dimensional summary to use and summary of the data is
 complete, one can proceed to fitting a `MixtureModel` to the data. Models can
 be hierarchical over the batches, or marginal over the batches.  Please refer 
 to the CNPBayes vignette for fitting a `MixtureModel`.
+
+# References
