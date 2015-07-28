@@ -1203,7 +1203,63 @@ RcppExport SEXP p_sigma2_batch(SEXP xmod) {
   return p_prec ;
 }
 
+// [[Rcpp::export]]
+RcppExport SEXP marginal_theta_batch(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model_(xmod) ;
+  Rcpp::S4 model = clone(model_) ;
+  Rcpp::S4 params=model.slot("mcmc.params") ;
+  Rcpp::S4 chains(model.slot("mcmc.chains")) ;  
+  int S = params.slot("iter") ;
+  List modes = model.slot("modes") ;
+  NumericMatrix theta_ = as<NumericMatrix>(modes["theta"]) ;
+  NumericMatrix thetastar=clone(theta_) ;
+  int K = thetastar.ncol() ;
+  NumericVector p_theta(S) ;
+  NumericVector muc = chains.slot("mu") ;
+  NumericVector tau2c = chains.slot("tau2") ;
+  NumericMatrix sigma2 = chains.slot("sigma2") ;
+  NumericVector tauc = sqrt(tau2c) ;
+  NumericVector tmp(K) ;
 
+  IntegerMatrix Z = chains.slot("z") ;
+  IntegerVector zz ;
+
+  double tau2_tilde ;
+  NumericVector sigma2_tilde(K) ;
+
+  // this should be updated for each iteration
+  NumericVector data_mean(K) ;
+  IntegerVector nn(K) ;
+  double post_prec;
+  double tau_n;
+  double mu_n;
+  double w1;
+  double w2;
+  double prod ;
+
+  for(int s=0; s < S; ++s){
+    zz = Z(s, _) ;
+    model.slot("z") = zz ;
+    nn = tableZ(K, zz) ;
+    data_mean = compute_means_batch(model) ;
+    tau2_tilde = 1/tau2c[s] ;
+    sigma2_tilde = 1.0/sigma2(s, _) ;
+    //tmp = dnorm(thetastar, muc[s], tauc[s]) ;
+    double prod = 1.0;
+    for(int k = 0; k < K; ++k) {
+      post_prec = tau2_tilde + sigma2_tilde[k] * nn[k];
+      tau_n = sqrt(1/post_prec);
+      w1 = tau2_tilde/post_prec;
+      w2 = nn[k]*sigma2_tilde[k]/post_prec;
+      mu_n = w1*muc[s] + w2*data_mean[k];
+      tmp = dnorm(thetastar(_, k), mu_n, tau_n) ;
+      prod = prod * tmp[k] ;
+    }
+    p_theta[s] = prod ;
+  }
+  return p_theta ;
+}
 
 
 
