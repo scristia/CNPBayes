@@ -121,6 +121,10 @@ log_ddirichlet_ <- function(x_, alpha_) {
     .Call('CNPBayes_log_ddirichlet_', PACKAGE = 'CNPBayes', x_, alpha_)
 }
 
+stageTwoLogLik <- function(xmod) {
+    .Call('CNPBayes_stageTwoLogLik', PACKAGE = 'CNPBayes', xmod)
+}
+
 update_mu <- function(xmod) {
     .Call('CNPBayes_update_mu', PACKAGE = 'CNPBayes', xmod)
 }
@@ -209,20 +213,20 @@ permutedz_reduced2 <- function(xmod) {
     .Call('CNPBayes_permutedz_reduced2', PACKAGE = 'CNPBayes', xmod)
 }
 
-p_sigma2_zpermuted <- function(xmod) {
-    .Call('CNPBayes_p_sigma2_zpermuted', PACKAGE = 'CNPBayes', xmod)
-}
-
 p_pmix_reduced <- function(xmod) {
     .Call('CNPBayes_p_pmix_reduced', PACKAGE = 'CNPBayes', xmod)
 }
 
-reduced_thetafixed <- function(xmod) {
-    .Call('CNPBayes_reduced_thetafixed', PACKAGE = 'CNPBayes', xmod)
+reduced_sigma <- function(xmod) {
+    .Call('CNPBayes_reduced_sigma', PACKAGE = 'CNPBayes', xmod)
 }
 
-reduced_theta_sigma_fixed <- function(xmod) {
-    .Call('CNPBayes_reduced_theta_sigma_fixed', PACKAGE = 'CNPBayes', xmod)
+p_sigma_reduced <- function(xmod) {
+    .Call('CNPBayes_p_sigma_reduced', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_pi <- function(xmod) {
+    .Call('CNPBayes_reduced_pi', PACKAGE = 'CNPBayes', xmod)
 }
 
 reduced_mu <- function(xmod) {

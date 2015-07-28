@@ -53,12 +53,7 @@ setMethod("mu", "MarginalModel", function(object) object@mu)
 #' @aliases tau2,MarginalModel-method
 setMethod("tau2", "MarginalModel", function(object) object@tau2)
 
-## compute p(theta) * p(y | theta)
-setMethod("computePotential", "MarginalModel", function(object){
-  ll <- computeLogLikxPrior(object)
-  ll.phi <- .loglikPhiMarginal(object)
-  ll+ll.phi
-})
+
 
 setMethod("initializeSigma2.0", "MarginalModel", function(object){
   hypp <- hyperParams(object)
@@ -376,7 +371,7 @@ setMethod("reducedGibbsZThetaFixed", "BatchModel", function(object){
 })
 
 setMethod("pSigma2", "MarginalModel", function(object) {
-  exp(.Call("p_sigma2_zpermuted", object))
+  exp(.Call("p_sigma_reduced", object))
 })
 
 setMethod("pSigma2", "BatchModel", function(object) {
@@ -561,13 +556,13 @@ updateMultipleChains <- function(nchains, modellist, mp){
 #' list of models by decreasing marginal density, and \code{plot} for
 #' visualizing the component densities.
 computeMarginalLik <- function(modlist,
-                                post.iter=200,
-                                maxperm=3,
-                                method='chib'){
+                               post.iter=200,
+                               maxperm=3,
+                               method='chib'){
     K <- sapply(modlist, k)
     my <- vector("list", length(K))
     mlist <- vector("list", length(K))
-  
+
     for (i in seq_along(K)) {
         model_lik <- berkhofEstimate(modlist[[i]], T2=post.iter, maxperm=maxperm)
 #         log_lik <- CNPBayes:::modalLoglik(model)
@@ -601,10 +596,10 @@ modelOtherModes <- function(model, maxperm=5){
 
 #' Reorder models of varying component sizes.
 #'
-#' Models are ordered according to marginal likelihood. The marginal 
-#' likelihood is computed for each chain of each component size model 
-#' separately. The mean is taken by model, and ordering by this mean 
-#' marginal is performed. 
+#' Models are ordered according to marginal likelihood. The marginal
+#' likelihood is computed for each chain of each component size model
+#' separately. The mean is taken by model, and ordering by this mean
+#' marginal is performed.
 #' @param x the result of a call to \code{computeMarginalLik}.
 #' @export
 orderModels <- function(x){
@@ -709,9 +704,6 @@ setMethod("computeLoglik", "BatchModel", function(object){
   .Call("compute_loglik_batch", object)
 })
 
-setMethod("computePotential", "BatchModel", function(object){
-  computeLogLikxPrior(object)
-})
 
 setMethod("computeLoglik", "MarginalModel", function(object){
   .Call("loglik", object)

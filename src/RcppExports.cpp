@@ -340,6 +340,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// stageTwoLogLik
+RcppExport SEXP stageTwoLogLik(SEXP xmod);
+RcppExport SEXP CNPBayes_stageTwoLogLik(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(stageTwoLogLik(xmod));
+    return __result;
+END_RCPP
+}
 // update_mu
 RcppExport SEXP update_mu(SEXP xmod);
 RcppExport SEXP CNPBayes_update_mu(SEXP xmodSEXP) {
@@ -584,17 +595,6 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// p_sigma2_zpermuted
-RcppExport SEXP p_sigma2_zpermuted(SEXP xmod);
-RcppExport SEXP CNPBayes_p_sigma2_zpermuted(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(p_sigma2_zpermuted(xmod));
-    return __result;
-END_RCPP
-}
 // p_pmix_reduced
 RcppExport SEXP p_pmix_reduced(SEXP xmod);
 RcppExport SEXP CNPBayes_p_pmix_reduced(SEXP xmodSEXP) {
@@ -606,25 +606,36 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// reduced_thetafixed
-RcppExport SEXP reduced_thetafixed(SEXP xmod);
-RcppExport SEXP CNPBayes_reduced_thetafixed(SEXP xmodSEXP) {
+// reduced_sigma
+RcppExport SEXP reduced_sigma(SEXP xmod);
+RcppExport SEXP CNPBayes_reduced_sigma(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(reduced_thetafixed(xmod));
+    __result = Rcpp::wrap(reduced_sigma(xmod));
     return __result;
 END_RCPP
 }
-// reduced_theta_sigma_fixed
-RcppExport SEXP reduced_theta_sigma_fixed(SEXP xmod);
-RcppExport SEXP CNPBayes_reduced_theta_sigma_fixed(SEXP xmodSEXP) {
+// p_sigma_reduced
+RcppExport SEXP p_sigma_reduced(SEXP xmod);
+RcppExport SEXP CNPBayes_p_sigma_reduced(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(reduced_theta_sigma_fixed(xmod));
+    __result = Rcpp::wrap(p_sigma_reduced(xmod));
+    return __result;
+END_RCPP
+}
+// reduced_pi
+RcppExport SEXP reduced_pi(SEXP xmod);
+RcppExport SEXP CNPBayes_reduced_pi(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(reduced_pi(xmod));
     return __result;
 END_RCPP
 }

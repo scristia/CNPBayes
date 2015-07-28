@@ -1,7 +1,7 @@
 Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
-Version: 0.0.107
+Version: 0.0.113
 Maintainer: Stephen Cristiano <scristia@jhu.edu>
 Description: Bayesian hierarchical mixture models for batch effects and copy
     number.
@@ -45,6 +45,7 @@ Collate:
     'data.R'
     'functions.R'
     'functions_sc.R'
+    'marginal_likelihood.R'
     'methods-BatchModel.R'
     'methods-DensityModel.R'
     'methods-Hyperparameters.R'

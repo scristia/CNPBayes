@@ -89,9 +89,14 @@ test_selectK_easy <- function(){
   mlist <- list(posteriorSimulation(model2),
                 posteriorSimulation(model3),
                 posteriorSimulation(model4))
-  x1 <- computeMarginalLik(mlist)
-  m1 <- orderModels(x1)
-  checkTrue(k(m1)[1] >= 3)
+  m.y <- sapply(mlist, CNPBayes:::marginalLikelihood)
+  ## k=4 has higher marginal likelihood (number of components does not
+  ## always correspond to number of copy number states)
+  argmax <- which.max(m.y)
+  checkTrue(argmax == 3L)
+  ## merging recovers the 'true' number of copy number states
+  dm <- DensityModel(mlist[[argmax]], merge=TRUE)
+  checkIdentical(k(dm), 3L)
 }
 
 test_marginal_Moderate <- function(){
