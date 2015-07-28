@@ -19,7 +19,7 @@ An object to specify MCMC options for a later simulation
 
 \item{\code{nstarts}}{A one length numeric to specify the number of chains in a simulation.}
 
-\item{\code{param_updates}}{Still looking.}
+\item{\code{param_updates}}{Indicates whether each parameter should be updated (1) or fixed (0).}
 }}
 \examples{
 McmcParams()
