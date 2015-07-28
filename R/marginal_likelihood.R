@@ -52,6 +52,10 @@ blockUpdates <- function(model, mp){
   pstar
 }
 
+#' Compute the marginal likelihood of a converged model.
+#' @param model An object of class \code{MarginalModel}.
+#' @param niter The number of iterations for the reduced Gibb's sampler.
+#' @export
 marginalLikelihood <- function(model, niter=1000L){
   mp <- McmcParams(iter=niter)
   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
