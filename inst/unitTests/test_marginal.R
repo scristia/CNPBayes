@@ -89,7 +89,7 @@ test_selectK_easy <- function(){
   mlist <- list(posteriorSimulation(model2),
                 posteriorSimulation(model3),
                 posteriorSimulation(model4))
-  m.y <- sapply(mlist, CNPBayes:::marginalLikelihood)
+  m.y <- sapply(mlist, marginalLikelihood)
   ## k=4 has higher marginal likelihood (number of components does not
   ## always correspond to number of copy number states)
   argmax <- which.max(m.y)
