@@ -65,6 +65,10 @@ compute_logprior_batch <- function(xmod) {
     .Call('CNPBayes_compute_logprior_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
+stageTwoLogLikBatch <- function(xmod) {
+    .Call('CNPBayes_stageTwoLogLikBatch', PACKAGE = 'CNPBayes', xmod)
+}
+
 update_theta_batch <- function(xmod) {
     .Call('CNPBayes_update_theta_batch', PACKAGE = 'CNPBayes', xmod)
 }

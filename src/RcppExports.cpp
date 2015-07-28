@@ -183,6 +183,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// stageTwoLogLikBatch
+RcppExport SEXP stageTwoLogLikBatch(SEXP xmod);
+RcppExport SEXP CNPBayes_stageTwoLogLikBatch(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(stageTwoLogLikBatch(xmod));
+    return __result;
+END_RCPP
+}
 // update_theta_batch
 RcppExport SEXP update_theta_batch(SEXP xmod);
 RcppExport SEXP CNPBayes_update_theta_batch(SEXP xmodSEXP) {

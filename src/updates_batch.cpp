@@ -516,6 +516,35 @@ RcppExport SEXP compute_logprior_batch(SEXP xmod){
 }
 
 // [[Rcpp::export]]
+RcppExport SEXP stageTwoLogLikBatch(SEXP xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  NumericMatrix theta = model.slot("theta") ;
+  NumericVector tau2 = model.slot("tau2") ;
+  NumericVector mu = model.slot("mu") ;
+  NumericVector nu0 = model.slot("nu.0") ;
+  NumericVector s20 = model.slot("sigma2.0") ;
+  NumericMatrix sigma2=model.slot("sigma2") ;
+  NumericVector sigma2_tilde(1) ; // = 1.0/sigma2 ;
+  NumericVector loglik(1) ;
+  NumericVector tau = sqrt(tau2) ;
+  int B = theta.nrow() ;
+  int K = theta.ncol() ;  
+  NumericVector liknorm(1) ;
+  NumericVector likprec(1) ;
+  NumericVector th(1) ;
+  NumericVector LL(1) ;
+  LL[0] = 0.0 ;
+  for(int k = 0; k < K; ++k){
+    liknorm[0] = sum(log(dnorm(theta(_, k), mu[k], tau[k]))) ;
+    likprec[0] = sum(log(dgamma(1.0/sigma2(_, k), 0.5*nu0[0], 1.0/(0.5*nu0[0]*s20[0])))) ;
+    LL[0] = LL[0] + liknorm[0] + likprec[0] ;
+  }
+  return LL ;
+}
+
+
+// [[Rcpp::export]]
 RcppExport SEXP update_theta_batch(SEXP xmod){
     RNGScope scope ;
     Rcpp::S4 model(xmod) ;
@@ -898,7 +927,7 @@ RcppExport SEXP p_theta_batch(SEXP xmod) {
   NumericMatrix tau2c = chains.slot("tau2") ;
   NumericVector theta(1) ;
   NumericVector tmp(1) ;
-  NumericVector d(1) ;  
+  NumericVector d(1) ;
   double tau ;
   double mu ;  
   for(int s = 0; s < S; ++s){
