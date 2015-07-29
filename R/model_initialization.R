@@ -27,6 +27,10 @@ setMethod("startingValues", "MarginalModel", function(object){
   ## platform, columns are components
   if(length(y(object)) > 0){
     zz <- as.integer(simulateZ(length(y(object)), p(object)))
+    while (length(table(zz)) < k(object)) {
+      p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are
+      zz <- as.integer(simulateZ(length(y(object)), p(object)))
+    }
   } else zz <- integer()
   z(object) <- zz
   zFreq(object) <- as.integer(table(z(object)))

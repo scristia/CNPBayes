@@ -73,10 +73,19 @@ test_marginalDiffK <- function() {
     checkTrue(length(theta(model)) == 2)
 }
 
+test_marginal_empty_component <- function() {
+    set.seed(1)
+    truth <- simulateData(N=10, p=rep(1/3, 3),
+                          theta=c(-1, 0, 1),
+                          sds=rep(0.1, 3))
+    mp <- McmcParams(iter=5, burnin=5, nStarts=1)
+    model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
+    checkTrue(!any(is.na(computeMeans(model))))
+}
 
 test_selectK_easy <- function(){
   library(GenomicRanges)
-  set.seed(1000)
+  set.seed(100)
   means <- c(-1, 0, 1)
   sds <- c(0.1, 0.2, 0.2)
   truth <- simulateData(N=250, p=rep(1/3, 3), theta=means, sds=sds)

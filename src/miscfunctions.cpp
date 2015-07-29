@@ -195,7 +195,6 @@ int change;
 // [[Rcpp::export]]
 IntegerVector tableZ(int K, IntegerVector z){
   IntegerVector nn(K) ;
-  NumericVector nu_n(K) ;
   for(int k = 0; k < K; k++){
     nn[k] = sum(z == (k+1)) ;
   }
