@@ -328,6 +328,30 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// toMatrix
+RcppExport SEXP toMatrix(NumericVector x, int NR, int NC);
+RcppExport SEXP CNPBayes_toMatrix(SEXP xSEXP, SEXP NRSEXP, SEXP NCSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type NR(NRSEXP);
+    Rcpp::traits::input_parameter< int >::type NC(NCSEXP);
+    __result = Rcpp::wrap(toMatrix(x, NR, NC));
+    return __result;
+END_RCPP
+}
+// marginal_theta_batch
+RcppExport SEXP marginal_theta_batch(SEXP xmod);
+RcppExport SEXP CNPBayes_marginal_theta_batch(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(marginal_theta_batch(xmod));
+    return __result;
+END_RCPP
+}
 // loglik
 RcppExport SEXP loglik(SEXP xmod);
 RcppExport SEXP CNPBayes_loglik(SEXP xmodSEXP) {

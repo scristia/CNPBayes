@@ -1204,6 +1204,21 @@ RcppExport SEXP p_sigma2_batch(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
+RcppExport SEXP toMatrix(NumericVector x, int NR, int NC) {
+  int nrow = NR ;
+  int ncol = NC ;
+  NumericMatrix Y(NR, NC) ;
+  int iter = 0 ;
+  for(int j = 0; j < NC; ++j){
+    for(int i = 0; i < NR; ++i){
+      Y(i, j) = x[iter] ;
+      iter += 1 ;
+    }
+  }
+  return Y ;
+}
+
+// [[Rcpp::export]]
 RcppExport SEXP marginal_theta_batch(SEXP xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
@@ -1216,20 +1231,21 @@ RcppExport SEXP marginal_theta_batch(SEXP xmod) {
   NumericMatrix thetastar=clone(theta_) ;
   int K = thetastar.ncol() ;
   NumericVector p_theta(S) ;
-  NumericVector muc = chains.slot("mu") ;
-  NumericVector tau2c = chains.slot("tau2") ;
+  NumericMatrix muc = chains.slot("mu") ;
+  NumericMatrix tau2c = chains.slot("tau2") ;
   NumericMatrix sigma2 = chains.slot("sigma2") ;
-  NumericVector tauc = sqrt(tau2c) ;
-  NumericVector tmp(K) ;
+  //NumericVector tauc = sqrt(tau2c) ;
+  int B = thetastar.nrow() ;
+  NumericVector tmp(1) ;
 
   IntegerMatrix Z = chains.slot("z") ;
   IntegerVector zz ;
 
-  double tau2_tilde ;
+  NumericVector tau2_tilde(K) ;
   NumericVector sigma2_tilde(K) ;
 
   // this should be updated for each iteration
-  NumericVector data_mean(K) ;
+  NumericMatrix data_mean(B,K) ;
   IntegerVector nn(K) ;
   double post_prec;
   double tau_n;
@@ -1237,24 +1253,33 @@ RcppExport SEXP marginal_theta_batch(SEXP xmod) {
   double w1;
   double w2;
   double prod ;
+  NumericVector tauc(K) ;
+  NumericMatrix iSigma2(B,K) ;
+  NumericVector invs2 ;
+  NumericVector theta(1) ;
 
   for(int s=0; s < S; ++s){
+    tauc = sqrt(tau2c(s, _)) ;
     zz = Z(s, _) ;
     model.slot("z") = zz ;
     nn = tableZ(K, zz) ;
     data_mean = compute_means_batch(model) ;
-    tau2_tilde = 1/tau2c[s] ;
-    sigma2_tilde = 1.0/sigma2(s, _) ;
+    tau2_tilde = 1/tau2c(s, _) ;
+    invs2 = 1.0/sigma2(s, _) ;  // this is a vector of length B*K
+    sigma2_tilde = toMatrix(invs2, B, K) ;
     //tmp = dnorm(thetastar, muc[s], tauc[s]) ;
-    double prod = 1.0;
+    double prod = 1.0 ;
     for(int k = 0; k < K; ++k) {
-      post_prec = tau2_tilde + sigma2_tilde[k] * nn[k];
-      tau_n = sqrt(1/post_prec);
-      w1 = tau2_tilde/post_prec;
-      w2 = nn[k]*sigma2_tilde[k]/post_prec;
-      mu_n = w1*muc[s] + w2*data_mean[k];
-      tmp = dnorm(thetastar(_, k), mu_n, tau_n) ;
-      prod = prod * tmp[k] ;
+      for(int b = 0; b < B; ++b){
+        post_prec = tau2_tilde[k] + sigma2_tilde(b, k) * nn[k] ;
+        tau_n = sqrt(1/post_prec) ;
+        w1 = tau2_tilde[k]/post_prec;
+        w2 = nn[k] * sigma2_tilde(b, k)/post_prec;
+        mu_n = w1*muc(s, k) + w2*data_mean(b, k);
+        theta = thetastar(b, k) ;
+        tmp = dnorm(theta, mu_n, tau_n) ;
+        prod = prod * tmp[0] ;
+      }
     }
     p_theta[s] = prod ;
   }

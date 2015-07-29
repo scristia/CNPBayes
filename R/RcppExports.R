@@ -117,6 +117,14 @@ p_sigma2_batch <- function(xmod) {
     .Call('CNPBayes_p_sigma2_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
+toMatrix <- function(x, NR, NC) {
+    .Call('CNPBayes_toMatrix', PACKAGE = 'CNPBayes', x, NR, NC)
+}
+
+marginal_theta_batch <- function(xmod) {
+    .Call('CNPBayes_marginal_theta_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
 loglik <- function(xmod) {
     .Call('CNPBayes_loglik', PACKAGE = 'CNPBayes', xmod)
 }
