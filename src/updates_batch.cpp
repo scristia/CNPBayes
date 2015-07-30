@@ -1218,6 +1218,7 @@ RcppExport SEXP toMatrix(NumericVector x, int NR, int NC) {
   return Y ;
 }
 
+// Only one done by RS.
 // [[Rcpp::export]]
 RcppExport SEXP marginal_theta_batch(SEXP xmod) {
   RNGScope scope ;
