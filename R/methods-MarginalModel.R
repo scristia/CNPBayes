@@ -127,10 +127,6 @@ setMethod("bic", "MarginalModel", function(object){
   -2*(log_lik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
 })
 
-setMethod("initializeTheta", "MarginalModel", function(object){
-  initializeTheta(k(object))
-})
-
 #' @rdname theta-method
 #' @aliases theta,MarginalModel-method
 setMethod("theta", "MarginalModel", function(object) object@theta)
