@@ -6,7 +6,7 @@
 using namespace Rcpp ;
 
 // [[Rcpp::export]]
-RcppExport SEXP loglik(SEXP xmod) {
+Rcpp::NumericVector loglik(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   NumericVector x = model.slot("data") ;
@@ -31,7 +31,8 @@ RcppExport SEXP loglik(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
+Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_, 
+                                    Rcpp::NumericVector alpha_) {
   // NumericVector x = as<NumericVector>(x_) ;
   NumericVector x = clone(x_) ;
   int K = x.size() ;
@@ -55,7 +56,7 @@ NumericVector log_ddirichlet_(NumericVector x_, NumericVector alpha_) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP stageTwoLogLik(SEXP xmod) {
+Rcpp::NumericVector stageTwoLogLik(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   int K = getK(model.slot("hyperparams")) ;
@@ -89,7 +90,7 @@ RcppExport SEXP stageTwoLogLik(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP update_mu(SEXP xmod) {
+Rcpp::NumericVector update_mu(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -128,7 +129,7 @@ RcppExport SEXP update_mu(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_tau2(SEXP xmod) {
+Rcpp::NumericVector update_tau2(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -156,7 +157,7 @@ RcppExport SEXP update_tau2(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_sigma2_0(SEXP xmod) {
+Rcpp::NumericVector update_sigma2_0(Rcpp::S4 xmod) {
     RNGScope scope ;
     Rcpp::S4 model(xmod) ;  
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -191,7 +192,7 @@ RcppExport SEXP update_sigma2_0(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_nu0(SEXP xmod) {
+Rcpp::NumericVector update_nu0(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -238,7 +239,7 @@ RcppExport SEXP update_nu0(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_p(SEXP xmod) {
+Rcpp::NumericVector update_p(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -256,7 +257,7 @@ RcppExport SEXP update_p(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_multinomialPr(SEXP xmod) {
+Rcpp::NumericMatrix update_multinomialPr(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -287,7 +288,7 @@ RcppExport SEXP update_multinomialPr(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_z(SEXP xmod) {
+Rcpp::IntegerVector update_z(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -348,7 +349,7 @@ RcppExport SEXP update_z(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP compute_means(SEXP xmod) {
+Rcpp::NumericVector compute_means(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   NumericVector x = model.slot("data") ;
@@ -373,7 +374,7 @@ RcppExport SEXP compute_means(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP compute_vars(SEXP xmod) {
+Rcpp::NumericVector compute_vars(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   NumericVector x = model.slot("data") ;
@@ -406,7 +407,7 @@ RcppExport SEXP compute_vars(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP compute_prec(SEXP xmod) {
+Rcpp::NumericVector compute_prec(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -421,7 +422,7 @@ RcppExport SEXP compute_prec(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP compute_logprior(SEXP xmod) {
+Rcpp::NumericVector compute_logprior(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -459,7 +460,7 @@ RcppExport SEXP compute_logprior(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_sigma2(SEXP xmod){
+Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -502,7 +503,7 @@ RcppExport SEXP update_sigma2(SEXP xmod){
 // From stackoverflow http://stackoverflow.com/questions/21609934/ordering-permutation-in-rcpp-i-e-baseorder
 
 // [[Rcpp::export]]
-IntegerVector ordertheta_(NumericVector x) {
+Rcpp::IntegerVector ordertheta_(Rcpp::NumericVector x) {
   NumericVector sorted = clone(x).sort();
   //return match(sorted, x);
   return match(x, sorted) ;
@@ -513,7 +514,7 @@ IntegerVector ordertheta_(NumericVector x) {
 // labels by theta
 //
 // [[Rcpp::export]]
-RcppExport SEXP compute_probz(SEXP xmod){
+Rcpp::IntegerMatrix compute_probz(Rcpp::S4 xmod){
     Rcpp::S4 model(xmod);
     Rcpp::S4 hypp(model.slot("hyperparams"));
     int K = hypp.slot("k");
@@ -547,7 +548,7 @@ RcppExport SEXP compute_probz(SEXP xmod){
 // BURNIN: Don't move chains, no thinning, no need to compute loglik at each iteration
 //
 // [[Rcpp::export]]
-RcppExport SEXP mcmc_marginal_burnin(SEXP xmod, SEXP mcmcp) {
+Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -594,7 +595,7 @@ RcppExport SEXP mcmc_marginal_burnin(SEXP xmod, SEXP mcmcp) {
 // function whose sole job is to move the chains.  
 //
 // [[Rcpp::export]]
-RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
+Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   RNGScope scope ;
   Rcpp::S4 xmod = clone(object) ;
   Rcpp::S4 model(xmod) ;
@@ -788,7 +789,7 @@ RcppExport SEXP mcmc_marginal(SEXP object, SEXP mcmcp) {
 //
 
 // [[Rcpp::export]]
-RcppExport SEXP marginal_theta(SEXP xmod) {
+Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -849,7 +850,7 @@ RcppExport SEXP marginal_theta(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP p_theta_zpermuted(SEXP xmod) {
+Rcpp::NumericVector p_theta_zpermuted(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -896,7 +897,7 @@ RcppExport SEXP p_theta_zpermuted(SEXP xmod) {
   return logp_theta ;
 }
 
-RcppExport SEXP marginal_sigma2(SEXP xmod, SEXP mcmcp) {
+Rcpp::NumericVector marginal_sigma2(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;  
@@ -943,7 +944,7 @@ RcppExport SEXP marginal_sigma2(SEXP xmod, SEXP mcmcp) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP simulate_z_reduced1(SEXP object) {
+Rcpp::S4 simulate_z_reduced1(Rcpp::S4 object) {
   RNGScope scope ;
   Rcpp::S4 model_(object) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1002,7 +1003,7 @@ RcppExport SEXP simulate_z_reduced1(SEXP object) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP simulate_z_reduced2(SEXP object) {
+Rcpp::S4 simulate_z_reduced2(Rcpp::S4 object) {
   RNGScope scope ;
   Rcpp::S4 model_(object) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1061,7 +1062,7 @@ RcppExport SEXP simulate_z_reduced2(SEXP object) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP permutedz_reduced1(SEXP xmod) {
+Rcpp::S4 permutedz_reduced1(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1121,7 +1122,7 @@ RcppExport SEXP permutedz_reduced1(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP permutedz_reduced2(SEXP xmod) {
+Rcpp::S4 permutedz_reduced2(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1183,7 +1184,7 @@ RcppExport SEXP permutedz_reduced2(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP p_pmix_reduced(SEXP xmod) {
+Rcpp::NumericVector p_pmix_reduced(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
@@ -1222,7 +1223,7 @@ RcppExport SEXP p_pmix_reduced(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP reduced_sigma(SEXP xmod) {
+Rcpp::S4 reduced_sigma(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1309,7 +1310,7 @@ RcppExport SEXP reduced_sigma(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP p_sigma_reduced(SEXP xmod) {
+Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1377,7 +1378,7 @@ RcppExport SEXP p_sigma_reduced(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP reduced_pi(SEXP xmod) {
+Rcpp::S4 reduced_pi(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1428,7 +1429,7 @@ RcppExport SEXP reduced_pi(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP reduced_mu(SEXP xmod) {
+Rcpp::S4 reduced_mu(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1507,7 +1508,7 @@ RcppExport SEXP reduced_mu(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP p_mu_reduced(SEXP xmod) {
+Rcpp::NumericVector p_mu_reduced(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
@@ -1563,7 +1564,7 @@ RcppExport SEXP p_mu_reduced(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP reduced_tau(SEXP xmod) {
+Rcpp::S4 reduced_tau(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1623,7 +1624,7 @@ RcppExport SEXP reduced_tau(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP p_tau_reduced(SEXP xmod) {
+Rcpp::NumericVector p_tau_reduced(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
@@ -1665,7 +1666,7 @@ RcppExport SEXP p_tau_reduced(SEXP xmod) {
   return p_tau ;
 }
 
-RcppExport SEXP reduced_nu0(SEXP xmod) {
+Rcpp::S4 reduced_nu0(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1723,7 +1724,7 @@ RcppExport SEXP reduced_nu0(SEXP xmod) {
 }
 
 
-RcppExport SEXP p_nu0_reduced(SEXP xmod) {
+Rcpp::NumericVector p_nu0_reduced(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
@@ -1781,7 +1782,7 @@ RcppExport SEXP p_nu0_reduced(SEXP xmod) {
   return p_nu0 ;
 }
 
-RcppExport SEXP reduced_s20(SEXP xmod) {
+Rcpp::S4 reduced_s20(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1836,7 +1837,7 @@ RcppExport SEXP reduced_s20(SEXP xmod) {
 }
 
 
-RcppExport SEXP p_s20_reduced(SEXP xmod) {
+Rcpp::NumericVector p_s20_reduced(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
