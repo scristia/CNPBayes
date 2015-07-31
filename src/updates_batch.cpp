@@ -6,7 +6,7 @@
 using namespace Rcpp ;
 
 // [[Rcpp::export]]
-IntegerVector uniqueBatch(IntegerVector x) {
+Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x) {
   IntegerVector tmp = unique(x) ;
   IntegerVector b = clone(tmp) ;
   std::sort(b.begin(), b.end()) ;
@@ -14,7 +14,7 @@ IntegerVector uniqueBatch(IntegerVector x) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP tableBatchZ(SEXP xmod){
+Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   int K = getK(model.slot("hyperparams")) ;
@@ -32,7 +32,7 @@ RcppExport SEXP tableBatchZ(SEXP xmod){
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP compute_loglik_batch(SEXP xmod){
+Rcpp::NumericVector compute_loglik_batch(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   int K = getK(model.slot("hyperparams")) ;
@@ -84,7 +84,7 @@ RcppExport SEXP compute_loglik_batch(SEXP xmod){
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_mu_batch(SEXP xmod){
+Rcpp::NumericVector update_mu_batch(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -146,7 +146,7 @@ RcppExport SEXP update_mu_batch(SEXP xmod){
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_tau2_batch(SEXP xmod){
+Rcpp::NumericVector update_tau2_batch(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -178,7 +178,7 @@ RcppExport SEXP update_tau2_batch(SEXP xmod){
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_sigma20_batch(SEXP xmod){
+Rcpp::NumericVector update_sigma20_batch(Rcpp::S4 xmod){
     RNGScope scope ;
     Rcpp::S4 model(xmod) ;
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -223,7 +223,7 @@ RcppExport SEXP update_sigma20_batch(SEXP xmod){
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_nu0_batch(SEXP xmod){
+Rcpp::NumericVector update_nu0_batch(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -270,7 +270,7 @@ RcppExport SEXP update_nu0_batch(SEXP xmod){
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_multinomialPr_batch(SEXP xmod) {
+Rcpp::NumericMatrix update_multinomialPr_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -311,7 +311,7 @@ RcppExport SEXP update_multinomialPr_batch(SEXP xmod) {
 // Note, this is currently the same as the marginal model
 //
 // [[Rcpp::export]]
-RcppExport SEXP update_p_batch(SEXP xmod) {
+Rcpp::NumericVector update_p_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -329,7 +329,7 @@ RcppExport SEXP update_p_batch(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_z_batch(SEXP xmod) {
+Rcpp::IntegerVector update_z_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -402,7 +402,7 @@ RcppExport SEXP update_z_batch(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP compute_means_batch(SEXP xmod) {
+Rcpp::NumericMatrix compute_means_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   NumericVector x = model.slot("data") ;
@@ -435,7 +435,7 @@ RcppExport SEXP compute_means_batch(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP compute_vars_batch(SEXP xmod) {
+Rcpp::NumericMatrix compute_vars_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   NumericVector x = model.slot("data") ;
@@ -472,7 +472,7 @@ RcppExport SEXP compute_vars_batch(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP compute_prec_batch(SEXP xmod){
+Rcpp::NumericMatrix compute_prec_batch(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   NumericMatrix vars = compute_vars_batch(xmod) ;
@@ -488,7 +488,7 @@ RcppExport SEXP compute_prec_batch(SEXP xmod){
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP compute_logprior_batch(SEXP xmod){
+Rcpp::NumericVector compute_logprior_batch(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -516,7 +516,7 @@ RcppExport SEXP compute_logprior_batch(SEXP xmod){
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP stageTwoLogLikBatch(SEXP xmod) {
+Rcpp::NumericVector stageTwoLogLikBatch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   NumericMatrix theta = model.slot("theta") ;
@@ -545,7 +545,7 @@ RcppExport SEXP stageTwoLogLikBatch(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP update_theta_batch(SEXP xmod){
+Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
     RNGScope scope ;
     Rcpp::S4 model(xmod) ;
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -582,7 +582,7 @@ RcppExport SEXP update_theta_batch(SEXP xmod){
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_sigma2_batch(SEXP xmod){
+Rcpp::NumericMatrix update_sigma2_batch(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -632,13 +632,13 @@ RcppExport SEXP update_sigma2_batch(SEXP xmod){
 // From stackoverflow http://stackoverflow.com/questions/21609934/ordering-permutation-in-rcpp-i-e-baseorder
 
 // [[Rcpp::export]]
-IntegerVector order_(NumericVector x) {
+Rcpp::IntegerVector order_(Rcpp::NumericVector x) {
   NumericVector sorted = clone(x).sort();
   return match(x, sorted);
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP update_probz_batch(SEXP xmod){
+Rcpp::IntegerMatrix update_probz_batch(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -673,7 +673,7 @@ RcppExport SEXP update_probz_batch(SEXP xmod){
 
 
 // [[Rcpp::export]]
-RcppExport SEXP mcmc_batch_burnin(SEXP xmod, SEXP mcmcp) {
+Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -721,7 +721,7 @@ RcppExport SEXP mcmc_batch_burnin(SEXP xmod, SEXP mcmcp) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP mcmc_batch(SEXP object, SEXP mcmcp) {
+Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   RNGScope scope ;
   Rcpp::S4 xmod = clone(object) ;  
   Rcpp::S4 model(xmod) ;
@@ -907,7 +907,7 @@ RcppExport SEXP mcmc_batch(SEXP object, SEXP mcmcp) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP p_theta_batch(SEXP xmod) {
+Rcpp::NumericVector p_theta_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -947,7 +947,7 @@ RcppExport SEXP p_theta_batch(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP p_theta_zfixed_batch(SEXP xmod) {
+Rcpp::NumericVector p_theta_zfixed_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1009,7 +1009,7 @@ RcppExport SEXP p_theta_zfixed_batch(SEXP xmod) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP simulate_z_reduced1_batch(SEXP object) {
+Rcpp::S4 simulate_z_reduced1_batch(Rcpp::S4 object) {
   RNGScope scope ;
   Rcpp::S4 model_(object) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1058,7 +1058,7 @@ RcppExport SEXP simulate_z_reduced1_batch(SEXP object) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP reduced_z_theta_fixed(SEXP object) {
+Rcpp::S4 reduced_z_theta_fixed(Rcpp::S4 object) {
   RNGScope scope ;
   Rcpp::S4 model_(object) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1107,7 +1107,7 @@ RcppExport SEXP reduced_z_theta_fixed(SEXP object) {
 
 
 // [[Rcpp::export]]
-RcppExport SEXP simulate_z_reduced2_batch(SEXP object) {
+Rcpp::S4 simulate_z_reduced2_batch(Rcpp::S4 object) {
   RNGScope scope ;
   Rcpp::S4 model_(object) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1156,7 +1156,7 @@ RcppExport SEXP simulate_z_reduced2_batch(SEXP object) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP p_sigma2_batch(SEXP xmod) {
+Rcpp::NumericVector p_sigma2_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
@@ -1204,7 +1204,7 @@ RcppExport SEXP p_sigma2_batch(SEXP xmod) {
 }
 
 // [[Rcpp::export]]
-RcppExport SEXP toMatrix(NumericVector x, int NR, int NC) {
+Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC) {
   int nrow = NR ;
   int ncol = NC ;
   NumericMatrix Y(NR, NC) ;
@@ -1220,7 +1220,7 @@ RcppExport SEXP toMatrix(NumericVector x, int NR, int NC) {
 
 // Only one done by RS.
 // [[Rcpp::export]]
-RcppExport SEXP marginal_theta_batch(SEXP xmod) {
+Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
   Rcpp::S4 model = clone(model_) ;
