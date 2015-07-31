@@ -83,6 +83,10 @@ test_marginal_empty_component <- function() {
     checkTrue(!any(is.na(computeMeans(model))))
 }
 
+test_marginal_few_data <- function() {
+    checkException(model <- MarginalModel(data=0:1, k=3))
+}
+
 test_selectK_easy <- function(){
   library(GenomicRanges)
   set.seed(100)
