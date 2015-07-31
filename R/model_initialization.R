@@ -27,9 +27,14 @@ setMethod("startingValues", "MarginalModel", function(object){
   ## platform, columns are components
   if(length(y(object)) > 0){
     zz <- as.integer(simulateZ(length(y(object)), p(object)))
+    cnt <- 1
     while (length(table(zz)) < k(object)) {
+      if (cnt > 10) {
+        stop("Too few observations or too many components.")
+      }
       p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are
       zz <- as.integer(simulateZ(length(y(object)), p(object)))
+      cnt <- cnt + 1
     }
   } else zz <- integer()
   z(object) <- zz
