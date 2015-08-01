@@ -33,7 +33,7 @@ test_simulation_moderate <- function(){
                 posteriorSimulation(model3),
                 posteriorSimulation(model4))
   ##x <- computeMarginalLik(mlist, post.iter=500)
-  m.y <- sapply(mlist, CNPBayes:::marginalLikelihood)
+  m.y <- sapply(mlist, marginalLikelihood)
   checkTrue(which.max(m.y) == 4L)
   ##models <- orderModels(x)
   ##checkTrue(k(models)[1] == 4)
