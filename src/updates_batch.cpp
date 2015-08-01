@@ -795,14 +795,14 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   // start at 1 instead of zero. Initial values are as above
   for(int s = 1; s < S; ++s){
     if(up[0] > 0) {
-      th = update_theta_batch(xmod) ;
+      th = as<Rcpp::NumericVector>(update_theta_batch(xmod));
       model.slot("theta") = th ;
     } else {
       th = model.slot("theta") ;
     }
     theta(s, _) = th ;
     if(up[1] > 0){
-      s2 = update_sigma2_batch(xmod) ;
+      s2 = as<Rcpp::NumericVector>(update_sigma2_batch(xmod));
       model.slot("sigma2") = s2 ;
     } else {
       s2 = model.slot("sigma2") ;
@@ -1267,7 +1267,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     data_mean = compute_means_batch(model) ;
     tau2_tilde = 1/tau2c(s, _) ;
     invs2 = 1.0/sigma2(s, _) ;  // this is a vector of length B*K
-    sigma2_tilde = toMatrix(invs2, B, K) ;
+    sigma2_tilde = as<Rcpp::NumericVector>(toMatrix(invs2, B, K));
     //tmp = dnorm(thetastar, muc[s], tauc[s]) ;
     double prod = 1.0 ;
     for(int k = 0; k < K; ++k) {
