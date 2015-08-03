@@ -1,5 +1,5 @@
 test_loglik <- function(){
-  set.seed(2000)
+  set.seed(1337)
   library(oligoClasses)
   truth <- simulateData(N=5e3,
                         theta=c(-2, -0.4, 0),
