@@ -198,12 +198,12 @@ batchLik <- function(x, p, mean, sd)  p*dnorm(x, mean, sd)
 
 
 setMethod("computeMeans", "BatchModel", function(object){
-  .Call("compute_means_batch", object)
+  compute_means_batch(object)
 
 })
 
 setMethod("computePrec", "BatchModel", function(object){
-  .Call("compute_prec_batch", object)
+  compute_prec_batch(object)
 })
 
 .computeModesBatch <- function(object){
@@ -236,7 +236,7 @@ setMethod("computeModes", "BatchModel", function(object){
 componentVariances <- function(y, z)  v <- sapply(split(y, z), var)
 
 setMethod("computeVars", "BatchModel", function(object){
-  .Call("compute_vars_batch", object)
+  compute_vars_batch(object)
 })
 
 setMethod("initializeSigma2.0", "BatchModel", function(object){

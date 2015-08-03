@@ -17,12 +17,12 @@
 }
 
 setMethod("updateZ", "MarginalModel", function(object){
-  zz <- .Call("update_z", object)
+  zz <- update_z(object)
   zz
 })
 
 setMethod("updateZ", "BatchModel", function(object){
-  zz <- .Call("update_z_batch", object)
+  zz <- update_z_batch(object)
   zz
 })
 
@@ -32,7 +32,7 @@ setMethod("posteriorMultinomial", "UnivariateBatchModel",
 
 setMethod("posteriorMultinomial", "BatchModel", function(object){
   ##.multBatch(object)
-  .Call("update_multinomialPr_batch", object)
+  update_multinomialPr_batch(object)
 })
 
 .multBatch <- function(object){
@@ -100,7 +100,7 @@ setMethod("posteriorMultinomial", "BatchModel", function(object){
 }
 
 setMethod("updateSigma2", "BatchModel", function(object){
-  .Call("update_sigma2_batch", object)
+  update_sigma2_batch(object)
   ##.update_sigma2(object)
 })
 
@@ -111,7 +111,7 @@ setMethod("updateSigma2", "BatchModel", function(object){
 ##
 setMethod("updateTheta", "BatchModel", function(object) {
   ##.updateThetaBatch(object)
-  .Call("update_theta_batch", object)
+  update_theta_batch(object)
 })
 
 .updateThetaBatch <- function(object){
@@ -174,7 +174,7 @@ setMethod("updateSigma2", "BatchModel", function(object){
 
 setMethod("updateSigma2.0", "BatchModel", function(object){
   ##.updateSigma2.0Batch(object)
-  .Call("update_sigma20_batch", object)
+  update_sigma20_batch(object)
 })
 
 ##.updateSigma2.0 <- function(a, b, nu.0, sigma2.h, k){

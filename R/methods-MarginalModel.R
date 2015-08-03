@@ -41,7 +41,7 @@ MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
 
 getK <- function(object){
   hypp <- hyperParams(object)
-  .Call("getK", hypp)
+  getK(hypp)
 }
 
 #' @rdname mu-method
@@ -65,17 +65,17 @@ setMethod("initializeSigma2.0", "MarginalModel", function(object){
 setMethod("initializeTau2", "MarginalModel", function(object)  1000)
 
 setMethod("posteriorMultinomial", "MarginalModel", function(object){
-  .Call("update_multinomialPr", object)
+  update_multinomialPr(object)
 })
 
 setMethod("show", "MarginalModel", function(object) callNextMethod())
 
 setMethod("computeMeans", "MarginalModel", function(object){
-  .Call("compute_means", object)
+  compute_means(object)
 })
 
 setMethod("computeVars", "MarginalModel", function(object){
-  .Call("compute_vars", object)
+  compute_vars(object)
 })
 
 setMethod("simulateY", "MarginalModel", function(object){
@@ -84,19 +84,19 @@ setMethod("simulateY", "MarginalModel", function(object){
 })
 
 setMethod("updateThetaCpp", "MarginalModel", function(object, constrain) {
-  .Call("update_theta", object, constrain=constrain)
+  update_theta(object, constrain=constrain)
 })
 
 setMethod("updateTheta", "MarginalModel", function(object) {
-  .Call("update_theta", object)
+  update_theta(object)
 })
 
 setMethod("updateSigma2", "MarginalModel", function(object) {
-  .Call("update_sigma2", object)
+  update_sigma2(object)
 })
 
 setMethod("updateSigma2.0", "MarginalModel", function(object){
-  .Call("update_sigma2_0", object)
+  update_sigma2_0(object)
 })
 
 setReplaceMethod("tau2", "MarginalModel", function(object, value){
@@ -343,57 +343,57 @@ permuteZandModes <- function(kmod, ix){
 }
 
 setMethod("pTheta", "MarginalModel", function(object){
-  exp(.Call("marginal_theta", object))
+  exp(marginal_theta(object))
 })
 
 setMethod("pTheta", "BatchModel", function(object){
-  .Call("p_theta_batch", object)
+  p_theta_batch(object)
 })
 
 setMethod("pTheta_Zfixed", "MarginalModel", function(object){
-  exp(.Call("p_theta_zpermuted", object))  ## use permuted
+  exp(p_theta_zpermuted(object))  ## use permuted
 })
 
 setMethod("pTheta_Zfixed", "BatchModel", function(object){
-  .Call("p_theta_zfixed_batch", object)  ## use permuted
+  p_theta_zfixed_batch(object)  ## use permuted
 })
 
 setMethod("reducedGibbsZThetaFixed", "MarginalModel", function(object){
-  .Call("permutedz_reduced1", object)
+  permutedz_reduced1(object)
 })
 
 setMethod("reducedGibbsZThetaFixed", "BatchModel", function(object){
-  .Call("reduced_z_theta_fixed", object)
+  reduced_z_theta_fixed(object)
 })
 
 setMethod("pSigma2", "MarginalModel", function(object) {
-  exp(.Call("p_sigma_reduced", object))
+  exp(p_sigma_reduced(object))
 })
 
 setMethod("pSigma2", "BatchModel", function(object) {
-  .Call("p_sigma2_batch", object)
+  p_sigma2_batch(object)
 })
 
 ## same for marginal and batch models
 
 setMethod("pMixProb", "MixtureModel", function(object) {
-  exp(.Call("p_pmix_reduced", object))
+  exp(p_pmix_reduced(object))
 })
 
 setMethod("reducedGibbsThetaFixed", "MarginalModel", function(object){
-  .Call("simulate_z_reduced1", object)
+  simulate_z_reduced1(object)
 })
 
 setMethod("reducedGibbsThetaFixed", "BatchModel", function(object){
-  .Call("simulate_z_reduced1_batch", object)
+  simulate_z_reduced1_batch(object)
 })
 
 setMethod("reducedGibbsThetaSigmaFixed", "MarginalModel", function(object){
-  .Call("simulate_z_reduced2", object)
+  simulate_z_reduced2(object)
 })
 
 setMethod("reducedGibbsThetaSigmaFixed", "BatchModel", function(object){
-  .Call("simulate_z_reduced2_batch", object)
+  simulate_z_reduced2_batch(object)
 })
 
 
@@ -630,11 +630,11 @@ logBayesFactor <- function(x){
 }
 
 setMethod("updateMultinomialProb", "MarginalModel", function(object){
-  .Call("update_multinomialPr", object)
+  update_multinomialPr(object)
 })
 
 setMethod("updateMultinomialProb", "BatchModel", function(object){
-  .Call("update_multinomialPr_batch", object)
+  update_multinomialPr_batch(object)
 })
 
 NestedMarginalModel <- function(model){
@@ -697,14 +697,14 @@ NestedMarginalModel <- function(model){
 }
 
 setMethod("computeLoglik", "BatchModel", function(object){
-  .Call("compute_loglik_batch", object)
+  compute_loglik_batch(object)
 })
 
 
 setMethod("computeLoglik", "MarginalModel", function(object){
-  .Call("loglik", object)
+  loglik(object)
 })
 
 setMethod("computeLogLikxPrior", "MixtureModel", function(object){
-  .Call("compute_llxprior", object)
+  compute_llxprior(object)
 })

@@ -710,7 +710,7 @@ logLikPhi <- function(object){
 }
 
 setMethod("computePrior", "BatchModel", function(object){
-  .Call("compute_logprior_batch", object)
+  compute_logprior_batch(object)
 ##   hypp <- hyperParams(object)
 ##   K <- k(hypp)
 ##   tau2s <- tau2(object)
@@ -749,13 +749,13 @@ setMethod("computePrior", "BatchModel", function(object){
 
 .computeLoglik <- function(object){
   ##ll.data <- .loglikMarginal(object)
-  ll.data <- .Call("loglik", object)
+  ll.data <- loglik(object)
   ll.data
 }
 
 setMethod("computePrior", "MarginalModel", function(object){
   ##  .compute_prior_marginal(object)
-  .Call("compute_logprior", object)
+  compute_logprior(object)
 })
 
 .compute_prior_marginal <- function(object){

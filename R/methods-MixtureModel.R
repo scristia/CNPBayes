@@ -220,7 +220,7 @@ setMethod("batch", "MixtureModel", function(object) object@batch)
 setMethod("z", "MixtureModel", function(object) object@z)
 
 setMethod("computePrec", "MarginalModel", function(object){
-  .Call("compute_prec", object)
+  compute_prec(object)
 })
 
 .computeProbZ <- function(object){
@@ -245,20 +245,20 @@ setMethod("probz", "MixtureModel", function(object) {
 
 
 setMethod("runBurnin", "MarginalModel", function(object){
-  .Call("mcmc_marginal_burnin", object, mcmcParams(object))
+  mcmc_marginal_burnin(object, mcmcParams(object))
 
 })
 
 setMethod("runBurnin", "BatchModel", function(object){
-  .Call("mcmc_batch_burnin", object, mcmcParams(object))
+  mcmc_batch_burnin(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "MarginalModel", function(object){
-  .Call("mcmc_marginal", object, mcmcParams(object))
+  mcmc_marginal(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "BatchModel", function(object){
-  .Call("mcmc_batch", object, mcmcParams(object))
+  mcmc_batch(object, mcmcParams(object))
 })
 
 multipleStarts <- function(object){
@@ -677,9 +677,9 @@ useModes <- function(object){
   ## update z using the modal values from above
   ##
   if(is(object, "MarginalModel")){
-    z(m2) <- .Call("update_z", m2)
+    z(m2) <- update_z(m2)
   } else {
-    z(m2) <- .Call("update_z_batch", m2)
+    z(m2) <- update_z_batch(m2)
   }
   m2
 }
