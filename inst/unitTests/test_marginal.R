@@ -89,7 +89,7 @@ test_marginal_few_data <- function() {
 
 test_selectK_easy <- function(){
   library(GenomicRanges)
-  set.seed(100)
+  set.seed(1)
   means <- c(-1, 0, 1)
   sds <- c(0.1, 0.2, 0.2)
   truth <- simulateData(N=250, p=rep(1/3, 3), theta=means, sds=sds)
