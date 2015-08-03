@@ -718,3 +718,47 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// reduced_nu0
+Rcpp::S4 reduced_nu0(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_reduced_nu0(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(reduced_nu0(xmod));
+    return __result;
+END_RCPP
+}
+// p_nu0_reduced
+Rcpp::NumericVector p_nu0_reduced(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_p_nu0_reduced(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(p_nu0_reduced(xmod));
+    return __result;
+END_RCPP
+}
+// reduced_s20
+Rcpp::S4 reduced_s20(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_reduced_s20(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(reduced_s20(xmod));
+    return __result;
+END_RCPP
+}
+// p_s20_reduced
+Rcpp::NumericVector p_s20_reduced(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_p_s20_reduced(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(p_s20_reduced(xmod));
+    return __result;
+END_RCPP
+}

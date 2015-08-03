@@ -1666,6 +1666,7 @@ Rcpp::NumericVector p_tau_reduced(Rcpp::S4 xmod) {
   return p_tau ;
 }
 
+// [[Rcpp::export]]
 Rcpp::S4 reduced_nu0(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
@@ -1723,7 +1724,7 @@ Rcpp::S4 reduced_nu0(Rcpp::S4 xmod) {
   return model ;
 }
 
-
+// [[Rcpp::export]]
 Rcpp::NumericVector p_nu0_reduced(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
@@ -1782,6 +1783,7 @@ Rcpp::NumericVector p_nu0_reduced(Rcpp::S4 xmod) {
   return p_nu0 ;
 }
 
+// [[Rcpp::export]]
 Rcpp::S4 reduced_s20(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model_(xmod) ;
@@ -1836,7 +1838,7 @@ Rcpp::S4 reduced_s20(Rcpp::S4 xmod) {
   return model ;
 }
 
-
+// [[Rcpp::export]]
 Rcpp::NumericVector p_s20_reduced(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;

@@ -257,3 +257,19 @@ p_tau_reduced <- function(xmod) {
     .Call('CNPBayes_p_tau_reduced', PACKAGE = 'CNPBayes', xmod)
 }
 
+reduced_nu0 <- function(xmod) {
+    .Call('CNPBayes_reduced_nu0', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_nu0_reduced <- function(xmod) {
+    .Call('CNPBayes_p_nu0_reduced', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_s20 <- function(xmod) {
+    .Call('CNPBayes_reduced_s20', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_s20_reduced <- function(xmod) {
+    .Call('CNPBayes_p_s20_reduced', PACKAGE = 'CNPBayes', xmod)
+}
+
