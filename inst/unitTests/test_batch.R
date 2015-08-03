@@ -47,7 +47,7 @@ test_batchEasy <- function(){
     hist(theta, breaks=100, xlim=c(-2, 1.5))
   }
   set.seed(1)
-  mcmcp <- McmcParams(iter=300, burnin=100, nStarts=5)
+  mcmcp <- McmcParams(iter=300, burnin=300, nStarts=5)
   model <- BatchModel(y(truth), batch=batch(truth), k=3, mcmc.params=mcmcp)
   model <- posteriorSimulation(model)
   if(FALSE){
