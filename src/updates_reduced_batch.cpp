@@ -1,4 +1,4 @@
-#include "miscfunctions.h" // for rdirichlet, tableZ, ...
+#include "miscfunctionbatch.h" // for rdirichlet, tableZ, ...
 #include "updates_batch.h"
 #include <Rcpp.h>
 
@@ -17,7 +17,6 @@ Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC) {
   return Y ;
 }
 
-// Only one done by RS.
 // [[Rcpp::export]]
 Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
