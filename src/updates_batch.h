@@ -39,7 +39,4 @@ Rcpp::S4 reduced_z_theta_fixed(Rcpp::S4 object);
 Rcpp::S4 simulate_z_reduced2_batch(Rcpp::S4 object);
 Rcpp::NumericVector p_sigma2_batch(Rcpp::S4 xmod);
 
-Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC);
-Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod); 
-
 #endif
