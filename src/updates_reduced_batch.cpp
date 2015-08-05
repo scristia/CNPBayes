@@ -180,35 +180,35 @@ Rcpp::NumericVector marginal_sigma2_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
 }
 
 // [[Rcpp::export]]
-Rcpp::S4 simulate_z_reduced1(Rcpp::S4 object) {
-    RNGScope scope ;
+Rcpp::S4 simulate_z_reduced1_batch(Rcpp::S4 object) {
+    Rcpp::RNGScope scope ;
     Rcpp::S4 model_(object) ;
     Rcpp::S4 model = clone(model_) ;
     Rcpp::S4 params=model.slot("mcmc.params") ;
     Rcpp::S4 chains=model.slot("mcmc.chains") ;
     int S = params.slot("iter") ;
-    List modes = model.slot("modes") ;
-    NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
-    NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
-    NumericVector sigma2star=clone(sigma2_) ;
-    NumericVector thetastar=clone(theta_) ;
+    Rcpp::List modes = model.slot("modes") ;
+    Rcpp::NumericVector sigma2_ = Rcpp::as<Rcpp::NumericVector>(modes["sigma2"]) ;
+    Rcpp::NumericVector theta_ = Rcpp::as<Rcpp::NumericVector>(modes["theta"]) ;
+    Rcpp::NumericVector sigma2star=clone(sigma2_) ;
+    Rcpp::NumericVector thetastar=clone(theta_) ;
     int K = thetastar.size() ;
-    NumericVector prec(K) ;
-    NumericVector logp_prec(S) ;
-    NumericVector tmp(K) ;
-    NumericVector y = model.slot("data") ;
+    Rcpp::NumericVector prec(K) ;
+    Rcpp::NumericVector logp_prec(S) ;
+    Rcpp::NumericVector tmp(K) ;
+    Rcpp::NumericVector y = model.slot("data") ;
     int N = y.size() ;
-    NumericVector tau2(1) ;
-    NumericVector nu0 (1) ;
-    NumericVector s20 (1) ;
-    NumericVector s2 (1) ;
+    Rcpp::NumericVector tau2(1) ;
+    Rcpp::NumericVector nu0 (1) ;
+    Rcpp::NumericVector s20 (1) ;
+    Rcpp::NumericVector s2 (1) ;
     //
     // We need to keep the Z|y,theta* chain
     //
-    IntegerMatrix Z = chains.slot("z") ;
-    NumericVector nu0chain = chains.slot("nu.0") ;
-    NumericVector s20chain = chains.slot("sigma2.0") ;
-    IntegerVector h(N) ;
+    Rcpp::IntegerMatrix Z = chains.slot("z") ;
+    Rcpp::NumericVector nu0chain = chains.slot("nu.0") ;
+    Rcpp::NumericVector s20chain = chains.slot("sigma2.0") ;
+    Rcpp::IntegerVector h(N) ;
     model.slot("theta") = thetastar ;
     //
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
