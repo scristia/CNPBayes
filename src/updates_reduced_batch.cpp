@@ -2,7 +2,6 @@
 #include "updates_batch.h"
 #include <Rcpp.h>
 
-// [[Rcpp::export]]
 Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC) {
     Rcpp::NumericMatrix Y(NR, NC);
     int iter = 0;
