@@ -17,70 +17,70 @@ Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC) {
 
 // [[Rcpp::export]]
 Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
-  RNGScope scope ;
-  Rcpp::S4 model_(xmod) ;
-  Rcpp::S4 model = clone(model_) ;
-  Rcpp::S4 params=model.slot("mcmc.params") ;
-  Rcpp::S4 chains(model.slot("mcmc.chains")) ;  
-  int S = params.slot("iter") ;
-  List modes = model.slot("modes") ;
-  NumericMatrix theta_ = as<NumericMatrix>(modes["theta"]) ;
-  NumericMatrix thetastar=clone(theta_) ;
-  int K = thetastar.ncol() ;
-  NumericVector p_theta(S) ;
-  NumericMatrix muc = chains.slot("mu") ;
-  NumericMatrix tau2c = chains.slot("tau2") ;
-  NumericMatrix sigma2 = chains.slot("sigma2") ;
-  //NumericVector tauc = sqrt(tau2c) ;
-  int B = thetastar.nrow() ;
-  NumericVector tmp(1) ;
+    Rcpp::RNGScope scope;
+    Rcpp::S4 model_(xmod);
+    Rcpp::S4 model = clone(model_);
+    Rcpp::S4 params=model.slot("mcmc.params");
+    Rcpp::S4 chains(model.slot("mcmc.chains")) ;  
+    int S = params.slot("iter");
+    Rcpp::List modes = model.slot("modes");
+    Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
+    Rcpp::NumericMatrix thetastar=clone(theta_);
+    int K = thetastar.ncol();
+    Rcpp::NumericVector p_theta(S);
+    Rcpp::NumericMatrix muc = chains.slot("mu");
+    Rcpp::NumericMatrix tau2c = chains.slot("tau2");
+    Rcpp::NumericMatrix sigma2 = chains.slot("sigma2");
+    int B = thetastar.nrow();
+    Rcpp::NumericVector tmp(1);
 
-  IntegerMatrix Z = chains.slot("z") ;
-  IntegerVector zz ;
+    Rcpp::IntegerMatrix Z = chains.slot("z");
+    Rcpp::IntegerVector zz;
 
-  NumericVector tau2_tilde(K) ;
-  NumericVector sigma2_tilde(K) ;
+    Rcpp::NumericVector tau2_tilde(K);
+    Rcpp::NumericVector sigma2_tilde(K);
 
-  // this should be updated for each iteration
-  NumericMatrix data_mean(B,K) ;
-  IntegerVector nn(K) ;
-  double post_prec;
-  double tau_n;
-  double mu_n;
-  double w1;
-  double w2;
-  double prod ;
-  NumericVector tauc(K) ;
-  NumericMatrix iSigma2(B,K) ;
-  NumericVector invs2 ;
-  NumericVector theta(1) ;
+    // this should be updated for each iteration
+    Rcpp::NumericMatrix data_mean(B,K);
+    Rcpp::IntegerVector nn(K);
+    double post_prec;
+    double tau_n;
+    double mu_n;
+    double w1;
+    double w2;
+    Rcpp::NumericVector tauc(K);
+    Rcpp::NumericMatrix iSigma2(B,K);
+    Rcpp::NumericVector invs2;
+    Rcpp::NumericVector theta(1);
 
-  for(int s=0; s < S; ++s){
-    tauc = sqrt(tau2c(s, _)) ;
-    zz = Z(s, _) ;
-    model.slot("z") = zz ;
-    nn = tableZ(K, zz) ;
-    data_mean = compute_means_batch(model) ;
-    tau2_tilde = 1/tau2c(s, _) ;
-    invs2 = 1.0/sigma2(s, _) ;  // this is a vector of length B*K
-    sigma2_tilde = as<Rcpp::NumericVector>(toMatrix(invs2, B, K));
-    //tmp = dnorm(thetastar, muc[s], tauc[s]) ;
-    double prod = 1.0 ;
-    for(int k = 0; k < K; ++k) {
-      for(int b = 0; b < B; ++b){
-        post_prec = tau2_tilde[k] + sigma2_tilde(b, k) * nn[k] ;
-        tau_n = sqrt(1/post_prec) ;
-        w1 = tau2_tilde[k]/post_prec;
-        w2 = nn[k] * sigma2_tilde(b, k)/post_prec;
-        mu_n = w1*muc(s, k) + w2*data_mean(b, k);
-        theta = thetastar(b, k) ;
-        tmp = dnorm(theta, mu_n, tau_n) ;
-        prod = prod * tmp[0] ;
-      }
+    for(int s=0; s < S; ++s) {
+        tauc = sqrt(tau2c(s, Rcpp::_));
+        zz = Z(s, Rcpp::_);
+        model.slot("z") = zz;
+        nn = tableZ(K, zz);
+        data_mean = compute_means_batch(model);
+        tau2_tilde = 1/tau2c(s, Rcpp::_);
+        invs2 = 1.0/sigma2(s, Rcpp::_) ;  // this is a vector of length B*K
+        sigma2_tilde = Rcpp::as<Rcpp::NumericVector>(toMatrix(invs2, B, K));
+        double prod = 1.0;
+
+        for(int k = 0; k < K; ++k) {
+            for(int b = 0; b < B; ++b){
+                post_prec = tau2_tilde[k] + sigma2_tilde(b, k) * nn[k];
+                tau_n = sqrt(1/post_prec);
+                w1 = tau2_tilde[k]/post_prec;
+                w2 = nn[k] * sigma2_tilde(b, k)/post_prec;
+                mu_n = w1*muc(s, k) + w2*data_mean(b, k);
+                theta = thetastar(b, k);
+                tmp = dnorm(theta, mu_n, tau_n);
+                prod = prod * tmp[0];
+            }
+        }
+
+        p_theta[s] = prod;
     }
-    p_theta[s] = prod ;
-  }
-  return p_theta ;
+
+    return p_theta;
 }
 
 // [[Rcpp::export]]
