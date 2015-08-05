@@ -143,7 +143,6 @@ Rcpp::NumericVector update_mu_batch(Rcpp::S4 xmod){
   return mu_new ;
 }
 
-// [[Rcpp::export]]
 Rcpp::NumericVector update_tau2_batch(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
