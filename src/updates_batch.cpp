@@ -625,7 +625,6 @@ Rcpp::NumericMatrix update_sigma2_batch(Rcpp::S4 xmod){
 
 // From stackoverflow http://stackoverflow.com/questions/21609934/ordering-permutation-in-rcpp-i-e-baseorder
 
-// [[Rcpp::export]]
 Rcpp::IntegerVector order_(Rcpp::NumericVector x) {
   NumericVector sorted = clone(x).sort();
   return match(x, sorted);
