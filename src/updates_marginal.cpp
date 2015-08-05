@@ -491,7 +491,6 @@ Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod){
 
 // From stackoverflow http://stackoverflow.com/questions/21609934/ordering-permutation-in-rcpp-i-e-baseorder
 
-// [[Rcpp::export]]
 Rcpp::IntegerVector ordertheta_(Rcpp::NumericVector x) {
   NumericVector sorted = clone(x).sort();
   //return match(sorted, x);
