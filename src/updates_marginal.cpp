@@ -125,7 +125,6 @@ Rcpp::NumericVector update_mu(Rcpp::S4 xmod) {
   //return mu_K ;
 }
 
-// [[Rcpp::export]]
 Rcpp::NumericVector update_tau2(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
