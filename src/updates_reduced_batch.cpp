@@ -85,29 +85,29 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
 
 // [[Rcpp::export]]
 Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
-    RNGScope scope ;
+    Rcpp::RNGScope scope ;
     Rcpp::S4 model_(xmod) ;
     Rcpp::S4 model = clone(model_) ;
     Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
     //Rcpp::S4 params(mcmcp) ;
     int S = mcmcp.slot("iter") ;
-    List modes = model.slot("modes") ;
-    NumericMatrix sigma2_ = as<NumericMatrix>(modes["sigma2"]) ;
-    NumericMatrix theta_ = as<NumericMatrix>(modes["theta"]) ;
-    NumericVector sigma2star=clone(sigma2_) ;
-    NumericVector thetastar=clone(theta_) ;
+    Rcpp::List modes = model.slot("modes") ;
+    Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]) ;
+    Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]) ;
+    Rcpp::NumericVector sigma2star=clone(sigma2_) ;
+    Rcpp::NumericVector thetastar=clone(theta_) ;
     int K = thetastar.size() ;
-    NumericVector logp_theta(S) ;
+    Rcpp::NumericVector logp_theta(S) ;
     Rcpp::S4 chains(model.slot("mcmc.chains")) ;
     double mu ;
-    NumericVector tau(1) ;
-    NumericVector tmp(K) ;
-    IntegerMatrix Z = chains.slot("z") ;
+    Rcpp::NumericVector tau(1) ;
+    Rcpp::NumericVector tmp(K) ;
+    Rcpp::IntegerMatrix Z = chains.slot("z") ;
     int N = Z.ncol() ;
-    IntegerVector h (N) ;
-    NumericVector tau2(1) ;
+    Rcpp::IntegerVector h (N) ;
+    Rcpp::NumericVector tau2(1) ;
     for(int s=0; s < S; ++s){
-        h = Z(s, _ ) ;
+        h = Z(s, Rcpp::_ ) ;
         model.slot("z") = h ;
         model.slot("data.mean") = compute_means(model) ;
         model.slot("data.prec") = compute_prec(model) ;
