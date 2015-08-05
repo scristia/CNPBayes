@@ -228,7 +228,6 @@ Rcpp::NumericVector update_nu0(Rcpp::S4 xmod) {
   return nu0 ;
 }
 
-// [[Rcpp::export]]
 Rcpp::NumericVector update_p(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
