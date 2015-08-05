@@ -1,6 +1,5 @@
 #include "miscfunctions.h" // for rdirichlet, tableZ, ...
 #include "updates_batch.h"
-#include "updates_batch.h"
 #include <Rcpp.h>
 
 // [[Rcpp::export]]
