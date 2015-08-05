@@ -306,7 +306,6 @@ Rcpp::NumericMatrix update_multinomialPr_batch(Rcpp::S4 xmod) {
 //
 // Note, this is currently the same as the marginal model
 //
-// [[Rcpp::export]]
 Rcpp::NumericVector update_p_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
