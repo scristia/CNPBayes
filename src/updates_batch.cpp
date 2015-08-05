@@ -510,7 +510,6 @@ Rcpp::NumericVector compute_logprior_batch(Rcpp::S4 xmod){
   return logprior ;
 }
 
-// [[Rcpp::export]]
 Rcpp::NumericVector stageTwoLogLikBatch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
