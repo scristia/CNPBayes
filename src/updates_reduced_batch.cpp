@@ -133,29 +133,29 @@ Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
     return logp_theta ;
 }
 
-Rcpp::NumericVector marginal_sigma2(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
-    RNGScope scope ;
+Rcpp::NumericVector marginal_sigma2_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
+    Rcpp::RNGScope scope ;
     Rcpp::S4 model_(xmod) ;
     Rcpp::S4 model = clone(model_) ;    
     Rcpp::S4 params(mcmcp) ;
     int S = params.slot("iter") ;
     // Assume current values are the modes (in R, useModes(object) ensures this)
-    List modes = model.slot("modes") ;
-    NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
-    NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
+    Rcpp::List modes = model.slot("modes") ;
+    Rcpp::NumericVector sigma2_ = Rcpp::as<Rcpp::NumericVector>(modes["sigma2"]) ;
+    Rcpp::NumericVector theta_ = Rcpp::as<Rcpp::NumericVector>(modes["theta"]) ;
     //NumericVector sigma2_ = model.slot("sigma2") ;
-    NumericVector sigma2star = clone(sigma2_) ;
-    NumericVector thetastar = clone(theta_) ;
-    NumericVector prec = pow(sigma2star, -1.0) ;
+    Rcpp::NumericVector sigma2star = clone(sigma2_) ;
+    Rcpp::NumericVector thetastar = clone(theta_) ;
+    Rcpp::NumericVector prec = pow(sigma2star, -1.0) ;
     int K = prec.size() ;
-    NumericVector logp_prec(S) ;
+    Rcpp::NumericVector logp_prec(S) ;
     //
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
     //
     Rcpp::S4 chains(model.slot("mcmc.chains")) ;
-    NumericVector tmp(K) ;
-    NumericVector nu0 = chains.slot("nu.0") ;
-    NumericVector s20 = chains.slot("sigma2.0") ;
+    Rcpp::NumericVector tmp(K) ;
+    Rcpp::NumericVector nu0 = chains.slot("nu.0") ;
+    Rcpp::NumericVector s20 = chains.slot("sigma2.0") ;
     for(int s=0; s < S; ++s){
         model.slot("z") = update_z(model) ;
         model.slot("data.mean") = compute_means(model) ;
