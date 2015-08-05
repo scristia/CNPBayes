@@ -93,15 +93,11 @@ Rcpp::NumericVector update_mu(Rcpp::S4 xmod) {
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   double tau2_0 = hypp.slot("tau2.0") ;
   double tau20_tilde = 1.0/tau2_0 ;
-  //double tau2 = model.slot("tau2") ;
   NumericVector tau2 = model.slot("tau2") ;
-  // double tau2_tilde = 1.0/tau2 ;
   NumericVector tau2_tilde = 1.0/tau2 ;
-  //if(is_true(any(is_nan(tau2_tilde)))) tau2_tilde[0] = 1.0 ;
   double mu_0 = hypp.slot("mu.0") ;
   double K = getK(hypp) ;
   NumericVector theta = model.slot("theta") ;
-  //NumericVector nn = model.slot("zfreq") ;
   IntegerVector z = model.slot("z") ;
   IntegerVector nn = tableZ(K, z) ;
   double thetabar ;
@@ -122,7 +118,6 @@ Rcpp::NumericVector update_mu(Rcpp::S4 xmod) {
     mu_new[0] = as<double>(rnorm(1, mu_0, sqrt(tau2_0))) ;
   }
   return mu_new ;
-  //return mu_K ;
 }
 
 Rcpp::NumericVector update_tau2(Rcpp::S4 xmod) {
