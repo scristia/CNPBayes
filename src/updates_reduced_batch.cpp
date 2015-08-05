@@ -1,20 +1,18 @@
-#include "miscfunctionbatch.h" // for rdirichlet, tableZ, ...
+#include "miscfunctions.h" // for rdirichlet, tableZ, ...
 #include "updates_batch.h"
 #include <Rcpp.h>
 
 // [[Rcpp::export]]
 Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC) {
-  int nrow = NR ;
-  int ncol = NC ;
-  NumericMatrix Y(NR, NC) ;
-  int iter = 0 ;
-  for(int j = 0; j < NC; ++j){
-    for(int i = 0; i < NR; ++i){
-      Y(i, j) = x[iter] ;
-      iter += 1 ;
+    Rcpp::NumericMatrix Y(NR, NC);
+    int iter = 0;
+    for(int j = 0; j < NC; ++j) {
+        for(int i = 0; i < NR; ++i) {
+            Y(i, j) = x[iter];
+            iter++;
+        }
     }
-  }
-  return Y ;
+    return Y ;
 }
 
 // [[Rcpp::export]]
