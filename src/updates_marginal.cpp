@@ -87,8 +87,6 @@ Rcpp::NumericVector stageTwoLogLik(Rcpp::S4 xmod) {
 // same seed is used...
 //
 
-
-// [[Rcpp::export]]
 Rcpp::NumericVector update_mu(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
