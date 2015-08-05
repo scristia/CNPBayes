@@ -501,7 +501,6 @@ Rcpp::IntegerVector ordertheta_(Rcpp::NumericVector x) {
 // For the posterior probability of a copy number state, order the z
 // labels by theta
 //
-// [[Rcpp::export]]
 Rcpp::IntegerMatrix compute_probz(Rcpp::S4 xmod){
     Rcpp::S4 model(xmod);
     Rcpp::S4 hypp(model.slot("hyperparams"));
