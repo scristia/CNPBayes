@@ -30,7 +30,6 @@ Rcpp::NumericVector loglik(Rcpp::S4 xmod) {
   return loglik;
 }
 
-// [[Rcpp::export]]
 Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_, 
                                     Rcpp::NumericVector alpha_) {
   // NumericVector x = as<NumericVector>(x_) ;
