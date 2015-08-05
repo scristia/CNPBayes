@@ -21,7 +21,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     Rcpp::S4 model_(xmod);
     Rcpp::S4 model = clone(model_);
     Rcpp::S4 params=model.slot("mcmc.params");
-    Rcpp::S4 chains(model.slot("mcmc.chains")) ;  
+    Rcpp::S4 chains(model.slot("mcmc.chains")); 
     int S = params.slot("iter");
     Rcpp::List modes = model.slot("modes");
     Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
