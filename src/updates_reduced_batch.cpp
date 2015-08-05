@@ -95,9 +95,10 @@ Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
     Rcpp::List modes = model.slot("modes") ;
     Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]) ;
     Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]) ;
-    Rcpp::NumericVector sigma2star=clone(sigma2_) ;
-    Rcpp::NumericVector thetastar=clone(theta_) ;
-    int K = thetastar.size() ;
+    Rcpp::NumericMatrix sigma2star=clone(sigma2_) ;
+    Rcpp::NumericMatrix thetastar=clone(theta_) ;
+    int K = thetastar.ncol() ;
+    int B = thetastar.nrow() ;
     Rcpp::NumericVector logp_theta(S) ;
     Rcpp::S4 chains(model.slot("mcmc.chains")) ;
     double mu ;
