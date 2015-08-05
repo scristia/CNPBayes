@@ -12,7 +12,7 @@ Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC) {
             iter++;
         }
     }
-    return Y ;
+    return Y;
 }
 
 // [[Rcpp::export]]
