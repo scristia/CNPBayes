@@ -457,7 +457,7 @@ Rcpp::NumericVector p_pmix_reduced_batch(Rcpp::S4 xmod) {
 
 
 // [[Rcpp::export]]
-Rcpp::S4 reduced_sigma(Rcpp::S4 xmod) {
+Rcpp::S4 reduced_sigma_batch(Rcpp::S4 xmod) {
     RNGScope scope ;
     Rcpp::S4 model_(xmod) ;
     Rcpp::S4 model = clone(model_) ;
