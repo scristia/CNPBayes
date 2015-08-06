@@ -798,7 +798,7 @@ Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
-Rcpp::S4 reduced_tau(Rcpp::S4 xmod) {
+Rcpp::S4 reduced_tau_batch(Rcpp::S4 xmod) {
     RNGScope scope ;
     Rcpp::S4 model_(xmod) ;
     Rcpp::S4 model = clone(model_) ;
