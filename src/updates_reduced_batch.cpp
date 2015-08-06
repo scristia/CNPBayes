@@ -88,7 +88,6 @@ Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
     Rcpp::S4 model_(xmod);
     Rcpp::S4 model = clone(model_);
     Rcpp::S4 mcmcp = model.slot("mcmc.params");
-    //Rcpp::S4 params(mcmcp);
     int S = mcmcp.slot("iter");
     Rcpp::List modes = model.slot("modes");
     Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
@@ -103,12 +102,11 @@ Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
     Rcpp::NumericVector tau(1);
     Rcpp::NumericVector tmp(K);
     Rcpp::IntegerMatrix Z = chains.slot("z");
-    int N = Z.ncol();
-    Rcpp::IntegerVector h (N);
     Rcpp::NumericVector tau2(1);
-    for(int s=0; s < S; ++s){
-        h = Z(s, Rcpp::_ );
-        model.slot("z") = h;
+
+    for (int s = 0; s < S; ++s) {
+        // update parameters
+        model.slot("z") = Z(s, Rcpp::_ );
         model.slot("data.mean") = compute_means_batch(model);
         model.slot("data.prec") = compute_prec_batch(model);
         model.slot("theta") = update_theta_batch(model);
@@ -121,13 +119,20 @@ Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
         mu = model.slot("mu");
         tau2 = model.slot("tau2");
         tau = sqrt(tau2);
-        tmp = dnorm(thetastar, mu, tau[0]);
+        
+        // calculate probability
         double prod = 0.0;
-        for(int k = 0; k < K; ++k) {
-            prod += log(tmp[k]);
+
+        for (int k = 0; k < K; ++k) {
+            for (int b = 0; b < B; ++b) {
+                tmp = Rcpp::dnorm(thetastar(b, k), mu, tau[0]);
+                prod += log(tmp[0]);
+            }
         }
+
         logp_theta[s] = prod;
     }
+
     return logp_theta;
 }
 
