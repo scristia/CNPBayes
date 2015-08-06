@@ -1047,56 +1047,6 @@ Rcpp::S4 reduced_z_theta_fixed(Rcpp::S4 object) {
   return model ;
 }
 
-
-// [[Rcpp::export]]
-Rcpp::S4 simulate_z_reduced2_batch(Rcpp::S4 object) {
-  RNGScope scope ;
-  Rcpp::S4 model_(object) ;
-  Rcpp::S4 model = clone(model_) ;
-  Rcpp::S4 params=model.slot("mcmc.params") ;
-  Rcpp::S4 chains=model.slot("mcmc.chains") ;
-  int S = params.slot("iter") ;
-  List modes = model.slot("modes") ;
-  NumericMatrix theta_ = as<NumericMatrix>(modes["theta"]) ;
-  NumericMatrix thetastar=clone(theta_) ;
-
-  NumericMatrix sigma2_ = as<NumericMatrix>(modes["sigma2"]) ;
-  NumericMatrix sigma2star = clone(sigma2_) ;
-  
-  int K = thetastar.ncol() ;
-  NumericVector y = model.slot("data") ;
-  int N = y.size() ;
-  //
-  // We need to keep the Z|y,theta* chain
-  //
-  IntegerMatrix Z = chains.slot("z") ;
-  IntegerVector h(N) ;
-  model.slot("theta") = thetastar ;
-  model.slot("sigma2") = sigma2star ;
-  
-  //
-  // Run reduced Gibbs  -- theta is fixed at modal ordinate
-  //  
-  for(int s=0; s < S; ++s){
-    model.slot("z") = update_z_batch(model) ;
-    model.slot("data.mean") = compute_means_batch(model) ;
-    model.slot("data.prec") = compute_prec_batch(model) ;
-    //model.slot("theta") = update_theta(model) ; Do not update theta !
-    //model.slot("sigma2") = update_sigma2_batch(model) ;
-    model.slot("pi") = update_p_batch(model) ;
-    model.slot("mu") = update_mu_batch(model) ;
-    model.slot("tau2") = update_tau2_batch(model) ;
-    model.slot("nu.0") = update_nu0_batch(model) ;
-    model.slot("sigma2.0") = update_sigma20_batch(model) ;
-    h = model.slot("z") ;
-    Z(s, _) = h ;
-  }
-  //return logp_prec ;
-  chains.slot("z") = Z ;
-  model.slot("mcmc.chains") = chains ;
-  return model ;
-}
-
 // [[Rcpp::export]]
 Rcpp::NumericVector p_sigma2_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
