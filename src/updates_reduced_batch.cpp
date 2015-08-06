@@ -237,7 +237,7 @@ Rcpp::S4 simulate_z_reduced1_batch(Rcpp::S4 object) {
 }
 
 // [[Rcpp::export]]
-Rcpp::S4 simulate_z_reduced2(Rcpp::S4 object) {
+Rcpp::S4 simulate_z_reduced2_batch(Rcpp::S4 object) {
     RNGScope scope ;
     Rcpp::S4 model_(object) ;
     Rcpp::S4 model = clone(model_) ;
