@@ -1018,7 +1018,7 @@ Rcpp::NumericVector p_nu0_reduced_batch(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
-Rcpp::S4 reduced_s20(Rcpp::S4 xmod) {
+Rcpp::S4 reduced_s20_batch(Rcpp::S4 xmod) {
     RNGScope scope ;
     Rcpp::S4 model_(xmod) ;
     Rcpp::S4 model = clone(model_) ;
