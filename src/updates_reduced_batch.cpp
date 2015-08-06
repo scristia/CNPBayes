@@ -959,7 +959,7 @@ Rcpp::S4 reduced_nu0_batch(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector p_nu0_reduced(Rcpp::S4 xmod) {
+Rcpp::NumericVector p_nu0_reduced_batch(Rcpp::S4 xmod) {
     RNGScope scope ;
     Rcpp::S4 model(xmod) ;
     Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
