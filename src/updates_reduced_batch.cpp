@@ -663,7 +663,7 @@ Rcpp::S4 reduced_pi_batch(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
-Rcpp::S4 reduced_mu(Rcpp::S4 xmod) {
+Rcpp::S4 reduced_mu_batch(Rcpp::S4 xmod) {
     RNGScope scope ;
     Rcpp::S4 model_(xmod) ;
     Rcpp::S4 model = clone(model_) ;
