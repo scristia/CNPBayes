@@ -418,7 +418,7 @@ Rcpp::S4 permutedz_reduced2_batch(Rcpp::S4 xmod) {
 
 
 // [[Rcpp::export]]
-Rcpp::NumericVector p_pmix_reduced(Rcpp::S4 xmod) {
+Rcpp::NumericVector p_pmix_reduced_batch(Rcpp::S4 xmod) {
     RNGScope scope ;
     Rcpp::S4 model(xmod) ;
     Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
