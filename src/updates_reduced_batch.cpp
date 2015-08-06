@@ -137,16 +137,24 @@ Rcpp::NumericVector marginal_sigma2_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
     Rcpp::S4 model = clone(model_) ;    
     Rcpp::S4 params(mcmcp);
     int S = params.slot("iter");
+
     // Assume current values are the modes (in R, useModes(object) ensures this)
     Rcpp::List modes = model.slot("modes");
-    Rcpp::NumericVector sigma2_ = Rcpp::as<Rcpp::NumericVector>(modes["sigma2"]);
-    Rcpp::NumericVector theta_ = Rcpp::as<Rcpp::NumericVector>(modes["theta"]);
-    //NumericVector sigma2_ = model.slot("sigma2");
-    Rcpp::NumericVector sigma2star = clone(sigma2_);
-    Rcpp::NumericVector thetastar = clone(theta_);
-    Rcpp::NumericVector prec = pow(sigma2star, -1.0);
-    int K = prec.size();
+    Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
+    Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
+    Rcpp::NumericMatrix sigma2star = clone(sigma2_);
+    Rcpp::NumericMatrix thetastar = clone(theta_);
+
+    int K = thetastar.ncol();
+    int B = thetastar.nrow();
+    Rcpp::NumericMatrix prec(B, K);
+
+    for (int k = 0; k < K; ++k) {
+        prec(Rcpp::_, k) = 1.0 / sigma2star(Rcpp::_, k);
+    }  
+
     Rcpp::NumericVector logp_prec(S);
+
     //
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
     //
@@ -154,7 +162,9 @@ Rcpp::NumericVector marginal_sigma2_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
     Rcpp::NumericVector tmp(K);
     Rcpp::NumericVector nu0 = chains.slot("nu.0");
     Rcpp::NumericVector s20 = chains.slot("sigma2.0");
-    for(int s=0; s < S; ++s){
+
+    for (int s = 0; s < S; ++s) {
+        // update parameters
         model.slot("z") = update_z_batch(model);
         model.slot("data.mean") = compute_means_batch(model);
         model.slot("data.prec") = compute_prec_batch(model);
@@ -165,18 +175,28 @@ Rcpp::NumericVector marginal_sigma2_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
         model.slot("tau2") = update_tau2_batch(model);
         model.slot("nu.0") = update_nu0_batch(model);
         model.slot("sigma2.0") = update_sigma20_batch(model);
+
+        // calculate probability of sigma2
         nu0 = model.slot("nu.0");
         s20 = model.slot("sigma2.0");
-        tmp = dgamma(prec, 0.5*nu0[0], 2.0 / (nu0[0]*s20[0]));
-        double total = 0.0;
-        for(int k = 0; k < K; ++k){
-            total += log(tmp[k]);
+
+        double total = 0.0 ;
+
+        for(int b=0; b < B; ++b) {
+            tmp = Rcpp::dgamma(prec(b, Rcpp::_), 
+                               0.5 * nu0[0], 
+                               2.0 / (nu0[0] * s20[0]));
+            for(int k = 0; k < K; ++k){
+                total += log(tmp[k]);
+            }
         }
+
         logp_prec[s] = total;
     }
+
     return logp_prec;
 }
-
+    
 // [[Rcpp::export]]
 Rcpp::S4 simulate_z_reduced1_batch(Rcpp::S4 object) {
     Rcpp::RNGScope scope;
