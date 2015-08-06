@@ -296,7 +296,7 @@ Rcpp::S4 simulate_z_reduced2_batch(Rcpp::S4 object) {
 }
 
 // [[Rcpp::export]]
-Rcpp::S4 permutedz_reduced1(Rcpp::S4 xmod) {
+Rcpp::S4 permutedz_reduced1_batch(Rcpp::S4 xmod) {
     RNGScope scope ;
     Rcpp::S4 model_(xmod) ;
     Rcpp::S4 model = clone(model_) ;
