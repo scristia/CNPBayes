@@ -40,7 +40,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     Rcpp::NumericVector sigma2_tilde(K);
 
     // this should be updated for each iteration
-    Rcpp::NumericMatrix data_mean(B,K);
+    Rcpp::NumericMatrix data_mean(B, K);
     Rcpp::IntegerVector nn(K);
     double post_prec;
     double tau_n;
@@ -48,7 +48,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     double w1;
     double w2;
     Rcpp::NumericVector tauc(K);
-    Rcpp::NumericMatrix iSigma2(B,K);
+    Rcpp::NumericMatrix iSigma2(B, K);
     Rcpp::NumericVector invs2;
     Rcpp::NumericVector theta(1);
 
@@ -58,8 +58,8 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
         model.slot("z") = zz;
         nn = tableZ(K, zz);
         data_mean = compute_means_batch(model);
-        tau2_tilde = 1/tau2c(s, Rcpp::_);
-        invs2 = 1.0/sigma2(s, Rcpp::_) ;    // this is a vector of length B*K
+        tau2_tilde = 1.0 / tau2c(s, Rcpp::_);
+        invs2 = 1.0 / sigma2(s, Rcpp::_) ;    // this is a vector of length B*K
         sigma2_tilde = Rcpp::as<Rcpp::NumericVector>(toMatrix(invs2, B, K));
         double prod = 1.0;
 
@@ -72,7 +72,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
                 mu_n = w1*muc(s, k) + w2*data_mean(b, k);
                 theta = thetastar(b, k);
                 tmp = dnorm(theta, mu_n, tau_n);
-                prod = prod * tmp[0];
+                prod *= tmp[0];
             }
         }
 
