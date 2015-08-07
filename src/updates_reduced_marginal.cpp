@@ -175,8 +175,6 @@ Rcpp::S4 simulate_z_reduced1(Rcpp::S4 object) {
   NumericVector sigma2star=clone(sigma2_) ;
   NumericVector thetastar=clone(theta_) ;
   int K = thetastar.size() ;
-  NumericVector prec(K) ;
-  NumericVector logp_prec(S) ;
   NumericVector tmp(K) ;
   NumericVector y = model.slot("data") ;
   int N = y.size() ;
