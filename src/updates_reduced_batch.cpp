@@ -1,5 +1,6 @@
 #include "miscfunctions.h" // for rdirichlet, tableZ, ...
 #include "updates_batch.h"
+#include "updates_marginal.h" // for log_ddirichlet_
 #include <Rcpp.h>
 
 Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC) {
@@ -422,12 +423,11 @@ Rcpp::NumericVector p_pmix_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::NumericVector x = model.slot("data");      
     int K = hypp.slot("k");
     int S = mcmcp.slot("iter");    
-    int N = x.size();
 
     Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
     Rcpp::NumericVector pstar = clone(p_);
     Rcpp::NumericMatrix Z = chains.slot("z");
-    Rcpp::NumericVector alpha = hypp.slot("alpha");
+    Rcpp::IntegerVector alpha = hypp.slot("alpha");
     Rcpp::NumericVector pmix(S);
 
     //
