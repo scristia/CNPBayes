@@ -411,40 +411,41 @@ Rcpp::S4 permutedz_reduced2_batch(Rcpp::S4 xmod) {
 
 // [[Rcpp::export]]
 Rcpp::NumericVector p_pmix_reduced_batch(Rcpp::S4 xmod) {
-    RNGScope scope ;
-    Rcpp::S4 model(xmod) ;
-    Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
-    Rcpp::S4 chains = model.slot("mcmc.chains") ;
-    Rcpp::S4 hypp = model.slot("hyperparams") ;
-    List modes = model.slot("modes") ;
-    //
-    //
-    NumericVector x = model.slot("data") ;      
-    int K = hypp.slot("k") ;
-    int S = mcmcp.slot("iter") ;    
-    int N = x.size() ;
-    //
-    NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
-    NumericVector pstar = clone(p_) ;
-    NumericMatrix Z = chains.slot("z") ;
-    NumericVector alpha = hypp.slot("alpha") ;
-    NumericVector pmix(S) ;
+    Rcpp::RNGScope scope;
+
+    Rcpp::S4 model(xmod);
+    Rcpp::S4 mcmcp = model.slot("mcmc.params");
+    Rcpp::S4 chains = model.slot("mcmc.chains");
+    Rcpp::S4 hypp = model.slot("hyperparams");
+    Rcpp::List modes = model.slot("modes");
+
+    Rcpp::NumericVector x = model.slot("data");      
+    int K = hypp.slot("k");
+    int S = mcmcp.slot("iter");    
+    int N = x.size();
+
+    Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
+    Rcpp::NumericVector pstar = clone(p_);
+    Rcpp::NumericMatrix Z = chains.slot("z");
+    Rcpp::NumericVector alpha = hypp.slot("alpha");
+    Rcpp::NumericVector pmix(S);
+
     //
     // Run reduced Gibbs    -- theta,sigma2 fixed at modal ordinates
     //
-    NumericVector h(N) ;
-    NumericVector alpha_n(K) ;
-    NumericVector tmp(1) ;
-    for(int s=0; s < S; ++s){
-        h = Z(s, _ ) ;      
-        for(int k = 0 ; k < K; ++k){
-            alpha_n[k] = sum(h == k+1) + alpha[k] ;
+    Rcpp::NumericVector alpha_n(K);
+    Rcpp::NumericVector tmp(1);
+
+    for (int s = 0; s < S; ++s) {
+        for (int k = 0 ; k < K; ++k) {
+            alpha_n[k] = sum(Z(s, Rcpp::_) == k+1) + alpha[k];
         }
-        tmp = log_ddirichlet_(pstar, alpha_n) ;
-        pmix[s] = exp(tmp[0]) ;
+
+        tmp = log_ddirichlet_(pstar, alpha_n);
+        pmix[s] = exp(tmp[0]);
     }
-    // return tmp ;
-    return pmix ;
+
+    return pmix;
 }
 
 
