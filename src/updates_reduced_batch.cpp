@@ -52,7 +52,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     Rcpp::NumericVector invs2;
     Rcpp::NumericVector theta(1);
 
-    for(int s=0; s < S; ++s) {
+    for (int s=0; s < S; ++s) {
         tauc = sqrt(tau2c(s, Rcpp::_));
         zz = Z(s, Rcpp::_);
         model.slot("z") = zz;
