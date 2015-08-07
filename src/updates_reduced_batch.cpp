@@ -100,7 +100,7 @@ Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
     Rcpp::S4 chains(model.slot("mcmc.chains"));
     double mu;
     Rcpp::NumericVector tau(1);
-    Rcpp::NumericVector tmp(K);
+    Rcpp::NumericVector tmp(1);
     Rcpp::IntegerMatrix Z = chains.slot("z");
     Rcpp::NumericVector tau2(1);
 
