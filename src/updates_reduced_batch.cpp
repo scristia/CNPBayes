@@ -358,63 +358,54 @@ Rcpp::S4 permutedz_reduced1_batch(Rcpp::S4 xmod) {
 
 // [[Rcpp::export]]
 Rcpp::S4 permutedz_reduced2_batch(Rcpp::S4 xmod) {
-    RNGScope scope ;
-    Rcpp::S4 model_(xmod) ;
-    Rcpp::S4 model = clone(model_) ;
-    Rcpp::S4 params=model.slot("mcmc.params") ;
-    Rcpp::S4 chains=model.slot("mcmc.chains") ;
-    int S = params.slot("iter") ;
-    List modes = model.slot("modes") ;
-    NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
-    NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
-    NumericVector sigma2star=clone(sigma2_) ;
-    NumericVector thetastar=clone(theta_) ;
-    int K = thetastar.size() ;
-    NumericVector prec(K) ;
-    NumericVector logp_prec(S) ;
-    NumericVector tmp(K) ;
-    NumericVector y = model.slot("data") ;
-    int N = y.size() ;
-    NumericVector tau2(1) ;
-    NumericVector nu0 (1) ;
-    NumericVector s20 (1) ;
-    NumericVector s2 (1) ;
+    Rcpp::RNGScope scope;
+
+    Rcpp::S4 model_(xmod);
+    Rcpp::S4 model = clone(model_);
+    Rcpp::S4 params=model.slot("mcmc.params");
+    Rcpp::S4 chains=model.slot("mcmc.chains");
+    Rcpp::List modes = model.slot("modes");
+    Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
+    Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
+    Rcpp::NumericMatrix sigma2star = clone(sigma2_);
+    Rcpp::NumericMatrix thetastar = clone(theta_);
+
     //
     // We need to keep the Z|y,theta* chain
     //
-    IntegerMatrix Z = chains.slot("z") ;
-    NumericVector nu0chain = chains.slot("nu.0") ;
-    NumericVector s20chain = chains.slot("sigma2.0") ;
-    IntegerVector h(N) ;
-    model.slot("theta") = thetastar ;
+    Rcpp::IntegerMatrix Z = chains.slot("z");
+    Rcpp::NumericVector nu0chain = chains.slot("nu.0");
+    Rcpp::NumericVector s20chain = chains.slot("sigma2.0");
+    model.slot("theta") = thetastar;
+    model.slot("sigma2") = sigma2star;
+    int S = params.slot("iter");
+
     //
     // Run reduced Gibbs:
     //   -- theta is fixed at modal ordinate
     //   -- sigma2 is fixed at modal ordinate
     //  
-    for(int s=0; s < S; ++s){
-        h = Z(s, _) ;
+    for (int s = 0; s < S; ++s) {
         //model.slot("z") = update_z(xmod) ;
-        model.slot("z") = h ;
-        model.slot("data.mean") = compute_means(model) ;
-        model.slot("data.prec") = compute_prec(model) ;
+        model.slot("z") = Z(s, Rcpp::_);
+        model.slot("data.mean") = compute_means_batch(model);
+        model.slot("data.prec") = compute_prec_batch(model);
         // model.slot("theta") = update_theta(model) ; Do not update theta !
         // model.slot("sigma2") = update_sigma2(model) ;
-        model.slot("pi") = update_p(model) ;
-        model.slot("mu") = update_mu(model) ;
-        model.slot("tau2") = update_tau2(model) ;
-        model.slot("nu.0") = update_nu0(model) ;
-        model.slot("sigma2.0") = update_sigma2_0(model) ;
-        nu0chain[s] = model.slot("nu.0") ;
-        s20chain[s] = model.slot("sigma2.0") ;
+        model.slot("pi") = update_p_batch(model);
+        model.slot("mu") = update_mu_batch(model);
+        model.slot("tau2") = update_tau2_batch(model);
+        model.slot("nu.0") = update_nu0_batch(model);
+        model.slot("sigma2.0") = update_sigma20_batch(model);
+        nu0chain[s] = model.slot("nu.0");
+        s20chain[s] = model.slot("sigma2.0");
     }
-    //return logp_prec ;
-    // chains.slot("z") = Z ;
-    chains.slot("nu.0") = nu0chain ;
-    chains.slot("sigma2.0") = s20chain ;
-    model.slot("mcmc.chains") = chains ;
-    //return logp_prec ;
-    return model ;
+
+    chains.slot("nu.0") = nu0chain;
+    chains.slot("sigma2.0") = s20chain;
+    model.slot("mcmc.chains") = chains;
+
+    return model;
 }
 
 
