@@ -368,6 +368,7 @@ Rcpp::S4 permutedz_reduced2(Rcpp::S4 xmod) {
   NumericVector s20chain = chains.slot("sigma2.0") ;
   IntegerVector h(N) ;
   model.slot("theta") = thetastar ;
+  model.slot("sigma2") = sigma2star ;
   //
   // Run reduced Gibbs:
   //   -- theta is fixed at modal ordinate
