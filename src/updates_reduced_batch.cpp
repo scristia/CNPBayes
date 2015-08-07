@@ -59,12 +59,12 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
         nn = tableZ(K, zz);
         data_mean = compute_means_batch(model);
         tau2_tilde = 1.0 / tau2c(s, Rcpp::_);
-        invs2 = 1.0 / sigma2(s, Rcpp::_) ;    // this is a vector of length B*K
+        invs2 = 1.0 / sigma2(s, Rcpp::_);    // this is a vector of length B*K
         sigma2_tilde = Rcpp::as<Rcpp::NumericVector>(toMatrix(invs2, B, K));
         double prod = 1.0;
 
-        for(int k = 0; k < K; ++k) {
-            for(int b = 0; b < B; ++b){
+        for (int k = 0; k < K; ++k) {
+            for (int b = 0; b < B; ++b) {
                 post_prec = tau2_tilde[k] + sigma2_tilde(b, k) * nn[k];
                 tau_n = sqrt(1/post_prec);
                 w1 = tau2_tilde[k]/post_prec;
