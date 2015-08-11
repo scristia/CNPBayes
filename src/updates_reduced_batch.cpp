@@ -674,80 +674,73 @@ Rcpp::S4 reduced_pi_batch(Rcpp::S4 xmod) {
 
 // [[Rcpp::export]]
 Rcpp::S4 reduced_mu_batch(Rcpp::S4 xmod) {
-    RNGScope scope ;
-    Rcpp::S4 model_(xmod) ;
-    Rcpp::S4 model = clone(model_) ;
-    Rcpp::S4 params=model.slot("mcmc.params") ;
-    Rcpp::S4 chains=model.slot("mcmc.chains") ;
-    int S = params.slot("iter") ;
-    List modes = model.slot("modes") ;
-    NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
-    NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
-    NumericVector pi_ = as<NumericVector>(modes["mixprob"]) ;
-    NumericVector sigma2star=clone(sigma2_) ;
-    NumericVector thetastar=clone(theta_) ;
-    NumericVector pistar=clone(pi_) ;
-    int K = thetastar.size() ;
-    NumericVector prec(K) ;
-    NumericVector logp_prec(S) ;
-    NumericVector tmp(K) ;
-    NumericVector y = model.slot("data") ;
-    NumericVector tau2chain(S) ;
-    int N = y.size() ;
+    Rcpp::RNGScope scope;
+
+    // model and accessories
+    Rcpp::S4 model_(xmod);
+    Rcpp::S4 model = clone(model_);
+    Rcpp::S4 params=model.slot("mcmc.params");
+    Rcpp::S4 chains=model.slot("mcmc.chains");
+    Rcpp::List modes = model.slot("modes");
+
+    // get modal ordinates
+    Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
+    Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
+    Rcpp::NumericVector pi_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
+    Rcpp::NumericMatrix sigma2star=clone(sigma2_);
+    Rcpp::NumericMatrix thetastar=clone(theta_);
+    Rcpp::NumericVector pistar=clone(pi_);
+
     //
     // We need to keep the Z|y,theta* chain
     //
-    IntegerMatrix Z = chains.slot("z") ;
-    IntegerVector zz(N) ;
-    model.slot("theta") = thetastar ;
-    model.slot("sigma2") = sigma2star ;
-    model.slot("pi") = pistar ;
+    Rcpp::IntegerMatrix Z = chains.slot("z");
+    model.slot("theta") = thetastar;
+    model.slot("sigma2") = sigma2star;
+    model.slot("pi") = pistar;
+    int S = params.slot("iter");
 
     // keep chains for debugging
-    NumericVector nu0chain = chains.slot("nu.0") ;
-    NumericVector s20chain = chains.slot("sigma2.0") ;
-    NumericVector muchain = chains.slot("mu") ;
-    NumericVector tauchain = chains.slot("tau2") ;
-    NumericVector mu = model.slot("mu") ;
-    NumericVector nu0 = model.slot("nu.0") ;
-    NumericVector s20 = model.slot("sigma2.0") ;
-    NumericVector tau2 = model.slot("tau2") ;  
+    Rcpp::NumericVector nu0chain = chains.slot("nu.0");
+    Rcpp::NumericVector s20chain = chains.slot("sigma2.0");
+    Rcpp::NumericVector muchain = chains.slot("mu");
+    Rcpp::NumericVector tauchain = chains.slot("tau2");
     
     //
     // Run reduced Gibbs:
     //   -- theta is fixed at modal ordinate
     //   -- sigma2 is fixed at modal ordinate
     //  
-    for(int s=0; s < S; ++s){
-        zz = update_z(model) ;
-        model.slot("z") = zz ;
-        Z(s, _) = zz ;      
-        model.slot("data.mean") = compute_means(model) ;
-        model.slot("data.prec") = compute_prec(model) ;
+    for (int s = 0; s < S; ++s) {
+        // update parameters
+        model.slot("z") = update_z_batch(model);
+        model.slot("data.mean") = compute_means_batch(model);
+        model.slot("data.prec") = compute_prec_batch(model);
         // model.slot("theta") = update_theta(model) ; Do not update theta !
         // model.slot("sigma2") = update_sigma2(model) ;
         // model.slot("pi") = update_p(model) ;
-        mu = update_mu(model) ;
-        tau2 = update_tau2(model) ;
-        nu0 = update_nu0(model) ;
-        s20 = update_sigma2_0(model) ;
-        
-        model.slot("mu") = mu ;
-        model.slot("tau2") = tau2 ;
-        model.slot("nu.0") = nu0 ;
-        model.slot("sigma2.0") = s20 ;
-        nu0chain[s] = nu0[0] ;
-        s20chain[s] = s20[0] ;
-        muchain[s] = mu[0] ;
-        tau2chain[s] = tau2[0] ;
+        model.slot("mu") = update_mu_batch(model);
+        model.slot("tau2") = update_tau2_batch(model);
+        model.slot("nu.0") = update_nu0_batch(model);
+        model.slot("sigma2.0") = update_sigma20_batch(model);
+
+        // store chains
+        Z(s, Rcpp::_) = model.slot("z");
+        nu0chain[s] = model.slot("nu.0");
+        s20chain[s] = model.slot("sigma2.0");
+        muchain[s] = model.slot("mu");
+        tauchain[s] = model.slot("tau2");
     }
-    chains.slot("tau2") = tau2chain ;
-    chains.slot("mu") = muchain ;
-    chains.slot("nu.0") = nu0chain ;
-    chains.slot("sigma2.0") = s20chain ;    
-    chains.slot("z") = Z ;
-    model.slot("mcmc.chains") = chains ;
-    return model ;
+
+    // store chains
+    chains.slot("tau2") = tauchain;
+    chains.slot("mu") = muchain;
+    chains.slot("nu.0") = nu0chain;
+    chains.slot("sigma2.0") = s20chain;
+    chains.slot("z") = Z;
+    model.slot("mcmc.chains") = chains;
+
+    return model;
 }
 
 
