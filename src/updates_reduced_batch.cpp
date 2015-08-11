@@ -525,69 +525,97 @@ Rcpp::S4 reduced_sigma_batch(Rcpp::S4 xmod) {
 
 // [[Rcpp::export]]
 Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
-    RNGScope scope ;
-    Rcpp::S4 model_(xmod) ;
-    Rcpp::S4 model = clone(model_) ;
-    Rcpp::S4 chains=model.slot("mcmc.chains") ;
-    Rcpp::S4 params=model.slot("mcmc.params") ;
-    NumericVector x = model.slot("data") ;
-    int n = x.size() ;
-    int S = params.slot("iter") ;
-    List modes = model.slot("modes") ;
-    NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
-    NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
-    NumericVector sigma2star=clone(sigma2_) ;
-    NumericVector thetastar=clone(theta_) ;
-    int K = thetastar.size() ;
-    NumericVector prec(K) ;
-    NumericVector p_prec(S) ;
-    NumericVector tmp(K) ;
-    NumericVector nu0 (1) ;
-    NumericVector s20 (1) ;
-    IntegerMatrix Z = chains.slot("z") ;
-    IntegerVector zz ;
-    IntegerVector nn(K) ;
-    NumericVector nu_n(K) ;
+    Rcpp::RNGScope scope;
+
+    Rcpp::S4 model_(xmod);
+    Rcpp::S4 model = clone(model_);
+    Rcpp::S4 chains = model.slot("mcmc.chains");
+    Rcpp::S4 params = model.slot("mcmc.params");
+    Rcpp::List modes = model.slot("modes");
+
+    Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
+    Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
+    Rcpp::NumericMatrix sigma2star = clone(sigma2_);
+    Rcpp::NumericMatrix thetastar = clone(theta_);
+
+    Rcpp::NumericVector x = model.slot("data");
+    Rcpp::NumericMatrix tabz = tableBatchZ(xmod) ;
+    Rcpp::IntegerVector batch = model.slot("batch") ;
+    Rcpp::IntegerVector ub = uniqueBatch(batch) ;
+
+    int n = x.size();
+    int S = params.slot("iter");
+    int K = thetastar.ncol();
+    int B = thetastar.nrow();
+
+    Rcpp::NumericMatrix prec(B, K);
+    Rcpp::NumericVector p_prec(S);
+    Rcpp::NumericVector tmp(K);
+    Rcpp::NumericVector nu0(1);
+    Rcpp::NumericVector s20(1);
+    Rcpp::IntegerMatrix Z = chains.slot("z");
+    Rcpp::IntegerVector zz;
+    Rcpp::IntegerVector nn(K);
+
     //
     // We need to keep the Z|y,theta* chain
     //
-    NumericVector nu0chain = chains.slot("nu.0") ;
-    NumericVector s20chain = chains.slot("sigma2.0") ;
-    //
-    NumericVector sigma2_n(1) ;
-    NumericVector sigma2_new(K) ;  
+    Rcpp::NumericVector nu0chain = chains.slot("nu.0");
+    Rcpp::NumericVector s20chain = chains.slot("sigma2.0");
+
+    Rcpp::NumericVector nu_n(1);
+    Rcpp::NumericVector sigma2_n(1);
+    Rcpp::NumericVector shape(1);
+    Rcpp::NumericVector rate(1);
+    Rcpp::NumericVector sigma2_new(K) ;  
+
     //
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
     //
-    prec = 1.0/sigma2star ;
-    for(int s=0; s < S; ++s){
-        zz = Z(s, _) ;
-        nn = tableZ(K, zz) ;
-        s20 = s20chain[s] ;
-        nu0 = nu0chain[s] ;
+    for (int k = 0; k < K; ++k) {
+        prec(Rcpp::_, k) = 1.0 / sigma2star(Rcpp::_, k);
+    }  
 
-        NumericVector ss(K) ;
-        for(int i = 0; i < n; i++){
-            int k = 0 ;
-            while(k <= K) {
-                if( zz[i] == k + 1 ){
-                    ss[k] += pow(x[i] - thetastar[k], 2.0) ;
-                    break ;
+    for (int s = 0; s < S; ++s) {
+        zz = Z(s, Rcpp::_);
+        nn = tableZ(K, zz);
+        s20 = s20chain[s];
+        nu0 = nu0chain[s];
+
+        Rcpp::NumericMatrix ss(B, K);
+
+        for (int i = 0; i < n; i++) {
+            for (int b = 0; b < B; ++b) {
+                if (batch[i] != ub[b]) {
+                    continue;
                 }
-                k++ ;
+
+                for (int k = 0; k < K; ++k) {
+                    if (zz[i] == k + 1) {
+                        ss(b, k) += pow(x[i] - thetastar(b, k), 2);
+                    }
+                }
             }
         }
-        
-        double total = 1.0 ;        
-        for(int k = 0; k < K; ++k){
-            nu_n = nu0 + nn[k] ;
-            sigma2_n = 1.0/nu_n[0]*(nu0*s20 + ss[k]) ;
-            tmp = dgamma(prec, 0.5*nu_n[0], 2.0 / (nu_n[0]*sigma2_n[0])) ;
-            total = total*tmp[k] ;
+
+        double total = 1.0;
+
+        for (int b = 0; b < B; ++b) {
+            for (int k = 0; k < K; ++k) {
+                nu_n = nu0 + tabz(b, k);
+                sigma2_n = 1.0 / nu_n * (nu0 * s20 + ss(b, k));
+                shape = 0.5 * nu_n;
+                rate = shape * sigma2_n;
+                tmp = Rcpp::dgamma(prec(b, k), shape, 1.0 / rate);
+
+                total *= tmp[0];
+            }
         }
-        p_prec[s] = total ;
+
+        p_prec[s] = total;
     }
-    return p_prec ;
+
+    return p_prec;
 }
 
 
