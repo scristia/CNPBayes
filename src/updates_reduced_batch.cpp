@@ -621,40 +621,37 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
 
 // [[Rcpp::export]]
 Rcpp::S4 reduced_pi_batch(Rcpp::S4 xmod) {
-    RNGScope scope ;
+    Rcpp::RNGScope scope;
+
+    // model objects and accessories
     Rcpp::S4 model_(xmod) ;
     Rcpp::S4 model = clone(model_) ;
+    Rcpp::List modes = model.slot("modes") ;
     Rcpp::S4 params=model.slot("mcmc.params") ;
     Rcpp::S4 chains=model.slot("mcmc.chains") ;
-    int S = params.slot("iter") ;
-    List modes = model.slot("modes") ;
-    NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
-    NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
-    NumericVector pi_ = as<NumericVector>(modes["mixprob"]) ;
-    NumericVector sigma2star=clone(sigma2_) ;
-    NumericVector thetastar=clone(theta_) ;
-    int K = thetastar.size() ;
-    NumericVector prec(K) ;
-    NumericVector logp_prec(S) ;
-    NumericVector tmp(K) ;
-    NumericVector y = model.slot("data") ;
-    int N = y.size() ;
+
+    // modes
+    Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]) ;
+    Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]) ;
+    Rcpp::NumericMatrix sigma2star=clone(sigma2_) ;
+    Rcpp::NumericMatrix thetastar=clone(theta_) ;
+
     //
     // We need to keep the Z|y,theta* chain
     //
-    IntegerMatrix Z = chains.slot("z") ;
-    NumericVector zz(N) ;
+    Rcpp::IntegerMatrix Z = chains.slot("z") ;
     model.slot("theta") = thetastar ;
     model.slot("sigma2") = sigma2star ;
+    int S = params.slot("iter");
+
     //
     // Run reduced Gibbs:
     //   -- theta is fixed at modal ordinate
     //   -- sigma2 is fixed at modal ordinate
     //  
-    for(int s=0; s < S; ++s){
-        zz = update_z(model) ;
-        model.slot("z") = zz ;
-        Z(s, _) = zz ;
+    for (int s = 0; s < S; ++s) {
+        // update parameters
+        model.slot("z") = update_z(model);
         model.slot("data.mean") = compute_means(model) ;
         model.slot("data.prec") = compute_prec(model) ;
         // model.slot("theta") = update_theta(model) ; Do not update theta !
@@ -664,10 +661,15 @@ Rcpp::S4 reduced_pi_batch(Rcpp::S4 xmod) {
         model.slot("tau2") = update_tau2(model) ;
         model.slot("nu.0") = update_nu0(model) ;
         model.slot("sigma2.0") = update_sigma2_0(model) ;
+
+        // capture chain of Zs
+        Z(s, Rcpp::_) = model.slot("z");
     }
-    chains.slot("z") = Z ;
-    model.slot("mcmc.chains") = chains ;
-    return model ;
+
+    chains.slot("z") = Z;
+    model.slot("mcmc.chains") = chains;
+
+    return model;
 }
 
 // [[Rcpp::export]]
