@@ -2,6 +2,7 @@
 #include "updates_batch.h"
 #include "updates_marginal.h" // for log_ddirichlet_
 #include <Rcpp.h>
+#include <Rmath.h>
 
 Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC) {
     Rcpp::NumericMatrix Y(NR, NC);
@@ -99,8 +100,8 @@ Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
     int B = thetastar.nrow();
     Rcpp::NumericVector logp_theta(S);
     Rcpp::S4 chains(model.slot("mcmc.chains"));
-    double mu;
-    Rcpp::NumericVector tau(1);
+    Rcpp::NumericVector mu(K);
+    Rcpp::NumericVector tau(K);
     Rcpp::NumericVector tmp(1);
     Rcpp::IntegerMatrix Z = chains.slot("z");
     Rcpp::NumericVector tau2(1);
@@ -126,7 +127,8 @@ Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
 
         for (int k = 0; k < K; ++k) {
             for (int b = 0; b < B; ++b) {
-                tmp = dnorm(thetastar(b, k), mu, tau[0]);
+                Rcpp::NumericVector theta = thetastar(b, k);
+                tmp = dnorm(theta, mu[k], tau[0]);
                 prod += log(tmp[0]);
             }
         }
@@ -606,7 +608,8 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
                 sigma2_n = 1.0 / nu_n * (nu0 * s20 + ss(b, k));
                 shape = 0.5 * nu_n;
                 rate = shape * sigma2_n;
-                tmp = Rcpp::dgamma(prec(b, k), shape, 1.0 / rate);
+                Rcpp::NumericVector prec_typed = prec(b, k);
+                tmp = Rcpp::dgamma(prec_typed, shape[0], 1.0 / rate[0]);
 
                 total *= tmp[0];
             }
@@ -826,7 +829,8 @@ Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
             tau_k[k] = sqrt(1.0 / post_prec[k]);
 
             // calculate p_mu[s]
-            total *= dnorm(mustar[k], mu_k[k], tau_k[k]);
+            Rcpp::NumericVector mu = mustar[k];
+            total *= dnorm(mu, mu_k[k], tau_k[k]);
         }
 
         p_mu[s] = total;
@@ -938,8 +942,9 @@ Rcpp::NumericVector p_tau_reduced_batch(Rcpp::S4 xmod) {
         }
 
         m2_k[k] = 1.0 / eta_B * (eta_0 * m2_0 + s2_k[k]);
+        Rcpp::NumericVector tau2star_typed = 1.0 / tau2star[k];
 
-        p_tau[k] = Rcpp::dgamma(1.0 / tau2star[k], 0.5 * eta_B,
+        p_tau[k] = dgamma(1.0 / tau2star[k], 0.5 * eta_B,
                                 1.0 / (0.5 * eta_B * m2_k[k]));
     }
 
