@@ -484,17 +484,17 @@ Rcpp::S4 reduced_sigma_batch(Rcpp::S4 xmod) {
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
     //  
     for(int s=0; s < S; ++s){
-        model.slot("z") = update_z(model);
+        model.slot("z") = update_z_batch(model);
         Z(s, Rcpp::_) = model.slot("z");
-        model.slot("data.mean") = compute_means(model);
-        model.slot("data.prec") = compute_prec(model);
+        model.slot("data.mean") = compute_means_batch(model);
+        model.slot("data.prec") = compute_prec_batch(model);
         //model.slot("theta") = update_theta(model) ; Do not update theta !
-        model.slot("sigma2") = update_sigma2(model);
-        model.slot("pi") = update_p(model);
-        model.slot("mu") = update_mu(model);
-        model.slot("tau2") = update_tau2(model);
-        model.slot("nu.0") = update_nu0(model);
-        model.slot("sigma2.0") = update_sigma2_0(model);
+        model.slot("sigma2") = update_sigma2_batch(model);
+        model.slot("pi") = update_p_batch(model);
+        model.slot("mu") = update_mu_batch(model);
+        model.slot("tau2") = update_tau2_batch(model);
+        model.slot("nu.0") = update_nu0_batch(model);
+        model.slot("sigma2.0") = update_sigma20_batch(model);
         nu0chain[s] = model.slot("nu.0");
         s20chain[s] = model.slot("sigma2.0");
         // update the following chains for debugging small sigma2.0 values
