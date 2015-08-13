@@ -782,34 +782,30 @@ Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::NumericMatrix tau2_B_tilde(S, K);
 
     for (int k = 0; k < K; ++k) {
-        tau2_tilde(Rcpp::_, k) = 1.0 / tau2_tilde(Rcpp::_, k);
+        tau2_tilde(Rcpp::_, k) = 1.0 / tau2chain(Rcpp::_, k);
         tau2_B_tilde(Rcpp::_, k) = tau2_0_tilde + B * tau2_tilde(Rcpp::_, k);
     }
 
-    Rcpp::IntegerMatrix Z = chains.slot("z");
-    Rcpp::IntegerVector zz(N);
+    // initalize variables for calculation of p_mu
     Rcpp::NumericMatrix n_b = tableBatchZ(model);
-    Rcpp::NumericMatrix nn;
-
-
-    double mu_k;
-    double tau_k;
     Rcpp::NumericVector p_mu(S);
-    Rcpp::NumericVector tmp(1);
 
     for (int s = 0; s < S; ++s) {
-        // calculate weights
+        // initialize variables
         Rcpp::NumericVector w1(K);
         Rcpp::NumericVector w2(K);
+        Rcpp::NumericVector thetabar(K);
+        Rcpp::NumericVector post_prec(K);
+        Rcpp::NumericVector mu_k(K);
+        Rcpp::NumericVector tau_k(K);
+        double total = 1.0;
 
         for (int k = 0; k < K; ++k) {
+            // calculate weights
             w1[k] = tau2_0_tilde / (tau2_0_tilde + B * tau2_tilde(s, k));
             w2[k] = B * tau2_tilde(s, k) / (tau2_0_tilde + B * tau2_tilde(s, k));
-        }
 
-        Rcpp::NumericVector thetabar(K);
-
-        for (int k = 0; k < K; ++k) {
+            // calculate thetabar
             double n_k = 0.0 ; // number of observations for component k
             double colsumtheta = 0.0;
 
@@ -819,29 +815,21 @@ Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
             }
 
             thetabar[k] = colsumtheta / n_k;
+
+            // calculate post_prec
+            post_prec[k] = sqrt(1.0 / tau2_B_tilde(s, k));
+
+            // calculate mu_k
+            mu_k[k] = w1[k] * mu_0 + w2[k] * thetabar[k];
+
+            // calculate tau_k
+            tau_k[k] = sqrt(1.0 / post_prec[k]);
+
+            // calculate p_mu[s]
+            total *= dnorm(mustar[k], mu_k[k], tau_k[k]);
         }
 
-        zz = Z(s, Rcpp::_);
-        nn = tableBatchZ(model);
-
-        double total = 0.0;
-        //double thetabar = 0.0;
-
-        for (int k = 0; k < K; ++k) {
-            for (int b = 0; b < B; ++b) {
-            }
-        }
-        //for (int k = 0; k < K; k++) {
-            //total += nn[k];
-        //}
-
-        double post_prec = tau20_tilde + K*tau2_tilde[s];
-        w1 = tau20_tilde/post_prec;
-        w2 = K*tau2_tilde[s]/post_prec;
-        mu_k =  w1*mu_0 +  w2*thetabar;
-        tau_k = sqrt(1.0/post_prec);
-        tmp  = dnorm(mustar, mu_k, tau_k);
-        p_mu[s] = tmp[0];
+        p_mu[s] = total;
     }
 
     return p_mu ;
