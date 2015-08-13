@@ -1090,25 +1090,27 @@ Rcpp::NumericVector p_nu0_reduced_batch(Rcpp::S4 xmod) {
 
 // [[Rcpp::export]]
 Rcpp::S4 reduced_s20_batch(Rcpp::S4 xmod) {
-    RNGScope scope ;
+    Rcpp::RNGScope scope;
+
+    // get model and accessories
     Rcpp::S4 model_(xmod) ;
     Rcpp::S4 model = clone(model_) ;
-    Rcpp::S4 params=model.slot("mcmc.params") ;
-    Rcpp::S4 chains=model.slot("mcmc.chains") ;
+    Rcpp::S4 params = model.slot("mcmc.params") ;
+    Rcpp::S4 chains = model.slot("mcmc.chains") ;
+    Rcpp::List modes = model.slot("modes") ;
     int S = params.slot("iter") ;
-    List modes = model.slot("modes") ;
-    NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
-    NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
-    NumericVector pi_ = as<NumericVector>(modes["mixprob"]) ;
-    NumericVector mu_ = as<NumericVector>(modes["mu"]) ;
-    NumericVector tau2_ = as<NumericVector>(modes["tau2"]) ;
-    IntegerVector nu0_ = as<IntegerVector>(modes["nu0"]) ;
-    NumericVector sigma2star=clone(sigma2_) ;
-    NumericVector thetastar=clone(theta_) ;
-    NumericVector pistar=clone(pi_) ;
-    NumericVector mustar=clone(mu_) ;
-    NumericVector tau2star=clone(tau2_) ;
-    IntegerVector nu0star=clone(nu0_) ;
+    Rcpp::NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
+    Rcpp::NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
+    Rcpp::NumericVector pi_ = as<NumericVector>(modes["mixprob"]) ;
+    Rcpp::NumericVector mu_ = as<NumericVector>(modes["mu"]) ;
+    Rcpp::NumericVector tau2_ = as<NumericVector>(modes["tau2"]) ;
+    Rcpp::IntegerVector nu0_ = as<IntegerVector>(modes["nu0"]) ;
+    Rcpp::NumericVector sigma2star=clone(sigma2_) ;
+    Rcpp::NumericVector thetastar=clone(theta_) ;
+    Rcpp::NumericVector pistar=clone(pi_) ;
+    Rcpp::NumericVector mustar=clone(mu_) ;
+    Rcpp::NumericVector tau2star=clone(tau2_) ;
+    Rcpp::IntegerVector nu0star=clone(nu0_) ;
     int K = thetastar.size() ;
     NumericVector y = model.slot("data") ;
     int N = y.size() ;
