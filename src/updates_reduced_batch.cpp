@@ -126,7 +126,7 @@ Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
 
         for (int k = 0; k < K; ++k) {
             for (int b = 0; b < B; ++b) {
-                tmp = Rcpp::dnorm(thetastar(b, k), mu, tau[0]);
+                tmp = dnorm(thetastar(b, k), mu, tau[0]);
                 prod += log(tmp[0]);
             }
         }
