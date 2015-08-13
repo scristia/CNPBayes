@@ -1029,19 +1029,10 @@ Rcpp::NumericVector p_nu0_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::List modes = model.slot("modes");
 
     // get modal ordinates
-    Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
-    Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
-    Rcpp::NumericVector mu_ = Rcpp::as<Rcpp::NumericVector>(modes["mu"]);
-    Rcpp::NumericVector tau2_ = Rcpp::as<Rcpp::NumericVector>(modes["tau2"]);
     Rcpp::IntegerVector nu0_ = Rcpp::as<Rcpp::IntegerVector>(modes["nu0"]);
     Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
-    Rcpp::NumericVector pstar = clone(p_);
-    Rcpp::NumericVector mustar = clone(mu_);
-    Rcpp::NumericVector tau2star = clone(tau2_);
-    Rcpp::NumericMatrix thetastar = clone(theta_);
     Rcpp::NumericMatrix sigma2star = clone(sigma2_);
-    Rcpp::IntegerVector nu0 = clone(nu0_);
-    int nu0star = nu0[0];
+    int nu0star = clone(nu0_)[0];
 
     // hyperparameters
     int K = hypp.slot("k");
