@@ -755,16 +755,18 @@ Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::List modes = model.slot("modes");
 
     Rcpp::NumericVector x = model.slot("data");
-    int S = mcmcp.slot("iter");
-    int N = x.size();
     Rcpp::IntegerVector batch = model.slot("batch") ;
     Rcpp::IntegerVector ub = uniqueBatch(batch) ;
+
+    int S = mcmcp.slot("iter");
+    int N = x.size();
     int B = ub.size() ;
 
     // get hyperparameters
     int K = hypp.slot("k");
-    Rcpp::NumericVector mu0 = hypp.slot("mu.0");
-    Rcpp::NumericVector tau2_0 = hypp.slot("tau2.0");
+    double mu_0 = hypp.slot("mu.0");
+    double tau2_0 = hypp.slot("tau2.0");
+    double tau2_0_tilde = 1.0 / tau2_0;
 
     // get ordinal modes
     Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
@@ -774,28 +776,56 @@ Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::NumericVector mustar = clone(mu_);
     Rcpp::NumericMatrix thetastar = clone(theta_);
 
-    Rcpp::IntegerMatrix Z = chains.slot("z");
-    Rcpp::NumericVector tau2chain = chains.slot("tau2");
+    // tau2
+    Rcpp::NumericMatrix tau2chain = chains.slot("tau2");
+    Rcpp::NumericMatrix tau2_tilde;
+    Rcpp::NumericMatrix tau2_B_tilde(S, K);
 
+    for (int k = 0; k < K; ++k) {
+        tau2_tilde(Rcpp::_, k) = 1.0 / tau2_tilde(Rcpp::_, k);
+        tau2_B_tilde(Rcpp::_, k) = tau2_0_tilde + B * tau2_tilde(Rcpp::_, k);
+    }
+
+    Rcpp::IntegerMatrix Z = chains.slot("z");
     Rcpp::IntegerVector zz(N);
+    Rcpp::NumericMatrix n_b = tableBatchZ(model);
     Rcpp::NumericMatrix nn;
-    double mu_0 = mu0[0];
-    double tau20_tilde = 1.0/tau2_0[0];
+
 
     double mu_k;
-    Rcpp::NumericVector tau2_tilde = 1.0 / tau2chain;
-    double w1;
-    double w2;
     double tau_k;
     Rcpp::NumericVector p_mu(S);
     Rcpp::NumericVector tmp(1);
 
     for (int s = 0; s < S; ++s) {
+        // calculate weights
+        Rcpp::NumericVector w1(K);
+        Rcpp::NumericVector w2(K);
+
+        for (int k = 0; k < K; ++k) {
+            w1[k] = tau2_0_tilde / (tau2_0_tilde + B * tau2_tilde(s, k));
+            w2[k] = B * tau2_tilde(s, k) / (tau2_0_tilde + B * tau2_tilde(s, k));
+        }
+
+        Rcpp::NumericVector thetabar(K);
+
+        for (int k = 0; k < K; ++k) {
+            double n_k = 0.0 ; // number of observations for component k
+            double colsumtheta = 0.0;
+
+            for (int b = 0; b < B; ++b) {
+                colsumtheta += n_b(b, k) * thetastar(b, k);
+                n_k += n_b(b, k);
+            }
+
+            thetabar[k] = colsumtheta / n_k;
+        }
+
         zz = Z(s, Rcpp::_);
         nn = tableBatchZ(model);
 
         double total = 0.0;
-        double thetabar = 0.0;
+        //double thetabar = 0.0;
 
         for (int k = 0; k < K; ++k) {
             for (int b = 0; b < B; ++b) {
@@ -804,10 +834,6 @@ Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
         //for (int k = 0; k < K; k++) {
             //total += nn[k];
         //}
-
-        for (int k = 0; k < K; k++) {
-            thetabar += nn[k] * thetastar[k] / total;
-        }
 
         double post_prec = tau20_tilde + K*tau2_tilde[s];
         w1 = tau20_tilde/post_prec;
