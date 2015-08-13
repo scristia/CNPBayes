@@ -1142,47 +1142,46 @@ Rcpp::S4 reduced_s20_batch(Rcpp::S4 xmod) {
 
 // [[Rcpp::export]]
 Rcpp::NumericVector p_s20_reduced_batch(Rcpp::S4 xmod) {
-    RNGScope scope ;
-    Rcpp::S4 model(xmod) ;
-    Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
-    Rcpp::S4 chains = model.slot("mcmc.chains") ;
-    Rcpp::S4 hypp = model.slot("hyperparams") ;
-    List modes = model.slot("modes") ;
-    //
-    //
-    NumericVector x = model.slot("data") ;      
-    int K = hypp.slot("k") ;
-    int S = mcmcp.slot("iter") ;    
-    int N = x.size() ;
-    //
-    NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
-    NumericVector theta_=as<NumericVector>(modes["theta"]) ;
-    NumericVector mu_=as<NumericVector>(modes["mu"]) ;
-    NumericVector tau2_=as<NumericVector>(modes["tau2"]) ;
-    IntegerVector nu0_=as<IntegerVector>(modes["nu0"]) ;
-    NumericVector sigma2_=as<NumericVector>(modes["sigma2"]) ;
-    NumericVector s20_=as<NumericVector>(modes["sigma2.0"]) ;
-    NumericVector pstar = clone(p_) ;
-    NumericVector mustar = clone(mu_) ;
-    NumericVector tau2star = clone(tau2_) ;
-    NumericVector thetastar = clone(theta_) ;
-    NumericVector sigma2star = clone(sigma2_) ;
-    NumericVector s20star = clone(s20_) ;
-    IntegerVector nu0=clone(nu0_) ;
-    int nu0star = nu0[0] ;
+    Rcpp::RNGScope scope;
+
+    // get model and accessories
+    Rcpp::S4 model(xmod);
+    Rcpp::S4 mcmcp = model.slot("mcmc.params");
+    Rcpp::S4 chains = model.slot("mcmc.chains");
+    Rcpp::S4 hypp = model.slot("hyperparams");
+    Rcpp::List modes = model.slot("modes");
+
+    Rcpp::IntegerVector batch = model.slot("batch");
+    Rcpp::IntegerVector ub = uniqueBatch(batch);
+    int B = ub.size();
+
+    // get ordinal modes.
+    Rcpp::IntegerVector nu0_ = Rcpp::as<Rcpp::IntegerVector>(modes["nu0"]);
+    Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
+    Rcpp::NumericVector s20_ = Rcpp::as<Rcpp::NumericVector>(modes["sigma2.0"]);
+    Rcpp::NumericMatrix sigma2star = clone(sigma2_);
+    Rcpp::NumericVector s20star = clone(s20_);
+    int nu0star = clone(nu0_)[0];
     
-    NumericVector p_s20(S) ;
+    // get hyperparameters
+    int K = hypp.slot("k");
+    double a = hypp.slot("a");
+    double b = hypp.slot("b");  
 
-    double a = hypp.slot("a") ;
-    double b = hypp.slot("b") ;  
-    double a_k = a + 0.5*K*nu0star ;
-    double b_k ;
+    // calculate a_k, b_k
+    double prec = 0.0;
 
-    for (int k=0; k < K; k++) {
-        b_k += 0.5*nu0star/sigma2star[k];
+    for (int b = 0; b < B; ++b) {
+        for (int k = 0; k < K; ++k) {
+            prec += 1.0 / sigma2star(b, k);
+        }
     }
-    b_k += b ;
-    p_s20 = dgamma(s20star, a_k, 1.0/b_k) ;
-    return p_s20 ;
+
+    double a_k = a + 0.5 * K * B * nu0star;
+    double b_k = b + 0.5 * nu0star * prec;
+
+    Rcpp::NumericVector p_s20 = dgamma(s20star, a_k, 1.0 / b_k);
+
+    return p_s20;
 }
 
