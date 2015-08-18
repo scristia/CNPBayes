@@ -2,6 +2,8 @@
 #include "updates_marginal.h"
 #include <Rcpp.h>
 
+using namespace Rcpp;
+
 //
 // Estimating marginals
 //
