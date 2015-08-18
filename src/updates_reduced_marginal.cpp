@@ -1,5 +1,6 @@
 #include "miscfunctions.h" // for rdirichlet, tableZ, ...
 #include "updates_marginal.h"
+#include "update.h"
 #include <Rcpp.h>
 
 using namespace Rcpp;
