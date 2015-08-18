@@ -247,7 +247,7 @@ Rcpp::S4 simulate_z_reduced1_batch(Rcpp::S4 object) {
 
         nu0chain[s] = model.slot("nu.0");
         s20chain[s] = model.slot("sigma2.0");
-        Z(s, Rcpp::_) = model.slot("z");
+        Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
     }
 
     chains.slot("z") = Z;
@@ -300,7 +300,7 @@ Rcpp::S4 simulate_z_reduced2_batch(Rcpp::S4 object) {
         model.slot("sigma2.0") = update_sigma20_batch(model);
 
         // store chain of Z's
-        Z(s, Rcpp::_) = model.slot("z");
+        Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
     }
 
     chains.slot("z") = Z;
@@ -487,7 +487,7 @@ Rcpp::S4 reduced_sigma_batch(Rcpp::S4 xmod) {
     //  
     for(int s=0; s < S; ++s){
         model.slot("z") = update_z_batch(model);
-        Z(s, Rcpp::_) = model.slot("z");
+        Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
         model.slot("data.mean") = compute_means_batch(model);
         model.slot("data.prec") = compute_prec_batch(model);
         //model.slot("theta") = update_theta(model) ; Do not update theta !
@@ -666,7 +666,7 @@ Rcpp::S4 reduced_pi_batch(Rcpp::S4 xmod) {
         model.slot("sigma2.0") = update_sigma20_batch(model);
 
         // capture chain of Zs
-        Z(s, Rcpp::_) = model.slot("z");
+        Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
     }
 
     chains.slot("z") = Z;
@@ -728,7 +728,7 @@ Rcpp::S4 reduced_mu_batch(Rcpp::S4 xmod) {
         model.slot("sigma2.0") = update_sigma20_batch(model);
 
         // store chains
-        Z(s, Rcpp::_) = model.slot("z");
+        Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
         nu0chain[s] = model.slot("nu.0");
         s20chain[s] = model.slot("sigma2.0");
         muchain[s] = model.slot("mu");
@@ -889,7 +889,7 @@ Rcpp::S4 reduced_tau_batch(Rcpp::S4 xmod) {
         model.slot("sigma2.0") = update_sigma20_batch(model);
 
         // store Z
-        Z(s, Rcpp::_) = model.slot("z");
+        Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
     }
 
     chains.slot("z") = Z;
@@ -996,7 +996,7 @@ Rcpp::S4 reduced_nu0_batch(Rcpp::S4 xmod) {
         model.slot("nu.0") = update_nu0_batch(model);
         model.slot("sigma2.0") = update_sigma20_batch(model);
 
-        Z(s, Rcpp::_) = model.slot("z");
+        Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
         s20chain[s] = model.slot("sigma2.0");
     }
 
@@ -1121,7 +1121,7 @@ Rcpp::S4 reduced_s20_batch(Rcpp::S4 xmod) {
         // model.slot("nu.0") = update_nu0(model) ;
         model.slot("sigma2.0") = update_sigma20_batch(model);
 
-        Z(s, Rcpp::_) = model.slot("z");
+        Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
     }
 
     // return chains
