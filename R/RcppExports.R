@@ -13,36 +13,16 @@ uniqueBatch <- function(x) {
     .Call('CNPBayes_uniqueBatch', PACKAGE = 'CNPBayes', x)
 }
 
-tableBatchZ <- function(xmod) {
-    .Call('CNPBayes_tableBatchZ', PACKAGE = 'CNPBayes', xmod)
-}
-
 compute_loglik_batch <- function(xmod) {
     .Call('CNPBayes_compute_loglik_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_mu_batch <- function(xmod) {
-    .Call('CNPBayes_update_mu_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_tau2_batch <- function(xmod) {
-    .Call('CNPBayes_update_tau2_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_sigma20_batch <- function(xmod) {
     .Call('CNPBayes_update_sigma20_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-update_nu0_batch <- function(xmod) {
-    .Call('CNPBayes_update_nu0_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
 update_multinomialPr_batch <- function(xmod) {
     .Call('CNPBayes_update_multinomialPr_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_p_batch <- function(xmod) {
-    .Call('CNPBayes_update_p_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_z_batch <- function(xmod) {
@@ -65,24 +45,12 @@ compute_logprior_batch <- function(xmod) {
     .Call('CNPBayes_compute_logprior_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-stageTwoLogLikBatch <- function(xmod) {
-    .Call('CNPBayes_stageTwoLogLikBatch', PACKAGE = 'CNPBayes', xmod)
-}
-
 update_theta_batch <- function(xmod) {
     .Call('CNPBayes_update_theta_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_sigma2_batch <- function(xmod) {
     .Call('CNPBayes_update_sigma2_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
-order_ <- function(x) {
-    .Call('CNPBayes_order_', PACKAGE = 'CNPBayes', x)
-}
-
-update_probz_batch <- function(xmod) {
-    .Call('CNPBayes_update_probz_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 mcmc_batch_burnin <- function(xmod, mcmcp) {
@@ -101,60 +69,24 @@ p_theta_zfixed_batch <- function(xmod) {
     .Call('CNPBayes_p_theta_zfixed_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-simulate_z_reduced1_batch <- function(object) {
-    .Call('CNPBayes_simulate_z_reduced1_batch', PACKAGE = 'CNPBayes', object)
-}
-
 reduced_z_theta_fixed <- function(object) {
     .Call('CNPBayes_reduced_z_theta_fixed', PACKAGE = 'CNPBayes', object)
-}
-
-simulate_z_reduced2_batch <- function(object) {
-    .Call('CNPBayes_simulate_z_reduced2_batch', PACKAGE = 'CNPBayes', object)
 }
 
 p_sigma2_batch <- function(xmod) {
     .Call('CNPBayes_p_sigma2_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-toMatrix <- function(x, NR, NC) {
-    .Call('CNPBayes_toMatrix', PACKAGE = 'CNPBayes', x, NR, NC)
-}
-
-marginal_theta_batch <- function(xmod) {
-    .Call('CNPBayes_marginal_theta_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
 loglik <- function(xmod) {
     .Call('CNPBayes_loglik', PACKAGE = 'CNPBayes', xmod)
-}
-
-log_ddirichlet_ <- function(x_, alpha_) {
-    .Call('CNPBayes_log_ddirichlet_', PACKAGE = 'CNPBayes', x_, alpha_)
 }
 
 stageTwoLogLik <- function(xmod) {
     .Call('CNPBayes_stageTwoLogLik', PACKAGE = 'CNPBayes', xmod)
 }
 
-update_mu <- function(xmod) {
-    .Call('CNPBayes_update_mu', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_tau2 <- function(xmod) {
-    .Call('CNPBayes_update_tau2', PACKAGE = 'CNPBayes', xmod)
-}
-
 update_sigma2_0 <- function(xmod) {
     .Call('CNPBayes_update_sigma2_0', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_nu0 <- function(xmod) {
-    .Call('CNPBayes_update_nu0', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_p <- function(xmod) {
-    .Call('CNPBayes_update_p', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_multinomialPr <- function(xmod) {
@@ -185,20 +117,84 @@ update_sigma2 <- function(xmod) {
     .Call('CNPBayes_update_sigma2', PACKAGE = 'CNPBayes', xmod)
 }
 
-ordertheta_ <- function(x) {
-    .Call('CNPBayes_ordertheta_', PACKAGE = 'CNPBayes', x)
-}
-
-compute_probz <- function(xmod) {
-    .Call('CNPBayes_compute_probz', PACKAGE = 'CNPBayes', xmod)
-}
-
 mcmc_marginal_burnin <- function(xmod, mcmcp) {
     .Call('CNPBayes_mcmc_marginal_burnin', PACKAGE = 'CNPBayes', xmod, mcmcp)
 }
 
 mcmc_marginal <- function(object, mcmcp) {
     .Call('CNPBayes_mcmc_marginal', PACKAGE = 'CNPBayes', object, mcmcp)
+}
+
+marginal_theta_batch <- function(xmod) {
+    .Call('CNPBayes_marginal_theta_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_theta_zpermuted_batch <- function(xmod) {
+    .Call('CNPBayes_p_theta_zpermuted_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+simulate_z_reduced1_batch <- function(object) {
+    .Call('CNPBayes_simulate_z_reduced1_batch', PACKAGE = 'CNPBayes', object)
+}
+
+simulate_z_reduced2_batch <- function(object) {
+    .Call('CNPBayes_simulate_z_reduced2_batch', PACKAGE = 'CNPBayes', object)
+}
+
+permutedz_reduced1_batch <- function(xmod) {
+    .Call('CNPBayes_permutedz_reduced1_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+permutedz_reduced2_batch <- function(xmod) {
+    .Call('CNPBayes_permutedz_reduced2_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_pmix_reduced_batch <- function(xmod) {
+    .Call('CNPBayes_p_pmix_reduced_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_sigma_batch <- function(xmod) {
+    .Call('CNPBayes_reduced_sigma_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_sigma_reduced_batch <- function(xmod) {
+    .Call('CNPBayes_p_sigma_reduced_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_pi_batch <- function(xmod) {
+    .Call('CNPBayes_reduced_pi_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_mu_batch <- function(xmod) {
+    .Call('CNPBayes_reduced_mu_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_mu_reduced_batch <- function(xmod) {
+    .Call('CNPBayes_p_mu_reduced_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_tau_batch <- function(xmod) {
+    .Call('CNPBayes_reduced_tau_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_tau_reduced_batch <- function(xmod) {
+    .Call('CNPBayes_p_tau_reduced_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_nu0_batch <- function(xmod) {
+    .Call('CNPBayes_reduced_nu0_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_nu0_reduced_batch <- function(xmod) {
+    .Call('CNPBayes_p_nu0_reduced_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_s20_batch <- function(xmod) {
+    .Call('CNPBayes_reduced_s20_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_s20_reduced_batch <- function(xmod) {
+    .Call('CNPBayes_p_s20_reduced_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 marginal_theta <- function(xmod) {

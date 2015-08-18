@@ -232,7 +232,7 @@ Rcpp::S4 simulate_z_reduced1_batch(Rcpp::S4 object) {
     //
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
     //  
-    for (int s=0; s < S; ++s) {
+    for (int s = 0; s < S; ++s) {
         // update parameters
         model.slot("z") = update_z_batch(model);
         model.slot("data.mean") = compute_means_batch(model);
@@ -762,7 +762,6 @@ Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::IntegerVector ub = uniqueBatch(batch) ;
 
     int S = mcmcp.slot("iter");
-    int N = x.size();
     int B = ub.size() ;
 
     // get hyperparameters
@@ -830,7 +829,7 @@ Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
 
             // calculate p_mu[s]
             Rcpp::NumericVector mu = mustar[k];
-            total *= dnorm(mu, mu_k[k], tau_k[k]);
+            total *= Rcpp::dnorm(mu, mu_k[k], tau_k[k])[0];
         }
 
         p_mu[s] = total;
@@ -928,7 +927,6 @@ Rcpp::NumericVector p_tau_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::IntegerVector batch = model.slot("batch");
     Rcpp::IntegerVector ub = uniqueBatch(batch);
     int B = ub.size();
-    int S = mcmcp.slot("iter");
 
     // updated parameters
     double eta_B = eta_0 + B;
@@ -944,8 +942,8 @@ Rcpp::NumericVector p_tau_reduced_batch(Rcpp::S4 xmod) {
         m2_k[k] = 1.0 / eta_B * (eta_0 * m2_0 + s2_k[k]);
         Rcpp::NumericVector tau2star_typed = 1.0 / tau2star[k];
 
-        p_tau[k] = dgamma(1.0 / tau2star[k], 0.5 * eta_B,
-                                1.0 / (0.5 * eta_B * m2_k[k]));
+        p_tau[k] = Rcpp::dgamma(tau2star_typed, 0.5 * eta_B,
+                                1.0 / (0.5 * eta_B * m2_k[k]))[0];
     }
 
     return p_tau;
