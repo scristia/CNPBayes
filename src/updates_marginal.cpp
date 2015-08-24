@@ -412,40 +412,41 @@ Rcpp::NumericVector compute_prec(Rcpp::S4 xmod) {
 
 // [[Rcpp::export]]
 Rcpp::NumericVector compute_logprior(Rcpp::S4 xmod) {
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  NumericVector mu = model.slot("mu") ;
-  NumericVector sigma2_0 = model.slot("sigma2.0") ;
-  double a = hypp.slot("a") ;
-  double b = hypp.slot("b") ;
-  NumericVector nu_0 = model.slot("nu.0") ;
-  double mu_0 = hypp.slot("mu.0") ;
-  double tau2_0 = hypp.slot("tau2.0") ;
-  double tau_0 = sqrt(tau2_0) ;
-  double betas = hypp.slot("beta") ;
-  NumericVector pmix = model.slot("pi") ;
+    // set RNG
+    Rcpp::RNGScope scope;
+    
+    // Get model/accessories
+    Rcpp::S4 model(xmod);
+    Rcpp::S4 hypp(model.slot("hyperparams"));
 
-  double eta = hypp.slot("eta.0") ;
-  double m2 = hypp.slot("m2.0") ;
-  NumericVector tau2 = model.slot("tau2") ;
-  NumericVector alpha = hypp.slot("alpha") ;
-  
-  NumericVector p_sigma2_0(1) ;
-  NumericVector p_mu(1) ;
-  NumericVector p_nu_0(1) ;
-  NumericVector p_tau2(1) ;
-  NumericVector logp_pmix(1) ;
+    // get hyperparameters
+    double a = hypp.slot("a");
+    double b = hypp.slot("b");
+    double mu_0 = hypp.slot("mu.0");
+    double betas = hypp.slot("beta");
+    double eta = hypp.slot("eta.0");
+    double m2 = hypp.slot("m2.0");
+    Rcpp::NumericVector alpha = hypp.slot("alpha");
+    double tau2_0 = hypp.slot("tau2.0");
+    double tau_0 = sqrt(tau2_0);
 
-  logp_pmix = log_ddirichlet_(pmix, alpha) ;
-  p_tau2 = dgamma(1.0/tau2, 0.5*eta, 2.0/(eta * m2)) ;
-  p_sigma2_0 = dgamma(sigma2_0, a, 1/b) ;
-  p_nu_0 = dgeom(nu_0, betas) ;
-  p_mu = dnorm(mu, mu_0, tau_0) ;
-  NumericVector prior_prob(1) ;
-  prior_prob = log(p_sigma2_0) + log(p_nu_0) + log(p_mu) + log(p_tau2) + logp_pmix ;
-  return prior_prob ;
+    // get parameter estimates
+    Rcpp::NumericVector mu = model.slot("mu");
+    Rcpp::NumericVector sigma2_0 = model.slot("sigma2.0");
+    Rcpp::NumericVector nu_0 = model.slot("nu.0");
+    Rcpp::NumericVector pmix = model.slot("pi");
+    Rcpp::NumericVector tau2 = model.slot("tau2");
+    
+    // calculate probabilities
+    Rcpp::NumericVector logp_pmix = log_ddirichlet_(pmix, alpha);
+    Rcpp::NumericVector p_tau2 = dgamma(1.0 / tau2, 0.5 * eta, 2.0 / (eta * m2));
+    Rcpp::NumericVector p_sigma2_0 = dgamma(sigma2_0, a, 1 / b);
+    Rcpp::NumericVector p_nu_0 = dgeom(nu_0, betas);
+    Rcpp::NumericVector p_mu = dnorm(mu, mu_0, tau_0);
+
+    Rcpp::NumericVector prior_prob = log(p_sigma2_0) + log(p_nu_0) + log(p_mu) + log(p_tau2) + logp_pmix;
+
+    return prior_prob;
 }
 
 // [[Rcpp::export]]
