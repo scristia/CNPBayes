@@ -483,29 +483,33 @@ Rcpp::NumericMatrix compute_prec_batch(Rcpp::S4 xmod){
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector compute_logprior_batch(Rcpp::S4 xmod){
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  NumericVector tau2 = model.slot("tau2") ;
-  NumericVector mu = model.slot("mu") ;
-  double mu_0 = hypp.slot("mu.0") ;
-  double tau2_0 = hypp.slot("tau2.0") ;
-  NumericVector sigma2_0 = model.slot("sigma2.0") ;
-  double a = hypp.slot("a") ;
-  double b = hypp.slot("b") ;
-  double beta = hypp.slot("beta") ;
-  IntegerVector nu0 = model.slot("nu.0") ;
-  NumericVector p_mu(K) ;
-  NumericVector p_sigma2_0(K) ;
-  NumericVector p_nu0(K) ;
-  p_mu = dnorm(mu, mu_0, sqrt(tau2_0)) ;
-  p_sigma2_0 = dgamma(sigma2_0, a, 1.0/b) ;
-  p_nu0 = dgeom(nu0, beta) ;
-  NumericVector logprior(1) ;
-  logprior = sum(log(p_mu)) + log(p_sigma2_0) + log(p_nu0) ;
-  return logprior ;
+Rcpp::NumericVector compute_logprior_batch(Rcpp::S4 xmod) {
+    // set RNG
+    RNGScope scope;
+    
+    // Get model/accessories
+    Rcpp::S4 model(xmod);
+    Rcpp::S4 hypp(model.slot("hyperparams"));
+
+    // get hyperparameters
+    double mu_0 = hypp.slot("mu.0");
+    double tau2_0 = hypp.slot("tau2.0");
+    double a = hypp.slot("a");
+    double b = hypp.slot("b");
+    double beta = hypp.slot("beta");
+
+    // get parameter estimates
+    Rcpp::NumericVector tau2 = model.slot("tau2");
+    Rcpp::NumericVector mu = model.slot("mu");
+    Rcpp::NumericVector sigma2_0 = model.slot("sigma2.0");
+    Rcpp::IntegerVector nu0 = model.slot("nu.0");
+
+    Rcpp::NumericVector p_mu = dnorm(mu, mu_0, sqrt(tau2_0));
+    Rcpp::NumericVector p_sigma2_0 = dgamma(sigma2_0, a, 1.0/b);
+    Rcpp::NumericVector p_nu0 = dgeom(nu0, beta);
+    Rcpp::NumericVector logprior = sum(log(p_mu)) + log(p_sigma2_0) + log(p_nu0);
+
+    return logprior;
 }
 
 // [[Rcpp::export]]
