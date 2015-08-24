@@ -488,8 +488,6 @@ Rcpp::NumericVector compute_logprior_batch(Rcpp::S4 xmod){
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
-  IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
   NumericVector tau2 = model.slot("tau2") ;
   NumericVector mu = model.slot("mu") ;
   double mu_0 = hypp.slot("mu.0") ;
