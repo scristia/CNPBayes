@@ -531,69 +531,83 @@ Rcpp::S4 reduced_sigma(Rcpp::S4 xmod) {
 
 // [[Rcpp::export]]
 Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod) {
-  RNGScope scope ;
-  Rcpp::S4 model_(xmod) ;
-  Rcpp::S4 model = clone(model_) ;
-  Rcpp::S4 chains=model.slot("mcmc.chains") ;
-  Rcpp::S4 params=model.slot("mcmc.params") ;
-  NumericVector x = model.slot("data") ;
-  int n = x.size() ;
-  int S = params.slot("iter") ;
-  List modes = model.slot("modes") ;
-  NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
-  NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
-  NumericVector sigma2star=clone(sigma2_) ;
-  NumericVector thetastar=clone(theta_) ;
-  int K = thetastar.size() ;
-  NumericVector prec(K) ;
-  NumericVector p_prec(S) ;
-  NumericVector tmp(K) ;
-  NumericVector nu0 (1) ;
-  NumericVector s20 (1) ;
-  IntegerMatrix Z = chains.slot("z") ;
-  IntegerVector zz ;
-  IntegerVector nn(K) ;
-  NumericVector nu_n(K) ;
-  //
-  // We need to keep the Z|y,theta* chain
-  //
-  NumericVector nu0chain = chains.slot("nu.0") ;
-  NumericVector s20chain = chains.slot("sigma2.0") ;
-  //
-  NumericVector sigma2_n(1) ;
-  NumericVector sigma2_new(K) ;  
-  //
-  // Run reduced Gibbs  -- theta is fixed at modal ordinate
-  //
-  prec = 1.0/sigma2star ;
-  for(int s=0; s < S; ++s){
-    zz = Z(s, _) ;
-    nn = tableZ(K, zz) ;
-    s20 = s20chain[s] ;
-    nu0 = nu0chain[s] ;
-
-    NumericVector ss(K) ;
-    for(int i = 0; i < n; i++){
-      int k = 0 ;
-      while(k <= K) {
-        if( zz[i] == k + 1 ){
-          ss[k] += pow(x[i] - thetastar[k], 2.0) ;
-          break ;
-        }
-        k++ ;
-      }
-    }
+    RNGScope scope;
     
-    double total = 1.0 ;    
-    for(int k = 0; k < K; ++k){
-      nu_n = nu0 + nn[k] ;
-      sigma2_n = 1.0/nu_n[0]*(nu0*s20 + ss[k]) ;
-      tmp = dgamma(prec, 0.5*nu_n[0], 2.0 / (nu_n[0]*sigma2_n[0])) ;
-      total = total*tmp[k] ;
+    // get model and accessories
+    Rcpp::S4 model_(xmod);
+    Rcpp::S4 model = clone(model_);
+    Rcpp::S4 chains = model.slot("mcmc.chains");
+    Rcpp::S4 params = model.slot("mcmc.params");
+    Rcpp::List modes = model.slot("modes");
+
+    // get modal ordinates
+    Rcpp::NumericVector sigma2_ = Rcpp::as<Rcpp::NumericVector>(modes["sigma2"]);
+    Rcpp::NumericVector theta_ = Rcpp::as<Rcpp::NumericVector>(modes["theta"]);
+    Rcpp::NumericVector sigma2star = clone(sigma2_);
+    Rcpp::NumericVector thetastar = clone(theta_);
+
+    Rcpp::NumericVector x = model.slot("data");
+    int n = x.size();
+    int S = params.slot("iter");
+    int K = thetastar.size();
+
+    Rcpp::NumericVector prec(K);
+    Rcpp::NumericVector p_prec(S);
+    Rcpp::NumericVector tmp(K);
+    Rcpp::NumericVector nu0(1);
+    Rcpp::NumericVector s20(1);
+    Rcpp::IntegerMatrix Z = chains.slot("z");
+    Rcpp::IntegerVector zz;
+    Rcpp::IntegerVector nn(K);
+    Rcpp::NumericVector nu_n(K);
+
+    //
+    // We need to keep the Z|y,theta* chain
+    //
+    NumericVector nu0chain = chains.slot("nu.0");
+    NumericVector s20chain = chains.slot("sigma2.0");
+
+    NumericVector sigma2_n(1);
+    NumericVector sigma2_new(K) ;    
+
+    //
+    // Run reduced Gibbs    -- theta is fixed at modal ordinate
+    //
+    prec = 1.0/sigma2star;
+
+    for (int s = 0; s < S; ++s) {
+        zz = Z(s, Rcpp::_);
+        nn = tableZ(K, zz);
+        s20 = s20chain[s];
+        nu0 = nu0chain[s];
+
+        Rcpp::NumericVector ss(K);
+
+        for(int i = 0; i < n; i++) {
+            int k = 0;
+
+            while(k <= K) {
+                if( zz[i] == k + 1 ){
+                    ss[k] += pow(x[i] - thetastar[k], 2.0);
+                    break;
+                }
+                k++;
+            }
+        }
+        
+        double total = 1.0;
+
+        for (int k = 0; k < K; ++k) {
+            nu_n = nu0 + nn[k];
+            sigma2_n = 1.0 / nu_n[0] * (nu0 * s20 + ss[k]);
+            tmp = dgamma(prec, 0.5 * nu_n[0], 2.0 / (nu_n[0] * sigma2_n[0]));
+            total *= tmp[k];
+        }
+
+        p_prec[s] = total;
     }
-    p_prec[s] = total ;
-  }
-  return p_prec ;
+
+    return p_prec;
 }
 
 
