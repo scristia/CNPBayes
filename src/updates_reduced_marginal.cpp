@@ -564,11 +564,11 @@ Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod) {
     //
     // We need to keep the Z|y,theta* chain
     //
-    NumericVector nu0chain = chains.slot("nu.0");
-    NumericVector s20chain = chains.slot("sigma2.0");
+    Rcpp::NumericVector nu0chain = chains.slot("nu.0");
+    Rcpp::NumericVector s20chain = chains.slot("sigma2.0");
 
-    NumericVector sigma2_n(1);
-    NumericVector sigma2_new(K) ;    
+    Rcpp::NumericVector sigma2_n(1);
+    Rcpp::NumericVector sigma2_new(K) ;    
 
     //
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
