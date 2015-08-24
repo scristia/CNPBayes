@@ -111,9 +111,10 @@ rect(start(grl), seq_along(grl)-0.2, end(grl), seq_along(grl)+0.2,
 # One Dimensional Summary
 
 Before further analysis can be performed, the log R ratios in a CNV region must
-be summarized to a one dimensional object. Within each CNP locus, log R ratios
-at each SNP are summarized by sample. Below are examples of using the median
-and the first principal component to create a one dimensional summary.
+be summarized to a one dimensional object @cardin. Within each CNP locus, 
+log R ratios at each SNP are summarized by sample. Below are examples of using 
+the median and the first principal component to create a one dimensional 
+summary.
 
 ## Median
 To summarize samples within a CNV locus by the median log R ratios, we define 
