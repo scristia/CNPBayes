@@ -42,6 +42,7 @@ Collate:
     'AllGenerics.R'
     'AllClasses.R'
     'RcppExports.R'
+    'batch_likelihood.R'
     'data.R'
     'functions.R'
     'functions_sc.R'
