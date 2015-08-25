@@ -580,50 +580,64 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
 
 // [[Rcpp::export]]
 Rcpp::NumericMatrix update_sigma2_batch(Rcpp::S4 xmod){
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  NumericVector x = model.slot("data") ;
-  NumericMatrix theta = model.slot("theta") ;
-  double nu_0 = model.slot("nu.0") ;
-  double sigma2_0 = model.slot("sigma2.0") ;
-  int n = x.size() ;
-  IntegerVector z = model.slot("z") ;
-  int B = theta.nrow() ;
-  //IntegerVector nn = model.slot("zfreq") ;
-  NumericMatrix tabz = tableBatchZ(xmod) ;
-  IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
-  NumericMatrix ss(B, K) ;
-  for(int i = 0; i < n; ++i){
-    for(int b = 0; b < B; ++b){
-      if(batch[i] != ub[b]) continue ;
-      for(int k = 0; k < K; ++k){
-        if(z[i] == k+1){
-          ss(b, k) += pow(x[i] - theta(b, k), 2) ;
+    Rcpp::RNGScope scope;
+
+    // get model
+    Rcpp::S4 model(xmod);
+
+    // get parameter estimates
+    Rcpp::NumericMatrix theta = model.slot("theta");
+    Rcpp::IntegerVector z = model.slot("z");
+    double nu_0 = model.slot("nu.0");
+    double sigma2_0 = model.slot("sigma2.0");
+
+    // get data and size attributes
+    Rcpp::NumericVector x = model.slot("data");
+    int n = x.size();
+    int K = theta.ncol();
+    int B = theta.nrow();
+
+    //IntegerVector nn = model.slot("zfreq");
+    // get batch info
+    Rcpp::NumericMatrix tabz = tableBatchZ(xmod);
+    Rcpp::IntegerVector batch = model.slot("batch");
+    Rcpp::IntegerVector ub = uniqueBatch(batch);
+    Rcpp::NumericMatrix ss(B, K);
+
+    for (int i = 0; i < n; ++i) {
+        for (int b = 0; b < B; ++b) {
+            if (batch[i] != ub[b]) {
+                continue;
+            }
+
+            for (int k = 0; k < K; ++k){
+                if (z[i] == k+1){
+                    ss(b, k) += pow(x[i] - theta(b, k), 2);
+                }
+            }
         }
-      }
     }
-  }
-  //NumericMatrix sigma2_nh(B, K) ;
-  double shape ;
-  double rate ;
-  double sigma2_nh ;
-  double nu_n ;
-  NumericMatrix sigma2_tilde(B, K) ;
-  NumericMatrix sigma2_(B, K) ;
-  for(int b = 0; b < B; ++b){
-    for(int k = 0; k < K; ++k){
-      nu_n = nu_0 + tabz(b, k) ;
-      sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k)) ;
-      shape = 0.5 * nu_n ;
-      rate = shape * sigma2_nh ;
-      sigma2_tilde(b, k) = as<double>(rgamma(1, shape, 1.0/rate)) ;
-      sigma2_(b, k) = 1.0/sigma2_tilde(b, k) ;
+
+    //NumericMatrix sigma2_nh(B, K);
+    double shape;
+    double rate;
+    double sigma2_nh;
+    double nu_n;
+    Rcpp::NumericMatrix sigma2_tilde(B, K);
+    Rcpp::NumericMatrix sigma2_(B, K);
+
+    for (int b = 0; b < B; ++b) {
+        for (int k = 0; k < K; ++k) {
+            nu_n = nu_0 + tabz(b, k);
+            sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k));
+            shape = 0.5 * nu_n;
+            rate = shape * sigma2_nh;
+            sigma2_tilde(b, k) = Rcpp::as<double>(rgamma(1, shape, 1.0/rate));
+            sigma2_(b, k) = 1.0 / sigma2_tilde(b, k);
+        }
     }
-  }
-  return sigma2_ ;
+
+    return sigma2_;
 }
 
 // From stackoverflow http://stackoverflow.com/questions/21609934/ordering-permutation-in-rcpp-i-e-baseorder
