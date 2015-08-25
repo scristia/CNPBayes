@@ -939,7 +939,8 @@ Rcpp::NumericVector p_tau_reduced_batch(Rcpp::S4 xmod) {
         }
 
         m2_k[k] = 1.0 / eta_B * (eta_0 * m2_0 + s2_k[k]);
-        Rcpp::NumericVector tau2star_typed = 1.0 / tau2star[k];
+        Rcpp::NumericVector tau2star_typed(1);
+        tau2star_typed[0] = 1.0 / tau2star[k];
 
         p_tau[k] = Rcpp::dgamma(tau2star_typed, 0.5 * eta_B,
                                 1.0 / (0.5 * eta_B * m2_k[k]))[0];
