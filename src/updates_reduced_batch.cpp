@@ -578,9 +578,9 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
     }  
 
     for (int s = 0; s < S; ++s) {
-        zz = Z(s, Rcpp::_);
         s20 = s20chain[s];
         nu0 = nu0chain[s];
+        zz = Z(s, Rcpp::_);
 
         Rcpp::NumericMatrix ss(B, K);
 
@@ -598,15 +598,26 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
             }
         }
 
+        Rcpp::NumericMatrix nn(B, K);
         double total = 1.0;
 
         for (int b = 0; b < B; ++b) {
             for (int k = 0; k < K; ++k) {
-                nu_n = nu0 + tabz(b, k);
+                // update nn
+                nn(b, k) = sum(zz == (k + 1) & batch == ub[b]);
+
+                // calculate nu_n and sigma2_n
+                nu_n = nu0 + nn(b, k);
                 sigma2_n = 1.0 / nu_n * (nu0 * s20 + ss(b, k));
+
+                // calculate shape and rate
                 shape = 0.5 * nu_n;
                 rate = shape * sigma2_n;
-                Rcpp::NumericVector prec_typed = prec(b, k);
+
+                // calculate probability
+                Rcpp::NumericVector prec_typed(1);
+                prec_typed[0] = prec(b, k);
+
                 tmp = Rcpp::dgamma(prec_typed, shape[0], 1.0 / rate[0]);
 
                 total *= tmp[0];
