@@ -825,13 +825,10 @@ Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
             // calculate mu_k
             mu_k[k] = w1[k] * mu_0 + w2[k] * thetabar[k];
 
-            // calculate tau_k
-            tau_k[k] = sqrt(1.0 / post_prec[k]);
-
             // calculate p_mu[s]
             Rcpp::NumericVector mu(1);
             mu[0] = mustar[k];
-            total *= Rcpp::dnorm(mu, mu_k[k], tau_k[k])[0];
+            total *= Rcpp::dnorm(mu, mu_k[k], post_prec[k])[0];
         }
 
         p_mu[s] = total;
