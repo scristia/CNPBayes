@@ -717,7 +717,7 @@ Rcpp::S4 reduced_mu_batch(Rcpp::S4 xmod) {
     Rcpp::NumericVector s20chain = chains.slot("sigma2.0");
     Rcpp::NumericVector muchain = chains.slot("mu");
     Rcpp::NumericVector tauchain = chains.slot("tau2");
-    
+
     //
     // Run reduced Gibbs:
     //   -- theta is fixed at modal ordinate
@@ -738,17 +738,9 @@ Rcpp::S4 reduced_mu_batch(Rcpp::S4 xmod) {
 
         // store chains
         Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
-        nu0chain[s] = model.slot("nu.0");
-        s20chain[s] = model.slot("sigma2.0");
-        muchain[s] = model.slot("mu");
-        tauchain[s] = model.slot("tau2");
     }
 
     // store chains
-    chains.slot("tau2") = tauchain;
-    chains.slot("mu") = muchain;
-    chains.slot("nu.0") = nu0chain;
-    chains.slot("sigma2.0") = s20chain;
     chains.slot("z") = Z;
     model.slot("mcmc.chains") = chains;
 
@@ -789,7 +781,7 @@ Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
 
     // tau2
     Rcpp::NumericMatrix tau2chain = chains.slot("tau2");
-    Rcpp::NumericMatrix tau2_tilde;
+    Rcpp::NumericMatrix tau2_tilde(S, K);
     Rcpp::NumericMatrix tau2_B_tilde(S, K);
 
     for (int k = 0; k < K; ++k) {
