@@ -450,44 +450,54 @@ Rcpp::NumericVector compute_logprior(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod){
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  NumericVector x = model.slot("data") ;
-  NumericVector theta = model.slot("theta") ;
-  double nu_0 = model.slot("nu.0") ;
-  double sigma2_0 = model.slot("sigma2.0") ;
-  int n = x.size() ;
-  IntegerVector z = model.slot("z") ;
-  NumericVector nu_n(K) ;
-  IntegerVector nn = model.slot("zfreq") ;
-  
-  for(int k = 0; k < K; ++k){
-    nu_n[k] = nu_0 + nn[k] ;
-  }
-  
-  //  return nn ;
-  NumericVector ss(K) ;
-  for(int i = 0; i < n; i++){
-    int k = 0 ;
-    while(k <= K) {
-      if( z[i] == k + 1 ){
-        ss[k] += pow(x[i] - theta[k], 2.0) ;
-        break ;
-      }
-      k++ ;
+Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod) {
+    Rcpp::RNGScope scope;
+    
+    // get model
+    Rcpp::S4 model(xmod);
+
+    // get parameter estimates
+    Rcpp::NumericVector theta = model.slot("theta");
+    Rcpp::IntegerVector z = model.slot("z");
+    double nu_0 = model.slot("nu.0");
+    double sigma2_0 = model.slot("sigma2.0");
+
+    // get data and size attributes
+    NumericVector x = model.slot("data");
+    Rcpp::S4 hypp(model.slot("hyperparams"));
+    int K = theta.size();
+    int n = x.size();
+
+    NumericVector nu_n(K);
+    IntegerVector nn = model.slot("zfreq");
+    
+    for (int k = 0; k < K; ++k) {
+        nu_n[k] = nu_0 + nn[k];
     }
-  }
-  double sigma2_n ;
-  NumericVector sigma2_new(K) ;
-  for (int k = 0; k < K; k++){
-    sigma2_n = 1.0/nu_n[k]*(nu_0*sigma2_0 + ss[k]) ;
-    sigma2_new[k] = 1.0/as<double>(rgamma(1, 0.5*nu_n[k], 1.0/(0.5*nu_n[k]*sigma2_n))) ;
-    //if(sigma2_new[k] < 0.001) sigma2_new[k] = 0.001 ;
-  }
-  return sigma2_new ;
+    
+    NumericVector ss(K);
+
+    for(int i = 0; i < n; i++){
+        int k = 0;
+
+        while (k <= K) {
+            if ( z[i] == k + 1 ) {
+                ss[k] += pow(x[i] - theta[k], 2.0);
+                break;
+            }
+            k++;
+        }
+    }
+
+    double sigma2_n;
+    NumericVector sigma2_new(K);
+
+    for (int k = 0; k < K; k++) {
+        sigma2_n = 1.0 / nu_n[k] * (nu_0 * sigma2_0 + ss[k]);
+        sigma2_new[k] = 1.0 / Rcpp::as<double>(rgamma(1, 0.5 * nu_n[k], 1.0 / (0.5 * nu_n[k] * sigma2_n)));
+    }
+
+    return sigma2_new;
 }
 
 // From stackoverflow http://stackoverflow.com/questions/21609934/ordering-permutation-in-rcpp-i-e-baseorder
