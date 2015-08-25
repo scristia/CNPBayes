@@ -933,7 +933,7 @@ Rcpp::NumericVector p_tau_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::NumericVector m2_k(K);
 
     double total = 1.0;
-    Rcpp::NumericVector p_tau(K);
+    Rcpp::NumericVector p_tau(1);
 
     for (int k = 0; k < K; ++k) {
         for (int b = 0; b < B; ++b) {
