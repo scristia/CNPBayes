@@ -463,19 +463,19 @@ Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod) {
     double sigma2_0 = model.slot("sigma2.0");
 
     // get data and size attributes
-    NumericVector x = model.slot("data");
+    Rcpp::NumericVector x = model.slot("data");
     Rcpp::S4 hypp(model.slot("hyperparams"));
     int K = theta.size();
     int n = x.size();
 
-    NumericVector nu_n(K);
-    IntegerVector nn = model.slot("zfreq");
+    Rcpp::NumericVector nu_n(K);
+    Rcpp::IntegerVector nn = model.slot("zfreq");
     
     for (int k = 0; k < K; ++k) {
         nu_n[k] = nu_0 + nn[k];
     }
     
-    NumericVector ss(K);
+    Rcpp::NumericVector ss(K);
 
     for(int i = 0; i < n; i++){
         int k = 0;
@@ -485,6 +485,7 @@ Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod) {
                 ss[k] += pow(x[i] - theta[k], 2.0);
                 break;
             }
+
             k++;
         }
     }
