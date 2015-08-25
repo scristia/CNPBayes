@@ -557,7 +557,6 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::NumericVector s20(1);
     Rcpp::IntegerMatrix Z = chains.slot("z");
     Rcpp::IntegerVector zz;
-    Rcpp::IntegerVector nn(K);
 
     //
     // We need to keep the Z|y,theta* chain
@@ -580,7 +579,6 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
 
     for (int s = 0; s < S; ++s) {
         zz = Z(s, Rcpp::_);
-        nn = tableZ(K, zz);
         s20 = s20chain[s];
         nu0 = nu0chain[s];
 
