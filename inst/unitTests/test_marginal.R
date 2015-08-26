@@ -80,7 +80,7 @@ test_marginal_empty_component <- function() {
                           sds=rep(0.1, 3))
     mp <- McmcParams(iter=5, burnin=5, nStarts=1)
     model <- MarginalModel(data=y(truth), k=3, mcmc.params=mp)
-    checkTrue(!any(is.na(computeMeans(model))))
+    checkTrue(!any(is.na(CNPBayes:::computeMeans(model))))
 }
 
 test_marginal_few_data <- function() {
