@@ -69,7 +69,7 @@ batchLikelihood <- function(model, niter=1000L){
            mp <- McmcParams(iter=niter)
            logLik <- modes(model)[["loglik"]] ## includes 2nd stage
            model2 <- useModes(model)
-           stage2.loglik <- stageTwoLogLik(model2)
+           stage2.loglik <- stageTwoLogLikBatch(model2)
            logPrior <- modes(model)[["logprior"]]
            pstar <- blockUpdatesBatch(model, mp)
            m.y <- logLik + stage2.loglik + logPrior - sum(pstar) + 
