@@ -55,7 +55,7 @@ setMethod("startingValues", "BatchModel", function(object){
   tau2(object) <- 1/rgamma(k(object), shape=1/2*eta.0(object), rate=1/2*eta.0(object)*m2.0(object))
   nB <- nBatch(object)
   th <- initializeTheta(object)
-  if(is(object, "UnivariateBatchModel")){
+  if(is(object, "UnivariateBatchModel") || ncol(th) == 1){
     theta(object) <- th
   } else {
     theta(object) <- t(apply(th, 1, sort))
