@@ -7,7 +7,8 @@
 marginalLikelihood(model, niter = 1000L)
 }
 \arguments{
-\item{model}{An object of class \code{MarginalModel}.}
+\item{model}{An object of class \code{MarginalModel}, or a list of
+\code{MarginalModel}'s.}
 
 \item{niter}{The number of iterations for the reduced Gibb's sampler.}
 }
