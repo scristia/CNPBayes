@@ -60,6 +60,8 @@ blockUpdatesBatch <- function(model, mp){
 batchLikelihood <- function(model, niter=1000L){
   if (!is.list(model)) {
     mlist <- list(model)
+  } else {
+    mlist <- model
   }
 
   sapply(mlist, 
