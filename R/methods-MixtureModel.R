@@ -120,6 +120,7 @@ setReplaceMethod("k", "MixtureModel",
         hyperParams(object) <- hypp
         object@k <- k
         object@pi <- rep(1/k, k)
+        object@probz <- matrix(0, length(y(object)), k)
         object <- startingValues(object)
         object
     }
