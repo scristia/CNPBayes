@@ -119,6 +119,7 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
              mcmc.params=mcmc.params,
              batch=batch[ix],
              batchElements=nbatch,
+             .internal.constraint=5e-4)
              hwe=numeric())
   obj <- startingValues(obj)
   obj
