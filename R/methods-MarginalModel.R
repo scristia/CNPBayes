@@ -319,16 +319,6 @@ setMethod("showSigmas", "MarginalModel", function(object){
 
 setMethod("tablez", "MarginalModel", function(object) table(z(object)))
 
-permuteZ <- function(object, ix){
-  zz <- zChain(object)
-  zz2 <- zz
-  for(i in seq_along(ix)){
-    zz2[zz == ix[i]] <- i
-  }
-  zz2
-}
-
-
 modelOtherModes <- function(model, maxperm=5){
   kperm <- permnK(k(model), maxperm)
   model.list <- vector("list", nrow(kperm))
