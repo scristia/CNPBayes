@@ -291,40 +291,29 @@ evidence of departure from a normal distribution. Due to this skewness, a
 # K unknown
 
 Generally, the number of components is not known *a priori*. To
-estimate the number of components *K*, the `computeMarginalLik`
+estimate the number of components *K*, the `marginalLikelihood`
 function is used. It is important to note that a list of models passed to this
 function must have converged. For ease of use, one can specify `k` in the 
 posteriorSimulation to use the same data, `Hyperparameters`, and `mcmc.params`,
 but with a different number of components.
 
-```{r computeMarginalLik}
+```{r marginalLikelihood}
 mp <- McmcParams(iter=2e3, burnin=1e3)
 model <- MarginalModel(data=y(sim.data), k=2, mcmc.params=mp)
+
 mlist <- list(posteriorSimulation(model),
-              posteriorSimulation(model, 3))
-x <- computeMarginalLik(mlist)
-orderModels(x)
+              posteriorSimulation(model, k=3))
+
+x <- marginalLikelihood(mlist)
+x
 ```
 
-It is worth noting that `computeMarginalLik` is the most computationally
-intensive routine included in `CNPBayes`. In spite of the most resource
-expensive portions being coded in C++, this procedure can still be time
-consuming, especially for batch data. For each number of components, the
-mode of $\theta$ is identified, fixed, and the MCMC simulation is run again.
-After this simulation, the process is repeated, but with $\sigma^2$ being
-integrated over. While the marginal likelihood is computed and used for 
-determining *k*, the number of latent variable, Chib's Estimator [@chib] and a 
-variant of Chib's Estimator [@berkhof] is also calculated. The log Bayes Factor
-is computed comparing the two models with the highest marginal likelihood.
-
-```{r bayesFactor}
-logBayesFactor(x)
-```
+`marginalLikelihood` uses Chib's Estimator [@chib] to run a reduced Gibbs
+to estimate the marginal likelihood of each component size. Additionally, 
+`batchLikelihood` can be used in a similar manner for `BatchModel`s.
 
 Alternative methods for selection of *k* are also included. As an example, the
 `bic` method can be used for calculating the Bayesian Information Criterion. 
-
-JC: Caution for cmpring nontested models.
 
 ```{r bic}
 ## simulate k=2 model
