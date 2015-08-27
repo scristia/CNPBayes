@@ -508,15 +508,6 @@ berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5){
                    marginal=results$marginal)
 }
 
-summarizeMarginalEstimates <- function(x){
-    chibs <- round(chib(x), 2)
-    berk <- round(berkhof(x), 2)
-    my <- marginal(x)
-    xx <- c(chibs, berk, my)
-    names(xx) <- c("chib", "berkhof", "marginal")
-    xx
-}
-
 modelOtherModes <- function(model, maxperm=5){
   kperm <- permnK(k(model), maxperm)
   model.list <- vector("list", nrow(kperm))
