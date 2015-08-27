@@ -336,12 +336,6 @@ setMethod("permuteModes", "MarginalModel", function(object, ix){
   object
 })
 
-permuteZandModes <- function(kmod, ix){
-  zChain(kmod) <- permuteZ(kmod, ix)
-  kmod <- permuteModes(kmod, ix)
-  kmod
-}
-
 modelOtherModes <- function(model, maxperm=5){
   kperm <- permnK(k(model), maxperm)
   model.list <- vector("list", nrow(kperm))
