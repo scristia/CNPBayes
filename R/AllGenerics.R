@@ -625,8 +625,6 @@ setGeneric("logPrior", function(object) standardGeneric("logPrior"))
 
 setGeneric("logPrior<-", function(object,value) standardGeneric("logPrior<-"))
 
-setGeneric("fullGibbs", function(object, mcmcp) standardGeneric("fullGibbs"))
-
 setGeneric("paramUpdates", function(x) standardGeneric("paramUpdates"))
 
 setGeneric("computePrec", function(object) standardGeneric("computePrec"))
