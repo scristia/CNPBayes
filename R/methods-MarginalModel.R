@@ -496,18 +496,6 @@ setMethod("pThetaStar", "MixtureModel",
        marginal=modes(model)[["loglik"]] + modes(model)[["logprior"]] - log(p.V))
 }
 
-berkhofEstimate <- function(model, T2=0.2*iter(model), maxperm=5){
-  ##message("entering pThetaStar...")
-  x <- pThetaStar(model, T2=T2, maxperm=maxperm)
-  ##message("entering .berkhof")
-  results <- .berkhof(x, model=model)
-  ##message("computing PosteriorSummary")
-  PosteriorSummary(p_theta=results$p_theta,
-                   chib=results$chib,
-                   berkhof=results$berkhof,
-                   marginal=results$marginal)
-}
-
 modelOtherModes <- function(model, maxperm=5){
   kperm <- permnK(k(model), maxperm)
   model.list <- vector("list", nrow(kperm))
