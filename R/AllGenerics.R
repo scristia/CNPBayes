@@ -647,8 +647,6 @@ setGeneric("computeMarginalEachK2",
                     K=1:4, mcmcp=McmcParams(),
                     hypp) standardGeneric("computeMarginalEachK2"))
 
-setGeneric("best", function(object) standardGeneric("best"))
-
 setGeneric("zChain", function(object) standardGeneric("zChain"))
 setGeneric("zChain<-", function(object,value) standardGeneric("zChain<-"))
 
