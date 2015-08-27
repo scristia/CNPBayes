@@ -121,10 +121,17 @@ test_kbatch <- function(){
     ## K=4 model is best.  This unit test is too time consuming to be
     ## run during each package update.
     ##
-    fit <- computeMarginalLik(y(truth), batch(truth), K=1:4,
-                              burnin=1000,
-                              T2=1000, T=10000,
-                              nchains=3)
+    fit <- list(posteriorSimulation(kmod, k=1),
+                posteriorSimulation(kmod, k=2),
+                posteriorSimulation(kmod, k=3),
+                posteriorSimulation(kmod, k=4))
+
+    fit <- batchLikelihood(fit)
+
+#     fit <- computeMarginalLik(y(truth), batch(truth), K=1:4,
+#                               burnin=1000,
+#                               T2=1000, T=10000,
+#                               nchains=3)
     prz <- probz(fit$models[[4]])
     cn <- map(fit$models[[4]])
     plot(r, cn, pch=20, cex=0.3)
