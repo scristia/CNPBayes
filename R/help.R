@@ -3,12 +3,9 @@
 #' @docType package
 #' @name CNPBayes
 #' @import methods
-#' @importFrom IRanges IRanges
 #' @import GenomicRanges
 #' @import S4Vectors
 #' @importFrom gtools rdirichlet ddirichlet
-#' @importFrom msm rtnorm
-#' @importFrom truncnorm rtruncnorm
 #' @importFrom Hmisc rMultinom
 #' @import Rcpp
 #' @import RcppArmadillo
@@ -17,14 +14,9 @@
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% %dopar% foreach
 #' @importFrom matrixStats colSds colMedians rowCumsums rowProds colMaxs
-#' @importFrom HardyWeinberg HWChisq
 #' @importFrom oligoClasses copyNumber batch chromosome integerMatrix
 #' @importMethodsFrom oligoClasses lrr
-#' @importFrom coda effectiveSize
-#' @importFrom combinat permn
 #' @importFrom dplyr ntile
-#' @importFrom mvtnorm rmvnorm
-#' @importFrom sn dsn
 #' @useDynLib CNPBayes
 NULL
 

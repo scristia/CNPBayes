@@ -17,20 +17,12 @@ Depends:
 Imports:
     Hmisc,
     S4Vectors,
-    truncnorm,
     matrixStats,
     RColorBrewer,
     gtools,
     GenomeInfoDb,
-    msm,
-    HardyWeinberg,
     oligoClasses,
-    coda,
-    combinat,
-    dplyr,
-    IRanges,
-    mvtnorm,
-    sn
+    dplyr
 Suggests:
     RUnit,
     knitr,
