@@ -342,22 +342,6 @@ permuteZandModes <- function(kmod, ix){
   kmod
 }
 
-setMethod("pTheta", "MarginalModel", function(object){
-  exp(marginal_theta(object))
-})
-
-setMethod("pTheta", "BatchModel", function(object){
-  p_theta_batch(object)
-})
-
-setMethod("pTheta_Zfixed", "MarginalModel", function(object){
-  exp(p_theta_zpermuted(object))  ## use permuted
-})
-
-setMethod("pTheta_Zfixed", "BatchModel", function(object){
-  p_theta_zfixed_batch(object)  ## use permuted
-})
-
 setMethod("pSigma2", "MarginalModel", function(object) {
   exp(p_sigma_reduced(object))
 })
