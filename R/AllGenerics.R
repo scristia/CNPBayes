@@ -666,9 +666,6 @@ setGeneric("zChain<-", function(object,value) standardGeneric("zChain<-"))
 
 setGeneric("permuteModes", function(object, ix) standardGeneric("permuteModes"))
 
-setGeneric("pMixProb", function(object) standardGeneric("pMixProb"))
-
-
 setGeneric("updateMultinomialProb", function(object) standardGeneric("updateMultinomialProb"))
 
 setGeneric("component", function(object) standardGeneric("component"))

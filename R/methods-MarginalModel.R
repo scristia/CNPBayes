@@ -342,12 +342,6 @@ permuteZandModes <- function(kmod, ix){
   kmod
 }
 
-## same for marginal and batch models
-
-setMethod("pMixProb", "MixtureModel", function(object) {
-  exp(p_pmix_reduced(object))
-})
-
 modelOtherModes <- function(model, maxperm=5){
   kperm <- permnK(k(model), maxperm)
   model.list <- vector("list", nrow(kperm))
