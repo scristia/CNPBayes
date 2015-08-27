@@ -555,9 +555,6 @@ setGeneric("initializeModel", function(params, hypp) standardGeneric("initialize
 setGeneric("posteriorTheta", function(object, mcmcp) standardGeneric("posteriorTheta"))
 setGeneric("posteriorSigma2", function(object, mcmcp) standardGeneric("posteriorSigma2"))
 
-setGeneric("post1", function(object) standardGeneric("post1"))
-setGeneric("post2", function(object) standardGeneric("post2"))
-setGeneric("post3", function(object) standardGeneric("post3"))
 setGeneric("isMarginalModel", function(object) standardGeneric("isMarginalModel"))
 
 setGeneric("computePrior", function(object) standardGeneric("computePrior"))
