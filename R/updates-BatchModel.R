@@ -99,20 +99,6 @@ setMethod("posteriorMultinomial", "BatchModel", function(object){
   sigma2.h
 }
 
-setMethod("updateSigma2", "BatchModel", function(object){
-  update_sigma2_batch(object)
-  ##.update_sigma2(object)
-})
-
-## special case when there is only one component
-setMethod("updateSigma2", "UnivariateBatchModel", function(object){
-  .update_sigma2(object)
-})
-
-setMethod("updateSigma2", "BatchModel", function(object){
-  .update_sigma2(object)
-})
-
 setMethod("updateSigma2.0", "BatchModel", function(object){
   ##.updateSigma2.0Batch(object)
   update_sigma20_batch(object)
