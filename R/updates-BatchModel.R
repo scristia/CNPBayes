@@ -99,25 +99,6 @@ setMethod("posteriorMultinomial", "BatchModel", function(object){
   sigma2.h
 }
 
-setMethod("updateSigma2.0", "BatchModel", function(object){
-  ##.updateSigma2.0Batch(object)
-  update_sigma20_batch(object)
-})
-
-##.updateSigma2.0 <- function(a, b, nu.0, sigma2.h, k){
-.updateSigma2.0Batch <- function(object){
-  hypp <- hyperParams(object)
-  P <- nBatch(object)
-  sigma2s <- as.numeric(sigma2(object))
-  prec <- sum(1/sigma2s)
-  a.k <- a(hypp) + 1/2 * (k(object) * P) * nu.0(object)
-  b.k <- b(hypp) + 1/2 * sum(1/sigma2s)
-  sigma2.0 <- rgamma(1, shape=a.k, rate=b.k)
-  stopifnot(sigma2.0 > 0)
-  stopif(is.nan(sigma2.0))
-  sigma2.0
-}
-
 ##
 ## z has length y.  Each observation is a sample.
 ##

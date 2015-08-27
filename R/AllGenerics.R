@@ -202,7 +202,6 @@ setGeneric("simulateY", function(object, N) standardGeneric("simulateY"))
 setGeneric("batchCorrect", function(object) standardGeneric("batchCorrect"))
 
 setGeneric("updateSigma2Cpp", function(object) standardGeneric("updateSigma2Cpp"))
-setGeneric("updateSigma2.0", function(object) standardGeneric("updateSigma2.0"))
 
 setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
 

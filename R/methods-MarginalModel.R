@@ -83,10 +83,6 @@ setMethod("simulateY", "MarginalModel", function(object){
   yy <- rnorm(length(zz), mean=theta(object)[zz], sd=sigma(object)[zz])
 })
 
-setMethod("updateSigma2.0", "MarginalModel", function(object){
-  update_sigma2_0(object)
-})
-
 setReplaceMethod("tau2", "MarginalModel", function(object, value){
   object@tau2 <- value
   object
