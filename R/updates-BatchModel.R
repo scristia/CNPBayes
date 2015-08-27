@@ -69,36 +69,6 @@ setMethod("posteriorMultinomial", "BatchModel", function(object){
   lik/rowSums(lik)
 }
 
-.update_sigma2 <- function(object){
-  n.hp <- tablez(object)
-  ##
-  ## guard against zeros
-  ##
-  n.hp <- pmax(n.hp, 1)
-  nu.n <- nu.0(object) + n.hp
-  ss <- sumSquares(object)
-  ##
-  ## Zeros in sums of squares occurs for batches with no observations
-  ##
-  ## should handle this by polymorphism
-  if(k(object) == 1) ss <- ss[, 1, drop=FALSE]
-  ##
-  ## weighted average of sums of squares
-  ##
-  ##browser()
-  sigma2.nh <- 1/nu.n*(nu.0(object) * sigma2.0(object) + ss)
-  shape <- 1/2*nu.n
-  rate <- shape*sigma2.nh
-  sigma2.h.tilde <- matrix(NA, nBatch(object), k(object))
-  rownames(sigma2.h.tilde) <- uniqueBatch(object)
-  for(b in uniqueBatch(object)){
-    sigma2.h.tilde[b, ] <- rgamma(k(object), shape=shape[b, ], rate=rate[b, ])
-  }
-  sigma2.h <- 1/sigma2.h.tilde
-  stopif(any(is.nan(sigma2.h)))
-  sigma2.h
-}
-
 ##
 ## z has length y.  Each observation is a sample.
 ##

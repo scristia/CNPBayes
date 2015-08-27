@@ -201,8 +201,6 @@ setGeneric("posteriorMultinomial", function(object) standardGeneric("posteriorMu
 setGeneric("simulateY", function(object, N) standardGeneric("simulateY"))
 setGeneric("batchCorrect", function(object) standardGeneric("batchCorrect"))
 
-setGeneric("updateSigma2Cpp", function(object) standardGeneric("updateSigma2Cpp"))
-
 setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
 
 #' Calculate BIC of a model
