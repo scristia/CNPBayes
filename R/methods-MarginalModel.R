@@ -637,65 +637,6 @@ setMethod("updateMultinomialProb", "BatchModel", function(object){
   update_multinomialPr_batch(object)
 })
 
-NestedMarginalModel <- function(model){
-  model <- useModes(model)
-  if(k(model) == 1) stop("model only has 1 component")
-  ##
-  ## Transition to K=K-1 model, selecting K-1 modes with the greatest separation
-  ##
-  th <- setNames(theta(model), paste0("comp", seq_along(theta(model))))
-  d <- diff(sort(th))
-  drop_component <- names(d)[which.min(d)]
-  if(which.min(d) > 1){
-    replacement_for_dropped_component <- names(d)[which.min(d)-1]
-  } else {
-    replacement_for_dropped_component <- names(th)[!names(th) %in% names(d)]
-  }
-  zlabel_replace <- as.integer(strsplit(replacement_for_dropped_component, "comp")[[1]][2])
-  zlabel_dropped <- as.integer(strsplit(drop_component, "comp")[[1]][2])
-  zz <- z(model)
-  zz[zz == zlabel_dropped] <- zlabel_replace
-  ii <- zlabel_dropped
-  ## next relabel z such that the maximum value can not be greater
-  ## than the number of components
-  zz <- as.integer(factor(zz))
-  hypp <- hyperParams(model)
-  k(hypp) <- k(model)-1L
-  kmod <-  new("MarginalModel",
-               k=k(model)-1L,
-               hyperparams=hypp,
-               theta=theta(model)[-ii],
-               sigma2=sigma2(model)[-ii],
-               mu=mu(model),
-               tau2=tau2(model),
-               nu.0=nu.0(model),
-               sigma2.0=sigma2.0(model),
-               pi=p(model)[-ii],
-               data=y(model),
-               data.mean=dataMean(model)[-ii],
-               data.prec=dataPrec(model)[-ii],
-               z=zz,
-               zfreq=as.integer(table(zz)),
-               probz=matrix(0, length(y(model)), k(model)-1),
-               mcmc.chains=McmcChains(),
-               batch=batch(model),
-               batchElements=nBatch(model),
-               mcmc.params=mcmcParams(model))
-  ## initialize modes
-  modes(kmod) <- list(theta=theta(kmod),
-                      sigma2=sigma2(kmod),
-                      mixprob=p(kmod),
-                      mu=mu(kmod),
-                      tau2=tau2(kmod),
-                      nu0=nu.0(kmod),
-                      sigma2.0=sigma2.0(kmod),
-                      zfreq=zFreq(kmod),
-                      loglik=log_lik(kmod),
-                      logprior=logPrior(kmod))
-  chains(kmod) <- McmcChains(kmod)
-  kmod
-}
-
 setMethod("computeLoglik", "BatchModel", function(object){
   compute_loglik_batch(object)
 })
