@@ -639,14 +639,6 @@ setGeneric("modelList", function(object) standardGeneric("modelList"))
 setGeneric("modelList<-", function(object, value) standardGeneric("modelList<-"))
 
 
-setGeneric("computeMarginalEachK", function(object, K=1:4, hypp, mcmcp=McmcParams(), maxperm=5)
-  standardGeneric("computeMarginalEachK"))
-
-setGeneric("computeMarginalEachK2",
-           function(object, batch, maxperm=3,
-                    K=1:4, mcmcp=McmcParams(),
-                    hypp) standardGeneric("computeMarginalEachK2"))
-
 setGeneric("zChain", function(object) standardGeneric("zChain"))
 setGeneric("zChain<-", function(object,value) standardGeneric("zChain<-"))
 
