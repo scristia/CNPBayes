@@ -664,8 +664,6 @@ setGeneric("posteriorP", function(object) standardGeneric("posteriorP"))
 setGeneric("zChain", function(object) standardGeneric("zChain"))
 setGeneric("zChain<-", function(object,value) standardGeneric("zChain<-"))
 
-setGeneric("permuteModes", function(object, ix) standardGeneric("permuteModes"))
-
 setGeneric("updateMultinomialProb", function(object) standardGeneric("updateMultinomialProb"))
 
 setGeneric("component", function(object) standardGeneric("component"))

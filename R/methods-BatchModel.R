@@ -400,10 +400,3 @@ setMethod("tablez", "BatchModel", function(object){
 })
 
 uniqueBatch <- function(object) unique(batch(object))
-
-setMethod("permuteModes", "BatchModel", function(object, ix){
-  modes(object)[["theta"]] <- modes(object)[["theta"]][ , ix, drop=FALSE]
-  modes(object)[["sigma2"]] <- modes(object)[["sigma2"]][ , ix, drop=FALSE]
-  modes(object)[["mixprob"]] <- modes(object)[["mixprob"]][ix]
-  object
-})

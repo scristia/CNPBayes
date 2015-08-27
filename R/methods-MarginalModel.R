@@ -329,13 +329,6 @@ permuteZ <- function(object, ix){
 }
 
 
-setMethod("permuteModes", "MarginalModel", function(object, ix){
-  modes(object)[["theta"]] <- modes(object)[["theta"]][ix]
-  modes(object)[["sigma2"]] <- modes(object)[["sigma2"]][ix]
-  modes(object)[["mixprob"]] <- modes(object)[["mixprob"]][ix]
-  object
-})
-
 modelOtherModes <- function(model, maxperm=5){
   kperm <- permnK(k(model), maxperm)
   model.list <- vector("list", nrow(kperm))
