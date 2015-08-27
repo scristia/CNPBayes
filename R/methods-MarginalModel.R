@@ -396,66 +396,6 @@ setMethod("reducedGibbsThetaSigmaFixed", "BatchModel", function(object){
   simulate_z_reduced2_batch(object)
 })
 
-
-.pthetastar <- function(kmod, kmodZ1, kmodZ2, T2, ix){
-  K <- k(kmod)
-  if(identical(ix, seq_len(K))){
-    ##
-    ## Non-permuted modes
-    ## estimate p_theta from existing chain
-    ##
-    p_theta.z <- pTheta(kmod)
-  } else {
-    ## one of the K! - 1 other modes
-    iter(kmod, force=TRUE) <- T2
-    iter(kmodZ1, force=TRUE) <- T2
-    iter(kmodZ2, force=TRUE) <- T2
-    kmod <- permuteZandModes(kmod, ix)
-    kmodZ1 <- permuteZandModes(kmodZ1, ix)
-    kmodZ2 <- permuteZandModes(kmodZ2, ix)
-    kmodZ1 <- reducedGibbsZThetaFixed(kmodZ1)
-    p_theta.z <- pTheta_Zfixed(kmod)
-  }
-  if(FALSE){
-    truth <- as.numeric(table(zChain(kmodZ2)[1, ])/2500)
-    result <- modes(kmodZ2)[["mixprob"]]
-    ## truth and results should be in the same ballpark
-    pstar <- result
-    zz <- as.numeric(table(zChain(kmodZ2)[1, ]))
-    gtools::ddirichlet(pstar, zz)
-
-    Z <- zChain(kmodZ2)
-    NN <- length(y(kmodZ2))
-    ptab <- t(apply(Z, 1, function(x, NN) table(x)/NN, NN=NN))
-    plot.ts(ptab, plot.type="single", col=1:4)
-    abline(h=modes(kmodZ2)[["mixprob"]], col=1:4, lwd=2)
-
-    ii <- argMax(kmod)
-    checkEquals(pic(kmod)[ii,], modes(kmodZ2)[["mixprob"]])
-    checkEquals(thetac(kmod)[ii, ],  modes(kmodZ2)[["theta"]])
-    checkEquals(thetac(kmod)[ii, ],  theta(kmodZ2))
-    checkEquals(sigmac(kmod)[ii, ],  sigma(kmodZ2))
-    Z2 <- table(zChain(kmod)[ii, ])/NN
-    checkEquals(as.numeric(Z2), pic(kmod)[ii,], tolerance=0.05)
-    checkTrue(log(gtools::ddirichlet(pic(kmod)[ii,], as.numeric(Z2))) > -Inf)
-
-    kmod3 <- reducedGibbsThetaSigmaFixed(kmod)
-    Z <- zChain(kmod3)
-    ptab3 <- t(apply(Z, 1, function(x, NN) table(x)/NN, NN=NN))
-    plot.ts(ptab3, plot.type="single", col=1:4)
-    abline(h=modes(kmodZ2)[["mixprob"]], col=1:4, lwd=2)
-    p_pmix.z <- pMixProb(kmod3)
-  }
-  p_sigma2.z <- pSigma2(kmodZ1)
-  p_pmix.z <- pMixProb(kmodZ2)
-  p_theta <- mean(p_theta.z)
-  p_sigma2 <- mean(p_sigma2.z)
-  p_pmix <- mean(p_pmix.z)
-  pstar <- c(p_theta, p_sigma2, p_pmix)
-  pstar
-}
-
-
 modelOtherModes <- function(model, maxperm=5){
   kperm <- permnK(k(model), maxperm)
   model.list <- vector("list", nrow(kperm))
