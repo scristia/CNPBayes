@@ -670,14 +670,6 @@ setGeneric("pSigma2", function(object) standardGeneric("pSigma2"))
 
 setGeneric("pMixProb", function(object) standardGeneric("pMixProb"))
 
-setGeneric("reducedGibbsThetaFixed", function(object)
-  standardGeneric("reducedGibbsThetaFixed"))
-
-setGeneric("reducedGibbsThetaSigmaFixed", function(object)
-  standardGeneric("reducedGibbsThetaSigmaFixed"))
-
-setGeneric("reducedGibbsZThetaFixed", function(object) standardGeneric("reducedGibbsZThetaFixed"))
-
 setGeneric("pTheta_Zfixed", function(object) standardGeneric("pTheta_Zfixed"))
 
 setGeneric("pTheta", function(object) standardGeneric("pTheta"))

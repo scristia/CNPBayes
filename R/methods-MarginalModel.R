@@ -358,14 +358,6 @@ setMethod("pTheta_Zfixed", "BatchModel", function(object){
   p_theta_zfixed_batch(object)  ## use permuted
 })
 
-setMethod("reducedGibbsZThetaFixed", "MarginalModel", function(object){
-  permutedz_reduced1(object)
-})
-
-setMethod("reducedGibbsZThetaFixed", "BatchModel", function(object){
-  reduced_z_theta_fixed(object)
-})
-
 setMethod("pSigma2", "MarginalModel", function(object) {
   exp(p_sigma_reduced(object))
 })
@@ -378,22 +370,6 @@ setMethod("pSigma2", "BatchModel", function(object) {
 
 setMethod("pMixProb", "MixtureModel", function(object) {
   exp(p_pmix_reduced(object))
-})
-
-setMethod("reducedGibbsThetaFixed", "MarginalModel", function(object){
-  simulate_z_reduced1(object)
-})
-
-setMethod("reducedGibbsThetaFixed", "BatchModel", function(object){
-  simulate_z_reduced1_batch(object)
-})
-
-setMethod("reducedGibbsThetaSigmaFixed", "MarginalModel", function(object){
-  simulate_z_reduced2(object)
-})
-
-setMethod("reducedGibbsThetaSigmaFixed", "BatchModel", function(object){
-  simulate_z_reduced2_batch(object)
 })
 
 modelOtherModes <- function(model, maxperm=5){
