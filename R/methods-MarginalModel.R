@@ -517,23 +517,6 @@ summarizeMarginalEstimates <- function(x){
     xx
 }
 
-updateMultipleChains <- function(nchains, modellist, mp){
-  if(k==1) nchains <- 1
-  if(missing(batch)){
-    kmodlist <- replicate(nchains, {
-      kmod <- MarginalModel(y, k=k, mcmc.params=mp)
-      posteriorSimulation(kmod)
-    })
-    return(kmodlist)
-  }
-  ## batch not missing
-  kmodlist <- replicate(nchains, {
-    kmod <- BatchModel(y, batch=batch, k=k, mcmc.params=mp)
-    posteriorSimulation(kmod)
-  })
-  return(kmodlist)
-}
-
 #' Estimate the marginal density of a mixture model with k components
 #'
 #' This function is used to estimate the marginal density of a mixture
