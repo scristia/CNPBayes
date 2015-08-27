@@ -194,8 +194,6 @@ setGeneric("initializeTheta", function(object) standardGeneric("initializeTheta"
 
 setGeneric("initializeTau2", function(object) standardGeneric("initializeTau2"))
 
-setGeneric("posteriorMultinomial", function(object) standardGeneric("posteriorMultinomial"))
-
 setGeneric("simulateY", function(object, N) standardGeneric("simulateY"))
 setGeneric("batchCorrect", function(object) standardGeneric("batchCorrect"))
 

@@ -64,10 +64,6 @@ setMethod("initializeSigma2.0", "MarginalModel", function(object){
 ## just choose a big number
 setMethod("initializeTau2", "MarginalModel", function(object)  1000)
 
-setMethod("posteriorMultinomial", "MarginalModel", function(object){
-  update_multinomialPr(object)
-})
-
 setMethod("show", "MarginalModel", function(object) callNextMethod())
 
 setMethod("computeMeans", "MarginalModel", function(object){
