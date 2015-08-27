@@ -1,9 +1,0 @@
-RUNIT TEST PROTOCOL -- Wed Aug 26 15:59:07 2015 
-*********************************************** 
-Number of test functions: 25 
-Number of errors: 0 
-Number of failures: 0 
-
- 
-1 Test Suite : 
-CNPBayes unit testing - 25 test functions, 0 errors, 0 failures
