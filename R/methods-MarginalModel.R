@@ -87,10 +87,6 @@ setMethod("updateThetaCpp", "MarginalModel", function(object, constrain) {
   update_theta(object, constrain=constrain)
 })
 
-setMethod("updateTheta", "MarginalModel", function(object) {
-  update_theta(object)
-})
-
 setMethod("updateSigma2", "MarginalModel", function(object) {
   update_sigma2(object)
 })

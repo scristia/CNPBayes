@@ -104,65 +104,6 @@ setMethod("updateSigma2", "BatchModel", function(object){
   ##.update_sigma2(object)
 })
 
-
-##
-## TODO: pass arguments to .updateThetaBatch to make it clear what
-## parameters the theta update depends on
-##
-setMethod("updateTheta", "BatchModel", function(object) {
-  ##.updateThetaBatch(object)
-  update_theta_batch(object)
-})
-
-.updateThetaBatch <- function(object){
-  tau2.tilde <- 1/tau2(object)
-  sigma2.tilde <- 1/sigma2(object)
-  K <- k(object)
-  ## should be a vector of length K
-  tau2.n.tilde <- rep(NA, K)
-  n.hp <- tablez(object)
-  ##
-  ## Guard against zero-components
-  ##
-  n.hp <- pmax(n.hp, 1)
-  ##
-  ## mu and tau2 are not batch-specific
-  tau2.tilde <- matrix(tau2.tilde, nBatch(object), k(object), byrow=TRUE)
-  ##
-  ## Make mu the same dimension to make the arithmetic obvious
-  ##
-  mus <- matrix(mu(object), nBatch(object), k(object), byrow=TRUE)
-  ##
-  tau2.n.tilde <- tau2.tilde + n.hp * sigma2.tilde
-  tau2.n <- 1/tau2.n.tilde
-  tau.n <- sqrt(tau2.n)
-  ##
-  w1 <- tau2.tilde/tau2.n.tilde
-  w2 <- n.hp*sigma2.tilde/tau2.n.tilde
-  ##
-  ## when a component has 0 observations, mu.n should just be w1*mu
-  ##
-  ybar <- dataMean(object)
-  if(any(is.nan(ybar))){
-    ybar[is.nan(ybar)] <- 0
-  }
-  mu.n <- w1*mus + w2*ybar
-  rownames(tau.n) <- rownames(mu.n) <- uniqueBatch(object)
-  ##
-  ##  If there are very few observations, we will be sampling from a
-  ##  normal distribution with mean equal to the marginal mean. This
-  ##  will result in thetas that do not satisfy the order constraints
-  ##
-  ##
-  thetas <- matrix(NA, nBatch(object), k(object))
-  rownames(thetas) <- uniqueBatch(object)
-  for(b in uniqueBatch(object)){
-    thetas[b, ] <- rnorm(K, mu.n[b, ], tau.n[b, ])
-  }
-  if(any(is.na(thetas))) stop("NAs in thetas")
-  return(thetas)
-}
-
 ## special case when there is only one component
 setMethod("updateSigma2", "UnivariateBatchModel", function(object){
   .update_sigma2(object)
