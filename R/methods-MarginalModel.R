@@ -517,53 +517,6 @@ summarizeMarginalEstimates <- function(x){
     xx
 }
 
-#' Estimate the marginal density of a mixture model with k components
-#'
-#' This function is used to estimate the marginal density of a mixture
-#' model with k components. A list of coverged models is passed by the user
-#' to this function. Each model must have already converged and should be of
-#' a different component size.
-#' @param modlist A list of converged models with different component sizes.
-#' @param post.iter number of MCMC iterations after permuting the modes.  See \code{maxperm}.
-#' @param maxperm a length-one integer vector.  For a mixture model
-#' with K components, there are K! possible modes.  \code{maxperm}
-#' indicates the maximum number of permutations to explore.
-#' @param method specifies chib or laplace method
-#' @export
-#' @seealso \code{\link{logBayesFactor}} for computing the bayes
-#' factor for two models, \code{\link{orderModels}} for ordering a
-#' list of models by decreasing marginal density, and \code{plot} for
-#' visualizing the component densities.
-computeMarginalLik <- function(modlist,
-                               post.iter=200,
-                               maxperm=3,
-                               method='chib'){
-    K <- sapply(modlist, k)
-    my <- vector("list", length(K))
-    mlist <- vector("list", length(K))
-
-    for (i in seq_along(K)) {
-        model_lik <- berkhofEstimate(modlist[[i]], T2=post.iter, maxperm=maxperm)
-#         log_lik <- CNPBayes:::modalLoglik(model)
-        xx <- summarizeMarginalEstimates(model_lik)
-        my[[i]] <- xx
-#         mlist[[i]] <- modlist[[i]]
-    }
-
-    if(is(modlist[[1]], "MarginalModel")){
-        nms <- paste0("M", K)
-        mlist <- MarginalModelList(modlist, names=nms)
-    } else {
-        nms <- paste0("B", K)
-        mlist <- BatchModelList(modlist, names=nms)
-    }
-
-    names(my) <- nms
-
-    results <- list(models=mlist, marginal=my)
-    results
-}
-
 modelOtherModes <- function(model, maxperm=5){
   kperm <- permnK(k(model), maxperm)
   model.list <- vector("list", nrow(kperm))
