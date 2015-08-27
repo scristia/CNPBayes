@@ -10,10 +10,8 @@ Author: Stephen Cristiano, Robert Scharpf, and Jacob Carey
 Depends:
     Rcpp (>= 0.10.4),
     RcppArmadillo (>= 0.2.0),
-    BiocGenerics,
     foreach,
     GenomicRanges,
-    methods
 Imports:
     Hmisc,
     S4Vectors,
@@ -22,7 +20,9 @@ Imports:
     gtools,
     GenomeInfoDb,
     oligoClasses,
-    dplyr
+    dplyr,
+    methods,
+    BiocGenerics,
 Suggests:
     RUnit,
     knitr,
