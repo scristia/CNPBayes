@@ -342,14 +342,6 @@ permuteZandModes <- function(kmod, ix){
   kmod
 }
 
-setMethod("pSigma2", "MarginalModel", function(object) {
-  exp(p_sigma_reduced(object))
-})
-
-setMethod("pSigma2", "BatchModel", function(object) {
-  p_sigma2_batch(object)
-})
-
 ## same for marginal and batch models
 
 setMethod("pMixProb", "MixtureModel", function(object) {

@@ -666,13 +666,8 @@ setGeneric("zChain<-", function(object,value) standardGeneric("zChain<-"))
 
 setGeneric("permuteModes", function(object, ix) standardGeneric("permuteModes"))
 
-setGeneric("pSigma2", function(object) standardGeneric("pSigma2"))
-
 setGeneric("pMixProb", function(object) standardGeneric("pMixProb"))
 
-setGeneric("pTheta_Zfixed", function(object) standardGeneric("pTheta_Zfixed"))
-
-setGeneric("pTheta", function(object) standardGeneric("pTheta"))
 
 setGeneric("updateMultinomialProb", function(object) standardGeneric("updateMultinomialProb"))
 
