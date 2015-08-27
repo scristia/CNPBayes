@@ -456,30 +456,6 @@ setMethod("reducedGibbsThetaSigmaFixed", "BatchModel", function(object){
 }
 
 
-setMethod("pThetaStar", "MixtureModel",
-  function(kmod, maxperm=5, T2=1/10*iter(kmod)){
-    burnin(kmod) <- 0
-    nStarts(kmod) <- 1
-    permutations <- permnK(k(kmod), Inf)
-    if(nrow(permutations) > maxperm){
-      index <- sample(2:nrow(permutations), maxperm)
-      permutations <- permutations[c(1, index), ]
-    }
-    NP <- nrow(permutations)
-    results <- matrix(NA, NP, 3)
-    nms <- c("p(theta*|y)", "p(sigma2*|theta*, y)", "p(p*|theta*, sigma2*, y)")
-    colnames(results) <- nms
-    ##if(TRUE) results <- results[, 1:2, drop=FALSE]
-    kmodZ1 <- reducedGibbsThetaFixed(kmod)
-    kmodZ2 <- reducedGibbsThetaSigmaFixed(kmod)
-    ##if(k(kmod) == 4) browser()
-    for(i in seq_len(nrow(permutations))){
-      ##message("entering .pthetastar")
-      results[i, ] <- .pthetastar(kmod, kmodZ1, kmodZ2, T2, permutations[i, ])
-    }
-    results
-})
-
 modelOtherModes <- function(model, maxperm=5){
   kperm <- permnK(k(model), maxperm)
   model.list <- vector("list", nrow(kperm))
