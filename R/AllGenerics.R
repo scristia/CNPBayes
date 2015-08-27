@@ -179,8 +179,6 @@ setGeneric("startingValues", function(object, params, zz) standardGeneric("start
 setGeneric("computeMeans", function(object) standardGeneric("computeMeans"))
 setGeneric("computeVars", function(object) standardGeneric("computeVars"))
 
-setGeneric("updateZ", function(object) standardGeneric("updateZ"))
-
 setGeneric("computePotential", function(object) standardGeneric("computePotential"))
 
 setGeneric("dat", function(object) standardGeneric("dat"))
