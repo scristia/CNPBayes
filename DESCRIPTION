@@ -37,7 +37,6 @@ Collate:
     'batch_likelihood.R'
     'data.R'
     'functions.R'
-    'functions_sc.R'
     'marginal_likelihood.R'
     'methods-BatchModel.R'
     'methods-DensityModel.R'
