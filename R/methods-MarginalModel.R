@@ -480,22 +480,6 @@ setMethod("pThetaStar", "MixtureModel",
     results
 })
 
-.berkhof <- function(x, model){
-  NP <- nrow(x)
-  p.I <- prod(x[1, ])  ## Chib's estimate
-  if(is.na(log(p.I))) browser()
-  if(k(model) == 1 ){
-    p.V <- p.I
-  } else {
-    p.IV <- 1/(NP-1)*sum(rowProds(x[-1, , drop=FALSE]))
-    p.V <- 1/NP * p.I + (NP-1)/NP * p.IV
-  }
-  list(p_theta=x,
-       chib=log(p.I),
-       berkhof=log(p.V),
-       marginal=modes(model)[["loglik"]] + modes(model)[["logprior"]] - log(p.V))
-}
-
 modelOtherModes <- function(model, maxperm=5){
   kperm <- permnK(k(model), maxperm)
   model.list <- vector("list", nrow(kperm))
