@@ -649,8 +649,6 @@ setGeneric("computeMarginalEachK2",
 
 setGeneric("best", function(object) standardGeneric("best"))
 
-setGeneric("posteriorP", function(object) standardGeneric("posteriorP"))
-
 setGeneric("zChain", function(object) standardGeneric("zChain"))
 setGeneric("zChain<-", function(object,value) standardGeneric("zChain<-"))
 
