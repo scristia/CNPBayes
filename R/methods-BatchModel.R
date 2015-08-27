@@ -207,6 +207,10 @@ setMethod("computePrec", "BatchModel", function(object){
   compute_prec_batch(object)
 })
 
+setMethod("computePrior", "BatchModel", function(object){
+  compute_logprior_batch(object)
+})
+
 .computeModesBatch <- function(object){
   i <- argMax(object)
   mc <- chains(object)

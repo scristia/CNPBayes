@@ -224,6 +224,11 @@ setMethod("computePrec", "MarginalModel", function(object){
   compute_prec(object)
 })
 
+setMethod("computePrior", "MarginalModel", function(object){
+  compute_logprior(object)
+})
+
+
 .computeProbZ <- function(object){
   pZ <- probz(object)
   zz <- as.integer(z(object))
