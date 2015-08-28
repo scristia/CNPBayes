@@ -83,7 +83,7 @@ setMethod("show", "McmcChains", function(object){
 })
 
 #' extract estimated parameters at particular iteration of simulation.
-#' @aliases [,McmcChains-method
+#' @aliases [,McmcChains-method [,McmcChains,ANY-method
 #' @docType methods
 #' @rdname extract-methods
 setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
