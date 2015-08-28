@@ -665,5 +665,7 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #'        a list of such models.
 #' @param niter The number of iterations for the reduced Gibb's sampler.
 #' @export
+#' @docType methods
+#' @rdname marginalLikelihood-method
 setGeneric("marginalLikelihood", 
            function(model, niter) standardGeneric("marginalLikelihood"))
