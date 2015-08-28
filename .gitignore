@@ -16,5 +16,5 @@ inst/doc/*
 inst/unitTests/report.html
 inst/scripts/*
 inst/*.html
-
-
+vignettes/*.R
+vignettes/.build.timestamp
