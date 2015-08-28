@@ -658,3 +658,12 @@ setGeneric("densitiesCluster", function(object) standardGeneric("densitiesCluste
 #' @rdname clusters-method
 setGeneric("clusters", function(object) standardGeneric("clusters"))
 setGeneric("quantiles", function(object) standardGeneric("quantiles"))
+
+#' Compute the marginal likelihood of a converged model.
+#' @param model An object of class \code{MarginalModel}, or a list of 
+#'        \code{MarginalModel}'s. Can also be an object of \code{BatchModel} or
+#'        a list of such models.
+#' @param niter The number of iterations for the reduced Gibb's sampler.
+#' @export
+setGeneric("marginalLikelihood", 
+           function(model, niter) standardGeneric("marginalLikelihood"))

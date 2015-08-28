@@ -126,7 +126,7 @@ test_kbatch <- function(){
                 posteriorSimulation(kmod, k=3),
                 posteriorSimulation(kmod, k=4))
 
-    fit <- batchLikelihood(fit)
+    fit <- marginalLikelihood(fit)
 
 #     fit <- computeMarginalLik(y(truth), batch(truth), K=1:4,
 #                               burnin=1000,

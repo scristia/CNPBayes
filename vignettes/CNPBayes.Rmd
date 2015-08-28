@@ -310,7 +310,7 @@ x
 
 `marginalLikelihood` uses Chib's Estimator [@chib] to run a reduced Gibbs
 to estimate the marginal likelihood of each component size. Additionally, 
-`batchLikelihood` can be used in a similar manner for `BatchModel`s.
+`marginalLikelihood` can be used in a similar manner for `BatchModel`s.
 
 Alternative methods for selection of *k* are also included. As an example, the
 `bic` method can be used for calculating the Bayesian Information Criterion. 
