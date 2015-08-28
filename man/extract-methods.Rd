@@ -2,13 +2,17 @@
 % Please edit documentation in R/methods-BatchModel.R, R/methods-McmcChains.R, R/methods-McmcParams.R, R/methods-ModelList.R
 \docType{methods}
 \name{extract}
-\alias{[,BatchModel,ANY,ANY,ANY-method}
+\alias{[,BatchModel,ANY,ANY-method}
+\alias{[,BatchModel,ANY-method}
 \alias{[,BatchModel-method}
 \alias{[,McmcChains,ANY,ANY-method}
+\alias{[,McmcChains,ANY-method}
 \alias{[,McmcChains-method}
 \alias{[,McmcParams,ANY,ANY-method}
+\alias{[,McmcParams,ANY-method}
 \alias{[,McmcParams-method}
 \alias{[,ModelList,ANY,ANY-method}
+\alias{[,ModelList,ANY-method}
 \alias{[,ModelList-method}
 \alias{[[,ModelList,ANY,ANY-method}
 \alias{[[,ModelList-method}
