@@ -35,7 +35,6 @@ Collate:
     'AllGenerics.R'
     'AllClasses.R'
     'RcppExports.R'
-    'batch_likelihood.R'
     'data.R'
     'functions.R'
     'marginal_likelihood.R'
