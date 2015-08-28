@@ -28,7 +28,8 @@ genomic data.  Among subjects with a CNV called at a given locus, the
 `consensusCNP` function identifies the largest region that is copy
 number variant in half of these subjects.
 
-# Finding CNPs
+# Simulating CNP data
+
 Included in the CNPBayes package are objects of class `SnpArrayExperiment`
 and `GRangesList`. We begin by loading the necessary libraries and data.
 
@@ -42,14 +43,17 @@ suppressMessages(library(VanillaICE))
 The object `se` contains log R ratios and B Allele Frequencies, and the object
 `grl` is a `GRangesList` of simulated deletions. 
 
-```{r offset, eval=FALSE, echo=FALSE}
+```{r offset}
 data(snp_exp)
 region <- GRanges("chr22", IRanges(15e6, 22e6))
 hits <- findOverlaps(region, snp_exp)
 snp_exp2 <- snp_exp[subjectHits(hits), ]
+
 ## simulate 25 samples with deletion and 10 samples without deletion
 sim.se <- CNPBayes:::simulateFindCnpData(grl, snp_exp2)
 ```
+
+# Finding CNPs
 
 After reading this saved data, we visualize the CNVs.
 
