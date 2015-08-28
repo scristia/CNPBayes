@@ -10,6 +10,7 @@
 #' @import RcppArmadillo
 #' @import GenomeInfoDb
 #' @import BiocGenerics
+#' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% %dopar% foreach
 #' @importFrom matrixStats colSds colMedians rowCumsums rowProds colMaxs

@@ -17,6 +17,7 @@ Imports:
     matrixStats,
     RColorBrewer,
     gtools,
+    combinat,
     GenomeInfoDb,
     oligoClasses,
     dplyr,
