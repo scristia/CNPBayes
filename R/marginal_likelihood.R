@@ -156,7 +156,7 @@ setMethod("marginalLikelihood", "BatchModel",
 
 #' @rdname marginalLikelihood-method
 #' @aliases marginalLikelihood,list,integer-method
-setMethod("marginalLikelihood", "BatchModel", 
+setMethod("marginalLikelihood", "list", 
     function(mlist, niter) {
         sapply(mlist, marginalLikelihood, niter=niter)
     }
