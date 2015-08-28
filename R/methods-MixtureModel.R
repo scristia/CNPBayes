@@ -291,14 +291,6 @@ multipleStarts <- function(object){
   bmodel
 }
 
-computeLogLikForRandomStarts <- function(seed, params, hypp,
-                                         return.model=FALSE) {
-  set.seed(seed)
-  model <- initializeModel(params, hypp)
-  if(return.model) return(model)
-  logLikData(model)
-}
-
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", "MixtureModel", function(object){
