@@ -362,7 +362,3 @@ setMethod("computeLoglik", "BatchModel", function(object){
 setMethod("computeLoglik", "MarginalModel", function(object){
   loglik(object)
 })
-
-setMethod("computeLogLikxPrior", "MixtureModel", function(object){
-  compute_llxprior(object)
-})

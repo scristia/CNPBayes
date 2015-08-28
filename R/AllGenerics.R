@@ -556,7 +556,6 @@ setGeneric("posteriorSigma2", function(object, mcmcp) standardGeneric("posterior
 setGeneric("isMarginalModel", function(object) standardGeneric("isMarginalModel"))
 
 setGeneric("computePrior", function(object) standardGeneric("computePrior"))
-setGeneric("computeLogLikxPrior", function(object) standardGeneric("computeLogLikxPrior"))
 
 setGeneric("postFiles", function(object) standardGeneric("postFiles"))
 
