@@ -50,8 +50,6 @@ BatchModel and MarginalModel both inherit from this class.
 
 \item{\code{batchElements}}{a vector labeling from which batch each observation came from}
 
-\item{\code{hwe}}{Hardy Weinberg Equilibrium}
-
 \item{\code{modes}}{the values of parameters from the iteration which maximizes log likelihood and log prior}
 
 \item{\code{mcmc.params}}{An object of class 'McmcParams'}

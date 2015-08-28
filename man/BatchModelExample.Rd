@@ -4,7 +4,7 @@
 \name{BatchModelExample}
 \alias{BatchModelExample}
 \title{This data is a simulated example of Batch data}
-\format{\preformatted{Formal class 'BatchModel' [package "CNPBayes"] with 24 slots
+\format{\preformatted{Formal class 'BatchModel' [package "CNPBayes"] with 23 slots
   ..@ k                   : int 3
   ..@ hyperparams         :Formal class 'HyperparametersBatch' [package "CNPBayes"] with 9 slots
   .. .. ..@ k     : int 3
@@ -46,7 +46,6 @@
   ..@ batch               : int [1:1500] 1 1 1 1 1 1 1 1 1 1 ...
   ..@ batchElements       : Named int [1:3] 500 500 500
   .. ..- attr(*, "names")= chr [1:3] "1" "2" "3"
-  ..@ hwe                 : num(0) 
   ..@ modes               :List of 10
   .. ..$ theta   : num [1:3, 1:3] -0.20335 0.00587 0.18989 0.7954 0.99248 ...
   .. ..$ sigma2  : num [1:3, 1:3] 0.01093 0.00951 0.00915 0.00982 0.01016 ...
@@ -68,7 +67,7 @@
   ..@ .internal.constraint: num 5e-04
 }}
 \usage{
-BatchModelExample
+data(BatchModelExample)
 }
 \description{
 This data is a simulated example of Batch data

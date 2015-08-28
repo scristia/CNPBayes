@@ -4,7 +4,7 @@
 \name{MarginalModelExample}
 \alias{MarginalModelExample}
 \title{This data is a simulated example of Marginal data}
-\format{\preformatted{Formal class 'MarginalModel' [package "CNPBayes"] with 24 slots
+\format{\preformatted{Formal class 'MarginalModel' [package "CNPBayes"] with 23 slots
   ..@ k                   : int 3
   ..@ hyperparams         :Formal class 'HyperparametersMarginal' [package "CNPBayes"] with 9 slots
   .. .. ..@ k     : int 3
@@ -45,7 +45,6 @@
   .. .. ..@ z       : int [1:5, 1:2500] 1 1 1 1 1 2 2 2 2 2 ...
   ..@ batch               : int [1:2500] 1 1 1 1 1 1 1 1 1 1 ...
   ..@ batchElements       : int 2500
-  ..@ hwe                 : num(0) 
   ..@ modes               :List of 10
   .. ..$ theta   : num [1:3] -9.94e-01 3.32e-05 9.98e-01
   .. ..$ sigma2  : num [1:3] 0.01055 0.00985 0.01228
@@ -67,7 +66,7 @@
   ..@ .internal.constraint: num 5e-04
 }}
 \usage{
-MarginalModelExample
+data(MarginalModelExample)
 }
 \description{
 This data is a simulated example of Marginal data
