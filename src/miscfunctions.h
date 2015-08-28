@@ -8,6 +8,7 @@ double trunc_norm(double mean, double sd);
 arma::mat mvrnormArma(int n, arma::vec mu, arma::mat sigma);
 Rcpp::NumericVector dsn(Rcpp::NumericVector r, double xi,
         double omega, double alpha);
+Rcpp::IntegerMatrix rMultinom(Rcpp::NumericMatrix probs, int m); 
 
 // stuff from simulating from truncated normal
 double norm_rs(double a, double b);

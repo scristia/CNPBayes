@@ -6,6 +6,18 @@
 
 using namespace Rcpp;
 
+// rMultinom
+Rcpp::IntegerMatrix rMultinom(Rcpp::NumericMatrix probs, int m);
+RcppExport SEXP CNPBayes_rMultinom(SEXP probsSEXP, SEXP mSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type probs(probsSEXP);
+    Rcpp::traits::input_parameter< int >::type m(mSEXP);
+    __result = Rcpp::wrap(rMultinom(probs, m));
+    return __result;
+END_RCPP
+}
 // tableZ
 IntegerVector tableZ(int K, IntegerVector z);
 RcppExport SEXP CNPBayes_tableZ(SEXP KSEXP, SEXP zSEXP) {

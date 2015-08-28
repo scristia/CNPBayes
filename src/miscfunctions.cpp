@@ -14,8 +14,51 @@ void rdirichlet(Rcpp::NumericVector a, Rcpp::NumericVector pr) {
   }
 }
 
+// generate multinomial random variables with varying probabilities
+// [[Rcpp::export]]
+Rcpp::IntegerMatrix rMultinom(Rcpp::NumericMatrix probs, int m) {
+    // set RNG
+    Rcpp::RNGScope scope;
 
+    // get dimensions of probs
+    int n = probs.nrow();
+    int k = probs.ncol();
+    
+    Rcpp::IntegerMatrix ran(n, m);
 
+    Rcpp::NumericVector z(n);
+    Rcpp::NumericMatrix U(k, n);
+    
+    for (int i = 0; i < n; i++) {
+        z[i] = Rcpp::sum(probs(i, Rcpp::_));
+        Rcpp::NumericVector cumsum_temp = Rcpp::cumsum(probs(i, Rcpp::_));
+        U(Rcpp::_, i) = cumsum_temp;
+    }
+
+    for (int i = 0; i < m; i++) {
+        Rcpp::NumericVector rand = Rcpp::runif(n);
+        Rcpp::NumericVector un(k * n);
+        int index = 0;
+
+        Rcpp::IntegerMatrix compare(k, n);
+        int ind = 0;
+
+        // C++ equivalent of `un <- rep(rand, rep(k, n))`
+        for (int a = 0; a < n; a++) {
+            std::fill(un.begin() + index, un.begin() + index + k, rand[a]);
+            index += k;
+
+            for (int b = 0; b < k; b++) {
+                compare(b, a) = un[ind] > U(b, a);
+                ind++;
+            }
+            
+            ran(a, i) = Rcpp::sum(compare(Rcpp::_, a)) + 1;
+        }
+    }
+
+    return ran;
+}
 
 // Function for drawing from contrained normal distribution for theta
 double cons_normal(double mean, double var, double a, double b) {

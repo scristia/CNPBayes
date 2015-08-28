@@ -6,7 +6,6 @@
 #' @import GenomicRanges
 #' @import S4Vectors
 #' @importFrom gtools rdirichlet ddirichlet
-#' @importFrom Hmisc rMultinom
 #' @import Rcpp
 #' @import RcppArmadillo
 #' @import GenomeInfoDb
