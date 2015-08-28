@@ -250,8 +250,6 @@ setGeneric("sigma2", function(object) standardGeneric("sigma2"))
 
 setGeneric("reorderComponents", function(object, new_levels) standardGeneric("reorderComponents"))
 
-setGeneric("hwe", function(object) standardGeneric("hwe"))
-
 #' Retrieve the probability of latent variable membership by observation.
 #'
 #' @param object see \code{showMethods(probz)}

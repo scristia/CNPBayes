@@ -120,7 +120,6 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
 #' @slot batch a vector of the different batch numbers
 #' @slot batchElements a vector labeling from which batch each observation came from
-#' @slot hwe Hardy Weinberg Equilibrium
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
@@ -146,7 +145,6 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         mcmc.chains="McmcChains",
                                         batch="integer",
                                         batchElements="integer",
-                                        hwe="numeric",
                                         modes="list",
                                         mcmc.params="McmcParams",
                                         .internal.constraint="numeric"))
@@ -174,7 +172,6 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
 #' @slot batch a vector of the different batch numbers
 #' @slot batchElements a vector labeling from which batch each observation came from
-#' @slot hwe Hardy Weinberg Equilibrium
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
@@ -204,7 +201,6 @@ setClass("BatchModel", contains="MixtureModel")
 #' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
 #' @slot batch a vector of the different batch numbers
 #' @slot batchElements a vector labeling from which batch each observation came from
-#' @slot hwe Hardy Weinberg Equilibrium
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot .internal.constraint Constraint on parameters. For internal use only.

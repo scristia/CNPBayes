@@ -394,8 +394,6 @@ makeUnique <- function(x){
   as.character(abbrv[x])
 }
 
-setMethod("hwe", "MixtureModel", function(object) object@hwe)
-
 #' Calculate the maximum a posteriori estimate.
 #'
 #' @param object an object of class MixtureModel.
