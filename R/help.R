@@ -18,10 +18,3 @@
 #' @importFrom dplyr ntile
 #' @useDynLib CNPBayes
 NULL
-
-## what are we iimporting in gtools?
-## HMisc rMultinom
-## gtools rdirichlet ddirichlet
-
-## S4Vectors is needed for the  SimpleList constructor
-#  mixtools
