@@ -174,8 +174,8 @@ simulateProbeLevel <- function(samples=2000,
 
 
 simulateFindCnpData <- function(grl, snp_exp2){
-  log.r.empirical <- lrr(snp_exp2)[, "FinalReport6872.txt"]
-  baf.empirical <- baf(snp_exp2)[, "FinalReport6872.txt"]
+  log.r.empirical <- lrr(snp_exp2)[, "6872.csv"]
+  baf.empirical <- baf(snp_exp2)[, "6872.csv"]
   gr <- reduce(unlist(grl))
   indices.deletion <- subjectHits(findOverlaps(gr, snp_exp2))
   ## Assume that all the other observations are diploid (even though
