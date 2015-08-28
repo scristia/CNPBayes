@@ -1,3 +1,9 @@
+language: 
+    - r
+    - cpp
+
+sudo: required
+
 r_github_packages:
     - jimhester/covr
 
