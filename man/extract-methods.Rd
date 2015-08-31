@@ -2,6 +2,7 @@
 % Please edit documentation in R/methods-BatchModel.R, R/methods-McmcChains.R, R/methods-McmcParams.R, R/methods-ModelList.R
 \docType{methods}
 \name{extract}
+\alias{[,BatchModel,ANY,ANY,ANY-method}
 \alias{[,BatchModel,ANY,ANY-method}
 \alias{[,BatchModel,ANY-method}
 \alias{[,BatchModel-method}
