@@ -21,7 +21,6 @@ Imports:
     GenomeInfoDb,
     oligoClasses,
     IRanges,
-    dplyr,
     methods,
     BiocGenerics,
 Suggests:
