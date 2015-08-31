@@ -73,15 +73,13 @@ rect(start(grl), seq_along(grl)-0.2, end(grl), seq_along(grl)+0.2,
      col="gray", border="gray")
 ```
 
-# One Dimensional Summary
-
 Before further analysis can be performed, the log R ratios in a CNV region must
 be summarized to a one dimensional object [@cardin]. Within each CNP locus, 
 log R ratios at each SNP are summarized by sample. Below are examples of using 
 the median and the first principal component to create a one dimensional 
 summary.
 
-## Median
+## CNP Boundaries with Median Summary
 To summarize samples within a CNV locus by the median log R ratios, we define 
 the largest region that spans 50 percent of the samples using the function
 `consensusCNP`.  Using log R ratios of SNPs contained in this region, the
@@ -95,7 +93,7 @@ i <- subjectHits(findOverlaps(cnv.region, se))
 med.summary <- matrixStats::colMedians(lrr(se)[i, ], na.rm=TRUE)
 ```
 
-## Principal Component
+## CNP Boundaries with PCA Summary
 Another method for summarizing the log R ratops is by the first principal 
 component on the markers for the entire region [@cardin]. A possible 
 disadvantage of this approach is that the scale of the loadings makes it more 
