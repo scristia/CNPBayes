@@ -42,7 +42,6 @@ posteriorSimulation (if one was performed). Draws from prior to guess
 new starting values.
 }
 \examples{
-data(MarginalModelExample)
 k(MarginalModelExample) <- 2
 }
 

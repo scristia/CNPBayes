@@ -24,7 +24,6 @@ The batches are represented as a vector of integers.
 }
 \examples{
 \dontrun{
-     data(BatchModelExample)
      batch(BatchModelExample)
 }
 }

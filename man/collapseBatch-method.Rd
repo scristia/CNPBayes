@@ -50,7 +50,6 @@ is performed recursively on the batch variables defined for a given
 CNP until no batches can be combined.
 }
 \examples{
-data(BatchModelExample)
 bt <- collapseBatch(y(BatchModelExample), batch(BatchModelExample))
 newBatchModel <- BatchModel(y(BatchModelExample), k(BatchModelExample),
                             bt, hyperParams(BatchModelExample),

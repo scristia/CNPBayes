@@ -34,7 +34,6 @@ value of \code{tau2} from a \code{MixtureModel}-derived object, and
 for plotting the chain of \code{tau2} values.
 }
 \examples{
-data(BatchModelExample)
 k(BatchModelExample)
 tau2(BatchModelExample)
 plot.ts(tau2(chains(BatchModelExample)))

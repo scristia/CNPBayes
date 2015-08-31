@@ -34,12 +34,10 @@ object, and for plotting the chain of \code{theta} values.
 }
 \examples{
 ## MarginalModel
-data(MarginalModelExample)
 k(MarginalModelExample)
 theta(MarginalModelExample)
 plot.ts(theta(chains(MarginalModelExample)))
 ## BatchModel
-data(BatchModelExample)
 k(BatchModelExample)
 length(unique(batch(BatchModelExample)))
 theta(BatchModelExample)

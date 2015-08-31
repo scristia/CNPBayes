@@ -21,7 +21,6 @@ is called in conjunction with an accessor for one of these
 parameters.
 }
 \examples{
-data(MarginalModelExample)
 theta.chain <- theta(chains(MarginalModelExample))
 dim(theta.chain)
 plot.ts(theta.chain, plot.type="single",

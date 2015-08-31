@@ -29,10 +29,8 @@ Replace the hyperparameters for a \code{MixtureModel}-derived object
 }
 \examples{
 \dontrun{
-    data(MarginalModelExample)
-    hyperParams(MixtureModelExample)
+    hyperParams(MarginalModelExample)
 }
-data(MarginalModelExample)
 hypp <- Hyperparameters(type="marginal",
                         k=k(MarginalModelExample),
                         alpha=c(9, 9, 10))
