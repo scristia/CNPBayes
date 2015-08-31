@@ -210,7 +210,6 @@ simulateFindCnpData <- function(grl, snp_exp2){
   }
   dimnames(log.r.ratios) <- dimnames(b.a.f) <- list(rownames(snp_exp2),
                                                     paste0("sample", 1:35))
-  sim.se <- SnpArrayExperiment(cn=log.r.ratios, baf=b.a.f,
-                               rowRanges=rowRanges(snp_exp2))
-  sim.se
+
+  return(list(cn=log.r.ratios, baf=b.a.f))
 }

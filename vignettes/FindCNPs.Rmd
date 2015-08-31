@@ -50,7 +50,9 @@ hits <- findOverlaps(region, snp_exp)
 snp_exp2 <- snp_exp[subjectHits(hits), ]
 
 ## simulate 25 samples with deletion and 10 samples without deletion
-sim.se <- CNPBayes:::simulateFindCnpData(grl, snp_exp2)
+lrr_baf <- CNPBayes:::simulateFindCnpData(grl, snp_exp2)
+sim.se <- SnpArrayExperiment(cn=lrr_baf$cn, baf=lrr_baf$baf, 
+                             rowRanges=rowRanges(snp_exp2))
 ```
 
 # Finding CNPs
