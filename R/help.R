@@ -16,7 +16,7 @@
 #' @importFrom foreach %do% %dopar% foreach
 #' @importFrom matrixStats colSds colMedians rowCumsums rowProds colMaxs
 #' @importFrom oligoClasses copyNumber batch chromosome integerMatrix
-#' @importMethodsFrom oligoClasses lrr
+#' @importMethodsFrom oligoClasses lrr baf
 #' @importFrom dplyr ntile
 #' @useDynLib CNPBayes
 NULL
