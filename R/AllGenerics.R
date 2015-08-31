@@ -95,7 +95,7 @@ setGeneric("chains", function(object) standardGeneric("chains"))
 #'
 #' @examples
 #' \dontrun{
-#'     hyperParams(MixtureModelExample)
+#'     hyperParams(MarginalModelExample)
 #' }
 #' @param object see \code{showMethods(hyperParams)}
 #' @export
