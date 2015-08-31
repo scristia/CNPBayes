@@ -1,13 +1,17 @@
 #' This data is a simulated example of Marginal data
 #'
 #' @docType data
-#' @usage data(MarginalModelExample)
+#' @name MarginalModelExample
+#' @usage MarginalModelExample
 #' @author Jacob Carey
-"MarginalModelExample"
+#' MarginalModelExample
+NULL
 
 #' This data is a simulated example of Batch data
 #'
 #' @docType data
-#' @usage data(BatchModelExample)
+#' @name BatchModelExample
+#' @usage BatchModelExample
 #' @author Jacob Carey
-"BatchModelExample"
+#' BatchModelExample
+NULL

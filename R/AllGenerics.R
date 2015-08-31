@@ -16,7 +16,6 @@ setGeneric("k", function(object) standardGeneric("k"))
 #' posteriorSimulation (if one was performed). Draws from prior to guess
 #' new starting values.
 #' @examples
-#' data(MarginalModelExample)
 #' k(MarginalModelExample) <- 2
 #' @param value An integer for the new number of components.
 #' @export
@@ -55,7 +54,6 @@ setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
 #' for plotting the chain of \code{tau2} values.
 #'
 #' @examples
-#' data(BatchModelExample)
 #' k(BatchModelExample)
 #' tau2(BatchModelExample)
 #' plot.ts(tau2(chains(BatchModelExample)))
@@ -83,7 +81,6 @@ setGeneric("chains<-", function(object, value) standardGeneric("chains<-"))
 #' is called in conjunction with an accessor for one of these
 #' parameters.
 #' @examples
-#' data(MarginalModelExample)
 #' theta.chain <- theta(chains(MarginalModelExample))
 #' dim(theta.chain)
 #' plot.ts(theta.chain, plot.type="single",
@@ -98,7 +95,6 @@ setGeneric("chains", function(object) standardGeneric("chains"))
 #'
 #' @examples
 #' \dontrun{
-#'     data(MarginalModelExample)
 #'     hyperParams(MixtureModelExample)
 #' }
 #' @param object see \code{showMethods(hyperParams)}
@@ -110,7 +106,6 @@ setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 #' Replace the hyperparameters for a \code{MixtureModel}-derived object
 #'
 #' @examples
-#' data(MarginalModelExample)
 #' hypp <- Hyperparameters(type="marginal",
 #'                         k=k(MarginalModelExample),
 #'                         alpha=c(9, 9, 10))
@@ -164,7 +159,6 @@ setGeneric("plot")
 #' The batches are represented as a vector of integers.
 #' @examples
 #' \dontrun{
-#'      data(BatchModelExample)
 #'      batch(BatchModelExample)
 #' }
 #' @param object see \code{showMethods(batch)}
@@ -222,12 +216,10 @@ setGeneric("bic", function(object) standardGeneric("bic"))
 #' object, and for plotting the chain of \code{theta} values.
 #' @examples
 #' ## MarginalModel
-#' data(MarginalModelExample)
 #' k(MarginalModelExample)
 #' theta(MarginalModelExample)
 #' plot.ts(theta(chains(MarginalModelExample)))
 #' ## BatchModel
-#' data(BatchModelExample)
 #' k(BatchModelExample)
 #' length(unique(batch(BatchModelExample)))
 #' theta(BatchModelExample)
@@ -396,7 +388,6 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' is performed recursively on the batch variables defined for a given
 #' CNP until no batches can be combined.
 #' @examples
-#' data(BatchModelExample)
 #' bt <- collapseBatch(y(BatchModelExample), batch(BatchModelExample))
 #' newBatchModel <- BatchModel(y(BatchModelExample), k(BatchModelExample),
 #'                             bt, hyperParams(BatchModelExample),
@@ -420,7 +411,6 @@ setGeneric("pMean", function(object) standardGeneric("pMean"))
 #' Create a trace plot of a parameter estimated by MCMC.
 #'
 #' @examples
-#' data(BatchModelExample)
 #' tracePlot(BatchModelExample, "theta")
 #' tracePlot(BatchModelExample, "sigma")
 #' @param object see \code{showMethods(tracePlot)}
@@ -437,7 +427,6 @@ setGeneric("tablez", function(object) standardGeneric("tablez"))
 #'
 #' This function retrieves the number of chains used for an MCMC simulation.
 #' @examples
-#' data(MarginalModelExample)
 #' number_of_chains <- nStarts(MarginalModelExample)
 #' @param object see \code{showMethods(nStarts)}
 #' @export
@@ -449,7 +438,6 @@ setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 #'
 #' This function changes the number of chains used for an MCMC simulation.
 #' @examples
-#' data(MarginalModelExample)
 #' number_of_chains <- 3
 #' nStarts(MarginalModelExample) <- number_of_chains
 #' @param value new number of chains
@@ -466,7 +454,6 @@ setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))
 #' Retrieve log likelihood.
 #'
 #' @examples
-#' data(MarginalModelExample)
 #' ## retrieve log likelihood at each MCMC iteration
 #' log_lik(chains(MarginalModelExample))
 #' ## retrieve log likelihood at last MCMC iteration
@@ -485,7 +472,6 @@ setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 #'
 #' This function retrieves the number of burnin simulations to be discarded.
 #' @examples
-#' data(MarginalModelExample)
 #' burnin(MarginalModelExample)
 #' mp <- mcmcParams(MarginalModelExample)
 #' burnin(mp)
