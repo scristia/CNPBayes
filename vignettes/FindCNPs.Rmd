@@ -135,6 +135,12 @@ abline(v=c(start(cnv.region2),
            end(cnv.region2)), lty=2)
 ```
 
+Note that boundaries of created by principal component summary method
+are wider than those in the above median summary method. In this
+example, the boundaries are not significantly different, but in samples
+with ragged starts and ends, the PCA method will provide greater
+coverage.
+
 ## Summary Plots
 Finally, we plot the one dimensional summaries.
 
