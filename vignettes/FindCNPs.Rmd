@@ -38,7 +38,6 @@ se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
 grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
 suppressMessages(library(CNPBayes))
 suppressMessages(library(VanillaICE))
-BiocInstaller::useDevel()
 ```
 
 The object `se` contains log R ratios and B Allele Frequencies, and the object

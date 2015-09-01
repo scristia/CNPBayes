@@ -12,18 +12,6 @@ r_packages:
 r_github_packages:
     - jimhester/covr
 
-bioc_packages:
-    - BiocGenerics
-    - BiocStyle
-    - BSgenome.Hsapiens.UCSC.hg19
-    - GenomeInfoDb
-    - GenomicRanges
-    - IRanges
-    - oligoClasses
-    - S4Vectors
-    - VanillaICE
-    - BiocInstaller
-
 after_success:
     - Rscript -e 'library(covr);codecov()'
 
