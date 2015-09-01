@@ -43,10 +43,11 @@ suppressMessages(library(VanillaICE))
 The object `se` contains log R ratios and B Allele Frequencies, and the object
 `grl` is a `GRangesList` of simulated deletions. 
 
-```{r offset, eval=FALSE}
+```{r offset, eval=FALSE, echo=FALSE}
+# this is not to be run and just for reproducibility
 data(snp_exp)
 region <- GRanges("chr22", IRanges(15e6, 22e6))
-hits <- findOverlaps(region, snp_exp)
+hits <- findOverlaps(region, rowRanges(snp_exp))
 snp_exp2 <- snp_exp[subjectHits(hits), ]
 
 ## simulate 25 samples with deletion and 10 samples without deletion
@@ -61,7 +62,7 @@ After reading this saved data, we visualize the CNVs.
 
 ```{r plot-cnvs}
 cnv.region <- consensusCNP(grl[1], max.width=5e6)
-i <- subjectHits(findOverlaps(cnv.region, se))
+i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
 
 xlim <- c(min(start(se)), max(end(se)))
 par(las=1)
@@ -89,7 +90,7 @@ these CNVs.
 
 ```{r median}
 cnv.region <- consensusCNP(grl, max.width=5e6)
-i <- subjectHits(findOverlaps(cnv.region, se))
+i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
 med.summary <- matrixStats::colMedians(lrr(se)[i, ], na.rm=TRUE)
 par(las=1)
 plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
@@ -113,8 +114,8 @@ method should downweight markers that are not consistent with the Copy Number
 Variation.
 
 ```{r pca}
-cnv.region2 <- reduce(grl)
-i.pc <- subjectHits(findOverlaps(cnv.region2, se))
+cnv.region2 <- reduce(unlist(grl))
+i.pc <- subjectHits(findOverlaps(cnv.region2, rowRanges(se)))
 x <- lrr(se)[i.pc, ]
 nas <- rowSums(is.na(x))
 na.index <- which(nas > 0)
@@ -130,9 +131,8 @@ at <- pretty(xlim, n=10)
 axis(1, at=at, labels=round(at/1e6, 1), cex.axis=0.8)
 rect(start(grl), seq_along(grl)-0.2, end(grl), seq_along(grl)+0.2,
      col="gray", border="gray")
-# NOT CORRECT
-abline(v=c(mean(unlist(start(cnv.region2))), 
-           mean(unlist(end(cnv.region2)))), lty=2)
+abline(v=c(start(cnv.region2), 
+           end(cnv.region2)), lty=2)
 ```
 
 ## Summary Plots
