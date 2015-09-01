@@ -190,7 +190,10 @@ simulateFindCnpData <- function(grl, snp_exp2){
   for(i in seq_len(nc)){
     if(i <= 25){
       ## sample with deletion
-      g.cnv <- cnvs[i]
+      #g.cnv <- cnvs[i]
+      # not correct!
+      g.cnv <- consensusCNP(grl[1], max.width=5e6)
+      cnv.region <- consensusCNP(grl[1], max.width=5e6)
       J <- subjectHits(findOverlaps(g.cnv, rr))
       i.deletion <- sample(indices.deletion, length(J), replace=TRUE)
       r[J] <- log.r.empirical[i.deletion]
