@@ -22,6 +22,7 @@ bioc_packages:
     - oligoClasses
     - S4Vectors
     - VanillaICE
+    - BiocInstaller
 
 after_success:
     - Rscript -e 'library(covr);codecov()'
