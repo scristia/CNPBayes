@@ -91,6 +91,14 @@ these CNVs.
 cnv.region <- consensusCNP(grl, max.width=5e6)
 i <- subjectHits(findOverlaps(cnv.region, se))
 med.summary <- matrixStats::colMedians(lrr(se)[i, ], na.rm=TRUE)
+par(las=1)
+plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
+     xaxt="n")
+at <- pretty(xlim, n=10)
+axis(1, at=at, labels=round(at/1e6, 1), cex.axis=0.8)
+rect(start(grl), seq_along(grl)-0.2, end(grl), seq_along(grl)+0.2,
+     col="gray", border="gray")
+abline(v=c(start(cnv.region), end(cnv.region)), lty=2)
 ```
 
 ## CNP Boundaries with PCA Summary
@@ -114,6 +122,17 @@ x <- x[-na.index, , drop=FALSE]
 pc.summary <- prcomp(t(x))$x[, 1]
 meds.for.pc <- matrixStats::colMedians(x, na.rm=TRUE)
 if(cor(pc.summary, meds.for.pc) < 0) pc.summary <- -1*pc.summary
+
+par(las=1)
+plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
+     xaxt="n")
+at <- pretty(xlim, n=10)
+axis(1, at=at, labels=round(at/1e6, 1), cex.axis=0.8)
+rect(start(grl), seq_along(grl)-0.2, end(grl), seq_along(grl)+0.2,
+     col="gray", border="gray")
+# NOT CORRECT
+abline(v=c(mean(unlist(start(cnv.region2))), 
+           mean(unlist(end(cnv.region2)))), lty=2)
 ```
 
 ## Summary Plots
