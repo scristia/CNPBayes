@@ -1,34 +1,27 @@
-language: 
-    - r
-    - cpp
+language: c
 
-bioc_required: true
+before_install:
+    - curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
+        - chmod 755 ./travis-tool.sh
+            - ./travis-tool.sh bootstrap
 
 install:
-  - ./travis-tool.sh install_bioc S4Vectors
-  - ./travis-tool.sh install_bioc GenomicRanges
-  - ./travis-tool.sh install_bioc VanillaICE
-  - ./travis-tool.sh install_bioc GenomeInfoDb
-  - ./travis-tool.sh install_bioc IRanges
-  - ./travis-tool.sh install_bioc BiocGenerics
-  - ./travis-tool.sh install_bioc BiocStyle
-  - ./travis-tool.sh install_bioc BSgenome.Hsapiens.UCSC.hg19
-  - ./travis-tool.sh install_bioc RColorBrewer
+    - ./travis-tool.sh install_bioc_deps  
 
-sudo: required
-
-r_packages:
-    - rmarkdown
+script: ./travis-tool.sh run_tests
 
 env:
  global:
    - BIOC_USE_DEVEL="TRUE"       
 
-r_github_packages:
-    - jimhester/covr
+#r_packages:
+    #- rmarkdown
 
-after_success:
-    - Rscript -e 'library(covr);codecov()'
+#r_github_packages:
+    #- jimhester/covr
+
+#after_success:
+    #- Rscript -e 'library(covr);codecov()'
 
 notifications:
   email:
