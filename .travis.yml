@@ -4,6 +4,17 @@ language:
 
 bioc_required: true
 
+install:
+  - ./travis-tool.sh install_bioc S4Vectors
+  - ./travis-tool.sh install_bioc GenomicRanges
+  - ./travis-tool.sh install_bioc VanillaICE
+  - ./travis-tool.sh install_bioc GenomeInfoDb
+  - ./travis-tool.sh install_bioc IRanges
+  - ./travis-tool.sh install_bioc BiocGenerics
+  - ./travis-tool.sh install_bioc BiocStyle
+  - ./travis-tool.sh install_bioc BSgenome.Hsapiens.UCSC.hg19
+  - ./travis-tool.sh install_bioc RColorBrewer
+
 sudo: required
 
 r_packages:
@@ -23,5 +34,6 @@ notifications:
   email:
     recipients:
       - jacobcvt12@gmail.com
+      - rscharpf@jhu.edu      
     on_success: always
     on_failure: always
