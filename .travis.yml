@@ -9,6 +9,10 @@ sudo: required
 r_packages:
     - rmarkdown
 
+env:
+ global:
+   - BIOC_USE_DEVEL="TRUE"       
+
 r_github_packages:
     - jimhester/covr
 
