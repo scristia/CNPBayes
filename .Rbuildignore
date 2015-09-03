@@ -1,7 +1,7 @@
 .travis.yml
 .gitignore
 ^\.travis\.yml$
-*.git
+.git/*
 *.DS_Store
 *.swp
 *.Rprofile
