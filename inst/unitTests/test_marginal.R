@@ -145,6 +145,7 @@ test_marginal_hard <- function(){
   ##
   ## Rare components
   ##
+  RNGkind("Mersenne-Twister")
   set.seed(2000)
   truth <- simulateData(N=1e3,
                         theta=c(-2, -0.4, 0),
