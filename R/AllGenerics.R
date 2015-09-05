@@ -578,19 +578,6 @@ setGeneric("relabel", function(object, zindex) standardGeneric("relabel"))
 
 setGeneric("HyperParameterList", function(hypp, K) standardGeneric("HyperParameterList"))
 
-#' Creates a list of ModelParams for differing number of components
-#'
-#' Simplifies creating multiple objects for model parameters for multiple component sizes. Used when number of components is not known. Can be used with Marginal and Batch models.
-#' @param hypp An object of class 'Hyperparameters'
-#' @param K An integer vector containing the different component sizes for which you wish to create ModelParams.
-#' @param data A vector containing the data.
-#' @param mcmcp An object of class 'ModelParams'. Can have varying numbers of iterations, etc for each component size.
-#' @param batch A vector indicating the batches from which each observation came from.
-#' @export
-#' @docType methods
-#' @rdname ModelParamList-method
-setGeneric("ModelParamList", function(hypp, K, data, mcmcp, batch) standardGeneric("ModelParamList"))
-
 setGeneric("runBurnin", function(object, mcmcp) standardGeneric("runBurnin"))
 setGeneric("runMcmc", function(object, mcmcp) standardGeneric("runMcmc"))
 
