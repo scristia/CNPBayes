@@ -159,9 +159,7 @@ setGeneric("plot")
 #'
 #' The batches are represented as a vector of integers.
 #' @examples
-#' \dontrun{
 #'      batch(BatchModelExample)
-#' }
 #' @param object see \code{showMethods(batch)}
 #' @return The batch of each data element.
 #' @export
@@ -197,6 +195,8 @@ setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
 
 #' Calculate BIC of a model
 #'
+#' @examples
+#'      bic(BatchModelExample)
 #' @param object see \code{showMethods(bic)}
 #' @return The BIC of the model.
 #' @docType methods
