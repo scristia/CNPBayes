@@ -16,7 +16,13 @@ bic(object)
 \arguments{
 \item{object}{see \code{showMethods(bic)}}
 }
+\value{
+The BIC of the model.
+}
 \description{
 Calculate BIC of a model
+}
+\examples{
+bic(BatchModelExample)
 }
 

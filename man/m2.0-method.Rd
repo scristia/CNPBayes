@@ -19,4 +19,7 @@ m2.0(object)
 \description{
 Retrieve the shape parameter for the tau2 distribution.
 }
+\examples{
+m2.0(MarginalModelExample)
+}
 

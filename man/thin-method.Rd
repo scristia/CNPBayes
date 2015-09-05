@@ -19,4 +19,7 @@ thin(object)
 \description{
 This function retrieves the number of thinning intervals used for an MCMC simulation.
 }
+\examples{
+thin(MarginalModelExample)
+}
 

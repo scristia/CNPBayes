@@ -21,4 +21,7 @@ McmcParams(iter = 1000L, burnin = 0L, thin, nStarts = 1,
 \description{
 Create an object of class 'McmcParams' to specify iterations, burnin, etc.
 }
+\examples{
+mp <- McmcParams(iter=100, burnin=10)
+}
 

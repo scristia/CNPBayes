@@ -19,4 +19,7 @@ sigma2.0(object)
 \description{
 Retrieve the rate parameter for the sigma.2 distribution.
 }
+\examples{
+sigma2.0(MarginalModelExample)
+}
 

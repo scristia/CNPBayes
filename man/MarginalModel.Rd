@@ -18,4 +18,7 @@ MarginalModel(data = numeric(), k = 2, hypp, mcmc.params)
 \description{
 Create an object for running marginal MCMC simulations.
 }
+\examples{
+model <- MarginalModel(data=rnorm(10), k=1)
+}
 

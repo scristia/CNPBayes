@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods-MixtureModel.R
 \name{map}
 \alias{map}
-\title{Calculate the maximum a posteriori estimate.}
+\title{Calculate the maximum a posteriori estimate of latent variable assignment.}
 \usage{
 map(object)
 }
@@ -10,6 +10,9 @@ map(object)
 \item{object}{an object of class MixtureModel.}
 }
 \description{
-Calculate the maximum a posteriori estimate.
+Calculate the maximum a posteriori estimate of latent variable assignment.
+}
+\examples{
+map(MarginalModelExample)
 }
 

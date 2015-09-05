@@ -23,4 +23,7 @@ sigma2(object)
 \description{
 For a MarginalModel, this function returns a vector of variances. For a BatchModel, returns a matrix of size number of batches by number of components.
 }
+\examples{
+sigma2(MarginalModelExample)
+}
 

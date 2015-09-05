@@ -12,4 +12,7 @@ sigmac(object)
 \description{
 Retrieve standard deviation of each component/batch mean at each iteration of the MCMC.
 }
+\examples{
+sigmac(MarginalModelExample)
+}
 

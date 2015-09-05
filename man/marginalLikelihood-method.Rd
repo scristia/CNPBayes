@@ -38,4 +38,7 @@ a list of such models.}
 \description{
 Compute the marginal likelihood of a converged model.
 }
+\examples{
+marginalLikelihood(MarginalModelExample)
+}
 

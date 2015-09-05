@@ -25,4 +25,7 @@ y(object)
 \description{
 Retrieve data.
 }
+\examples{
+y(MarginalModelExample)
+}
 

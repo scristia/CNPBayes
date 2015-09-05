@@ -18,6 +18,9 @@ Instantiates an instance of 'DensityModel' (or 'DensityBatchModel')
 from a MarginalModel or BatchModel object. See the corresponding
 class for additional details and examples.
 }
+\examples{
+dm <- DensityModel(MarginalModelExample)
+}
 \seealso{
 \code{\link{DensityModel-class}} \code{\link{kmeans}}
 }

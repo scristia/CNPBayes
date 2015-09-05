@@ -12,4 +12,7 @@ muMean(object)
 \description{
 Retrieve overall mean averaged across MCMC simulations.
 }
+\examples{
+muMean(MarginalModelExample)
+}
 

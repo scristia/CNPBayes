@@ -32,4 +32,7 @@ View number of iterations, burnin, etc.
 
 Replace number of iterations, burnin, etc. Any update of the MCMC parameters will trigger an update of the chains. However, if iter (the number of MCMC iterations) is set to a nonpositive value, the chains will not be updated and kept as is.
 }
+\examples{
+mcmcParams(MarginalModelExample)
+}
 

@@ -19,4 +19,7 @@ nu.0(object)
 \description{
 Retrieve the shape parameter for the sigma.2 distribution.
 }
+\examples{
+nu.0(MarginalModelExample)
+}
 

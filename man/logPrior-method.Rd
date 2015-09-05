@@ -19,4 +19,7 @@ logPrior(object)
 \description{
 Calculate log likelihood of prior for model
 }
+\examples{
+logPrior(MarginalModelExample)
+}
 

@@ -19,12 +19,13 @@ batch(object)
 \arguments{
 \item{object}{see \code{showMethods(batch)}}
 }
+\value{
+The batch of each data element.
+}
 \description{
 The batches are represented as a vector of integers.
 }
 \examples{
-\dontrun{
-     batch(BatchModelExample)
-}
+batch(BatchModelExample)
 }
 

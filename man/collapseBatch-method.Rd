@@ -24,6 +24,9 @@ collapseBatch(object, plate, THR = 0.1)
 
 \item{THR}{threshold below which the null hypothesis should be rejected and batches are collapsed.}
 }
+\value{
+The new batch value.
+}
 \description{
 In high-throughput assays, low-level summaries of copy number at
 copy number polymorphic loci (e.g., the mean log R ratio for each

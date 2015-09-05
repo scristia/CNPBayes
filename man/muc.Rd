@@ -12,4 +12,7 @@ muc(object)
 \description{
 Retrieve overall mean at each iteration of the MCMC.
 }
+\examples{
+muc(MarginalModelExample)
+}
 

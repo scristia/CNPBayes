@@ -21,4 +21,9 @@ ModelParams(type = c("marginal", "batch"), y = numeric(), k = 2L, batch,
 \description{
 Create an object of class 'ModelParams' to specify data, parameters, etc.
 }
+\examples{
+mp <- ModelParams("marginal", c(rnorm(10, 0),
+                                     rnorm(10, 1),
+                                     rnorm(10, 2)), k=3)
+}
 

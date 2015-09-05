@@ -26,10 +26,14 @@ modes(object) <- value
 to obtain the correct format of the list.}
 }
 \description{
-The iteration which maximizes log likelihood and log prior is found. The estimates for each parameter at this iteration are retrieved.
+Retrieve the modes from a model.
 
 For a mixture model with K components, there are K! possible modes.
 One can permute the ordering of the modes and assign the permuted
 order to a MixtureModel derived class by this method.
+}
+\examples{
+modes(MarginalModelExample)
+The iteration which maximizes log likelihood and log prior is found. The estimates for each parameter at this iteration are retrieved.
 }
 

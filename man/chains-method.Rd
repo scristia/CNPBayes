@@ -13,6 +13,9 @@ chains(object)
 \arguments{
 \item{object}{\code{showMethods(chains)}}
 }
+\value{
+The simulated chains.
+}
 \description{
 The method \code{chains} applied to a \code{MixtureModel}-derived
 class will return an object of class \code{McmcChains} that

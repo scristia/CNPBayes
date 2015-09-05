@@ -12,4 +12,7 @@ pic(object)
 \description{
 Retrieve mixture proportions at each iteration of the MCMC.
 }
+\examples{
+pic(MarginalModelExample)
+}
 

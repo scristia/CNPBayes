@@ -16,4 +16,7 @@ Hyperparameters(type = "batch", k = 2L, ...)
 \description{
 Create an object of class 'Hyperparameters'
 }
+\examples{
+hypp <- Hyperparameters("marginal", k=2)
+}
 

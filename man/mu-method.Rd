@@ -22,4 +22,7 @@ mu(object)
 \description{
 Retrieve overall mean
 }
+\examples{
+mu(MarginalModelExample)
+}
 

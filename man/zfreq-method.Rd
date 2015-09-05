@@ -21,4 +21,7 @@ zFreq(object)
 \description{
 Calculates a frequency table of latent variable assigments by observation.
 }
+\examples{
+zfreq(MarginalModelExample)
+}
 

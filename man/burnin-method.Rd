@@ -33,6 +33,9 @@ burnin(object) <- value
 
 \item{value}{new number of burnin iterations}
 }
+\value{
+The number of burnin simulations.
+}
 \description{
 This function retrieves the number of burnin simulations to be discarded.
 

@@ -6,13 +6,13 @@
 \alias{[,BatchModel,ANY,ANY-method}
 \alias{[,BatchModel,ANY-method}
 \alias{[,BatchModel-method}
-\alias{[,McmcChains,ANY,ANY,ANY-method}
+\alias{[,McmcChains,ANY,ANY-method}
 \alias{[,McmcChains,ANY-method}
 \alias{[,McmcChains-method}
-\alias{[,McmcParams,ANY,ANY,ANY-method}
+\alias{[,McmcParams,ANY,ANY-method}
 \alias{[,McmcParams,ANY-method}
 \alias{[,McmcParams-method}
-\alias{[,ModelList,ANY,ANY,ANY-method}
+\alias{[,ModelList,ANY,ANY-method}
 \alias{[,ModelList,ANY-method}
 \alias{[,ModelList-method}
 \alias{[[,ModelList,ANY,ANY-method}
@@ -22,13 +22,13 @@
 \alias{extract}
 \title{extract data, latent variable, and batch for given observation}
 \usage{
-\S4method{[}{BatchModel,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
+\S4method{[}{BatchModel,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
-\S4method{[}{McmcChains,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
+\S4method{[}{McmcChains,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
-\S4method{[}{McmcParams,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
+\S4method{[}{McmcParams,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
-\S4method{[}{ModelList,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
+\S4method{[}{ModelList,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
 \S4method{[[}{ModelList,ANY,ANY}(x, i, j, ..., drop = FALSE)
 

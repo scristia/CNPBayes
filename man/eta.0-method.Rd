@@ -19,4 +19,7 @@ eta.0(object)
 \description{
 Retrieve the rate parameter for the tau2 distribution.
 }
+\examples{
+eta.0(MarginalModelExample)
+}
 

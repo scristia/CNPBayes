@@ -40,4 +40,7 @@ This function changes the number of simulations.
 
 This function retrieves the number of iterations of an MCMC simulation.
 }
+\examples{
+iter(MarginalModelExample)
+}
 
