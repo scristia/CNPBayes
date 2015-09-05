@@ -166,29 +166,3 @@ setMethod("show", "Hyperparameters", function(object){
 setMethod("initializeMu", "numeric", function(object){
   rnorm(k(object), mu.0(object), tau.0(object))
 })
-
-setMethod("HyperParameterList", "HyperparametersMarginal", function(hypp, K){
-  hyplist <- foreach(k = K) %do% {
-    HyperparametersMarginal(k=k, mu.0=mu.0(hypp),
-                            tau2.0=tau2.0(hypp),
-                            eta.0=eta.0(hypp),
-                            m2.0=m2.0(hypp),
-                            beta=betas(hypp),
-                            a=a(hypp),
-                            b=b(hypp))
-  }
-  hyplist
-})
-
-setMethod("HyperParameterList", "HyperparametersBatch", function(hypp, K){
-  hyplist <- foreach(k = K) %do% {
-    HyperparametersBatch(k=k, mu.0=mu.0(hypp),
-                         tau2.0=tau2.0(hypp),
-                         eta.0=eta.0(hypp),
-                         m2.0=m2.0(hypp),
-                         beta=betas(hypp),
-                         a=a(hypp),
-                         b=b(hypp))
-  }
-  hyplist
-})

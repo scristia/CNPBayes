@@ -576,8 +576,6 @@ setGeneric("postFiles", function(object) standardGeneric("postFiles"))
 
 setGeneric("relabel", function(object, zindex) standardGeneric("relabel"))
 
-setGeneric("HyperParameterList", function(hypp, K) standardGeneric("HyperParameterList"))
-
 setGeneric("runBurnin", function(object, mcmcp) standardGeneric("runBurnin"))
 setGeneric("runMcmc", function(object, mcmcp) standardGeneric("runMcmc"))
 
