@@ -478,6 +478,7 @@ setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 #' mp <- mcmcParams(MarginalModelExample)
 #' burnin(mp)
 #' @param object see \code{showMethods(burnin)}
+#' @return The number of burnin simulations.
 #' @export
 #' @docType methods
 #' @rdname burnin-method
