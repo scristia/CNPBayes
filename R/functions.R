@@ -22,7 +22,7 @@ consensusRegion <- function(g){
     ## assume that these individuals should have one cnv
     grl1 <- grl[elementLengths(grl)==1]
     g1 <- unlist(grl1)
-    if(class(g1)=="list") browser()
+    #if(class(g1)=="list") browser()
     g1 <- GRanges(as.character(seqnames(g1)), IRanges(start(g1), end(g1)))
     grl2ormore <- grl[elementLengths(grl) >= 2]
     grl3 <- foreach(g=grl2ormore) %do% reduce(g, min.gapwidth=1e6)
