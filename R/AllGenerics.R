@@ -197,6 +197,7 @@ setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
 #' Calculate BIC of a model
 #'
 #' @param object see \code{showMethods(bic)}
+#' @return The BIC of the model.
 #' @docType methods
 #' @rdname bic-method
 #' @export
