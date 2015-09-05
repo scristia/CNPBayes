@@ -86,6 +86,7 @@ setGeneric("chains<-", function(object, value) standardGeneric("chains<-"))
 #' plot.ts(theta.chain, plot.type="single",
 #'         col=seq_len(k(MarginalModelExample)))
 #' @param object \code{showMethods(chains)}
+#' @return The simulated chains.
 #' @export
 #' @docType methods
 #' @rdname chains-method
