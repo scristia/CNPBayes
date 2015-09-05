@@ -110,6 +110,8 @@ setValidity("Hyperparameters", function(object){
 
 #' Create an object of class 'Hyperparameters'
 #'
+#' @examples
+#'      hypp <- Hyperparameters("marginal", k=2)
 #' @param type specifies 'marginal' or 'batch'
 #' @param k number of components
 #' @param ... optional parameters, i.e. mu.0, tau2.0, eta.0, etc.

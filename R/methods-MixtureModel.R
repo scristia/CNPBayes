@@ -65,12 +65,16 @@ observed <- function(object) object@data
 
 #' Retrieve standard deviations of each component/batch mean.
 #'
+#' @examples
+#'      sigma(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
 sigma <- function(object) sqrt(sigma2(object))
 
 #' Retrieve overall standard deviation.
 #'
+#' @examples
+#'      tau(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
 tau <- function(object) sqrt(tau2(object))
@@ -89,6 +93,8 @@ sigma.0 <- function(object) sqrt(sigma2.0(object))
 
 #' Retrieve mixture proportions.
 #'
+#' @examples
+#'      p(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
 p <- function(object) object@pi
@@ -394,8 +400,10 @@ makeUnique <- function(x){
   as.character(abbrv[x])
 }
 
-#' Calculate the maximum a posteriori estimate.
+#' Calculate the maximum a posteriori estimate of latent variable assignment.
 #'
+#' @examples
+#'      map(MarginalModelExample)
 #' @param object an object of class MixtureModel.
 #' @export
 map <- function(object) {
@@ -431,12 +439,16 @@ logLikc <- function(object) log_lik(chains(object))
 
 #' Retrieve standard deviation of each component/batch mean at each iteration of the MCMC.
 #'
+#' @examples
+#'      sigmac(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
 sigmac <- function(object) sigma(chains(object))
 
 #' Retrieve mixture proportions at each iteration of the MCMC.
 #'
+#' @examples
+#'      pic(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
 pic <- function(object) p(chains(object))
@@ -447,24 +459,32 @@ setMethod("pMean", "MixtureModel", function(object){
 
 #' Retrieve overall mean at each iteration of the MCMC.
 #'
+#' @examples
+#'      muc(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
 muc <- function(object) mu(chains(object))
 
 #' Retrieve overall mean averaged across MCMC simulations.
 #'
+#' @examples
+#'      muMean(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
 muMean <- function(object) colMeans(muc(object))
 
 #' Retrieve overall standard deviation at each iteration of the MCMC.
 #'
+#' @examples
+#'      tauc(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
 tauc <- function(object) sqrt(tau2(chains(object)))
 
 #' Retrieve overall standard deviation averaged across MCMC simulations.
 #'
+#' @examples
+#'      tauMean(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
 tauMean <- function(object) colMeans(tauc(object))

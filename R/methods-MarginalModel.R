@@ -1,4 +1,6 @@
 #' Create an object for running marginal MCMC simulations.
+#' @examples
+#'      model <- MarginalModel(data=rnorm(10), k=1)
 #' @param data the data for the simulation.
 #' @param k An integer value specifying the number of latent classes.
 #' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.

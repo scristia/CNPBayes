@@ -31,6 +31,8 @@ setGeneric("p<-", function(object, value) standardGeneric("p<-"))
 
 #' Retrieve overall mean
 #'
+#' @examples
+#'      mu(MarginalModelExample)
 #' @param object see \code{showMethods(mu)}
 #' @export
 #' @docType methods
@@ -237,6 +239,8 @@ setGeneric("theta", function(object) standardGeneric("theta"))
 #' Retrieve the variances of each component and batch distribution
 #'
 #' For a MarginalModel, this function returns a vector of variances. For a BatchModel, returns a matrix of size number of batches by number of components.
+#' @examples
+#'      sigma2(MarginalModelExample)
 #' @param object see \code{showMethods(sigma2)}
 #' @export
 #' @docType methods
@@ -247,6 +251,8 @@ setGeneric("reorderComponents", function(object, new_levels) standardGeneric("re
 
 #' Retrieve the probability of latent variable membership by observation.
 #'
+#' @examples
+#'      probz(MarginalModelExample)
 #' @param object see \code{showMethods(probz)}
 #' @export
 #' @docType methods
@@ -259,6 +265,8 @@ setGeneric("fitMixtureModels", function(object, mcmcp, K=1:5, batch) standardGen
 
 #' Retrieve the shape parameter for the sigma.2 distribution.
 #'
+#' @examples
+#'      nu.0(MarginalModelExample)
 #' @param object see \code{showMethods(nu.0)}
 #' @export
 #' @docType methods
@@ -267,6 +275,8 @@ setGeneric("nu.0", function(object) standardGeneric("nu.0"))
 
 #' Retrieve the rate parameter for the sigma.2 distribution.
 #'
+#' @examples
+#'      sigma2.0(MarginalModelExample)
 #' @param object see \code{showMethods(sigma2.0)}
 #' @export
 #' @docType methods
@@ -275,6 +285,8 @@ setGeneric("sigma2.0", function(object) standardGeneric("sigma2.0"))
 
 #' Retrieve data.
 #'
+#' @examples
+#'      y(MarginalModelExample)
 #' @param object see \code{showMethods(y)}
 #' @export
 #' @docType methods
@@ -298,6 +310,8 @@ setGeneric("oned", function(object) standardGeneric("oned"))
 #' Retrieve latent variable assignments.
 #'
 #' Retrieves the simulated latent variable assignments of each observation at each MCMC simulation.
+#' @examples
+#'      z(MarginalModelExamples)
 #' @param object see \code{showMethods(z)}
 #' @export
 #' @docType methods
@@ -314,6 +328,8 @@ setGeneric("computeDistance", function(object) standardGeneric("computeDistance"
 
 #' Retrieve the modes from a model.
 #'
+#' @examples
+#'      modes(MarginalModelExample)
 #' The iteration which maximizes log likelihood and log prior is found. The estimates for each parameter at this iteration are retrieved.
 #' @param object a \code{MixtureModel}-derived class
 #' @export
@@ -342,6 +358,8 @@ setGeneric("tau2.0", function(object) standardGeneric("tau2.0"))
 
 #' Retrieve the rate parameter for the tau2 distribution.
 #'
+#' @examples
+#'      eta.0(MarginalModelExample)
 #' @param object see \code{showMethods(eta.0)}
 #' @export
 #' @docType methods
@@ -351,6 +369,8 @@ setGeneric("eta.0<-", function(object,value) standardGeneric("eta.0<-"))
 
 #' Retrieve the shape parameter for the tau2 distribution.
 #'
+#' @examples
+#'      m2.0(MarginalModelExample)
 #' @param object see \code{showMethods(m2.0)}
 #' @export
 #' @docType methods
@@ -508,6 +528,8 @@ setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<
 #' Number of MCMC iterations.
 #'
 #' This function retrieves the number of iterations of an MCMC simulation.
+#' @examples
+#'      iter(MarginalModelExample)
 #' @param object see \code{showMethods(iter)}
 #' @export
 #' @docType methods
@@ -517,6 +539,8 @@ setGeneric("iter", function(object) standardGeneric("iter"))
 #' Number of thinning intervals.
 #'
 #' This function retrieves the number of thinning intervals used for an MCMC simulation.
+#' @examples
+#'      thin(MarginalModelExample)
 #' @param object see showMethods(thin)
 #' @export
 #' @docType methods
@@ -574,6 +598,8 @@ setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"
 
 #' Calculates a frequency table of latent variable assigments by observation.
 #'
+#' @examples
+#'      zfreq(MarginalModelExample)
 #' @param object see \code{showMethods(zfreq)}
 #' @export
 #' @docType methods
@@ -584,6 +610,8 @@ setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 #' Retrieve MCMC parameters from model.
 #'
 #' View number of iterations, burnin, etc.
+#' @examples
+#'      mcmcParams(MarginalModelExample)
 #' @param object see \code{showMethods(mcmcParams)}
 #' @export
 #' @docType methods
@@ -602,6 +630,8 @@ setGeneric("mcmcParams<-", function(object, force=FALSE, value) standardGeneric(
 
 #' Calculate log likelihood of prior for model
 #'
+#' @examples
+#'      logPrior(MarginalModelExample)
 #' @param object see \code{showMethods(logPrior)}
 #' @export
 #' @docType methods
@@ -651,6 +681,8 @@ setGeneric("clusters", function(object) standardGeneric("clusters"))
 setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 
 #' Compute the marginal likelihood of a converged model.
+#' @examples
+#'      marginalLikelihood(MarginalModelExample)
 #' @param model An object of class \code{MarginalModel}, or a list of 
 #'        \code{MarginalModel}'s. Can also be an object of \code{BatchModel} or
 #'        a list of such models.

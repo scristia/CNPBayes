@@ -1,4 +1,6 @@
 #' Create an object for running hierarchical MCMC simulations.
+#' @examples
+#'      model <- BatchModel(rnorm(10), k=1, batch=rep(1:2, each=5))
 #' @param data the data for the simulation.
 #' @param k An integer value specifying the number of latent classes.
 #' @param batch a vector of the different batch numbers (must be sorted)

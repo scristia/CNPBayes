@@ -1,5 +1,7 @@
 #' Create an object of class 'McmcParams' to specify iterations, burnin, etc.
 #'
+#' @examples
+#'      mp <- McmcParams(iter=100, burnin=10)
 #' @param iter number of iterations
 #' @param burnin number of burnin iterations
 #' @param thin thinning interval

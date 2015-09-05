@@ -1,5 +1,9 @@
 #' Create an object of class 'ModelParams' to specify data, parameters, etc.
 #'
+#' @examples
+#'      mp <- ModelParams("marginal", c(rnorm(10, 0), 
+#'                                      rnorm(10, 1),
+#'                                      rnorm(10, 2)), k=3)
 #' @param type marginal or batch
 #' @param y the data
 #' @param k the number of components

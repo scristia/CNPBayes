@@ -81,6 +81,8 @@ setMethod("densitiesCluster", "MarginalModel", function(object){
 #' Instantiates an instance of 'DensityModel' (or 'DensityBatchModel')
 #' from a MarginalModel or BatchModel object. See the corresponding
 #' class for additional details and examples.
+#' @examples
+#'      dm <- DensityModel(MarginalModelExample)
 #' @seealso \code{\link{DensityModel-class}} \code{\link{kmeans}}
 #' @param object see \code{showMethods(DensityModel)}
 #' @param merge Logical.  Whether to use kmeans clustering to cluster
