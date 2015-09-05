@@ -53,7 +53,7 @@ Collate:
 VignetteBuilder: knitr
 License: Artistic-2.0
 LinkingTo: Rcpp, RcppArmadillo
-biocViews: CopyNumberVariation
+biocViews: CopyNumberVariation, Bayesian
 Roxygen: list(wrap=FALSE)
 LazyData: TRUE
 ## Local Variables: 
