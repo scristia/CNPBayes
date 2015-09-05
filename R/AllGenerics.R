@@ -328,9 +328,9 @@ setGeneric("computeDistance", function(object) standardGeneric("computeDistance"
 
 #' Retrieve the modes from a model.
 #'
+#' The iteration which maximizes log likelihood and log prior is found. The estimates for each parameter at this iteration are retrieved.
 #' @examples
 #'      modes(MarginalModelExample)
-#' The iteration which maximizes log likelihood and log prior is found. The estimates for each parameter at this iteration are retrieved.
 #' @param object a \code{MixtureModel}-derived class
 #' @export
 #' @docType methods
