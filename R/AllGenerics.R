@@ -398,6 +398,7 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' @param object see \code{showMethods(collapseBatch)}
 #' @param plate a vector labelling from which batch each observation came from.
 #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
+#' @return The new batch value.
 #' @export
 #' @docType methods
 #' @rdname collapseBatch-method
