@@ -33,10 +33,10 @@ r_github_packages:
 after_success:
     - Rscript -e 'library(covr);codecov()'
 
-notifications:
-  email:
-    recipients:
-      - jacobcvt12@gmail.com
-      - rscharpf@jhu.edu      
-    on_success: always
-    on_failure: always
+#notifications:
+  #email:
+    #recipients:
+      #- jacobcvt12@gmail.com
+      #- rscharpf@jhu.edu      
+    #on_success: always
+    #on_failure: always
