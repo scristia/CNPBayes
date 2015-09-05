@@ -162,6 +162,7 @@ setGeneric("plot")
 #'      batch(BatchModelExample)
 #' }
 #' @param object see \code{showMethods(batch)}
+#' @return The batch of each data element.
 #' @export
 #' @docType methods
 #' @rdname batch-method
