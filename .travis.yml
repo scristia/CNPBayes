@@ -2,6 +2,10 @@ language:
     - r
     - cpp
 
+os:
+    - linux
+    - osx
+
 sudo: required
 
 #before_install:
