@@ -1,5 +1,6 @@
 #ifndef _update_H
 #define _update_H
+#include <Rcpp.h>
 
 RcppExport SEXP update_theta(SEXP xmod);
 RcppExport SEXP update_sigma2(SEXP xmod);
