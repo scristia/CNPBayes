@@ -2,7 +2,7 @@
 #define _update_H
 #include <Rcpp.h>
 
-RcppExport SEXP update_theta(SEXP xmod);
+Rcpp::NumericVector update_theta(Rcpp::S4 xmod);
 RcppExport SEXP update_sigma2(SEXP xmod);
 
 // Access model values

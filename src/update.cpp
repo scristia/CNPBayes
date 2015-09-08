@@ -5,7 +5,7 @@
 using namespace Rcpp;
 // create accessor functions for s4 slots
 // Update theta in marginal model
-RcppExport SEXP update_theta(SEXP xmod) {
+Rcpp::NumericVector update_theta(Rcpp::S4 xmod) {
     RNGScope scope ;
     Rcpp::S4 model(xmod) ;
     NumericVector theta = model.slot("theta") ;
