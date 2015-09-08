@@ -3,7 +3,6 @@
 #include <Rcpp.h>
 
 Rcpp::NumericVector update_theta(Rcpp::S4 xmod);
-RcppExport SEXP update_sigma2(SEXP xmod);
 
 // Access model values
 Rcpp::IntegerVector getZ(Rcpp::S4 model);

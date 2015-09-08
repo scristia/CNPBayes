@@ -6,6 +6,7 @@ Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_,
                                     Rcpp::NumericVector alpha_);
 Rcpp::NumericVector stageTwoLogLik(Rcpp::S4 xmod);
 
+Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod);
 Rcpp::NumericVector update_mu(Rcpp::S4 xmod);
 Rcpp::NumericVector update_tau2(Rcpp::S4 xmod);
 Rcpp::NumericVector update_sigma2_0(Rcpp::S4 xmod);
