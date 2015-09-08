@@ -1101,7 +1101,7 @@ Rcpp::NumericVector p_s20_reduced(Rcpp::S4 xmod) {
   NumericVector sigma2star = clone(sigma2_) ;
   NumericVector s20star = clone(s20_) ;
   IntegerVector nu0=clone(nu0_) ;
-  int nu0star = nu0[0] ;
+  double nu0star = nu0[0] ;
   
   NumericVector p_s20(S) ;
 

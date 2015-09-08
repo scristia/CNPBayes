@@ -1156,7 +1156,7 @@ Rcpp::NumericVector p_s20_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::NumericVector s20_ = Rcpp::as<Rcpp::NumericVector>(modes["sigma2.0"]);
     Rcpp::NumericMatrix sigma2star = clone(sigma2_);
     Rcpp::NumericVector s20star = clone(s20_);
-    int nu0star = clone(nu0_)[0];
+    double nu0star = clone(nu0_)[0];
     
     // get hyperparameters
     int K = hypp.slot("k");
