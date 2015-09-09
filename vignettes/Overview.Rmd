@@ -1,0 +1,77 @@
+---
+title: "Overview of CNPBayes package"
+author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
+date: \today
+output: BiocStyle::pdf_document
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{Overview of CNPBayes package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc} 
+---
+
+# Introduction
+
+CNPBayes models multi-modal densities via a hierarchical Bayesian
+Gaussian mixture model.  The major application of this model is the
+estimation of copy number at copy number polymorphic loci (CNPs). Two
+versions of the mixture model are implemented.  A *standard* model,
+referred to as a *marginal* model, that has one mean and standard
+deviation for each component, and a *batch* model with batch-specific
+means and standard deviations. Approximation of the posterior is by
+Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp package
+[@Rcpp].  
+
+For an EM-implementation of Gaussian mixture models for CNPs, see the
+Bioconductor package CNVtools [@Barnes2008].  A Bayesian extension of
+this model by some of the same authors was developed to automate the
+analysis of the Welcome Trust Case Control Consortium (WTCCC) genotype
+data [@cardin] and implemented in the R package CNVCALL
+(http://niallcardin.com/CNVCALL).
+
+This vignette provides a concise workflow for fitting mixture models
+in large array-based genome-wide association studies.  We refer the
+reader to other vignettes included with this package for details
+regarding implementation.
+
+```{r lib} 
+library(CNPBayes)
+```
+
+# Workflow
+
+## Delineate CNPs for each ancestry group
+
+```{r find_cnps}
+se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
+grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
+```
+
+## Fitting mixture models at each CNP
+
+ Independently for each CNP, we group the samples into batches using
+the `collapseBatch` function.
+
+Some Example code
+
+For array-based estimates and germline genomes, there are typically
+between 1 and 4 copy number states at any given CNP.  Since we do not
+know the number of components a priori, we fit a model for each k.
+In addition, we fit models with and without a term for batch.
+
+## Selecting a model
+
+Marginal likelihood is estimated for each of the 8 models and the
+Bayes' factors is used to select one of these models for further
+study.
+
+
+## Extracting MAP estimates and posterior probabilities
+
+How to do this for the selected model
+
+## QC
+
+Visualize the results.  Check BAFs.
+
+# References
