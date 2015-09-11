@@ -1,8 +1,8 @@
 #' @include AllClasses.R
 
 .parameterizeGammaByMeanSd <- function(mn, sd){
-  rate <- mn/sd
-  shape <- mn*rate
+  rate <- mn/sd^2
+  shape <- mn^2/sd^2
   setNames(c(shape, rate), c("shape", "rate"))
 }
 
@@ -42,14 +42,16 @@
 qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
   if(!missing(mn) && !missing(sd)){
     params <- .parameterizeGammaByMeanSd(mn, sd)
-    eta.0 <- params[["shape"]]
-    m2.0 <- params[["rate"]]
+    a <- params[["shape"]]
+    b <- params[["rate"]]
+    eta.0 <- 2*a
+    m2.0 <- b/a
   }
-  shape <- 0.5*eta.0
-  rate <- 0.5*eta.0*m2.0
-  mn <- shape/rate
-  sd <- shape/rate^2
-  x <- qgamma(seq(0, 1, 0.001), shape=shape, rate=rate)
+##  shape <- 0.5*eta.0
+##  rate <- 0.5*eta.0*m2.0
+##  mn <- shape/rate
+##  sd <- sqrt(shape/rate^2)
+  x <- qgamma(seq(0, 1-0.001, 0.001), shape=0.5*eta.0, rate=0.5*eta.0*m2.0)
   list(quantiles=x, eta.0=eta.0, m2.0=m2.0, mean=mn, sd=sd)
 }
 
