@@ -77,9 +77,12 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 #' component h.
 #' @param alpha length-k numeric vector of the shape parameters for
 #' the dirichlet prior on the mixture probabilities
-#' @param beta length-one numeric vector of the geometric prior for
-#' nu.0 (nu.0 is the shape parameter of the Inverse Gamma sampling
-#' distribution for the component-specific variances).
+#' @param beta length-one numeric vector for the parameter of the
+#' geometric prior for nu.0 (nu.0 is the shape parameter of the
+#' Inverse Gamma sampling distribution for the component-specific
+#' variances. Together, nu.0 and sigma2.0 model inter-component
+#' heterogeneity in variances.).  beta is a probability and must be
+#' in the interval [0,1].
 #' @param a length-one numeric vector of the shape parameter for the
 #' Gamma prior used for sigma2.0 (sigma2.0 is the shape parameter of
 #' the Inverse Gamma sampling distribution for the component-specific
@@ -132,9 +135,11 @@ HyperparametersBatch <- function(k=0L,
 #' parameter is parameterized as 1/2 * eta.0 * m2.0.
 #' @param alpha length-k numeric vector of the shape parameters for
 #' the dirichlet prior on the mixture probabilities
-#' @param beta length-one numeric vector of the geometric prior for
-#' nu.0 (nu.0 is the shape parameter of the Inverse Gamma sampling
-#' distribution for the component-specific variances)
+#' @param beta length-one numeric vector for the parameter of the
+#' geometric prior for nu.0 (nu.0 is the shape parameter of the
+#' Inverse Gamma sampling distribution for the component-specific
+#' variances).  beta is a probability and must be in the interval
+#' [0,1].
 #' @param a length-one numeric vector of the shape parameter for the
 #' Gamma prior used for sigma2.0 (sigma2.0 is the shape parameter of
 #' the Inverse Gamma sampling distribution for the component-specific
