@@ -307,8 +307,17 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", c("MixtureModel", "integer"),
     function(object, k) {
-        k(object) <- k
-        .posteriorSimulation(object)
+        if (length(k) > 1) {
+            mlist <- vector("list", length(k))
+            for (i in k) {
+                k(object) <- i
+                mlist[[i]] <- .posteriorSimulation(object)
+            }
+            mlist
+        } else {
+            k(object) <- k
+            .posteriorSimulation(object)
+        }
     }
 )
 
