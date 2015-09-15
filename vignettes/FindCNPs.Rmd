@@ -150,6 +150,13 @@ plot(med.summary, main="median summary of\nconsensus CNP", cex.main=0.7, pch=20)
 plot(pc.summary, main="PC summary of\nreduced CNV ranges", cex.main=0.7, pch=20)
 ```
 
+## Filtering
+Loci with no additions or deletions can be identified as normal distribution. If a loci has log R ratios drawn from a normal distribution, then the loci should not be included in the model fitting process. Removing these unneeded loci can reduce the computational burden. An easy way to identify such loci is by using the Shapiro-Wilk test as a test of normality [@shapiro]. To be conservative, we suggest retaining only those loci which have a p value $< 0.1$.
+
+```{r shapiro}
+shapiro.test(med.summary)
+```
+
 ## Mixture Model
 After deciding which one dimensional summary to use and summary of the data is
 complete, one can proceed to fitting a `MixtureModel` to the data. Models can
