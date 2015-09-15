@@ -78,6 +78,7 @@ defineCnpRegions <- function(grl, thr=0.02){
     i <- hitlist[[j]]
     regionlist[[j]] <- consensusRegion(g[i])
   }
+  message("")
   ##regionlist <- GRangesList(foreach(i=hitlist) %do% consensusRegion(g[i]))
   regions <- GenomicRanges::GRangesList(regionlist)
   GenomicRanges::unlist(regions)
