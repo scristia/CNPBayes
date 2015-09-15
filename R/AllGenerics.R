@@ -50,7 +50,7 @@ setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
 #' (\code{theta}).  For objects of class \code{MarginalModel}
 #' (assumes no batch effect), \code{tau2} is a length-one vector that
 #' describes the variance of the component means between batches.  The
-#' hyperparameters of \code{tau2} are \code{eta.0} and \code{m2.0}. See the 
+#' hyperparameters of \code{tau2} are \code{eta.0} and \code{m2.0}. See the
 #' following examples for setting the hyperparameters, accessing the current
 #' value of \code{tau2} from a \code{MixtureModel}-derived object, and
 #' for plotting the chain of \code{tau2} values.
@@ -113,7 +113,7 @@ setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 #'                         k=k(MarginalModelExample),
 #'                         alpha=c(9, 9, 10))
 #' hyperParams(MarginalModelExample) <- hypp
-#' 
+#'
 #' @param value an object of class 'Hyperparameters'
 #' @export
 #' @docType methods
@@ -136,7 +136,7 @@ setGeneric("hist")
 #' numeric vector of the one-dimensional summaries for a given copy
 #' number polymorphism. If \code{x} is a \code{MixtureModel}, \code{y}
 #' is ignored.
-#' @param show.batch a logical. If true, batch specific densities 
+#' @param show.batch a logical. If true, batch specific densities
 #' will be plotted.
 #' @param ... Additional arguments passed to \code{hist}.
 #' @examples
@@ -212,9 +212,9 @@ setGeneric("bic", function(object) standardGeneric("bic"))
 #' is a \code{MarginalModel} or a \code{BatchModel}.  For
 #' \code{BatchModel}, \code{theta} is a matrix of size B x K, where B is
 #' the number of batches and K is the number of components.
-#' Each column of the \code{theta} matrix can be interpreted as the 
+#' Each column of the \code{theta} matrix can be interpreted as the
 #' batch means for a particular component. For objects of class
-#' \code{MarginalModel} (assumes no batch effect), \code{theta} is a 
+#' \code{MarginalModel} (assumes no batch effect), \code{theta} is a
 #' vector of length K. Each element of \code{theta} can be interpreted
 #' as the mean for a component. See the following examples for accessing
 #' the current value of \code{theta} from a \code{MixtureModel}-derived
@@ -311,7 +311,7 @@ setGeneric("oned", function(object) standardGeneric("oned"))
 #'
 #' Retrieves the simulated latent variable assignments of each observation at each MCMC simulation.
 #' @examples
-#'      z(MarginalModelExamples)
+#'      z(MarginalModelExample)
 #' @param object see \code{showMethods(z)}
 #' @export
 #' @docType methods
@@ -550,13 +550,13 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 
 #' Run the MCMC simulation.
 #'
-#' nStarts chains are run. b burnin iterations are run and then discarded. 
-#' Next, s iterations are run in each train. The user can also specify 
+#' nStarts chains are run. b burnin iterations are run and then discarded.
+#' Next, s iterations are run in each train. The user can also specify
 #' an alternative number of components.
 #' The mode of the MCMC simulation is also calculated.
 #' @param object see showMethods(posteriorSimulation)
-#' @param k The number of a priori components. This is optional and if not 
-#' specified, the stored k model components are used. This parameters is 
+#' @param k The number of a priori components. This is optional and if not
+#' specified, the stored k model components are used. This parameters is
 #' useful for running multiple models of varying components.
 #' @export
 #' @docType methods
@@ -584,7 +584,7 @@ setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"
 #' Calculates a frequency table of latent variable assigments by observation.
 #'
 #' @examples
-#'      zfreq(MarginalModelExample)
+#'      zFreq(MarginalModelExample)
 #' @param object see \code{showMethods(zfreq)}
 #' @export
 #' @docType methods
@@ -668,12 +668,12 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #' Compute the marginal likelihood of a converged model.
 #' @examples
 #'      marginalLikelihood(MarginalModelExample)
-#' @param model An object of class \code{MarginalModel}, or a list of 
+#' @param model An object of class \code{MarginalModel}, or a list of
 #'        \code{MarginalModel}'s. Can also be an object of \code{BatchModel} or
 #'        a list of such models.
 #' @param niter The number of iterations for the reduced Gibb's sampler.
 #' @export
 #' @docType methods
 #' @rdname marginalLikelihood-method
-setGeneric("marginalLikelihood", 
+setGeneric("marginalLikelihood",
            function(model, niter) standardGeneric("marginalLikelihood"))

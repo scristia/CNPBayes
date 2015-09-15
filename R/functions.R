@@ -359,6 +359,6 @@ downsample <- function(batch.file, plate, y, ntiles=250, THR=0.1){
 # This function is copied from dplyr! Just copied the code over since this
 # is the only function used in dplyr.
 ntile <- function(x, n) {
-    floor((n * (rank(x, ties.method="first", na.last="keep") - 1) 
+    floor((n * (rank(x, ties.method="first", na.last="keep") - 1)
            / length(x)) + 1)
 }

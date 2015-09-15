@@ -1,8 +1,8 @@
 #' @include AllClasses.R
 
 .parameterizeGammaByMeanSd <- function(mn, sd){
-  rate <- mn/sd
-  shape <- mn*rate
+  rate <- mn/sd^2
+  shape <- mn^2/sd^2
   setNames(c(shape, rate), c("shape", "rate"))
 }
 
@@ -42,17 +42,60 @@
 qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
   if(!missing(mn) && !missing(sd)){
     params <- .parameterizeGammaByMeanSd(mn, sd)
-    eta.0 <- params[["shape"]]
-    m2.0 <- params[["rate"]]
+    a <- params[["shape"]]
+    b <- params[["rate"]]
+    eta.0 <- 2*a
+    m2.0 <- b/a
   }
   shape <- 0.5*eta.0
   rate <- 0.5*eta.0*m2.0
   mn <- shape/rate
-  sd <- shape/rate^2
-  x <- qgamma(seq(0, 1, 0.001), shape=shape, rate=rate)
+  sd <- sqrt(shape/rate^2)
+  x <- qgamma(seq(0, 1-0.001, 0.001), shape=0.5*eta.0, rate=0.5*eta.0*m2.0)
   list(quantiles=x, eta.0=eta.0, m2.0=m2.0, mean=mn, sd=sd)
 }
 
+
+#' Create an object of class 'HyperparametersBatch' for the
+#' batch mixture model
+#'
+#' @param k  length-one integer vector specifying number of components
+#' (typically 1 <= k <= 4)
+#' @param mu.0 length-one numeric vector of the of the normal prior
+#' for the component means.
+#' @param tau2.0 length-one numeric vector of the variance for the normal
+#' prior of the component means
+#' @param eta.0 length-one numeric vector of the shape parameter for
+#' the Inverse Gamma prior of the component variances, tau2_h.  The
+#' shape parameter is parameterized as 1/2 * eta.0.  In the batch
+#' model, tau2_h describes the inter-batch heterogeneity of means for
+#' component h.
+#' @param m2.0 length-one numeric vector of the rate parameter for the
+#' Inverse Gamma prior of the component variances, tau2_h.  The rate
+#' parameter is parameterized as 1/2 * eta.0 * m2.0.  In the batch
+#' model, tau2_h describes the inter-batch heterogeneity of means for
+#' component h.
+#' @param alpha length-k numeric vector of the shape parameters for
+#' the dirichlet prior on the mixture probabilities
+#' @param beta length-one numeric vector for the parameter of the
+#' geometric prior for nu.0 (nu.0 is the shape parameter of the
+#' Inverse Gamma sampling distribution for the component-specific
+#' variances. Together, nu.0 and sigma2.0 model inter-component
+#' heterogeneity in variances.).  beta is a probability and must be
+#' in the interval [0,1].
+#' @param a length-one numeric vector of the shape parameter for the
+#' Gamma prior used for sigma2.0 (sigma2.0 is the shape parameter of
+#' the Inverse Gamma sampling distribution for the component-specific
+#' variances).
+#' @param b a length-one numeric vector of the rate parameter for the
+#' Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
+#' the Inverse Gamma sampling distribution for the component-specific
+#' variances)
+#' @return An object of class HyperparametersBatch
+#' @examples
+#' HyperparametersBatch(k=3)
+#'
+#' @export
 HyperparametersBatch <- function(k=0L,
                                  mu.0=0,
                                  tau2.0=100,
@@ -75,6 +118,42 @@ HyperparametersBatch <- function(k=0L,
       b=b)
 }
 
+#' Create an object of class 'HyperparametersMarginal' for the
+#' marginal mixture model
+#'
+#' @param k  length-one integer vector specifying number of components
+#' (typically 1 <= k <= 4)
+#' @param mu.0  length-one numeric vector of the mean for the normal
+#' prior of the component means
+#' @param tau2.0 length-one numeric vector of the variance for the normal
+#' prior of the component means
+#' @param eta.0 length-one numeric vector of the shape parameter for
+#' the Inverse Gamma prior of the component variances.  The shape
+#' parameter is parameterized as 1/2 * eta.0.
+#' @param m2.0 length-one numeric vector of the rate parameter for
+#' the Inverse Gamma prior of the component variances.  The rate
+#' parameter is parameterized as 1/2 * eta.0 * m2.0.
+#' @param alpha length-k numeric vector of the shape parameters for
+#' the dirichlet prior on the mixture probabilities
+#' @param beta length-one numeric vector for the parameter of the
+#' geometric prior for nu.0 (nu.0 is the shape parameter of the
+#' Inverse Gamma sampling distribution for the component-specific
+#' variances).  beta is a probability and must be in the interval
+#' [0,1].
+#' @param a length-one numeric vector of the shape parameter for the
+#' Gamma prior used for sigma2.0 (sigma2.0 is the shape parameter of
+#' the Inverse Gamma sampling distribution for the component-specific
+#' variances)
+#' @param b a length-one numeric vector of the rate parameter for the
+#' Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
+#' the Inverse Gamma sampling distribution for the component-specific
+#' variances)
+#'
+#' @return An object of class HyperparametersMarginal
+#' @examples
+#' HyperparametersMarginal(k=3)
+#'
+#' @export
 HyperparametersMarginal <- function(k=0L,
                                     mu.0=0,
                                     tau2.0=100,
@@ -114,7 +193,13 @@ setValidity("Hyperparameters", function(object){
 #'      hypp <- Hyperparameters("marginal", k=2)
 #' @param type specifies 'marginal' or 'batch'
 #' @param k number of components
-#' @param ... optional parameters, i.e. mu.0, tau2.0, eta.0, etc.
+#' @param ... optional parameters.  See details
+#'
+#' @details
+#' Additional hyperparameters can be passed to the
+#' HyperparametersMarginal and HyperparametersBatch models.
+#'
+
 #' @export
 Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="marginal") return(HyperparametersMarginal(k, ...))

@@ -445,7 +445,6 @@ Rcpp::NumericVector compute_logprior(Rcpp::S4 xmod) {
     Rcpp::NumericVector p_mu = dnorm(mu, mu_0, tau_0);
 
     Rcpp::NumericVector prior_prob = log(p_sigma2_0) + log(p_nu_0) + log(p_mu) + log(p_tau2) + logp_pmix;
-
     return prior_prob;
 }
 

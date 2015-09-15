@@ -20,6 +20,6 @@ z(object)
 Retrieves the simulated latent variable assignments of each observation at each MCMC simulation.
 }
 \examples{
-z(MarginalModelExamples)
+z(MarginalModelExample)
 }
 

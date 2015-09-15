@@ -11,10 +11,14 @@ Hyperparameters(type = "batch", k = 2L, ...)
 
 \item{k}{number of components}
 
-\item{...}{optional parameters, i.e. mu.0, tau2.0, eta.0, etc.}
+\item{...}{optional parameters.  See details}
 }
 \description{
 Create an object of class 'Hyperparameters'
+}
+\details{
+Additional hyperparameters can be passed to the
+HyperparametersMarginal and HyperparametersBatch models.
 }
 \examples{
 hypp <- Hyperparameters("marginal", k=2)

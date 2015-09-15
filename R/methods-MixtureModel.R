@@ -117,7 +117,7 @@ setMethod("k", "MixtureModel", function(object) object@k)
 
 #' @rdname k-method
 #' @aliases k<-,MixtureModel-method
-setReplaceMethod("k", "MixtureModel", 
+setReplaceMethod("k", "MixtureModel",
     function(object, value) {
         k <- as.integer(value)
         hypp <- hyperParams(object)
@@ -305,7 +305,7 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
 
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,MixtureModel-method
-setMethod("posteriorSimulation", c("MixtureModel", "integer"), 
+setMethod("posteriorSimulation", c("MixtureModel", "integer"),
     function(object, k) {
         k(object) <- k
         .posteriorSimulation(object)
@@ -314,7 +314,7 @@ setMethod("posteriorSimulation", c("MixtureModel", "integer"),
 
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,MixtureModel-method
-setMethod("posteriorSimulation", c("MixtureModel", "numeric"), 
+setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
     function(object, k) {
         k(object) <- k
         .posteriorSimulation(object)
@@ -471,7 +471,13 @@ muc <- function(object) mu(chains(object))
 #'      muMean(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
-muMean <- function(object) colMeans(muc(object))
+muMean <- function(object) {
+  x <- muc(object)
+  if(is(object, "BatchModel")){
+    return(colMeans(x))
+  }
+  mean(x)
+}
 
 #' Retrieve overall standard deviation at each iteration of the MCMC.
 #'
@@ -487,7 +493,13 @@ tauc <- function(object) sqrt(tau2(chains(object)))
 #'      tauMean(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @export
-tauMean <- function(object) colMeans(tauc(object))
+tauMean <- function(object){
+  x <- tauc(object)
+  if(is(object, "BatchModel")){
+    return(colMeans(x))
+  }
+  mean(x)
+}
 
 #' @rdname modes-method
 #' @aliases modes,MixtureModel-method
