@@ -86,6 +86,18 @@ In addition, we fit models with and without a term for batch.
 
 The `posteriorSimulation` function takes a constructed `MixtureModel` and `k`, the number of components. The posterior simulations of each model can be held in a list - one for `MarginalModel`'s and one for `BatchModel`'s.
 
+```{r posteriorSimulation}
+mlist.marginal <- list(posteriorSimulation(model.marginal, k=1),
+                       posteriorSimulation(model.marginal, k=2),
+                       posteriorSimulation(model.marginal, k=3),
+                       posteriorSimulation(model.marginal, k=4))
+
+mlist.batch <- list(posteriorSimulation(model.batch, k=1),
+                    posteriorSimulation(model.batch, k=2),
+                    posteriorSimulation(model.batch, k=3),
+                    posteriorSimulation(model.batch, k=4))
+```
+
 ## Selecting a model
 
 Marginal likelihood is estimated for each of the 8 models and the
