@@ -84,18 +84,12 @@ between 1 and 4 copy number states at any given CNP.  Since we do not
 know the number of components a priori, we fit a model for each k.
 In addition, we fit models with and without a term for batch.
 
-The `posteriorSimulation` function takes a constructed `MixtureModel` and `k`, the number of components. The posterior simulations of each model can be held in a list - one for `MarginalModel`'s and one for `BatchModel`'s.
+The `posteriorSimulation` function takes a constructed `MixtureModel` and `k`, a vector of the number of components for which to fit models. The posterior simulations of each model is held in two lists - one for `MarginalModel`'s and one for `BatchModel`'s.
 
 ```{r posteriorSimulation}
-mlist.marginal <- list(posteriorSimulation(model.marginal, k=1),
-                       posteriorSimulation(model.marginal, k=2),
-                       posteriorSimulation(model.marginal, k=3),
-                       posteriorSimulation(model.marginal, k=4))
+mlist.marginal <- posteriorSimulation(model.marginal, k=1:4)
 
-mlist.batch <- list(posteriorSimulation(model.batch, k=1),
-                    posteriorSimulation(model.batch, k=2),
-                    posteriorSimulation(model.batch, k=3),
-                    posteriorSimulation(model.batch, k=4))
+mlist.batch <- posteriorSimulation(model.batch, k=1:4)
 ```
 
 ## Selecting a model
