@@ -104,6 +104,17 @@ Marginal likelihood is estimated for each of the 8 models and the
 Bayes' factors is used to select one of these models for further
 study.
 
+```{r likelihood}
+# marginal likelihood of each model
+marginal.lik <- marginalLikelihood(mlist.marginal)
+batch.lik <- marginalLikelihood(mlist.batch)
+
+# bayes factor for comparing top two models
+top.two.marginal <- mlist.marginal[order(marginal.lik, decreasing=TRUE)[1:2]]
+top.two.batch <- mlist.batch[order(batch.lik, decreasing=TRUE)[1:2]]
+logBayesFactor(top.two.marginal)
+logBayesFactor(top.two.batch)
+```
 
 ## Extracting MAP estimates and posterior probabilities
 
