@@ -1085,7 +1085,6 @@ Rcpp::NumericVector p_s20_reduced(Rcpp::S4 xmod) {
   NumericVector x = model.slot("data") ;    
   int K = hypp.slot("k") ;
   int S = mcmcp.slot("iter") ;  
-  int N = x.size() ;
   //
   NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
   NumericVector theta_=as<NumericVector>(modes["theta"]) ;
