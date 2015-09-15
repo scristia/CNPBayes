@@ -74,7 +74,7 @@ defineCnpRegions <- function(grl, thr=0.02){
   message("find consensus regions...")
   ##browser()
   for(j in seq_along(hitlist)){
-    cat(".")
+    message(".", appendLF=FALSE)
     i <- hitlist[[j]]
     regionlist[[j]] <- consensusRegion(g[i])
   }
