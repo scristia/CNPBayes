@@ -75,14 +75,6 @@ double trunc_norm(double mean, double sd) {
     return R::qnorm(p, mean, sd, 1, 0);
 }
 
-// Simulate from mutlivariate normal distribution.
-arma::mat mvrnormArma(int n, arma::vec mu, arma::mat sigma) {
-   int ncols = sigma.n_cols;
-   arma::mat Y = arma::randn(n, ncols);
-   return arma::repmat(mu, 1, n).t() + Y * arma::chol(sigma);
-}
-
-
 // Distribution function for skew normal
 NumericVector dsn(NumericVector r, double xi, double omega, double alpha) {
     NumericVector z, logN, logS, logPDF;
