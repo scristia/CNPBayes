@@ -97,7 +97,7 @@ test_selectK_easy <- function(){
   ## tend to over fit
   mp <- McmcParams(iter=5e3, burnin=1000, nStarts=1)
   model <- MarginalModel(data=y(truth), k=2, mcmc.params=mp)
-  mlist <- posteriorSimulation(model, k=2:4),
+  mlist <- posteriorSimulation(model, k=2:4)
   m.y <- marginalLikelihood(mlist)
   ## k=4 has higher marginal likelihood (number of components does not
   ## always correspond to number of copy number states)
