@@ -309,8 +309,8 @@ setMethod("posteriorSimulation", c("MixtureModel", "integer"),
     function(object, k) {
         if (length(k) > 1) {
             mlist <- vector("list", length(k))
-            for (i in k) {
-                k(object) <- i
+            for (i in seq_along(k)) {
+                k(object) <- k[i]
                 mlist[[i]] <- .posteriorSimulation(object)
             }
             mlist
