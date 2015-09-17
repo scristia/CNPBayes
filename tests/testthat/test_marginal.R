@@ -152,5 +152,5 @@ test_that("posteriorSimulation methods", {
 
     # multiple components
     post <- posteriorSimulation(model, k=2:4)
-    expect_identical(length(post), 3)
+    expect_identical(length(post), 3L)
 })
