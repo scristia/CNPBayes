@@ -4,13 +4,13 @@
 #' @name CNPBayes
 #' @import methods
 #' @import GenomicRanges
-#' @import S4Vectors
 #' @importFrom gtools rdirichlet ddirichlet
 #' @import Rcpp
 #' @import RcppArmadillo
 #' @import GenomeInfoDb
 #' @import BiocGenerics
 #' @import IRanges
+#' @import S4Vectors SimpleList DataFrame
 #' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% %dopar% foreach
