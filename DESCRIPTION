@@ -9,7 +9,6 @@ Date: Tue Jan 20 20:41:00 EST 2015
 Author: Stephen Cristiano, Robert Scharpf, and Jacob Carey
 Depends:
     Rcpp (>= 0.10.4),
-    RcppArmadillo (>= 0.2.0),
     foreach,
 Imports:
     S4Vectors,

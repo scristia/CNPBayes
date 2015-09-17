@@ -5,7 +5,6 @@
 #' @import methods
 #' @importFrom gtools rdirichlet
 #' @import Rcpp
-#' @import RcppArmadillo
 #' @import GenomeInfoDb
 #' @import BiocGenerics
 #' @import IRanges
