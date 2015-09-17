@@ -139,3 +139,18 @@ test_that("test_selectK_easy", {
     expect_identical(3L, k(dm))
 })
 
+test_that("posteriorSimulation methods", {
+    set.seed(1)
+    mp <- McmcParams(iter=10, burnin=0)
+    model <- MarginalModel(data=rnorm(10), k=2, mcmc.params=mp)
+
+    # normal method
+    posteriorSimulation(model)
+    
+    # different component size
+    posteriorSimulation(model, k=3)
+
+    # multiple components
+    post <- posteriorSimulation(model, k=2:4)
+    expect_identical(length(post), 3)
+})
