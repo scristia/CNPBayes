@@ -6,7 +6,6 @@
 #' @importFrom gtools rdirichlet
 #' @import Rcpp
 #' @import GenomeInfoDb
-#' @import BiocGenerics
 #' @import IRanges
 #' @importFrom S4Vectors SimpleList DataFrame
 #' @importFrom GenomicRanges rowRanges SummarizedExperiment colData GRanges GRangesList assays
