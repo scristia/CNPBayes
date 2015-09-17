@@ -168,9 +168,9 @@ test_that("test_hard3", {
     j <- order(pmns[1, ])
     ps <- CNPBayes:::sigmaMean(mmodel)[, j]
     pmix <- CNPBayes:::pMean(mmodel)[j]
-    expect_equal(theta(truth), pmns[, j])
-    expect_equal(sigma(truth), ps)
-    expect_equal(p(truth), pmix)
+    expect_equal(theta(truth), pmns[, j], tolerance=0.04)
+    expect_equal(sigma(truth), ps, tolerance=0.15)
+    expect_equal(p(truth), pmix, tolerance=0.04)
     mcmcp <- McmcParams(iter = 200, burnin = 100, nStarts = 20)
     modelk <- BatchModel(data = y(truth), batch = batch(truth), 
         k = 3, mcmc.params = mcmcp, CNPBayes:::HyperparametersBatch(k = 3, 
@@ -180,9 +180,9 @@ test_that("test_hard3", {
     j <- order(pmns[1, ])
     ps <- CNPBayes:::sigmaMean(mmodel)[, j]
     pmix <- CNPBayes:::pMean(mmodel)[j]
-    expect_equal(theta(truth), pmns[, j])
-    expect_equal(sigma(truth), ps)
-    expect_equal(p(truth), pmix)
+    expect_equal(theta(truth), pmns[, j], tolerance=0.04)
+    expect_equal(sigma(truth), ps, tolerance=0.15)
+    expect_equal(p(truth), pmix, tolerance=0.04)
 })
 
 test_that("test_kbatch", {
