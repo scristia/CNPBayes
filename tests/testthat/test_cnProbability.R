@@ -14,6 +14,6 @@ test_that("test_cnProbability", {
         ])
     probs <- mapCnProbability(model)
     pz <- probz(model)
-    expect_equal(head(pz), head(probs))
+    expect_equal(head(pz), head(probs), tolerance=0.01)
 })
 

@@ -20,7 +20,7 @@ test_that("test_loglik", {
     model <- posteriorSimulation(model)
     ll1 <- log_lik(model)
     ll2 <- CNPBayes:::computeLoglik(model)
-    expect_equal(ll2, ll1)
+    expect_equal(ll2, ll1, tolerance=0.05)
     yy <- y(model)
     th <- theta(model)
     sd <- sigma(model)

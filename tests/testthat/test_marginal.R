@@ -29,9 +29,9 @@ test_that("test_marginal_hard", {
     model <- MarginalModel(y(truth), k = 3)
     model <- posteriorSimulation(model)
     i <- order(theta(model))
-    expect_equal(theta(truth), theta(model)[i])
-    expect_equal(sigma(truth), colMeans(sigmac(model))[i])
-    expect_equal(p(truth), colMeans(pic(model))[i])
+    expect_equal(theta(truth), theta(model)[i], tolerance=0.15)
+    expect_equal(sigma(truth), colMeans(sigmac(model))[i], tolerance=0.1)
+    expect_equal(p(truth), colMeans(pic(model))[i], tolerance=0.18)
     if (FALSE) {
         op <- par(mfrow = c(1, 2), las = 1)
         plot(truth)
@@ -51,7 +51,7 @@ test_that("test_marginal_Moderate", {
     model <- MarginalModel(y(truth), k = 3, mcmc.params = mcmcp)
     model <- CNPBayes:::startAtTrueValues(model, truth)
     model <- posteriorSimulation(model)
-    expect_equal(theta(truth), sort(theta(model)))
+    expect_equal(theta(truth), sort(theta(model)), tolerance=0.15)
     if (FALSE) {
         plot.ts(CNPBayes:::thetac(model), plot.type = "single")
         plot.ts(sigmac(model), plot.type = "single")
@@ -61,8 +61,10 @@ test_that("test_marginal_Moderate", {
         plot(model)
         par(op)
     }
-    expect_equal(sigma(truth), sigma(model)[order(theta(model))])
-    expect_equal(p(truth), colMeans(pic(model))[order(theta(model))])
+    expect_equal(sigma(truth), sigma(model)[order(theta(model))], 
+                 tolerance=0.15)
+    expect_equal(p(truth), colMeans(pic(model))[order(theta(model))],
+                 tolerance=0.2)
 })
 
 test_that("test_marginalDiffK", {

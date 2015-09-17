@@ -19,7 +19,7 @@ test_that("test_batch_moderate", {
         k = 3, mcmc.params = mcmcp, hypp = hypp)
     model <- posteriorSimulation(model)
     i <- order(theta(model)[1, ])
-    expect_equal(theta(truth), theta(model)[, i])
+    expect_equal(theta(truth), theta(model)[, i], tolerance=0.1)
     if (FALSE) {
         zz <- as.integer(z(truth))
         ps <- c(mean(zz == 1), mean(zz == 2), mean(zz == 3))
@@ -95,7 +95,7 @@ test_that("test_batchEasy", {
         save(BatchModelExample, file = "data/BatchModelExample.RData")
     }
     i <- order(theta(model)[1, ])
-    expect_equal(theta(truth), theta(model)[, i])
+    expect_equal(theta(truth), theta(model)[, i], tolerance=0.1)
     if (FALSE) {
         op <- par(mfrow = c(1, 2), las = 1)
         plot(truth)

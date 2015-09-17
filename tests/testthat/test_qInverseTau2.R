@@ -8,8 +8,8 @@ test_that("test_qInverseTau2", {
     expect_equal(mn^2/sd^2, a)
     expect_equal(mn/sd^2, b)
     tmp <- rgamma(10000, a, rate = b)
-    expect_equal(mn, mean(tmp))
-    expect_equal(sd, sd(tmp))
+    expect_equal(mn, mean(tmp), tolerance=1)
+    expect_equal(sd, sd(tmp), tolerance=0.5)
     eta.0 <- 2 * a
     m2.0 <- b/a
     x <- qgamma(seq(0, 1 - 0.001, 0.001), 0.5 * eta.0, rate = 0.5 * 
