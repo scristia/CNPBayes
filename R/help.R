@@ -4,7 +4,7 @@
 #' @name CNPBayes
 #' @import methods
 #' @import GenomicRanges
-#' @importFrom gtools rdirichlet ddirichlet
+#' @importFrom gtools rdirichlet
 #' @import Rcpp
 #' @import RcppArmadillo
 #' @import GenomeInfoDb
