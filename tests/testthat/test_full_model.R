@@ -17,4 +17,4 @@ test_that("hard truth", {
                              sds=sds,
                              batch=rep(letters[1:3], length.out=N),
                              p=c(p1, p2, p3))
-}
+})
