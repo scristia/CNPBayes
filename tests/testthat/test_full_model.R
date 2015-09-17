@@ -1,4 +1,4 @@
-test_that("hard truth" {
+test_that("hard truth", {
   set.seed(1234)
   prop_comp1 <- 0.005
   s <- 0.3
