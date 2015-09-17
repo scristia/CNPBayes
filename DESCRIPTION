@@ -11,9 +11,9 @@ Depends:
     Rcpp (>= 0.10.4),
     RcppArmadillo (>= 0.2.0),
     foreach,
-    GenomicRanges,
 Imports:
     S4Vectors,
+    GenomicRanges,
     matrixStats,
     RColorBrewer,
     gtools,
