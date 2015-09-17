@@ -1,7 +1,5 @@
-test_that("hard truth", {
+hardTruth <- function(prop_comp1=0.005, s=0.3) {
   set.seed(1234)
-  prop_comp1 <- 0.005
-  s <- 0.3
   k <- 3
   nbatch <- 3
   means <- matrix(c(-1.9, -2, -1.85,
@@ -17,4 +15,4 @@ test_that("hard truth", {
                              sds=sds,
                              batch=rep(letters[1:3], length.out=N),
                              p=c(p1, p2, p3))
-})
+}
