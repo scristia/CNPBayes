@@ -3,8 +3,8 @@ language:
     - cpp
 
 os:
-    #- linux
-    - osx
+    - linux
+    #- osx
 
 sudo: required
 
