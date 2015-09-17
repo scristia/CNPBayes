@@ -10,7 +10,7 @@
 #' @import GenomeInfoDb
 #' @import BiocGenerics
 #' @import IRanges
-#' @import S4Vectors SimpleList DataFrame
+#' @importFrom S4Vectors SimpleList DataFrame
 #' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% %dopar% foreach
