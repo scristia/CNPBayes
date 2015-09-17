@@ -24,7 +24,7 @@ Imports:
     methods,
     BiocGenerics,
 Suggests:
-    RUnit,
+    testthat,
     knitr,
     BiocStyle,
     VanillaICE (>= 1.31.3),
