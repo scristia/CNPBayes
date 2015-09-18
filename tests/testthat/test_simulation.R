@@ -14,9 +14,7 @@ test_that("test_simulation_moderate", {
         pc <- -pc
     mp <- McmcParams(iter = 1000, burnin = 500, nStarts = 1)
     model <- MarginalModel(data = pc, k = 1, mcmc.params = mp)
-    mlist <- list(posteriorSimulation(model), posteriorSimulation(model, 
-        k = 2), posteriorSimulation(model, k = 3), posteriorSimulation(model, 
-        k = 4))
+    mlist <- posteriorSimulation(model, k=1:4)
     m.y <- marginalLikelihood(mlist)
     expect_true(which.max(m.y) == 4L)
     if (FALSE) 
