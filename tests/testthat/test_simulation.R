@@ -1,4 +1,5 @@
 test_that("test_simulation_moderate", {
+    set.seed(42)
     arguments <- list(sl.good = 6.25, sl.bad = 0.0625, prbias = 0.03, 
         n = 0.2, prvar = c(19.92985, 0.06272))
     dat <- CNPBayes:::simulateProbeLevel(cnvs = 1, K = 4, probes = 10, 
