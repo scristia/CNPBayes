@@ -1,4 +1,5 @@
 test_that("test_simulation_moderate", {
+    set.seed(42)
     arguments <- list(sl.good = 6.25, sl.bad = 0.0625, prbias = 0.03, 
         n = 0.2, prvar = c(19.92985, 0.06272))
     dat <- CNPBayes:::simulateProbeLevel(cnvs = 1, K = 4, probes = 10, 
@@ -14,9 +15,7 @@ test_that("test_simulation_moderate", {
         pc <- -pc
     mp <- McmcParams(iter = 1000, burnin = 500, nStarts = 1)
     model <- MarginalModel(data = pc, k = 1, mcmc.params = mp)
-    mlist <- list(posteriorSimulation(model), posteriorSimulation(model, 
-        k = 2), posteriorSimulation(model, k = 3), posteriorSimulation(model, 
-        k = 4))
+    mlist <- posteriorSimulation(model, k=1:4)
     m.y <- marginalLikelihood(mlist)
     expect_true(which.max(m.y) == 4L)
     if (FALSE) 
