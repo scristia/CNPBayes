@@ -8,6 +8,10 @@ setValidity("MixtureModel", function(object){
     msg <- "disagreement of k in hyperparams and model"
     return(msg)
   }
+  ## maximum value of nu0 is currently hard-coded in C as 100
+  if(nu.0(object) > 100){
+    return("nu.0 can not exceed 100")
+  }
   msg
 })
 
