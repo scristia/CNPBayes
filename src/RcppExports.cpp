@@ -339,6 +339,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// update_sigma2_pooled
+Rcpp::NumericVector update_sigma2_pooled(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_update_sigma2_pooled(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(update_sigma2_pooled(xmod));
+    return __result;
+END_RCPP
+}
 // update_sigma2
 Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod);
 RcppExport SEXP CNPBayes_update_sigma2(SEXP xmodSEXP) {

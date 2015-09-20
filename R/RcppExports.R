@@ -121,6 +121,10 @@ compute_logprior <- function(xmod) {
     .Call('CNPBayes_compute_logprior', PACKAGE = 'CNPBayes', xmod)
 }
 
+update_sigma2_pooled <- function(xmod) {
+    .Call('CNPBayes_update_sigma2_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
 update_sigma2 <- function(xmod) {
     .Call('CNPBayes_update_sigma2', PACKAGE = 'CNPBayes', xmod)
 }

@@ -7,7 +7,7 @@ test_that("test_constraint", {
 
 test_that("test_marginal_empty_component", {
     set.seed(1)
-    truth <- simulateData(N = 10, p = rep(1/3, 3), theta = c(-1, 
+    truth <- simulateData(N = 10, p = rep(1/3, 3), theta = c(-1,
         0, 1), sds = rep(0.1, 3))
     mp <- McmcParams(iter = 5, burnin = 5, nStarts = 1)
     model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
@@ -20,11 +20,11 @@ test_that("test_marginal_few_data", {
 
 test_that("test_marginal_hard", {
     set.seed(2000)
-    truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0), sds = c(0.3, 
+    truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0), sds = c(0.3,
         0.15, 0.15), p = c(0.005, 1/10, 1 - 0.005 - 1/10))
-    if (FALSE) 
+    if (FALSE)
         plot(truth)
-    mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 10, 
+    mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 10,
         nStarts = 20)
     model <- MarginalModel(y(truth), k = 3)
     model <- posteriorSimulation(model)
@@ -43,9 +43,9 @@ test_that("test_marginal_hard", {
 
 test_that("test_marginal_Moderate", {
     set.seed(100)
-    truth <- simulateData(N = 2500, theta = c(-2, -0.4, 0), sds = c(0.3, 
+    truth <- simulateData(N = 2500, theta = c(-2, -0.4, 0), sds = c(0.3,
         0.15, 0.15), p = c(0.05, 0.1, 0.8))
-    if (FALSE) 
+    if (FALSE)
         plot(truth)
     mcmcp <- McmcParams(iter = 500, burnin = 500, thin = 2)
     model <- MarginalModel(y(truth), k = 3, mcmc.params = mcmcp)
@@ -61,15 +61,31 @@ test_that("test_marginal_Moderate", {
         plot(model)
         par(op)
     }
-    expect_equal(sigma(truth), sigma(model)[order(theta(model))], 
+    expect_equal(sigma(truth), sigma(model)[order(theta(model))],
                  tolerance=0.15)
     expect_equal(p(truth), colMeans(pic(model))[order(theta(model))],
                  tolerance=0.2)
-})
+  })
+
+test_that("test_marginal_pooled", {
+    set.seed(100)
+    truth <- simulateData(N = 2500, theta = c(-2, -0.4, 0), sds = c(0.3,
+        0.3, 0.3), p = c(0.05, 0.1, 0.8))
+    if (FALSE)
+        plot(truth)
+    mcmcp <- McmcParams(iter = 500, burnin = 500, thin = 2)
+    model <- MarginalModel(y(truth), k = 3, mcmc.params = mcmcp)
+    model <- CNPBayes:::startAtTrueValues(model, truth)
+    model <- posteriorSimulation(model)
+    expect_equal(theta(truth), sort(theta(model)), tolerance=0.15)
+    s_pooled <- sqrt(update_sigma2_pooled(model))
+    expect_equal(object=s_pooled, expected=0.3, tolerance=0.02)
+  })
+
 
 test_that("test_marginalDiffK", {
     set.seed(1)
-    truth <- simulateData(N = 500, p = rep(1/3, 3), theta = c(-1, 
+    truth <- simulateData(N = 500, p = rep(1/3, 3), theta = c(-1,
         0, 1), sds = rep(0.1, 3))
     mp <- McmcParams(iter = 5, burnin = 5, nStarts = 1)
     model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
@@ -81,9 +97,9 @@ test_that("test_marginalDiffK", {
 
 test_that("test_marginalEasy", {
     set.seed(1)
-    truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1, 
+    truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1,
         0, 1), sds = rep(0.1, 3))
-    if (FALSE) 
+    if (FALSE)
         plot(truth)
     mp <- McmcParams(iter = 5, burnin = 5, nStarts = 1)
     model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
@@ -127,7 +143,7 @@ test_that("test_selectK_easy", {
     set.seed(1)
     means <- c(-1, 0, 1)
     sds <- c(0.1, 0.2, 0.2)
-    truth <- simulateData(N = 250, p = rep(1/3, 3), theta = means, 
+    truth <- simulateData(N = 250, p = rep(1/3, 3), theta = means,
         sds = sds)
     mp <- McmcParams(iter = 5000, burnin = 1000, nStarts = 1)
     model <- MarginalModel(data = y(truth), k = 2, mcmc.params = mp)
@@ -146,7 +162,7 @@ test_that("posteriorSimulation methods", {
 
     # normal method
     posteriorSimulation(model)
-    
+
     # different component size
     posteriorSimulation(model, k=3)
 
