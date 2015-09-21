@@ -1,0 +1,63 @@
+
+R version 3.2.0 Patched (2015-04-29 r68274) -- "Full of Ingredients"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-unknown-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(testthat)
+> library(CNPBayes)
+Loading required package: Rcpp
+Loading required package: foreach
+There were 14 warnings (use warnings() to see them)
+> 
+> test_check("CNPBayes")
+1. Failure (at test_marginal.R#32): test_marginal_hard -------------------------
+theta(truth) not equal to theta(model)[i]
+3/3 mismatches (average diff: 0.112).
+First 3:
+ pos       x         y    diff
+   1 -1.8059 -1.733579 -0.0723
+   2 -0.1445 -0.387447  0.2429
+   3  0.0206 -0.000734  0.0213
+
+2. Failure (at test_marginal.R#33): test_marginal_hard -------------------------
+sigma(truth) not equal to colMeans(sigmac(model))[i]
+3/3 mismatches (average diff: 0.024).
+First 3:
+ pos     x     y    diff
+   1 0.320 0.299  0.0207
+   2 0.213 0.168  0.0454
+   3 0.142 0.148 -0.0059
+
+3. Failure (at test_marginal.R#34): test_marginal_hard -------------------------
+p(truth) not equal to colMeans(pic(model))[i]
+3/3 mismatches (average diff: 0.0712).
+First 3:
+ pos      x     y     diff
+   1 0.0122 0.011  0.00117
+   2 0.2226 0.117  0.10561
+   3 0.7652 0.872 -0.10678
+
+4. Failure (at test_marginal.R#122): test_segfaultExcept -----------------------
+model <- posteriorSimulation(model) code did not generate an error
+
+testthat results ================================================================
+OK: 109 SKIPPED: 0 FAILED: 4
+1. Failure (at test_marginal.R#32): test_marginal_hard 
+2. Failure (at test_marginal.R#33): test_marginal_hard 
+3. Failure (at test_marginal.R#34): test_marginal_hard 
+4. Failure (at test_marginal.R#122): test_segfaultExcept 
+
+Error: testthat unit tests failed
+Execution halted
