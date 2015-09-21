@@ -87,6 +87,7 @@ test_that("test_marginalEasy", {
         plot(truth)
     mp <- McmcParams(iter = 5, burnin = 5, nStarts = 1)
     model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
+    up <- CNPBayes:::paramUpdates(model)
     model <- CNPBayes:::startAtTrueValues(model, truth)
     model <- posteriorSimulation(model)
     if (FALSE) {
