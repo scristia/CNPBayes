@@ -6,6 +6,63 @@
 
 using namespace Rcpp ;
 
+// [[Rcpp::export]]
+Rcpp::NumericVector loglik_pooled(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  NumericVector x = model.slot("data") ;
+  NumericVector p = model.slot("pi") ;
+  int K = getK(model.slot("hyperparams")) ;
+  NumericVector theta = model.slot("theta") ;
+  NumericVector sigma2 = model.slot("sigma2") ;
+  NumericVector sigma = sqrt(sigma2) ;
+  int n = x.size() ;
+  //double lik;
+  NumericVector loglik(1) ;
+  NumericVector y(1);    
+  NumericVector lik(n);
+  // Below is equivalent to rowSums(lik) in .loglikMarginal
+  for(int k = 0; k < K; k++) {
+    lik += p[k]*dnorm(x, theta[k], sigma[0]);
+  }
+  for(int i = 0; i < n; i++){
+    loglik[0] += log(lik[i]);
+  }
+  return loglik;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix multinomialPr_pooled(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;  
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  NumericVector theta = model.slot("theta") ;
+  NumericVector sigma2 = model.slot("sigma2") ;
+  NumericVector sigma = sqrt(sigma2) ;
+  NumericVector p = model.slot("pi") ;
+  NumericVector x = model.slot("data") ;
+  int n = x.size() ;  
+  NumericMatrix lik(n, K) ;
+  NumericMatrix probs(n, K) ;
+  NumericVector tmp(n) ;
+  NumericVector total(n) ;
+  for(int k = 0; k < K; k++) {
+    tmp = p[k]*dnorm(x, theta[k], sigma[0]) ;
+    for(int i = 0; i < n; i++){
+      lik(i, k) = tmp[i] ;
+    }
+    total += tmp ;
+  }
+  for(int k = 0; k < K; k++){
+    for(int i = 0; i < n; i++){
+      probs(i, k) = lik(i,k) / total[i] ;
+    }
+  }
+  return probs ;
+}
+
+// [[Rcpp::export]]
 Rcpp::NumericVector nu0_pooled(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
@@ -176,7 +233,7 @@ Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
-  NumericVector ll = loglik(xmod) ;
+  NumericVector ll = loglik_pooled(xmod) ;
   NumericVector lls2 = stageTwoLogLik(xmod) ;
   model.slot("loglik") = ll + lls2 ;
   model.slot("logprior") = compute_logprior(xmod) ;    
@@ -326,7 +383,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     zfreq(s, _) = tmp ;
     model.slot("data.mean") = compute_means(xmod) ;
     model.slot("data.prec") = compute_prec(xmod) ;
-    ll = loglik(xmod) ;
+    ll = loglik_pooled(xmod) ;
     lls2 = stageTwoLogLik(xmod) ;
     // ll = ll + lls2 ;
     loglik_[s] = ll[0] ;

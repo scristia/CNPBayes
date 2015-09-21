@@ -9,6 +9,18 @@ tableZ <- function(K, z) {
     .Call('CNPBayes_tableZ', PACKAGE = 'CNPBayes', K, z)
 }
 
+loglik_pooled <- function(xmod) {
+    .Call('CNPBayes_loglik_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+multinomialPr_pooled <- function(xmod) {
+    .Call('CNPBayes_multinomialPr_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+nu0_pooled <- function(xmod) {
+    .Call('CNPBayes_nu0_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
 sigma2_0_pooled <- function(xmod) {
     .Call('CNPBayes_sigma2_0_pooled', PACKAGE = 'CNPBayes', xmod)
 }

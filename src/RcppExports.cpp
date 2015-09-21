@@ -29,6 +29,39 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// loglik_pooled
+Rcpp::NumericVector loglik_pooled(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_loglik_pooled(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(loglik_pooled(xmod));
+    return __result;
+END_RCPP
+}
+// multinomialPr_pooled
+Rcpp::NumericMatrix multinomialPr_pooled(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_multinomialPr_pooled(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(multinomialPr_pooled(xmod));
+    return __result;
+END_RCPP
+}
+// nu0_pooled
+Rcpp::NumericVector nu0_pooled(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_nu0_pooled(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(nu0_pooled(xmod));
+    return __result;
+END_RCPP
+}
 // sigma2_0_pooled
 Rcpp::NumericVector sigma2_0_pooled(Rcpp::S4 xmod);
 RcppExport SEXP CNPBayes_sigma2_0_pooled(SEXP xmodSEXP) {
