@@ -29,6 +29,52 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// sigma2_0_pooled
+Rcpp::NumericVector sigma2_0_pooled(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_sigma2_0_pooled(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(sigma2_0_pooled(xmod));
+    return __result;
+END_RCPP
+}
+// sigma2_pooled
+Rcpp::NumericVector sigma2_pooled(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_sigma2_pooled(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(sigma2_pooled(xmod));
+    return __result;
+END_RCPP
+}
+// burnin_singlebatch_pooled
+Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
+RcppExport SEXP CNPBayes_burnin_singlebatch_pooled(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
+    __result = Rcpp::wrap(burnin_singlebatch_pooled(xmod, mcmcp));
+    return __result;
+END_RCPP
+}
+// mcmc_singlebatch_pooled
+Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp);
+RcppExport SEXP CNPBayes_mcmc_singlebatch_pooled(SEXP objectSEXP, SEXP mcmcpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
+    __result = Rcpp::wrap(mcmc_singlebatch_pooled(object, mcmcp));
+    return __result;
+END_RCPP
+}
 // getK
 int getK(Rcpp::S4 hyperparams);
 RcppExport SEXP CNPBayes_getK(SEXP hyperparamsSEXP) {
@@ -336,17 +382,6 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     __result = Rcpp::wrap(compute_logprior(xmod));
-    return __result;
-END_RCPP
-}
-// update_sigma2_pooled
-Rcpp::NumericVector update_sigma2_pooled(Rcpp::S4 xmod);
-RcppExport SEXP CNPBayes_update_sigma2_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    __result = Rcpp::wrap(update_sigma2_pooled(xmod));
     return __result;
 END_RCPP
 }

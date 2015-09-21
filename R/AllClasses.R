@@ -206,6 +206,8 @@ setClass("BatchModel", contains="MixtureModel")
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 setClass("MarginalModel", contains="MixtureModel")
 
+setClass("SingleBatchPooledVar", contains="MarginalModel")
+
 setClass("UnivariateBatchModel", contains="BatchModel")
 
 #' An object to specify the parameters for MCMC simulation.

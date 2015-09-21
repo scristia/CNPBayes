@@ -265,12 +265,20 @@ setMethod("runBurnin", "MarginalModel", function(object){
 
 })
 
+setMethod("runBurnin", "SingleBatchPooledVar", function(object){
+  burnin_singlebatch_pooled(object, mcmcParams(object))
+})
+
 setMethod("runBurnin", "BatchModel", function(object){
   mcmc_batch_burnin(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "MarginalModel", function(object){
   mcmc_marginal(object, mcmcParams(object))
+})
+
+setMethod("runMcmc", "SingleBatchPooledVar", function(object){
+  mcmc_singlebatch_pooled(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "BatchModel", function(object){
@@ -341,6 +349,17 @@ setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
   if( iter(post)==0 ) return(post)
   post <- runMcmc(post)
   modes(post) <- computeModes(post)
+  post
+}
+
+posteriorSimulationPooled <- function(object, iter=1000,
+                                      burnin=1000,
+                                      thin=10){
+  mp <- McmcParams(iter=iter, burnin=burnin, thin=thin)
+  object <- runBurnin(object)
+  if( iter(object)==0 ) return(object)
+  post <- runMcmc(object)
+  modes(object) <- computeModes(object)
   post
 }
 

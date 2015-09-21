@@ -9,6 +9,22 @@ tableZ <- function(K, z) {
     .Call('CNPBayes_tableZ', PACKAGE = 'CNPBayes', K, z)
 }
 
+sigma2_0_pooled <- function(xmod) {
+    .Call('CNPBayes_sigma2_0_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+sigma2_pooled <- function(xmod) {
+    .Call('CNPBayes_sigma2_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+burnin_singlebatch_pooled <- function(xmod, mcmcp) {
+    .Call('CNPBayes_burnin_singlebatch_pooled', PACKAGE = 'CNPBayes', xmod, mcmcp)
+}
+
+mcmc_singlebatch_pooled <- function(object, mcmcp) {
+    .Call('CNPBayes_mcmc_singlebatch_pooled', PACKAGE = 'CNPBayes', object, mcmcp)
+}
+
 getK <- function(hyperparams) {
     .Call('CNPBayes_getK', PACKAGE = 'CNPBayes', hyperparams)
 }
@@ -119,10 +135,6 @@ compute_prec <- function(xmod) {
 
 compute_logprior <- function(xmod) {
     .Call('CNPBayes_compute_logprior', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_sigma2_pooled <- function(xmod) {
-    .Call('CNPBayes_update_sigma2_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_sigma2 <- function(xmod) {
