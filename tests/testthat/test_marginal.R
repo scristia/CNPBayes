@@ -78,14 +78,39 @@ test_that("test_marginal_pooled", {
     model <- CNPBayes:::startAtTrueValues(model, truth)
     model <- posteriorSimulation(model)
     expect_equal(theta(truth), sort(theta(model)), tolerance=0.15)
-    s_pooled <- sqrt(sigma2_pooled(model))
-    nu0_pooled <- nu0_pooled(model)
-    sigma20_pooled <- sigma2_0_pooled(model)
+    s_pooled <- sqrt(CNPBayes:::sigma2_pooled(model))
+    nu0_pooled <- CNPBayes:::nu0_pooled(model)
+    sigma20_pooled <- CNPBayes:::sigma2_0_pooled(model)
     expect_equal(object=s_pooled, expected=0.3, tolerance=0.02)
 
-    pooled <- CNPBayes:::SingleBatchPooledVar(data=y(truth))
-    expect_identical(ncol(sigma2(chains(pooled))), 1L)
-    pooled <- posteriorSimulationPooled(pooled, iter=10, burnin=5, thin=1)
+    ylist <- split(y(model), z(model))
+    tmp <- foreach(y=ylist, th=theta(model)) %do%{
+      sum((y-th)^2)
+    }
+    r_ss <- sum(unlist(tmp))
+
+    sigma2_n <- 0.5*(nu.0(model) * sigma2.0(model) + r_ss)
+    nu_n <- length(y(model))
+    set.seed(123)
+    (sigma2_new <- 1/rgamma(1, 0.5*nu_n, sigma2_n))
+    set.seed(123)
+    (sigma2_new.cpp <- CNPBayes:::sigma2_pooled(model))
+    expect_equal(sigma2_new, sigma2_new.cpp, tolerance=0.01)
+
+    truth <- simulateData(N = 2500, theta = c(-2, -0.5, 0),
+                          sds = c(0.1, 0.1, 0.1), p = c(0.05, 0.1, 0.8))
+    pooled <- CNPBayes:::SingleBatchPooledVar(data=y(truth), k=3)
+    pooled <- posteriorSimulationPooled(pooled, iter=1000, burnin=0, thin=1)
+    thetas <- sort(colMeans(theta(chains(pooled))[-(1:100), ]))
+    expect_equal(thetas, theta(truth), tolerance=0.01)
+    sigmas <- mean(tail(sigma(chains(pooled)), 900))
+    expect_equal(sigmas, sigma(truth)[3], tolerance=0.01)
+    if(FALSE){
+      plot.ts(sigmac(pooled), col="gray", ylim=c(0, 0.3))
+      abline(h=mean(sigma(truth)))
+      plot.ts(thetac(pooled), col="gray", plot.type="single")
+      abline(h=theta(truth))
+    }
   })
 
 

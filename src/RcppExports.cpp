@@ -51,6 +51,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// z_pooled
+Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_z_pooled(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(z_pooled(xmod));
+    return __result;
+END_RCPP
+}
 // nu0_pooled
 Rcpp::NumericVector nu0_pooled(Rcpp::S4 xmod);
 RcppExport SEXP CNPBayes_nu0_pooled(SEXP xmodSEXP) {

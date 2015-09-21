@@ -17,6 +17,10 @@ multinomialPr_pooled <- function(xmod) {
     .Call('CNPBayes_multinomialPr_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
+z_pooled <- function(xmod) {
+    .Call('CNPBayes_z_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
 nu0_pooled <- function(xmod) {
     .Call('CNPBayes_nu0_pooled', PACKAGE = 'CNPBayes', xmod)
 }
