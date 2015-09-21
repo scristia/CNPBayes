@@ -31,6 +31,9 @@ setMethod("McmcChains", "missing", function(object){
       z=matrix())
 })
 
+
+
+
 setMethod("McmcChains", "MixtureModel", function(object){
   .initializeMcmc(object)
 })

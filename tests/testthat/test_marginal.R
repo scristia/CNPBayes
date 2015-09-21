@@ -78,8 +78,14 @@ test_that("test_marginal_pooled", {
     model <- CNPBayes:::startAtTrueValues(model, truth)
     model <- posteriorSimulation(model)
     expect_equal(theta(truth), sort(theta(model)), tolerance=0.15)
-    s_pooled <- sqrt(update_sigma2_pooled(model))
+    s_pooled <- sqrt(sigma2_pooled(model))
+    nu0_pooled <- nu0_pooled(model)
+    sigma20_pooled <- sigma2_0_pooled(model)
     expect_equal(object=s_pooled, expected=0.3, tolerance=0.02)
+
+    pooled <- CNPBayes:::SingleBatchPooledVar(data=y(truth))
+    expect_identical(ncol(sigma2(chains(pooled))), 1L)
+    pooled <- posteriorSimulationPooled(pooled, iter=10, burnin=5, thin=1)
   })
 
 
