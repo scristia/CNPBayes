@@ -52,6 +52,7 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
   mn <- shape/rate
   sd <- sqrt(shape/rate^2)
   x <- qgamma(seq(0, 1-0.001, 0.001), shape=0.5*eta.0, rate=0.5*eta.0*m2.0)
+  x <- x[is.finite(x) & x > 0]
   list(quantiles=x, eta.0=eta.0, m2.0=m2.0, mean=mn, sd=sd)
 }
 
