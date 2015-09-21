@@ -349,6 +349,32 @@ setMethod("densities", "MarginalModel", function(object){
        clusters=clusters, quantiles=quantiles, data=data)
 })
 
+setMethod("densities", "SingleBatchPooledVar", function(object){
+  quantiles <- seq(min(observed(object)), max(observed(object)),  length.out=250)
+  ## use the modes if available
+  if(length(modes(object)) > 0){
+    object <- useModes(object)
+  }
+  data <- y(object)
+  thetas <- theta(object)
+  sd.pooled <- sigma(object)
+  P <- p(object)
+  ix <- order(thetas)
+  thetas <- thetas[ix]
+  P <- P[ix]
+  dens.list <- vector("list", length(thetas))
+  for(i in seq_along(dens.list)){
+    dens.list[[i]] <- P[i]*dnorm(quantiles, mean=thetas[i], sd=sd.pooled)
+  }
+  ##component <- lapply(dens.list, rowSums)
+  overall <- rowSums(do.call(cbind, dens.list))
+  modes <- findModes(quantiles, overall)
+  clusters <- seq_len(k(object))
+  names(clusters) <- ix
+  list(component=dens.list, overall=overall, modes=modes,
+       clusters=clusters, quantiles=quantiles, data=data)
+})
+
 #' @rdname clusters-method
 #' @aliases clusters,DensityModel-method
 setMethod("clusters", "DensityModel", function(object) object@clusters)
