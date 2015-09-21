@@ -100,7 +100,7 @@ Rcpp::NumericVector update_mu(Rcpp::S4 xmod) {
   NumericVector theta = model.slot("theta") ;
   IntegerVector z = model.slot("z") ;
   IntegerVector nn = tableZ(K, z) ;
-  double thetabar ;
+  double thetabar = 0.0;
   double total = 0.0 ;
   for(int k = 0; k < K; k++) total += nn[k] ;
   for(int k = 0; k < K; k++) thetabar += nn[k] * theta[k] / total ;
