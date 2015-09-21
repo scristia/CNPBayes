@@ -43,6 +43,9 @@ MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
 SingleBatchPooledVar <- function(data=numeric(), k=2, hypp, mcmc.params){
   obj <- MarginalModel(data, k, hypp, mcmc.params)
   obj@sigma2 <- mean(sigma2(obj))
+  ch <- chains(obj)
+  ch@sigma2 <- matrix(NA, iter(obj), 1)
+  obj@mcmc.chains <- ch
   as(obj, "SingleBatchPooledVar")
 }
 
