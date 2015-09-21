@@ -159,7 +159,7 @@ Rcpp::NumericVector update_sigma2_0(Rcpp::S4 xmod) {
     Rcpp::NumericVector sigma2_0_old = model.slot("sigma2.0");
     int K = getK(hypp) ;
     double a_k = a + 0.5*K*nu_0 ;
-    double b_k ;
+    double b_k = 0.0;
 
     for (int k=0; k < K; k++) {
       b_k += 0.5*nu_0/sigma2[k];
