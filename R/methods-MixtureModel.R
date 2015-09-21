@@ -354,13 +354,17 @@ setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
 
 posteriorSimulationPooled <- function(object, iter=1000,
                                       burnin=1000,
-                                      thin=10){
-  mp <- McmcParams(iter=iter, burnin=burnin, thin=thin)
+                                      thin=10, param_updates){
+  if(missing(param_updates)){
+    param_updates <- paramUpdates(object)
+  }
+  mp <- McmcParams(iter=iter, burnin=burnin, thin=thin, param_updates=param_updates)
+  mcmcParams(object, force=TRUE) <- mp
   object <- runBurnin(object)
-  if( iter(object)==0 ) return(object)
-  post <- runMcmc(object)
+  if(!iter(object) > 0) return(object)
+  object <- runMcmc(object)
   modes(object) <- computeModes(object)
-  post
+  object
 }
 
 setReplaceMethod("dataMean", "MixtureModel", function(object, value){
@@ -712,7 +716,6 @@ setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=FALSE, val
   object@mcmc.params <- value
   object
 })
-
 
 
 setMethod("zChain", "MixtureModel", function(object) chains(object)@z)
