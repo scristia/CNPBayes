@@ -102,9 +102,7 @@ defineCnpRegions <- function(grl, thr=0.02){
 #' subjects.
 #'
 #' @examples
-#' require(BSgenome.Hsapiens.UCSC.hg19)
-#' genome <- BSgenome.Hsapiens.UCSC.hg19
-#'
+#' library(GenomicRanges)
 #' ##
 #' ## Simulate 2 loci at which CNVs are common
 #' ##
@@ -113,14 +111,11 @@ defineCnpRegions <- function(grl, thr=0.02){
 #' ends <- rpois(1000, 100) + 10.1e6L
 #' cnv1 <- GRanges("chr1", IRanges(starts, ends))
 #' cnv1$id <- paste0("sample", seq_along(cnv1))
-#' seqinfo(cnv1) <- seqinfo(genome)
 #'
 #' starts <- rpois(500, 1000) + 101e6L
 #' ends <- rpois(500, 1000) + 101.4e6L
 #' cnv2 <- GRanges("chr5", IRanges(starts, ends))
 #' cnv2$id <- paste0("sample", seq_along(cnv2))
-#' seqlevels(cnv2, force=TRUE) <- seqlevels(genome)
-#' seqinfo(cnv2) <- seqinfo(genome)
 #'
 #' ##
 #' ## Simulate a few other CNVs that are less common because they are
@@ -133,7 +128,7 @@ defineCnpRegions <- function(grl, thr=0.02){
 #' cnv4 <- GRanges("chr1", IRanges(starts, ends),
 #'                 id=paste0("sample", sample(1000:1500, length(starts))))
 #'
-#' all_cnvs <- c(cnv1, cnv2, cnv3, cnv4)
+#' all_cnvs <- suppressWarnings(c(cnv1, cnv2, cnv3, cnv4))
 #' grl <- split(all_cnvs, all_cnvs$id)
 #' cnps <- consensusCNP(grl)
 #'
