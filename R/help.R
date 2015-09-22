@@ -4,9 +4,9 @@
 #' @name CNPBayes
 #' @import methods
 #' @importFrom gtools rdirichlet
-#' @import Rcpp
 #' @import GenomeInfoDb
 #' @import IRanges
+#' @importFrom Rcpp evalCpp
 #' @importFrom S4Vectors SimpleList DataFrame
 #' @importFrom GenomicRanges rowRanges SummarizedExperiment colData GRanges GRangesList assays
 #' @importFrom combinat permn
