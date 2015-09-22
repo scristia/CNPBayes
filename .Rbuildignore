@@ -6,3 +6,4 @@
 .*\*.Rprofile
 .*\*.Rhistory
 .*\*.o
+^appveyor\.yml$
