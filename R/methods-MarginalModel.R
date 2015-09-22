@@ -75,11 +75,6 @@ setMethod("computeVars", "MarginalModel", function(object){
   compute_vars(object)
 })
 
-setMethod("simulateY", "MarginalModel", function(object){
-  zz <- z(object)
-  yy <- rnorm(length(zz), mean=theta(object)[zz], sd=sigma(object)[zz])
-})
-
 setReplaceMethod("tau2", "MarginalModel", function(object, value){
   object@tau2 <- value
   object

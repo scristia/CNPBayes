@@ -377,22 +377,6 @@ setMethod("show", "BatchModel", function(object){
   cat("     logprior (s):", round(logPrior(object), 1), "\n")
 })
 
-setMethod("simulateY", "BatchModel", function(object){
-##  browser()
-  zz <- setNames(z(object), seq_along(z(object)))
-  B <- batch(object)
-  zbatch <- split(zz, B)
-  sigmas <- sqrt(sigma2(object))
-  thetas <- theta(object)
-  ysim <- foreach(b = uniqueBatch(object), .combine="c") %do% {
-    m <- thetas[b, ]
-    s <- sigmas[b, ]
-    Z <- zbatch[[b]]
-    setNames(rnorm(length(Z), mean=m[Z], sd=s[Z]), names(Z))
-  }
-  ysim[names(zz)]
-})
-
 setMethod("tablez", "BatchModel", function(object){
   tab <- table(batch(object), z(object))
   tab <- tab[uniqueBatch(object), , drop=FALSE]
