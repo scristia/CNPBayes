@@ -8,25 +8,6 @@ os:
 
 sudo: required
 
-#brew_packages:
-    #- gcc
-      
-#before_install:
-    #- curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
-    #- chmod 755 ./travis-tool.sh
-    #- ./travis-tool.sh bootstrap
-
-#install:
-    #- ./travis-tool.sh install_bioc_deps  
-    #- ./travis-tool.sh install_r rmarkdown
-
-#script: ./travis-tool.sh run_tests
-
-#env:
-   #global:
-       #- BIOC_USE_DEVEL="TRUE"       
-       #- R_BUILD_ARGs=" " R_CHECK_ARGS=" "
-
 r_packages:
     - rmarkdown
 
@@ -37,13 +18,13 @@ bioc_use_devel: true
 r_github_packages:
     - jimhester/covr
 
-after_success:
-    - Rscript -e 'library(covr);codecov()'
+#after_success:
+    #- Rscript -e 'library(covr);codecov()'
 
-#notifications:
-  #email:
-    #recipients:
-      #- jacobcvt12@gmail.com
+notifications:
+  email:
+    recipients:
+      - jacobcvt12@gmail.com
       #- rscharpf@jhu.edu      
-    #on_success: always
-    #on_failure: always
+    on_success: always
+    on_failure: always
