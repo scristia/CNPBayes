@@ -154,25 +154,6 @@ setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
   x
 })
 
-setMethod("batchCorrect", "BatchModel", function(object){
-  B <- factor(batch(object))
-  yy <- dat(object)
-  names(yy) <- seq_along(yy)
-  ybatch <- split(yy, B)
-  zbatch <- split(z(object), B)
-  thetas <- theta(object)
-  sigmas <- sqrt(sigma2(object))
-  i <- NULL
-  ystar <- foreach(i=seq_along(ybatch), .combine='c') %do% {
-    yy <- ybatch[[i]]
-    zz <- zbatch[[i]]
-    s <- sigmas[i, ]
-    m <- thetas[i, ]
-    (yy - m[zz])/s[zz]
-  }
-  ystar[names(yy)]
-})
-
 #' @rdname bic-method
 #' @aliases bic,BatchModel-method
 setMethod("bic", "BatchModel", function(object){
