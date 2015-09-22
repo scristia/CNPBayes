@@ -11,7 +11,7 @@
 #' @importFrom GenomicRanges rowRanges SummarizedExperiment colData GRanges GRangesList assays
 #' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom foreach %do% %dopar% foreach
+#' @importFrom foreach %do% foreach
 #' @importFrom matrixStats colSds colMedians rowCumsums rowProds colMaxs
 #' @importFrom oligoClasses copyNumber batch chromosome integerMatrix
 #' @importMethodsFrom oligoClasses lrr baf
