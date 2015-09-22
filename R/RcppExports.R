@@ -9,6 +9,58 @@ tableZ <- function(K, z) {
     .Call('CNPBayes_tableZ', PACKAGE = 'CNPBayes', K, z)
 }
 
+full_theta_pooled <- function(xmod) {
+    .Call('CNPBayes_full_theta_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_sigma_pooled <- function(xmod) {
+    .Call('CNPBayes_reduced_sigma_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_sigma_reduced_pooled <- function(xmod) {
+    .Call('CNPBayes_p_sigma_reduced_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_pi_pooled <- function(xmod) {
+    .Call('CNPBayes_reduced_pi_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_pmix_reduced_pooled <- function(xmod) {
+    .Call('CNPBayes_p_pmix_reduced_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_mu_pooled <- function(xmod) {
+    .Call('CNPBayes_reduced_mu_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_mu_reduced_pooled <- function(xmod) {
+    .Call('CNPBayes_p_mu_reduced_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_tau_pooled <- function(xmod) {
+    .Call('CNPBayes_reduced_tau_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_tau_reduced_pooled <- function(xmod) {
+    .Call('CNPBayes_p_tau_reduced_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_nu0_pooled <- function(xmod) {
+    .Call('CNPBayes_reduced_nu0_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_nu0_reduced_pooled <- function(xmod) {
+    .Call('CNPBayes_p_nu0_reduced_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_s20_pooled <- function(xmod) {
+    .Call('CNPBayes_reduced_s20_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_s20_reduced_pooled <- function(xmod) {
+    .Call('CNPBayes_p_s20_reduced_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
 loglik_pooled <- function(xmod) {
     .Call('CNPBayes_loglik_pooled', PACKAGE = 'CNPBayes', xmod)
 }
