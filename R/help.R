@@ -3,7 +3,7 @@
 #' @docType package
 #' @name CNPBayes
 #' @import methods
-#' @importFrom gtools rdirichlet
+#' @importFrom gtools rdirichlet ddirichlet
 #' @import GenomeInfoDb
 #' @import IRanges
 #' @importFrom Rcpp evalCpp

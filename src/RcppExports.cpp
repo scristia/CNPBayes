@@ -183,6 +183,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// stageTwoLogLik_pooled
+Rcpp::NumericVector stageTwoLogLik_pooled(Rcpp::S4 xmod);
+RcppExport SEXP CNPBayes_stageTwoLogLik_pooled(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    __result = Rcpp::wrap(stageTwoLogLik_pooled(xmod));
+    return __result;
+END_RCPP
+}
 // multinomialPr_pooled
 Rcpp::NumericMatrix multinomialPr_pooled(Rcpp::S4 xmod);
 RcppExport SEXP CNPBayes_multinomialPr_pooled(SEXP xmodSEXP) {
@@ -481,6 +492,18 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     __result = Rcpp::wrap(loglik(xmod));
+    return __result;
+END_RCPP
+}
+// log_ddirichlet_
+Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_, Rcpp::NumericVector alpha_);
+RcppExport SEXP CNPBayes_log_ddirichlet_(SEXP x_SEXP, SEXP alpha_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x_(x_SEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type alpha_(alpha_SEXP);
+    __result = Rcpp::wrap(log_ddirichlet_(x_, alpha_));
     return __result;
 END_RCPP
 }

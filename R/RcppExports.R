@@ -65,6 +65,10 @@ loglik_pooled <- function(xmod) {
     .Call('CNPBayes_loglik_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
+stageTwoLogLik_pooled <- function(xmod) {
+    .Call('CNPBayes_stageTwoLogLik_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
 multinomialPr_pooled <- function(xmod) {
     .Call('CNPBayes_multinomialPr_pooled', PACKAGE = 'CNPBayes', xmod)
 }
@@ -171,6 +175,10 @@ p_sigma2_batch <- function(xmod) {
 
 loglik <- function(xmod) {
     .Call('CNPBayes_loglik', PACKAGE = 'CNPBayes', xmod)
+}
+
+log_ddirichlet_ <- function(x_, alpha_) {
+    .Call('CNPBayes_log_ddirichlet_', PACKAGE = 'CNPBayes', x_, alpha_)
 }
 
 stageTwoLogLik <- function(xmod) {
