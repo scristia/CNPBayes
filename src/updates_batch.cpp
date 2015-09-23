@@ -525,7 +525,6 @@ Rcpp::NumericVector stageTwoLogLikBatch(Rcpp::S4 xmod) {
   NumericVector sigma2_tilde(1) ; // = 1.0/sigma2 ;
   NumericVector loglik(1) ;
   NumericVector tau = sqrt(tau2) ;
-  int B = theta.nrow() ;
   int K = theta.ncol() ;  
   NumericVector liknorm(1) ;
   NumericVector likprec(1) ;
@@ -787,7 +786,6 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   sigma2_0[0] = s20[0] ;
   loglik_[0] = ll[0] ;
   logprior_[0] = lp[0] ;
-  int i = 0 ;
   theta(0, _) = th ;
   tau2(0, _) = t2 ;
   sigma2(0, _) = s2 ;
@@ -1027,7 +1025,6 @@ Rcpp::S4 reduced_z_theta_fixed(Rcpp::S4 object) {
   List modes = model.slot("modes") ;
   NumericMatrix theta_ = as<NumericMatrix>(modes["theta"]) ;
   NumericMatrix thetastar=clone(theta_) ;
-  int K = thetastar.ncol() ;
   NumericVector y = model.slot("data") ;
   int N = y.size() ;
   //
