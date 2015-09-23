@@ -45,7 +45,6 @@ Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
   double mu_n;
   double w1;
   double w2;
-  double prod ;
 
   for(int s=0; s < S; ++s){
     zz = Z(s, _) ;
@@ -971,7 +970,6 @@ Rcpp::NumericVector p_nu0_reduced(Rcpp::S4 xmod) {
   NumericVector x = model.slot("data") ;    
   int K = hypp.slot("k") ;
   int S = mcmcp.slot("iter") ;  
-  int N = x.size() ;
   //
   NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
   NumericVector theta_=as<NumericVector>(modes["theta"]) ;
@@ -1038,7 +1036,6 @@ Rcpp::S4 reduced_s20(Rcpp::S4 xmod) {
   NumericVector mustar=clone(mu_) ;
   NumericVector tau2star=clone(tau2_) ;
   IntegerVector nu0star=clone(nu0_) ;
-  int K = thetastar.size() ;
   NumericVector y = model.slot("data") ;
   int N = y.size() ;
   //
