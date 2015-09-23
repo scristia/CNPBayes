@@ -59,6 +59,7 @@ Rcpp::NumericVector loglik_pooled(Rcpp::S4 xmod) {
   int n = x.size() ;
   //double lik;
   NumericVector loglik(1) ;
+  loglik[0] = 0.0 ;
   NumericVector y(1);    
   NumericVector lik(n);
   // Below is equivalent to rowSums(lik) in .loglikMarginal
@@ -158,6 +159,9 @@ Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
   NumericVector u = runif(n) ;
   IntegerVector zz(n) ;
   IntegerVector freq(K) ;
+  for(int k = 0; k < K; k++) {
+    freq[k]=0;
+  }
   for(int i = 0; i < n; i++){
     int k = 0 ;
     while(k < K) {
@@ -175,7 +179,7 @@ Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
   }
   //
   // Don't update z if there are states with zero frequency
-  //
+  //  
   for(int k = 0; k < K; ++k){
     if( freq[k] >= 2 ) continue ;
     NumericVector r(2) ;
@@ -256,10 +260,6 @@ Rcpp::NumericVector sigma2_0_pooled(Rcpp::S4 xmod) {
     double a_k = a + 0.5*K*nu_0 ;
     double b_k = b + 0.5*nu_0/sigma2[0];
 
-//    for (int k=0; k < K; k++) {
-//      b_k += 0.5*nu_0/sigma2[k];
-//    }
-//    b_k += b ;
     NumericVector sigma2_0(1);
     sigma2_0[0] = as<double>(rgamma(1, a_k, 1.0/b_k)) ;
     double constraint = model.slot(".internal.constraint");
@@ -267,13 +267,8 @@ Rcpp::NumericVector sigma2_0_pooled(Rcpp::S4 xmod) {
         if (sigma2_0[0] < constraint) {
             return sigma2_0_old;
         }
-        else {
-            return sigma2_0;
-        }
     }
-    else {
-        return sigma2_0;
-    }
+    return sigma2_0;
 }
 
 // [[Rcpp::export]]
@@ -382,7 +377,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
   NumericMatrix theta = chain.slot("theta") ;
-  NumericVector sigma2 = chain.slot("sigma2") ;
+  NumericMatrix sigma2 = chain.slot("sigma2") ;
   NumericMatrix pmix = chain.slot("pi") ;
   NumericMatrix zfreq = chain.slot("zfreq") ;
   IntegerMatrix Z = chain.slot("z") ;
@@ -432,7 +427,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   logprior_[0] = lp[0] ;
   //  stagetwo = stage2[0] ;
   theta(0, _) = th ;
-  sigma2[0] = s2[0] ;
+  sigma2(0, 0) = s2[0] ;
   pmix(0, _) = p ;
   zfreq(0, _) = zf ;
   Z(0, _) = z ;
@@ -455,7 +450,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       s2 = sigma2_pooled(xmod) ;
       model.slot("sigma2") = s2 ;
     } else { s2= model.slot("sigma2") ; }
-    sigma2[s] = s2[0] ;
+    sigma2(s, 0) = s2[0] ;
     if(up[2] > 0){
       p = update_p(xmod) ;
       model.slot("pi") = p ;
