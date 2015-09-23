@@ -1,3 +1,14 @@
+integerMatrix <- function(x, scale=100) {
+        if(!is(x, "matrix")) stop("argument x must be a matrix")
+        dms <- dimnames(x)
+        if(scale != 1){
+                xx <- as.integer(x*scale)
+        } else xx <- as.integer(x)
+        x <- matrix(xx, nrow(x), ncol(x))
+        dimnames(x) <- dms
+        return(x)
+}
+
 setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   cnmat <- matrix(y(from), 1, length(y(from)))
   cnmat <- oligoClasses::integerMatrix(cnmat, 1000)
