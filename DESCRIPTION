@@ -9,10 +9,10 @@ Date: Tue Jan 20 20:41:00 EST 2015
 Author: Stephen Cristiano, Robert Scharpf, and Jacob Carey
 Depends:
     foreach,
+    GenomicRanges
 Imports:
     Rcpp (>= 0.12.1),
     S4Vectors,
-    GenomicRanges,
     matrixStats,
     RColorBrewer,
     gtools,

@@ -9,10 +9,13 @@ integerMatrix <- function(x, scale=100) {
         return(x)
 }
 
+#' @export
 setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   cnmat <- matrix(y(from), 1, length(y(from)))
   cnmat <- integerMatrix(cnmat, 1000)
   message("making something up for rowRanges...")
+  rr <- GRanges(Rle("chr1", nrow(cnmat)),
+                IRanges(seq_len(nrow(cnmat)), width=1L))
   rr <- GRanges(rep("chr1", nrow(cnmat)),
                 IRanges(seq_len(nrow(cnmat)), width=1L))
   names(rr) <- paste0("CNP", seq_len(nrow(cnmat)))
