@@ -72,6 +72,36 @@ Rcpp::NumericVector loglik_pooled(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
+Rcpp::NumericVector stageTwoLogLik_pooled(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  int K = getK(model.slot("hyperparams")) ;
+  NumericVector theta = model.slot("theta") ;
+  NumericVector tau2 = model.slot("tau2") ;
+  NumericVector mu = model.slot("mu") ;
+  NumericVector nu0 = model.slot("nu.0") ;
+  NumericVector s20 = model.slot("sigma2.0") ;
+  NumericVector sigma2=model.slot("sigma2") ;
+  NumericVector sigma2_tilde = 1.0/sigma2 ;
+  NumericVector loglik(1) ;
+  double tau = sqrt(tau2[0]) ;
+  NumericVector liknorm(K) ;
+  NumericVector likprec(K) ;
+  liknorm = dnorm(theta, mu[0], tau) ;
+  likprec = dgamma(sigma2_tilde, 0.5*nu0[0], 1.0/(0.5 * nu0[0] * s20[0])) ;
+  NumericVector LL(K) ;
+  for(int k=0; k<K; ++k){
+    LL[k] = log(liknorm[k] * likprec[0]) ;
+  }
+  double tmp = 0.0 ;
+  for(int k = 0; k < K; k++) {
+    tmp += LL[k] ;
+  }
+  loglik[0] = tmp ;
+  return loglik ;
+}
+
+// [[Rcpp::export]]
 Rcpp::NumericMatrix multinomialPr_pooled(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
