@@ -11,7 +11,7 @@ integerMatrix <- function(x, scale=100) {
 
 setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   cnmat <- matrix(y(from), 1, length(y(from)))
-  cnmat <- oligoClasses::integerMatrix(cnmat, 1000)
+  cnmat <- integerMatrix(cnmat, 1000)
   message("making something up for rowRanges...")
   rr <- GRanges(rep("chr1", nrow(cnmat)),
                 IRanges(seq_len(nrow(cnmat)), width=1L))
