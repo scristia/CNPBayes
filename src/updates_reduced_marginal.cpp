@@ -1104,7 +1104,7 @@ Rcpp::NumericVector p_s20_reduced(Rcpp::S4 xmod) {
   double a = hypp.slot("a") ;
   double b = hypp.slot("b") ;  
   double a_k = a + 0.5*K*nu0star ;
-  double b_k ;
+  double b_k = 0.0;
 
   for (int k=0; k < K; k++) {
     b_k += 0.5*nu0star/sigma2star[k];
