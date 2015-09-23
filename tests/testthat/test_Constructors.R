@@ -44,7 +44,7 @@ test_that("test_constructor", {
     expect_true(validObject(truth))
     bmod <- BatchModel(data = y(truth), k = 3)
     expect_true(is(bmod, "MarginalModel"))
-    bmod <- BatchModel(data = y(truth), batch = oligoClasses::batch(truth))
+    bmod <- BatchModel(data = y(truth), batch = batch(truth))
     expect_true(is(bmod, "BatchModel"))
     expect_equal(y(bmod), y(truth))
     expect_equal(batch(bmod), batch(truth))

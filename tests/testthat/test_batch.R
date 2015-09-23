@@ -1,21 +1,20 @@
 test_that("test_batch_moderate", {
-    library(oligoClasses)
     set.seed(100)
     nbatch <- 3
     k <- 3
-    means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1, 
+    means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
         0, 0.05), nbatch, k, byrow = FALSE)
     sds <- matrix(0.15, nbatch, k)
     sds[, 1] <- 0.3
     N <- 1000
-    truth <- simulateBatchData(N = N, batch = rep(letters[1:3], 
-        length.out = N), p = c(1/10, 1/5, 1 - 0.1 - 0.2), theta = means, 
+    truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+        length.out = N), p = c(1/10, 1/5, 1 - 0.1 - 0.2), theta = means,
         sds = sds)
-    mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 1, 
+    mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 1,
         nStarts = 10)
-    hypp <- CNPBayes:::HyperparametersBatch(m2.0 = 1/60, eta.0 = 1800, 
+    hypp <- CNPBayes:::HyperparametersBatch(m2.0 = 1/60, eta.0 = 1800,
         k = 3, a = 1/6, b = 180)
-    model <- BatchModel(data = y(truth), batch = batch(truth), 
+    model <- BatchModel(data = y(truth), batch = batch(truth),
         k = 3, mcmc.params = mcmcp, hypp = hypp)
     model <- posteriorSimulation(model)
     i <- order(theta(model)[1, ])
@@ -43,22 +42,21 @@ test_that("test_batch_moderate", {
 })
 
 test_that("test_batchEasy", {
-    library(oligoClasses)
     set.seed(123)
     k <- 3
     nbatch <- 3
-    means <- matrix(c(-1.2, -1, -0.8, -0.2, 0, 0.2, 0.8, 1, 1.2), 
+    means <- matrix(c(-1.2, -1, -0.8, -0.2, 0, 0.2, 0.8, 1, 1.2),
         nbatch, k, byrow = FALSE)
     sds <- matrix(0.1, nbatch, k)
     N <- 1500
-    truth <- simulateBatchData(N = N, batch = rep(letters[1:3], 
-        length.out = N), theta = means, sds = sds, p = c(1/5, 
+    truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+        length.out = N), theta = means, sds = sds, p = c(1/5,
         1/3, 1 - 1/3 - 1/5))
     yy <- y(truth)
     expect_identical(yy[order(batch(truth))], yy)
     mcmcp <- McmcParams(iter = 50, burnin = 0)
     set.seed(123)
-    model <- BatchModel(y(truth), batch = batch(truth), k = 3, 
+    model <- BatchModel(y(truth), batch = batch(truth), k = 3,
         mcmc.params = mcmcp)
     model <- CNPBayes:::startAtTrueValues(model, truth)
     expect_identical(batch(truth), batch(model))
@@ -87,7 +85,7 @@ test_that("test_batchEasy", {
     }
     set.seed(1)
     mcmcp <- McmcParams(iter = 300, burnin = 300, nStarts = 5)
-    model <- BatchModel(y(truth), batch = batch(truth), k = 3, 
+    model <- BatchModel(y(truth), batch = batch(truth), k = 3,
         mcmc.params = mcmcp)
     model <- posteriorSimulation(model)
     if (FALSE) {
@@ -109,7 +107,6 @@ test_that("test_batchEasy", {
 })
 
 test_that("test_hard3", {
-    library(oligoClasses)
     library(GenomicRanges)
     # embed function in test for now
     hardTruth <- function(prop_comp1=0.005, s=0.3) {
@@ -133,15 +130,15 @@ test_that("test_hard3", {
     # end function
     truth <- hardTruth(0.005, s = 0.1)
     table(z(truth), batch(truth))
-    if (FALSE) 
+    if (FALSE)
         CNPBayes::plot(truth)
     se <- as(truth, "SummarizedExperiment")
-    if (FALSE) 
-        hist(oligoClasses::copyNumber(se), breaks = 1000, col = "gray", 
+    if (FALSE)
+        hist(oligoClasses::copyNumber(se), breaks = 1000, col = "gray",
             border = "gray")
     mcmcp <- McmcParams(iter = 100, burnin = 0)
-    modelk <- BatchModel(data = y(truth), batch = batch(truth), 
-        k = 3, mcmc.params = mcmcp, CNPBayes:::HyperparametersBatch(k = 3, 
+    modelk <- BatchModel(data = y(truth), batch = batch(truth),
+        k = 3, mcmc.params = mcmcp, CNPBayes:::HyperparametersBatch(k = 3,
             m2.0 = 1/60, eta.0 = 1800))
     modelk <- CNPBayes:::startAtTrueValues(modelk, truth)
     mmodel <- posteriorSimulation(modelk)
@@ -172,8 +169,8 @@ test_that("test_hard3", {
     expect_equal(sigma(truth), ps, tolerance=0.15)
     expect_equal(p(truth), pmix, tolerance=0.04)
     mcmcp <- McmcParams(iter = 200, burnin = 100, nStarts = 20)
-    modelk <- BatchModel(data = y(truth), batch = batch(truth), 
-        k = 3, mcmc.params = mcmcp, CNPBayes:::HyperparametersBatch(k = 3, 
+    modelk <- BatchModel(data = y(truth), batch = batch(truth),
+        k = 3, mcmc.params = mcmcp, CNPBayes:::HyperparametersBatch(k = 3,
             m2.0 = 1/60, eta.0 = 1800, tau2.0 = 1000))
     mmodel <- posteriorSimulation(modelk)
     pmns <- CNPBayes:::thetaMean(mmodel)
@@ -186,10 +183,9 @@ test_that("test_hard3", {
 })
 
 test_that("test_kbatch", {
-    library(oligoClasses)
     set.seed(123)
     k <- 3
-    means <- matrix(c(rnorm(5, -1, 0.1), rnorm(5, 0, 0.1), rnorm(5, 
+    means <- matrix(c(rnorm(5, -1, 0.1), rnorm(5, 0, 0.1), rnorm(5,
         1, 0.1)), 5, k, byrow = FALSE)
     sds <- matrix(0.1, 5, k)
     N <- 3000
@@ -198,7 +194,7 @@ test_that("test_kbatch", {
     batch <- sample(1:5, size = N, prob = probs, replace = TRUE)
     p <- c(1/5, 1/3)
     p <- c(p, 1 - sum(p))
-    truth <- simulateBatchData(N = N, batch = batch, theta = means, 
+    truth <- simulateBatchData(N = N, batch = batch, theta = means,
         sds = sds, p = p)
     mp <- McmcParams(iter = 1000, burnin = 250, nStarts = 5)
     kmod <- BatchModel(y(truth), batch(truth), k = 3, mcmc.params = mp)
@@ -206,7 +202,7 @@ test_that("test_kbatch", {
     cn <- map(kmod)
     set.seed(1000)
     index <- sample(seq_len(N), 1000)
-    kmod2 <- BatchModel(y(truth)[index], batch(truth)[index], 
+    kmod2 <- BatchModel(y(truth)[index], batch(truth)[index],
         k = 3, mcmc.params = mp)
     kmod2 <- posteriorSimulation(kmod2)
     yy <- setNames(y(truth), seq_along(y(truth)))
@@ -217,8 +213,8 @@ test_that("test_kbatch", {
     pz <- probz(kmod2)
     pz <- mapCnProbability(kmod2)
     if (FALSE) {
-        fit <- list(posteriorSimulation(kmod, k = 1), posteriorSimulation(kmod, 
-            k = 2), posteriorSimulation(kmod, k = 3), posteriorSimulation(kmod, 
+        fit <- list(posteriorSimulation(kmod, k = 1), posteriorSimulation(kmod,
+            k = 2), posteriorSimulation(kmod, k = 3), posteriorSimulation(kmod,
             k = 4))
         fit <- marginalLikelihood(fit)
         prz <- probz(fit$models[[4]])
@@ -226,7 +222,7 @@ test_that("test_kbatch", {
         plot(r, cn, pch = 20, cex = 0.3)
         trace(cnProbability, browser)
         prz <- cnProbability(prz, 4)
-        plot(jitter(prz, amount = 0.05), jitter(cn, amount = 0.05), 
+        plot(jitter(prz, amount = 0.05), jitter(cn, amount = 0.05),
             pch = 20, cex = 0.3)
         table(cn)
         pz <- cnProbability(probz(fit$models[[4]]), 4)
@@ -239,4 +235,3 @@ test_that("test_kbatch", {
 test_that("test_unequal_batch_data", {
     expect_error(BatchModel(data = 1:10, batch = 1:9))
 })
-
