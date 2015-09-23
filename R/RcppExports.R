@@ -185,8 +185,20 @@ stageTwoLogLik <- function(xmod) {
     .Call('CNPBayes_stageTwoLogLik', PACKAGE = 'CNPBayes', xmod)
 }
 
+update_mu <- function(xmod) {
+    .Call('CNPBayes_update_mu', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_tau2 <- function(xmod) {
+    .Call('CNPBayes_update_tau2', PACKAGE = 'CNPBayes', xmod)
+}
+
 update_sigma2_0 <- function(xmod) {
     .Call('CNPBayes_update_sigma2_0', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_p <- function(xmod) {
+    .Call('CNPBayes_update_p', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_multinomialPr <- function(xmod) {

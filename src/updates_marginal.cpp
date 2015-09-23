@@ -30,6 +30,7 @@ Rcpp::NumericVector loglik(Rcpp::S4 xmod) {
   return loglik;
 }
 
+// [[Rcpp::export]]
 Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_, 
                                     Rcpp::NumericVector alpha_) {
   // NumericVector x = as<NumericVector>(x_) ;
@@ -86,7 +87,7 @@ Rcpp::NumericVector stageTwoLogLik(Rcpp::S4 xmod) {
 // This function does not reproduce the R update .updateMu when the
 // same seed is used...
 //
-
+// [[Rcpp::export]]
 Rcpp::NumericVector update_mu(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
@@ -120,6 +121,7 @@ Rcpp::NumericVector update_mu(Rcpp::S4 xmod) {
   return mu_new ;
 }
 
+// [[Rcpp::export]]
 Rcpp::NumericVector update_tau2(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
@@ -228,6 +230,7 @@ Rcpp::NumericVector update_nu0(Rcpp::S4 xmod) {
   return nu0 ;
 }
 
+// [[Rcpp::export]]
 Rcpp::NumericVector update_p(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  

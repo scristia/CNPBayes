@@ -747,6 +747,7 @@ useModes <- function(object){
 }
 
 
+
 mapModel <- function(model){
   model2 <- restartAtChainIndex(model, argMax(model))
   model2
