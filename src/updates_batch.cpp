@@ -252,7 +252,7 @@ Rcpp::NumericVector update_nu0_batch(Rcpp::S4 xmod){
   NumericVector nu0(1) ;
   //int u ;
   NumericVector u(1) ;
-  double cumprob ;
+  double cumprob = 0.0;
   // sample x with probability prob
   for(int i = 0; i < 100; i++){
     cumprob += prob[i] ;
