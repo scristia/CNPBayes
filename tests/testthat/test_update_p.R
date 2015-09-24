@@ -49,8 +49,10 @@ test_that("nu0_pooled", {
   mcmcp <- McmcParams(iter = 10, burnin = 10)
   mod <- CNPBayes:::SingleBatchPooledVar(y(truth), k = 3)
   set.seed(123)
+
   nu0.cpp <- CNPBayes:::nu0_pooled(mod)
   ## R
+  K <- k(mod)
   prec <- 1/sigma2(mod)
   lprec = log(prec) ;
   betas <- hyperParams(mod)@beta

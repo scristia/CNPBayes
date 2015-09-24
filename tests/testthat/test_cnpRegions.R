@@ -10,4 +10,3 @@ test_that("test_cnpRegions", {
     true_consensus <- GRanges("chr1", IRanges(10, 20))
     expect_identical(true_consensus, cnp)
 })
-

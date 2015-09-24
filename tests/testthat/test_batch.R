@@ -107,7 +107,6 @@ test_that("test_batchEasy", {
 })
 
 test_that("test_hard3", {
-    library(GenomicRanges)
     # embed function in test for now
     hardTruth <- function(prop_comp1=0.005, s=0.3) {
       set.seed(1234)
@@ -129,9 +128,6 @@ test_that("test_hard3", {
     }
     # end function
     truth <- hardTruth(0.005, s = 0.1)
-    table(z(truth), batch(truth))
-    if (FALSE)
-        CNPBayes::plot(truth)
     se <- as(truth, "SummarizedExperiment")
     if (FALSE)
         hist(oligoClasses::copyNumber(se), breaks = 1000, col = "gray",

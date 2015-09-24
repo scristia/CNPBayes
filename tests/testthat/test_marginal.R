@@ -170,7 +170,6 @@ test_that("test_segfaultExcept", {
 })
 
 test_that("test_selectK_easy", {
-    library(GenomicRanges)
     set.seed(1)
     means <- c(-1, 0, 1)
     sds <- c(0.1, 0.2, 0.2)
