@@ -225,21 +225,6 @@ setMethod("computeVars", "BatchModel", function(object){
   compute_vars_batch(object)
 })
 
-## y: length n_b vector  (number of samples in batch b)
-## theta: length K vector for batch b
-## sd:  length K vector for batch b
-## pi: length K vector for batch b.
-## Returns:  n_b x K matrix for batch b
-.multBatchSpecific <- function(y, theta, sd, pi){
-  K <- seq_len(length(pi))
-  result <- matrix(NA, length(y), length(theta))
-  for(j in K){
-    result[, j] <- pi[j]*dnorm(y, theta[j], sd[j])
-  }
-  mix.probs <- result/rowSums(result)
-  mix.probs
-}
-
 #' @rdname mu-method
 #' @aliases mu,BatchModel-method
 setMethod("mu", "BatchModel", function(object) object@mu)
