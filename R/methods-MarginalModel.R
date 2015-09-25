@@ -304,26 +304,6 @@ modelOtherModes <- function(model, maxperm=5){
   model.list
 }
 
-#' Reorder models of varying component sizes.
-#'
-#' Models are ordered according to marginal likelihood. The marginal
-#' likelihood is computed for each chain of each component size model
-#' separately. The mean is taken by model, and ordering by this mean
-#' marginal is performed.
-#' @param x the result of a call to \code{computeMarginalLik}.
-#' @export
-orderModels <- function(x){
-  models <- x$models
-  ##K <- k(models)
-  K <- names(models)
-  marginal.est.list <- x$marginal
-  m <- sapply(marginal.est.list, function(x) x["marginal"])
-  K <- K[order(m, decreasing=TRUE)]
-  ix <- match(K, names(models))
-  models <- models[ix]
-  return(models)
-}
-
 #' Compute the log bayes factor between models.
 #'
 #' Models of varying component sizes are compared. The log bayes factor is 
