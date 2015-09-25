@@ -244,8 +244,6 @@ setGeneric("theta", function(object) standardGeneric("theta"))
 #' @rdname sigma2-method
 setGeneric("sigma2", function(object) standardGeneric("sigma2"))
 
-setGeneric("reorderComponents", function(object, new_levels) standardGeneric("reorderComponents"))
-
 #' Retrieve the probability of latent variable membership by observation.
 #'
 #' @examples

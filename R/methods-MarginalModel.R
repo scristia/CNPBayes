@@ -111,26 +111,6 @@ setMethod("theta", "MarginalModel", function(object) object@theta)
 #' @aliases sigma2,MarginalModel-method
 setMethod("sigma2", "MarginalModel", function(object) object@sigma2)
 
-setMethod("reorderComponents", "MarginalModel", function(object){
-  ##
-  ## First, update the model so that the components are ordered by theta
-  ##
-  ix <- order(theta(object))
-  theta(object) <- sort(theta(object))
-  sigma2(object) <- sigma2(object)[ix]
-  p(object) <- p(object)[ix]
-  zz <- z(object)
-  ##
-  ## Set the labels of the latent variable such that 1=first
-  ## components, 2= second component, ...
-  ##
-  zz <- factor(as.integer(factor(zz, levels=ix)), levels=seq_len(k(object)))
-  z(object) <- zz
-  dataMean(object) <- dataMean(object)[ix]
-  dataPrec(object) <- dataPrec(object)[ix]
-  object
-})
-
 newMarginalModel <- function(object){
   mp <- mcmcParams(object)
   object2 <- MarginalModel(y(object), k=k(object), mcmc.params=mp,
