@@ -539,8 +539,6 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 #' @rdname posteriorSimulation-method
 setGeneric("posteriorSimulation", function(object, k) standardGeneric("posteriorSimulation"))
 
-setGeneric("initializeModel", function(params, hypp) standardGeneric("initializeModel"))
-
 setGeneric("posteriorTheta", function(object, mcmcp) standardGeneric("posteriorTheta"))
 setGeneric("posteriorSigma2", function(object, mcmcp) standardGeneric("posteriorSigma2"))
 
