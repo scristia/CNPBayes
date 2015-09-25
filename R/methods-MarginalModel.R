@@ -54,14 +54,6 @@ setMethod("mu", "MarginalModel", function(object) object@mu)
 #' @aliases tau2,MarginalModel-method
 setMethod("tau2", "MarginalModel", function(object) object@tau2)
 
-
-
-setMethod("initializeSigma2.0", "MarginalModel", function(object){
-  hypp <- hyperParams(object)
-  sum(alpha(hypp)*sigma2(object))/sum(alpha(hypp))
-})
-
-
 setMethod("show", "MarginalModel", function(object) callNextMethod())
 
 setMethod("computeMeans", "MarginalModel", function(object){

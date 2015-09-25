@@ -225,11 +225,6 @@ setMethod("computeVars", "BatchModel", function(object){
   compute_vars_batch(object)
 })
 
-setMethod("initializeSigma2.0", "BatchModel", function(object){
-  hypp <- hyperParams(object)
-  sum(alpha(hypp)*colMeans(sigma2(object)))/sum(alpha(hypp))
-})
-
 ## y: length n_b vector  (number of samples in batch b)
 ## theta: length K vector for batch b
 ## sd:  length K vector for batch b
