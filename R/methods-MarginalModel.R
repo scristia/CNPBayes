@@ -181,38 +181,6 @@ setMethod("relabel", "BatchModel", function(object, zindex){
   object
 })
 
-setMethod("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
-  mc <- chains(x)
-  pot <- logpotential(mc)
-  index <- which.max(pot)
-  thetas <- theta(mc)[index, ]
-  if(identical(thetas, sort(thetas))){
-    ## nothing to do
-    return(x)
-  }
-  cn <- order(thetas)
-  theta(mc) <- theta(mc)[, cn]
-  theta(x) <- theta(x)[cn]
-
-  sigma2(mc) <- sigma2(mc)[, cn]
-  sigma2(x) <- sigma2(x)[cn]
-
-  p(mc) <- p(mc)[, cn]
-  p(x) <- p(x)[cn]
-
-  mu(x) <- mu(x)[cn]
-  tau2(x) <- tau2(x)[cn]
-
-  probz(x) <- probz(x)[, cn]
-
-  zz <- as.integer(z(x))
-  z(x) <- factor(as.integer(factor(zz, levels=cn)), levels=sort(unique(zz)))
-  dataMean(x) <- dataMean(x)[cn]
-  dataPrec(x) <- dataPrec(x)[cn]
-  chains(x) <- mc
-  x
-})
-
 .computeModesMarginal <- function(object){
   i <- argMax(object)
   mc <- chains(object)
