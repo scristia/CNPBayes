@@ -7,8 +7,6 @@ posteriorMeanConjugateNormal <- function(prior.precision, data.precision,
   (prior.precision/posterior.precision)*prior.mean + (data.precision/posterior.precision) * data.mean
 }
 
-stopif <- function(x) stopifnot(!x)
-
 precision <- function(x) 1/var(x, na.rm=TRUE)
 
 consensusRegion <- function(g){
