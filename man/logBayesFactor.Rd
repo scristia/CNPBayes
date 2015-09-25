@@ -10,6 +10,8 @@ logBayesFactor(x)
 \item{x}{the result of a call to \code{computeMarginalLik}.}
 }
 \description{
-Models of varying component sizes are compared. The log bayes factor is calculated comparing the two models with the highest marginal likelihood, as computed by \code{computeMarginalLik}.
+Models of varying component sizes are compared. The log bayes factor is
+calculated comparing the two models with the highest marginal likelihood,
+as computed by \code{marginalLikelihood}.
 }
 
