@@ -137,7 +137,7 @@ setValidity("BatchModel", function(object){
 
 #' extract data, latent variable, and batch for given observation
 #' @name extract
-#' @param x An object of class BatchModel, McmcChains, McmcParams, or ModelList.
+#' @param x An object of class BatchModel, McmcChains, or McmcParams
 #' @param i An element of the instance to be extracted.
 #' @param j Not used.
 #' @param ... Not used.
