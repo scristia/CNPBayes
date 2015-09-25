@@ -261,30 +261,6 @@ setMethod("computeModes", "MarginalModel", function(object){
   .computeModesMarginal(object)
 })
 
-sumSquares <- function(object){
-  B <- batch(object)
-  thetas <- theta(object)
-  yy <- y(object)
-  K <- k(object)
-  zz <- z(object)
-  ss <- matrix(NA, nBatch(object), k(object))
-  rownames(ss) <- uniqueBatch(object)
-  batch.index <- split(seq_len(length(yy)), B)
-  zz <- z(object)
-  for(b in uniqueBatch(object)){
-    k <- batch.index[[b]]
-    y <- yy[k]
-    cn <- zz[k]
-    m <- thetas[b, ]
-    ## This could be tricky in C.  It works in R because of the factor to an integer:
-    ##  as.integer(factor(c(1, 3), levels=c("1", "2", "3"))) evaluates to 1,3
-    m <- m[as.integer(cn)]
-    squares <- (y - m)^2
-    ss[b, ] <- sapply(split(squares, factor(cn, levels=seq_len(K))), sum)
-  }
-  ss
-}
-
 setMethod("showMeans", "MarginalModel", function(object){
   paste(round(theta(object), 2), collapse=", ")
 })
