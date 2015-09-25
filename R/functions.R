@@ -192,24 +192,6 @@ annotateRegions <- function(regions, transcripts){
 }
 
 
-computeLRRMedians <- function(views, regions){
-  hits <- findOverlaps(regions, rowRanges(views))
-  R <- lrr(views[subjectHits(hits), ])
-  viewsCNP <- views[subjectHits(hits), ]
-  indices <- split(seq_len(nrow(viewsCNP)), queryHits(hits))
-  i <- NULL
-  lrr.meds <- foreach(i = indices, .combine="rbind", .packages="matrixStats") %do% {
-    mat <- R[i, , drop=FALSE]
-    colMedians(mat, na.rm=TRUE)
-  }
-  dimnames(lrr.meds) <- list(names(regions), colnames(views))
-  iR <- integerMatrix(lrr.meds, 1000)
-  se <- SummarizedExperiment(assays=SimpleList(medr=iR),
-                             rowData=regions,
-                             colData=colData(views))
-  se
-}
-
 imputeFromSampledData <-  function(model, data, index){
   if(is.null(names(data))) stop("data must be a named vector")
   pz2 <- probz(model)
