@@ -305,8 +305,6 @@ setGeneric("modalParameters", function(object) standardGeneric("modalParameters"
 
 setGeneric("computeModes", function(object) standardGeneric("computeModes"))
 
-setGeneric("switchLabels", function(object) standardGeneric("switchLabels"))
-
 #' Retrieve the modes from a model.
 #'
 #' The iteration which maximizes log likelihood and log prior is found. The estimates for each parameter at this iteration are retrieved.
