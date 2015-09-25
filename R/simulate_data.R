@@ -86,7 +86,6 @@ simulateData <- function(N, p, theta, sds){
   tau2(object) <- var(theta(object))
   log_lik(object) <- computeLoglik(object)
   logPrior(object) <- computePrior(object)
-  ##logpotential(object) <- computePotential(object)
   object
 }
 

@@ -69,7 +69,6 @@ setGeneric("tau2", function(object) standardGeneric("tau2"))
 setGeneric("tau2<-", function(object, value) standardGeneric("tau2<-"))
 setGeneric("nu.0<-", function(object, value) standardGeneric("nu.0<-"))
 setGeneric("sigma2.0<-", function(object, value) standardGeneric("sigma2.0<-"))
-setGeneric("logpotential<-", function(object, value) standardGeneric("logpotential<-"))
 setGeneric("dataMean<-", function(object, value) standardGeneric("dataMean<-"))
 setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 

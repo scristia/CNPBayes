@@ -104,13 +104,6 @@ dataMean <- function(object) object@data.mean
 dataPrec <- function(object) object@data.prec
 dataSd <- function(object) sqrt(1/dataPrec(object))
 
-#' Retrieve the log potential from a MixtureModel
-#'
-#' The log potential of a model is the log(likelihood * likelihood of prior) + log(probability(theta)) + log(probability(sigma.2))
-#' @param object a MixtureModel.
-#' @export
-logpotential <- function(object) object@logpotential
-
 #' @rdname k-method
 #' @aliases k,MixtureModel-method
 setMethod("k", "MixtureModel", function(object) object@k)
@@ -162,11 +155,6 @@ setReplaceMethod("nu.0", "MixtureModel", function(object, value){
 
 setReplaceMethod("sigma2.0", "MixtureModel", function(object, value){
   object@sigma2.0 <- value
-  object
-})
-
-setReplaceMethod("logpotential", "MixtureModel", function(object, value){
-  object@logpotential <- value
   object
 })
 
@@ -439,8 +427,6 @@ setMethod("thetac", "MixtureModel", function(object) theta(chains(object)))
 setMethod("thetaMean", "MixtureModel", function(object) colMeans(thetac(object)))
 
 setMethod("sigmaMean", "MixtureModel", function(object) colMeans(sigmac(object)))
-
-logpotentialc <- function(object) logpotential(chains(object))
 
 logLikc <- function(object) log_lik(chains(object))
 
