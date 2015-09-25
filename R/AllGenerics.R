@@ -184,8 +184,6 @@ setGeneric("initializeSigma2.0", function(object) standardGeneric("initializeSig
 
 setGeneric("initializeSigma2", function(object) standardGeneric("initializeSigma2"))
 
-setGeneric("initializeMu", function(object) standardGeneric("initializeMu"))
-
 setGeneric("initializeTheta", function(object) standardGeneric("initializeTheta"))
 
 setGeneric("initializeTau2", function(object) standardGeneric("initializeTau2"))

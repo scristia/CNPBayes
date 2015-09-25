@@ -164,7 +164,6 @@ HyperparametersMarginal <- function(k=0L,
                                     a=1.8,
                                     b=6){
   if(missing(alpha)) alpha <- rep(1, k)
-  ##if(missing(mu)) mu <- initializeMu(k)
   ##if(missing(tau2)) tau2 <- rep(1, k)
   new("HyperparametersMarginal",
       k=as.integer(k),
@@ -246,8 +245,4 @@ setMethod("show", "Hyperparameters", function(object){
   cat("   beta   :", betas(object), "\n")
   cat("   a      :", a(object), "\n")
   cat("   b      :", b(object), "\n")
-})
-
-setMethod("initializeMu", "numeric", function(object){
-  rnorm(k(object), mu.0(object), tau.0(object))
 })

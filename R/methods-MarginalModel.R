@@ -85,11 +85,6 @@ setReplaceMethod("mu", "MarginalModel", function(object, value){
   object
 })
 
-##
-## For the marginal model, mu has already been initialized in the hyperparameters
-##
-setMethod("initializeMu", "MarginalModel", function(object)   mu(object))
-
 #' @rdname bic-method
 #' @aliases bic,MarginalModel-method
 setMethod("bic", "MarginalModel", function(object){
