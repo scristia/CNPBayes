@@ -543,8 +543,6 @@ setGeneric("isMarginalModel", function(object) standardGeneric("isMarginalModel"
 
 setGeneric("computePrior", function(object) standardGeneric("computePrior"))
 
-setGeneric("postFiles", function(object) standardGeneric("postFiles"))
-
 setGeneric("relabel", function(object, zindex) standardGeneric("relabel"))
 
 setGeneric("runBurnin", function(object, mcmcp) standardGeneric("runBurnin"))
