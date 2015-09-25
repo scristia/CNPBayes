@@ -451,9 +451,6 @@ setGeneric("nStarts<-", function(object, value) standardGeneric("nStarts<-"))
 
 setGeneric("alpha", function(object) standardGeneric("alpha"))
 
-setGeneric("orderTheta<-", function(object, value) standardGeneric("orderTheta<-"))
-setGeneric("orderTheta", function(object) standardGeneric("orderTheta"))
-
 #' Retrieve log likelihood.
 #'
 #' @examples
