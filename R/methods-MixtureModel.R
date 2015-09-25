@@ -658,10 +658,6 @@ setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=FALSE, val
 
 
 setMethod("zChain", "MixtureModel", function(object) chains(object)@z)
-setReplaceMethod("zChain", "MixtureModel", function(object, value){
-  chains(object)@z <- value
-  object
-})
 
 useModes <- function(object){
   m2 <- object

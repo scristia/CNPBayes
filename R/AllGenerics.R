@@ -602,7 +602,6 @@ setGeneric("marginal", function(object, batch, mcmc.params, K=1:4, maxperm=5, ..
   standardGeneric("marginal"))
 
 setGeneric("zChain", function(object) standardGeneric("zChain"))
-setGeneric("zChain<-", function(object,value) standardGeneric("zChain<-"))
 
 setGeneric("updateMultinomialProb", function(object) standardGeneric("updateMultinomialProb"))
 
