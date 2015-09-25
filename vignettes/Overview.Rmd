@@ -36,6 +36,7 @@ regarding implementation.
 
 ```{r lib} 
 library(CNPBayes)
+library(GenomicRanges)
 ```
 
 # Workflow
@@ -88,7 +89,6 @@ The `posteriorSimulation` function takes a constructed `MixtureModel` and `k`, a
 
 ```{r posteriorSimulation}
 mlist.marginal <- posteriorSimulation(model.marginal, k=1:4)
-
 mlist.batch <- posteriorSimulation(model.batch, k=1:4)
 ```
 
@@ -104,10 +104,8 @@ marginal.lik <- marginalLikelihood(mlist.marginal)
 batch.lik <- marginalLikelihood(mlist.batch)
 
 # bayes factor for comparing top two models
-top.two.marginal <- mlist.marginal[order(marginal.lik, decreasing=TRUE)[1:2]]
-top.two.batch <- mlist.batch[order(batch.lik, decreasing=TRUE)[1:2]]
-logBayesFactor(top.two.marginal)
-logBayesFactor(top.two.batch)
+logBayesFactor(marginal.lik)
+logBayesFactor(batch.lik)
 ```
 
 ## Extracting MAP estimates and posterior probabilities
