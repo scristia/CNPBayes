@@ -167,13 +167,6 @@ setReplaceMethod("chains", "MixtureModel", function(object, value){
   object
 })
 
-setMethod("dat", "MixtureModel", function(object) object@data)
-
-setReplaceMethod("dat", "MixtureModel", function(object, value) {
-  object@data <- value
-  object
-})
-
 setMethod("show", "MixtureModel", function(object){
   cat("An object of class '", class(object), "'\n")
   cat("  data: \n")

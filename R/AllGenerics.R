@@ -176,9 +176,6 @@ setGeneric("computeVars", function(object) standardGeneric("computeVars"))
 
 setGeneric("computePotential", function(object) standardGeneric("computePotential"))
 
-setGeneric("dat", function(object) standardGeneric("dat"))
-setGeneric("dat<-", function(object,value) standardGeneric("dat<-"))
-
 setGeneric("initializeSigma2", function(object) standardGeneric("initializeSigma2"))
 
 setGeneric("initializeTheta", function(object) standardGeneric("initializeTheta"))
