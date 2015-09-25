@@ -2,11 +2,6 @@ posteriorPrecisionConjugateNormal <- function(prior.precision, data.precision) {
   prior.precision+data.precision
 }
 
-posteriorMeanConjugateNormal <- function(prior.precision, data.precision,
-                                         posterior.precision, prior.mean, data.mean){
-  (prior.precision/posterior.precision)*prior.mean + (data.precision/posterior.precision) * data.mean
-}
-
 consensusRegion <- function(g){
   ## Defined the consensus start as the minimum basepair that is
   ## spanned by at least half of all identified CNVs
