@@ -401,20 +401,6 @@ map <- function(object) {
   estimates
 }
 
-setMethod("fitMixtureModels", "numeric", function(object, mcmcp, K=1:5){
-  message("Fitting ", length(K), " models")
-  fit <- vector("list", length(K))
-  for(j in seq_along(K)){
-    cat(".")
-    mp <- mcmcp[j]
-    kk <- K[j]
-    params <- ModelParams("marginal", y=object, k=kk, mcmc.params=mp)
-    model <- posteriorSimulation(params, mp)
-    fit[[j]] <- model
-  }
-  fit
-})
-
 setMethod("thetac", "MixtureModel", function(object) theta(chains(object)))
 
 setMethod("thetaMean", "MixtureModel", function(object) colMeans(thetac(object)))

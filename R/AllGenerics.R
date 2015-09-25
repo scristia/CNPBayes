@@ -246,8 +246,6 @@ setGeneric("probz", function(object) standardGeneric("probz"))
 
 setGeneric("probz<-", function(object, value) standardGeneric("probz<-"))
 
-setGeneric("fitMixtureModels", function(object, mcmcp, K=1:5, batch) standardGeneric("fitMixtureModels"))
-
 #' Retrieve the shape parameter for the sigma.2 distribution.
 #'
 #' @examples
