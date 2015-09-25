@@ -3,7 +3,7 @@
 using namespace Rcpp;
 // Function to simulate from dirichlet distribution
 void rdirichlet(Rcpp::NumericVector a, Rcpp::NumericVector pr) {
-  double sample[a.size()];
+  Rcpp::NumericVector sample(a.size());
   double sample_sum = 0;
   for(int i=0; i<a.size(); i++) {
     sample[i] = as<double>(rgamma(1, a[i], 1));
