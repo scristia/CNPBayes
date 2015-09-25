@@ -185,8 +185,6 @@ setGeneric("initializeSigma2", function(object) standardGeneric("initializeSigma
 
 setGeneric("initializeTheta", function(object) standardGeneric("initializeTheta"))
 
-setGeneric("initializeTau2", function(object) standardGeneric("initializeTau2"))
-
 setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
 
 #' Calculate BIC of a model
