@@ -233,15 +233,6 @@ imputeFromSampledData <-  function(model, data, index){
   df2
 }
 
-stripData <- function(object){
-  modlist <- lapply(object, function(x){
-    x@data <- numeric()
-    x
-  })
-  modlist
-}
-
-
 permnK <- function(k, maxperm){
   if(k < 2) return(matrix(1,1,1))
   kperm <- permn(seq_len(k))
