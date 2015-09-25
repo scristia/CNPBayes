@@ -601,11 +601,6 @@ setGeneric("computePrec", function(object) standardGeneric("computePrec"))
 setGeneric("marginal", function(object, batch, mcmc.params, K=1:4, maxperm=5, ...)
   standardGeneric("marginal"))
 
-setGeneric("modelList", function(object) standardGeneric("modelList"))
-
-setGeneric("modelList<-", function(object, value) standardGeneric("modelList<-"))
-
-
 setGeneric("zChain", function(object) standardGeneric("zChain"))
 setGeneric("zChain<-", function(object,value) standardGeneric("zChain<-"))
 
