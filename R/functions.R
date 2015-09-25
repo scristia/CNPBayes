@@ -192,11 +192,6 @@ annotateRegions <- function(regions, transcripts){
 }
 
 
-colLRRMediansSE <- function(object){
-  R <- lrr(object)
-  colMedians(R, na.rm=TRUE)
-}
-
 computeLRRMedians <- function(views, regions){
   hits <- findOverlaps(regions, rowRanges(views))
   R <- lrr(views[subjectHits(hits), ])
