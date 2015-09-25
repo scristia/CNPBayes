@@ -24,7 +24,7 @@ Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod){
   NumericMatrix nn(B, K) ;
   for(int j = 0; j < B; ++j){
     for(int k = 0; k < K; k++){
-      nn(j, k) = sum(z == (k+1) & batch == ub[j] ) ;
+      nn(j, k) = sum((z == (k+1)) & (batch == ub[j]));
     }
   }  
   return nn ;  
