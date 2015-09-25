@@ -539,8 +539,6 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 #' @rdname posteriorSimulation-method
 setGeneric("posteriorSimulation", function(object, k) standardGeneric("posteriorSimulation"))
 
-setGeneric("posteriorSigma2", function(object, mcmcp) standardGeneric("posteriorSigma2"))
-
 setGeneric("isMarginalModel", function(object) standardGeneric("isMarginalModel"))
 
 setGeneric("computePrior", function(object) standardGeneric("computePrior"))
