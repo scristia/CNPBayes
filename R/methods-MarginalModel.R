@@ -326,21 +326,15 @@ orderModels <- function(x){
 
 #' Compute the log bayes factor between models.
 #'
-#' Models of varying component sizes are compared. The log bayes factor is calculated comparing the two models with the highest marginal likelihood, as computed by \code{computeMarginalLik}.
+#' Models of varying component sizes are compared. The log bayes factor is 
+#' calculated comparing the two models with the highest marginal likelihood, 
+#' as computed by \code{marginalLikelihood}.
 #' @param x the result of a call to \code{computeMarginalLik}.
 #' @export
 logBayesFactor <- function(x){
-  models <- orderModels(x)
-  if(length(models) <= 1) {
-    return(NA)
-  }
-  K <- k(models)
-  ##nms <- names(orderModels(x))
-  nms <- names(models)
-  ml <- sapply(x$marginal[nms], function(x) x["marginal"])
-  names(ml) <- substr(names(ml), 1, 2)
-  bf <- setNames(ml[1]-ml[2], paste0(names(ml[1:2]), collapse="-"))
-  bf
+    top.two <- sort(x, decreasing=TRUE)[1:2]
+    log.bf <- diff(-top.two)
+    log.bf
 }
 
 setMethod("updateMultinomialProb", "MarginalModel", function(object){
