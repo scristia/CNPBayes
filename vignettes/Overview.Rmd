@@ -110,7 +110,11 @@ logBayesFactor(batch.lik)
 
 ## Extracting MAP estimates and posterior probabilities
 
-How to do this for the selected model
+For the selected model, we can view the *maximum a posteriori* estimates for component.
+```{r map}
+selected.model <- mlist.marginal[[which.max(marginal.lik)]]
+map(selected.model)
+```
 
 ## QC
 
