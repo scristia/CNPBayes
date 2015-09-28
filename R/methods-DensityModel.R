@@ -88,6 +88,7 @@ setMethod("densitiesCluster", "MarginalModel", function(object){
 #' @param merge Logical.  Whether to use kmeans clustering to cluster
 #' the component means using the estimated modes from the overall
 #' density as the centers for the \code{kmeans} function.
+#' @return An object of class 'DensityModel'
 #' @export
 DensityModel <- function(object, merge=FALSE){
   if(!missing(object)){
