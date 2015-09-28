@@ -52,6 +52,7 @@ setMethod("show", "McmcParams", function(object){
 #'
 #' Allows a user to pass a vector for burnin, thin, and iter.
 #' @aliases [,McmcParams-method [,McmcParams,ANY-method
+#' @return An object of class 'McmcParams'
 #' @docType methods
 #' @rdname extract-methods
 setMethod("[", "McmcParams", function(x, i, j, ..., drop=FALSE){

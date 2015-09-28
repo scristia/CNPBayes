@@ -143,6 +143,7 @@ setValidity("BatchModel", function(object){
 #' @param j Not used.
 #' @param ... Not used.
 #' @param drop Not used.
+#' @return An object of class 'BatchModel'
 #' @aliases [,BatchModel-method [,BatchModel,ANY-method [,BatchModel,ANY,ANY-method [,BatchModel,ANY,ANY,ANY-method
 #' @docType methods
 #' @rdname extract-methods

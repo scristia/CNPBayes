@@ -297,6 +297,7 @@ setGeneric("y<-", function(object, value) standardGeneric("y<-"))
 #' Retrieve data.
 #'
 #' @param object see \code{showMethods(oned)}
+#' @return A vector the length of the data
 #' @export
 #' @docType methods
 #' @rdname oned-method
