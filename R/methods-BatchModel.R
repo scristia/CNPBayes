@@ -6,6 +6,7 @@
 #' @param batch a vector of the different batch numbers (must be sorted)
 #' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @param mcmc.params An object of class 'McmcParams'
+#' @return An object of class `BatchModel`
 #' @export
 BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
   if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
