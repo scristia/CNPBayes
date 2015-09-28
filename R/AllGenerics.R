@@ -340,6 +340,7 @@ setGeneric("tau2.0", function(object) standardGeneric("tau2.0"))
 #' @examples
 #'      eta.0(MarginalModelExample)
 #' @param object see \code{showMethods(eta.0)}
+#' @return eta.0 of a 'MixtureModel'
 #' @export
 #' @docType methods
 #' @rdname eta.0-method
