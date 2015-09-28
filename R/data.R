@@ -13,5 +13,6 @@ NULL
 #' @name BatchModelExample
 #' @usage BatchModelExample
 #' @author Jacob Carey
+#' @return An example of a `BatchModel`
 #' BatchModelExample
 NULL
