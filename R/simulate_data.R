@@ -76,7 +76,6 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
 simulateData <- function(N, p, theta, sds){
   zz <- simulateZ(N, p)
   y <- rnorm(N, theta[zz], sds[zz])
-  ##params <- ModelParams("marginal", y=y, k=length(theta))
   object <- MarginalModel(data=y, k=length(theta))
   z(object) <- as.integer(factor(zz, levels=unique(sort(zz))))
   p(object) <- p
