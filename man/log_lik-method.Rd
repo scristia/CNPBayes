@@ -16,6 +16,9 @@ log_lik(object)
 \arguments{
 \item{object}{see showMethods(log_lik)}
 }
+\value{
+The log likelihood
+}
 \description{
 Retrieve log likelihood.
 }

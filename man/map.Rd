@@ -9,6 +9,9 @@ map(object)
 \arguments{
 \item{object}{an object of class MixtureModel.}
 }
+\value{
+map estimate of latent variable assignment for each observation
+}
 \description{
 Calculate the maximum a posteriori estimate of latent variable assignment.
 }

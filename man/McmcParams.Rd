@@ -18,6 +18,9 @@ McmcParams(iter = 1000L, burnin = 0L, thin, nStarts = 1,
 
 \item{param_updates}{labeled vector specifying whether each parameter is to be updated (1) or not (0).}
 }
+\value{
+An object of class 'McmcParams'
+}
 \description{
 Create an object of class 'McmcParams' to specify iterations, burnin, etc.
 }

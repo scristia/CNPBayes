@@ -18,6 +18,9 @@ zFreq(object)
 \arguments{
 \item{object}{see \code{showMethods(zfreq)}}
 }
+\value{
+An integer vector of length the number of components
+}
 \description{
 Calculates a frequency table of latent variable assigments by observation.
 }

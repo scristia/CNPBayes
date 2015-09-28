@@ -9,6 +9,10 @@ sigmac(object)
 \arguments{
 \item{object}{an object of class MarginalModel or BatchModel}
 }
+\value{
+A matrix of size N x K where N is the number of observations
+and K is the number of components
+}
 \description{
 Retrieve standard deviation of each component/batch mean at each iteration of the MCMC.
 }

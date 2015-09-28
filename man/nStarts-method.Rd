@@ -27,6 +27,9 @@ nStarts(object) <- value
 
 \item{value}{new number of chains}
 }
+\value{
+An integer of the number of different starts.
+}
 \description{
 This function retrieves the number of chains used for an MCMC simulation.
 

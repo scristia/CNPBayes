@@ -16,6 +16,9 @@ eta.0(object)
 \arguments{
 \item{object}{see \code{showMethods(eta.0)}}
 }
+\value{
+eta.0 of a 'MixtureModel'
+}
 \description{
 Retrieve the rate parameter for the tau2 distribution.
 }

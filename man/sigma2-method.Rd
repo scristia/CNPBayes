@@ -20,6 +20,10 @@ sigma2(object)
 \arguments{
 \item{object}{see \code{showMethods(sigma2)}}
 }
+\value{
+A vector of length number of components or a matrix of size
+number of batches x number of components
+}
 \description{
 For a MarginalModel, this function returns a vector of variances. For a BatchModel, returns a matrix of size number of batches by number of components.
 }

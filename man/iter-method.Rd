@@ -29,6 +29,9 @@ iter(object)
 
 \item{value}{new number of iterations}
 }
+\value{
+The number of MCMC iterations
+}
 \description{
 This function changes the number of simulations.
 

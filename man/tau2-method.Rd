@@ -19,6 +19,9 @@ tau2(object)
 \arguments{
 \item{object}{see \code{showMethods(tau2)}}
 }
+\value{
+A vector of variances
+}
 \description{
 The interpretation of \code{tau2} depends on whether \code{object}
 is a \code{MarginalModel} or a \code{BatchModel}.  For

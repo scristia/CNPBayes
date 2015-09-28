@@ -16,6 +16,9 @@ m2.0(object)
 \arguments{
 \item{object}{see \code{showMethods(m2.0)}}
 }
+\value{
+m2.0 for a model
+}
 \description{
 Retrieve the shape parameter for the tau2 distribution.
 }

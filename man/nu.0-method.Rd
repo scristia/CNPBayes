@@ -16,6 +16,9 @@ nu.0(object)
 \arguments{
 \item{object}{see \code{showMethods(nu.0)}}
 }
+\value{
+An integer
+}
 \description{
 Retrieve the shape parameter for the sigma.2 distribution.
 }

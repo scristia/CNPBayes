@@ -13,6 +13,9 @@ probz(object)
 \arguments{
 \item{object}{see \code{showMethods(probz)}}
 }
+\value{
+A matrix of size number of observations x number of components
+}
 \description{
 Retrieve the probability of latent variable membership by observation.
 }

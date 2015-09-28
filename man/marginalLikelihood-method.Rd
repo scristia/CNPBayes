@@ -35,6 +35,9 @@ a list of such models.}
 
 \item{niter}{The number of iterations for the reduced Gibb's sampler.}
 }
+\value{
+A vector of the marginal likelihood of the model(s)
+}
 \description{
 Compute the marginal likelihood of a converged model.
 }

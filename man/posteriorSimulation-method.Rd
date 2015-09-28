@@ -24,6 +24,9 @@ posteriorSimulation(object, k)
 specified, the stored k model components are used. This parameters is
 useful for running multiple models of varying components.}
 }
+\value{
+An object of class 'MarginalModel' or 'BatchModel'
+}
 \description{
 nStarts chains are run. b burnin iterations are run and then discarded.
 Next, s iterations are run in each train. The user can also specify

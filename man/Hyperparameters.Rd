@@ -13,6 +13,9 @@ Hyperparameters(type = "batch", k = 2L, ...)
 
 \item{...}{optional parameters.  See details}
 }
+\value{
+An object of class HyperparametersMarginal or HyperparametersBatch
+}
 \description{
 Create an object of class 'Hyperparameters'
 }

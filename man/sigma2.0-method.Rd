@@ -16,6 +16,9 @@ sigma2.0(object)
 \arguments{
 \item{object}{see \code{showMethods(sigma2.0)}}
 }
+\value{
+A length 1 numeric
+}
 \description{
 Retrieve the rate parameter for the sigma.2 distribution.
 }

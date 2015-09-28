@@ -31,6 +31,9 @@ k(object) <- value
 
 \item{value}{An integer for the new number of components.}
 }
+\value{
+The number of components
+}
 \description{
 This function retrieves the number of a priori components.
 

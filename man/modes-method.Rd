@@ -25,6 +25,9 @@ modes(object) <- value
 \item{value}{a \code{list} of the modes.  See \code{mode(object)}
 to obtain the correct format of the list.}
 }
+\value{
+A list of the modes of each parameter
+}
 \description{
 The iteration which maximizes log likelihood and log prior is found. The estimates for each parameter at this iteration are retrieved.
 

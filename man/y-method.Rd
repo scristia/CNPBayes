@@ -19,6 +19,9 @@ y(object)
 \arguments{
 \item{object}{see \code{showMethods(y)}}
 }
+\value{
+A vector containing the data
+}
 \description{
 Retrieve data.
 }

@@ -10,6 +10,9 @@
 \arguments{
 \item{x}{an object of class 'McmcChains'}
 }
+\value{
+A vector of strings containing the names of each parameter
+}
 \description{
 Retrieve the names of the parameters estimated in the MCMC chain.
 }

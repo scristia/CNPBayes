@@ -9,6 +9,9 @@ logBayesFactor(x)
 \arguments{
 \item{x}{the result of a call to \code{computeMarginalLik}.}
 }
+\value{
+Log Bayes factor comparing the two models with highest likelihood.
+}
 \description{
 Models of varying component sizes are compared. The log bayes factor is
 calculated comparing the two models with the highest marginal likelihood,

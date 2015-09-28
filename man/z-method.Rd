@@ -16,6 +16,9 @@ z(object)
 \arguments{
 \item{object}{see \code{showMethods(z)}}
 }
+\value{
+A vector the length of the data
+}
 \description{
 Retrieves the simulated latent variable assignments of each observation at each MCMC simulation.
 }

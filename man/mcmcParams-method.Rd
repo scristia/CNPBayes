@@ -23,6 +23,9 @@ mcmcParams(object, force = FALSE) <- value
 
 \item{value}{an object of class 'McmcParams' containing the new number of iterations, etc.}
 }
+\value{
+An object of class 'McmcParams'
+}
 \description{
 View number of iterations, burnin, etc.
 
