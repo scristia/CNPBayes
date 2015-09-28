@@ -9,6 +9,9 @@ p(object)
 \arguments{
 \item{object}{an object of class MarginalModel or BatchModel}
 }
+\value{
+A vector of length the number of components
+}
 \description{
 Retrieve mixture proportions.
 }

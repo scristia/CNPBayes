@@ -13,6 +13,9 @@ oned(object)
 \arguments{
 \item{object}{see \code{showMethods(oned)}}
 }
+\value{
+A vector the length of the data
+}
 \description{
 Retrieve data.
 }

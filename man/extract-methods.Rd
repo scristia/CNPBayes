@@ -30,6 +30,13 @@
 
 \item{drop}{Not used.}
 }
+\value{
+An object of class 'BatchModel'
+
+An object of class 'McmcChains'
+
+An object of class 'McmcParams'
+}
 \description{
 extract data, latent variable, and batch for given observation
 
