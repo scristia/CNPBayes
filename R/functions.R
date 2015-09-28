@@ -283,6 +283,7 @@ downSampleEachBatch <- function(y, nt, batch){
 #' @param y in memory data
 #' @param ntiles number of tiles in a batch
 #' @param THR threshold above which to merge batches in Kolmogorov-Smirnov test.
+#' @return Tile labels for each observation
 #' @export
 downsample <- function(batch.file, plate, y, ntiles=250, THR=0.1){
   if(file.exists(batch.file)){
