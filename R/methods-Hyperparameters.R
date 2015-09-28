@@ -193,6 +193,7 @@ setValidity("Hyperparameters", function(object){
 #' @param type specifies 'marginal' or 'batch'
 #' @param k number of components
 #' @param ... optional parameters.  See details
+#' @return An object of class HyperparametersMarginal or HyperparametersBatch
 #'
 #' @details
 #' Additional hyperparameters can be passed to the

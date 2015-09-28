@@ -5,6 +5,7 @@
 #' @param k An integer value specifying the number of latent classes.
 #' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @param mcmc.params An object of class 'McmcParams'
+#' @return An object of class 'MarginalModel'
 #' @export
 MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
   batch <- rep(1L, length(data))
@@ -218,6 +219,7 @@ modelOtherModes <- function(model, maxperm=5){
 #' calculated comparing the two models with the highest marginal likelihood, 
 #' as computed by \code{marginalLikelihood}.
 #' @param x the result of a call to \code{computeMarginalLik}.
+#' @return Log Bayes factor comparing the two models with highest likelihood.
 #' @export
 logBayesFactor <- function(x){
     top.two <- sort(x, decreasing=TRUE)[1:2]

@@ -4,6 +4,7 @@
 #' @name MarginalModelExample
 #' @usage MarginalModelExample
 #' @author Jacob Carey
+#' @return An example of a `MarginalModel`
 #' MarginalModelExample
 NULL
 

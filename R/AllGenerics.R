@@ -5,6 +5,7 @@ NULL
 #'
 #' This function retrieves the number of a priori components.
 #' @param object see \code{showMethods(k)}
+#' @return The number of components
 #' @export
 #' @docType methods
 #' @rdname k-method
@@ -34,6 +35,7 @@ setGeneric("p<-", function(object, value) standardGeneric("p<-"))
 #' @examples
 #'      mu(MarginalModelExample)
 #' @param object see \code{showMethods(mu)}
+#' @return A vector containing 'mu'
 #' @export
 #' @docType methods
 #' @rdname mu-method
@@ -61,6 +63,7 @@ setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
 #' plot.ts(tau2(chains(BatchModelExample)))
 #'
 #' @param object see \code{showMethods(tau2)}
+#' @return A vector of variances
 #' @export
 #' @docType methods
 #' @rdname tau2-method
@@ -100,6 +103,7 @@ setGeneric("chains", function(object) standardGeneric("chains"))
 #'     hyperParams(MarginalModelExample)
 #' }
 #' @param object see \code{showMethods(hyperParams)}
+#' @return The Hyperparameters of a MixtureModel
 #' @export
 #' @docType methods
 #' @rdname hyperParams-method
@@ -138,6 +142,7 @@ setGeneric("hist")
 #' @param show.batch a logical. If true, batch specific densities
 #' will be plotted.
 #' @param ... Additional arguments passed to \code{hist}.
+#' @return A plot showing the density estimate
 #' @examples
 #'   set.seed(100)
 #'   truth <- simulateData(N=2500,
@@ -218,6 +223,8 @@ setGeneric("bic", function(object) standardGeneric("bic"))
 #' ## Plot means for batches in one component
 #' plot.ts(theta(chains(BatchModelExample))[, 1:3])
 #' @param object see \code{showMethods(theta)}
+#' @return A vector of length number of components or a matrix of size 
+#' number of batches x number of components
 #' @export
 #' @docType methods
 #' @rdname theta-method
@@ -229,6 +236,8 @@ setGeneric("theta", function(object) standardGeneric("theta"))
 #' @examples
 #'      sigma2(MarginalModelExample)
 #' @param object see \code{showMethods(sigma2)}
+#' @return A vector of length number of components or a matrix of size 
+#' number of batches x number of components
 #' @export
 #' @docType methods
 #' @rdname sigma2-method
@@ -239,6 +248,7 @@ setGeneric("sigma2", function(object) standardGeneric("sigma2"))
 #' @examples
 #'      probz(MarginalModelExample)
 #' @param object see \code{showMethods(probz)}
+#' @return A matrix of size number of observations x number of components
 #' @export
 #' @docType methods
 #' @rdname probz-method
@@ -251,6 +261,7 @@ setGeneric("probz<-", function(object, value) standardGeneric("probz<-"))
 #' @examples
 #'      nu.0(MarginalModelExample)
 #' @param object see \code{showMethods(nu.0)}
+#' @return An integer
 #' @export
 #' @docType methods
 #' @rdname nu.0-method
@@ -261,6 +272,7 @@ setGeneric("nu.0", function(object) standardGeneric("nu.0"))
 #' @examples
 #'      sigma2.0(MarginalModelExample)
 #' @param object see \code{showMethods(sigma2.0)}
+#' @return A length 1 numeric
 #' @export
 #' @docType methods
 #' @rdname sigma2.0-method
@@ -271,6 +283,7 @@ setGeneric("sigma2.0", function(object) standardGeneric("sigma2.0"))
 #' @examples
 #'      y(MarginalModelExample)
 #' @param object see \code{showMethods(y)}
+#' @return A vector containing the data
 #' @export
 #' @docType methods
 #' @rdname y-method
@@ -296,6 +309,7 @@ setGeneric("oned", function(object) standardGeneric("oned"))
 #' @examples
 #'      z(MarginalModelExample)
 #' @param object see \code{showMethods(z)}
+#' @return A vector the length of the data
 #' @export
 #' @docType methods
 #' @rdname z-method
@@ -311,6 +325,7 @@ setGeneric("computeModes", function(object) standardGeneric("computeModes"))
 #' @examples
 #'      modes(MarginalModelExample)
 #' @param object a \code{MixtureModel}-derived class
+#' @return A list of the modes of each parameter
 #' @export
 #' @docType methods
 #' @rdname modes-method
@@ -352,6 +367,7 @@ setGeneric("eta.0<-", function(object,value) standardGeneric("eta.0<-"))
 #' @examples
 #'      m2.0(MarginalModelExample)
 #' @param object see \code{showMethods(m2.0)}
+#' @return m2.0 for a model
 #' @export
 #' @docType methods
 #' @rdname m2.0-method
@@ -420,6 +436,7 @@ setGeneric("pMean", function(object) standardGeneric("pMean"))
 #' @param object see \code{showMethods(tracePlot)}
 #' @param name the name of the parameter for which to plot values. Can be 'theta', 'sigma', 'p', 'mu', or 'tau'.
 #' @param ... Other argument to pass to plot.
+#' @return A traceplot of a parameter value
 #' @export
 #' @docType methods
 #' @rdname tracePlot-method
@@ -433,6 +450,7 @@ setGeneric("tablez", function(object) standardGeneric("tablez"))
 #' @examples
 #' number_of_chains <- nStarts(MarginalModelExample)
 #' @param object see \code{showMethods(nStarts)}
+#' @return An integer of the number of different starts.
 #' @export
 #' @docType methods
 #' @rdname nStarts-method
@@ -460,6 +478,7 @@ setGeneric("alpha", function(object) standardGeneric("alpha"))
 #' ## retrieve log likelihood at last MCMC iteration
 #' log_lik(MarginalModelExample)
 #' @param object see showMethods(log_lik)
+#' @return The log likelihood
 #' @export
 #' @docType methods
 #' @rdname log_lik-method
@@ -508,6 +527,7 @@ setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<
 #' @examples
 #'      iter(MarginalModelExample)
 #' @param object see \code{showMethods(iter)}
+#' @return The number of MCMC iterations
 #' @export
 #' @docType methods
 #' @rdname iter-method
@@ -519,6 +539,7 @@ setGeneric("iter", function(object) standardGeneric("iter"))
 #' @examples
 #'      thin(MarginalModelExample)
 #' @param object see showMethods(thin)
+#' @return An integer of the number of thinning intervals
 #' @export
 #' @docType methods
 #' @rdname thin-method
@@ -535,6 +556,7 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 #' @param k The number of a priori components. This is optional and if not
 #' specified, the stored k model components are used. This parameters is
 #' useful for running multiple models of varying components.
+#' @return An object of class 'MarginalModel' or 'BatchModel'
 #' @export
 #' @docType methods
 #' @rdname posteriorSimulation-method
@@ -556,6 +578,7 @@ setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"
 #' @examples
 #'      zFreq(MarginalModelExample)
 #' @param object see \code{showMethods(zfreq)}
+#' @return An integer vector of length the number of components
 #' @export
 #' @docType methods
 #' @rdname zfreq-method
@@ -568,6 +591,7 @@ setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 #' @examples
 #'      mcmcParams(MarginalModelExample)
 #' @param object see \code{showMethods(mcmcParams)}
+#' @return An object of class 'McmcParams'
 #' @export
 #' @docType methods
 #' @rdname mcmcParams-method
@@ -588,6 +612,7 @@ setGeneric("mcmcParams<-", function(object, force=FALSE, value) standardGeneric(
 #' @examples
 #'      logPrior(MarginalModelExample)
 #' @param object see \code{showMethods(logPrior)}
+#' @return log likelihood of the prior.
 #' @export
 #' @docType methods
 #' @rdname logPrior-method
@@ -636,6 +661,7 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #'        \code{MarginalModel}'s. Can also be an object of \code{BatchModel} or
 #'        a list of such models.
 #' @param niter The number of iterations for the reduced Gibb's sampler.
+#' @return A vector of the marginal likelihood of the model(s)
 #' @export
 #' @docType methods
 #' @rdname marginalLikelihood-method

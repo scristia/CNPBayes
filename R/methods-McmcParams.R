@@ -7,6 +7,7 @@
 #' @param thin thinning interval
 #' @param nStarts number of chains to run
 #' @param param_updates labeled vector specifying whether each parameter is to be updated (1) or not (0).
+#' @return An object of class 'McmcParams'
 #' @export
 McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1,
                        param_updates=.param_updates()){
