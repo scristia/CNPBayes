@@ -4,7 +4,7 @@
 #' @name CNPBayes
 #' @import methods
 #' @importFrom gtools rdirichlet
-#' @import GenomeInfoDb
+#' @importFrom GenomeInfoDb seqinfo seqlevels<- seqlevels seqinfo<- seqnames
 #' @import IRanges
 #' @importFrom Rcpp evalCpp
 #' @importFrom S4Vectors SimpleList DataFrame
