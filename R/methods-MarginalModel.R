@@ -41,6 +41,23 @@ MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
   object <- startingValues(object)
 }
 
+SingleBatchPooledVar <- function(data=numeric(), k=2, hypp, mcmc.params){
+  obj <- MarginalModel(data, k, hypp, mcmc.params)
+  obj@sigma2 <- mean(sigma2(obj))
+  ch <- chains(obj)
+  ch@sigma2 <- matrix(NA, iter(obj), 1)
+  obj@mcmc.chains <- ch
+  as(obj, "SingleBatchPooledVar")
+}
+
+setValidity("SingleBatchPooledVar", function(object){
+  s2 <- sigma2(object)
+  if(length(s2) != 1){
+    return("sigma2 slot should be length-one numeric vector")
+  }
+  TRUE
+})
+
 getK <- function(object){
   hypp <- hyperParams(object)
   getK(hypp)

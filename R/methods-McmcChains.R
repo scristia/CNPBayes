@@ -21,6 +21,29 @@
       z=matrix(NA, nr, ns))
 }
 
+.initializeMcmcPooledVar <- function(object){
+  ## add 1 for starting values (either the last run from the burnin,
+  ## or default values if no burnin
+  mcmc.params <- mcmcParams(object)
+  nr <- iter(mcmc.params)
+  ns <- length(y(object))
+  K <- k(object)
+  mati <- matrix(as.integer(NA), nr, K)
+  vec <- numeric(nr)
+  new("McmcChains",
+      theta=matrix(NA, nr, K),
+      sigma2=matrix(NA, nr, 1), ## this is the only difference from non-pooled
+      pi=matrix(NA, nr, K),
+      mu=numeric(nr),
+      tau2=numeric(nr),
+      nu.0=numeric(nr),
+      sigma2.0=numeric(nr),
+      logprior=numeric(nr),
+      loglik=numeric(nr),
+      zfreq=mati,
+      z=matrix(NA, nr, ns))
+}
+
 setMethod("McmcChains", "missing", function(object){
   new("McmcChains", theta=matrix(), sigma2=matrix(),
       pi=matrix(), mu=numeric(), tau2=numeric(),
@@ -31,8 +54,15 @@ setMethod("McmcChains", "missing", function(object){
       z=matrix())
 })
 
+
+
+
 setMethod("McmcChains", "MixtureModel", function(object){
   .initializeMcmc(object)
+})
+
+setMethod("McmcChains", "SingleBatchPooledVar", function(object){
+  .initializeMcmcPooledVar(object)
 })
 
 .initializeMcmcBatch <- function(object){

@@ -9,6 +9,7 @@
 \alias{marginalLikelihood,MarginalModel,ANY-method}
 \alias{marginalLikelihood,MarginalModel,integer-method}
 \alias{marginalLikelihood,MarginalModel-method}
+\alias{marginalLikelihood,SingleBatchPooledVar,integer-method}
 \alias{marginalLikelihood,list,ANY-method}
 \alias{marginalLikelihood,list,integer-method}
 \alias{marginalLikelihood,list-method}
@@ -17,6 +18,8 @@
 marginalLikelihood(model, niter)
 
 \S4method{marginalLikelihood}{MarginalModel,integer}(model, niter)
+
+\S4method{marginalLikelihood}{SingleBatchPooledVar,integer}(model, niter)
 
 \S4method{marginalLikelihood}{MarginalModel,ANY}(model)
 

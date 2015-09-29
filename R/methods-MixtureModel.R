@@ -250,12 +250,20 @@ setMethod("runBurnin", "MarginalModel", function(object){
 
 })
 
+setMethod("runBurnin", "SingleBatchPooledVar", function(object){
+  burnin_singlebatch_pooled(object, mcmcParams(object))
+})
+
 setMethod("runBurnin", "BatchModel", function(object){
   mcmc_batch_burnin(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "MarginalModel", function(object){
   mcmc_marginal(object, mcmcParams(object))
+})
+
+setMethod("runMcmc", "SingleBatchPooledVar", function(object){
+  mcmc_singlebatch_pooled(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "BatchModel", function(object){
@@ -327,6 +335,21 @@ setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
   post <- runMcmc(post)
   modes(post) <- computeModes(post)
   post
+}
+
+posteriorSimulationPooled <- function(object, iter=1000,
+                                      burnin=1000,
+                                      thin=10, param_updates){
+  if(missing(param_updates)){
+    param_updates <- paramUpdates(object)
+  }
+  mp <- McmcParams(iter=iter, burnin=burnin, thin=thin, param_updates=param_updates)
+  mcmcParams(object, force=TRUE) <- mp
+  object <- runBurnin(object)
+  if(!iter(object) > 0) return(object)
+  object <- runMcmc(object)
+  modes(object) <- computeModes(object)
+  object
 }
 
 setReplaceMethod("dataMean", "MixtureModel", function(object, value){
@@ -674,7 +697,6 @@ setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=FALSE, val
 })
 
 
-
 setMethod("zChain", "MixtureModel", function(object) chains(object)@z)
 
 useModes <- function(object){
@@ -698,6 +720,7 @@ useModes <- function(object){
   }
   m2
 }
+
 
 
 mapModel <- function(model){

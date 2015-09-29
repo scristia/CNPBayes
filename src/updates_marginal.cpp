@@ -30,6 +30,7 @@ Rcpp::NumericVector loglik(Rcpp::S4 xmod) {
   return loglik;
 }
 
+// [[Rcpp::export]]
 Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_, 
                                     Rcpp::NumericVector alpha_) {
   // NumericVector x = as<NumericVector>(x_) ;
@@ -86,7 +87,7 @@ Rcpp::NumericVector stageTwoLogLik(Rcpp::S4 xmod) {
 // This function does not reproduce the R update .updateMu when the
 // same seed is used...
 //
-
+// [[Rcpp::export]]
 Rcpp::NumericVector update_mu(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
@@ -120,6 +121,7 @@ Rcpp::NumericVector update_mu(Rcpp::S4 xmod) {
   return mu_new ;
 }
 
+// [[Rcpp::export]]
 Rcpp::NumericVector update_tau2(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
@@ -228,6 +230,7 @@ Rcpp::NumericVector update_nu0(Rcpp::S4 xmod) {
   return nu0 ;
 }
 
+// [[Rcpp::export]]
 Rcpp::NumericVector update_p(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;  
@@ -319,7 +322,7 @@ Rcpp::IntegerVector update_z(Rcpp::S4 xmod) {
   //
   // Don't update z if there are states with zero frequency
   //
-  return model.slot("z") ;  
+  // return model.slot("z") ;  
   // To prevent 0 frequencies, arbitrarily switch the label
   //while(!is_true(all(freq > 0))){
   for(int k = 0; k < K; ++k){
@@ -494,7 +497,7 @@ Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod) {
 
     for (int k = 0; k < K; k++) {
         sigma2_n = 1.0 / nu_n[k] * (nu_0 * sigma2_0 + ss[k]);
-        sigma2_new[k] = 1.0 / Rcpp::as<double>(rgamma(1, 0.5 * nu_n[k], 1.0 / (0.5 * nu_n[k] * sigma2_n)));
+        sigma2_new[k] = 1.0 / Rcpp::as<double>(Rcpp::rgamma(1, 0.5 * nu_n[k], 1.0 / (0.5 * nu_n[k] * sigma2_n)));
     }
 
     return sigma2_new;

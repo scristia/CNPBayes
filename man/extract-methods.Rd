@@ -10,6 +10,12 @@
 \alias{[,McmcChains-method}
 \alias{[,McmcParams,ANY-method}
 \alias{[,McmcParams-method}
+\alias{[,ModelList,ANY-method}
+\alias{[,ModelList-method}
+\alias{[[,ModelList,ANY,ANY-method}
+\alias{[[,ModelList-method}
+\alias{[[<-,ModelList,ANY,ANY-method}
+\alias{[[<-,ModelList-method}
 \alias{extract}
 \title{extract data, latent variable, and batch for given observation}
 \usage{
@@ -18,7 +24,13 @@
 \S4method{[}{McmcChains,ANY}(x, i, j, ..., drop = FALSE)
 
 \S4method{[}{McmcParams,ANY}(x, i, j, ..., drop = FALSE)
-}
+
+\S4method{[}{ModelList,ANY}(x, i, j, ..., drop = FALSE)
+
+\S4method{[[}{ModelList,ANY,ANY}(x, i, j, ..., drop = FALSE)
+
+\S4method{[[}{ModelList,ANY,ANY}(x, i, j, ..., drop = FALSE) <- value
+
 \arguments{
 \item{x}{An object of class BatchModel, McmcChains, or McmcParams}
 
