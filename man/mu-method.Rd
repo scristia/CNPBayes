@@ -19,6 +19,9 @@ mu(object)
 \arguments{
 \item{object}{see \code{showMethods(mu)}}
 }
+\value{
+A vector containing 'mu'
+}
 \description{
 Retrieve overall mean
 }

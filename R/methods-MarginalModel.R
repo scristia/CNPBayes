@@ -5,6 +5,7 @@
 #' @param k An integer value specifying the number of latent classes.
 #' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @param mcmc.params An object of class 'McmcParams'
+#' @return An object of class 'MarginalModel'
 #' @export
 MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
   batch <- rep(1L, length(data))
@@ -54,17 +55,6 @@ setMethod("mu", "MarginalModel", function(object) object@mu)
 #' @aliases tau2,MarginalModel-method
 setMethod("tau2", "MarginalModel", function(object) object@tau2)
 
-
-
-setMethod("initializeSigma2.0", "MarginalModel", function(object){
-  hypp <- hyperParams(object)
-  sum(alpha(hypp)*sigma2(object))/sum(alpha(hypp))
-})
-
-
-## just choose a big number
-setMethod("initializeTau2", "MarginalModel", function(object)  1000)
-
 setMethod("show", "MarginalModel", function(object) callNextMethod())
 
 setMethod("computeMeans", "MarginalModel", function(object){
@@ -84,11 +74,6 @@ setReplaceMethod("mu", "MarginalModel", function(object, value){
   object@mu <- value
   object
 })
-
-##
-## For the marginal model, mu has already been initialized in the hyperparameters
-##
-setMethod("initializeMu", "MarginalModel", function(object)   mu(object))
 
 #' @rdname bic-method
 #' @aliases bic,MarginalModel-method
@@ -110,26 +95,6 @@ setMethod("theta", "MarginalModel", function(object) object@theta)
 #' @rdname sigma2-method
 #' @aliases sigma2,MarginalModel-method
 setMethod("sigma2", "MarginalModel", function(object) object@sigma2)
-
-setMethod("reorderComponents", "MarginalModel", function(object){
-  ##
-  ## First, update the model so that the components are ordered by theta
-  ##
-  ix <- order(theta(object))
-  theta(object) <- sort(theta(object))
-  sigma2(object) <- sigma2(object)[ix]
-  p(object) <- p(object)[ix]
-  zz <- z(object)
-  ##
-  ## Set the labels of the latent variable such that 1=first
-  ## components, 2= second component, ...
-  ##
-  zz <- factor(as.integer(factor(zz, levels=ix)), levels=seq_len(k(object)))
-  z(object) <- zz
-  dataMean(object) <- dataMean(object)[ix]
-  dataPrec(object) <- dataPrec(object)[ix]
-  object
-})
 
 newMarginalModel <- function(object){
   mp <- mcmcParams(object)
@@ -206,38 +171,6 @@ setMethod("relabel", "BatchModel", function(object, zindex){
   object
 })
 
-setMethod("sort", "MarginalModel", function(x, decreasing=FALSE, ...){
-  mc <- chains(x)
-  pot <- logpotential(mc)
-  index <- which.max(pot)
-  thetas <- theta(mc)[index, ]
-  if(identical(thetas, sort(thetas))){
-    ## nothing to do
-    return(x)
-  }
-  cn <- order(thetas)
-  theta(mc) <- theta(mc)[, cn]
-  theta(x) <- theta(x)[cn]
-
-  sigma2(mc) <- sigma2(mc)[, cn]
-  sigma2(x) <- sigma2(x)[cn]
-
-  p(mc) <- p(mc)[, cn]
-  p(x) <- p(x)[cn]
-
-  mu(x) <- mu(x)[cn]
-  tau2(x) <- tau2(x)[cn]
-
-  probz(x) <- probz(x)[, cn]
-
-  zz <- as.integer(z(x))
-  z(x) <- factor(as.integer(factor(zz, levels=cn)), levels=sort(unique(zz)))
-  dataMean(x) <- dataMean(x)[cn]
-  dataPrec(x) <- dataPrec(x)[cn]
-  chains(x) <- mc
-  x
-})
-
 .computeModesMarginal <- function(object){
   i <- argMax(object)
   mc <- chains(object)
@@ -261,30 +194,6 @@ setMethod("computeModes", "MarginalModel", function(object){
   .computeModesMarginal(object)
 })
 
-sumSquares <- function(object){
-  B <- batch(object)
-  thetas <- theta(object)
-  yy <- y(object)
-  K <- k(object)
-  zz <- z(object)
-  ss <- matrix(NA, nBatch(object), k(object))
-  rownames(ss) <- uniqueBatch(object)
-  batch.index <- split(seq_len(length(yy)), B)
-  zz <- z(object)
-  for(b in uniqueBatch(object)){
-    k <- batch.index[[b]]
-    y <- yy[k]
-    cn <- zz[k]
-    m <- thetas[b, ]
-    ## This could be tricky in C.  It works in R because of the factor to an integer:
-    ##  as.integer(factor(c(1, 3), levels=c("1", "2", "3"))) evaluates to 1,3
-    m <- m[as.integer(cn)]
-    squares <- (y - m)^2
-    ss[b, ] <- sapply(split(squares, factor(cn, levels=seq_len(K))), sum)
-  }
-  ss
-}
-
 setMethod("showMeans", "MarginalModel", function(object){
   paste(round(theta(object), 2), collapse=", ")
 })
@@ -304,43 +213,18 @@ modelOtherModes <- function(model, maxperm=5){
   model.list
 }
 
-#' Reorder models of varying component sizes.
-#'
-#' Models are ordered according to marginal likelihood. The marginal
-#' likelihood is computed for each chain of each component size model
-#' separately. The mean is taken by model, and ordering by this mean
-#' marginal is performed.
-#' @param x the result of a call to \code{computeMarginalLik}.
-#' @export
-orderModels <- function(x){
-  models <- x$models
-  ##K <- k(models)
-  K <- names(models)
-  marginal.est.list <- x$marginal
-  m <- sapply(marginal.est.list, function(x) x["marginal"])
-  K <- K[order(m, decreasing=TRUE)]
-  ix <- match(K, names(models))
-  models <- models[ix]
-  return(models)
-}
-
 #' Compute the log bayes factor between models.
 #'
-#' Models of varying component sizes are compared. The log bayes factor is calculated comparing the two models with the highest marginal likelihood, as computed by \code{computeMarginalLik}.
+#' Models of varying component sizes are compared. The log bayes factor is 
+#' calculated comparing the two models with the highest marginal likelihood, 
+#' as computed by \code{marginalLikelihood}.
 #' @param x the result of a call to \code{computeMarginalLik}.
+#' @return Log Bayes factor comparing the two models with highest likelihood.
 #' @export
 logBayesFactor <- function(x){
-  models <- orderModels(x)
-  if(length(models) <= 1) {
-    return(NA)
-  }
-  K <- k(models)
-  ##nms <- names(orderModels(x))
-  nms <- names(models)
-  ml <- sapply(x$marginal[nms], function(x) x["marginal"])
-  names(ml) <- substr(names(ml), 1, 2)
-  bf <- setNames(ml[1]-ml[2], paste0(names(ml[1:2]), collapse="-"))
-  bf
+    top.two <- sort(x, decreasing=TRUE)[1:2]
+    log.bf <- diff(-top.two)
+    log.bf
 }
 
 setMethod("updateMultinomialProb", "MarginalModel", function(object){

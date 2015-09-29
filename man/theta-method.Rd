@@ -19,6 +19,10 @@ theta(object)
 \arguments{
 \item{object}{see \code{showMethods(theta)}}
 }
+\value{
+A vector of length number of components or a matrix of size
+number of batches x number of components
+}
 \description{
 The interpretation of \code{theta} depends on whether \code{object}
 is a \code{MarginalModel} or a \code{BatchModel}.  For

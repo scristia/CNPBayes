@@ -604,7 +604,7 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
         for (int b = 0; b < B; ++b) {
             for (int k = 0; k < K; ++k) {
                 // update nn
-                nn(b, k) = sum(zz == (k + 1) & batch == ub[b]);
+                nn(b, k) = sum((zz == (k + 1)) & (batch == ub[b]));
 
                 // calculate nu_n and sigma2_n
                 nu_n = nu0 + nn(b, k);

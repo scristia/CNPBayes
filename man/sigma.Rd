@@ -9,6 +9,10 @@ sigma(object)
 \arguments{
 \item{object}{an object of class MarginalModel or BatchModel}
 }
+\value{
+A vector of length K, or a matrix of size B x K, where
+K is the number of components and B is the number of batches
+}
 \description{
 Retrieve standard deviations of each component/batch mean.
 }

@@ -6,6 +6,7 @@
 #' @param sds a vector of standard deviations, one per component/batch
 #' @param batch a vector of labels indication from which batch each simulation should come from
 #' @param zz a vector indicating latent variable membership. Can be omitted.
+#' @return An object of class 'BatchModel'
 #' @examples
 #' k <- 3
 #' nbatch <- 3
@@ -66,6 +67,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
 #' @param p a vector indicating probability of membership to each component
 #' @param theta a vector of means, one per component
 #' @param sds a vector of standard deviations, one per component
+#' @return An object of class 'MarginalModel'
 #' @examples
 #' truth <- simulateData(N=2500, p=rep(1/3, 3),
 #'                       theta=c(-1, 0, 1),
@@ -74,8 +76,6 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
 simulateData <- function(N, p, theta, sds){
   zz <- simulateZ(N, p)
   y <- rnorm(N, theta[zz], sds[zz])
-  ##params <- ModelParams("marginal", y=y, k=length(theta))
-  ##object <- initializeModel(params)
   object <- MarginalModel(data=y, k=length(theta))
   z(object) <- as.integer(factor(zz, levels=unique(sort(zz))))
   p(object) <- p
@@ -86,7 +86,6 @@ simulateData <- function(N, p, theta, sds){
   tau2(object) <- var(theta(object))
   log_lik(object) <- computeLoglik(object)
   logPrior(object) <- computePrior(object)
-  ##logpotential(object) <- computePotential(object)
   object
 }
 

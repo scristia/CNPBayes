@@ -15,6 +15,9 @@ simulateData(N, p, theta, sds)
 
 \item{sds}{a vector of standard deviations, one per component}
 }
+\value{
+An object of class 'MarginalModel'
+}
 \description{
 Create simulated data for testing.
 }

@@ -9,6 +9,9 @@ muMean(object)
 \arguments{
 \item{object}{an object of class MarginalModel or BatchModel}
 }
+\value{
+A vector of size 1 or number of batches
+}
 \description{
 Retrieve overall mean averaged across MCMC simulations.
 }

@@ -16,6 +16,9 @@ logPrior(object)
 \arguments{
 \item{object}{see \code{showMethods(logPrior)}}
 }
+\value{
+log likelihood of the prior.
+}
 \description{
 Calculate log likelihood of prior for model
 }

@@ -6,6 +6,7 @@
 #' @param batch a vector of the different batch numbers (must be sorted)
 #' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @param mcmc.params An object of class 'McmcParams'
+#' @return An object of class `BatchModel`
 #' @export
 BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
   if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
@@ -137,11 +138,12 @@ setValidity("BatchModel", function(object){
 
 #' extract data, latent variable, and batch for given observation
 #' @name extract
-#' @param x An object of class BatchModel, McmcChains, McmcParams, or ModelList.
+#' @param x An object of class BatchModel, McmcChains, or McmcParams
 #' @param i An element of the instance to be extracted.
 #' @param j Not used.
 #' @param ... Not used.
 #' @param drop Not used.
+#' @return An object of class 'BatchModel'
 #' @aliases [,BatchModel-method [,BatchModel,ANY-method [,BatchModel,ANY,ANY-method [,BatchModel,ANY,ANY,ANY-method
 #' @docType methods
 #' @rdname extract-methods
@@ -224,26 +226,6 @@ componentVariances <- function(y, z)  v <- sapply(split(y, z), var)
 setMethod("computeVars", "BatchModel", function(object){
   compute_vars_batch(object)
 })
-
-setMethod("initializeSigma2.0", "BatchModel", function(object){
-  hypp <- hyperParams(object)
-  sum(alpha(hypp)*colMeans(sigma2(object)))/sum(alpha(hypp))
-})
-
-## y: length n_b vector  (number of samples in batch b)
-## theta: length K vector for batch b
-## sd:  length K vector for batch b
-## pi: length K vector for batch b.
-## Returns:  n_b x K matrix for batch b
-.multBatchSpecific <- function(y, theta, sd, pi){
-  K <- seq_len(length(pi))
-  result <- matrix(NA, length(y), length(theta))
-  for(j in K){
-    result[, j] <- pi[j]*dnorm(y, theta[j], sd[j])
-  }
-  mix.probs <- result/rowSums(result)
-  mix.probs
-}
 
 #' @rdname mu-method
 #' @aliases mu,BatchModel-method

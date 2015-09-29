@@ -17,6 +17,9 @@ downsample(batch.file, plate, y, ntiles = 250, THR = 0.1)
 
 \item{THR}{threshold above which to merge batches in Kolmogorov-Smirnov test.}
 }
+\value{
+Tile labels for each observation
+}
 \description{
 A wrapper for function downSampleEachBatch. Batches are automatically merged as needed.
 }

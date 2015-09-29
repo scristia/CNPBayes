@@ -22,6 +22,9 @@ hyperParams(object) <- value
 
 \item{value}{an object of class 'Hyperparameters'}
 }
+\value{
+The Hyperparameters of a MixtureModel
+}
 \description{
 Accessor for Hyperparameters object for a MixtureModel-derived object
 

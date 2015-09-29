@@ -34,6 +34,9 @@ is ignored.}
 \item{show.batch}{a logical. If true, batch specific densities
 will be plotted.}
 }
+\value{
+A plot showing the density estimate
+}
 \description{
 Plot estimates of the posterior density for each component and the
 overall, marginal density.  For batch models, one can additionally

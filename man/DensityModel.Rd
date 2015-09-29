@@ -13,6 +13,9 @@ DensityModel(object, merge = FALSE)
 the component means using the estimated modes from the overall
 density as the centers for the \code{kmeans} function.}
 }
+\value{
+An object of class 'DensityModel'
+}
 \description{
 Instantiates an instance of 'DensityModel' (or 'DensityBatchModel')
 from a MarginalModel or BatchModel object. See the corresponding

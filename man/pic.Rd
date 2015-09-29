@@ -9,6 +9,9 @@ pic(object)
 \arguments{
 \item{object}{an object of class MarginalModel or BatchModel}
 }
+\value{
+A matrix of size MCMC iterations x Number of components
+}
 \description{
 Retrieve mixture proportions at each iteration of the MCMC.
 }

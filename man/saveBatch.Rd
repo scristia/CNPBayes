@@ -13,6 +13,9 @@ saveBatch(se, batch.file, THR = 0.1)
 
 \item{THR}{threshold below which the null hypothesis should be rejected and batches are collapsed.}
 }
+\value{
+A vector of collapsed batch labels
+}
 \description{
 Batches drawn from the same distribution as identified by Kolmogorov-Smirnov test are combined.
 }

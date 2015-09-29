@@ -1,16 +1,3 @@
-posteriorPrecisionConjugateNormal <- function(prior.precision, data.precision) {
-  prior.precision+data.precision
-}
-
-posteriorMeanConjugateNormal <- function(prior.precision, data.precision,
-                                         posterior.precision, prior.mean, data.mean){
-  (prior.precision/posterior.precision)*prior.mean + (data.precision/posterior.precision) * data.mean
-}
-
-stopif <- function(x) stopifnot(!x)
-
-precision <- function(x) 1/var(x, na.rm=TRUE)
-
 consensusRegion <- function(g){
   ## Defined the consensus start as the minimum basepair that is
   ## spanned by at least half of all identified CNVs
@@ -205,29 +192,6 @@ annotateRegions <- function(regions, transcripts){
 }
 
 
-colLRRMediansSE <- function(object){
-  R <- lrr(object)
-  colMedians(R, na.rm=TRUE)
-}
-
-computeLRRMedians <- function(views, regions){
-  hits <- findOverlaps(regions, rowRanges(views))
-  R <- lrr(views[subjectHits(hits), ])
-  viewsCNP <- views[subjectHits(hits), ]
-  indices <- split(seq_len(nrow(viewsCNP)), queryHits(hits))
-  i <- NULL
-  lrr.meds <- foreach(i = indices, .combine="rbind", .packages="matrixStats") %do% {
-    mat <- R[i, , drop=FALSE]
-    colMedians(mat, na.rm=TRUE)
-  }
-  dimnames(lrr.meds) <- list(names(regions), colnames(views))
-  iR <- integerMatrix(lrr.meds, 1000)
-  se <- SummarizedExperiment(assays=SimpleList(medr=iR),
-                             rowData=regions,
-                             colData=colData(views))
-  se
-}
-
 imputeFromSampledData <-  function(model, data, index){
   if(is.null(names(data))) stop("data must be a named vector")
   pz2 <- probz(model)
@@ -269,15 +233,6 @@ imputeFromSampledData <-  function(model, data, index){
   df2
 }
 
-stripData <- function(object){
-  modlist <- lapply(object, function(x){
-    x@data <- numeric()
-    x
-  })
-  modlist
-}
-
-
 permnK <- function(k, maxperm){
   if(k < 2) return(matrix(1,1,1))
   kperm <- permn(seq_len(k))
@@ -297,6 +252,7 @@ permnK <- function(k, maxperm){
 #' @param y vector containing data
 #' @param nt the number of tiles in a batch
 #' @param batch a vector containing the labels from which batch each observation came from.
+#' @return Tile labels for each observation
 #' @export
 downSampleEachBatch <- function(y, nt, batch){
   ## NULL out these two variables to avoid NOTE about
@@ -328,6 +284,7 @@ downSampleEachBatch <- function(y, nt, batch){
 #' @param y in memory data
 #' @param ntiles number of tiles in a batch
 #' @param THR threshold above which to merge batches in Kolmogorov-Smirnov test.
+#' @return Tile labels for each observation
 #' @export
 downsample <- function(batch.file, plate, y, ntiles=250, THR=0.1){
   if(file.exists(batch.file)){

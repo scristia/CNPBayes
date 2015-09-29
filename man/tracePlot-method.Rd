@@ -17,6 +17,9 @@ tracePlot(object, name, ...)
 
 \item{...}{Other argument to pass to plot.}
 }
+\value{
+A traceplot of a parameter value
+}
 \description{
 Create a trace plot of a parameter estimated by MCMC.
 }

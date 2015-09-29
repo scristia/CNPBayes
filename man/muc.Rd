@@ -9,6 +9,10 @@ muc(object)
 \arguments{
 \item{object}{an object of class MarginalModel or BatchModel}
 }
+\value{
+A vector of length N or matrix of size N x B, where N is the
+number of observations and B is the number of unique batches.
+}
 \description{
 Retrieve overall mean at each iteration of the MCMC.
 }

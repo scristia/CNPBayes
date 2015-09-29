@@ -4,6 +4,7 @@
 #' @name MarginalModelExample
 #' @usage MarginalModelExample
 #' @author Jacob Carey
+#' @return An example of a `MarginalModel`
 #' MarginalModelExample
 NULL
 
@@ -13,5 +14,6 @@ NULL
 #' @name BatchModelExample
 #' @usage BatchModelExample
 #' @author Jacob Carey
+#' @return An example of a `BatchModel`
 #' BatchModelExample
 NULL

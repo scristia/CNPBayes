@@ -164,7 +164,6 @@ HyperparametersMarginal <- function(k=0L,
                                     a=1.8,
                                     b=6){
   if(missing(alpha)) alpha <- rep(1, k)
-  ##if(missing(mu)) mu <- initializeMu(k)
   ##if(missing(tau2)) tau2 <- rep(1, k)
   new("HyperparametersMarginal",
       k=as.integer(k),
@@ -194,6 +193,7 @@ setValidity("Hyperparameters", function(object){
 #' @param type specifies 'marginal' or 'batch'
 #' @param k number of components
 #' @param ... optional parameters.  See details
+#' @return An object of class HyperparametersMarginal or HyperparametersBatch
 #'
 #' @details
 #' Additional hyperparameters can be passed to the
@@ -246,8 +246,4 @@ setMethod("show", "Hyperparameters", function(object){
   cat("   beta   :", betas(object), "\n")
   cat("   a      :", a(object), "\n")
   cat("   b      :", b(object), "\n")
-})
-
-setMethod("initializeMu", "numeric", function(object){
-  rnorm(k(object), mu.0(object), tau.0(object))
 })

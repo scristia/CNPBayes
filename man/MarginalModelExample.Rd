@@ -7,11 +7,14 @@
 \usage{
 MarginalModelExample
 }
+\value{
+An example of a `MarginalModel`
+MarginalModelExample
+}
 \description{
 This data is a simulated example of Marginal data
 }
 \author{
 Jacob Carey
-MarginalModelExample
 }
 

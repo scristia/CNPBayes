@@ -17,6 +17,9 @@ BatchModel(data = numeric(), k = 2L, batch, hypp, mcmc.params)
 
 \item{mcmc.params}{An object of class 'McmcParams'}
 }
+\value{
+An object of class `BatchModel`
+}
 \description{
 Create an object for running hierarchical MCMC simulations.
 }

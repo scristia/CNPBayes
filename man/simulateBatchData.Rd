@@ -19,6 +19,9 @@ simulateBatchData(N = 2500, p, theta, sds, batch, zz)
 
 \item{zz}{a vector indicating latent variable membership. Can be omitted.}
 }
+\value{
+An object of class 'BatchModel'
+}
 \description{
 Create simulated batch data for testing.
 }

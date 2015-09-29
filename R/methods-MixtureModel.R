@@ -72,6 +72,8 @@ observed <- function(object) object@data
 #' @examples
 #'      sigma(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
+#' @return A vector of length K, or a matrix of size B x K, where
+#' K is the number of components and B is the number of batches
 #' @export
 sigma <- function(object) sqrt(sigma2(object))
 
@@ -80,6 +82,7 @@ sigma <- function(object) sqrt(sigma2(object))
 #' @examples
 #'      tau(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
+#' @return A vector of standard deviations
 #' @export
 tau <- function(object) sqrt(tau2(object))
 
@@ -100,6 +103,7 @@ sigma.0 <- function(object) sqrt(sigma2.0(object))
 #' @examples
 #'      p(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
+#' @return A vector of length the number of components
 #' @export
 p <- function(object) object@pi
 
@@ -107,13 +111,6 @@ nComp <- function(object) length(p(object))
 dataMean <- function(object) object@data.mean
 dataPrec <- function(object) object@data.prec
 dataSd <- function(object) sqrt(1/dataPrec(object))
-
-#' Retrieve the log potential from a MixtureModel
-#'
-#' The log potential of a model is the log(likelihood * likelihood of prior) + log(probability(theta)) + log(probability(sigma.2))
-#' @param object a MixtureModel.
-#' @export
-logpotential <- function(object) object@logpotential
 
 #' @rdname k-method
 #' @aliases k,MixtureModel-method
@@ -169,24 +166,12 @@ setReplaceMethod("sigma2.0", "MixtureModel", function(object, value){
   object
 })
 
-setReplaceMethod("logpotential", "MixtureModel", function(object, value){
-  object@logpotential <- value
-  object
-})
-
 #' @rdname chains-method
 #' @aliases chains,MixtureModel-method
 setMethod("chains", "MixtureModel", function(object) object@mcmc.chains)
 
 setReplaceMethod("chains", "MixtureModel", function(object, value){
   object@mcmc.chains <- value
-  object
-})
-
-setMethod("dat", "MixtureModel", function(object) object@data)
-
-setReplaceMethod("dat", "MixtureModel", function(object, value) {
-  object@data <- value
   object
 })
 
@@ -417,6 +402,7 @@ makeUnique <- function(x){
 #' @examples
 #'      map(MarginalModelExample)
 #' @param object an object of class MixtureModel.
+#' @return map estimate of latent variable assignment for each observation
 #' @export
 map <- function(object) {
   estimates <- apply(probz(object), 1, which.max)
@@ -424,27 +410,11 @@ map <- function(object) {
   estimates
 }
 
-setMethod("fitMixtureModels", "numeric", function(object, mcmcp, K=1:5){
-  message("Fitting ", length(K), " models")
-  fit <- vector("list", length(K))
-  for(j in seq_along(K)){
-    cat(".")
-    mp <- mcmcp[j]
-    kk <- K[j]
-    params <- ModelParams("marginal", y=object, k=kk, mcmc.params=mp)
-    model <- posteriorSimulation(params, mp)
-    fit[[j]] <- model
-  }
-  fit
-})
-
 setMethod("thetac", "MixtureModel", function(object) theta(chains(object)))
 
 setMethod("thetaMean", "MixtureModel", function(object) colMeans(thetac(object)))
 
 setMethod("sigmaMean", "MixtureModel", function(object) colMeans(sigmac(object)))
-
-logpotentialc <- function(object) logpotential(chains(object))
 
 logLikc <- function(object) log_lik(chains(object))
 
@@ -454,6 +424,8 @@ logLikc <- function(object) log_lik(chains(object))
 #' @examples
 #'      sigmac(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
+#' @return A matrix of size N x K where N is the number of observations
+#' and K is the number of components
 #' @export
 sigmac <- function(object) sigma(chains(object))
 
@@ -462,6 +434,7 @@ sigmac <- function(object) sigma(chains(object))
 #' @examples
 #'      pic(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
+#' @return A matrix of size MCMC iterations x Number of components
 #' @export
 pic <- function(object) p(chains(object))
 
@@ -474,6 +447,8 @@ setMethod("pMean", "MixtureModel", function(object){
 #' @examples
 #'      muc(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
+#' @return A vector of length N or matrix of size N x B, where N is the 
+#' number of observations and B is the number of unique batches.
 #' @export
 muc <- function(object) mu(chains(object))
 
@@ -482,6 +457,7 @@ muc <- function(object) mu(chains(object))
 #' @examples
 #'      muMean(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
+#' @return A vector of size 1 or number of batches
 #' @export
 muMean <- function(object) {
   x <- muc(object)
@@ -496,6 +472,8 @@ muMean <- function(object) {
 #' @examples
 #'      tauc(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
+#' @return A vector of length N or matrix of size N x B, where N is the 
+#' number of observations and B is the number of unique batches.
 #' @export
 tauc <- function(object) sqrt(tau2(chains(object)))
 
@@ -504,6 +482,7 @@ tauc <- function(object) sqrt(tau2(chains(object)))
 #' @examples
 #'      tauMean(MarginalModelExample)
 #' @param object an object of class MarginalModel or BatchModel
+#' @return A vector of size 1 or number of batches
 #' @export
 tauMean <- function(object){
   x <- tauc(object)
@@ -697,10 +676,6 @@ setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=FALSE, val
 
 
 setMethod("zChain", "MixtureModel", function(object) chains(object)@z)
-setReplaceMethod("zChain", "MixtureModel", function(object, value){
-  chains(object)@z <- value
-  object
-})
 
 useModes <- function(object){
   m2 <- object
@@ -735,6 +710,7 @@ mapModel <- function(model){
 #'
 #' Calculate probabilistic copy number assignments using Bayes Rule applied at the MAP estimates of the cluster mean, variance, and class proportion parameters
 #' @param model An object of class MixtureModel.
+#' @return A matrix of size N x K where N is number of observations and K is the number of components.
 #' @export
 mapCnProbability <- function(model){
   ## Cardin et al. : calculate probabilistic copy number assignments

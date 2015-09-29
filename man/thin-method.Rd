@@ -16,6 +16,9 @@ thin(object)
 \arguments{
 \item{object}{see showMethods(thin)}
 }
+\value{
+An integer of the number of thinning intervals
+}
 \description{
 This function retrieves the number of thinning intervals used for an MCMC simulation.
 }

@@ -9,6 +9,9 @@ tau(object)
 \arguments{
 \item{object}{an object of class MarginalModel or BatchModel}
 }
+\value{
+A vector of standard deviations
+}
 \description{
 Retrieve overall standard deviation.
 }

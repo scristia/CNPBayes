@@ -7,11 +7,14 @@
 \usage{
 BatchModelExample
 }
+\value{
+An example of a `BatchModel`
+BatchModelExample
+}
 \description{
 This data is a simulated example of Batch data
 }
 \author{
 Jacob Carey
-BatchModelExample
 }
 

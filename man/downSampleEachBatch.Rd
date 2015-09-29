@@ -13,6 +13,9 @@ downSampleEachBatch(y, nt, batch)
 
 \item{batch}{a vector containing the labels from which batch each observation came from.}
 }
+\value{
+Tile labels for each observation
+}
 \description{
 Create tile labels for each observation
 }

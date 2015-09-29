@@ -9,6 +9,9 @@ mapCnProbability(model)
 \arguments{
 \item{model}{An object of class MixtureModel.}
 }
+\value{
+A matrix of size N x K where N is number of observations and K is the number of components.
+}
 \description{
 Calculate probabilistic copy number assignments using Bayes Rule applied at the MAP estimates of the cluster mean, variance, and class proportion parameters
 }

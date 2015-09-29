@@ -7,6 +7,7 @@
 #' @param thin thinning interval
 #' @param nStarts number of chains to run
 #' @param param_updates labeled vector specifying whether each parameter is to be updated (1) or not (0).
+#' @return An object of class 'McmcParams'
 #' @export
 McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1,
                        param_updates=.param_updates()){
@@ -51,6 +52,7 @@ setMethod("show", "McmcParams", function(object){
 #'
 #' Allows a user to pass a vector for burnin, thin, and iter.
 #' @aliases [,McmcParams-method [,McmcParams,ANY-method
+#' @return An object of class 'McmcParams'
 #' @docType methods
 #' @rdname extract-methods
 setMethod("[", "McmcParams", function(x, i, j, ..., drop=FALSE){

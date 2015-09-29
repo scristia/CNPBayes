@@ -60,6 +60,7 @@ setMethod("collapseBatch", "numeric", function(object, plate, THR=0.1){
 #' @param se a SummarizedExperiment object
 #' @param batch.file the file name to which to save the data
 #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
+#' @return A vector of collapsed batch labels
 #' @export
 saveBatch <- function(se, batch.file, THR=0.1){
   if(file.exists(batch.file)){
