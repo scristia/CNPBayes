@@ -675,6 +675,7 @@ setGeneric("marginalLikelihood",
 #' \code{GRanges} object.
 #' @param object a \code{GRanges} instance
 #' @param ... currently ignored
+#' @return A character vector
 #' @examples
 #'    g <- GRanges("chr1", IRanges(10, 15))
 #'    chromosome(g)
@@ -683,6 +684,7 @@ setGeneric("chromosome", function(object, ...) standardGeneric("chromosome"))
 
 #' Extract integer vector of batch labels from MixtureModel-derived class
 #'
+#' @return An vector of length of the data
 #' @examples
 #' model <- BatchModel()
 #' batch(model)
