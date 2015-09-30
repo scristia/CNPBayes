@@ -13,5 +13,5 @@
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% foreach
 #' @importFrom matrixStats colSds colMedians rowCumsums rowProds colMaxs
-#' @useDynLib CNPBayes, .registration = TRUE
+#' @useDynLib CNPBayes
 NULL
