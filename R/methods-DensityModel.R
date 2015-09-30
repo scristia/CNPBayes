@@ -1,8 +1,8 @@
 setMethod("densitiesCluster", "BatchModel", function(object){
-  dens <- CNPBayes:::densities(object)
+  dens <- densities(object)
   modes <- dens[["modes"]]
   if(length(modes(object)) > 0){
-    object <- CNPBayes:::useModes(object)
+    object <- useModes(object)
   }
   ix <- order(mu(object))
   thetas <- mu(object)[ix]
@@ -37,7 +37,7 @@ setMethod("densitiesCluster", "BatchModel", function(object){
   length(component.list) == nclusters
   component <- lapply(component.list, function(x) rowSums(do.call(cbind, x)))
   overall <- rowSums(do.call(cbind, component))
-  modes <- CNPBayes:::findModes(dens$quantiles, overall) ## should be the same
+  modes <- findModes(dens$quantiles, overall) ## should be the same
   list(batch=batch, component=component, overall=overall, modes=modes,
        quantiles=dens$quantiles,
        clusters=km, data=dens$data)
