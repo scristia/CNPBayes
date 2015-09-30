@@ -6,6 +6,9 @@
 \usage{
 batch(object)
 }
+\value{
+An vector of length of the data
+}
 \description{
 Extract integer vector of batch labels from MixtureModel-derived class
 }

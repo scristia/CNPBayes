@@ -11,12 +11,17 @@ chromosome(object, ...)
 
 \item{...}{currently ignored}
 }
+\value{
+A character vector
+}
 \description{
 Short cut for \code{as.character(seqnames(g))} where g is a
 \code{GRanges} object.
 }
 \examples{
-g <- GRanges("chr1", IRanges(10, 15))
+\dontrun{
+   g <- GRanges("chr1", IRanges(10, 15))
    chromosome(g)
+}
 }
 
