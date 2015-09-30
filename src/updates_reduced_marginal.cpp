@@ -597,7 +597,7 @@ Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod) {
         double total = 1.0;
 
         for (int k = 0; k < K; ++k) {
-            nu_n = nu0 + nn[k];
+            nu_n = nu0 + (double)(nn[k]);
             sigma2_n = 1.0 / nu_n[0] * (nu0 * s20 + ss[k]);
             tmp = dgamma(prec, 0.5 * nu_n[0], 2.0 / (nu_n[0] * sigma2_n[0]));
             total *= tmp[k];
