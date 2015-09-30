@@ -677,8 +677,10 @@ setGeneric("marginalLikelihood",
 #' @param ... currently ignored
 #' @return A character vector
 #' @examples
+#' \dontrun{
 #'    g <- GRanges("chr1", IRanges(10, 15))
 #'    chromosome(g)
+#' }
 #' @export
 setGeneric("chromosome", function(object, ...) standardGeneric("chromosome"))
 
