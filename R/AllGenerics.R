@@ -683,12 +683,3 @@ setGeneric("marginalLikelihood",
 #' }
 #' @export
 setGeneric("chromosome", function(object, ...) standardGeneric("chromosome"))
-
-#' Extract integer vector of batch labels from MixtureModel-derived class
-#'
-#' @return An vector of length of the data
-#' @examples
-#' model <- BatchModel()
-#' batch(model)
-#' @export
-setGeneric("batch", function(object) standardGeneric("batch"))
