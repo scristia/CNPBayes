@@ -88,7 +88,7 @@ In addition, we fit models with and without a term for batch.
 The `posteriorSimulation` function takes a constructed `MixtureModel` and `k`, a vector of the number of components for which to fit models. The posterior simulations of each model is held in two lists - one for `MarginalModel`'s and one for `BatchModel`'s.
 
 ```{r posteriorSimulation}
-set.seed(1)
+set.seed(1337)
 mlist.marginal <- posteriorSimulation(model.marginal, k=1:4)
 mlist.batch <- posteriorSimulation(model.batch, k=1:4)
 ```
