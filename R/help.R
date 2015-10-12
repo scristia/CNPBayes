@@ -13,5 +13,6 @@
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% foreach
 #' @importFrom matrixStats colSds colMedians rowCumsums rowProds colMaxs
+#' @importMethodsFrom oligoClasses lrr baf
 #' @useDynLib CNPBayes
 NULL
