@@ -35,7 +35,7 @@ consensusRegion <- function(g){
 
 defineCnpRegions <- function(grl, thr=0.02){
   message("unlist GRangesList...")
-  g <- BiocGenerics::unlist(grl)
+  g <- unlist(grl)
   names(g) <- NULL
   dj <- disjoin(g)
   ##g2 <- GRanges(seqnames(g), IRanges(start(g), end(g)))
