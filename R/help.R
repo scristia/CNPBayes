@@ -8,7 +8,7 @@
 #' @import IRanges
 #' @importFrom Rcpp evalCpp
 #' @importFrom S4Vectors SimpleList DataFrame
-#' @importFrom GenomicRanges rowRanges SummarizedExperiment colData GRanges GRangesList assays disjoin
+#' @import GenomicRanges 
 #' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% foreach
