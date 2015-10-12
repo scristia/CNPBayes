@@ -116,8 +116,4 @@ selected.model <- mlist.marginal[[which.max(marginal.lik)]]
 map(selected.model)
 ```
 
-## QC
-
-Visualize the results.  Check BAFs.
-
 # References
