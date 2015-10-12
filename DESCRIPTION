@@ -21,6 +21,7 @@ Imports:
     GenomeInfoDb,
     IRanges,
     methods,
+    BiocGenerics
 Suggests:
     testthat,
     knitr,
