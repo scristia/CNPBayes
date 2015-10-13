@@ -1,0 +1,211 @@
+* An example CNV
+
+Sweave the VanillaICE vignette to obtain an example CNV.
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  vi <- vignette("VanillaICE", package="VanillaICE")
+  vi.Rnw <- file.path(vi$Dir, file.path("doc", vi$File))
+  vi.R <- vi$R
+  Stangle(vi.Rnw)
+  source(vi.R)
+#+end_src
+
+The object ~snp_exp~ contains log R ratios and BAFs from a region on
+chromosome 22 encapsulating the DiGeorge critical region.
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  ## SNP experiment
+  snp_exp 
+#+end_src
+
+The results from fitting the hidden Markov model (HMM) are stored in
+object ~fit~, an object of class ~HMMList~ that can be coerced to a
+~GRanges~ object.
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  g <- unlist(fit)
+  g <- g[g$state == 2]
+  ## for simplicity, we assume it is one big deletion (the data suggests
+  ## that there might be multiple deletions) 
+  gr <- reduce(g, min.gapwidth=500e3)
+#+end_src
+
+* Simulate ranges for deletions
+
+
+Simulate a ~GRangesList~ containing 25 samples with a hemizygous
+deletion at this locus, but with differences in the start and end.
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  true.start <- GRanges(seqnames(gr), IRanges(start(gr), width=1))
+  true.end <- GRanges(seqnames(gr), IRanges(end(gr), width=1))
+  index.start <- findOverlaps(true.start, snp_exp, select="first")
+  index.end <- findOverlaps(true.end, snp_exp, select="first")
+  delta.start <- as.integer(runif(25, -1, 1)*50)
+  delta.end <- as.integer(runif(25, -1, 1)*50)
+  indices.start <- index.start + delta.start
+  indices.end <- index.end + delta.end
+
+  cnvs <- GRanges(rep(seqnames(gr), 25),
+                  IRanges(start(snp_exp)[indices.start],
+                          end(snp_exp)[indices.end]),
+                  id=paste0("sample", 1:25))
+#+end_src
+
+
+
+#+begin_src :tangle scripts/simulate_cnp.R
+  ## plot the cnvs
+  xlim <- c(min(start(snp_exp)), max(end(snp_exp)))
+  xlim <- c(10e6, 40e6)
+  par(las=1)
+  plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
+       xaxt="n")
+  at <- pretty(xlim, n=10)
+  axis(1, at=at, labels=round(at/1e6, 1), cex.axis=0.8)
+  rect(start(cnvs), seq_along(cnvs)-0.2, end(cnvs), seq_along(cnvs)+0.2,
+       col="gray", border="gray")
+#+end_src
+
+* Simulate log R ratios and BAFs for 7Mb region
+
+
+** Sample with replacment from empirical data
+
+Here, we simulate log R ratios and
+BAFs by sampling with replacement the empirical data.
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  simulated.se.file <- "~/Software/CNPBayes/inst/extdata/simulated_se.rds"
+  if(!file.exists(simulated.se.file)){
+    ## Simulate a 7Mb stretch of log R ratios / BAFs that encapsulates the
+    ## simulated CNV, sampling with replacement from the empirical data.
+    region <- GRanges("chr22", IRanges(15e6, 22e6))
+    hits <- findOverlaps(region, snp_exp)
+    snp_exp2 <- snp_exp[subjectHits(hits), ]
+    log.r.empirical <- lrr(snp_exp2)[, "FinalReport6872.txt"]
+    baf.empirical <- baf(snp_exp2)[, "FinalReport6872.txt"]
+    indices.deletion <- subjectHits(findOverlaps(gr, snp_exp2))
+    ## Assume that all the other observations are diploid (even though
+    ## this is not true for this sample)
+    indices.diploid <- seq_along(snp_exp2)[-indices.deletion]
+
+    ## simulate 25 samples with deletion and 10 samples without deletion
+    rr <- rowRanges(snp_exp2)
+    nr <- length(rr)
+    nc <- 35
+    b.a.f <- log.r.ratios <- matrix(NA, nr, nc)
+    b <- r <- rep(NA, nr)
+    set.seed(123)
+    for(i in seq_len(nc)){
+      if(i <= 25){
+        ## sample with deletion
+        g.cnv <- cnvs[i]
+        J <- subjectHits(findOverlaps(g.cnv, rr))
+        i.deletion <- sample(indices.deletion, length(J), replace=TRUE)
+        r[J] <- log.r.empirical[i.deletion]
+        b[J] <- baf.empirical[i.deletion]
+        ndiploid <- length(snp_exp2) - length(J)
+        i.diploid <- sample(indices.diploid, ndiploid, replace=TRUE)
+        r[-J] <- log.r.empirical[i.diploid]
+        b[-J] <- baf.empirical[i.diploid]
+      } else {
+        ## diploid sample
+        i.diploid <- sample(indices.diploid, length(r), replace=TRUE)
+        r <- log.r.empirical[i.diploid]
+        b <- baf.empirical[i.diploid]
+      }
+      b.a.f[, i] <- b
+      log.r.ratios[, i] <- r    
+    }
+    dimnames(log.r.ratios) <- dimnames(b.a.f) <- list(rownames(snp_exp2),
+                                                      paste0("sample", 1:35))
+    sim.se <- SnpArrayExperiment(cn=log.r.ratios, baf=b.a.f,
+                                 rowRanges=rowRanges(snp_exp2))
+    saveRDS(sim.se, file=simulated.se.file)
+  }
+#+end_src
+
+Save the simulated CNVs as a ~GRangesList~
+#+begin_src R :tangle scripts/simulate_cnp.R
+  ## would be better to save this as plain text
+  grl.file <- "~/Software/CNPBayes/inst/extdata/grl_deletions.rds"
+  if(!file.exists(grl.file)){
+    grl <- split(cnvs, cnvs$id)
+    saveRDS(grl, file=grl.file)
+  }
+#+end_src
+
+** Summaries
+
+To summarize the log R ratios in the CNV regions, one could find the
+markers for the entire region and use the first principal component
+(PC) to summarize the log R ratios as advocated by Cardin \textit{et
+al}.  The potential disadvantage of this approach is that the scale of
+the loadings makes it more difficult to interpret the copy number of
+the mixture components.  Often the median log R ratio is adequate, and
+retains the original scale.
+
+*** Median summary
+
+To summarize samples by the median log R ratios, we define the largest
+region that spans 50 percent of the samples using the function
+~consensusCNP~.  Because the deletions in this example are large ($>$
+2Mb), we specify a large value for ~max.width~ to avoid filtering
+these CNVs.
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  grl <- split(cnvs, cnvs$id)
+  cnv.region <- consensusCNP(grl, max.width=5e6)
+#+end_src
+
+A median summary of the log R ratios for each sample is straight
+forward.  
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  sim.se <- readRDS(simulated.se.file)
+  i <- subjectHits(findOverlaps(cnv.region, sim.se))
+  med.summary <- matrixStats::colMedians(lrr(sim.se)[i, ], na.rm=TRUE)
+  med.summary
+#+end_src
+
+*** PC summary
+
+An advantage of PC is that we can simply use the minimum start and
+maximum end to define the CNV region -- PC should automatically
+downweight markers that are not consistent with the CNV. 
+
+
+#+begin_src R :tangle scripts/simulate_cnp.R :results value graphics
+  cnv.region2 <- reduce(cnvs)
+  i.pc <- subjectHits(findOverlaps(cnv.region2, sim.se))
+  ##
+  x <- lrr(sim.se)[i.pc, ]
+  nas <- rowSums(is.na(x))
+  na.index <- which(nas > 0)
+  x <- x[-na.index, , drop=FALSE]
+  pc.summary <- prcomp(t(x))$x[, 1]
+  meds.for.pc <- matrixStats::colMedians(x, na.rm=TRUE)
+  if(cor(pc.summary, meds.for.pc) < 1) pc.summary <- -1*pc.summary
+#+end_src
+
+** Plot the two summaries
+
+#+begin_src R :tangle scripts/simulate_cnp.R
+  par(mfrow=c(1,2), las=1)
+  plot(med.summary, main="median summary of\nconsensus CNP", cex.main=0.7, pch=20)
+  plot(pc.summary, main="PC summary of\nreduced CNV ranges", cex.main=0.7, pch=20)
+#+end_src
+
+
+
+
+
+
+
+
+
+
+
+
+
