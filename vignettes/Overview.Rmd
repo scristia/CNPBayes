@@ -1,0 +1,120 @@
+---
+title: "Overview of CNPBayes package"
+author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
+date: \today
+output: BiocStyle::pdf_document
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{Overview of CNPBayes package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc} 
+---
+
+# Introduction
+
+CNPBayes models multi-modal densities via a hierarchical Bayesian
+Gaussian mixture model.  The major application of this model is the
+estimation of copy number at copy number polymorphic loci (CNPs). Two
+versions of the mixture model are implemented.  A *standard* model,
+referred to as a *marginal* model, that has one mean and standard
+deviation for each component, and a *batch* model with batch-specific
+means and standard deviations. Approximation of the posterior is by
+Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp package
+[@Rcpp].  
+
+For an EM-implementation of Gaussian mixture models for CNPs, see the
+Bioconductor package CNVtools [@Barnes2008].  A Bayesian extension of
+this model by some of the same authors was developed to automate the
+analysis of the Welcome Trust Case Control Consortium (WTCCC) genotype
+data [@cardin] and implemented in the R package CNVCALL
+(http://niallcardin.com/CNVCALL).
+
+This vignette provides a concise workflow for fitting mixture models
+in large array-based genome-wide association studies.  We refer the
+reader to other vignettes included with this package for details
+regarding implementation.
+
+```{r lib} 
+library(CNPBayes)
+library(GenomicRanges)
+```
+
+# Workflow
+
+## Delineate CNPs for each ancestry group
+
+Provided in the `CNPBayes` package is example `SnpArrayExperiment` and `GRangesList` data.
+
+```{r find_cnps}
+se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
+grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
+```
+
+Using this data, we identify CNP loci and summarize within sample and locus by median.
+
+```{r summary, message=FALSE}
+cnv.region <- consensusCNP(grl, max.width=5e6)
+i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
+med.summary <- matrixStats::colMedians(lrr(se)[i, ], na.rm=TRUE)
+```
+
+See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`. 
+
+A `MixtureModel` is constructed using this summarized data for a CNP locus with a call to `MarginalModel` or `BatchModel`, depending on whether the simulation should be *marginal* across batch effect, or *hierarchical*. The batch of a subject is determined by the chemistry plate and is specified using the `batch` parameter in the `BatchModel`.
+
+```{r model_construction}
+model.marginal <- MarginalModel(data=med.summary)
+model.batch <- BatchModel(data=med.summary, 
+                          batch=c(rep(1, 12), rep(2, 23)))
+```
+
+For details about model construction and other optional parameters, see [Bayesian mixture models for copy number estimation](Implementation.pdf).
+
+## Fitting mixture models at each CNP
+
+Independently for each CNP, we group the samples into batches using
+the `collapseBatch` function and create a new model.
+
+```{r collapse}
+model.batch <- BatchModel(data=med.summary,
+                          batch=collapseBatch(model.batch))
+```
+
+For array-based estimates and germline genomes, there are typically
+between 1 and 4 copy number states at any given CNP.  Since we do not
+know the number of components a priori, we fit a model for each k.
+In addition, we fit models with and without a term for batch.
+
+The `posteriorSimulation` function takes a constructed `MixtureModel` and `k`, a vector of the number of components for which to fit models. The posterior simulations of each model is held in two lists - one for `MarginalModel`'s and one for `BatchModel`'s.
+
+```{r posteriorSimulation}
+set.seed(1337)
+mlist.marginal <- posteriorSimulation(model.marginal, k=1:4)
+mlist.batch <- posteriorSimulation(model.batch, k=1:4)
+```
+
+## Selecting a model
+
+Marginal likelihood is estimated for each of the 8 models and the
+Bayes' factors is used to select one of these models for further
+study.
+
+```{r likelihood}
+# marginal likelihood of each model
+marginal.lik <- marginalLikelihood(mlist.marginal)
+batch.lik <- marginalLikelihood(mlist.batch)
+
+# bayes factor for comparing top two models
+logBayesFactor(marginal.lik)
+logBayesFactor(batch.lik)
+```
+
+## Extracting MAP estimates and posterior probabilities
+
+For the selected model, we can view the *maximum a posteriori* estimates for component.
+```{r map}
+selected.model <- mlist.marginal[[which.max(marginal.lik)]]
+map(selected.model)
+```
+
+# References

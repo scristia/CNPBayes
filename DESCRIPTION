@@ -1,0 +1,30 @@
+Package: CNPBayes
+Type: Package
+Title: Bayesian mixture models for copy number polymorphisms
+Version: 0.99.5
+Maintainer: Jacob Carey <jcarey15@jhu.edu>
+Description: Bayesian hierarchical mixture models for batch effects and copy
+    number.
+Date: Tue Jan 20 20:41:00 EST 2015
+Author: Stephen Cristiano, Robert Scharpf, and Jacob Carey
+Depends: foreach, GenomicRanges
+Imports: Rcpp (>= 0.12.1), S4Vectors, matrixStats, RColorBrewer,
+        gtools, oligoClasses, combinat, GenomeInfoDb, IRanges, methods,
+        BiocGenerics
+Suggests: testthat, knitr, BiocStyle, VanillaICE (>= 1.31.3),
+Collate: 'help.R' 'AllGenerics.R' 'AllClasses.R' 'RcppExports.R'
+        'data.R' 'functions.R' 'marginal_likelihood.R'
+        'methods-BatchModel.R' 'methods-DensityModel.R'
+        'methods-Hyperparameters.R' 'methods-MarginalModel.R'
+        'methods-McmcChains.R' 'methods-McmcParams.R'
+        'methods-MixtureModel.R' 'methods-SummarizedExperiment.R'
+        'model_initialization.R' 'simulate_data.R' 'visualization.R'
+VignetteBuilder: knitr
+License: Artistic-2.0
+LinkingTo: Rcpp
+biocViews: CopyNumberVariation, Bayesian
+Roxygen: list(wrap=FALSE)
+LazyData: TRUE
+URL: https://github.com/scristia/CNPBayes
+BugReports: https://github.com/scristia/CNPBayes/issues
+NeedsCompilation: yes

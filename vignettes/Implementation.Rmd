@@ -1,0 +1,431 @@
+---
+title: "Implementation of Bayesian mixture models for copy number estimation"
+author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
+date: \today
+output: BiocStyle::pdf_document
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{Implementation of Bayesian mixture models for copy number estimation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc} 
+---
+
+# Introduction
+
+CNPBayes models multi-modal densities via a hierarchical Bayesian
+Gaussian mixture model.  The major application of this model is the
+estimation of copy number at copy number polymorphic loci (CNPs). Two
+versions of the mixture model are implemented.  A *standard* model,
+referred to as a *marginal* model, that has one mean and standard
+deviation for each component, and a *batch* model with batch-specific
+means and standard deviations. Approximation of the posterior is by
+Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp package
+[@Rcpp].
+
+For an EM-implementation of Gaussian mixture models for CNPs, see the
+Bioconductor package CNVtools [@Barnes2008].  A Bayesian extension of
+this model by some of the same authors was developed to automate the
+analysis of the Welcome Trust Case Control Consortium (WTCCC) genotype
+data [@cardin] and implemented in the R package CNVCALL
+(http://niallcardin.com/CNVCALL).
+
+<!-- how cnpbayes extends / differs from these tools -->
+
+```{r lib} 
+library(CNPBayes)
+```
+
+# Implementation
+
+CNPBayes uses several S4 classes to encapsulate key parameters of the
+MCMC simulation, reducing the need for functions with a large number
+of arguments and providing an explicit contract for the arguments
+passed to the C++ back-end. The three core classes are
+
+- `McmcParams`: parameters for the number of burnin simulations - the
+  number of chains to initialize, the number of simulations after
+  burnin, and how often simulated values are to be saved.
+
+- `Hyperparameters`: a virtual class extended by `HyperparametersMarginal`
+  and `HyperparametersBatch` for the marginal and batch mixture model
+  implementations, respectively.
+
+- `MixtureModel`: a virtual class with slots for data and
+  hyperparameters, as well as a slot for each parameter. The class is
+  extended by `MarginalModel` and `BatchModel` for the *marginal* and
+  *batch* implementations, respectively. S4 dispatch on these classes
+  is used to handle MCMC updates that are specific to the marginal or
+  batch models.
+
+# Approximating the posterior of a mixture
+
+## MarginalModel
+### McmcParams
+
+
+The class `McmcParams` specifies several MCMC options, including the
+number of saved iterations (`iter`), length of burn-in (`burnin`), and
+the thinning interval (`thin`).  The following code indicates that we
+will run a burnin of 100 iterations saving the first 1000 iterations
+after burnin, with no iterations discarded for thinning.
+
+```{r McmcParams} 
+mp <- McmcParams(iter=1000, burnin=100, thin=1)
+```
+
+If we instead specified `thin=10`, we would need to run 10,000 MCMC
+iterations in order to have a chain of length 1000 (every 10th
+observation is saved).
+
+### Hyperparameters
+
+Hyperparameters for the mixture model are specified as an instance of class
+`Hyperparameters`. Hyperparameters include:  
+
+- `k` the number of components (or copy number). Defaults to 2.  
+
+- `mu.0` and `tau2.0` priors for $\mu \sim$ N(`mu.0`, `tau2.0`), the 
+  overall mean of components. Default to 0 and 100 respectively.  
+
+- `eta.0` and `m2.0` priors for 
+  $\tau^2 \sim$ Ga(rate=`eta.0`, shape=`m2.0`), the overall variance 
+  across components. Default to 1 and 0.1 respectively for *marginal* models 
+  and 1800 and 1/60 respectively for *batch* models.  
+
+- `alpha` the prior mixture probabilities. Does not have to sum to 1. By
+  default, a noninformative prior of equal mixtures is used.  
+
+- `beta` prior for $\nu_0$. Defaults to 0.1.  
+
+- `a` and `b` priors for $\sigma^2_0 \sim$ Ga(shape=`a`, rate=`b`), the 
+  rate parameter for $\sigma^2$, the variance for each batch and component.  
+
+```{r graph-marginal, echo=FALSE}
+library(grid)
+bayesianGrob <- function(x, r=unit(0.25, "inches")){
+  tg <- textGrob(x)
+  cg <- circleGrob(r=r)
+  boxedText <- gTree(children=gList(tg, cg))
+}
+
+grobY <- bayesianGrob(expression(y[i]))
+grobThetas <- bayesianGrob(expression(theta[h]))
+grobSigma2 <- bayesianGrob(expression(sigma[h]^2))
+grobH <- bayesianGrob(expression(z[i]))
+grobNu0 <- bayesianGrob(expression(nu[0]))
+grobSigma02 <- bayesianGrob(expression(sigma[0]^2))
+grobPi <- bayesianGrob(expression(pi[h]))
+grobMu <- bayesianGrob(expression(mu[h]))
+grobTau2 <- bayesianGrob(expression(tau[h]^2))
+
+h <- unit(0.25, "inches")
+e <- unit(0.05, "inches")
+d <- unit(0.025, "inches")
+
+ar <- arrow(ends="last", length=unit(0.075, "inches"), type="closed")
+grid.newpage()
+y.x <- 0.5; y.y <- 0.1
+h.x <- 0.1; h.y <- 0.3
+theta.x <- 0.5; theta.y <- 0.3
+sigma2.x <- 0.7; sigma2.y <- 0.3
+pi.x <- 0.1; pi.y <- 0.5
+mu.x <- 0.45; mu.y <- 0.5
+tau2.x <- 0.55; tau2.y <- 0.5
+nu0.x <- 0.65; nu0.y <- 0.5
+s20.x <- 0.75; s20.y <- 0.5
+grid.draw(editGrob(grobY, vp=viewport(y.x, y.y), gp=gpar(fill="gray")))
+grid.draw(editGrob(grobY, vp=viewport(y.x, y.y), gp=gpar(fill="transparent")))
+grid.draw(editGrob(grobH, vp=viewport(h.x, h.y)))
+
+grid.draw(editGrob(grobThetas, vp=viewport(theta.x, theta.y)))
+grid.draw(editGrob(grobSigma2, vp=viewport(sigma2.x, sigma2.y)))
+
+## theta -> y
+grid.move.to(unit(theta.x, "npc"), unit(theta.y, "npc") - h)
+grid.line.to(unit(y.x, "npc"), unit(y.y, "npc") + h, arrow=ar,
+             gp=gpar(fill="black"))
+## sigma2 -> y
+grid.move.to(unit(sigma2.x, "npc") - e, unit(sigma2.y, "npc") -h)
+grid.line.to(unit(y.x, "npc") + h, unit(y.y, "npc") + h, arrow=ar,
+             gp=gpar(fill="black"))
+
+## h -> theta
+grid.move.to(unit(h.x, "npc") + h, unit(h.y, "npc") - h)
+grid.line.to(unit(y.x, "npc") - h, unit(y.y, "npc") + h,  arrow=ar,
+             gp=gpar(fill="black"))
+
+##pi
+grid.draw(editGrob(grobPi, vp=viewport(pi.x, pi.y)))
+## pi -> h
+grid.move.to(x=unit(pi.x, "npc"), y=unit(pi.y, "npc") - h)
+grid.line.to(x=unit(h.x, "npc"),
+             y=unit(h.y, "npc")+h, arrow=ar,
+             gp=gpar(fill="black"))
+
+
+## mu_h
+grid.draw(editGrob(grobMu, vp=viewport(mu.x, mu.y)))
+## mu_h -> theta
+grid.move.to(x=unit(mu.x, "npc")+e, y=unit(mu.y, "npc") - h)
+grid.line.to(x=unit(theta.x, "npc")-e, y=unit(theta.y, "npc")+h, arrow=ar,
+             gp=gpar(fill="black"))
+
+
+## sigma2_h
+grid.draw(editGrob(grobTau2, vp=viewport(tau2.x, tau2.y)))
+## sigma2_h -> theta_h
+grid.move.to(x=unit(tau2.x, "npc")-e, y=unit(tau2.y, "npc") - h)
+grid.line.to(x=unit(theta.x, "npc")+e, y=unit(theta.y, "npc")+h, arrow=ar,
+             gp=gpar(fill="black"))
+
+grid.draw(editGrob(grobNu0, vp=viewport(nu0.x, nu0.y)))
+## nu_0 -> sigma2_0
+grid.move.to(x=unit(nu0.x, "npc")+e, y=unit(nu0.y, "npc") - h)
+grid.line.to(x=unit(sigma2.x, "npc")-e, y=unit(sigma2.y, "npc")+h, arrow=ar,
+             gp=gpar(fill="black"))
+
+grid.draw(editGrob(grobSigma02, vp=viewport(s20.x, s20.y)))
+## nu_0 -> sigma2_0
+grid.move.to(x=unit(s20.x, "npc")-e, y=unit(s20.y, "npc") - h)
+grid.line.to(x=unit(sigma2.x, "npc")+e, y=unit(sigma2.y, "npc")+h, arrow=ar,
+             gp=gpar(fill="black"))
+```
+
+Constructing an instance of class `Hyperparameters` for a `MarginalModel` can
+be performed as follows.
+```{r Hyperparameters}
+hypp <- Hyperparameters(type="marginal", k=3)
+```
+
+### simulateData
+
+CNPBayes allows for the simulation of test data. The number of observations, 
+mixture proportions, means for each component, and standard deviations for 
+each component must be specified. 
+```{r simulateData}
+sim.data <- simulateData(N=2500, p=rep(1/3, 3),
+                         theta=c(-1, 0, 1),
+                         sds=rep(0.1, 3))
+```
+
+### posteriorSimulation
+
+To simulate the posterior distribution, an instance of class `MarginalModel`
+must first be constructed. Note that when initializing objects of this
+class, the parameters `data`, `k` (number of *a priori* components), 
+`hypp`, (object of class `Hyperparameters`) and `mcmc.params` (object of class
+`McmcParams`) should be specified. Default values for `hypp` and `mcmc.params`
+will be used if not specified. The `y` method should be used to retrieve the 
+data from an object. After construction of a model, the `posteriorSimulation` 
+method should be used.
+
+```{r model}
+model <- MarginalModel(data=y(sim.data), k=3,
+                       hypp=hypp,
+                       mcmc.params=mp)
+
+model <- posteriorSimulation(model)
+```
+
+The results of a `DensityModel` call returns an object of class
+`DensityModel`. Use the data and a `DensityModel` for plotting.
+
+```{r plot}
+plot(DensityModel(model), y(sim.data), 
+     main="Marginal Model posterior")
+```
+
+## BatchModel
+
+In general, the construction and posterior simulation of a `BatchModel` is 
+similar to that of a `MarginalModel`. The `BatchModel` is hierarchical over 
+the batches, and thus requires information about the batches. Instances of 
+`McmcParams` are equivalent between `BatchModel` and `MarginalModel`. 
+However, an object of class `Hyperparameters` is constructed with a `type` 
+of "batch". Additionally, simulated batch data is created using 
+`simulateBatchData` which requires `theta` and `sds` to be specifed as 
+$B \times K$ matrices, for $K$ components and $B$ batches. `simulateBatchData` 
+also requires a `batch` parameter, labelling the batch of each observation. 
+Finally, `BatchModel`s are constructed using the function `BatchModel` which 
+operates similarly to `MarginalModel` but requires a `batch` parameter, 
+similar to `Hyperparameters`. `plot`s of `BatchModel`s include batch specific 
+density estimates.
+
+```{r batch}
+## Create McmcParams for batch model
+mp <- McmcParams(iter=2000, burnin=1000, thin=1)
+
+## Create Hyperparameters for batch model
+hypp <- Hyperparameters(type="batch", k=3)
+
+## simulate batch data
+k <- 3
+nbatch <- 3
+means <- matrix(c(-1.2, -1.0, -0.8,
+                -0.2, 0, 0.2,
+                0.8, 1, 1.2), nbatch, k, byrow=FALSE)
+sds <- matrix(0.1, nbatch, k)
+N <- 1500
+sim.data <- simulateBatchData(N=N,
+                              batch=rep(letters[1:3], length.out=N),
+                              theta=means,
+                              sds=sds,
+                              p=c(1/5, 1/3, 1-1/3-1/5))
+
+# create BatchModel and run posteriorSimulation
+model <- BatchModel(data=y(sim.data), k=3,
+                    batch=batch(sim.data),
+                    hypp=hypp,
+                    mcmc.params=mp)
+
+model <- posteriorSimulation(model)
+plot(DensityModel(model), y(sim.data),
+     breaks=100)
+```
+
+While aspects of the `BatchModel` look somewhat Gaussian, there is some 
+evidence of departure from a normal distribution. Due to this skewness, a
+`MarginalModel` would not capture the distribution well. However, the
+`BatchModel` does a good job of capturing the shape.
+
+# K unknown
+
+Generally, the number of components is not known *a priori*. To
+estimate the number of components *K*, the `marginalLikelihood`
+function is used. It is important to note that a list of models passed to this
+function must have converged. For ease of use, one can specify `k` in the 
+posteriorSimulation to use the same data, `Hyperparameters`, and `mcmc.params`,
+but with a different number of components.
+
+```{r marginalLikelihood}
+mp <- McmcParams(iter=2e3, burnin=1e3)
+model <- MarginalModel(data=y(sim.data), k=2, mcmc.params=mp)
+
+mlist <- list(posteriorSimulation(model),
+              posteriorSimulation(model, k=3))
+
+x <- marginalLikelihood(mlist)
+x
+```
+
+`marginalLikelihood` uses Chib's Estimator [@chib] to run a reduced Gibbs
+to estimate the marginal likelihood of each component size. Additionally, 
+`marginalLikelihood` can be used in a similar manner for `BatchModel`s.
+
+Alternative methods for selection of *k* are also included. As an example, the
+`bic` method can be used for calculating the Bayesian Information Criterion. 
+
+```{r bic}
+## simulate k=2 model
+sim.data <- simulateData(N=2500, p=rep(1/3, 3),
+                         theta=c(-1, 0, 1),
+                         sds=rep(0.1, 3))
+hypp1 <- Hyperparameters(k=2)
+m1 <- MarginalModel(data=y(sim.data), k=2,
+                    hypp=hypp1,
+                    mcmc.params=mp)
+m1 <- posteriorSimulation(m1)
+
+## simulate k=3 model
+hypp2 <- Hyperparameters(k=3)
+m2 <- MarginalModel(data=y(sim.data), k=3,
+                    hypp=hypp2,
+                    mcmc.params=mp)
+m2 <- posteriorSimulation(m2)
+
+bic(m1)
+bic(m2)
+```
+
+As the data is simulated from a three component distribution, `m2` should be
+chosen. Using the Bayesian Information Criterion, the correct model is chosen
+in this simple example.
+
+Finally, in an overfit model (one with too many components), merging components
+is supported. 
+
+```{r merge}
+mp <- McmcParams(iter=5000, burnin=1000, thin=1)
+model <- MarginalModel(data=y(sim.data), k=4,
+                       hypp=Hyperparameters(k=4),
+                       mcmc.params=mp)
+model <- posteriorSimulation(model)
+dm <- DensityModel(model)
+modes(dm)
+dm_merged <- DensityModel(model, merge=TRUE)
+k(dm_merged)
+
+par(mfrow=c(1,2), las=1)
+plot(dm, y(sim.data))
+plot(dm_merged, y(sim.data))
+```
+
+This merging procedure also ensures that there is no underfitting. For example,
+merging a model with three true components will yield a model with three
+components.
+
+```{r merge-under}
+model <- MarginalModel(data=y(sim.data), k=3,
+                       hypp=Hyperparameters(k=3),
+                       mcmc.params=mp)
+model <- posteriorSimulation(model)
+dm <- DensityModel(model)
+dm_merged <- DensityModel(model, merge=TRUE)
+k(dm)
+k(dm_merged)
+```
+
+# Batch Estimation
+
+Differences in the one-dimensional summaries between groups of samples
+can arise due to technical sources of variation referred to as *batch
+effects*.  For example, date, temperature, machine calibration, and
+lab technician are all potentially important technical sources of
+variation [@batch-effect].  Batch effects can vary by locus, with some
+loci more susceptible to technical factors that may affect
+measurement.  The 96 well chemistry plate on which the samples were
+processed is often a useful surrogate for batch effects since this
+tends to capture samples that were processed (e.g., PCR amplification)
+and scanned at approximately the same time. However, in large studies
+involving potentially hundreds of chemistry plates, it is not
+computationally feasible to fit fully Bayesian plate-specific mixture
+models.  Because chemistry plates are often processed at similar times
+and may be comparable in terms of the distribution of a statistic of
+interest, it may be more useful (and computationally scalable) to
+*batch* the chemistry plates.  Here, we implement a simple two-sample
+Kolmogorov-Smirnov (KS) test for each pairwise combination of
+chemistry plates in the function `collapseBatch`. The two-sample KS
+test is applied recursively until no two combinations of grouped
+plates can be combined.  We illustrate with a trivial example.
+
+
+```{r collapseBatch}
+k <- 3
+nbatch <- 3
+means <- matrix(c(-1.2, -1.0, -1.0,
+                -0.2, 0, 0,
+                0.8, 1, 1), nbatch, k, byrow=FALSE)
+sds <- matrix(0.1, nbatch, k)
+N <- 1500
+sim.data <- simulateBatchData(N=N,
+                              batch=rep(letters[1:3], length.out=N),
+                              theta=means,
+                              sds=sds,
+                              p=c(1/5, 1/3, 1-1/3-1/5))
+
+plot(sim.data)
+
+model <- BatchModel(data=y(sim.data), k=3,
+                    batch=batch(sim.data))
+
+model <- BatchModel(data=y(sim.data), k=3,
+                    batch=collapseBatch(model))
+
+model <- posteriorSimulation(model)
+plot(model)
+```
+
+As is shown, the model correctly collapses batches two and three, since they
+are drawn from the same distribution.
+
+# References
