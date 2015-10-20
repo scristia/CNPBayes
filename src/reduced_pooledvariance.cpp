@@ -239,7 +239,6 @@ Rcpp::S4 reduced_pi_pooled(Rcpp::S4 xmod) {
   NumericVector pi_ = as<NumericVector>(modes["mixprob"]) ;
   NumericVector sigma2star=clone(sigma2_) ;
   NumericVector thetastar=clone(theta_) ;
-  int K = thetastar.size() ;
   NumericVector prec(1) ;
   NumericVector logp_prec(S) ;
   NumericVector y = model.slot("data") ;
