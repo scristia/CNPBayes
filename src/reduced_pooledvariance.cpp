@@ -216,7 +216,7 @@ Rcpp::NumericVector p_sigma_reduced_pooled(Rcpp::S4 xmod) {
           k++;
         }
       }
-      nu_n = 0.5*(nu0 + n) ;
+      nu_n = 0.5*(nu0 + double(n)) ;
       sigma2_n[0] = 1.0 / (0.5*(nu0[0] * s20[0] + ss[0])) ;
       sigma2_new = dgamma(prec, nu_n[0], sigma2_n[0]) ;
       p_prec[s] = sigma2_new[0] ;      
