@@ -19,10 +19,11 @@ consensusRegion <- function(g){
   threshold <- floor(length(g)/2)
   dj <- disjoin(g)
   cnt <- countOverlaps(disjoin(g), g)
-  if(all(cnt < threshold)){
+  if(all(cnt <= threshold)){
     threshold <- floor(threshold/2)
   }
-  ## the disjoint intervals are sorted, so we only need to take the first interval that passes this threshold
+  ## the disjoint intervals are sorted, so we only need to take the
+  ## first interval that passes this threshold
   index.start <- min(which(cnt > threshold))
   index.end <- max(which(cnt > threshold))
   startg <- dj[index.start]
