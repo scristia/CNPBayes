@@ -19,7 +19,7 @@ test_that("test_marginal_few_data", {
 })
 
 test_that("test_marginal_hard", {
-    set.seed(2000)
+    set.seed(1337)
     truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0), sds = c(0.3,
         0.15, 0.15), p = c(0.005, 1/10, 1 - 0.005 - 1/10))
     if (FALSE)
