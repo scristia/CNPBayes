@@ -322,22 +322,7 @@ Rcpp::IntegerVector update_z(Rcpp::S4 xmod) {
   //
   // Don't update z if there are states with zero frequency
   //
-  // return model.slot("z") ;  
-  // To prevent 0 frequencies, arbitrarily switch the label
-  //while(!is_true(all(freq > 0))){
-  for(int k = 0; k < K; ++k){
-    if( freq[k] >= 2 ) continue ;
-    NumericVector r(2) ;
-    IntegerVector i(2) ;
-    r = runif(2, 0, 1) * n ;
-    for(int j = 0; j < 2; ++j){
-      // cast as integer
-      i = (int) r[j] ;
-      zz[i] = k + 1 ;
-    }
-    freq[k] = sum(zz == (k+1)) ;
-  }
-  return zz ;
+   return model.slot("z") ;  
 }
 
 // [[Rcpp::export]]
