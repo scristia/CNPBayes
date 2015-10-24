@@ -692,9 +692,10 @@ setGeneric("chromosome", function(object, ...) standardGeneric("chromosome"))
 #' kept at a minimum. This function returns the proportion of MCMC sample iterations where 
 #' label switching has occurred.
 #' @param object An object of class \code{MarginalModel} or \code{BatchModel}
+#' @param merge A logical indicating whether the components should be merged before checking for label switching
 #' @return A single proportion for a \code{MarginalModel} or a vector of proportions, one for each batch for a \code{BatchModel}
 #' @examples
 #'      labelSwitching(MarginalModelExample)
 #' @export
 #' @rdname labelSwitching-method
-setGeneric("labelSwitching", function(object, ...) standardGeneric("labelSwitching"))
+setGeneric("labelSwitching", function(object, merge=TRUE) standardGeneric("labelSwitching"))
