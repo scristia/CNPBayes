@@ -24,6 +24,6 @@ notifications:
   email:
     recipients:
       - jacobcvt12@gmail.com
-      #- rscharpf@jhu.edu      
+      - rscharpf@jhu.edu      
     on_success: always
     on_failure: always
