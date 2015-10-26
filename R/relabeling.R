@@ -9,7 +9,7 @@ relabeling <- function(thetas, comp_map) {
 
     for (i in comp_orig) {
         if (comp_merged[i]) {
-            ordered <- gsub(as.character(i), as.character(comp_map[i]), ordered)
+            ordered <- gsub(i, comp_map[i], ordered)
         }
     }
     
