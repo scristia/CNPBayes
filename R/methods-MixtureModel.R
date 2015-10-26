@@ -748,3 +748,43 @@ mapCnProbability <- function(model){
   }
   return(p)
 }
+
+setMethod("labelSwitching", "MixtureModel", 
+    function(object, merge=TRUE) {
+        # put together a map indicating which component a component
+        # is merged into, if merging happens
+        if (merge) {
+            merged <- DensityModel(object, merge=TRUE)
+            comp_map <- clusters(merged)
+        } else {
+            # if merge==FALSE then this is an identity map
+            comp_map <- clusters(object)
+        }
+
+        # a vector showing the batch of each observation
+        # note that for a MarginalModel, all observations have batch=1
+        batches <- unique(batch(object))
+
+        # get the number of components
+        components <- k(object)
+
+        # empty vector for storing proportion of relabeling for 
+        # each batch
+        prop_relabeled <- numeric(length(batches))
+
+        # grab the thetas for components/batch at each MCMC iteration
+        thetas_all <- theta(chains(object))
+
+        for (batch in batches) {
+            # get indices for the given batch
+            ind <- (batch - 1) * components + 1:components
+
+            # get thetas at each iteration corresponding to the batch
+            thetas_batch <- thetas_all[, ind]
+
+            # calculate the proportion of relabeling for a given batch
+            prop_relabeled[batch] <- 1 - relabeling(thetas_batch, 
+                                                    comp_map)
+        }
+    }
+)
