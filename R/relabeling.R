@@ -27,9 +27,3 @@ relabeling <- function(model, merge=TRUE) {
 
     return(proportion)
 }
-
-order_thetas <- function(thetas, comp_map) {
-    if (!missing comp_map) {
-    } else {
-    }
-}
