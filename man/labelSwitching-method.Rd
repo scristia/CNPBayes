@@ -4,10 +4,12 @@
 \alias{labelSwitching}
 \title{Calculate proportion of relabeling instances}
 \usage{
-labelSwitching(object, ...)
+labelSwitching(object, merge = TRUE)
 }
 \arguments{
 \item{object}{An object of class \code{MarginalModel} or \code{BatchModel}}
+
+\item{merge}{A logical indicating whether the components should be merged before checking for label switching}
 }
 \value{
 A single proportion for a \code{MarginalModel} or a vector of proportions, one for each batch for a \code{BatchModel}
