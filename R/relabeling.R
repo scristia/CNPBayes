@@ -21,7 +21,7 @@ relabeling <- function(model, merge=TRUE) {
             ordered <- gsub(as.character(i), as.character(comp_map[i]), ordered)
         }
     }
-    `
+    
     table_ordered <- sort(table(ordered), decreasing=TRUE)
     proportion <- table_ordered[1] / sum(table_ordered)
 
