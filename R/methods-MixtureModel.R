@@ -749,6 +749,9 @@ mapCnProbability <- function(model){
   return(p)
 }
 
+#' @rdname labelSwitching-method
+#' @aliases labelSwitching,MixtureModel-method
+#' @export
 setMethod("labelSwitching", "MixtureModel", 
     function(object, merge=TRUE) {
         # put together a map indicating which component a component
