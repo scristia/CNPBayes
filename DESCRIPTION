@@ -21,12 +21,15 @@ Imports:
     GenomeInfoDb,
     IRanges,
     methods,
-    BiocGenerics
+    BiocGenerics,
+    graphics,
+    stats
 Suggests:
     testthat,
     knitr,
     BiocStyle,
     VanillaICE (>= 1.31.3),
+    BiocCheck
 Collate:
     'help.R'
     'AllGenerics.R'
