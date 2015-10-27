@@ -1,4 +1,5 @@
 test_that("BiocCheck", {
+    skip("Not running BioConductor BiocCheck right now")
     # run BiocCheck on package
     library(BiocCheck)
     check <- BiocCheck(".")
