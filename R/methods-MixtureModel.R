@@ -789,5 +789,7 @@ setMethod("labelSwitching", "MixtureModel",
             prop_relabeled[batch] <- 1 - relabeling(thetas_batch, 
                                                     comp_map)
         }
+
+        return(prop_relabeled)
     }
 )
