@@ -29,7 +29,8 @@ Suggests:
     knitr,
     BiocStyle,
     VanillaICE (>= 1.31.3),
-    BiocCheck
+    BiocCheck,
+    MASS
 Collate:
     'help.R'
     'AllGenerics.R'
