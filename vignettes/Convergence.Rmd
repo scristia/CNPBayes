@@ -1,0 +1,73 @@
+---
+title: "Inspecting Convergence of a Model"
+author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
+date: \today
+output: BiocStyle::pdf_document
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{Overview of CNPBayes package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc} 
+---
+
+# Introduction
+
+A Markov Chain Monte Carlo posterior simulation should be visually inspected to assess convergence.
+
+```{r lib} 
+# load CNPBayes
+library(CNPBayes)
+
+# load packages for manipulating and visualizing data
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+# Workflow
+
+```{r post-sim}
+set.seed(1)
+
+N <- 7524
+n <- 81
+lrr <- replicate(N, mean(rnorm(n)))
+
+mp <- McmcParams(iter=1000, burnin=1000, thin=1, nStarts=1)
+
+model <- MarginalModel(data=lrr, mcmc.params=mp) 
+m.list <- posteriorSimulation(model, k=1:4)
+```
+
+```{r plot}
+data1 <- as.data.frame(theta(chains(m.list[[1]]))) %>%
+    mutate(iter=1:1000) %>%
+    gather(component, theta, V1) %>%
+    mutate(model=1)
+
+data2 <- as.data.frame(theta(chains(m.list[[2]]))) %>%
+    mutate(iter=1:1000) %>%
+    gather(component, theta, V1:V2) %>%
+    mutate(model=2)
+
+data3 <- as.data.frame(theta(chains(m.list[[3]]))) %>%
+    mutate(iter=1:1000) %>%
+    gather(component, theta, V1:V3) %>%
+    mutate(model=3)
+
+data4 <- as.data.frame(theta(chains(m.list[[4]]))) %>%
+    mutate(iter=1:1000) %>%
+    gather(component, theta, V1:V4) %>%
+    mutate(model=4)
+
+data <- bind_rows(data1, data2, data3, data4) %>%
+    mutate(component=gsub("V", "", component))
+
+ggplot(data, aes(x=iter, y=theta)) +
+    geom_line(aes(colour=component, linetype=component)) +
+    facet_wrap(~model, nrow=2, ncol=2) +
+    theme_classic() +
+    xlab("")
+```
+
+# References
