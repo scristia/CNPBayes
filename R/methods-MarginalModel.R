@@ -37,7 +37,8 @@ MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
                 batchElements=nbatch,
                 modes=list(),
                 mcmc.params=mcmc.params,
-                .internal.constraint=5e-4)
+                .internal.constraint=5e-4,
+                .internal.counter=0)
   object <- startingValues(object)
 }
 
