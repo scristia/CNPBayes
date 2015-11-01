@@ -23,7 +23,8 @@ Imports:
     methods,
     BiocGenerics,
     graphics,
-    stats
+    stats,
+    coda
 Suggests:
     testthat,
     knitr,
