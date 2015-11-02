@@ -31,7 +31,10 @@ Suggests:
     BiocStyle,
     VanillaICE (>= 1.31.3),
     BiocCheck,
-    MASS
+    MASS,
+    dplyr,
+    tidyr,
+    ggplot2
 Collate:
     'help.R'
     'AllGenerics.R'
