@@ -317,7 +317,7 @@ ntile <- function(x, n) {
            / length(x)) + 1)
 }
 
-posterior_cases <- function(model, case.control) {
+posterior_cases <- function(model, case_control) {
     # model and MCMC params
     z.mat <- z(chains(model))
     S <- nrow(z.mat)
@@ -328,7 +328,7 @@ posterior_cases <- function(model, case.control) {
     # run model of probabilities
     for (i in seq_len(S)) {
         z <- z.mat[i, ]
-        cont.tbl <- table(z, case.control)
+        cont.tbl <- table(z, case_control)
         
         cases <- cont.tbl[, 2]
         controls <- cont.tbl[, 1]
