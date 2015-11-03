@@ -65,3 +65,4 @@ LazyData: TRUE
 URL: https://github.com/scristia/CNPBayes
 BugReports: https://github.com/scristia/CNPBayes/issues
 NeedsCompilation: yes
+RoxygenNote: 5.0.0
