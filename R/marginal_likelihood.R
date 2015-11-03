@@ -162,7 +162,7 @@ blockUpdatesBatch <- function(model, mp){
 #' @aliases marginalLikelihood,MarginalModel,integer-method
 setMethod("marginalLikelihood", c("MarginalModel", "integer"),
     function(model, niter) {
-        eff_size_theta <- mean(effectiveSize(theta(chains(model))))
+        eff_size_theta <- min(effectiveSize(theta(chains(model))))
         if (eff_size_theta / iter(model) < 0.05) {
             warning("The model for k=", k(model), " may be overfit.",
                     " This can lead to an incorrect marginal likelihood")
@@ -184,7 +184,7 @@ setMethod("marginalLikelihood", c("MarginalModel", "integer"),
 #' @aliases marginalLikelihood,SingleBatchPooledVar,integer-method
 setMethod("marginalLikelihood", c("SingleBatchPooledVar", "integer"),
           function(model, niter) {
-            eff_size_theta <- mean(effectiveSize(theta(chains(model))))
+            eff_size_theta <- min(effectiveSize(theta(chains(model))))
             if (eff_size_theta / iter(model) < 0.05) {
                 warning("The model for k=", k(model), " may be overfit.",
                         " This can lead to an incorrect marginal likelihood")
@@ -213,7 +213,7 @@ setMethod("marginalLikelihood", "MarginalModel",
 #' @aliases marginalLikelihood,BatchModel,integer-method
 setMethod("marginalLikelihood", c("BatchModel", "integer"),
     function(model, niter) {
-        eff_size_theta <- mean(effectiveSize(theta(chains(model))))
+        eff_size_theta <- min(effectiveSize(theta(chains(model))))
         if (eff_size_theta / iter(model) < 0.05) {
             warning("The model for k=", k(model), " may be overfit.",
                     " This can lead to an incorrect marginal likelihood")
