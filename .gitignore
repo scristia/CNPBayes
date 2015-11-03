@@ -18,3 +18,5 @@ inst/scripts/*
 inst/*.html
 vignettes/*.R
 vignettes/.build.timestamp
+README.html
+Makefile
