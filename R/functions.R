@@ -317,6 +317,17 @@ ntile <- function(x, n) {
            / length(x)) + 1)
 }
 
+#' Calculate posterior proportion of cases by component
+#'
+#' @examples
+#'      # generate random case control status
+#'      case_control <- rbinom(length(y(MarginalModelExample)), 1, 0.5)
+#'      case_control_posterior <- posterior_cases(MarginalModelExample,
+#'                                                case_control)
+#' @param model An instance of a \code{MixtureModel}-derived class.
+#' @param case_control A vector of 1's and 0's where a 1 indicates a case and a 0 a control
+#' @return A matrix of dimension S (MCMC iterations) by K (number of components) where each element i,j indicates the posterior proportion of cases at an iteration and component
+#' @export
 posterior_cases <- function(model, case_control) {
     # model and MCMC params
     z.mat <- z(chains(model))
