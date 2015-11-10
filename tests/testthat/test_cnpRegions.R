@@ -1,3 +1,5 @@
+context("Consensus Regions")
+
 test_that("test_cnpRegions", {
     g <- GRanges("chr1", IRanges(rep(10, 1000), rep(20, 1000)))
     g2 <- GRanges("chr1", IRanges(rep(5, 10), rep(15, 10)))

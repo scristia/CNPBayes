@@ -1,3 +1,5 @@
+context("BatchModel")
+
 test_that("test_batch_moderate", {
     set.seed(100)
     nbatch <- 3

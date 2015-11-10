@@ -1,3 +1,5 @@
+context("Model Selection")
+
 test_that("galaxy model", {
     # set seed
     set.seed(1)

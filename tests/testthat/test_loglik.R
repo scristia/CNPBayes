@@ -1,3 +1,5 @@
+context("Log likelihood")
+
 test_that("test_loglik", {
     set.seed(1337)
     truth <- simulateData(N = 5000, theta = c(-2, -0.4, 0), sds = c(0.3,
