@@ -151,9 +151,13 @@ blockUpdates <- function(reduced_gibbs, root) {
 }
 
 #' @rdname marginalLikelihood-method
-#' @aliases marginalLikelihood,MarginalModel,integer-method
-setMethod("marginalLikelihood", c("MarginalModel", "integer"),
-    function(model, niter) {
+#' @aliases draw_prior,Prior-method draw_prior,Prior,ANY-method
+#' @aliases marginalLikelihood,MarginalModel-method marginalLikelihood,MarginalModel,ANY-method
+setMethod("marginalLikelihood", "MarginalModel",
+    function(model, params=list(niter=1000L,
+                                root=(1/10),
+                                reject.threshold=1e-50,
+                                prop.threshold=0.5)) {
         # calculate effective size of thetas and check against threshold
         eff_size_theta <- min(effectiveSize(theta(chains(model))))
         if (eff_size_theta / iter(model) < 0.05) {
