@@ -46,55 +46,56 @@
     reduced_gibbs
 }
 
-blockUpdatesPooledVar <- function(model, mp){
-  ##
-  ## Block updates for stage 1 parameters
-  ##
-  pstar <- setNames(rep(NA, 7),
-                    c("theta",
-                      "sigma",
-                      "pi",
-                      "mu",
-                      "tau",
-                      "nu0",
-                      "s20"))
-  ptheta.star <- full_theta_pooled(model)
-  pstar["theta"] <- log(mean(ptheta.star))
-  ##
-  model.reduced <- model
-  mcmcParams(model.reduced, force=TRUE) <- mp
-  ##
-  model.psigma2 <- reduced_sigma_pooled(model.reduced)
-  identical(modes(model.psigma2), modes(model))
-  psigma.star <- p_sigma_reduced_pooled(model.psigma2)
-  pstar["sigma"] <- log(mean(psigma.star))
-  ##
-  model.pistar <- reduced_pi_pooled(model.reduced)
-  identical(modes(model.pistar), modes(model))
-  p.pi.star <- p_pmix_reduced_pooled(model.pistar)
-  pstar["pi"] <- log(mean(p.pi.star))
-  ##
-  ## Block updates for stage 2 parameters
-  ##
-  model.mustar <- reduced_mu_pooled(model.reduced)
-  stopifnot(identical(modes(model.mustar), modes(model)))
-  p.mustar <- p_mu_reduced_pooled(model.mustar)
-  pstar["mu"] <- log(mean(p.mustar))
-  ##
-  model.taustar <- reduced_tau_pooled(model.reduced)
-  identical(modes(model.taustar), modes(model))
-  p.taustar <- p_tau_reduced_pooled(model.mustar)
-  pstar["tau"] <- log(p.taustar)
-  ##
-  model.nu0star <- reduced_nu0_pooled(model.reduced)
-  identical(modes(model.nu0star), modes(model))
-  p.nu0star <- p_nu0_reduced_pooled(model.nu0star)
-  pstar["nu0"] <- log(mean(p.nu0star))
-  ##
-  model.s20star <- reduced_s20_pooled(model.reduced)
-  p.s20star <- p_s20_reduced_pooled(model.s20star)
-  pstar["s20"] <- log(p.s20star)
-  pstar
+.blockUpdatesPooledVar <- function(model, mp, reject.threshold, 
+                                   prop.threshold) {
+    model.reduced <- model
+    mcmcParams(model.reduced, force=TRUE) <- mp
+
+    ##
+    ## Block updates for stage 1 parameters
+    ##
+    ptheta.star <- full_theta_pooled(model)
+    small.theta.red <- mean(ptheta.star < reject.threshold)
+
+    if (small.theta.red >= reject.threshold) {
+        warning("The model for k=", k(model), " may be overfit.",
+                " This can lead to an incorrect marginal likelihood")
+        return(matrix(NA))
+    }
+
+    model.psigma2 <- reduced_sigma_pooled(model.reduced)
+    identical(modes(model.psigma2), modes(model))
+    psigma.star <- p_sigma_reduced_pooled(model.psigma2)
+
+    model.pistar <- reduced_pi_pooled(model.reduced)
+    identical(modes(model.pistar), modes(model))
+    p.pi.star <- p_pmix_reduced_pooled(model.pistar)
+
+    ##
+    ## Block updates for stage 2 parameters
+    ##
+    model.mustar <- reduced_mu_pooled(model.reduced)
+    stopifnot(identical(modes(model.mustar), modes(model)))
+    p.mustar <- p_mu_reduced_pooled(model.mustar)
+
+    model.taustar <- reduced_tau_pooled(model.reduced)
+    identical(modes(model.taustar), modes(model))
+    p.taustar <- p_tau_reduced_pooled(model.mustar)
+
+    model.nu0star <- reduced_nu0_pooled(model.reduced)
+    identical(modes(model.nu0star), modes(model))
+    p.nu0star <- p_nu0_reduced_pooled(model.nu0star)
+
+    model.s20star <- reduced_s20_pooled(model.reduced)
+    p.s20star <- p_s20_reduced_pooled(model.s20star)
+
+    reduced_gibbs <- cbind(ptheta.star, psigma.star, p.mustar, p.pi.star,
+                           p.taustar, p.nu0star, p.s20star)
+  
+    colnames(reduced_gibbs) <- c("theta", "sigma", "pi", "mu",
+                                 "tau", "nu0", "s20")
+  
+    reduced_gibbs
 }
 
 .blockUpdatesBatch <- function(model, mp, reject.threshold, prop.threshold) {
