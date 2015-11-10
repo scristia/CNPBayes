@@ -20,8 +20,8 @@ test_that("galaxy model", {
     # calculate marginal likelihood and compare to "truth"
     published.mlik <- -226.791  
     m.y <- marginalLikelihood(fit, 1000)
-    expect_equal(object=m.y[1], expected=published.mlik, 
-                 tolerance=1, scale=1)
+    marginal_k3 <- unname(m.y[1])
+    expect_equal(marginal_k3, published.mlik, tolerance=1)
 
     # check that model is not overfit
 #     expect_true(m.y[1] > m.y[2])
