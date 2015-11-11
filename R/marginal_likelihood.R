@@ -280,7 +280,7 @@ setMethod("marginalLikelihood", "list",
                                 root=(1/10),
                                 reject.threshold=1e-50,
                                 prop.threshold=0.5)) {
-        marg.list <- sapply(model, marginalLikelihood, niter=niter)
+        marg.list <- sapply(model, marginalLikelihood, params=params)
         names <- sapply(model, function(x) paste0(class(x), k(x)))
         names <- gsub("MarginalModel", "SB", names)
         names <- gsub("BatchModel", "MB", names)
