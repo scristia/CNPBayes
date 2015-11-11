@@ -4,32 +4,29 @@
 \name{marginalLikelihood}
 \alias{marginalLikelihood}
 \alias{marginalLikelihood,BatchModel,ANY-method}
-\alias{marginalLikelihood,BatchModel,integer-method}
 \alias{marginalLikelihood,BatchModel-method}
 \alias{marginalLikelihood,MarginalModel,ANY-method}
-\alias{marginalLikelihood,MarginalModel,integer-method}
 \alias{marginalLikelihood,MarginalModel-method}
-\alias{marginalLikelihood,SingleBatchPooledVar,integer-method}
+\alias{marginalLikelihood,SingleBatchPooledVar,ANY-method}
+\alias{marginalLikelihood,SingleBatchPooledVar-method}
 \alias{marginalLikelihood,list,ANY-method}
-\alias{marginalLikelihood,list,integer-method}
 \alias{marginalLikelihood,list-method}
 \title{Compute the marginal likelihood of a converged model.}
 \usage{
-marginalLikelihood(model, niter)
+marginalLikelihood(model, params = list(niter = 1000L, root = (1/10),
+  reject.threshold = 1e-50, prop.threshold = 0.5))
 
-\S4method{marginalLikelihood}{MarginalModel,integer}(model, niter)
+\S4method{marginalLikelihood}{MarginalModel}(model, params = list(niter =
+  1000L, root = (1/10), reject.threshold = 1e-50, prop.threshold = 0.5))
 
-\S4method{marginalLikelihood}{SingleBatchPooledVar,integer}(model, niter)
+\S4method{marginalLikelihood}{SingleBatchPooledVar}(model, params = list(niter
+  = 1000L, root = (1/10), reject.threshold = 1e-50, prop.threshold = 0.5))
 
-\S4method{marginalLikelihood}{MarginalModel,ANY}(model)
+\S4method{marginalLikelihood}{BatchModel}(model, params = list(niter = 1000L,
+  root = (1/10), reject.threshold = 1e-50, prop.threshold = 0.5))
 
-\S4method{marginalLikelihood}{BatchModel,integer}(model, niter)
-
-\S4method{marginalLikelihood}{BatchModel,ANY}(model)
-
-\S4method{marginalLikelihood}{list,integer}(model, niter)
-
-\S4method{marginalLikelihood}{list,ANY}(model, niter)
+\S4method{marginalLikelihood}{list}(model, params = list(niter = 1000L, root =
+  (1/10), reject.threshold = 1e-50, prop.threshold = 0.5))
 }
 \arguments{
 \item{model}{An object of class \code{MarginalModel}, or a list of
