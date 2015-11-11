@@ -274,14 +274,6 @@ setMethod("marginalLikelihood", "BatchModel",
 )
 
 #' @rdname marginalLikelihood-method
-#' @aliases marginalLikelihood,BatchModel-method
-setMethod("marginalLikelihood", "BatchModel",
-    function(model) {
-        marginalLikelihood(model, 1000L)
-    }
-)
-
-#' @rdname marginalLikelihood-method
 #' @aliases marginalLikelihood,list,integer-method
 setMethod("marginalLikelihood", c("list", "integer"),
     function(model, niter) {
