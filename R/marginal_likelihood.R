@@ -288,16 +288,3 @@ setMethod("marginalLikelihood", "list",
         return(marg.list)
     }
 )
-
-#' @rdname marginalLikelihood-method
-#' @aliases marginalLikelihood,list-method
-setMethod("marginalLikelihood", "list",
-    function(model, niter) {
-        marg.list <- sapply(model, marginalLikelihood, niter=1000L)
-        names <- sapply(model, function(x) paste0(class(x), k(x)))
-        names <- gsub("MarginalModel", "SB", names)
-        names <- gsub("BatchModel", "MB", names)
-        names(marg.list) <- names
-        return(marg.list)
-    }
-)
