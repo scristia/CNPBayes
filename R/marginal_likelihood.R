@@ -167,7 +167,7 @@ setMethod("marginalLikelihood", "MarginalModel",
 
         # get parameters from list params
         niter <- params$niter
-        root <- params$niter
+        root <- params$root
         reject.threshold <- params$reject.threshold
         prop.threshold <- params$prop.threshold
 
@@ -208,7 +208,7 @@ setMethod("marginalLikelihood", "SingleBatchPooledVar",
 
         # get parameters from list params
         niter <- params$niter
-        root <- params$niter
+        root <- params$root
         reject.threshold <- params$reject.threshold
         prop.threshold <- params$prop.threshold
 
@@ -249,7 +249,7 @@ setMethod("marginalLikelihood", "BatchModel",
 
         # get parameters from list params
         niter <- params$niter
-        root <- params$niter
+        root <- params$root
         reject.threshold <- params$reject.threshold
         prop.threshold <- params$prop.threshold
 
