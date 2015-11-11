@@ -274,9 +274,12 @@ setMethod("marginalLikelihood", "BatchModel",
 )
 
 #' @rdname marginalLikelihood-method
-#' @aliases marginalLikelihood,list,integer-method
-setMethod("marginalLikelihood", c("list", "integer"),
-    function(model, niter) {
+#' @aliases marginalLikelihood,list-method marginalLikelihood,list,ANY-method
+setMethod("marginalLikelihood", "list",
+    function(model, params=list(niter=1000L,
+                                root=(1/10),
+                                reject.threshold=1e-50,
+                                prop.threshold=0.5)) {
         marg.list <- sapply(model, marginalLikelihood, niter=niter)
         names <- sapply(model, function(x) paste0(class(x), k(x)))
         names <- gsub("MarginalModel", "SB", names)
