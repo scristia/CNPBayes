@@ -161,6 +161,12 @@ setMethod("marginalLikelihood", "MarginalModel",
                                 root=(1/10),
                                 reject.threshold=1e-50,
                                 prop.threshold=0.5)) {
+        # check if length of chains is shorter than gibbs niter
+        if (iter(model) < params$niter) {
+            stop("The number of posterior samples must be greater than or ",
+                 "equal to the number of reduced gibbs samples")
+        }
+
         if (isOverfit(model, params)) {
             warning("The model for k=", k(model), " may be overfit.",
                     " This can lead to an incorrect marginal likelihood")
@@ -205,6 +211,12 @@ setMethod("marginalLikelihood", "SingleBatchPooledVar",
                                 root=(1/10),
                                 reject.threshold=1e-50,
                                 prop.threshold=0.5)) {
+        # check if length of chains is shorter than gibbs niter
+        if (iter(model) < params$niter) {
+            stop("The number of posterior samples must be greater than or ",
+                 "equal to the number of reduced gibbs samples")
+        }
+
         # calculate effective size of thetas and check against threshold
         if (isOverfit(model, params)) {
             warning("The model for k=", k(model), " may be overfit.",
@@ -245,6 +257,12 @@ setMethod("marginalLikelihood", "BatchModel",
                                 root=(1/10),
                                 reject.threshold=1e-50,
                                 prop.threshold=0.5)) {
+        # check if length of chains is shorter than gibbs niter
+        if (iter(model) < params$niter) {
+            stop("The number of posterior samples must be greater than or ",
+                 "equal to the number of reduced gibbs samples")
+        }
+
         # calculate effective size of thetas and check against threshold
         if (isOverfit(model, params)) {
             warning("The model for k=", k(model), " may be overfit.",
