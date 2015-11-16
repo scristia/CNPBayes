@@ -55,7 +55,7 @@
     ##
     ## Block updates for stage 1 parameters
     ##
-    ptheta.star <- full_theta_pooled(model)
+    ptheta.star <- full_theta_pooled(model.reduced)
     ## Doesn't make sense if theta is fixed
     small.theta.red <- mean(ptheta.star < reject.threshold)
     if(paramUpdates(model)[["theta"]]==0) small.theta.red <- 0
@@ -105,7 +105,7 @@
     model.reduced <- model
     mcmcParams(model.reduced, force=TRUE) <- mp
   
-    ptheta.star <- marginal_theta_batch(model)
+    ptheta.star <- marginal_theta_batch(model.reduced)
     small.theta.red <- mean(ptheta.star < reject.threshold)
     if(paramUpdates(model)[["theta"]]==0) small.theta.red <- 0
     
