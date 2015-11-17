@@ -21,7 +21,11 @@ test_that("galaxy model", {
 
     # calculate marginal likelihood and compare to "truth"
     published.mlik <- -226.791  
-    expect_warning(m.y <- marginalLikelihood(fit))
+    expect_warning(m.y <- marginalLikelihood(fit,
+                                             params=list(niter=1000,
+                                                         root=1,
+                                                         reject.threshold=1e-50,
+                                                         prop.threshold=0.5)))
     marginal_k3 <- unname(m.y[1])
     expect_equal(marginal_k3, published.mlik, tolerance=5, scale=1)
 
