@@ -34,7 +34,8 @@ Suggests:
     MASS,
     dplyr,
     tidyr,
-    ggplot2
+    ggplot2,
+    oligoClasses
 Collate:
     'help.R'
     'AllGenerics.R'
