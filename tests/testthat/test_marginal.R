@@ -86,8 +86,13 @@ test_that("test_marginal_pooled", {
     expect_equal(object=s_pooled, expected=0.3, tolerance=0.02)
 
     ylist <- split(y(model), z(model))
-    tmp <- foreach(y=ylist, th=theta(model)) %do%{
-      sum((y-th)^2)
+    tmp <- vector("list", length(ylist))
+
+    for (i in 1:length(ylist)) {
+        y <- ylist[[i]]
+        th <- theta(model)[i]
+
+        tmp[[i]] <- sum((y-th)^2)
     }
     r_ss <- sum(unlist(tmp))
 
