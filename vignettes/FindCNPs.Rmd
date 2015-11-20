@@ -33,12 +33,11 @@ number variant in half of these subjects.
 Included in the CNPBayes package are objects of class `SnpArrayExperiment`
 and `GRangesList`. We begin by loading the necessary libraries and data.
 
-```{r prelim, messages=FALSE}
+```{r prelim}
 se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
 grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
-library(CNPBayes)
-library(VanillaICE)
-library(oligoClasses)
+suppressMessages(library(CNPBayes))
+suppressMessages(library(VanillaICE))
 ```
 
 The object `se` contains log R ratios and B Allele Frequencies, and the object
