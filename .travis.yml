@@ -27,3 +27,4 @@ notifications:
       - rscharpf@jhu.edu      
     on_success: always
     on_failure: always
+  slack: cnpbayes:XaLGAwFtX5BavaWHpB4GMUKj
