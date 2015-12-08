@@ -4,12 +4,16 @@
 \alias{posterior_cases}
 \title{Calculate posterior proportion of cases by component}
 \usage{
-posterior_cases(model, case_control)
+posterior_cases(model, case_control, alpha = 1, beta = 1)
 }
 \arguments{
 \item{model}{An instance of a \code{MixtureModel}-derived class.}
 
 \item{case_control}{A vector of 1's and 0's where a 1 indicates a case and a 0 a control}
+
+\item{alpha}{prior alpha for the beta}
+
+\item{beta}{prior beta for the beta}
 }
 \value{
 A matrix of dimension S (MCMC iterations) by K (number of components) where each element i,j indicates the posterior proportion of cases at an iteration and component
