@@ -335,9 +335,11 @@ ntile <- function(x, n) {
 #'                                                case_control)
 #' @param model An instance of a \code{MixtureModel}-derived class.
 #' @param case_control A vector of 1's and 0's where a 1 indicates a case and a 0 a control
+#' @param alpha prior alpha for the beta
+#' @param beta prior beta for the beta
 #' @return A matrix of dimension S (MCMC iterations) by K (number of components) where each element i,j indicates the posterior proportion of cases at an iteration and component
 #' @export
-posterior_cases <- function(model, case_control) {
+posterior_cases <- function(model, case_control, alpha=1, beta=1) {
     # model and MCMC params
     z.mat <- z(chains(model))
     S <- nrow(z.mat)
