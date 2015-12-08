@@ -10,6 +10,7 @@ integerMatrix <- function(x, scale=100) {
 }
 
 #' @export
+#' @import SummarizedExperiment
 setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   cnmat <- matrix(y(from), 1, length(y(from)))
   cnmat <- integerMatrix(cnmat, 1000)
@@ -27,6 +28,7 @@ setAs("MixtureModel", "SummarizedExperiment", function(from, to){
 
 #' @rdname collapseBatch-method
 #' @aliases collapseBatch,SummarizedExperiment-method
+#' @import SummarizedExperiment
 setMethod("collapseBatch", "SummarizedExperiment", function(object, plate, THR=0.1){
   plate <- as.character(object$plate)
   ##collapseBatch(copyNumber(object)[1, ], plate, THR=THR)
@@ -76,6 +78,7 @@ setMethod("collapseBatch", "numeric", function(object, plate, THR=0.1){
 #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
 #' @return A vector of collapsed batch labels
 #' @export
+#' @import SummarizedExperiment
 saveBatch <- function(se, batch.file, THR=0.1){
   if(file.exists(batch.file)){
     bt <- readRDS(batch.file)
