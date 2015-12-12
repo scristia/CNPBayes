@@ -246,7 +246,7 @@ setMethod("probz", "MixtureModel", function(object) {
 
 
 setMethod("runBurnin", "MarginalModel", function(object){
-  mcmc_marginal_burnin(object, mcmcParams(object))
+  mcmc_single_batch_burnin(object, mcmcParams(object))
 
 })
 
@@ -259,7 +259,7 @@ setMethod("runBurnin", "BatchModel", function(object){
 })
 
 setMethod("runMcmc", "MarginalModel", function(object){
-  mcmc_marginal(object, mcmcParams(object))
+  mcmc_single_batch(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "SingleBatchPooledVar", function(object){
