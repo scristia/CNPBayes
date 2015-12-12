@@ -655,7 +655,7 @@ Rcpp::IntegerMatrix update_probz_batch(Rcpp::S4 xmod){
 
 
 // [[Rcpp::export]]
-Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
+Rcpp::S4 mcmc_multi_batch_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
@@ -703,7 +703,7 @@ Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
 }
 
 // [[Rcpp::export]]
-Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
+Rcpp::S4 mcmc_multi_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   RNGScope scope ;
   Rcpp::S4 xmod = clone(object) ;  
   Rcpp::S4 model(xmod) ;

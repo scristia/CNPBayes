@@ -255,7 +255,7 @@ setMethod("runBurnin", "SingleBatchPooledVar", function(object){
 })
 
 setMethod("runBurnin", "BatchModel", function(object){
-  mcmc_batch_burnin(object, mcmcParams(object))
+  mcmc_multi_batch_burnin(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "MarginalModel", function(object){
@@ -267,7 +267,7 @@ setMethod("runMcmc", "SingleBatchPooledVar", function(object){
 })
 
 setMethod("runMcmc", "BatchModel", function(object){
-  mcmc_batch(object, mcmcParams(object))
+  mcmc_multi_batch(object, mcmcParams(object))
 })
 
 multipleStarts <- function(object){

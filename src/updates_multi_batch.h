@@ -1,5 +1,5 @@
-#ifndef _update_batch_H
-#define _update_batch_H
+#ifndef _update_multi_batch_H
+#define _update_multi_batch_H
 
 Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x);
 Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod);
@@ -27,8 +27,8 @@ Rcpp::IntegerVector order_(Rcpp::NumericVector x);
 
 Rcpp::IntegerMatrix update_probz_batch(Rcpp::S4 xmod);
 
-Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
-Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp);
+Rcpp::S4 mcmc_multi_batch_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
+Rcpp::S4 mcmc_multi_batch(Rcpp::S4 object, Rcpp::S4 mcmcp);
 
 Rcpp::NumericVector p_theta_batch(Rcpp::S4 xmod);
 Rcpp::NumericVector p_theta_zfixed_batch(Rcpp::S4 xmod);
