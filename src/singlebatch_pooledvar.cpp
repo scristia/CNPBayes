@@ -1,5 +1,5 @@
 #include "update.h" // getK
-#include "updates_marginal.h" // getK
+#include "updates_single_batch.h" // getK
 #include "miscfunctions.h" // for rdirichlet, tableZ, ...
 #include <Rmath.h>
 #include <Rcpp.h>
