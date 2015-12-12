@@ -1,5 +1,5 @@
 #include "miscfunctions.h" // for rdirichlet, tableZ, ...
-#include "updates_batch.h"
+#include "updates_multi_batch.h"
 #include "updates_single_batch.h" // for log_ddirichlet_
 #include <Rcpp.h>
 #include <Rmath.h>
