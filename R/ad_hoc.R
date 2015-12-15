@@ -13,6 +13,11 @@ label_components <- function(model) {
     z <- z(model)
     k <- k(model)
 
+    # assume no copy number gain/deletion if k==1 (valid assumption?)
+    if (k == 1) {
+        return(labels[3])
+    }
+
     # get overall means of components
     means <- mu(model)
 
