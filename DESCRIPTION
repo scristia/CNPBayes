@@ -39,6 +39,7 @@ Collate:
     'AllGenerics.R'
     'AllClasses.R'
     'RcppExports.R'
+    'ad_hoc.R'
     'data.R'
     'functions.R'
     'marginal_likelihood.R'
