@@ -8,6 +8,10 @@ label_components <- function(model) {
                 "Normal",
                 "Copy Number Gain")
 
+    # get data and components
+    y <- y(model)
+    z <- z(model)
+
     # get overall means of components
     means <- mu(model)
 
