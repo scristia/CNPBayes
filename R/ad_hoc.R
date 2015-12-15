@@ -15,5 +15,14 @@ label_components <- function(model) {
     # N.B. that this accessor may need to change
     vars <- colMeans(sigma2(model))
 
+    # define "big variance"
+    big.var <- 0.5
+
+    # if the overall variance for a component is bigger than "big"
+    # then note the component as outlier
+    outlier.component <- var[var > big.var]
+
+    # if there are any outlier components then do something about it
+
     return(labels)
 }
