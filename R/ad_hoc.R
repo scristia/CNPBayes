@@ -11,6 +11,7 @@ label_components <- function(model) {
     # get data and components
     y <- y(model)
     z <- z(model)
+    k <- k(model)
 
     # get overall means of components
     means <- mu(model)
