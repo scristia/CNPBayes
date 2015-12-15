@@ -32,6 +32,10 @@ label_components <- function(model) {
     if (hemi > -1 & normal < 0.5) {
         names(means[means == normal]) <- labels[3]
         names(means[means == hemi]) <- labels[2]
+
+        if (sum(is.na(names(means)) == 0)) {
+            return(names(means))
+        }
     }
 
 
