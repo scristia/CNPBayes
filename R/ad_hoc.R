@@ -21,6 +21,20 @@ label_components <- function(model) {
     # get overall means of components
     means <- mu(model)
 
+    # set unknown copy number and sort
+    names(means) <- rep(NA, k)
+    means <- sort(means)
+
+    # see if there is a normal and hemizygous deletion
+    normal <- min(means[means >= 0])
+    hemi <- max(means[means < 0])
+
+    if (hemi > -1 & normal < 0.5) {
+        names(means[means == normal]) <- labels[3]
+        names(means[means == hemi]) <- labels[2]
+    }
+
+
     # get overall variances of components
     # N.B. that this accessor may need to change
     vars <- colMeans(sigma2(model))
