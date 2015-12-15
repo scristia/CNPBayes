@@ -1,4 +1,7 @@
 label_components <- function(model) {
+    all <- readRDS("~/Code/CNPBayesPaper/output/mb.RDS")
+    model <- all$model[["CNP candidate 10"]]
+
     # default to all four copy number gain/deletion
     labels <- c("Homozygous Deletion",
                 "Hemizygous Deletion",
