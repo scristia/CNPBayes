@@ -134,6 +134,14 @@ setValidity("BatchModel", function(object){
     msg <- "All components in each batch must have 1 or more observations"
     return(msg)
   }
+
+  batch.tab <- table(batch(object))
+
+  if (any(batch.tab < 20)) {
+    msg <- "All batches must have 20 or more observations. Refer to the `collapseBatch` documentation"
+    return(msg)
+  }
+
   msg
 })
 
