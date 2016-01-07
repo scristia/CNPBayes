@@ -69,8 +69,8 @@ defineCnpRegions <- function(grl, thr=0.02){
   }
   message("")
   ##regionlist <- GRangesList(foreach(i=hitlist) %do% consensusRegion(g[i]))
-  regions <- GenomicRanges::GRangesList(regionlist)
-  GenomicRanges::unlist(regions)
+  regions <- GRangesList(regionlist)
+  unlist(regions)
 }
 
 #' Identify consensus start and stop coordinates of a copy number
