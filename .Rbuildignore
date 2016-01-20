@@ -8,3 +8,4 @@
 .*\*.o
 ^appveyor\.yml$
 ^Makefile$
+^CONTRIBUTING.md$
