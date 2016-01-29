@@ -95,7 +95,7 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
   batch <- as.integer(bf)
   ix <- order(bf)
   ##B <- length(levels(batch))
-  nbatch <- elementLengths(split(batch, batch))
+  nbatch <- elementNROWS(split(batch, batch))
   B <- length(nbatch)
   if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
   obj <- new("UnivariateBatchModel",

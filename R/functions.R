@@ -7,11 +7,11 @@ consensusRegion <- function(g){
     ## more than 10% of individuals have more than one cnv in the region
     ##
     ## assume that these individuals should have one cnv
-    grl1 <- grl[elementLengths(grl)==1]
+    grl1 <- grl[elementNROWS(grl)==1]
     g1 <- unlist(grl1)
     #if(class(g1)=="list") browser()
     g1 <- GRanges(as.character(seqnames(g1)), IRanges(start(g1), end(g1)))
-    grl2ormore <- grl[elementLengths(grl) >= 2]
+    grl2ormore <- grl[elementNROWS(grl) >= 2]
     grl3 <- foreach(g=grl2ormore) %do% reduce(g, min.gapwidth=1e6)
     g2ormore <- unlist(GRangesList(grl3))
     g <- c(g1, g2ormore)
