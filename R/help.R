@@ -10,6 +10,9 @@
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% foreach
 #' @importFrom matrixStats colSds colMedians rowCumsums rowProds colMaxs
+#' @importFrom BiocGenerics unlist
+#' @importFrom graphics lines par
+#' @importFrom stats dnorm kmeans ks.test plot.ts qgamma rbeta rgamma rgeom rnorm runif setNames
 #' @importMethodsFrom oligoClasses lrr baf
 #' @useDynLib CNPBayes
 NULL
