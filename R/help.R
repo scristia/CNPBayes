@@ -6,6 +6,8 @@
 #' @importFrom gtools rdirichlet ddirichlet
 #' @importFrom GenomeInfoDb seqinfo seqlevels<- seqlevels seqinfo<- seqnames
 #' @importFrom Rcpp evalCpp
+#' @importFrom S4Vectors SimpleList DataFrame Rle
+#' @import GenomicRanges 
 #' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom foreach %do% foreach
