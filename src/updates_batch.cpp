@@ -364,35 +364,6 @@ Rcpp::IntegerVector update_z_batch(Rcpp::S4 xmod) {
   // Don't update z if there are states with zero frequency.  
   //
   return model.slot("z") ;
-  //
-  // Code below is no longer evaluated
-  //
-  IntegerVector index = seq_len(n) ;
-  NumericVector r(2) ;
-  LogicalVector is_batch (n) ;
-  IntegerVector S = model.slot("batchElements") ;
-  int w ;
-  int start = 0 ;
-  for(int k = 0; k < K; ++k){
-    //
-    // for zero frequency states, switch label of a random sample
-    //
-    for(int b = 0; b < B; ++b){
-      if(freq(b, k) > 1) continue ;
-      if(b > 0) start = S[b-1] ;
-      IntegerVector J(S[b]) ;
-      //int b = 1 ;
-      is_batch = batch == (b + 1) ;
-      J = zz [ is_batch ] ;
-      r = runif(2, 0, 1) * (S[b] - 1) ;
-      for(int j = 0; j < 2; ++j){
-        w = (int) r[j] ;
-        J[w] = (k + 1) ;
-        zz[is_batch] = J ;
-      }
-    }
-  }
-  return zz ;
 }
 
 
