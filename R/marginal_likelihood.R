@@ -181,7 +181,7 @@ setMethod("marginalLikelihood", "MarginalModel",
 
         # calculate log p(theta|x)
         mp <- McmcParams(iter=niter)
-        red_gibbs <- .blockUpdates(model, mp, reject.threshold,
+        red_gibbs <- .blockUpdates(model2, mp, reject.threshold,
                                    prop.threshold)
         pstar <- blockUpdates(red_gibbs, root)
 
