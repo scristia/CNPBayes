@@ -52,6 +52,10 @@ A vector of the marginal likelihood of the model(s)
 Compute the marginal likelihood of a converged model.
 }
 \examples{
-     marginalLikelihood(MarginalModelExample)
+     marginalLikelihood(MarginalModelExample,
+                        params=list(niter=5L,
+                                    root=(1/10),
+                                    reject.threshold=1e-50,
+                                    prop.threshold=0.5))
 }
 
