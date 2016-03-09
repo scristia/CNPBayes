@@ -192,25 +192,45 @@ setMethod("marginalLikelihood", "MarginalModel",
 })
 
 #' @rdname marginalLikelihood-method
-#' @aliases marginalLikelihood,SingleBatchPooledVar,integer-method
-setMethod("marginalLikelihood", c("SingleBatchPooledVar", "integer"),
-          function(model, niter) {
-            eff_size_theta <- min(effectiveSize(theta(chains(model))))
-            if (eff_size_theta / iter(model) < 0.05) {
-                warning("The model for k=", k(model), " may be overfit.",
-                        " This can lead to an incorrect marginal likelihood")
-                return(NA)
-            }
-            mp <- McmcParams(iter=niter)
-            logLik <- modes(model)[["loglik"]] ## includes 2nd stage
-            model2 <- useModes(model)
-            stage2.loglik <- stageTwoLogLik_pooled(model2)
-            logPrior <- modes(model)[["logprior"]]
-            pstar <- blockUpdatesPooledVar(model2, mp)
-            m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
-                log(factorial(k(model)))
-            m.y
-          })
+#' @aliases marginalLikelihood,SingleBatchPooledVar-method marginalLikelihood,SingleBatchPooledVar,ANY-method
+setMethod("marginalLikelihood", "SingleBatchPooledVar",
+    function(model, params=list(niter=1000L,
+                                root=(1/10),
+                                reject.threshold=1e-50,
+                                prop.threshold=0.5)) {
+        # calculate effective size of thetas and check against threshold
+        eff_size_theta <- min(effectiveSize(theta(chains(model))))
+        if (eff_size_theta / iter(model) < 0.05) {
+            warning("The model for k=", k(model), " may be overfit.",
+                    " This can lead to an incorrect marginal likelihood")
+            return(NA)
+        }
+
+        # get parameters from list params
+        niter <- params$niter
+        root <- params$niter
+        reject.threshold <- params$reject.threshold
+        prop.threshold <- params$prop.threshold
+
+        # calculate p(x|theta)
+        logLik <- modes(model)[["loglik"]] ## includes 2nd stage
+        model2 <- useModes(model)
+        stage2.loglik <- stageTwoLogLik_pooled(model2)
+
+        # calculate log p(theta)
+        logPrior <- modes(model)[["logprior"]]
+
+        # calculate log p(theta|x)
+        mp <- McmcParams(iter=niter)
+        red_gibbs <- .blockUpdates(model2, mp, reject.threshold,
+                                   prop.threshold)
+        pstar <- blockUpdates(red_gibbs, root)
+
+        # calculate p(x|model)
+        m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
+               log(factorial(k(model)))
+        m.y
+})
 
 #' @rdname marginalLikelihood-method
 #' @aliases marginalLikelihood,MarginalModel-method
