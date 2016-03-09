@@ -166,7 +166,7 @@ setMethod("marginalLikelihood", c("MarginalModel", "integer"),
         if (eff_size_theta / iter(model) < 0.05) {
             warning("The model for k=", k(model), " may be overfit.",
                     " This can lead to an incorrect marginal likelihood")
-            NA
+            return(NA)
         }
         mp <- McmcParams(iter=niter)
         logLik <- modes(model)[["loglik"]] ## includes 2nd stage
@@ -188,7 +188,7 @@ setMethod("marginalLikelihood", c("SingleBatchPooledVar", "integer"),
             if (eff_size_theta / iter(model) < 0.05) {
                 warning("The model for k=", k(model), " may be overfit.",
                         " This can lead to an incorrect marginal likelihood")
-                NA
+                return(NA)
             }
             mp <- McmcParams(iter=niter)
             logLik <- modes(model)[["loglik"]] ## includes 2nd stage
@@ -217,7 +217,7 @@ setMethod("marginalLikelihood", c("BatchModel", "integer"),
         if (eff_size_theta / iter(model) < 0.05) {
             warning("The model for k=", k(model), " may be overfit.",
                     " This can lead to an incorrect marginal likelihood")
-            NA
+            return(NA)
         }
         mp <- McmcParams(iter=niter)
         logLik <- modes(model)[["loglik"]] ## includes 2nd stage
