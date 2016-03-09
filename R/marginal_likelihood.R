@@ -5,7 +5,7 @@
     ptheta.star <- marginal_theta(model.reduced)
     small.theta.red <- mean(ptheta.star < reject.threshold)
 
-    if (small.theta.red >= reject.threshold) {
+    if (small.theta.red >= prop.threshold) {
         warning("The model for k=", k(model), " may be overfit.",
                 " This can lead to an incorrect marginal likelihood")
         return(matrix(NA))
@@ -57,7 +57,7 @@
     ptheta.star <- full_theta_pooled(model)
     small.theta.red <- mean(ptheta.star < reject.threshold)
 
-    if (small.theta.red >= reject.threshold) {
+    if (small.theta.red >= prop.threshold) {
         warning("The model for k=", k(model), " may be overfit.",
                 " This can lead to an incorrect marginal likelihood")
         return(matrix(NA))
@@ -105,7 +105,7 @@
     ptheta.star <- marginal_theta_batch(model)
     small.theta.red <- mean(ptheta.star < reject.threshold)
 
-    if (small.theta.red >= reject.threshold) {
+    if (small.theta.red >= prop.threshold) {
         warning("The model for k=", k(model), " may be overfit.",
                 " This can lead to an incorrect marginal likelihood")
         return(matrix(NA))
