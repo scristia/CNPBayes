@@ -322,6 +322,9 @@ Rcpp::IntegerVector update_z(Rcpp::S4 xmod) {
   //
   // Don't update z if there are states with zero frequency
   //
+  int counter = model.slot(".internal.counter");
+  counter++;
+  model.slot(".internal.counter") = counter;
    return model.slot("z") ;  
 }
 
