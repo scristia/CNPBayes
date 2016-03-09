@@ -233,21 +233,40 @@ setMethod("marginalLikelihood", "SingleBatchPooledVar",
 })
 
 #' @rdname marginalLikelihood-method
-#' @aliases marginalLikelihood,BatchModel,integer-method
-setMethod("marginalLikelihood", c("BatchModel", "integer"),
-    function(model, niter) {
+#' @aliases marginalLikelihood,BatchModel-method marginalLikelihood,BatchModel,ANY-method
+setMethod("marginalLikelihood", "BatchModel",
+    function(model, params=list(niter=1000L,
+                                root=(1/10),
+                                reject.threshold=1e-50,
+                                prop.threshold=0.5)) {
+        # calculate effective size of thetas and check against threshold
         eff_size_theta <- min(effectiveSize(theta(chains(model))))
         if (eff_size_theta / iter(model) < 0.05) {
             warning("The model for k=", k(model), " may be overfit.",
                     " This can lead to an incorrect marginal likelihood")
             return(NA)
         }
-        mp <- McmcParams(iter=niter)
+
+        # get parameters from list params
+        niter <- params$niter
+        root <- params$niter
+        reject.threshold <- params$reject.threshold
+        prop.threshold <- params$prop.threshold
+
+        # calculate p(x|theta)
         logLik <- modes(model)[["loglik"]] ## includes 2nd stage
         model2 <- useModes(model)
         stage2.loglik <- stageTwoLogLikBatch(model2)
+
+        # calculate log p(theta)
         logPrior <- modes(model)[["logprior"]]
-        pstar <- blockUpdatesBatch(model, mp)
+
+        mp <- McmcParams(iter=niter)
+        red_gibbs <- .blockUpdatesBatch(model2, mp, reject.threshold,
+                                        prop.threshold)
+        pstar <- blockUpdates(red_gibbs, root)
+
+        # calculate p(x|model)
         m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
                log(factorial(k(model)))
         m.y
