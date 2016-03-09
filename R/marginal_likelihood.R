@@ -4,7 +4,8 @@
   
     ptheta.star <- marginal_theta(model.reduced)
     small.theta.red <- mean(ptheta.star < reject.threshold)
-
+    if(paramUpdates(model)[["theta"]]==0) small.theta.red <- 0
+    
     if (small.theta.red >= prop.threshold) {
         warning("The model for k=", k(model), " may be overfit.",
                 " This can lead to an incorrect marginal likelihood")
@@ -55,7 +56,9 @@
     ## Block updates for stage 1 parameters
     ##
     ptheta.star <- full_theta_pooled(model)
+    ## Doesn't make sense if theta is fixed
     small.theta.red <- mean(ptheta.star < reject.threshold)
+    if(paramUpdates(model)[["theta"]]==0) small.theta.red <- 0
 
     if (small.theta.red >= prop.threshold) {
         warning("The model for k=", k(model), " may be overfit.",
@@ -104,7 +107,8 @@
   
     ptheta.star <- marginal_theta_batch(model)
     small.theta.red <- mean(ptheta.star < reject.threshold)
-
+    if(paramUpdates(model)[["theta"]]==0) small.theta.red <- 0
+    
     if (small.theta.red >= prop.threshold) {
         warning("The model for k=", k(model), " may be overfit.",
                 " This can lead to an incorrect marginal likelihood")
