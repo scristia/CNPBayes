@@ -147,7 +147,7 @@
 }
 
 blockUpdates <- function(reduced_gibbs, root) {
-    pstar <- apply(reduced_gibbs, 2, function(x) log(mean(x^(root)))),
+    pstar <- apply(reduced_gibbs, 2, function(x) log(mean(x^(root))))
 }
 
 #' @rdname marginalLikelihood-method
