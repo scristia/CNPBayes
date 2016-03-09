@@ -46,11 +46,6 @@
     reduced_gibbs
 }
 
-blockUpdates <- function(reduced_gibbs, root) {
-    pstar <- apply(reduced_gibbs, 2, function(x) log(mean(x^(root)))),
-}
-
-
 blockUpdatesPooledVar <- function(model, mp){
   ##
   ## Block updates for stage 1 parameters
@@ -102,58 +97,56 @@ blockUpdatesPooledVar <- function(model, mp){
   pstar
 }
 
-blockUpdatesBatch <- function(model, mp){
-  ##
-  ## Block updates for stage 1 parameters
-  ##
-  pstar <- setNames(rep(NA, 7),
-                    c("theta",
-                      "sigma",
-                      "pi",
-                      "mu",
-                      "tau",
-                      "nu0",
-                      "s20"))
+.blockUpdatesBatch <- function(model, mp, reject.threshold, prop.threshold) {
+    model.reduced <- model
+    mcmcParams(model.reduced, force=TRUE) <- mp
+  
+    ptheta.star <- marginal_theta_batch(model)
+    small.theta.red <- mean(ptheta.star < reject.threshold)
 
-  ptheta.star <- marginal_theta_batch(model)
-  pstar["theta"] <- log(mean(ptheta.star))
+    if (small.theta.red >= reject.threshold) {
+        warning("The model for k=", k(model), " may be overfit.",
+                " This can lead to an incorrect marginal likelihood")
+        return(matrix(NA))
+    }
+  
+    model.psigma2 <- reduced_sigma_batch(model.reduced)
+    identical(modes(model.psigma2), modes(model))
+    psigma.star <- p_sigma_reduced_batch(model.psigma2)
+  
+    model.pistar <- reduced_pi_batch(model.reduced)
+    identical(modes(model.pistar), modes(model))
+    p.pi.star <- p_pmix_reduced_batch(model.pistar)
+  
+    ##
+    ## Block updates for stage 2 parameters
+    ##
+    model.mustar <- reduced_mu_batch(model.reduced)
+    stopifnot(identical(modes(model.mustar), modes(model)))
+    p.mustar <- p_mu_reduced_batch(model.mustar)
+  
+    model.taustar <- reduced_tau_batch(model.reduced)
+    identical(modes(model.taustar), modes(model))
+    p.taustar <- p_tau_reduced_batch(model.mustar)
+  
+    model.nu0star <- reduced_nu0_batch(model.reduced)
+    identical(modes(model.nu0star), modes(model))
+    p.nu0star <- p_nu0_reduced_batch(model.nu0star)
+  
+    model.s20star <- reduced_s20_batch(model.reduced)
+    p.s20star <- p_s20_reduced_batch(model.s20star)
 
-  model.reduced <- model
-  mcmcParams(model.reduced, force=TRUE) <- mp
+    reduced_gibbs <- cbind(ptheta.star, psigma.star, p.mustar, p.pi.star,
+                           p.taustar, p.nu0star, p.s20star)
+  
+    colnames(reduced_gibbs) <- c("theta", "sigma", "pi", "mu",
+                                 "tau", "nu0", "s20")
+  
+    reduced_gibbs
+}
 
-  model.psigma2 <- reduced_sigma_batch(model.reduced)
-  identical(modes(model.psigma2), modes(model))
-  psigma.star <- p_sigma_reduced_batch(model.psigma2)
-  pstar["sigma"] <- log(mean(psigma.star))
-
-
-  model.pistar <- reduced_pi_batch(model.reduced)
-  identical(modes(model.pistar), modes(model))
-  p.pi.star <- p_pmix_reduced_batch(model.pistar)
-  pstar["pi"] <- log(mean(p.pi.star))
-  ##
-  ## Block updates for stage 2 parameters
-  ##
-  model.mustar <- reduced_mu_batch(model.reduced)
-  stopifnot(identical(modes(model.mustar), modes(model)))
-  p.mustar <- p_mu_reduced_batch(model.mustar)
-  pstar["mu"] <- log(mean(p.mustar))
-
-  model.taustar <- reduced_tau_batch(model.reduced)
-  identical(modes(model.taustar), modes(model))
-  p.taustar <- p_tau_reduced_batch(model.mustar)
-  pstar["tau"] <- log(p.taustar)
-
-  model.nu0star <- reduced_nu0_batch(model.reduced)
-  identical(modes(model.nu0star), modes(model))
-  p.nu0star <- p_nu0_reduced_batch(model.nu0star)
-  pstar["nu0"] <- log(mean(p.nu0star))
-
-  model.s20star <- reduced_s20_batch(model.reduced)
-  p.s20star <- p_s20_reduced_batch(model.s20star)
-  pstar["s20"] <- log(p.s20star)
-
-  pstar
+blockUpdates <- function(reduced_gibbs, root) {
+    pstar <- apply(reduced_gibbs, 2, function(x) log(mean(x^(root)))),
 }
 
 #' @rdname marginalLikelihood-method
