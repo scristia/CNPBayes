@@ -754,8 +754,13 @@ setMethod("labelSwitching", "MixtureModel",
         # put together a map indicating which component a component
         # is merged into, if merging happens
         if (merge) {
+            k.orig <- k(object)
             merged <- DensityModel(object, merge=TRUE)
+            k.merged <- k(merged)
             comp_map <- clusters(merged)
+            message("Merged from ", k.orig,
+                    " components to ", k.merged,
+                    " components")
         } else {
             # if merge==FALSE then this is an identity map
             comp_map <- clusters(object)
