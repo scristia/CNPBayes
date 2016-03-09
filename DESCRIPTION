@@ -16,7 +16,6 @@ Imports:
     matrixStats,
     RColorBrewer,
     gtools,
-    oligoClasses,
     combinat,
     IRanges,
     GenomeInfoDb,
@@ -33,6 +32,7 @@ Suggests:
     VanillaICE (>= 1.31.3),
     BiocCheck,
     MASS,
+    oligoClasses,
     dplyr,
     tidyr,
     ggplot2
