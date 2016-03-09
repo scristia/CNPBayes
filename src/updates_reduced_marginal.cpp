@@ -17,7 +17,6 @@ Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains(model.slot("mcmc.chains")) ;  
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   // Assume current values are the modes (in R, useModes(object) ensures this)
   // List modes = model.slot("modes") ;
   // NumericVector thetastar = as<NumericVector>(modes["theta"]) ;
@@ -47,7 +46,7 @@ Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
   double w1;
   double w2;
 
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     zz = Z(s, _) ;
     model.slot("z") = zz ;
     nn = tableZ(K, zz) ;
@@ -65,9 +64,7 @@ Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
       tmp = dnorm(thetastar, mu_n, tau_n) ;
       prod = prod * tmp[k] ;
     }
-    if (s % T == 0) {
-        p_theta[s] = prod;
-    }
+    p_theta[s] = prod ;
   }
   return p_theta ;
 }
@@ -80,7 +77,6 @@ Rcpp::NumericVector p_theta_zpermuted(Rcpp::S4 xmod) {
   Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
   //Rcpp::S4 params(mcmcp) ;
   int S = mcmcp.slot("iter") ;
-  int T = mcmcp.slot("thin") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
@@ -96,7 +92,7 @@ Rcpp::NumericVector p_theta_zpermuted(Rcpp::S4 xmod) {
   int N = Z.ncol() ;
   IntegerVector h (N) ;
   NumericVector tau2(1) ;
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     h = Z(s, _ ) ;
     model.slot("z") = h ;
     model.slot("data.mean") = compute_means(model) ;
@@ -116,9 +112,7 @@ Rcpp::NumericVector p_theta_zpermuted(Rcpp::S4 xmod) {
     for(int k = 0; k < K; ++k) {
       prod += log(tmp[k]) ;
     }
-    if (s % T == 0) {
-        logp_theta[s] = prod;
-    }
+    logp_theta[s] = prod ;
   }
   return logp_theta ;
 }
@@ -129,7 +123,6 @@ Rcpp::NumericVector marginal_sigma2(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   Rcpp::S4 model = clone(model_) ;  
   Rcpp::S4 params(mcmcp) ;
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   // Assume current values are the modes (in R, useModes(object) ensures this)
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
@@ -147,7 +140,7 @@ Rcpp::NumericVector marginal_sigma2(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   NumericVector tmp(K) ;
   NumericVector nu0 = chains.slot("nu.0") ;
   NumericVector s20 = chains.slot("sigma2.0") ;
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     model.slot("z") = update_z(model) ;
     model.slot("data.mean") = compute_means(model) ;
     model.slot("data.prec") = compute_prec(model) ;
@@ -165,9 +158,7 @@ Rcpp::NumericVector marginal_sigma2(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
     for(int k = 0; k < K; ++k){
       total += log(tmp[k]) ;
     }
-    if (s % T == 0) {
-        logp_prec[s] = total;
-    }
+    logp_prec[s] = total ;
   }
   return logp_prec ;
 }
@@ -180,7 +171,6 @@ Rcpp::S4 simulate_z_reduced1(Rcpp::S4 object) {
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
@@ -205,7 +195,7 @@ Rcpp::S4 simulate_z_reduced1(Rcpp::S4 object) {
   //
   // Run reduced Gibbs  -- theta is fixed at modal ordinate
   //  
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     model.slot("z") = update_z(model) ;
     model.slot("data.mean") = compute_means(model) ;
     model.slot("data.prec") = compute_prec(model) ;
@@ -216,12 +206,10 @@ Rcpp::S4 simulate_z_reduced1(Rcpp::S4 object) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma2_0(model) ;
-    if (s % T == 0) {
-        nu0chain[s] = model.slot("nu.0") ;
-        s20chain[s] = model.slot("sigma2.0") ;
-        h = model.slot("z") ;
-        Z(s, _) = h ;
-    }
+    nu0chain[s] = model.slot("nu.0") ;
+    s20chain[s] = model.slot("sigma2.0") ;
+    h = model.slot("z") ;
+    Z(s, _) = h ;
   }
   //return logp_prec ;
   chains.slot("z") = Z ;
@@ -240,7 +228,6 @@ Rcpp::S4 simulate_z_reduced2(Rcpp::S4 object) {
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
@@ -269,7 +256,7 @@ Rcpp::S4 simulate_z_reduced2(Rcpp::S4 object) {
   // Run reduced Gibbs:
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     model.slot("z") = update_z(model) ;
     model.slot("data.mean") = compute_means(model) ;
     model.slot("data.prec") = compute_prec(model) ;
@@ -280,10 +267,8 @@ Rcpp::S4 simulate_z_reduced2(Rcpp::S4 object) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma2_0(model) ;
-    if (s % T == 0) {
-        h = model.slot("z") ;
-        Z(s, _) = h ;
-    }
+    h = model.slot("z") ;
+    Z(s, _) = h ;
   }
   //return logp_prec ;
   chains.slot("z") = Z ;
@@ -302,7 +287,6 @@ Rcpp::S4 permutedz_reduced1(Rcpp::S4 xmod) {
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
@@ -329,7 +313,7 @@ Rcpp::S4 permutedz_reduced1(Rcpp::S4 xmod) {
   //
   // Run reduced Gibbs  -- theta is fixed at modal ordinate
   //  
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     h = Z(s, _) ;
     //model.slot("z") = update_z(xmod) ;
     model.slot("z") = h ;
@@ -342,10 +326,8 @@ Rcpp::S4 permutedz_reduced1(Rcpp::S4 xmod) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma2_0(model) ;
-    if (s % T == 0) {
-        nu0chain[s] = model.slot("nu.0") ;
-        s20chain[s] = model.slot("sigma2.0") ;
-    }
+    nu0chain[s] = model.slot("nu.0") ;
+    s20chain[s] = model.slot("sigma2.0") ;
   }
   //return logp_prec ;
   // chains.slot("z") = Z ;
@@ -365,7 +347,6 @@ Rcpp::S4 permutedz_reduced2(Rcpp::S4 xmod) {
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
@@ -395,7 +376,7 @@ Rcpp::S4 permutedz_reduced2(Rcpp::S4 xmod) {
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
   //  
-  for(int s=0; s < S* T; ++s){
+  for(int s=0; s < S; ++s){
     h = Z(s, _) ;
     //model.slot("z") = update_z(xmod) ;
     model.slot("z") = h ;
@@ -408,10 +389,8 @@ Rcpp::S4 permutedz_reduced2(Rcpp::S4 xmod) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma2_0(model) ;
-    if (s % T == 0) {
-        nu0chain[s] = model.slot("nu.0") ;
-        s20chain[s] = model.slot("sigma2.0") ;
-    }
+    nu0chain[s] = model.slot("nu.0") ;
+    s20chain[s] = model.slot("sigma2.0") ;
   }
   //return logp_prec ;
   // chains.slot("z") = Z ;
@@ -436,7 +415,6 @@ Rcpp::NumericVector p_pmix_reduced(Rcpp::S4 xmod) {
   NumericVector x = model.slot("data") ;    
   int K = hypp.slot("k") ;
   int S = mcmcp.slot("iter") ;  
-  int T = mcmcp.slot("thin") ;
   int N = x.size() ;
   //
   NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
@@ -450,15 +428,13 @@ Rcpp::NumericVector p_pmix_reduced(Rcpp::S4 xmod) {
   NumericVector h(N) ;
   NumericVector alpha_n(K) ;
   NumericVector tmp(1) ;
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     h = Z(s, _ ) ;    
     for(int k = 0 ; k < K; ++k){
       alpha_n[k] = sum(h == k+1) + alpha[k] ;
     }
     tmp = log_ddirichlet_(pstar, alpha_n) ;
-    if (s % T == 0) {
-        pmix[s] = exp(tmp[0]) ;
-    }
+    pmix[s] = exp(tmp[0]) ;
   }
   // return tmp ;
   return pmix ;
@@ -473,7 +449,6 @@ Rcpp::S4 reduced_sigma(Rcpp::S4 xmod) {
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
@@ -512,7 +487,7 @@ Rcpp::S4 reduced_sigma(Rcpp::S4 xmod) {
   //
   // Run reduced Gibbs  -- theta is fixed at modal ordinate
   //  
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     zz = update_z(model) ;
     model.slot("z") = zz ;
     Z(s, _) = zz ;
@@ -525,19 +500,17 @@ Rcpp::S4 reduced_sigma(Rcpp::S4 xmod) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma2_0(model) ;
-    if (s % T == 0) {
-        nu0chain[s] = model.slot("nu.0") ;
-        s20chain[s] = model.slot("sigma2.0") ;
-        // update the following chains for debugging small sigma2.0 values
-        sigma2 = model.slot("sigma2") ;
-        sigmachain(s, _) = sigma2 ;
-        pi = model.slot("pi") ;
-        pichain(s, _) = pi ;
-        tau = model.slot("tau2") ;
-        tauchain[s] = tau[0] ;
-        mu = model.slot("mu") ;
-        muchain[s] = mu[0] ;
-    }
+    nu0chain[s] = model.slot("nu.0") ;
+    s20chain[s] = model.slot("sigma2.0") ;
+    // update the following chains for debugging small sigma2.0 values
+    sigma2 = model.slot("sigma2") ;
+    sigmachain(s, _) = sigma2 ;
+    pi = model.slot("pi") ;
+    pichain(s, _) = pi ;
+    tau = model.slot("tau2") ;
+    tauchain[s] = tau[0] ;
+    mu = model.slot("mu") ;
+    muchain[s] = mu[0] ;
   }
   //return logp_prec ;
   chains.slot("z") = Z ;
@@ -575,7 +548,6 @@ Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod) {
     Rcpp::NumericVector x = model.slot("data");
     int n = x.size();
     int S = params.slot("iter");
-    int T = params.slot("thin") ;
     int K = thetastar.size();
 
     Rcpp::NumericVector prec(K);
@@ -602,7 +574,7 @@ Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod) {
     //
     prec = 1.0/sigma2star;
 
-    for (int s = 0; s < S * T; ++s) {
+    for (int s = 0; s < S; ++s) {
         zz = Z(s, Rcpp::_);
         nn = tableZ(K, zz);
         s20 = s20chain[s];
@@ -631,9 +603,7 @@ Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod) {
             total *= tmp[k];
         }
 
-        if (s % T == 0) {
-            p_prec[s] = total;
-        }
+        p_prec[s] = total;
     }
 
     return p_prec;
@@ -648,7 +618,6 @@ Rcpp::S4 reduced_pi(Rcpp::S4 xmod) {
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
@@ -673,12 +642,10 @@ Rcpp::S4 reduced_pi(Rcpp::S4 xmod) {
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
   //  
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     zz = update_z(model) ;
     model.slot("z") = zz ;
-    if (s % T == 0) {
-        Z(s, _) = zz ;
-    }
+    Z(s, _) = zz ;
     model.slot("data.mean") = compute_means(model) ;
     model.slot("data.prec") = compute_prec(model) ;
     // model.slot("theta") = update_theta(model) ; Do not update theta !
@@ -702,7 +669,6 @@ Rcpp::S4 reduced_mu(Rcpp::S4 xmod) {
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
@@ -741,9 +707,10 @@ Rcpp::S4 reduced_mu(Rcpp::S4 xmod) {
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
   //  
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     zz = update_z(model) ;
     model.slot("z") = zz ;
+    Z(s, _) = zz ;    
     model.slot("data.mean") = compute_means(model) ;
     model.slot("data.prec") = compute_prec(model) ;
     // model.slot("theta") = update_theta(model) ; Do not update theta !
@@ -758,13 +725,10 @@ Rcpp::S4 reduced_mu(Rcpp::S4 xmod) {
     model.slot("tau2") = tau2 ;
     model.slot("nu.0") = nu0 ;
     model.slot("sigma2.0") = s20 ;
-    if (s % T == 0) {
-        Z(s, _) = zz ;    
-        nu0chain[s] = nu0[0] ;
-        s20chain[s] = s20[0] ;
-        muchain[s] = mu[0] ;
-        tau2chain[s] = tau2[0] ;
-    }
+    nu0chain[s] = nu0[0] ;
+    s20chain[s] = s20[0] ;
+    muchain[s] = mu[0] ;
+    tau2chain[s] = tau2[0] ;
   }
   chains.slot("tau2") = tau2chain ;
   chains.slot("mu") = muchain ;
@@ -789,7 +753,6 @@ Rcpp::NumericVector p_mu_reduced(Rcpp::S4 xmod) {
   NumericVector x = model.slot("data") ;    
   int K = hypp.slot("k") ;
   int S = mcmcp.slot("iter") ;  
-  int T = mcmcp.slot("thin") ;
   int N = x.size() ;
   //
   NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
@@ -815,7 +778,7 @@ Rcpp::NumericVector p_mu_reduced(Rcpp::S4 xmod) {
   double tau_k ;
   NumericVector p_mu(S) ;
   NumericVector tmp(1) ;
-  for(int s = 0; s < S * T; ++s){
+  for(int s = 0; s < S; ++s){
     zz = Z(s, _) ;
     nn = tableZ(K, zz) ;
     double total = 0.0 ;
@@ -828,9 +791,7 @@ Rcpp::NumericVector p_mu_reduced(Rcpp::S4 xmod) {
     mu_k =  w1*mu_0 +  w2*thetabar ;
     tau_k = sqrt(1.0/post_prec) ;
     tmp  = dnorm(mustar, mu_k, tau_k) ;
-    if (s % T == 0) {
-        p_mu[s] = tmp[0] ;
-    }
+    p_mu[s] = tmp[0] ;
   }
   return p_mu ;
 }
@@ -843,7 +804,6 @@ Rcpp::S4 reduced_tau(Rcpp::S4 xmod) {
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
@@ -874,12 +834,10 @@ Rcpp::S4 reduced_tau(Rcpp::S4 xmod) {
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
   //  
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     zz = update_z(model) ;
     model.slot("z") = zz ;
-    if (s % T == 0) {
-        Z(s, _) = zz ;    
-    }
+    Z(s, _) = zz ;    
     model.slot("data.mean") = compute_means(model) ;
     model.slot("data.prec") = compute_prec(model) ;
     // model.slot("theta") = update_theta(model) ; Do not update theta !
@@ -937,7 +895,6 @@ Rcpp::NumericVector p_tau_reduced(Rcpp::S4 xmod) {
   //    tmp = dgamma(1.0/tau2star, 0.5 * eta_k, 1.0/(0.5 * eta_k * m2_k[0])) ;
   //    p_tau[s] = tmp ;
   //  }
-  //  don't need to thin here since these are independent draws
   p_tau = dgamma(1.0/tau2star, 0.5 * eta_k, 1.0/(0.5 * eta_k * m2_k[0])) ;
   return p_tau ;
 }
@@ -950,7 +907,6 @@ Rcpp::S4 reduced_nu0(Rcpp::S4 xmod) {
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
@@ -980,9 +936,10 @@ Rcpp::S4 reduced_nu0(Rcpp::S4 xmod) {
   model.slot("mu") = mustar ;
   model.slot("tau2") = tau2star ;
 
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     zz = update_z(model) ;
     model.slot("z") = zz ;
+    Z(s, _) = zz ;    
     model.slot("data.mean") = compute_means(model) ;
     model.slot("data.prec") = compute_prec(model) ;
     // model.slot("theta") = update_theta(model) ; Do not update theta !
@@ -992,10 +949,7 @@ Rcpp::S4 reduced_nu0(Rcpp::S4 xmod) {
     // model.slot("tau2") = update_tau2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma2_0(model) ;
-    if (s % T == 0) {
-        Z(s, _) = zz ;    
-        s20chain[s] = model.slot("sigma2.0") ;
-    }
+    s20chain[s] = model.slot("sigma2.0") ;
   }
   chains.slot("z") = Z ;
   chains.slot("sigma2.0") = s20chain ;
@@ -1016,7 +970,6 @@ Rcpp::NumericVector p_nu0_reduced(Rcpp::S4 xmod) {
   NumericVector x = model.slot("data") ;    
   int K = hypp.slot("k") ;
   int S = mcmcp.slot("iter") ;  
-  int T = mcmcp.slot("thin") ;
   //
   NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
   NumericVector theta_=as<NumericVector>(modes["theta"]) ;
@@ -1049,7 +1002,7 @@ Rcpp::NumericVector p_nu0_reduced(Rcpp::S4 xmod) {
   NumericVector y1(100) ;
   NumericVector y2(100) ;
   NumericVector y3(100) ;
-  for(int s = 0; s < S * T; ++s) {
+  for(int s = 0; s < S; ++s) {
     y1 = K*(0.5*d*log(s20chain[s]*0.5*d) - lgamma(d*0.5)) ;
     y2 = (0.5*d - 1.0) * lprec ;
     y3 = d*(betas + 0.5*s20chain[s]*prec) ;
@@ -1057,9 +1010,7 @@ Rcpp::NumericVector p_nu0_reduced(Rcpp::S4 xmod) {
     NumericVector prob(100) ;
     prob = exp(lpnu0) ; // - maxprob) ;
     prob = prob/sum(prob) ;  // this is now normalized
-    if (s % T == 0) {
-        p_nu0[s] = prob[nu0star] ;
-    }
+    p_nu0[s] = prob[nu0star] ;
   }
   return p_nu0 ;
 }
@@ -1072,7 +1023,6 @@ Rcpp::S4 reduced_s20(Rcpp::S4 xmod) {
   Rcpp::S4 params=model.slot("mcmc.params") ;
   Rcpp::S4 chains=model.slot("mcmc.chains") ;
   int S = params.slot("iter") ;
-  int T = params.slot("thin") ;
   List modes = model.slot("modes") ;
   NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
   NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
@@ -1100,12 +1050,10 @@ Rcpp::S4 reduced_s20(Rcpp::S4 xmod) {
   model.slot("tau2") = tau2star ;
   model.slot("nu.0") = nu0star ;
 
-  for(int s=0; s < S * T; ++s){
+  for(int s=0; s < S; ++s){
     zz = update_z(model) ;
     model.slot("z") = zz ;
-    if (s % T == 0) {
-        Z(s, _) = zz ;    
-    }
+    Z(s, _) = zz ;    
     model.slot("data.mean") = compute_means(model) ;
     model.slot("data.prec") = compute_prec(model) ;
     // model.slot("theta") = update_theta(model) ; Do not update theta !
@@ -1162,7 +1110,6 @@ Rcpp::NumericVector p_s20_reduced(Rcpp::S4 xmod) {
     b_k += 0.5*nu0star/sigma2star[k];
   }
   b_k += b ;
-  // don't need to thin here since these are indepedent draws
   p_s20 = dgamma(s20star, a_k, 1.0/b_k) ;
   return p_s20 ;
 }
