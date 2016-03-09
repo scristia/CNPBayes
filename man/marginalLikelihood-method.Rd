@@ -33,7 +33,17 @@ marginalLikelihood(model, params = list(niter = 1000L, root = (1/10),
 \code{MarginalModel}'s. Can also be an object of \code{BatchModel} or
 a list of such models.}
 
-\item{niter}{The number of iterations for the reduced Gibb's sampler.}
+\item{params}{A list containing: \cr
+niter - the number of iterations for the reduced Gibb's sampler \cr
+root - a tempering parameter. Before the log mean of the reduced 
+Gibb's outputs are taken, the root of each iteration is taken \cr
+reject.threshold - small values for reduced Gibb's output for 
+\code{theta} can indicate overfitting. Values below reject.threshold
+will be flagged \cr
+prop.threshold - If a proportion prop.threshold or higher of the 
+reduced Gibb's out for \code{theta} are smaller than 
+reject.threshold, the marginalLikelihood will not be calculated 
+and a warning will be displayed}
 }
 \value{
 A vector of the marginal likelihood of the model(s)
