@@ -667,7 +667,7 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #' @docType methods
 #' @rdname marginalLikelihood-method
 setGeneric("marginalLikelihood",
-           function(model, niter) standardGeneric("marginalLikelihood"))
+           function(model, niter=1000L) standardGeneric("marginalLikelihood"))
 
 #' Extract character vector of sequence names
 #'
