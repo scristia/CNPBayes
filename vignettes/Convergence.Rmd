@@ -33,13 +33,15 @@ N <- 7524
 n <- 81
 lrr <- replicate(N, mean(rnorm(n)))
 
-mp <- McmcParams(iter=1000, burnin=1000, thin=1, nStarts=1)
+mp <- McmcParams(iter=1000, burnin=5000, thin=1, nStarts=1)
 
 model <- MarginalModel(data=lrr, mcmc.params=mp) 
 m.list <- posteriorSimulation(model, k=1:4)
+m.lik <- marginalLikelihood(m.list)
+m.lik
 ```
 
-```{r plot}
+```{r plot1}
 data1 <- as.data.frame(theta(chains(m.list[[1]]))) %>%
     mutate(iter=1:1000) %>%
     gather(component, theta, V1) %>%
@@ -66,6 +68,25 @@ data <- bind_rows(data1, data2, data3, data4) %>%
 ggplot(data, aes(x=iter, y=theta)) +
     geom_line(aes(colour=component, linetype=component)) +
     facet_wrap(~model, nrow=2, ncol=2) +
+    theme_classic() +
+    xlab("")
+```
+
+```{r plot2}
+data_2.4 <- data %>%
+    filter(model > 1, (iter <= 200 | iter >= 800)) %>%
+    mutate(iter.cat=cut(iter, c(0, 200, 799, 1000),
+                        c("bottom", "middle", "top"))) %>%
+    group_by(component, iter.cat, model) %>%
+    mutate(cat.model.median=median(theta)) %>%
+    ungroup() %>%
+    mutate(box.cat=paste(iter.cat, component))
+
+ggplot(data_2.4, aes(x=box.cat, y=theta)) +
+    geom_boxplot(aes(colour=box.cat)) +
+    geom_hline(yintercept=0.0, linetype="dashed", colour="gray") +
+    facet_wrap(~model, scales="free_x") +
+    guides(colour=FALSE) +
     theme_classic() +
     xlab("")
 ```
