@@ -154,23 +154,39 @@ blockUpdates <- function(reduced_gibbs, root) {
 #' @aliases marginalLikelihood,MarginalModel,integer-method
 setMethod("marginalLikelihood", c("MarginalModel", "integer"),
     function(model, niter) {
+        # calculate effective size of thetas and check against threshold
         eff_size_theta <- min(effectiveSize(theta(chains(model))))
         if (eff_size_theta / iter(model) < 0.05) {
             warning("The model for k=", k(model), " may be overfit.",
                     " This can lead to an incorrect marginal likelihood")
             return(NA)
         }
-        mp <- McmcParams(iter=niter)
+
+        # get parameters from list params
+        niter <- params$niter
+        root <- params$niter
+        reject.threshold <- params$reject.threshold
+        prop.threshold <- params$prop.threshold
+
+        # calculate p(x|theta)
         logLik <- modes(model)[["loglik"]] ## includes 2nd stage
         model2 <- useModes(model)
         stage2.loglik <- stageTwoLogLik(model2)
+
+        # calculate log p(theta)
         logPrior <- modes(model)[["logprior"]]
-        pstar <- blockUpdates(model, mp)
+
+        # calculate log p(theta|x)
+        mp <- McmcParams(iter=niter)
+        red_gibbs <- .blockUpdates(model, mp, reject.threshold,
+                                   prop.threshold)
+        pstar <- blockUpdates(red_gibbs, root)
+
+        # calculate p(x|model)
         m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
                log(factorial(k(model)))
         m.y
-    }
-          )
+})
 
 #' @rdname marginalLikelihood-method
 #' @aliases marginalLikelihood,SingleBatchPooledVar,integer-method
