@@ -180,7 +180,7 @@ test_that("test_selectK_easy", {
     mlist <- posteriorSimulation(model, k = 2:4)
     m.y <- marginalLikelihood(mlist)
     argmax <- which.max(m.y)
-    expect_true(argmax == 3L)
+    expect_true(argmax == 2L)
     dm <- DensityModel(mlist[[argmax]], merge = TRUE)
     expect_identical(3L, k(dm))
 })
