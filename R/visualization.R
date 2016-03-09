@@ -1,17 +1,21 @@
 #' @rdname tracePlot-method
 #' @aliases tracePlot,BatchModel-method
 setMethod("tracePlot", "BatchModel", function(object, name, ...){
-  j <- NULL
-  ilist <- foreach(j=1:nBatch(object)) %do% seq(j, nBatch(object)*k(object), nBatch(object))
+  ilist <- lapply(1:nBatch(object),
+                  function(j, object) {
+                      seq(j, 
+                          nBatch(object) * k(object), 
+                          nBatch(object))
+                  }, object=object)
   uB <- uniqueBatch(object)
   if(name=="theta"){
-    foreach(k=1:nBatch(object)) %do% {
+    for(k in 1:nBatch(object)) {
       plot.ts(thetac(object)[, ilist[[k]]], ylab="", xlab="",
               plot.type="single", main=uB[k], ...)
     }
   }
   if(name=="sigma"){
-    foreach(k=1:nBatch(object)) %do% {
+    for(k in 1:nBatch(object)) {
       plot.ts(sigmac(object)[, ilist[[k]]], ylab="", xlab="",
               plot.type="single", main=uB[k],...)
     }
