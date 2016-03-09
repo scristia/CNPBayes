@@ -151,7 +151,6 @@ blockUpdates <- function(reduced_gibbs, root) {
 }
 
 #' @rdname marginalLikelihood-method
-#' @aliases draw_prior,Prior-method draw_prior,Prior,ANY-method
 #' @aliases marginalLikelihood,MarginalModel-method marginalLikelihood,MarginalModel,ANY-method
 setMethod("marginalLikelihood", "MarginalModel",
     function(model, params=list(niter=1000L,
