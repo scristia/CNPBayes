@@ -136,7 +136,7 @@ check_no_rounding_sim_mean <- function() {
     set.seed(1)
 
     N <- 7524
-    n <- 1e3
+    n <- 81
     X <- rnorm(N * n, 0, 1)
 
     lrr <- data.frame(x=X, label=rep(1:N, each=n)) %>%
