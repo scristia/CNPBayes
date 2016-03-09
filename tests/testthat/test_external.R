@@ -1,7 +1,11 @@
+context("Bioconductor Check")
+
 test_that("BiocCheck", {
-    skip("Not running BioConductor BiocCheck right now")
+    skip("Not running BiocCheck right now")
     # run BiocCheck on package
     library(BiocCheck)
+    curr <- getwd()
+    setwd("../..")
     check <- BiocCheck(".")
 
     # pull out the errors/warnings/messages into separate variables
@@ -18,4 +22,5 @@ test_that("BiocCheck", {
     # check that there are no errors
     expect_true(length(requirements) == 0)
     expect_true(length(recommendations) == 0)
+    setwd(curr)
 })
