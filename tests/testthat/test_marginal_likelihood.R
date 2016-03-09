@@ -16,7 +16,11 @@ test_that("overfit model", {
 
     fit <- posteriorSimulation(model, k=1:4)
 
+    # warning about the 4 component model being overfit
     expect_warning(marginalLikelihood(fit))
+
+    # no warning when 4 component model excluded
+    marginalLikelihood(fit[1:3])
 })
 
 test_that("batch overfit galaxy", {
