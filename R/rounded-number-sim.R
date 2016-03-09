@@ -144,7 +144,7 @@ check_no_rounding_sim_mean <- function() {
         summarise(y=median(x)) %>%
         .$y
 
-    mp <- McmcParams(iter=1000, burnin=1000, thin=5, nStarts=1)
+    mp <- McmcParams(iter=2000, burnin=20000, thin=5, nStarts=10)
 
     # model for data as seen
     model <- MarginalModel(data=lrr, mcmc.params=mp) 
