@@ -162,6 +162,11 @@ blockUpdatesBatch <- function(model, mp){
 #' @aliases marginalLikelihood,MarginalModel,integer-method
 setMethod("marginalLikelihood", c("MarginalModel", "integer"),
     function(model, niter) {
+        eff_size_theta <- mean(effectiveSize(theta(chains(model))))
+        if (eff_size_theta / iter(model) < 0.05) {
+            warning("The model for k=", k(model), " may be overfit.",
+                    " This can lead to an incorrect marginal likelihood")
+        }
         mp <- McmcParams(iter=niter)
         logLik <- modes(model)[["loglik"]] ## includes 2nd stage
         model2 <- useModes(model)
