@@ -1,3 +1,5 @@
+context("Constructors")
+
 test_that("test_constructor", {
     mcmc.params <- McmcParams()
     expect_true(validObject(mcmc.params))

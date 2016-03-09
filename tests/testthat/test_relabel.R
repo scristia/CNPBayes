@@ -1,3 +1,5 @@
+context("Relabel Marginal")
+
 test_that("test_relabel_marginal", {
     set.seed(1)
     truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1, 

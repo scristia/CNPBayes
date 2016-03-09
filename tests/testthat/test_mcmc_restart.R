@@ -1,3 +1,5 @@
+context("MCMC Restart")
+
 test_that("test_mcmc_restart", {
     set.seed(1)
     truth <- simulateData(N = 500, theta = c(-1, 0, 1), sds = c(0.1,

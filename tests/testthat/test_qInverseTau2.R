@@ -1,3 +1,5 @@
+context("Check qInverseTau2 function")
+
 test_that("test_qInverseTau2", {
     mn <- 100
     sd <- 10

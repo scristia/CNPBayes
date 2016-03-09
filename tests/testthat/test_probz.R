@@ -1,3 +1,5 @@
+context("Check z's")
+
 test_that("test_probz", {
     set.seed(1)
     truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1, 

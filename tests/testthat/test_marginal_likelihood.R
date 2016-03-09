@@ -1,3 +1,5 @@
+context("Marginal likelihood")
+
 test_that("overfit model", {
     set.seed(1)
 

@@ -1,3 +1,5 @@
+context("Pooled variance")
+
 test_that("sigma2_pooled", {
   set.seed(2000)
   truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0),

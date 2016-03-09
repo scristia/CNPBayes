@@ -1,3 +1,5 @@
+context("Check computeMeans method")
+
 test_that("computeMeans", {
   set.seed(2000)
   truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0),
