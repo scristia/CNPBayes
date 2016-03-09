@@ -37,6 +37,7 @@ regarding implementation.
 ```{r lib} 
 library(CNPBayes)
 library(GenomicRanges)
+library(oligoClasses)
 ```
 
 # Workflow
