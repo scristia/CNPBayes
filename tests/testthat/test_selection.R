@@ -24,5 +24,5 @@ test_that("galaxy model", {
     expect_equal(marginal_k3, published.mlik, tolerance=1)
 
     # check that model is not overfit
-#     expect_true(m.y[1] > m.y[2])
+    expect_true(which.max(m.y) == 1L)
 })
