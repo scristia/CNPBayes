@@ -14,7 +14,7 @@ Log Bayes factor comparing the two models with highest likelihood.
 }
 \description{
 Models of varying component sizes are compared. The log bayes factor is 
-calculated comparing the two models with the highest marginal likelihood, 
+calculated comparing each set of two models by marginal likelihood, 
 as computed by \code{marginalLikelihood}.
 }
 
