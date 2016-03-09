@@ -1,3 +1,5 @@
+context("Simulation")
+
 test_that("test_simulation_moderate", {
     set.seed(42)
     arguments <- list(sl.good = 6.25, sl.bad = 0.0625, prbias = 0.03, 

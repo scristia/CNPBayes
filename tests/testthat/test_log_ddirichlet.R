@@ -1,3 +1,5 @@
+context("Copied ddirichlet function")
+
 test_that("log_ddirichlet", {
   p <- c(0.81, 0.049, 0.141)
   alpha <- c(73, 4, 8)

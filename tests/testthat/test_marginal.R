@@ -1,3 +1,5 @@
+context("MarginalModel")
+
 test_that("test_constraint", {
     baf <- readRDS(system.file("extdata", "baf.rds", package = "CNPBayes"))
     set.seed(17)
