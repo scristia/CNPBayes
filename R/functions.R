@@ -316,3 +316,29 @@ ntile <- function(x, n) {
     floor((n * (rank(x, ties.method="first", na.last="keep") - 1)
            / length(x)) + 1)
 }
+
+posterior_cases <- function(model, case.control) {
+    # model and MCMC params
+    z.mat <- z(chains(model))
+    S <- nrow(z.mat)
+
+    # empty posterior matrix
+    posterior <- matrix(0, nrow=S, ncol=k(model))
+
+    # run model of probabilities
+    for (i in seq_len(S)) {
+        z <- z.mat[i, ]
+        cont.tbl <- table(z, case.control)
+        
+        cases <- cont.tbl[, 2]
+        controls <- cont.tbl[, 1]
+
+        for (j in seq_len(length(cases))) {
+            cases.row <- cases[j]
+            controls.row <- controls[j]
+            posterior[i, j] <- rbeta(1, cases.row + 1, controls.row + 1)
+        }
+    }
+
+    return(posterior)
+}
