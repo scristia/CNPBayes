@@ -54,7 +54,6 @@ Collate:
     'methods-SummarizedExperiment.R'
     'model_initialization.R'
     'relabeling.R'
-    'rounded-number-sim.R'
     'simulate_data.R'
     'visualization.R'
 VignetteBuilder: knitr
