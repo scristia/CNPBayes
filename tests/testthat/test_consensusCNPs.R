@@ -1,3 +1,5 @@
+context("Consensus CNP")
+
 test_that("test_consensusCNP", {
     set.seed(100)
     starts <- rpois(1000, 100) + 10000000L
