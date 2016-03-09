@@ -180,7 +180,8 @@ test_that("test_selectK_easy", {
     mp <- McmcParams(iter = 5000, burnin = 1000, nStarts = 1)
     model <- MarginalModel(data = y(truth), k = 2, mcmc.params = mp)
     mlist <- posteriorSimulation(model, k = 2:4)
-    m.y <- marginalLikelihood(mlist)
+    # k=4 is overfit
+    expect_warning(m.y <- marginalLikelihood(mlist))
     argmax <- which.max(m.y)
     expect_true(argmax == 2L)
     dm <- DensityModel(mlist[[argmax]], merge = TRUE)
