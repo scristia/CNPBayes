@@ -7,7 +7,7 @@ test_that("test_constructor", {
     expect_true(validObject(hypp))
     hypp <- Hyperparameters("batch")
     expect_true(validObject(hypp))
-    mmod <- MarginalModel()
+    expect_warning(mmod <- MarginalModel())
     expect_true(validObject(mmod))
     mc <- CNPBayes:::McmcChains()
     expect_true(validObject(mc))
