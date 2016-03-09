@@ -25,7 +25,6 @@ consensusRegion <- function(g){
   ## the disjoint intervals are sorted, so we only need to take the
   ## first interval that passes this threshold
   index.start <- tryCatch(min(which(cnt > threshold)), error=function(e) NULL)
-  if(is.null(index.start)) browser()
   index.end <- max(which(cnt > threshold))
   startg <- dj[index.start]
   endg <- dj[index.end]
