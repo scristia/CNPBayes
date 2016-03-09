@@ -11,8 +11,8 @@ consensusRegion <- function(g){
     g1 <- unlist(grl1)
     #if(class(g1)=="list") browser()
     g1 <- GRanges(as.character(seqnames(g1)), IRanges(start(g1), end(g1)))
-    grl2ormore <- grl[elementNROWS(grl) >= 2]
-    grl3 <- foreach(g=grl2ormore) %do% reduce(g, min.gapwidth=1e6)
+    grl2ormore <- grl[elementLengths(grl) >= 2]
+    grl3 <- unname(lapply(grl2ormore, reduce, min.gapwidth=1e6))
     g2ormore <- unlist(GRangesList(grl3))
     g <- c(g1, g2ormore)
   }
@@ -261,12 +261,21 @@ downSampleEachBatch <- function(y, nt, batch){
   x <- obs.index <- NULL
   yb <- split(y, batch)
   indices <- split(seq_along(y), batch)
-  S <- foreach(x=yb, batch.id=names(yb), obs.index=indices) %do% {
+  S <- vector("list", length(yb))
+
+  for (i in 1:length(yb)) {
+    x <- yb[[i]]
+    batch.id <- names(yb)[i]
+    obs.index <- indices[[i]]
+
     tiles <- factor(paste(ntile(x, nt), batch.id, sep="_"))
     xx <- sapply(split(x, tiles), mean)
     tiles <- setNames(as.character(tiles), obs.index)
-    list(y=xx, labels=tiles, batch.id=rep(batch.id, length(xx)))
+    S[[i]] <- list(y=xx, 
+                   labels=tiles, 
+                   batch.id=rep(batch.id, length(xx)))
   }
+
   ys <- unlist(lapply(S, "[[", 1))
   tiles <- unlist(lapply(S, "[[", 2))
   batch.id <- unlist(lapply(S, "[[", 3))
