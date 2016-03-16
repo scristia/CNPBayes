@@ -1,4 +1,4 @@
-context("Relabel Marginal")
+context("Relabel components")
 
 test_that("test_relabel_marginal", {
     set.seed(1)
