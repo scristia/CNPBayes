@@ -16,12 +16,12 @@ A Markov Chain Monte Carlo posterior simulation should be visually inspected to 
 
 ```{r lib} 
 # load CNPBayes
-library(CNPBayes)
+suppressMessages(library(CNPBayes))
 
 # load packages for manipulating and visualizing data
-library(dplyr)
-library(tidyr)
-library(ggplot2)
+suppressMessages(library(dplyr))
+suppressMessages(library(tidyr))
+suppressMessages(library(ggplot2))
 ```
 
 # Workflow
