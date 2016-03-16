@@ -251,10 +251,15 @@ permnK <- function(k, maxperm){
 #' Create tile labels for each observation
 #'
 #' @param y vector containing data
-#' @param nt the number of tiles in a batch
+#' @param nt the number of observations per batch
 #' @param batch a vector containing the labels from which batch each observation came from.
 #' @return Tile labels for each observation
+#' @seealso \code{\link[dplyr]{ntile}}
 #' @export
+#' @examples
+#' y <- runif(100)
+#' batch <- sample(letters[1:3], 100, replace=TRUE)
+#' ds <- downSampleEachBatch(y, 10, batch)
 downSampleEachBatch <- function(y, nt, batch){
   ## NULL out these two variables to avoid NOTE about
   ## no visible binding for global variable

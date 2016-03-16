@@ -9,7 +9,7 @@ downSampleEachBatch(y, nt, batch)
 \arguments{
 \item{y}{vector containing data}
 
-\item{nt}{the number of tiles in a batch}
+\item{nt}{the number of observations per batch}
 
 \item{batch}{a vector containing the labels from which batch each observation came from.}
 }
@@ -18,5 +18,13 @@ Tile labels for each observation
 }
 \description{
 Create tile labels for each observation
+}
+\examples{
+y <- runif(100)
+batch <- sample(letters[1:3], 100, replace=TRUE)
+ds <- downSampleEachBatch(y, 10, batch)
+}
+\seealso{
+\code{\link[dplyr]{ntile}}
 }
 

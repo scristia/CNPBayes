@@ -46,5 +46,5 @@ test_that("batch overfit galaxy", {
     es <- lapply(fit, function(x) effectiveSize(theta(chains(x))))
     means <- sapply(es, function(x) mean(x))
 
-    expect_warning(marginalLikelihood(fit))
+   expect_warning(marginalLikelihood(fit))
 })
