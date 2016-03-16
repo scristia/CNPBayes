@@ -39,10 +39,7 @@ defineCnpRegions <- function(grl, thr=0.02){
   g <- unlist(grl)
   names(g) <- NULL
   dj <- disjoin(g)
-  ##g2 <- GRanges(seqnames(g), IRanges(start(g), end(g)))
-  ##dj <- disjoin(g2)
   prop.cnv <- countOverlaps(dj, g)/length(grl)
-
   is_cnp <- prop.cnv > thr
 
   ## throw-out large CNVs and CNVs that do not overlap any of the CNPs
@@ -50,17 +47,11 @@ defineCnpRegions <- function(grl, thr=0.02){
   gsmall <- subsetByOverlaps(g, dj[is_cnp])
   regions <- reduce(gsmall) ## 267 regions
 
-  ##library(GenomicRanges)
-  ##load("~/MyPapers/aricUricAcid/data/chr4locus.rda")
-  ## verify chr4 locus is present
-  ##stopifnot(identical(length(subjectHits(findOverlaps(regions, chr4locus))),2L))
-
   ## Split the cnvs by region
   hits <- findOverlaps(regions, g)
   hitlist <- split(subjectHits(hits), queryHits(hits))
   regionlist <- vector("list", length(hitlist))
   message("find consensus regions...")
-  ##browser()
   for(j in seq_along(hitlist)){
     message(".", appendLF=FALSE)
     i <- hitlist[[j]]
@@ -68,8 +59,8 @@ defineCnpRegions <- function(grl, thr=0.02){
   }
   message("")
   ##regionlist <- GRangesList(foreach(i=hitlist) %do% consensusRegion(g[i]))
-  regions <- GenomicRanges::GRangesList(regionlist)
-  GenomicRanges::unlist(regions)
+  regions <- GRangesList(regionlist)
+  unlist(regions)
 }
 
 #' Identify consensus start and stop coordinates of a copy number

@@ -1,4 +1,5 @@
 .gitignore
+^data-raw$
 ^\.travis\.yml$
 .git/*
 .*\.DS_Store

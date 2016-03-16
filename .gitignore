@@ -20,3 +20,4 @@ vignettes/*.R
 vignettes/.build.timestamp
 README.html
 *.RDS
+data-raw*
