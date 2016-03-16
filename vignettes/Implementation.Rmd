@@ -88,7 +88,7 @@ Hyperparameters for the mixture model are specified as an instance of class
   overall mean of components. Default to 0 and 100 respectively.  
 
 - `eta.0` and `m2.0` priors for 
-  $\tau^2 \sim$ Ga(rate=`eta.0`, shape=`m2.0`), the overall variance 
+  $\tau^2 \sim$ Ga(shape=`eta.0`, rate=`m2.0`), the overall variance 
   across components. Default to 1 and 0.1 respectively for *marginal* models 
   and 1800 and 1/60 respectively for *batch* models.  
 
