@@ -1,11 +1,7 @@
-language: 
-    - r
+language: r
+cache: packages
 
-os:
-    - linux
-    #- osx
-
-sudo: required
+os: linux
 
 r_packages:
     - rmarkdown
