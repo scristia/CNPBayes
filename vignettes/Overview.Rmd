@@ -55,7 +55,7 @@ Using this data, we identify CNP loci and summarize within sample and locus by m
 ```{r summary, message=FALSE}
 cnv.region <- consensusCNP(grl, max.width=5e6)
 i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
-med.summary <- matrixStats::colMedians(oligoClasses::lrr(se)[i, ], na.rm=TRUE)
+med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
 ```
 
 See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`. 
