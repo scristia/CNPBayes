@@ -58,8 +58,8 @@ test_that("test_batchEasy", {
     truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
         length.out = N), theta = means, sds = sds, p = c(1/5,
         1/3, 1 - 1/3 - 1/5))
-    yy <- y(truth)
-    expect_identical(yy[order(batch(truth))], yy)
+    ##yy <- y(truth)
+    ##expect_identical(yy[order(batch(truth))], yy)
     mcmcp <- McmcParams(iter = 50, burnin = 0)
     set.seed(123)
     model <- BatchModel(y(truth), batch = batch(truth), k = 3,
@@ -113,6 +113,7 @@ test_that("test_batchEasy", {
 })
 
 test_that("test_hard3", {
+  library(SummarizedExperiment)
     # embed function in test for now
     hardTruth <- function(prop_comp1=0.005, s=0.3) {
       set.seed(1234)

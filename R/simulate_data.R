@@ -43,10 +43,9 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
     s <- sds[b, ]
     yy[index] <- rnorm(nn, mu[cn], s[cn])
   }
-  ##browser()
-  ix <- order(batch)
+  ##ix <- order(batch)
   object <- BatchModel(yy, batch=batch, k=ncol(theta))
-  z(object) <- as.integer(factor(zz))[ix]
+  z(object) <- as.integer(factor(zz))
   ##
   ## Must initialize the slots independently (must point to different
   ## locations in memory)
