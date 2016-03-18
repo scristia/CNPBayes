@@ -77,7 +77,7 @@ these CNVs.
 ```{r median}
 cnv.region <- consensusCNP(grl, max.width=5e6)
 i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
-med.summary <- matrixStats::colMedians(oligoClasses::lrr(se)[i, ], na.rm=TRUE)
+med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
 par(las=1)
 plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
      xaxt="n")

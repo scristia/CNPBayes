@@ -52,3 +52,10 @@ grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
 lrr_baf <- simulateFindCnpData(grl, snp_exp2, grl)
 sim.se <- SnpArrayExperiment(cn=lrr_baf$cn, baf=lrr_baf$baf, 
                              rowRanges=rowRanges(snp_exp2))
+
+## depend only on SummarizedExperiment
+se <- readRDS("~/Software/CNPBayes/inst/extdata/simulated_se.rds")
+se2 <- SummarizedExperiment(assays=SimpleList(cn=lrr(se),
+                                              baf=baf(se)),
+                            rowRanges=rowRanges(se))
+saveRDS(se2, file="~/Software/CNPBayes/inst/extdata/simulated_se.rds")
