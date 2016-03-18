@@ -10,14 +10,18 @@ test_that("test_batch_moderate", {
     sds[, 1] <- 0.3
     N <- 1000
     truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
-        length.out = N), p = c(1/10, 1/5, 1 - 0.1 - 0.2), theta = means,
-        sds = sds)
+                                                  length.out = N),
+                               p = c(1/10, 1/5, 1 - 0.1 - 0.2), theta = means,
+                               sds = sds)
     mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 1,
-        nStarts = 10)
+                        nStarts = 10)
+
+    ## this parameter setting for m2.0 allows a lot of varation of the thetas
+    ## between batch
     hypp <- CNPBayes:::HyperparametersBatch(m2.0 = 1/60, eta.0 = 1800,
-        k = 3, a = 1/6, b = 180)
+                                            k = 3, a = 1/6, b = 180)
     model <- BatchModel(data = y(truth), batch = batch(truth),
-        k = 3, mcmc.params = mcmcp, hypp = hypp)
+                        k = 3, mcmc.params = mcmcp, hypp = hypp)
     model <- posteriorSimulation(model)
     i <- order(theta(model)[1, ])
     expect_equal(theta(truth), theta(model)[, i], tolerance=0.1)
