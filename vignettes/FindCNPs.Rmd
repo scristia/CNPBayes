@@ -34,26 +34,14 @@ Included in the CNPBayes package are objects of class `SnpArrayExperiment`
 and `GRangesList`. We begin by loading the necessary libraries and data.
 
 ```{r prelim}
+suppressMessages(library(CNPBayes))
+suppressMessages(library(SummarizedExperiment))
 se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
 grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
-suppressMessages(library(CNPBayes))
 ```
 
 The object `se` contains log R ratios and B Allele Frequencies, and the object
 `grl` is a `GRangesList` of simulated deletions. 
-
-```{r offset, eval=FALSE, echo=FALSE}
-##suppressMessages(library(VanillaICE))
-# this is not to be run and just for reproducibility
-data(snp_exp)
-region <- GRanges("chr22", IRanges(15e6, 22e6))
-hits <- findOverlaps(region, rowRanges(snp_exp))
-snp_exp2 <- snp_exp[subjectHits(hits), ]
-## simulate 25 samples with deletion and 10 samples without deletion
-lrr_baf <- CNPBayes:::simulateFindCnpData(grl, snp_exp2)
-sim.se <- SnpArrayExperiment(cn=lrr_baf$cn, baf=lrr_baf$baf, 
-                             rowRanges=rowRanges(snp_exp2))
-```
 
 # Finding CNPs
 
@@ -62,7 +50,6 @@ After reading this saved data, we visualize the CNVs.
 ```{r plot-cnvs}
 cnv.region <- consensusCNP(grl[1], max.width=5e6)
 i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
-
 xlim <- c(min(start(se)), max(end(se)))
 par(las=1)
 plot(0, xlim=xlim, ylim=c(0, 26), xlab="Mb", ylab="sample index", type="n",
