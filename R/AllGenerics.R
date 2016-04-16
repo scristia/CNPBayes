@@ -560,7 +560,7 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 #' # Fit model with a different number of components (k=2)
 #' posteriorSimulation(MarginalModelExample, k=2)
 #'
-#' # Fit multiple models with of differing component sizes (1 and 2)
+#' # Fit multiple models with differing component sizes (1 and 2)
 #' posteriorSimulation(BatchModelExample, k=1:2)
 #' @param object see showMethods(posteriorSimulation)
 #' @param k The number of a priori components. This is optional and if not
