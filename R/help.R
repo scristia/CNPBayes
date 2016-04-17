@@ -7,7 +7,7 @@
 #' @importFrom GenomeInfoDb seqinfo seqlevels<- seqlevels seqinfo<- seqnames
 #' @import IRanges
 #' @importFrom Rcpp evalCpp
-#' @importFrom S4Vectors SimpleList DataFrame Rle
+#' @import S4Vectors
 #' @import GenomicRanges 
 #' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
