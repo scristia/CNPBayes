@@ -10,3 +10,5 @@
 ^appveyor\.yml$
 ^Makefile$
 ^CONTRIBUTING.md$
+vignettes/figure
+TODO.org
