@@ -16,6 +16,6 @@
 #' @importFrom graphics lines par
 #' @importFrom stats dnorm kmeans ks.test plot.ts qgamma rbeta rgamma rgeom rnorm runif setNames
 #' @importFrom coda effectiveSize
-#' @importMethodsFrom SummarizedExperiment assays
+#' @importMethodsFrom SummarizedExperiment assays SummarizedExperiment
 #' @useDynLib CNPBayes
 NULL
