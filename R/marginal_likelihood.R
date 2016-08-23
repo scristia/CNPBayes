@@ -1,8 +1,10 @@
 .blockUpdates <- function(model, mp, reject.threshold, prop.threshold) {
     model.reduced <- model
     mcmcParams(model.reduced, force=TRUE) <- mp
-  
     ptheta.star <- marginal_theta(model)[1:iter(mp)]
+    ##
+    ## ptheta.star 
+    ##
     small.theta.red <- mean(ptheta.star < reject.threshold)
     if(paramUpdates(model)[["theta"]]==0) small.theta.red <- 0
     
@@ -11,24 +13,23 @@
                 " This can lead to an incorrect marginal likelihood")
         return(matrix(NA))
     }
-  
     model.psigma2 <- reduced_sigma(model.reduced)
-    identical(modes(model.psigma2), modes(model))
+    ##identical(modes(model.psigma2), modes(model))
     psigma.star <- p_sigma_reduced(model.psigma2)
   
     model.pistar <- reduced_pi(model.reduced)
-    identical(modes(model.pistar), modes(model))
+    ##identical(modes(model.pistar), modes(model))
     p.pi.star <- p_pmix_reduced(model.pistar)
   
     ##
     ## Block updates for stage 2 parameters
     ##
     model.mustar <- reduced_mu(model.reduced)
-    stopifnot(identical(modes(model.mustar), modes(model)))
+    ##stopifnot(identical(modes(model.mustar), modes(model)))
     p.mustar <- p_mu_reduced(model.mustar)
   
     model.taustar <- reduced_tau(model.reduced)
-    identical(modes(model.taustar), modes(model))
+    ##identical(modes(model.taustar), modes(model))
     p.taustar <- p_tau_reduced(model.mustar)
   
     model.nu0star <- reduced_nu0(model.reduced)
@@ -168,11 +169,12 @@ setMethod("marginalLikelihood", "MarginalModel",
         }
 
         if (isOverfit(model, params)) {
-            warning("The model for k=", k(model), " may be overfit.",
-                    " This can lead to an incorrect marginal likelihood")
-            return(NA)
+          ##warning("The model for k=", k(model), " may be overfit.",
+          ##          " This can lead to an incorrect marginal likelihood")
+          msg <- effectiveSizeWarning()
+          warning(msg)
+          ##return(NA)
         }
-
         # get parameters from list params
         niter <- params$niter
         root <- params$root
@@ -204,6 +206,13 @@ isOverfit <- function(model, params){
   (eff_size_theta / iter(model) < 0.05) && paramUpdates(model)[["theta"]] > 0
 }
 
+effectiveSizeWarning <- function(){
+  msg <- paste("The ratio of the (effective size) / (no. iterations) is less than 0.05",
+               "for model for k=", k(model), ". Sometimes this is caused by",
+               "overfitting.  More independent MCMC samples can be obtained by",
+               "increasing the thin parameter. See ?coda::effectiveSize")
+}
+
 #' @rdname marginalLikelihood-method
 #' @aliases marginalLikelihood,SingleBatchPooledVar-method marginalLikelihood,SingleBatchPooledVar,ANY-method
 setMethod("marginalLikelihood", "SingleBatchPooledVar",
@@ -219,11 +228,9 @@ setMethod("marginalLikelihood", "SingleBatchPooledVar",
 
         # calculate effective size of thetas and check against threshold
         if (isOverfit(model, params)) {
-            warning("The model for k=", k(model), " may be overfit.",
-                    " This can lead to an incorrect marginal likelihood")
-            return(NA)
+          warning(effectiveSizeWarning())
+          ##return(NA)
         }
-
         # get parameters from list params
         niter <- params$niter
         root <- params$root
@@ -257,43 +264,43 @@ setMethod("marginalLikelihood", "BatchModel",
                                 root=(1/10),
                                 reject.threshold=1e-50,
                                 prop.threshold=0.5)) {
-        # check if length of chains is shorter than gibbs niter
-        if (iter(model) < params$niter) {
-            stop("The number of posterior samples must be greater than or ",
-                 "equal to the number of reduced gibbs samples")
-        }
+      ## check if length of chains is shorter than gibbs niter
+      if (iter(model) < params$niter) {
+          stop("The number of posterior samples must be greater than or ",
+               "equal to the number of reduced gibbs samples")
+      }
 
-        # calculate effective size of thetas and check against threshold
-        if (isOverfit(model, params)) {
-            warning("The model for k=", k(model), " may be overfit.",
-                    " This can lead to an incorrect marginal likelihood")
-            return(NA)
-        }
+      ## calculate effective size of thetas and check against threshold
+      if (isOverfit(model, params)) {
+        warning(effectiveSizeWarning())
+        ##warning("The model for k=", k(model), " may be overfit.",
+        ##          " This can lead to an incorrect marginal likelihood")
+        ##return(NA)
+      }
+      # get parameters from list params
+      niter <- params$niter
+      root <- params$root
+      reject.threshold <- params$reject.threshold
+      prop.threshold <- params$prop.threshold
 
-        # get parameters from list params
-        niter <- params$niter
-        root <- params$root
-        reject.threshold <- params$reject.threshold
-        prop.threshold <- params$prop.threshold
+      # calculate p(x|theta)
+      logLik <- modes(model)[["loglik"]] ## includes 2nd stage
+      model2 <- useModes(model)
+      stage2.loglik <- stageTwoLogLikBatch(model2)
 
-        # calculate p(x|theta)
-        logLik <- modes(model)[["loglik"]] ## includes 2nd stage
-        model2 <- useModes(model)
-        stage2.loglik <- stageTwoLogLikBatch(model2)
+      # calculate log p(theta)
+      logPrior <- modes(model)[["logprior"]]
 
-        # calculate log p(theta)
-        logPrior <- modes(model)[["logprior"]]
+      mp <- McmcParams(iter=niter)
+      red_gibbs <- .blockUpdatesBatch(model2, mp, reject.threshold,
+                                      prop.threshold)
+      pstar <- blockUpdates(red_gibbs, root)
 
-        mp <- McmcParams(iter=niter)
-        red_gibbs <- .blockUpdatesBatch(model2, mp, reject.threshold,
-                                        prop.threshold)
-        pstar <- blockUpdates(red_gibbs, root)
-
-        # calculate p(x|model)
-        m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
-               log(factorial(k(model)))
-        m.y
-    }
+      # calculate p(x|model)
+      m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
+             log(factorial(k(model)))
+      m.y
+  }
 )
 
 #' @rdname marginalLikelihood-method

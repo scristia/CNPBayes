@@ -208,3 +208,29 @@ test_that("posteriorSimulation methods", {
     post <- posteriorSimulation(model, k=2:4)
     expect_identical(length(post), 3L)
 })
+
+test_that("targeted_seq data", {
+  ##
+  ## The marginal likelihood less useful for selecting models
+  ## - can we merge and then compute the marginal lik?
+  ##
+  set.seed(123)
+  mp <- McmcParams(iter=1000, burnin=100, thin=10)
+  extfile <- file.path(system.file("extdata", package="CNPBayes"),
+                       "targeted_seq.txt")
+  dat <- read.delim(extfile)[[1]]
+  model <- MarginalModel(data=dat, k=3)
+  ## inspect default hyperparameters
+  hyperParams(model)
+  mlist <- posteriorSimulation(model, k = 2:4)
+  ##
+  ## Select k=3 
+  ##
+  dmlist <- lapply(mlist, DensityModel, merge=TRUE)
+  n.comp <- sapply(dmlist, function(x) length(modes(x)))
+  ## remove merge models where number components are duplicated
+  mlist <- mlist[!duplicated(n.comp)]
+  m.y <- marginalLikelihood(mlist)##, params=params)
+  argmax <- which.max(m.y)
+  expect_true(argmax == 2L)
+})

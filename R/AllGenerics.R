@@ -685,6 +685,9 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #' reduced Gibb's out for \code{theta} are smaller than 
 #' reject.threshold, the marginalLikelihood will not be calculated 
 #' and a warning will be displayed
+#'
+#' Note: currently thinning of the reduced MCMC chains is not allowed.
+#' 
 #' @return A vector of the marginal likelihood of the model(s)
 #' @export
 #' @docType methods

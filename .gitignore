@@ -20,3 +20,5 @@ vignettes/*.R
 vignettes/.build.timestamp
 README.html
 *.RDS
+/vignettes/figure/batch-1.png
+vignettes/figure
