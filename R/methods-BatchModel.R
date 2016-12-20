@@ -408,6 +408,9 @@ setMethod("tablez", "BatchModel", function(object){
 
 uniqueBatch <- function(object) unique(batch(object))
 
+
+
+
 #' Create a data.frame of the component densities for each batch
 #'
 #' @param object an object of class \code{BatchModel}
@@ -445,8 +448,6 @@ uniqueBatch <- function(object) unique(batch(object))
 #'    geom_area(stat="identity", aes(color=name, fill=name),
 #'              alpha=0.4) +
 #'    xlab("quantiles") + ylab("density") +
-#'    scale_color_manual(values=colors) +
-#'    scale_fill_manual(values=colors) +
 #'    guides(fill=guide_legend(""), color=guide_legend("")) +
 #'    facet_wrap(~batch, nrow=2)
 multiBatchDensities <- function(object){
@@ -467,19 +468,19 @@ multiBatchDensities <- function(object){
   K <- ncol(thetas)
   NB <- nBatch(object)
   over <- Reduce("+", dens.list)
-  batches.overall <- rep(1:2, each=nrow(over))
-  quantile.overall <- rep(quantiles, 2)
+  batches.overall <- rep(uniqueBatch(object), each=nrow(over))
+  quantile.overall <- rep(quantiles, nBatch(object))
   overall <- as.numeric(over)
 
-  d.vec <- as.numeric(d, overall)
+  d.vec <- as.numeric(d)
   d.vec <- c(d.vec, overall)
   batches <- c(rep(uniqueBatch(object), each=nrow(d)),
                batches.overall)
   K <- seq_len(ncol(thetas))
   name <- paste0("cn", K-1)
-  name <- rep(rep(name, elementNROWS(dens.list)), 2)
+  name <- rep(rep(name, elementNROWS(dens.list)), nBatch(object))
   name <- c(name, rep("overall", length(overall)))
-  x <- rep(rep(quantiles, length(dens.list)), 2)
+  x <- rep(rep(quantiles, length(dens.list)), nBatch(object))
   x <- c(x, quantile.overall)
   df <- data.frame(x=x, d=d.vec, name=name, batch=batches)
   df$batch <- factor(df$batch, uniqueBatch(object))
