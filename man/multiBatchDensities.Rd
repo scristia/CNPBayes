@@ -47,8 +47,6 @@ Create a data.frame of the component densities for each batch
    geom_area(stat="identity", aes(color=name, fill=name),
              alpha=0.4) +
    xlab("quantiles") + ylab("density") +
-   scale_color_manual(values=colors) +
-   scale_fill_manual(values=colors) +
    guides(fill=guide_legend(""), color=guide_legend("")) +
    facet_wrap(~batch, nrow=2)
 }
