@@ -43,7 +43,9 @@ will be flagged \cr
 prop.threshold - If a proportion prop.threshold or higher of the 
 reduced Gibb's out for \code{theta} are smaller than 
 reject.threshold, the marginalLikelihood will not be calculated 
-and a warning will be displayed}
+and a warning will be displayed
+
+Note: currently thinning of the reduced MCMC chains is not allowed.}
 }
 \value{
 A vector of the marginal likelihood of the model(s)

@@ -242,7 +242,6 @@ modelOtherModes <- function(model, maxperm=5){
 logBayesFactor <- function(x) {
     k <- length(x)
     mat <- matrix(0, nrow=k, ncol=k, dimnames=list(names(x), names(x)))
-    
     for (i in seq_len(length(x))) {
         x_i <- x[c(i:k, 0:(i-1))]
         diff <- x_i[1] - x_i
@@ -268,3 +267,25 @@ setMethod("computeLoglik", "BatchModel", function(object){
 setMethod("computeLoglik", "MarginalModel", function(object){
   loglik(object)
 })
+
+singleBatchDensities <- function(object){
+  probs <- p(object)
+  mus <- theta(object)
+  sigmas <- sigma(object)
+  psi <- cbind(probs, mus, sigmas)
+  avglrrs <- observed(object)
+  quantiles <- seq(min(avglrrs), max(avglrrs), length.out=500)
+  d <- apply(psi, 1, function(x, quantiles){
+    x[1] * dnorm(quantiles, mean=x[2], sd=x[3])
+  }, quantiles=quantiles)
+  overall <- rowSums(d)
+  ix <- order(mus)
+  d.vec <- c(as.numeric(d[, ix]), overall)
+  x <- rep(quantiles, ncol(d) + 1)
+  K <- seq_along(mus) - 1 ## assume homozygous deletion is first component
+  name <- rep(paste0("cn", K), each=length(quantiles))
+  name <- c(name, rep("overall", length(quantiles)))
+  df <- data.frame(d=d.vec, x=x, name=name)
+  df$name <- factor(df$name, levels=c("overall", c(paste0("cn", 0:4))))
+  df
+}

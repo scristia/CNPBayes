@@ -8,7 +8,7 @@
 #' @import IRanges
 #' @importFrom Rcpp evalCpp
 #' @import S4Vectors
-#' @import GenomicRanges 
+#' @import GenomicRanges
 #' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom matrixStats colSds colMedians rowCumsums rowProds colMaxs

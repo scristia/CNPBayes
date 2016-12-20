@@ -407,3 +407,82 @@ setMethod("tablez", "BatchModel", function(object){
 })
 
 uniqueBatch <- function(object) unique(batch(object))
+
+#' Create a data.frame of the component densities for each batch
+#'
+#' @param object an object of class \code{BatchModel}
+#' @return a \code{{data.frame}}
+#' @export
+#' @examples
+#'    nbatch <- 3
+#'    k <- 3
+#'    means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+#'        0, 0.05), nbatch, k, byrow = FALSE)
+#'    sds <- matrix(0.15, nbatch, k)
+#'    sds[, 1] <- 0.3
+#'    N <- 1000
+#'    truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+#'                                                  length.out = N),
+#'                               p = c(1/10, 1/5, 1 - 0.1 - 0.2), theta = means,
+#'                               sds = sds)
+#'    mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 1,
+#'                        nStarts = 10)
+#'
+#'    ## this parameter setting for m2.0 allows a lot of varation of the thetas
+#'    ## between batch
+#'    hypp <- CNPBayes:::HyperparametersBatch(m2.0 = 1/60, eta.0 = 1800,
+#'                                            k = 3, a = 1/6, b = 180)
+#'    model <- BatchModel(data = y(truth), batch = batch(truth),
+#'                        k = 3, mcmc.params = mcmcp, hypp = hypp)
+#'    model <- posteriorSimulation(model)
+#'    df <- multiBatchDensities(model)
+#'    df.observed <- data.frame(y=observed(model), batch=batch(model))
+#'    library(ggplot2)
+#'    ggplot(df, aes(x, d)) +
+#'    geom_histogram(data=df.observed,
+#'                   aes(y, ..density..),
+#'                   bins=300, inherit.aes=FALSE) +
+#'    geom_area(stat="identity", aes(color=name, fill=name),
+#'              alpha=0.4) +
+#'    xlab("quantiles") + ylab("density") +
+#'    scale_color_manual(values=colors) +
+#'    scale_fill_manual(values=colors) +
+#'    guides(fill=guide_legend(""), color=guide_legend("")) +
+#'    facet_wrap(~batch, nrow=2)
+multiBatchDensities <- function(object){
+  probs <- p(object)
+  thetas <- theta(object)
+  sigmas <- sigma(object)
+  P <- matrix(probs, nrow(thetas), ncol(thetas), byrow=TRUE)
+  rownames(P) <- uniqueBatch(object)
+  avglrrs <- observed(object)
+  quantiles <- seq(min(avglrrs), max(avglrrs), length.out=500)
+  batchPr <- table(batch(object))/length(y(object))
+  dens.list <- batchDensities(quantiles, uniqueBatch(object), 
+                              thetas, sigmas, P, batchPr)
+  ##component <- lapply(dens.list, rowSums)
+  ##overall <- rowSums(do.call(cbind, component))
+  ix <- order(thetas[1, ])
+  d <- do.call(rbind, dens.list[ix])
+  K <- ncol(thetas)
+  NB <- nBatch(object)
+  over <- Reduce("+", dens.list)
+  batches.overall <- rep(1:2, each=nrow(over))
+  quantile.overall <- rep(quantiles, 2)
+  overall <- as.numeric(over)
+
+  d.vec <- as.numeric(d, overall)
+  d.vec <- c(d.vec, overall)
+  batches <- c(rep(uniqueBatch(object), each=nrow(d)),
+               batches.overall)
+  K <- seq_len(ncol(thetas))
+  name <- paste0("cn", K-1)
+  name <- rep(rep(name, elementNROWS(dens.list)), 2)
+  name <- c(name, rep("overall", length(overall)))
+  x <- rep(rep(quantiles, length(dens.list)), 2)
+  x <- c(x, quantile.overall)
+  df <- data.frame(x=x, d=d.vec, name=name, batch=batches)
+  df$batch <- factor(df$batch, uniqueBatch(object))
+  df$name <- factor(df$name, levels=c("overall", paste0("cn", K-1)))
+  df
+}

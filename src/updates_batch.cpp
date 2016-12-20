@@ -135,7 +135,7 @@ Rcpp::NumericVector update_mu_batch(Rcpp::S4 xmod){
   LogicalVector isnan = is_nan(mu_new) ;
   if(!is_true(any(isnan)))
     return mu_new ;
-  
+
   for(int k = 0; k < K; ++k){
     if(isnan[k])
       mu_new[k] = as<double>(rnorm(1, mu_0, sqrt(tau2_0))) ;
@@ -153,12 +153,12 @@ Rcpp::NumericVector update_tau2_batch(Rcpp::S4 xmod){
 
   NumericVector mu = model.slot("mu") ;
   NumericMatrix theta = model.slot("theta") ;
-  
+
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = uniqueBatch(batch) ;
   int B = ub.size() ;
   double eta_B = eta_0 + B ;
-  
+
   NumericVector s2_k(K) ;
   for(int k = 0; k < K; ++k){
     for(int i = 0; i < B; ++i){

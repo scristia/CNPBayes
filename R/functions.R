@@ -347,7 +347,6 @@ posterior_cases <- function(model, case_control, alpha=1, beta=1) {
     for (i in seq_len(S)) {
         z <- z.mat[i, ]
         cont.tbl <- table(z, case_control)
-        
         cases <- cont.tbl[, 2]
         controls <- cont.tbl[, 1]
 
