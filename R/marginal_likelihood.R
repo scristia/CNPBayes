@@ -168,13 +168,13 @@ setMethod("marginalLikelihood", "MarginalModel",
                  "equal to the number of reduced gibbs samples")
         }
 
-        if (isOverfit(model, params)) {
+      if (isOverfit(model, params)) {
           ##warning("The model for k=", k(model), " may be overfit.",
           ##          " This can lead to an incorrect marginal likelihood")
           msg <- effectiveSizeWarning()
           warning(msg)
-          ##return(NA)
-        }
+          return(NA)
+      }
         # get parameters from list params
         niter <- params$niter
         root <- params$root
@@ -203,11 +203,11 @@ setMethod("marginalLikelihood", "MarginalModel",
 
 isOverfit <- function(model, params){
   eff_size_theta <- min(effectiveSize(theta(chains(model))))
-  (eff_size_theta / iter(model) < 0.05) && paramUpdates(model)[["theta"]] > 0
+  (eff_size_theta / iter(model) < 0.02) && paramUpdates(model)[["theta"]] > 0
 }
 
 effectiveSizeWarning <- function(){
-  msg <- paste("The ratio of the (effective size) / (no. iterations) is less than 0.05",
+  msg <- paste("The ratio of the (effective size) / (no. iterations) is less than 0.02",
                "for model for k=", k(model), ". Sometimes this is caused by",
                "overfitting.  More independent MCMC samples can be obtained by",
                "increasing the thin parameter. See ?coda::effectiveSize")
