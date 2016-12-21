@@ -359,3 +359,30 @@ posterior_cases <- function(model, case_control, alpha=1, beta=1) {
 
     return(posterior)
 }
+
+ggDensities <- function(model, is.batch=TRUE){
+  colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
+              "#D55E00", "#CC79A7",  "#009E73")
+  df <- multiBatchDensities(model)
+  if(is.batch){
+    nb <- nBatch(model)
+    df.observed <- data.frame(y=observed(model),
+                              batch=batch(model))
+  } else {
+    df.observed <- data.frame(y=observed(model))
+  }
+  p <- ggplot(df.model0, aes(x, d)) +
+    geom_histogram(data=df.observed,
+                   aes(y, ..density..),
+                   bins=300, inherit.aes=FALSE) +
+    geom_area(stat="identity", aes(color=name, fill=name),
+              alpha=0.4) +
+    xlab("quantiles") + ylab("density") +
+    scale_color_manual(values=colors) +
+    scale_fill_manual(values=colors) +
+    guides(fill=guide_legend(""), color=guide_legend(""))
+  if(is.batch){
+    p <- p +  facet_wrap(~batch, nrow=nb)
+  }
+  p
+}
