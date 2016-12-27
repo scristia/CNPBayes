@@ -487,3 +487,89 @@ multiBatchDensities <- function(object){
   df$name <- factor(df$name, levels=c("overall", paste0("cn", K-1)))
   df
 }
+
+meltMultiBatchChains <- function(model){
+  ch <- chains(model)
+  th <- as.data.frame(theta(ch))
+  th$param <- "theta"
+  th$iter <- factor(1:nrow(th))
+  th.m <- melt(th)
+  ##
+  ## 
+  ##
+  K <- k(model)
+  B <- nBatch(model)
+  btch <- matrix(uniqueBatch(model), B, K, byrow=FALSE)
+  btch <- rep(as.character(btch), each=iter(model.1))
+  comp <- matrix(1:K, B, K, byrow=TRUE)
+  comp <- rep(as.numeric(comp), each=iter(model.1))
+  th.m$batch <- factor(btch)
+  th.m$comp <- factor(comp)
+  th.m$iter <- as.integer(th.m$iter)
+
+  s <- as.data.frame(sigma(ch))
+  s$iter <- th$iter
+  s$param <- "sigma"
+  s.m <- melt(s)
+  s.m$iter <- th.m$iter
+  s.m$batch <- th.m$batch
+  s.m$comp <- th.m$comp
+
+  nu0 <- as.data.frame(nu.0(ch))
+  nu0$iter <- th$iter
+  nu0$param <- "nu0"
+  nu0.m <- melt(nu0)
+
+  s20 <- as.data.frame(sigma2.0(ch))
+  s20$iter <- th$iter
+  s20$param <- "s20"
+  s20.m <- melt(s20)
+
+  mus <- as.data.frame(mu(ch))
+  mus$iter <- th$iter
+  mus$param <- "mu"
+  mus.m <- melt(mus)
+  mus.m$comp <- factor(rep(seq_len(k(model.1)), each=iter(model.1)))
+
+  prob <- as.data.frame(p(ch))
+  prob$iter <- th$iter
+  prob$param <- "p"
+  prob.m <- melt(prob)
+  prob.m$comp <- factor(rep(seq_len(k(model.1)), each=iter(model.1)))
+
+  taus <- as.data.frame(tau(ch))
+  taus$iter <- th$iter
+  taus$param <- "tau"
+  taus.m <- melt(taus)
+  taus.m$comp <- factor(rep(seq_len(k(model.1)), each=iter(model.1)))
+  prob.m$iter <- taus.m$iter <- mus.m$iter <- as.integer(mus.m$iter)
+  dat.batch <- rbind(th.m,
+                     s.m)
+  dat.comp <- rbind(mus.m, taus.m, prob.m)
+  dat <- rbind(nu0.m,
+               s20.m)
+  dat$iter <- as.integer(dat$iter)
+  list(batch=dat.batch,
+       comp=dat.comp,
+       single=dat)
+}
+
+ggMultiBatchChains <- function(model){
+  melt.ch <- meltMultiBatchChains(model)
+  dat.batch <- melt.ch$batch
+  dat.comp <- melt.ch$comp
+  dat.single <- melt.ch$single
+  p.batch <- ggplot(dat.batch, aes(iter, value, group=batch)) + geom_point(size=0.3, aes(color=batch)) +
+    geom_line(aes(color=batch)) +
+    facet_grid(param ~ comp, scales="free_y")
+
+  p.comp <- ggplot(dat.comp, aes(iter, value, group=comp)) + geom_point(size=0.3, aes(color=comp)) +
+    geom_line(aes(color=comp)) +
+    facet_wrap(~param, scales="free_y")
+
+  p.single <- ggplot(dat.single, aes(iter, value, group="param")) + geom_point(size=0.3, color="gray") +
+    geom_line(color="gray") +
+    facet_wrap(~param, scales="free_y")
+
+  list(batch=p.batch, comp=p.comp, single=p.single)
+}
