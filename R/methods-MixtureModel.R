@@ -797,4 +797,11 @@ setMethod("labelSwitching", "MixtureModel",
 
         return(prop_relabeled)
     }
-)
+    )
+
+setReplaceMethod("thin", c("MixtureModel", "integer"), function(object, value){
+  mp <- mcmcParams(object)
+  mp@thin <- value
+  mcmcParams(object) <- mp
+  object
+})

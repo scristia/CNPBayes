@@ -546,6 +546,19 @@ setGeneric("iter", function(object) standardGeneric("iter"))
 #' @rdname thin-method
 setGeneric("thin", function(object) standardGeneric("thin"))
 
+#' Replacement method for updating number of thinning intervals.
+#'
+#' This function updates the number of thinning intervals used for an MCMC simulation.
+#' 
+#' @examples
+#'      thin(MarginalModelExample) <- 10L
+#' @param object see showMethods("thin<-")
+#' @return An object of the same class
+#' @export
+#' @docType methods
+#' @rdname thin-method
+setGeneric("thin<-", function(object, value) standardGeneric("thin<-"))
+
 
 #' Run the MCMC simulation.
 #'
