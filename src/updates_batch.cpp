@@ -768,11 +768,11 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   Z(0, _) = z ;
 
   // Is accessing a slot in an object expensive?
-  
+
   // Currently, there is no alternative as the current values are
   // stored in the object.  Hence, the entire object has to be passed
   // to the updating functions.
-  
+
   // start at 1 instead of zero. Initial values are as above
   for(int s = 1; s < S; ++s){
     if(up[0] > 0) {
@@ -791,7 +791,7 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     sigma2(s, _) = s2 ;
     if(up[2] > 0){
       p = update_p_batch(xmod) ;
-      model.slot("pi") = p ;      
+      model.slot("pi") = p ;
     } else {
       p = model.slot("pi") ;
     }

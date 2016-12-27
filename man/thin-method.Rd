@@ -5,9 +5,12 @@
 \alias{thin}
 \alias{thin,McmcParams-method}
 \alias{thin,MixtureModel-method}
+\alias{thin<-}
 \title{Number of thinning intervals.}
 \usage{
 thin(object)
+
+thin(object) <- value
 
 \S4method{thin}{McmcParams}(object)
 
@@ -15,14 +18,21 @@ thin(object)
 }
 \arguments{
 \item{object}{see showMethods(thin)}
+
+\item{object}{see showMethods("thin<-")}
 }
 \value{
 An integer of the number of thinning intervals
+
+An object of the same class
 }
 \description{
 This function retrieves the number of thinning intervals used for an MCMC simulation.
+
+This function updates the number of thinning intervals used for an MCMC simulation.
 }
 \examples{
      thin(MarginalModelExample)
+     thin(MarginalModelExample) <- 10L
 }
 
