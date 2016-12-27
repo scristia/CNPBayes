@@ -11,11 +11,12 @@
 #' @import GenomicRanges
 #' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom matrixStats colSds colMedians rowCumsums rowProds colMaxs
+#' @importFrom matrixStats colSds colVars colMedians rowCumsums rowProds colMaxs
 #' @importFrom BiocGenerics unlist
 #' @importFrom graphics lines par
 #' @importFrom stats dnorm kmeans ks.test plot.ts qgamma rbeta rgamma rgeom rnorm runif setNames
 #' @importFrom coda effectiveSize
+#' @importFrom mclust Mclust mclustBIC
 #' @importMethodsFrom SummarizedExperiment assays
 #' @useDynLib CNPBayes
 NULL

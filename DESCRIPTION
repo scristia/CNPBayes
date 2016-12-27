@@ -23,7 +23,8 @@ Imports:
     graphics,
     stats,
     coda,
-    SummarizedExperiment
+    SummarizedExperiment,
+    mclust
 Suggests:
     testthat,
     knitr,
