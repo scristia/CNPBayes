@@ -294,6 +294,28 @@ multipleStarts <- function(object){
   bmodel
 }
 
+multipleStarts2 <- function(object){
+  if(k(object)==1) return(object)
+  mcmcp <- mcmcParams(object)
+  ##
+  ##
+  if(is(object, "BatchModel")){
+    mmod <- replicate(nStarts(mcmcp),
+                      BatchModel(y(object), mcmc.params=mcmcp,
+                                 hypp=hyperParams(object), k=k(object),
+                                 batch=batch(object)))
+  }
+  if(is(object, "MarginalModel")){
+    mmod <- replicate(nStarts(mcmcp),
+                      MarginalModel(y(object), mcmc.params=mcmcp,
+                                    hypp=hyperParams(object), k=k(object)))
+  }
+  models <- suppressMessages(lapply(mmod, runBurnin))
+  lp <- sapply(models, log_lik)
+  model <- models[[which.max(lp)]]
+  model
+}
+
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", "MixtureModel", function(object){
@@ -324,13 +346,67 @@ setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
     function(object, k) {
         posteriorSimulation(object, as.integer(k))
     }
-)
+    )
+
+reorderMultiBatch <- function(model){
+  thetas <- theta(model)
+  K <- k(model)
+  ix <- order(thetas[1, ])
+  if(identical(ix, seq_len(K))) return(model)
+  thetas <- theta(model)[, ix, drop=FALSE]
+  s2s <- sigma2(model)[, ix, drop=FALSE]
+  zs <- as.integer(factor(z(model), levels=ix))
+  ps <- p(model)[ix]
+
+  sigma2(model) <- s2s
+  mu(model) <- mu(model)[ix]
+  tau2(model) <- tau2(model)[ix]
+  theta(model) <- thetas
+  p(model) <- ps
+  z(model) <- zs
+  dataMean(model) <- computeMeans(model)
+  dataPrec(model) <- computePrec(model)
+  model
+}
+
+reorderSingleBatch <- function(model){
+  ##model <- useModes(model)
+  thetas <- theta(model)
+  K <- k(model)
+  ix <- order(thetas)
+  if(identical(ix, seq_len(K))) return(model)
+  thetas <- thetas[ix]
+  s2s <- sigma2(model)[ix]
+  zs <- as.integer(factor(z(model), levels=ix))
+  ps <- p(model)[ix]
+  sigma2(model) <- s2s
+  theta(model) <- thetas
+  p(model) <- ps
+  z(model) <- zs
+  dataPrec(model) <- 1/computeVars(model)
+  dataMean(model) <- computeMeans(model)
+  model
+}
+
+sortComponentLabels <- function(model){
+  if(is(model, "MarginalModel")){
+    model <- reorderSingleBatch(model)
+  } else{
+    model <- reorderMultiBatch(model)
+  }
+  model
+}
 
 .posteriorSimulation <- function(post){
-  if(nStarts(post) > 1){
-    post <- multipleStarts(post)
+  if(nStarts(post) > 0){
+    ##post <- multipleStarts(post)
+    post <- multipleStarts2(post)
+  } else{
+    if(burnin(post) > 0 ){
+      post <- runBurnin(post)
+    }
   }
-  post <- runBurnin(post)
+  post <- sortComponentLabels(post)
   if( iter(post)==0 ) return(post)
   post <- runMcmc(post)
   modes(post) <- computeModes(post)
