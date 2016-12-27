@@ -10,12 +10,12 @@ test_that("overfit model", {
     # correct 78th observation
     galaxies[78] <- 26960
 
-    mp <- McmcParams(thin=1, iter=1000, burnin=1000, nStarts=1)
+    ##mp <- McmcParams(thin=1, iter=1000, burnin=1000, nStarts=1)
+    mp <- McmcParams(thin=50, iter=1000, burnin=50, nStarts=100)
     hypp <- Hyperparameters(type="marginal")
     model <- MarginalModel(data=galaxies / 1000,
                            hypp=hypp,
                            mcmc.params=mp)
-
     fit <- posteriorSimulation(model, k=1:4)
 
     # warning about the 4 component model being overfit
@@ -35,7 +35,8 @@ test_that("batch overfit galaxy", {
     # correct 78th observation
     galaxies[78] <- 26960
 
-    mp <- McmcParams(thin=10, iter=1000, burnin=5000, nStarts=1)
+    ##mp <- McmcParams(thin=10, iter=1000, burnin=5000, nStarts=1)
+    mp <- McmcParams(thin=10, iter=1000, burnin=50, nStarts=100)
     hypp <- Hyperparameters(type="batch")
     model <- BatchModel(data=c(galaxies / 1000, 
                                galaxies / 1000 + 50),
