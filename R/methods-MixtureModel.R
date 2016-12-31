@@ -312,6 +312,9 @@ multipleStarts2 <- function(object){
   }
   models <- suppressMessages(lapply(mmod, runBurnin))
   lp <- sapply(models, log_lik)
+  isfin <- is.finite(lp)
+  models <- models[isfin]
+  lp <- lp[isfin]
   model <- models[[which.max(lp)]]
   model
 }
