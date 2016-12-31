@@ -35,6 +35,7 @@ consensusRegion <- function(g){
 }
 
 defineCnpRegions <- function(grl, thr=0.02){
+  ##browser()
   message("unlist GRangesList...")
   g <- unlist(grl)
   names(g) <- NULL
@@ -144,7 +145,8 @@ defineCnpRegions <- function(grl, thr=0.02){
 #' @return a \code{GRanges} object providing the intervals of all
 #' identified CNPs above a user-specified prevalance cutoff.
 #' @export
-consensusCNP <- function(grl, transcripts, min.width=2e3, max.width=200e3, min.prevalance=0.02){
+consensusCNP <- function(grl, transcripts, min.width=2e3,
+                         max.width=200e3, min.prevalance=0.02){
   g <- as(unlist(grl), "GRanges")
   si <- seqinfo(g)
   names(g) <- NULL
@@ -395,4 +397,15 @@ ggSingleBatch <- function(model){
     scale_color_manual(values=colors) +
     scale_fill_manual(values=colors) +
     guides(fill=guide_legend(""), color=guide_legend("")) 
+}
+
+gelmanDiag <- function(model){
+  theta.ch <- thetac(model)
+  cut1 <- floor(iter(model)/2)
+  chain1 <- theta.ch[1:cut1, ]
+  chain2 <- theta.ch[(cut1+1):nrow(theta.ch), ]
+  theta.mc <- mcmc.list(mcmc(chain1),
+                        mcmc(chain2))
+  result <- gelman.diag(theta.mc)
+  result$mpsrf
 }
