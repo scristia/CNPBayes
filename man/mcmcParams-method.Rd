@@ -4,8 +4,10 @@
 \name{mcmcParams}
 \alias{mcmcParams}
 \alias{mcmcParams,MixtureModel-method}
+\alias{mcmcParams,list-method}
 \alias{mcmcParams<-}
 \alias{mcmcParams<-,MixtureModel-method}
+\alias{mcmcParams<-,list-method}
 \title{Retrieve MCMC parameters from model.}
 \usage{
 mcmcParams(object)
@@ -14,7 +16,9 @@ mcmcParams(object, force = FALSE) <- value
 
 \S4method{mcmcParams}{MixtureModel}(object)
 
-\S4method{mcmcParams}{MixtureModel}(object, force = FALSE) <- value
+\S4method{mcmcParams}{MixtureModel}(object, force = TRUE) <- value
+
+\S4method{mcmcParams}{list}(object, force = TRUE) <- value
 }
 \arguments{
 \item{object}{see \code{showMethods(mcmcParams)}}
