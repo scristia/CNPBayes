@@ -16,17 +16,15 @@
 marginalLikelihood(model, params = list(niter = 1000L, root = (1/10),
   reject.threshold = 1e-50, prop.threshold = 0.5))
 
-\S4method{marginalLikelihood}{MarginalModel}(model, params = list(niter =
-  1000L, root = (1/10), reject.threshold = 1e-50, prop.threshold = 0.5))
+\S4method{marginalLikelihood}{MarginalModel}(model, params = mlParams())
 
-\S4method{marginalLikelihood}{SingleBatchPooledVar}(model, params = list(niter
-  = 1000L, root = (1/10), reject.threshold = 1e-50, prop.threshold = 0.5))
+\S4method{marginalLikelihood}{SingleBatchPooledVar}(model,
+  params = mlParams())
 
-\S4method{marginalLikelihood}{BatchModel}(model, params = list(niter = 1000L,
-  root = (1/10), reject.threshold = 1e-50, prop.threshold = 0.5))
+\S4method{marginalLikelihood}{BatchModel}(model, params = mlParams())
 
-\S4method{marginalLikelihood}{list}(model, params = list(niter = 1000L, root =
-  (1/10), reject.threshold = 1e-50, prop.threshold = 0.5))
+\S4method{marginalLikelihood}{list}(model, params = mlParams(warnings =
+  FALSE))
 }
 \arguments{
 \item{model}{An object of class \code{MarginalModel}, or a list of
