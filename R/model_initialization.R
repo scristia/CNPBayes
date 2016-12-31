@@ -229,26 +229,20 @@ setMethod("startingValues", "MarginalModel", function(object){
   n.b <- elementNROWS(ylist)
   zlist <- vector("list", length(B))
   for(i in seq_along(B)){
-    ##is.batch <- batch(object)==B[i]
-    ##j <- which(is.batch)
-    ys <- data.frame(y=ylist[[i]])
-    ##ys <- sample(ys, max(300, length(ys)))
-    noise <- rnorm(length(ys), 0, 0.1)
-    ys <- ys+noise
+    ys <- ylist[[i]]
+    ys <- sample(ys, length(ys), replace=TRUE)
     mc <- Mclust(ys, G=K)
     params <- mc$parameters
-    ##thetas <- params$mean + rnorm(K, 0, 0.1)
     thetas <- params$mean
     sds <- sqrt(params$variance$sigmasq)
     ps <- params$pro
-    ##thetas <- as.numeric(km$centers[, 1]) + rnorm(K, 0, 0.1)
-    ##ix <- order(thetas)
     T[i, ] <- thetas
-    zs <- as.integer(mc$classification)
-    ##ps <- (table(zs)/length(zs))
-    ##if(length(ps) != K) browser()
+    zs <- as.integer(simulateZ(length(ylist[[i]]), ps))
+    ##zz <- simulateZ(length(y(object)), p(object))
+    ##zz <- simulateZ(length(ys), p(object))
+    ##zs <- as.integer(kmeans(ylist[[i]], centers=thetas)$cluster)
+    ##zs <- as.integer(mc$classification)
     P[i, ] <- ps
-    ##sds <- sapply(split(ys, zs), sd)
     S[i, ] <- sds
     zlist[[i]] <- zs
   }
@@ -262,13 +256,18 @@ setMethod("startingValues", "MarginalModel", function(object){
   theta(object) <- T
   sigma2(object) <- S^2
   zFreq(object) <- as.integer(table(zz))
+  if(length(y(object)) > 0){
+    dataMean(object) <- computeMeans(object)
+    dataPrec(object) <- computePrec(object)
+    log_lik(object) <- computeLoglik(object)
+    logPrior(object) <- computePrior(object)
+  }
+  probz(object) <- .computeProbZ(object)
+  chains(object) <- McmcChains(object)
   object
 }
 
 .init_batchmodel2 <- function(object){
-  hypp <- hyperParams(object)
-  sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
-  nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
   u <- runif(1, 0, 1)
   if(u < 1/3){
     object <- .init_priors(object)
@@ -279,14 +278,6 @@ setMethod("startingValues", "MarginalModel", function(object){
   if(u >= 2/3){
     object <- .init_mclust(object)
   }
-  if(length(y(object)) > 0){
-    dataMean(object) <- computeMeans(object)
-    dataPrec(object) <- computePrec(object)
-    log_lik(object) <- computeLoglik(object)
-    logPrior(object) <- computePrior(object)
-  }
-  probz(object) <- .computeProbZ(object)
-  chains(object) <- McmcChains(object)
   object
 }
 
@@ -363,5 +354,6 @@ setMethod("startingValues", "MarginalModel", function(object){
 
 setMethod("startingValues", "BatchModel", function(object){
   ##.init_batchmodel(object)
+  if(length(y(object)) == 0) return(object)
   .init_batchmodel2(object)
 })
