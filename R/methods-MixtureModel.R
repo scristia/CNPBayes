@@ -348,36 +348,82 @@ setMethod("posteriorSimulation", c("MixtureModel", "integer"),
 setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
     function(object, k) {
         posteriorSimulation(object, as.integer(k))
-    }
-    )
+    })
+
+
+setMethod("posteriorSimulation", "list",
+          function(object) {
+            results <- vector("list", length(object))
+            for(i in seq_along(results)){
+              results[[i]] <- posteriorSimulation(object[[i]])
+            }
+            results
+          })
 
 reorderMultiBatch <- function(model){
+  end.of.chain <- tail(thetac(model))
+  if(!all(is.na(end.of.chain))){
+    model <- useModes(model)
+  }
   thetas <- theta(model)
+  checkOrder <- function(theta) identical(order(theta), seq_along(theta))
+  is_ordered <- apply(thetas, 1, checkOrder)
+  if(all(is_ordered)) return(model)
+  message("Sort and relabel mixture components by increasing theta")
+  message("Additional MCMC iterations with nStarts = 0 needed")
+  s2s <- sigma2(model)
   K <- k(model)
   ix <- order(thetas[1, ])
-  if(identical(ix, seq_len(K))) return(model)
-  thetas <- theta(model)[, ix, drop=FALSE]
-  s2s <- sigma2(model)[, ix, drop=FALSE]
-  zs <- as.integer(factor(z(model), levels=ix))
+  B <- nBatch(model)
+  zlist <- split(z(model), batch(model))
+  for(i in seq_len(B)){
+    ix.next <- order(thetas[i, ])
+    thetas[i, ] <- thetas[i, ix.next]
+    s2s[i, ] <- s2s[i, ix]
+    zlist[[i]] <- as.integer(factor(zlist[[i]], levels=ix.next))
+  }
+  zs <- unlist(zlist)
   ps <- p(model)[ix]
-
-  sigma2(model) <- s2s
   mu(model) <- mu(model)[ix]
   tau2(model) <- tau2(model)[ix]
+  sigma2(model) <- s2s
   theta(model) <- thetas
   p(model) <- ps
   z(model) <- zs
   dataMean(model) <- computeMeans(model)
   dataPrec(model) <- computePrec(model)
+  log_lik(model) <- computeLoglik(model)
+  ##
+  ## reset modes
+  ##
+  if(!all(is.na(end.of.chain))){
+    mode.list <- modes(model)
+    mode.list[["theta"]] <- theta(model)
+    mode.list[["mu"]] <- mu(model)
+    mode.list[["sigma2"]] <- sigma2(model)
+    mode.list[["tau2"]] <- tau2(model)
+    mode.list[["mixprob"]] <- p(model)
+    mode.list[["tau2"]] <- tau2(model)
+    mode.list[["nu0"]] <- nu.0(model)
+    mode.list[["sigma2.0"]] <- sigma2.0(model)
+    mode.list[["zfreq"]] <- zFreq(model)
+    mode.list[["loglik"]] <- log_lik(model)
+    modes(model) <- mode.list
+  }
   model
 }
 
 reorderSingleBatch <- function(model){
-  ##model <- useModes(model)
+  end.of.chain <- tail(thetac(model))
+  if(!all(is.na(end.of.chain))){
+    model <- useModes(model)
+  }
   thetas <- theta(model)
   K <- k(model)
   ix <- order(thetas)
   if(identical(ix, seq_len(K))) return(model)
+  message("Sort and relabel mixture components by increasing theta")
+  message("Additional MCMC iterations with nStarts = 0 needed")
   thetas <- thetas[ix]
   s2s <- sigma2(model)[ix]
   zs <- as.integer(factor(z(model), levels=ix))
