@@ -7,7 +7,8 @@ test_that("test_constructor", {
     expect_true(validObject(hypp))
     hypp <- Hyperparameters("batch")
     expect_true(validObject(hypp))
-    expect_warning(mmod <- MarginalModel())
+    ##expect_warning(mmod <- MarginalModel())
+    mmod <- MarginalModel()
     expect_true(validObject(mmod))
     mc <- CNPBayes:::McmcChains()
     expect_true(validObject(mc))
@@ -29,8 +30,7 @@ test_that("test_constructor", {
     expect_true(nStarts(mmod) == 1)
     expect_true(nrow(CNPBayes:::thetac(mmod)) == 1001)
     mp <- McmcParams(iter = 10, thin = 10, burnin = 100)
-    expect_error(mcmcParams(mmod) <- mp)
-    mcmcParams(mmod, force = TRUE) <- mp
+    mcmcParams(mmod) <- mp
     expect_true(nrow(CNPBayes:::thetac(mmod)) == 10)
     iter(mmod, force = TRUE) <- 1000
     expect_true(nrow(CNPBayes:::thetac(mmod)) == 1000)
