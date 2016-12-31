@@ -29,19 +29,18 @@ suppressMessages(library(ggplot2))
 ```{r post-sim}
 set.seed(1)
 
-N <- 7524
+N <- 100
 n <- 81
 lrr <- replicate(N, mean(rnorm(n)))
 
-mp <- McmcParams(iter=1000, burnin=5000, thin=1, nStarts=1)
-
-model <- MarginalModel(data=lrr, mcmc.params=mp) 
+mp <- McmcParams(iter=1000, burnin=1000, thin=1, nStarts=1)
+model <- MarginalModel(data=lrr, mcmc.params=mp)
 m.list <- posteriorSimulation(model, k=1:4)
 m.lik <- marginalLikelihood(m.list)
 m.lik
 ```
 
-i```{r plot1}
+```{r plot1}
 data1 <- as.data.frame(theta(chains(m.list[[1]]))) %>%
     mutate(iter=1:1000) %>%
     gather(component, theta, V1) %>%
