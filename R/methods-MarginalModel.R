@@ -289,3 +289,31 @@ singleBatchDensities <- function(object){
   df$name <- factor(df$name, levels=c("overall", c(paste0("cn", 0:4))))
   df
 }
+
+reorderSingleBatchChains <- function(model){
+  K <- k(model)
+  if(K < 2) return(model)
+  ##pstar=.blockUpdates(model, mcmcParams(mlist2[[2]]))
+  ch <- chains(model)
+  theta.ch <- thetac(model)
+  ix <- apply(theta.ch, 1, function(x) paste0(order(x), collapse=","))
+  tab.ix <- table(ix)
+  ord <- names(tab.ix)[which.max(tab.ix)]
+  ord <- as.integer(unlist(strsplit(ord, ",")))
+  if(identical(ord, seq_len(K))){
+    return(model)
+  }
+  theta.ch <- theta.ch[, ord]
+  sigma.ch <- sigmac(model)
+  sigma.ch <- sigma.ch[, ord]
+  p.ch <- pic(model)
+  p.ch <- p.ch[, ord]
+  zfreq.ch <- zFreq(ch)
+
+  ch@theta <- theta.ch
+  ch@sigma2 <- sigma.ch^2
+  ch@pi <- p.ch
+  ch@zfreq <- zfreq.ch[, ord]
+  chains(model) <- ch
+  model
+}
