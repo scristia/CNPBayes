@@ -36,34 +36,52 @@ simulateThetas <- function(y, K){
 
 .init_sb2 <- function(object){
   hypp <- hyperParams(object)
+  if(length(y(object))==0) return(object)
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
   ys <- y(object)
-  noise <- rnorm(length(ys), 0, 0.1)
-  ys <- ys+noise
+  ys <- sample(ys, length(ys), replace=TRUE)
   K <- k(object)
-  df <- data.frame(y=ys)
-  mc <- Mclust(df, G=K)
+  mc <- Mclust(ys, G=K)
   params <- mc$parameters
   thetas <- params$mean
   s2s <- params$variance$sigmasq
   ps <- params$pro
-  zs <- as.integer(mc$classification)
+  ##zs <- as.integer(mc$classification)
+  zz <- as.integer(simulateZ(length(y(object)), p(object)))
+  cnt <- 1
+  while (length(table(zz)) < K) {
+    if (cnt > 10) {
+      stop("Too few observations or too many components.")
+    }
+    p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are
+    zz <- as.integer(simulateZ(length(y(object)), p(object)))
+    cnt <- cnt + 1
+  }
   mu(object) <- mean(thetas)
-  tau2(object) <- var(thetas)
+  if(K > 1){
+    tau2(object) <- var(thetas)
+  } else tau2(object) <- var(y(object))*10
   p(object) <- ps
-  z(object) <- zs
+  z(object) <- zz
   theta(object) <- thetas
   sigma2(object) <- s2s
-  zFreq(object) <- as.integer(table(zs))
+  zFreq(object) <- as.integer(table(zz))
+  dataPrec(object) <- 1/computeVars(object)
+  dataMean(object) <- computeMeans(object)
+  log_lik(object) <- computeLoglik(object)
+  logPrior(object) <- computePrior(object)
+  chains(object) <- McmcChains(object)
   object
 }
 
 .init_sb1 <- function(object){
   hypp <- hyperParams(object)
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
-  nu.0(object) <- max(rgeom(1, betas(hypp)), 1) ##mu(object) <- rnorm(1, mu.0(object), tau.0(object))
-  mu(object) <- mean(y(object)) ##tau2(object) <- 1/rgamma(1, shape=1/2*eta.0(object),
+  nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
+  ##mu(object) <- rnorm(1, mu.0(object), tau.0(object))
+  mu(object) <- mean(y(object))
+  ##tau2(object) <- 1/rgamma(1, shape=1/2*eta.0(object),
   ##rate=1/2*eta.0(object)*m2.0(object))
   tau2(object) <- var(y(object))*10
   theta(object) <- rnorm(k(object), mu(object), tau(object))
@@ -87,17 +105,17 @@ simulateThetas <- function(y, K){
   } else zz <- integer()
   z(object) <- zz
   zFreq(object) <- as.integer(table(z(object)))
-  object
-}
-
-setMethod("startingValues", "MarginalModel", function(object){
-  object <- .init_sb1(object)
-  ##object <- .init_sb2(object)
   dataPrec(object) <- 1/computeVars(object)
   dataMean(object) <- computeMeans(object)
   log_lik(object) <- computeLoglik(object)
   logPrior(object) <- computePrior(object)
   chains(object) <- McmcChains(object)
+  object
+}
+
+setMethod("startingValues", "MarginalModel", function(object){
+  ##object <- .init_sb1(object)
+  object <- .init_sb2(object)
   object
 })
 
@@ -111,19 +129,28 @@ setMethod("startingValues", "MarginalModel", function(object){
   K <- k(object)
   P <- S
   zlist <- vector("list", length(B))
+  ##browser()
   for(i in seq_along(B)){
     is.batch <- batch(object)==B[i]
     j <- which(is.batch)
-    ys <- y(object)[j]
+    y.batch <- y(object)[j]
+    ys <- sample(y.batch, length(y.batch), replace=TRUE)
+    ##ys <- ys + rnorm(length(ys), 0, 0.1)
     km <- kmeans(ys, K)
-    thetas <- as.numeric(km$centers[, 1]) + rnorm(K, 0, 0.1)
+    thetas <- as.numeric(km$centers[, 1])
     ix <- order(thetas)
     T[i, ] <- thetas[ix]
-    zs <- as.integer(factor(km$cluster, levels=ix))
-    ps <- (table(zs)/length(zs))
+    ##zs <- as.integer(kmeans(y.batch, centers=thetas[ix])$cluster)
+    ps <- as.numeric(rdirichlet(1, alpha(hypp)))
+    zs <- as.integer(simulateZ(length(y.batch), ps))
+    ##zs <- as.integer(factor(km$cluster, levels=ix))
+    ##ps <- (table(zs)/length(zs))
     if(length(ps) != K) browser()
     P[i, ] <- ps
     sds <- sapply(split(ys, zs), sd)
+    if(length(sds) < K){
+      sds <- sqrt(initializeSigma2(object))[1, ]
+    }
     S[i, ] <- sds
     zlist[[i]] <- zs
   }
@@ -136,6 +163,14 @@ setMethod("startingValues", "MarginalModel", function(object){
   theta(object) <- T
   sigma2(object) <- S^2
   zFreq(object) <- as.integer(table(zz))
+  if(length(y(object)) > 0){
+    dataMean(object) <- computeMeans(object)
+    dataPrec(object) <- computePrec(object)
+    log_lik(object) <- computeLoglik(object)
+    logPrior(object) <- computePrior(object)
+  }
+  probz(object) <- .computeProbZ(object)
+  chains(object) <- McmcChains(object)
   object
 }
 
@@ -170,6 +205,14 @@ setMethod("startingValues", "MarginalModel", function(object){
     zz <- as.integer(factor(levels=seq_len(k(hypp))))
     z(object) <- zz
   }
+  if(length(y(object)) > 0){
+    dataMean(object) <- computeMeans(object)
+    dataPrec(object) <- computePrec(object)
+    log_lik(object) <- computeLoglik(object)
+    logPrior(object) <- computePrior(object)
+  }
+  probz(object) <- .computeProbZ(object)
+  chains(object) <- McmcChains(object)
   object
 }
 
