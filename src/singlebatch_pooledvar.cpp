@@ -274,7 +274,7 @@ Rcpp::NumericVector sigma2_0_pooled(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericVector sigma2_pooled(Rcpp::S4 xmod) {
     Rcpp::RNGScope scope;
-    
+
     // get model
     Rcpp::S4 model(xmod);
 
@@ -335,13 +335,13 @@ Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
       model.slot("pi") = update_p(xmod) ;
     if(up[3] > 0)
       model.slot("mu") = update_mu(xmod) ;
-    if(up[4] > 0)    
+    if(up[4] > 0)
       model.slot("tau2") = update_tau2(xmod) ;
-    if(up[5] > 0)    
+    if(up[5] > 0)
       model.slot("nu.0") = nu0_pooled(xmod) ;
-    if(up[6] > 0)        
+    if(up[6] > 0)
       model.slot("sigma2.0") = sigma2_0_pooled(xmod) ;
-    if(up[7] > 0){        
+    if(up[7] > 0){
       model.slot("z") = z_pooled(xmod) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     }
@@ -353,13 +353,13 @@ Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   NumericVector ll = loglik_pooled(xmod) ;
   NumericVector lls2 = stageTwoLogLik(xmod) ;
   model.slot("loglik") = ll + lls2 ;
-  model.slot("logprior") = compute_logprior(xmod) ;    
+  model.slot("logprior") = compute_logprior(xmod) ;
   return xmod ;
 }
 
 
 // Function has gotten pretty long. Might be useful to have a separate
-// function whose sole job is to move the chains.  
+// function whose sole job is to move the chains.
 //
 // [[Rcpp::export]]
 Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {

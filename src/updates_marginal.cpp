@@ -18,7 +18,7 @@ Rcpp::NumericVector loglik(Rcpp::S4 xmod) {
   int n = x.size() ;
   //double lik;
   NumericVector loglik(1) ;
-  NumericVector y(1);    
+  NumericVector y(1);
   NumericVector lik(n);
   // Below is equivalent to rowSums(lik) in .loglikMarginal
   for(int k = 0; k < K; k++) {
@@ -31,7 +31,7 @@ Rcpp::NumericVector loglik(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_, 
+Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_,
                                     Rcpp::NumericVector alpha_) {
   // NumericVector x = as<NumericVector>(x_) ;
   NumericVector x = clone(x_) ;
@@ -152,7 +152,7 @@ Rcpp::NumericVector update_tau2(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericVector update_sigma2_0(Rcpp::S4 xmod) {
     RNGScope scope ;
-    Rcpp::S4 model(xmod) ;  
+    Rcpp::S4 model(xmod) ;
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
     double a = hypp.slot("a") ;
     double b = hypp.slot("b") ;
@@ -186,7 +186,7 @@ Rcpp::NumericVector update_sigma2_0(Rcpp::S4 xmod) {
 
 Rcpp::NumericVector update_nu0(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;  
+  Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   double sigma2_0 = model.slot("sigma2.0") ;
@@ -405,7 +405,7 @@ Rcpp::NumericVector compute_prec(Rcpp::S4 xmod) {
 Rcpp::NumericVector compute_logprior(Rcpp::S4 xmod) {
     // set RNG
     Rcpp::RNGScope scope;
-    
+
     // Get model/accessories
     Rcpp::S4 model(xmod);
     Rcpp::S4 hypp(model.slot("hyperparams"));
@@ -427,7 +427,7 @@ Rcpp::NumericVector compute_logprior(Rcpp::S4 xmod) {
     Rcpp::NumericVector nu_0 = model.slot("nu.0");
     Rcpp::NumericVector pmix = model.slot("pi");
     Rcpp::NumericVector tau2 = model.slot("tau2");
-    
+
     // calculate probabilities
     Rcpp::NumericVector logp_pmix = log_ddirichlet_(pmix, alpha);
     Rcpp::NumericVector p_tau2 = dgamma(1.0 / tau2, 0.5 * eta, 2.0 / (eta * m2));
@@ -442,7 +442,7 @@ Rcpp::NumericVector compute_logprior(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod) {
     Rcpp::RNGScope scope;
-    
+
     // get model
     Rcpp::S4 model(xmod);
 
@@ -460,11 +460,11 @@ Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod) {
 
     Rcpp::NumericVector nu_n(K);
     Rcpp::IntegerVector nn = model.slot("zfreq");
-    
+
     for (int k = 0; k < K; ++k) {
         nu_n[k] = nu_0 + nn[k];
     }
-    
+
     Rcpp::NumericVector ss(K);
 
     for(int i = 0; i < n; i++){
