@@ -5,7 +5,7 @@ test_that("test_mcmc_restart", {
     truth <- simulateData(N = 500, theta = c(-1, 0, 1), sds = c(0.1,
         0.1, 0.1), p = c(1/5, 1/6, 1 - 1/5 - 1/6))
     model <- truth
-    mcmcParams(model, force = TRUE) <- McmcParams(iter = 1, burnin = 0)
+    mcmcParams(model, force = TRUE) <- McmcParams(iter = 1, burnin = 0, nStarts=0)
     model <- posteriorSimulation(model)
     mc <- chains(model)
     expect_identical(theta(truth), theta(mc)[1, ])
@@ -25,10 +25,9 @@ test_that("test_mcmc_restart", {
     mc <- chains(model)
     expect_identical(0L, nrow(theta(mc)))
     model <- truth
-    mcmcParams(model, force = TRUE) <- McmcParams(iter = 1, burnin = 0)
+    mcmcParams(model, force = TRUE) <- McmcParams(iter = 1, burnin = 0, nStarts=0)
     model <- posteriorSimulation(model)
-    mcmcParams(model, force = TRUE) <- McmcParams(iter = 10,
-        burnin = 0)
+    mcmcParams(model) <- McmcParams(iter=10, burnin=0, nStarts=0)
     model <- posteriorSimulation(model)
     mc <- chains(model)
     expect_identical(10L, nrow(theta(mc)))
@@ -48,8 +47,11 @@ test_that("test_mcmc_restart", {
     truth <- simulateBatchData(N = 2500, batch = rep(letters[1:3],
         length.out = 2500), p = c(1/4, 1/6, 1 - 1/4 - 1/6), theta = means,
         sds = sds)
-    mcmcp <- McmcParams(iter = 5, burnin = 0)
+    mcmcp <- McmcParams(iter = 1, burnin = 0, nStarts=0)
     set.seed(123)
+    ##
+    ## checks consistency of chain with slot for theta
+    ##
     modelk1 <- BatchModel(data = y(truth), k = 3, mcmc.params = mcmcp,
         batch = batch(truth))
     th1 <- as.numeric(theta(modelk1))
