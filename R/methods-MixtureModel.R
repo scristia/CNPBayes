@@ -434,14 +434,70 @@ reorderSingleBatch <- function(model){
   z(model) <- zs
   dataPrec(model) <- 1/computeVars(model)
   dataMean(model) <- computeMeans(model)
+  if(!all(is.na(end.of.chain))){
+    mode.list <- modes(model)
+    mode.list[["theta"]] <- theta(model)
+    mode.list[["mu"]] <- mu(model)
+    mode.list[["sigma2"]] <- sigma2(model)
+    mode.list[["tau2"]] <- tau2(model)
+    mode.list[["mixprob"]] <- p(model)
+    mode.list[["tau2"]] <- tau2(model)
+    mode.list[["nu0"]] <- nu.0(model)
+    mode.list[["sigma2.0"]] <- sigma2.0(model)
+    mode.list[["zfreq"]] <- zFreq(model)
+    mode.list[["loglik"]] <- log_lik(model)
+    modes(model) <- mode.list
+  }
+  model
+}
+
+reorderPooledVar <- function(model){
+  end.of.chain <- tail(thetac(model))
+  if(!all(is.na(end.of.chain))){
+    model <- useModes(model)
+  }
+  thetas <- theta(model)
+  K <- k(model)
+  ix <- order(thetas)
+  if(identical(ix, seq_len(K))) return(model)
+  message("Sort and relabel mixture components by increasing theta")
+  message("Additional MCMC iterations with nStarts = 0 needed")
+  thetas <- thetas[ix]
+  ##s2s <- sigma2(model)
+  zs <- as.integer(factor(z(model), levels=ix))
+  ps <- p(model)[ix]
+  ##sigma2(model) <- s2s
+  theta(model) <- thetas
+  p(model) <- ps
+  z(model) <- zs
+  dataPrec(model) <- 1/computeVars(model)
+  dataMean(model) <- computeMeans(model)
+  if(!all(is.na(end.of.chain))){
+    mode.list <- modes(model)
+    mode.list[["theta"]] <- theta(model)
+    mode.list[["mu"]] <- mu(model)
+    mode.list[["sigma2"]] <- sigma2(model)
+    mode.list[["tau2"]] <- tau2(model)
+    mode.list[["mixprob"]] <- p(model)
+    mode.list[["tau2"]] <- tau2(model)
+    mode.list[["nu0"]] <- nu.0(model)
+    mode.list[["sigma2.0"]] <- sigma2.0(model)
+    mode.list[["zfreq"]] <- zFreq(model)
+    mode.list[["loglik"]] <- log_lik(model)
+    modes(model) <- mode.list
+  }
   model
 }
 
 sortComponentLabels <- function(model){
-  if(is(model, "MarginalModel")){
+  if(class(model) == "MarginalModel"){
     model <- reorderSingleBatch(model)
-  } else{
+  }
+  if(class(model) == "BatchModel"){
     model <- reorderMultiBatch(model)
+  }
+  if(class(model) == "SingleBatchPooledVar"){
+    model <- reorderPooledVar(model)
   }
   model
 }
@@ -459,21 +515,31 @@ sortComponentLabels <- function(model){
   if( iter(post)==0 ) return(post)
   post <- runMcmc(post)
   modes(post) <- computeModes(post)
+  post <- sortComponentLabels(post)
+##  if(nRestarts(model) > 0){
+##    post <- runMcmc(post)
+##    modes(post) <- computeModes(post)
+##    post <- sortComponentLabels(post)
+##  }
   post
 }
 
 posteriorSimulationPooled <- function(object, iter=1000,
                                       burnin=1000,
-                                      thin=10, param_updates){
+                                      thin=10,
+                                      param_updates){
   if(missing(param_updates)){
     param_updates <- paramUpdates(object)
   }
-  mp <- McmcParams(iter=iter, burnin=burnin, thin=thin, param_updates=param_updates)
+  mp <- McmcParams(iter=iter, burnin=burnin, thin=thin,
+                   param_updates=param_updates)
   mcmcParams(object, force=TRUE) <- mp
   object <- runBurnin(object)
+  object <- sortComponentLabels(object)
   if(!iter(object) > 0) return(object)
   object <- runMcmc(object)
   modes(object) <- computeModes(object)
+  object <- sortComponentLabels(object)
   object
 }
 
@@ -664,8 +730,12 @@ setReplaceMethod("log_lik", "MixtureModel", function(object, value){
 
 argMax <- function(object){
   ll <- log_lik(chains(object))
+  if(length(ll) == 1) return(1)
   lp <- logPrior(chains(object))
-  which.max(ll + lp)
+  p <- ll+lp
+  p <- p[is.finite(p)]
+  maxp <- max(p)
+  which(p == maxp)
 }
 
 setMethod("isMarginalModel", "MarginalModel", function(object) TRUE)
@@ -676,16 +746,12 @@ startAtTrueValues <- function(model, truth){
   sigma2(model) <- sigma2(truth)
   p(model) <- p(truth)
   z(model) <- z(truth)
-  if( isMarginalModel(truth) ){
-    mu(model) <- mean(theta(truth))
-    tau2(model) <- 1000
-  } else {
-    mu(model) <- colMeans(theta(truth))
-    tau2(model) <- rep(1000, k(truth))
-  }
+  mu(model) <- mu(truth)
+  tau2(model) <- tau2(truth)
   dataMean(model) <- computeMeans(model)
   dataPrec(model) <- 1/computeVars(model)
   zFreq(model) <- as.integer(table(z(model)))
+  log_lik(model) <- computeLoglik(model)
   model
 }
 
@@ -793,7 +859,7 @@ sigma20c <- function(object) sigma2.0(chains(object))
 
 #' @rdname mcmcParams-method
 #' @aliases mcmcParams,MixtureModel-method
-setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=FALSE, value){
+setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=TRUE, value){
   it <- iter(object)
   if(it != iter(value)){
     if(!force){
@@ -821,6 +887,15 @@ setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=FALSE, val
   object
 })
 
+#' @rdname mcmcParams-method
+#' @aliases mcmcParams,list-method
+setReplaceMethod("mcmcParams", "list",
+                 function(object, force=TRUE, value){
+                   for(i in seq_along(object)){
+                     mcmcParams(object[[i]], force=force) <- value
+                   }
+                   object
+                 })
 
 setMethod("zChain", "MixtureModel", function(object) chains(object)@z)
 
@@ -924,9 +999,9 @@ setMethod("labelSwitching", "MixtureModel",
     }
     )
 
-setReplaceMethod("thin", c("MixtureModel", "integer"), function(object, value){
+setReplaceMethod("thin", c("MixtureModel", "numeric"), function(object, value){
   mp <- mcmcParams(object)
-  mp@thin <- value
+  mp@thin <- as.integer(value)
   mcmcParams(object) <- mp
   object
 })
