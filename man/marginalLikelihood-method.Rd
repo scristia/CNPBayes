@@ -13,8 +13,7 @@
 \alias{marginalLikelihood,list-method}
 \title{Compute the marginal likelihood of a converged model.}
 \usage{
-marginalLikelihood(model, params = list(niter = 1000L, root = (1/10),
-  reject.threshold = 1e-50, prop.threshold = 0.5))
+marginalLikelihood(model, params = mlParams())
 
 \S4method{marginalLikelihood}{MarginalModel}(model, params = mlParams())
 
@@ -31,19 +30,7 @@ marginalLikelihood(model, params = list(niter = 1000L, root = (1/10),
 \code{MarginalModel}'s. Can also be an object of \code{BatchModel} or
 a list of such models.}
 
-\item{params}{A list containing: \cr
-niter - the number of iterations for the reduced Gibb's sampler \cr
-root - a tempering parameter. Before the log mean of the reduced 
-Gibb's outputs are taken, the root of each iteration is taken \cr
-reject.threshold - small values for reduced Gibb's output for 
-\code{theta} can indicate overfitting. Values below reject.threshold
-will be flagged \cr
-prop.threshold - If a proportion prop.threshold or higher of the 
-reduced Gibb's out for \code{theta} are smaller than 
-reject.threshold, the marginalLikelihood will not be calculated 
-and a warning will be displayed
-
-Note: currently thinning of the reduced MCMC chains is not allowed.}
+\item{params}{A list containing parameters for marginalLikelihood computation. See \code{mlParams} for details.}
 }
 \value{
 A vector of the marginal likelihood of the model(s)
@@ -52,10 +39,14 @@ A vector of the marginal likelihood of the model(s)
 Compute the marginal likelihood of a converged model.
 }
 \examples{
-     marginalLikelihood(MarginalModelExample,
-                        params=list(niter=5L,
-                                    root=(1/10),
-                                    reject.threshold=1e-50,
-                                    prop.threshold=0.5))
+   mm <- MarginalModelExample
+   mcmcParams(mm) <- McmcParams(iter=500, burnin=0, nStarts=0)
+   mm <- posteriorSimulation(mm)
+   marginalLikelihood(mm)
+}
+\seealso{
+\code{\link{mlParams}}
+
+Note: currently thinning of the reduced MCMC chains is not allowed.
 }
 

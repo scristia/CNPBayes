@@ -1,7 +1,7 @@
 Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
-Version: 1.5.2
+Version: 1.5.3
 Maintainer: Jacob Carey <jcarey15@jhu.edu>
 Description: Bayesian hierarchical mixture models for batch effects and copy
     number.
@@ -24,18 +24,20 @@ Imports:
     stats,
     coda,
     SummarizedExperiment,
-    mclust
+    mclust,
+    reshape2,
+    ggplot2
 Suggests:
     testthat,
     knitr,
     BiocStyle,
+    rmarkdown,
     VanillaICE (>= 1.31.3),
     BiocCheck,
     MASS,
     oligoClasses,
     dplyr,
-    tidyr,
-    ggplot2
+    tidyr
 Collate:
     'help.R'
     'AllGenerics.R'
@@ -53,6 +55,7 @@ Collate:
     'methods-MixtureModel.R'
     'methods-SummarizedExperiment.R'
     'model_initialization.R'
+    'plot-functions.R'
     'relabeling.R'
     'simulate_data.R'
     'visualization.R'

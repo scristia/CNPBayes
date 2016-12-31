@@ -1,7 +1,7 @@
 ---
 title: "Inspecting Convergence of a Model"
 author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
-date: \today
+date: "`r doc_date()`"
 output: BiocStyle::pdf_document
 bibliography: references.bib
 vignette: >
@@ -41,7 +41,7 @@ m.lik <- marginalLikelihood(m.list)
 m.lik
 ```
 
-```{r plot1}
+i```{r plot1}
 data1 <- as.data.frame(theta(chains(m.list[[1]]))) %>%
     mutate(iter=1:1000) %>%
     gather(component, theta, V1) %>%

@@ -32,6 +32,9 @@ ignored. Occasionally, the effective size is misleading. See details.}
 
 \item{ignore.small.pstar}{Logical. Flags from the \code{reject.threshold}
 parameter are ignored and the marginal likelihood is calculated.}
+
+\item{warnings}{Logical. If FALSE, warnings are not issued. This is FALSE by
+default for the marginalLikelihood-list method, and TRUE otherwise.}
 }
 \value{
 a list of parameters to be passed to \code{marginalLikelihood}.
@@ -54,7 +57,12 @@ For both (A) and (B) it is desirable to return NAs. While (C) can also occur,
 it can be easily diagnosed by visual inspection of the chains. To the extent
 that (C) occurs, the correction factor may not be needed.
 }
+\examples{
+mlParams()
+
+
+}
 \seealso{
-\code{\link[coda]{effectiveSize}}
+\code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
 }
 

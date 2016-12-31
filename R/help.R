@@ -15,9 +15,10 @@
 #' @importFrom BiocGenerics unlist
 #' @importFrom graphics lines par
 #' @importFrom stats dnorm kmeans ks.test plot.ts qgamma rbeta rgamma rgeom rnorm runif setNames
-#' @importFrom coda effectiveSize
+#' @importFrom coda effectiveSize mcmc.list gelman.diag mcmc
 #' @importFrom mclust Mclust mclustBIC
 #' @importFrom reshape2 melt
-#' @importMethodsFrom SummarizedExperiment assays
+#' @importMethodsFrom SummarizedExperiment assays SummarizedExperiment
+#' @import ggplot2
 #' @useDynLib CNPBayes
 NULL

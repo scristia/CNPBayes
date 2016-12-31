@@ -351,6 +351,8 @@ setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
     })
 
 
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,list-method
 setMethod("posteriorSimulation", "list",
           function(object) {
             results <- vector("list", length(object))
@@ -999,6 +1001,9 @@ setMethod("labelSwitching", "MixtureModel",
     }
     )
 
+#' @param value a length-one numeric vector indicating how often to save MCMC iterations to the chain.  For example, a thin of 10 means that every 10th MCMC simulation is saved to the chain.
+#' @rdname thin-method
+#' @aliases thin<-,MixtureModel,numeric-method
 setReplaceMethod("thin", c("MixtureModel", "numeric"), function(object, value){
   mp <- mcmcParams(object)
   mp@thin <- as.integer(value)

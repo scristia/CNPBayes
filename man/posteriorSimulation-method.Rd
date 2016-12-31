@@ -7,6 +7,8 @@
 \alias{posteriorSimulation,MixtureModel,integer-method}
 \alias{posteriorSimulation,MixtureModel,numeric-method}
 \alias{posteriorSimulation,MixtureModel-method}
+\alias{posteriorSimulation,list,ANY-method}
+\alias{posteriorSimulation,list-method}
 \title{Run the MCMC simulation.}
 \usage{
 posteriorSimulation(object, k)
@@ -16,6 +18,8 @@ posteriorSimulation(object, k)
 \S4method{posteriorSimulation}{MixtureModel,integer}(object, k)
 
 \S4method{posteriorSimulation}{MixtureModel,numeric}(object, k)
+
+\S4method{posteriorSimulation}{list,ANY}(object)
 }
 \arguments{
 \item{object}{see showMethods(posteriorSimulation)}

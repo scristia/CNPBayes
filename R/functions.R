@@ -362,43 +362,6 @@ posterior_cases <- function(model, case_control, alpha=1, beta=1) {
     return(posterior)
 }
 
-ggMultiBatch <- function(model){
-  colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
-              "#D55E00", "#CC79A7",  "#009E73")
-  df <- multiBatchDensities(model)
-  nb <- nBatch(model)
-  df.observed <- data.frame(y=observed(model),
-                            batch=batch(model))
-  ggplot(df, aes(x, d)) +
-    geom_histogram(data=df.observed,
-                   aes(y, ..density..),
-                   bins=300, inherit.aes=FALSE) +
-    geom_area(stat="identity", aes(color=name, fill=name),
-              alpha=0.4) +
-    xlab("quantiles") + ylab("density") +
-    scale_color_manual(values=colors) +
-    scale_fill_manual(values=colors) +
-    guides(fill=guide_legend(""), color=guide_legend("")) +
-    facet_wrap(~batch, nrow=nb)
-}
-
-ggSingleBatch <- function(model){
-  colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
-              "#D55E00", "#CC79A7",  "#009E73")
-  df <- singleBatchDensities(model)
-  df.observed <- data.frame(y=observed(model))
-  ggplot(df, aes(x, d)) +
-    geom_histogram(data=df.observed,
-                   aes(y, ..density..),
-                   bins=300, inherit.aes=FALSE) +
-    geom_area(stat="identity", aes(color=name, fill=name),
-              alpha=0.4) +
-    xlab("quantiles") + ylab("density") +
-    scale_color_manual(values=colors) +
-    scale_fill_manual(values=colors) +
-    guides(fill=guide_legend(""), color=guide_legend("")) 
-}
-
 gelmanDiag <- function(model){
   theta.ch <- thetac(model)
   cut1 <- floor(iter(model)/2)

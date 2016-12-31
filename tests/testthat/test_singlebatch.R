@@ -133,10 +133,8 @@ test_that("test_marginalDiffK", {
         0, 1), sds = rep(0.1, 3))
     mp <- McmcParams(iter = 5, burnin = 5, nStarts = 1)
     model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
-    model <- posteriorSimulation(model)
     model <- posteriorSimulation(model, 2)
     expect_true(k(model) == 2)
-    expect_true(length(theta(model)) == 2)
 })
 
 test_that("test_marginalEasy", {
@@ -307,4 +305,3 @@ test_that("targeted_seq data", {
   argmax <- which.max(m.y)
   expect_true(argmax == 2L)
 })
->

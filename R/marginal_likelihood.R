@@ -195,6 +195,9 @@ blockUpdates <- function(reduced_gibbs, root) {
 #' @param ignore.small.pstar Logical. Flags from the \code{reject.threshold}
 #'   parameter are ignored and the marginal likelihood is calculated.
 #'
+#' @param warnings Logical. If FALSE, warnings are not issued. This is FALSE by
+#'   default for the marginalLikelihood-list method, and TRUE otherwise.
+#'
 #' @details
 #'
 #'
@@ -212,9 +215,12 @@ blockUpdates <- function(reduced_gibbs, root) {
 #' it can be easily diagnosed by visual inspection of the chains. To the extent
 #' that (C) occurs, the correction factor may not be needed.
 #'
+#' @examples
+#' mlParams()
+#'
 #'
 #' @return a list of parameters to be passed to \code{marginalLikelihood}.
-#' @seealso \code{\link[coda]{effectiveSize}}
+#' @seealso \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
 #' @export
 mlParams <- function(root=1/10,
                      reject.threshold=1e-50,

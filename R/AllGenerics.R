@@ -534,9 +534,10 @@ setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<
 #' @rdname iter-method
 setGeneric("iter", function(object) standardGeneric("iter"))
 
-#' Number of thinning intervals.
+#' Get or set the number of thinning intervals.
 #'
-#' This function retrieves the number of thinning intervals used for an MCMC simulation.
+#' This function gets or sets the number of thinning intervals used for an MCMC
+#' simulation.
 #' @examples
 #'      thin(MarginalModelExample)
 #' @param object see showMethods(thin)
@@ -546,14 +547,8 @@ setGeneric("iter", function(object) standardGeneric("iter"))
 #' @rdname thin-method
 setGeneric("thin", function(object) standardGeneric("thin"))
 
-#' Replacement method for updating number of thinning intervals.
-#'
-#' This function updates the number of thinning intervals used for an MCMC simulation.
-#' 
 #' @examples
 #'      thin(MarginalModelExample) <- 10L
-#' @param object see showMethods("thin<-")
-#' @return An object of the same class
 #' @export
 #' @docType methods
 #' @rdname thin-method
@@ -679,25 +674,15 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 
 #' Compute the marginal likelihood of a converged model.
 #' @examples
-#'      marginalLikelihood(MarginalModelExample,
-#'                         params=list(niter=5L,
-#'                                     root=(1/10),
-#'                                     reject.threshold=1e-50,
-#'                                     prop.threshold=0.5))
+#'    mm <- MarginalModelExample
+#'    mcmcParams(mm) <- McmcParams(iter=500, burnin=0, nStarts=0)
+#'    mm <- posteriorSimulation(mm)
+#'    marginalLikelihood(mm)
 #' @param model An object of class \code{MarginalModel}, or a list of
 #'        \code{MarginalModel}'s. Can also be an object of \code{BatchModel} or
 #'        a list of such models.
-#' @param params A list containing: \cr
-#' niter - the number of iterations for the reduced Gibb's sampler \cr
-#' root - a tempering parameter. Before the log mean of the reduced 
-#' Gibb's outputs are taken, the root of each iteration is taken \cr
-#' reject.threshold - small values for reduced Gibb's output for 
-#' \code{theta} can indicate overfitting. Values below reject.threshold
-#' will be flagged \cr
-#' prop.threshold - If a proportion prop.threshold or higher of the 
-#' reduced Gibb's out for \code{theta} are smaller than 
-#' reject.threshold, the marginalLikelihood will not be calculated 
-#' and a warning will be displayed
+#' @param params A list containing parameters for marginalLikelihood computation. See \code{mlParams} for details.
+#' @seealso \code{\link{mlParams}}
 #'
 #' Note: currently thinning of the reduced MCMC chains is not allowed.
 #' 
@@ -706,9 +691,7 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #' @docType methods
 #' @rdname marginalLikelihood-method
 setGeneric("marginalLikelihood",
-           function(model, params=list(niter=1000L, root=(1/10), 
-                                       reject.threshold=1e-50,
-                                       prop.threshold=0.5)) {
+           function(model, params=mlParams()) {
                standardGeneric("marginalLikelihood")
            }
 )
