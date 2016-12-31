@@ -4,7 +4,7 @@ test_that("test_probz", {
     set.seed(1)
     truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1, 
         0, 1), sds = rep(0.1, 3))
-    mp <- McmcParams(iter = 500, burnin = 500)
+    mp <- McmcParams(iter = 500, burnin = 500, nStarts=0)
     set.seed(123)
     model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
     model <- CNPBayes:::startAtTrueValues(model, truth)
@@ -29,7 +29,7 @@ test_that("test_probz", {
     expect_true(sum(z2 != z3) > 500)
     model3 <- posteriorSimulation(model3)
     mz3 <- map(model3)
-    table(mz3, true_z)
+    ##table(mz3, true_z)
     expect_equal(true_z, mz3)
 })
 
