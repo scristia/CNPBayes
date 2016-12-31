@@ -6,9 +6,9 @@
 #' @importFrom gtools rdirichlet ddirichlet
 #' @importFrom GenomeInfoDb seqinfo seqlevels<- seqlevels seqinfo<- seqnames
 #' @import IRanges
+#' @import GenomicRanges
 #' @importFrom Rcpp evalCpp
 #' @import S4Vectors
-#' @import GenomicRanges
 #' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom matrixStats colSds colVars colMedians rowCumsums rowProds colMaxs
@@ -17,6 +17,7 @@
 #' @importFrom stats dnorm kmeans ks.test plot.ts qgamma rbeta rgamma rgeom rnorm runif setNames
 #' @importFrom coda effectiveSize
 #' @importFrom mclust Mclust mclustBIC
+#' @importFrom reshape2 melt
 #' @importMethodsFrom SummarizedExperiment assays
 #' @useDynLib CNPBayes
 NULL
