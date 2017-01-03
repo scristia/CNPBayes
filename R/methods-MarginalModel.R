@@ -36,7 +36,8 @@ MarginalModelList <- function(data=numeric(), k=numeric(),
 #' @param mcmc.params An object of class 'McmcParams'
 #' @return An object of class 'MarginalModel'
 #' @export
-MarginalModel <- function(data=numeric(), k, hypp, mcmc.params){
+MarginalModel <- function(data=numeric(), k=3, hypp, mcmc.params){
+  if(missing(hypp)) hypp <- Hyperparameters(k=3)
   batch <- rep(1L, length(data))
   if(missing(k)){
     k <- k(hypp)

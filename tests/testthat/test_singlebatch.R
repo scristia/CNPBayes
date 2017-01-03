@@ -33,7 +33,7 @@ test_that("test_marginal_hard", {
     ##
     ## do enough iterations so that any label switching occurs
     ##
-    mcmcp <- McmcParams(iter = 100, burnin = 0, thin = 0,
+    mcmcp <- McmcParams(iter = 0, burnin = 0, thin = 0,
                         nStarts = 20)
     model <- MarginalModel(y(truth), k = 3)
     model <- posteriorSimulation(model)

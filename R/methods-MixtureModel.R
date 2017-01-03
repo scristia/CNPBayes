@@ -523,7 +523,7 @@ sortComponentLabels <- function(model){
   if(nStarts(post) > 0){
     ##post <- multipleStarts(post)
     post <- multipleStarts2(post)
-  } else{
+  } else {
     if(burnin(post) > 0 ){
       post <- runBurnin(post)
     }

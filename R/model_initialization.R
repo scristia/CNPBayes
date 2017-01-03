@@ -40,6 +40,12 @@ simulateThetas <- function(y, K){
   sort(thetas)
 }
 
+tau2Hyperparams <- function(thetas){
+  tau2hat <- var(thetas)
+  itau2 <- 1/tau2hat
+  qInverseTau2(mn=itau2, sd=0.1)
+}
+
 
 .init_sb2 <- function(object){
   hypp <- hyperParams(object)
@@ -52,6 +58,11 @@ simulateThetas <- function(y, K){
   mc <- Mclust(ys, G=K)
   params <- mc$parameters
   thetas <- params$mean
+  tau2.hp <- tau2Hyperparams(thetas)
+  eta.0(hypp) <- tau2.hp$eta.0
+  m2.0(hypp) <- tau2.hp$m2.0
+  hyperParams(object) <- hypp
+
   s2s <- params$variance$sigmasq
   ps <- params$pro
   ##browser()
@@ -246,6 +257,13 @@ setMethod("startingValues", "MarginalModel", function(object){
   object
 }
 
+tau2HyperparamsBatch <- function(thetas){
+  tau2s <- colVars(thetas)
+  itau2s <- 1/tau2s
+  med <- median(itau2s)
+  qInverseTau2(med, sd=0.1)
+}
+
 .init_mclust <- function(object){
   hypp <- hyperParams(object)
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
@@ -284,6 +302,11 @@ setMethod("startingValues", "MarginalModel", function(object){
   p <- colMeans(P)
   mu(object) <- colMeans(T)
   tau2(object) <- colVars(T)
+
+  tau2.hypp <- tau2HyperparamsBatch(T)
+  eta.0(hypp) <- tau2.hypp$eta.0
+  m2.0(hypp) <- tau2.hypp$m2.0
+
   p(object) <- p
   z(object) <- zz
   theta(object) <- T
