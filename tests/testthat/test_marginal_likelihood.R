@@ -1,31 +1,35 @@
 context("Marginal likelihood")
 
 test_that("overfit model", {
+  ## dataset is small  -- priors are more influential
+  ## -- default priors set for CNP data are less effective for the galaxy data
+  ##    namely, the prior on tau2
+  ##    taut2hat = var(theta(model))
   set.seed(1)
-  # load data
   library(MASS)
   data(galaxies)
   # correct 78th observation
   galaxies[78] <- 26960
+  galaxies2 <- (galaxies-median(galaxies))/1000
   mp <- McmcParams(iter=0, burnin=0, nStarts=20)
-  ##
-  ## Need to adjust hyper-parameters for the galaxy data
-  ##
-  galaxies2 <- (galaxies-median(galaxies))/sd(galaxies)
-  hypp <- Hyperparameters(type="marginal", eta.0=200, m2.0=50,
-                          a=2, b=1, tau2.0=1000)
-  model <- MarginalModel(data=galaxies2,
-                         hypp=hypp,
-                         mcmc.params=mp)
-  mlist <- posteriorSimulation(model, k=2:4)
-  mcmcParams(mlist) <- McmcParams(nStarts=0, burnin=2000, iter=1000, thin=0)
+  ##    taut2hat = var(theta(model))
+  ## qInverseTau2(mn=0.01, sd=0.001)
+  mlist <- MarginalModelList(data=galaxies2,
+                             mcmc.params=mp,
+                             k=1:4,
+                             eta.0=200,
+                             m2.0=100)
+  ## for element of mlist, generate nStarts starting values from a bootstrap
+  ## sample and select the best model from the log likelihood evaluated on the
+  ## full dataset
   mlist2 <- posteriorSimulation(mlist)
-  ml <- marginalLikelihood(mlist2)
-  ## force calculation of marginal likelihood for overfit model
-  ml2 <- marginalLikelihood(mlist2, mlParams(ignore.effective.size=TRUE,
-                                             warnings=FALSE))
-  expect_equivalent(which.max(ml2), 2)
-  ##gd <- matrix(NA, 5, length(mlist))
+  mlist3 <- mlist2
+  mcmcParams(mlist3) <- McmcParams(nStarts=0, burnin=100, iter=250)
+  mlist3 <- posteriorSimulation(mlist3)
+  expect_false(failEffectiveSize(mlist3[[3]]))
+  ml <- marginalLikelihood(mlist3)
+  ##ml <- as.numeric(ml)
+  expect_equivalent(which.max(ml), 3L)
   if(FALSE){
     ## I verified that 1000 burnin, 1000 iter, and thin of 10 converges for k=3
     library(ggplot2)
@@ -34,7 +38,7 @@ test_that("overfit model", {
     p2 <- ggSingleBatchChains(mlist2[[2]])
     p2[["comp"]]
     p2[["single"]]
-    p3 <- ggSingleBatchChains(mlist2[[3]])
+    p3 <- ggSingleBatchChains(mlist3[[3]])
     p3[["comp"]]
     library(coda)
     for(i in 1:5){
@@ -71,15 +75,17 @@ test_that("batch overfit galaxy", {
   galaxies3 <- c(galaxies2, galaxies2 + 10)
   ##mp <- McmcParams(thin=10, iter=1000, burnin=5000, nStarts=1)
   ##mp <- McmcParams(thin=10, iter=1000, burnin=50, nStarts=100)
-  mp <- McmcParams(burnin=0, nStarts=1000)
+  mp <- McmcParams(burnin=0, nStarts=20, iter=0)
+  model.list <- BatchModelList(data=galaxies3,
+                               batch=rep(1:2, each=length(galaxies)),
+                               k=1:4,
+                               mcmc.params=mp,
+                               eta.0=0.08,
+                               m2.0=50)
   ## default prior on tau is far too informative for the galaxy data
-  hypp <- HyperparametersBatch(eta.0=0.08, m2.0=50, k=3)
-  model <- BatchModel(data=galaxies3,
-                      batch=rep(1:2, each=length(galaxies)),
-                      mcmc.params=mp, k=3,
-                      hypp=hypp)
-  mlist <- posteriorSimulation(model, k=2:4)
-  mcmcParams(mlist) <- McmcParams(thin=5, nStarts=0, iter=1000, burnin=0)
+  ##hypp <- HyperparametersBatch(eta.0=0.08, m2.0=50, k=3)
+  mlist <- posteriorSimulation(model.list)
+  mcmcParams(mlist) <- McmcParams(nStarts=0, iter=100, burnin=0)
   mlist2 <- posteriorSimulation(mlist)
   mlist3 <- posteriorSimulation(mlist2)
   ##
@@ -88,22 +94,19 @@ test_that("batch overfit galaxy", {
   ##
   ##plist3 <- ggMultiBatchChains(mlist3[[2]])
   ##plist3[["batch"]]
-  pstar <- marginal_theta_batch(mlist3[[2]])
+  pstar <- marginal_theta_batch(mlist3[[3]])
   expect_false(failSmallPstar(pstar))
-  pstar4 <- marginal_theta_batch(mlist3[[3]])
-
-
-  pstar <- .blockUpdatesBatch(mlist3[[2]], mlParams())
-  expect_warning(.blockUpdatesBatch(mlist3[[3]], mlParams()))
+  pstar4 <- marginal_theta_batch(mlist3[[4]])
+  pstar <- .blockUpdatesBatch(mlist3[[3]], mlParams())
+  expect_true(failSmallPstar(pstar4))
+  expect_warning(.blockUpdatesBatch(mlist3[[4]], mlParams()))
   sum(round(log(apply(pstar, 2, mean)), 3))
   ml <- marginalLikelihood(mlist3, mlParams(ignore.effective.size=TRUE,
                                             warnings=FALSE))
-  expect_equivalent(which.max(ml), 2L)
+  expect_equivalent(which.max(ml), 3L)
   ## For the k=4 model, there is some label switching. A correction factor is
   ## not needed in the calculation of the marginal likelihood.
-  expect_true(failEffectiveSize(mlist3[[3]]))
-  expect_false(failEffectiveSize(mlist3[[2]]))
-
+  expect_false(failEffectiveSize(mlist3[[3]]))
   if(FALSE){
     ## verify stage two log lik is reasonable for the precision
     ## (code below from overview vignette)
@@ -121,4 +124,47 @@ test_that("batch overfit galaxy", {
     plist <- ggMultiBatchChains(mod)
     plist[["single"]]
   }
+})
+
+.test_that <- function(name, expr) NULL
+
+.test_that("number starts", {
+  set.seed(1)
+  # load data
+  library(MASS)
+  data(galaxies)
+  # correct 78th observation
+  galaxies[78] <- 26960
+  mp <- McmcParams(iter=0, burnin=0, nStarts=20)
+  ##
+  ## Need to adjust hyper-parameters for the galaxy data
+  ##
+  galaxies2 <- (galaxies-median(galaxies))/sd(galaxies)
+  hypp <- Hyperparameters(type="marginal", eta.0=200, m2.0=50,
+                          a=2, b=1, tau2.0=1000)
+  model <- MarginalModel(data=galaxies2,
+                         hypp=hypp,
+                         mcmc.params=mp)
+
+
+  nstarts <- 100
+  mlist <- replicate(100, MarginalModel(y(model),
+                                        mcmc.params=mcmcParams(model),
+                                        hypp=hyperParams(model),
+                                        k=k(model)))
+
+  thetas <- lapply(mlist, theta)
+  thetas <- do.call(cbind, thetas)
+
+
+
+  mlist <- posteriorSimulation(model, k=2:4)
+  mcmcParams(mlist) <- McmcParams(nStarts=0, burnin=2000, iter=1000, thin=0)
+  mlist2 <- posteriorSimulation(mlist)
+  ml <- marginalLikelihood(mlist2)
+  ## force calculation of marginal likelihood for overfit model
+  ml2 <- marginalLikelihood(mlist2, mlParams(ignore.effective.size=TRUE,
+                                             warnings=FALSE))
+  expect_equivalent(which.max(ml2), 2)
+
 })
