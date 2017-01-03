@@ -19,6 +19,8 @@ mcmcParams(object, force = FALSE) <- value
 \S4method{mcmcParams}{MixtureModel}(object, force = TRUE) <- value
 
 \S4method{mcmcParams}{list}(object, force = TRUE) <- value
+
+\S4method{mcmcParams}{list}(object)
 }
 \arguments{
 \item{object}{see \code{showMethods(mcmcParams)}}

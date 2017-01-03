@@ -1025,3 +1025,9 @@ setReplaceMethod("thin", c("MixtureModel", "numeric"), function(object, value){
   mcmcParams(object) <- mp
   object
 })
+
+#' @rdname mcmcParams-method
+#' @aliases mcmcParams,list-method
+setMethod("mcmcParams", "list", function(object){
+  mcmcParams(object[[1]])
+})
