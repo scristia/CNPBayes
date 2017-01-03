@@ -43,18 +43,6 @@ overall, marginal density.  For batch models, one can additionally
 plot batch-specific density estimates.
 }
 \examples{
-  set.seed(100)
-  truth <- simulateData(N=2500,
-                        theta=c(-2, -0.4, 0),
-                        sds=c(0.3, 0.15, 0.15),
-                        p=c(0.05, 0.1, 0.8))
-
-  mcmcp <- McmcParams(iter=500, burnin=500, thin=2)
-  model <- MarginalModel(y(truth), k=3, mcmc.params=mcmcp)
-  model <- CNPBayes:::startAtTrueValues(model, truth)
-  model <- posteriorSimulation(model)
-  par(mfrow=c(1,2), las=1)
-  plot(truth)
-  plot(model)
+plot(MarginalModelExample)
 }
 

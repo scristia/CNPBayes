@@ -40,14 +40,22 @@ The mode of the MCMC simulation is also calculated.
 \examples{
 # Fit model with pre-specified number of components (k=3)
 set.seed(123)
+## specify small number of iterations so that the example runs quickly
+mp <- McmcParams(iter=5, burnin=1, nStarts=5)
+mcmcParams(MarginalModelExample) <- mp
 posteriorSimulation(MarginalModelExample)
 
-# Fit model with a different number of components (k=2)
-posteriorSimulation(MarginalModelExample, k=2)
+# Run additional iterations, but set nStart = 0 so that the last value of the
+# chain is the first value of the next chain
+mcmcParams(MarginalModelExample) <- McmcParams(iter=10, nStarts=0, burnin=0)
+posteriorSimulation(MarginalModelExample)
 
-# Fit multiple models with differing component sizes (1 and 2)
+# Fit batch models of different sizes (k=1 and 2)
+mcmcParams(BatchModelExample) <- mp
 mlist <- posteriorSimulation(BatchModelExample, k=1:2)
-mcmcParams(mlist) <- McmcParams(iter=1000, burnin=0, nStarts=0)
+## continue running 10 additional iterations by setting nStarts=0. The last
+#value of the chains will be used as the first value of the next chain
+mcmcParams(mlist) <- McmcParams(iter=10, burnin=0, nStarts=0)
 mlist <- posteriorSimulation(mlist)
 }
 

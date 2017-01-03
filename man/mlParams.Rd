@@ -4,7 +4,7 @@
 \alias{mlParams}
 \title{Parameters for evaluating marginal likelihood}
 \usage{
-mlParams(root = 1/10, reject.threshold = 1e-50, prop.threshold = 0.5,
+mlParams(root = 1/10, reject.threshold = exp(-1), prop.threshold = 0.5,
   prop.effective.size = 0.05, ignore.effective.size = FALSE,
   ignore.small.pstar = FALSE, warnings = TRUE)
 }
