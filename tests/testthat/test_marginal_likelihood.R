@@ -89,11 +89,11 @@ test_that("batch overfit galaxy", {
   ##plist3 <- ggMultiBatchChains(mlist3[[2]])
   ##plist3[["batch"]]
   pstar <- marginal_theta_batch(mlist3[[2]])
-  expect_false(CNPBayes:::failSmallPstar(pstar))
+  expect_false(failSmallPstar(pstar))
   pstar4 <- marginal_theta_batch(mlist3[[3]])
 
   pstar <- .blockUpdatesBatch(mlist3[[2]], mlParams())
-  pstar4 <- .blockUpdatesBatch(mlist3[[3]], mlParams())
+  expect_warning(.blockUpdatesBatch(mlist3[[3]], mlParams()))
   sum(round(log(apply(pstar, 2, mean)), 3))
   sum(round(log(apply(pstar4, 2, mean)), 3))
   ml <- marginalLikelihood(mlist3, mlParams(ignore.effective.size=TRUE,
@@ -101,8 +101,8 @@ test_that("batch overfit galaxy", {
   expect_equivalent(which.max(ml), 2L)
   ## For the k=4 model, there is some label switching. A correction factor is
   ## not needed in the calculation of the marginal likelihood.
-  expect_true(CNPBayes:::failEffectiveSize(mlist3[[3]]))
-  expect_false(CNPBayes:::failEffectiveSize(mlist3[[2]]))
+  expect_true(failEffectiveSize(mlist3[[3]]))
+  expect_false(failEffectiveSize(mlist3[[2]]))
 
   if(FALSE){
     ## verify stage two log lik is reasonable for the precision
