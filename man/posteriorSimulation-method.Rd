@@ -58,4 +58,7 @@ mlist <- posteriorSimulation(BatchModelExample, k=1:2)
 mcmcParams(mlist) <- McmcParams(iter=10, burnin=0, nStarts=0)
 mlist <- posteriorSimulation(mlist)
 }
+\seealso{
+\code{\link{ggMultiBatchChains}} and \code{\link{ggSingleBatchChains}} for diagnosing convergence.  See \code{\link{ggMultiBatch}} and \code{\link{ggSingleBatch}} for plotting the model-based densities.
+}
 

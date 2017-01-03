@@ -560,7 +560,7 @@ setGeneric("thin<-", function(object, value) standardGeneric("thin<-"))
 #' specified, the stored k model components are used. This parameters is
 #' useful for running multiple models of varying components.
 #' @return An object of class 'MarginalModel' or 'BatchModel'
-#' @seealso \code{\link{ggMultiBatchChains}}} and \code{\link{ggSingleBatchChains}}} for diagnosing convergence.  See \code{\link{ggMultiBatch}} and \code{\link{ggSingleBatch}} for plotting the model-based densities.
+#' @seealso \code{\link{ggMultiBatchChains}} and \code{\link{ggSingleBatchChains}} for diagnosing convergence.  See \code{\link{ggMultiBatch}} and \code{\link{ggSingleBatch}} for plotting the model-based densities.
 #' @export
 #' @docType methods
 #' @rdname posteriorSimulation-method

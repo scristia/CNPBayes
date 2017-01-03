@@ -518,7 +518,7 @@ Rcpp::IntegerMatrix compute_probz(Rcpp::S4 xmod){
     for (int k = 0; k < K; ++k) {
         cn[k] = cn[k] - 1;
     }
-    
+
     NumericVector is_z(N);
     for (int i = 0; i < N; ++i) {
         for (int k = 0; k < K; ++k) {
@@ -530,7 +530,7 @@ Rcpp::IntegerMatrix compute_probz(Rcpp::S4 xmod){
 
     return pZ;
 }
-  
+
 
 
 //

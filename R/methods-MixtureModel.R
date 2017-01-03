@@ -378,10 +378,10 @@ setMethod("posteriorSimulation", "list",
           })
 
 reorderMultiBatch <- function(model){
-  end.of.chain <- tail(thetac(model))
-  if(!all(is.na(end.of.chain))){
-    model <- useModes(model)
-  }
+##  end.of.chain <- tail(thetac(model))
+##  if(!all(is.na(end.of.chain))){
+##    model <- useModes(model)
+##  }
   thetas <- theta(model)
   checkOrder <- function(theta) identical(order(theta), seq_along(theta))
   is_ordered <- apply(thetas, 1, checkOrder)
@@ -413,28 +413,28 @@ reorderMultiBatch <- function(model){
   ##
   ## reset modes
   ##
-  if(!all(is.na(end.of.chain))){
-    mode.list <- modes(model)
-    mode.list[["theta"]] <- theta(model)
-    mode.list[["mu"]] <- mu(model)
-    mode.list[["sigma2"]] <- sigma2(model)
-    mode.list[["tau2"]] <- tau2(model)
-    mode.list[["mixprob"]] <- p(model)
-    mode.list[["tau2"]] <- tau2(model)
-    mode.list[["nu0"]] <- nu.0(model)
-    mode.list[["sigma2.0"]] <- sigma2.0(model)
-    mode.list[["zfreq"]] <- zFreq(model)
-    mode.list[["loglik"]] <- log_lik(model)
-    modes(model) <- mode.list
-  }
+##   if(!all(is.na(end.of.chain))){
+##     mode.list <- modes(model)
+##     mode.list[["theta"]] <- theta(model)
+##     mode.list[["mu"]] <- mu(model)
+##     mode.list[["sigma2"]] <- sigma2(model)
+##     mode.list[["tau2"]] <- tau2(model)
+##     mode.list[["mixprob"]] <- p(model)
+##     mode.list[["tau2"]] <- tau2(model)
+##     mode.list[["nu0"]] <- nu.0(model)
+##     mode.list[["sigma2.0"]] <- sigma2.0(model)
+##     mode.list[["zfreq"]] <- zFreq(model)
+##     mode.list[["loglik"]] <- log_lik(model)
+##     modes(model) <- mode.list
+##   }
   model
 }
 
 reorderSingleBatch <- function(model){
-  end.of.chain <- tail(thetac(model))
-  if(!all(is.na(end.of.chain))){
-    model <- useModes(model)
-  }
+##  end.of.chain <- tail(thetac(model))
+##  if(!all(is.na(end.of.chain))){
+##    model <- useModes(model)
+##  }
   thetas <- theta(model)
   K <- k(model)
   ix <- order(thetas)
@@ -451,28 +451,28 @@ reorderSingleBatch <- function(model){
   z(model) <- zs
   dataPrec(model) <- 1/computeVars(model)
   dataMean(model) <- computeMeans(model)
-  if(!all(is.na(end.of.chain))){
-    mode.list <- modes(model)
-    mode.list[["theta"]] <- theta(model)
-    mode.list[["mu"]] <- mu(model)
-    mode.list[["sigma2"]] <- sigma2(model)
-    mode.list[["tau2"]] <- tau2(model)
-    mode.list[["mixprob"]] <- p(model)
-    mode.list[["tau2"]] <- tau2(model)
-    mode.list[["nu0"]] <- nu.0(model)
-    mode.list[["sigma2.0"]] <- sigma2.0(model)
-    mode.list[["zfreq"]] <- zFreq(model)
-    mode.list[["loglik"]] <- log_lik(model)
-    modes(model) <- mode.list
-  }
+##   if(!all(is.na(end.of.chain))){
+##     mode.list <- modes(model)
+##     mode.list[["theta"]] <- theta(model)
+##     mode.list[["mu"]] <- mu(model)
+##     mode.list[["sigma2"]] <- sigma2(model)
+##     mode.list[["tau2"]] <- tau2(model)
+##     mode.list[["mixprob"]] <- p(model)
+##     mode.list[["tau2"]] <- tau2(model)
+##     mode.list[["nu0"]] <- nu.0(model)
+##     mode.list[["sigma2.0"]] <- sigma2.0(model)
+##     mode.list[["zfreq"]] <- zFreq(model)
+##     mode.list[["loglik"]] <- log_lik(model)
+##     modes(model) <- mode.list
+##   }
   model
 }
 
 reorderPooledVar <- function(model){
-  end.of.chain <- tail(thetac(model))
-  if(!all(is.na(end.of.chain))){
-    model <- useModes(model)
-  }
+##  end.of.chain <- tail(thetac(model))
+##  if(!all(is.na(end.of.chain))){
+##    model <- useModes(model)
+##  }
   thetas <- theta(model)
   K <- k(model)
   ix <- order(thetas)
@@ -489,20 +489,20 @@ reorderPooledVar <- function(model){
   z(model) <- zs
   dataPrec(model) <- 1/computeVars(model)
   dataMean(model) <- computeMeans(model)
-  if(!all(is.na(end.of.chain))){
-    mode.list <- modes(model)
-    mode.list[["theta"]] <- theta(model)
-    mode.list[["mu"]] <- mu(model)
-    mode.list[["sigma2"]] <- sigma2(model)
-    mode.list[["tau2"]] <- tau2(model)
-    mode.list[["mixprob"]] <- p(model)
-    mode.list[["tau2"]] <- tau2(model)
-    mode.list[["nu0"]] <- nu.0(model)
-    mode.list[["sigma2.0"]] <- sigma2.0(model)
-    mode.list[["zfreq"]] <- zFreq(model)
-    mode.list[["loglik"]] <- log_lik(model)
-    modes(model) <- mode.list
-  }
+##  if(!all(is.na(end.of.chain))){
+##    mode.list <- modes(model)
+##    mode.list[["theta"]] <- theta(model)
+##    mode.list[["mu"]] <- mu(model)
+##    mode.list[["sigma2"]] <- sigma2(model)
+##    mode.list[["tau2"]] <- tau2(model)
+##    mode.list[["mixprob"]] <- p(model)
+##    mode.list[["tau2"]] <- tau2(model)
+##    mode.list[["nu0"]] <- nu.0(model)
+##    mode.list[["sigma2.0"]] <- sigma2.0(model)
+##    mode.list[["zfreq"]] <- zFreq(model)
+##    mode.list[["loglik"]] <- log_lik(model)
+##    modes(model) <- mode.list
+##  }
   model
 }
 
