@@ -31,10 +31,8 @@ Suggests:
     knitr,
     BiocStyle,
     rmarkdown,
-    VanillaICE (>= 1.31.3),
     BiocCheck,
     MASS,
-    oligoClasses,
     dplyr,
     tidyr
 Collate:
