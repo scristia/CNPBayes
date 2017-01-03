@@ -26,38 +26,55 @@ suppressMessages(library(ggplot2))
 
 # Workflow
 
+The number of starting values, burnin MCMC simulatioms, and MCMC simulations
+after burnin are controlled by a `McmcParams` object. Here, we specify a small
+number so that the example runs quickly.
+
 ```{r post-sim}
 set.seed(1)
 
-N <- 100
+N <- 200
 n <- 81
 lrr <- replicate(N, mean(rnorm(n)))
-
-mp <- McmcParams(iter=1000, burnin=1000, thin=1, nStarts=1)
+mp <- McmcParams(iter=50, burnin=10, thin=1, nStarts=10)
 model <- MarginalModel(data=lrr, mcmc.params=mp)
 m.list <- posteriorSimulation(model, k=1:4)
+## run 10 additional iterations using the last iteration of the above chain as
+## the starting value
+mcmcParams(m.list) <- McmcParams(nStarts=0, iter=100, burnin=0)
+m.list <- posteriorSimulation(m.list)
+```
+
+One approach for selecting the best model is to compute the marginal likelihood
+for each of the models and select the model with the largest marginal
+likelihood. Note, the marginal likelihood is only accurate if the models have
+converged. Additional burnin iterations and iterations following burnin may be
+needed. For chains with a high autocorrelation, specifying the thin parameter
+will increase the independence of the simulations saved to the chain.
+
+```{r marginal-lik, eval=FALSE}
 m.lik <- marginalLikelihood(m.list)
 m.lik
 ```
 
 ```{r plot1}
 data1 <- as.data.frame(theta(chains(m.list[[1]]))) %>%
-    mutate(iter=1:1000) %>%
+    mutate(iter=1:100) %>%
     gather(component, theta, V1) %>%
     mutate(model=1)
 
 data2 <- as.data.frame(theta(chains(m.list[[2]]))) %>%
-    mutate(iter=1:1000) %>%
+    mutate(iter=1:100) %>%
     gather(component, theta, V1:V2) %>%
     mutate(model=2)
 
 data3 <- as.data.frame(theta(chains(m.list[[3]]))) %>%
-    mutate(iter=1:1000) %>%
+    mutate(iter=1:100) %>%
     gather(component, theta, V1:V3) %>%
     mutate(model=3)
 
 data4 <- as.data.frame(theta(chains(m.list[[4]]))) %>%
-    mutate(iter=1:1000) %>%
+    mutate(iter=1:100) %>%
     gather(component, theta, V1:V4) %>%
     mutate(model=4)
 
@@ -73,8 +90,8 @@ ggplot(data, aes(x=iter, y=theta)) +
 
 ```{r plot2}
 data_2.4 <- data %>%
-    filter(model > 1, (iter <= 200 | iter >= 800)) %>%
-    mutate(iter.cat=cut(iter, c(0, 200, 799, 1000),
+    filter(model > 1, (iter <= 20 | iter >= 80)) %>%
+    mutate(iter.cat=cut(iter, c(0, 20, 79, 100),
                         c("bottom", "middle", "top"))) %>%
     group_by(component, iter.cat, model) %>%
     mutate(cat.model.median=median(theta)) %>%
@@ -86,7 +103,8 @@ ggplot(data_2.4, aes(x=box.cat, y=theta)) +
     geom_hline(yintercept=0.0, linetype="dashed", colour="gray") +
     facet_wrap(~model, scales="free_x") +
     guides(colour=FALSE) +
-    theme_classic() +
+  theme_classic() +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
     xlab("")
 ```
 
