@@ -8,7 +8,7 @@ Description: Bayesian hierarchical mixture models for batch effects and copy
 Date: Tue Jan 20 20:41:00 EST 2015
 Author: Stephen Cristiano, Robert Scharpf, and Jacob Carey
 Depends:
-    IRanges, GenomicRanges
+    R (>= 3.4.0), IRanges, GenomicRanges
 Imports:
     Rcpp (>= 0.12.1),
     S4Vectors,
@@ -16,7 +16,7 @@ Imports:
     RColorBrewer,
     gtools,
     combinat,
-    GenomeInfoDb,
+    GenomeInfoDb (>= 1.11.6),
     methods,
     BiocGenerics,
     graphics,
