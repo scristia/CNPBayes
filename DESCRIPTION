@@ -8,7 +8,7 @@ Description: Bayesian hierarchical mixture models for batch effects and copy
 Date: Tue Jan 20 20:41:00 EST 2015
 Author: Stephen Cristiano, Robert Scharpf, and Jacob Carey
 Depends:
-    GenomicRanges
+    IRanges, GenomicRanges
 Imports:
     Rcpp (>= 0.12.1),
     S4Vectors,
@@ -17,7 +17,6 @@ Imports:
     gtools,
     combinat,
     GenomeInfoDb,
-    IRanges,
     methods,
     BiocGenerics,
     graphics,
@@ -49,16 +48,15 @@ Collate:
     'methods-BatchModel.R'
     'methods-DensityModel.R'
     'methods-Hyperparameters.R'
+    'methods-MixtureModel.R'
     'methods-MarginalModel.R'
     'methods-McmcChains.R'
     'methods-McmcParams.R'
-    'methods-MixtureModel.R'
     'methods-SummarizedExperiment.R'
     'model_initialization.R'
     'plot-functions.R'
     'relabeling.R'
     'simulate_data.R'
-    'visualization.R'
 VignetteBuilder: knitr
 License: Artistic-2.0
 LinkingTo: Rcpp

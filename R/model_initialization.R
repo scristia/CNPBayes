@@ -1,3 +1,6 @@
+#' @include AllClasses.R
+NULL
+
 setMethod("initializeTheta", "BatchModel", function(object){
   th <- matrix(NA, nBatch(object), k(object))
   for(j in seq_len(k(object))){
@@ -6,12 +9,16 @@ setMethod("initializeTheta", "BatchModel", function(object){
   th
 })
 
-setMethod("initializeSigma2", "BatchModel", function(object){
+.sigma2_batch <- function(object){
   s2 <- 1/rgamma(nBatch(object)*k(object),
                  shape=1/2*nu.0(object),
                  rate=1/2*nu.0(object)*sigma2.0(object))
   s2 <- matrix(s2, nBatch(object), k(object))
   s2
+}
+
+setMethod("initializeSigma2", "BatchModel", function(object){
+  .sigma2_batch(object)
 })
 
 simulateThetas <- function(y, K){
@@ -124,9 +131,11 @@ setMethod("startingValues", "MarginalModel", function(object){
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
   B <- uniqueBatch(object)
-  T <- theta(object)
-  S <- sigma(object)
+  nB <- nBatch(object)
   K <- k(object)
+  ##T <- theta(object)
+  ##S <- sigma(object)
+  T <- S <- matrix(NA, nB, K)
   P <- S
   zlist <- vector("list", length(B))
   ##browser()
@@ -221,10 +230,9 @@ setMethod("startingValues", "MarginalModel", function(object){
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
   nu.0(object) <- max(rgeom(1, betas(hypp)), 1)
   B <- uniqueBatch(object)
-  T <- theta(object)
-  S <- sigma(object)
   K <- k(object)
-  P <- S
+  nB <- nBatch(object)
+  P <- T <- S <- matrix(NA, nB, K)
   ylist <- split(y(object), batch(object))
   n.b <- elementNROWS(ylist)
   zlist <- vector("list", length(B))

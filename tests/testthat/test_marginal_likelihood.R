@@ -103,4 +103,22 @@ test_that("batch overfit galaxy", {
   ## not needed in the calculation of the marginal likelihood.
   expect_true(CNPBayes:::failEffectiveSize(mlist3[[3]]))
   expect_false(CNPBayes:::failEffectiveSize(mlist3[[2]]))
+
+  if(FALSE){
+    ## verify stage two log lik is reasonable for the precision
+    ## (code below from overview vignette)
+    mod <- mlist.mb[[2]]
+    mod <- useModes(mod)
+    prec <- 1/sigma2(mod)
+    shape <- 0.5*nu.0(mod)
+    rate <- 0.5*nu.0(mod) * sigma2.0(mod)
+    dgamma(prec, shape=shape, rate=rate)
+    ## doesn't make sense that modal value of prec would have near zero prob.
+    ## with modal values of nu.0 and sigma2.0...
+    hist(rgamma(1000, shape=shape, rate=rate), breaks=100)
+    ##likprec[0] = sum(log(dgamma(1.0/sigma2(_, k),
+    ##                            0.5*nu0[0], 1.0/(0.5*nu0[0]*s20[0])))) ;
+    plist <- ggMultiBatchChains(mod)
+    plist[["single"]]
+  }
 })

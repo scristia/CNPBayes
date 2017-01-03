@@ -337,7 +337,7 @@ setReplaceMethod("sigma2", "BatchModel", function(object, value){
 #' @aliases sigma2,BatchModel-method
 setMethod("sigma2", "BatchModel", function(object) {
   s2 <- object@sigma2
-  s2 <- matrix(s2, nBatch(object), k(object))
+  ##s2 <- matrix(s2, nBatch(object), k(object))
   rownames(s2) <- uniqueBatch(object)
   s2
 })
@@ -367,7 +367,7 @@ setReplaceMethod("tau2", "BatchModel", function(object, value){
 #' @aliases theta,BatchModel-method
 setMethod("theta", "BatchModel", function(object) {
   b <- object@theta
-  b <- matrix(b, nBatch(object), k(object))
+  ##b <- matrix(b, nBatch(object), k(object))
   rownames(b) <- uniqueBatch(object)
   b
 })

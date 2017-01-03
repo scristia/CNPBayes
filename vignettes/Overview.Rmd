@@ -37,6 +37,7 @@ regarding implementation.
 ```{r lib} 
 library(CNPBayes)
 library(GenomicRanges)
+library(SummarizedExperiment)
 ```
 
 # Workflow
@@ -60,61 +61,74 @@ med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
 
 See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`. 
 
-A `MixtureModel` is constructed using this summarized data for a CNP locus with a call to `MarginalModel` or `BatchModel`, depending on whether the simulation should be *marginal* across batch effect, or *hierarchical*. The batch of a subject is determined by the chemistry plate and is specified using the `batch` parameter in the `BatchModel`.
+A `MixtureModel` is constructed using this summarized data for a CNP locus with
+a call to `MarginalModel` or `BatchModel`, depending on whether the simulation
+should be *marginal* across batch effect, or *hierarchical*. The batch of a
+subject is determined by the chemistry plate and is specified using the `batch`
+parameter in the `BatchModel`. Multiple chemistry plates can be grouped in a
+single batch using the function `collapseBatch`. However, as there are only 35
+samples in this toy example, we assume that these samples were all processed in
+the same batch. For illustration, we demonstrate how one could construct a
+`BatchModel` with two batches, but we do not try to run MCMC on this object.
 
 ```{r model_construction}
-model.marginal <- MarginalModel(data=med.summary)
+mp <- McmcParams(nStarts=50, burnin=0, iter=1000)
+model.marginal <- MarginalModel(data=med.summary, mcmc.params=mp)
 model.batch <- BatchModel(data=med.summary, 
-                          batch=c(rep(1, 12), rep(2, 23)))
+                          batch=c(rep(1, 12), rep(2, 23)),
+                          mcmc.params=mp)
 ```
 
 For details about model construction and other optional parameters, see [Bayesian mixture models for copy number estimation](Implementation.pdf).
 
 ## Fitting mixture models at each CNP
 
-Independently for each CNP, we group the samples into batches using
-the `collapseBatch` function and create a new model.
-
-```{r collapse}
-model.batch <- BatchModel(data=med.summary,
-                          batch=collapseBatch(model.batch))
-```
-
 For array-based estimates and germline genomes, there are typically
 between 1 and 4 copy number states at any given CNP.  Since we do not
 know the number of components a priori, we fit a model for each k.
 In addition, we fit models with and without a term for batch.
 
-The `posteriorSimulation` function takes a constructed `MixtureModel` and `k`, a vector of the number of components for which to fit models. The posterior simulations of each model is held in two lists - one for `MarginalModel`'s and one for `BatchModel`'s.
+The `posteriorSimulation` function takes a constructed `MixtureModel` and `k`, a
+vector of the number of components for which to fit models. The posterior
+simulations of each model is held in a list. MCMC simulations for the batch
+model (not evaluated) have the same interface.
 
 ```{r posteriorSimulation}
 set.seed(1337)
-mlist.marginal <- posteriorSimulation(model.marginal, k=1:4)
-mlist.batch <- posteriorSimulation(model.batch, k=1:4)
+mlist.sb <- posteriorSimulation(model.marginal, k=1:4)
+mcmcParams(mlist.sb) <- McmcParams(iter=1000, burnin=0, nStarts=0)
+mlist.sb <- posteriorSimulation(mlist.sb)
+##mlist.mb <- posteriorSimulation(model.batch, k=1:4)
+##mlist.mb <- posteriorSimulation(mlist.mb)
 ```
 
 ## Selecting a model
 
-Marginal likelihood is estimated for each of the 8 models and the
-Bayes' factors is used to select one of these models for further
-study.
+Marginal likelihood is estimated for each of the 4 single-batch models. The
+Bayes' factor is used to select one of these models for further study. Had we
+fit the multi-batch models, one could compare the marginal likelihoods between
+the single-batch and multi-batch models to determine the best fit.
 
 ```{r likelihood}
-# marginal likelihood of each model
-marginal.lik <- marginalLikelihood(mlist.marginal)
-batch.lik <- marginalLikelihood(mlist.batch)
-
-# bayes factor for comparing top two models
-logBayesFactor(marginal.lik)
-logBayesFactor(batch.lik)
+## marginal likelihood of each model
+sb.lik <- marginalLikelihood(mlist.sb)
 ```
+
 
 ## Extracting MAP estimates and posterior probabilities
 
-For the selected model, we can view the *maximum a posteriori* estimates for component.
+For the selected model, we can view the *maximum a posteriori* estimates for
+component.
 ```{r map}
-selected.model <- mlist.marginal[[which.max(marginal.lik)]]
+select <- which.max(sb.lik)
+selected.model <- mlist.sb[[select]]
 map(selected.model)
+```
+
+We can plot the average log R ratios and overlay the model-based densities:
+
+```{r ggsinglebatch}
+ggSingleBatch(selected.model)
 ```
 
 # References

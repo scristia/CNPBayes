@@ -39,12 +39,15 @@ The mode of the MCMC simulation is also calculated.
 }
 \examples{
 # Fit model with pre-specified number of components (k=3)
+set.seed(123)
 posteriorSimulation(MarginalModelExample)
 
 # Fit model with a different number of components (k=2)
 posteriorSimulation(MarginalModelExample, k=2)
 
 # Fit multiple models with differing component sizes (1 and 2)
-posteriorSimulation(BatchModelExample, k=1:2)
+mlist <- posteriorSimulation(BatchModelExample, k=1:2)
+mcmcParams(mlist) <- McmcParams(iter=1000, burnin=0, nStarts=0)
+mlist <- posteriorSimulation(mlist)
 }
 

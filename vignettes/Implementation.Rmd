@@ -317,7 +317,7 @@ Alternative methods for selection of *k* are also included. As an example, the
 
 ```{r bic}
 ## simulate k=2 model
-sim.data <- simulateData(N=2500, p=rep(1/3, 3),
+sim.data <- simulateData(N=500, p=rep(1/3, 3),
                          theta=c(-1, 0, 1),
                          sds=rep(0.1, 3))
 hypp1 <- Hyperparameters(k=2)
@@ -345,13 +345,15 @@ Finally, in an overfit model (one with too many components), merging components
 is supported. 
 
 ```{r merge}
-mp <- McmcParams(iter=5000, burnin=1000, thin=1)
+mp <- McmcParams(iter=500, burnin=1000, thin=1)
 model <- MarginalModel(data=y(sim.data), k=4,
                        hypp=Hyperparameters(k=4),
                        mcmc.params=mp)
 model <- posteriorSimulation(model)
+
 dm <- DensityModel(model)
 modes(dm)
+
 dm_merged <- DensityModel(model, merge=TRUE)
 k(dm_merged)
 
@@ -406,7 +408,7 @@ means <- matrix(c(-1.2, -1.0, -1.0,
                 -0.2, 0, 0,
                 0.8, 1, 1), nbatch, k, byrow=FALSE)
 sds <- matrix(0.1, nbatch, k)
-N <- 1500
+N <- 500
 sim.data <- simulateBatchData(N=N,
                               batch=rep(letters[1:3], length.out=N),
                               theta=means,
@@ -422,7 +424,8 @@ model <- BatchModel(data=y(sim.data), k=3,
                     batch=collapseBatch(model))
 
 model <- posteriorSimulation(model)
-plot(model)
+library(ggplot2)
+ggMultiBatch(model)
 ```
 
 As is shown, the model correctly collapses batches two and three, since they

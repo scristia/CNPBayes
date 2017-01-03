@@ -7,14 +7,14 @@ bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Overview of CNPBayes package}
   %\VignetteEngine{knitr::rmarkdown}
-  %\usepackage[utf8]{inputenc} 
+  \usepackage[utf8]{inputenc} 
 ---
 
 # Introduction
 
 A Markov Chain Monte Carlo posterior simulation should be visually inspected to assess convergence.
 
-```{r lib} 
+```{r lib}
 # load CNPBayes
 suppressMessages(library(CNPBayes))
 

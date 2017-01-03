@@ -132,6 +132,29 @@ meltSingleBatchChains <- function(model){
        single=dat)
 }
 
+#' ggplot-style functions for diagnosing convergence
+#'
+#' @return a list of \code{ggplot} objects. Chains are grouped by the length of
+#'   the parameter vector. For example, in the single-batch model, the means
+#'   (theta) and variances (sigma2) are component-specific (length k, where k is
+#'   number of components) and are plotted together in a single \code{ggplot}
+#'   object.
+#'
+#' @examples
+#' plist.sb <- ggSingleBatchChains(MarginalModelExample)
+#' ## chains for parameter vectors of length k
+#' plist.sb[["comp"]]
+#' ## chains for parameters vectors of length 1
+#' plist.sb[["single"]]
+#' plist.mb <- ggMultiBatchChains(BatchModelExample)
+#' ## chains for parameters that are batch- and component-specific
+#' plist.mb[["batch"]]
+#' ## chains for parameters vectors of length k
+#' plist.mb[["comp"]]
+#' ## chains for parameter vectors of length 1
+#' plist.mb[["single"]]
+#' @export
+#' @rdname ggplot-functions
 ggSingleBatchChains <- function(model){
   melt.ch <- meltSingleBatchChains(model)
   dat.comp <- melt.ch[["comp"]]     ## component-specific
@@ -148,6 +171,9 @@ ggSingleBatchChains <- function(model){
    list(comp=p.comp, single=p.single)
 }
 
+
+#' @export
+#' @rdname ggplot-functions
 ggMultiBatchChains <- function(model){
   melt.ch <- meltMultiBatchChains(model)
   dat.batch <- melt.ch$batch
@@ -171,12 +197,21 @@ ggMultiBatchChains <- function(model){
   list(batch=p.batch, comp=p.comp, single=p.single)
 }
 
+#' ggplot wrapper for plotting the data at a single CNP and the model-based densities
+#'
+#' @param model a \code{BatchModel} or  \code{MarginalModel} object
+#' @examples
+#' ggMultiBatch(BatchModelExample)
+#' ggSingleBatch(MarginalModelExample)
+#' @export
+#' @return a \code{ggplot} object
+#' @rdname ggplot-functions
 ggSingleBatch <- function(model){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
   df <- singleBatchDensities(model)
   df.observed <- data.frame(y=observed(model))
-  ..density.. <- name <- x <- d <- NULL 
+  ..density.. <- name <- x <- d <- NULL
   ggplot(df, aes(x, d)) +
     geom_histogram(data=df.observed,
                    aes(y, ..density..),
@@ -186,9 +221,12 @@ ggSingleBatch <- function(model){
     xlab("quantiles") + ylab("density") +
     scale_color_manual(values=colors) +
     scale_fill_manual(values=colors) +
-    guides(fill=guide_legend(""), color=guide_legend("")) 
+    guides(fill=guide_legend(""), color=guide_legend(""))
 }
 
+
+#' @export
+#' @rdname ggplot-functions
 ggMultiBatch <- function(model){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
@@ -210,55 +248,22 @@ ggMultiBatch <- function(model){
     facet_wrap(~batch, nrow=nb)
 }
 
-#' Create a data.frame of the component densities for each batch
-#'
-#' @param object an object of class \code{BatchModel}
-#' @return a \code{{data.frame}}
+
 #' @export
 #' @examples
-#'    nbatch <- 3
-#'    k <- 3
-#'    means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
-#'        0, 0.05), nbatch, k, byrow = FALSE)
-#'    sds <- matrix(0.15, nbatch, k)
-#'    sds[, 1] <- 0.3
-#'    N <- 1000
-#'    truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
-#'                                                  length.out = N),
-#'                               p = c(1/10, 1/5, 1 - 0.1 - 0.2), theta = means,
-#'                               sds = sds)
-#'    mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 1,
-#'                        nStarts = 10)
-#'
-#'    ## this parameter setting for m2.0 allows a lot of varation of the thetas
-#'    ## between batch
-#'    hypp <- CNPBayes:::HyperparametersBatch(m2.0 = 1/60, eta.0 = 1800,
-#'                                            k = 3, a = 1/6, b = 180)
-#'    model <- BatchModel(data = y(truth), batch = batch(truth),
-#'                        k = 3, mcmc.params = mcmcp, hypp = hypp)
-#'    model <- posteriorSimulation(model)
-#'    df <- multiBatchDensities(model)
-#'    df.observed <- data.frame(y=y(model), batch=batch(model))
-#'    library(ggplot2)
-#'    ggplot(df, aes(x, d)) +
-#'    geom_histogram(data=df.observed,
-#'                   aes(y, ..density..),
-#'                   bins=300, inherit.aes=FALSE) +
-#'    geom_area(stat="identity", aes(color=name, fill=name),
-#'              alpha=0.4) +
-#'    xlab("quantiles") + ylab("density") +
-#'    guides(fill=guide_legend(""), color=guide_legend("")) +
-#'    facet_wrap(~batch, nrow=2)
-multiBatchDensities <- function(object){
-  probs <- p(object)
-  thetas <- theta(object)
-  sigmas <- sigma(object)
+#' df <- multiBatchDensities(BatchModelExample)
+#' head(df)
+#' @rdname ggplot-functions
+multiBatchDensities <- function(model){
+  probs <- p(model)
+  thetas <- theta(model)
+  sigmas <- sigma(model)
   P <- matrix(probs, nrow(thetas), ncol(thetas), byrow=TRUE)
-  rownames(P) <- uniqueBatch(object)
-  avglrrs <- observed(object)
+  rownames(P) <- uniqueBatch(model)
+  avglrrs <- observed(model)
   quantiles <- seq(min(avglrrs), max(avglrrs), length.out=500)
-  batchPr <- table(batch(object))/length(y(object))
-  dens.list <- batchDensities(quantiles, uniqueBatch(object),
+  batchPr <- table(batch(model))/length(y(model))
+  dens.list <- batchDensities(quantiles, uniqueBatch(model),
                               thetas, sigmas, P, batchPr)
   ##component <- lapply(dens.list, rowSums)
   ##overall <- rowSums(do.call(cbind, component))
@@ -266,24 +271,24 @@ multiBatchDensities <- function(object){
   dens.list <- dens.list[ix]
   d <- do.call(rbind, dens.list)
   K <- ncol(thetas)
-  NB <- nBatch(object)
+  NB <- nBatch(model)
   over <- Reduce("+", dens.list)
-  batches.overall <- rep(uniqueBatch(object), each=nrow(over))
-  quantile.overall <- rep(quantiles, nBatch(object))
+  batches.overall <- rep(uniqueBatch(model), each=nrow(over))
+  quantile.overall <- rep(quantiles, nBatch(model))
   overall <- as.numeric(over)
 
   d.vec <- as.numeric(d)
   d.vec <- c(d.vec, overall)
-  batches <- c(rep(uniqueBatch(object), each=nrow(d)),
+  batches <- c(rep(uniqueBatch(model), each=nrow(d)),
                batches.overall)
   K <- seq_len(ncol(thetas))
   name <- paste0("cn", K-1)
-  name <- rep(rep(name, elementNROWS(dens.list)), nBatch(object))
+  name <- rep(rep(name, elementNROWS(dens.list)), nBatch(model))
   name <- c(name, rep("overall", length(overall)))
-  x <- rep(rep(quantiles, length(dens.list)), nBatch(object))
+  x <- rep(rep(quantiles, length(dens.list)), nBatch(model))
   x <- c(x, quantile.overall)
   df <- data.frame(x=x, d=d.vec, name=name, batch=batches)
-  df$batch <- factor(df$batch, uniqueBatch(object))
+  df$batch <- factor(df$batch, uniqueBatch(model))
   df$name <- factor(df$name, levels=c("overall", paste0("cn", K-1)))
   df
 }

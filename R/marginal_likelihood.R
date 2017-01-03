@@ -1,4 +1,5 @@
 failSmallPstar <- function(ptheta.star, params=mlParams()){
+  ptheta.star <- ptheta.star[!is.nan(ptheta.star)]
   reject.threshold <- params$reject.threshold
   prop.threshold <- params$prop.threshold
   small.theta.red <- mean(ptheta.star < reject.threshold)
@@ -20,8 +21,7 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   if(!ignore.small.pstar){
     failed <- failSmallPstar(ptheta.star, params)
     if (failed) {
-      msg <- paste("The model for k=", k(model), " may be overfit.",
-                   "This can lead to an incorrect marginal likelihood")
+      msg <- paste("Small values for p(theta* | ...) in the reduced Gibbs.")
       if(warnings) warning(msg)
       return(NA)
     }
@@ -171,7 +171,7 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
 }
 
 blockUpdates <- function(reduced_gibbs, root) {
-  pstar <- apply(reduced_gibbs, 2, function(x) log(mean(x^(root))))
+  pstar <- apply(reduced_gibbs, 2, function(x) log(mean(x^(root), na.rm=TRUE)))
 }
 
 #' Parameters for evaluating marginal likelihood
@@ -254,7 +254,6 @@ mlParams <- function(root=1/10,
   niter <- iter(model)
   root <- params$root
 
-
   ## calculate p(x|theta)
   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
   model2 <- useModes(model)
@@ -266,6 +265,11 @@ mlParams <- function(root=1/10,
   ## calculate log p(theta|x)
   mp <- McmcParams(iter=niter)
   red_gibbs <- .blockUpdates(model2, params)
+  if(length(red_gibbs) == 1){
+    ##if(is.na(red_gibbs[1])){
+    names(red_gibbs) <- paste0("SB", k(model))
+    return(red_gibbs)
+  }
   pstar <- blockUpdates(red_gibbs, root)
   if(failEffectiveSize(model, params)){
     ## this can fail because the model is mixing beteen components

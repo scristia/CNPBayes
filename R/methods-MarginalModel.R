@@ -1,3 +1,7 @@
+#' @include methods-MixtureModel.R
+NULL
+
+
 #' Create an object for running marginal MCMC simulations.
 #' @examples
 #'      model <- MarginalModel(data=rnorm(10), k=1)

@@ -1,3 +1,6 @@
+#' @include AllGenerics.R
+NULL
+
 setValidity("MixtureModel", function(object){
   msg <- TRUE
   if(length(p(object)) != k(object)){
@@ -277,7 +280,9 @@ multipleStarts <- function(object){
                                                   hypp=hyperParams(object), k=k(object)))
   models <- suppressMessages(lapply(mmod, runBurnin))
   lp <- sapply(models, log_lik)
-  model <- models[[which.max(lp)]]
+  select <- which.max(lp)
+  if(length(select) == 0) stop("No model selected")
+  model <- models[[select]]
   if(isMarginalModel(object)) return(model)
   ##
   ##  initialize batch model
@@ -313,9 +318,19 @@ multipleStarts2 <- function(object){
   models <- suppressMessages(lapply(mmod, runBurnin))
   lp <- sapply(models, log_lik)
   isfin <- is.finite(lp)
-  models <- models[isfin]
-  lp <- lp[isfin]
-  model <- models[[which.max(lp)]]
+  if(any(!isfin)){
+    index <- which(!isfin)
+    for(i in index){
+      log_lik(models[[i]]) <- computeLoglik(models[[i]])
+    }
+  }
+  lp <- sapply(models, log_lik)
+  select <- which.max(lp)
+  if(length(select) == 0 ) stop("No model selected")
+  ##models <- models[isfin]
+  ##lp <- lp[isfin]
+  ##if(length(lp) == 0) browser()
+  model <- models[[select]]
   model
 }
 
@@ -330,15 +345,15 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
 setMethod("posteriorSimulation", c("MixtureModel", "integer"),
     function(object, k) {
         if (length(k) > 1) {
-            mlist <- vector("list", length(k))
-            for (i in seq_along(k)) {
-                k(object) <- k[i]
-                mlist[[i]] <- .posteriorSimulation(object)
-            }
-            mlist
+          mlist <- vector("list", length(k))
+          for (i in seq_along(k)) {
+            k(object) <- k[i]
+            mlist[[i]] <- .posteriorSimulation(object)
+          }
+          mlist
         } else {
-            k(object) <- k
-            .posteriorSimulation(object)
+          k(object) <- k
+          .posteriorSimulation(object)
         }
     }
 )
