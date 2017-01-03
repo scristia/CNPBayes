@@ -92,10 +92,10 @@ test_that("batch overfit galaxy", {
   expect_false(failSmallPstar(pstar))
   pstar4 <- marginal_theta_batch(mlist3[[3]])
 
+
   pstar <- .blockUpdatesBatch(mlist3[[2]], mlParams())
   expect_warning(.blockUpdatesBatch(mlist3[[3]], mlParams()))
   sum(round(log(apply(pstar, 2, mean)), 3))
-  sum(round(log(apply(pstar4, 2, mean)), 3))
   ml <- marginalLikelihood(mlist3, mlParams(ignore.effective.size=TRUE,
                                             warnings=FALSE))
   expect_equivalent(which.max(ml), 2L)
