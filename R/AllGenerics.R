@@ -659,9 +659,12 @@ setGeneric("clusters", function(object) standardGeneric("clusters"))
 setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 
 #' Compute the marginal likelihood of a converged model.
+#' 
 #' @examples
+#' ## In practice, run a much longer burnin and increase the number of
+#' ## iterations to save after burnin
 #'    mm <- MarginalModelExample
-#'    mcmcParams(mm) <- McmcParams(iter=500, burnin=0, nStarts=0)
+#'    mcmcParams(mm) <- McmcParams(iter=50, burnin=0, nStarts=0)
 #'    mm <- posteriorSimulation(mm)
 #'    marginalLikelihood(mm)
 #' @param model An object of class \code{MarginalModel}, or a list of
