@@ -1,6 +1,31 @@
 #' @include methods-MixtureModel.R
 NULL
 
+#' Constructor for list of single-batch models
+#'
+#' An object of class MarginalModel is constructed for each k, creating a list of
+#' MarginalModels.
+#'
+#' @param data numeric vector of average log R ratios
+#' @param k numeric vector indicating the number of mixture components for each model
+#' @param ... additional arguments passed to \code{Hyperparameters}
+#' @seealso \code{\link{MarginalModel}}
+#' @return a list. Each element of the list is a \code{BatchModel}
+#' @examples
+#' mlist <- MarginalModelList(data=y(MarginalModelExample), k=1:4)
+#' @export
+MarginalModelList <- function(data=numeric(), k=numeric(),
+                              mcmc.params=McmcParams(),
+                              ...){
+  model.list <- vector("list", length(k))
+  for(i in seq_along(k)){
+    hypp <- Hyperparameters(k=k[i], ...)
+    model.list[[i]] <- MarginalModel(data=data, k=k[i], mcmc.params=mcmc.params,
+                                     hypp=hypp)
+  }
+  model.list
+}
+
 
 #' Create an object for running marginal MCMC simulations.
 #' @examples
@@ -11,8 +36,13 @@ NULL
 #' @param mcmc.params An object of class 'McmcParams'
 #' @return An object of class 'MarginalModel'
 #' @export
-MarginalModel <- function(data=numeric(), k=2, hypp, mcmc.params){
+MarginalModel <- function(data=numeric(), k, hypp, mcmc.params){
   batch <- rep(1L, length(data))
+  if(missing(k)){
+    k <- k(hypp)
+  } else{
+    k(hypp) <- k
+  }
   if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
   if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
   nbatch <- setNames(as.integer(table(batch)), levels(batch))

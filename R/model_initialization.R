@@ -54,16 +54,30 @@ simulateThetas <- function(y, K){
   thetas <- params$mean
   s2s <- params$variance$sigmasq
   ps <- params$pro
-  ##zs <- as.integer(mc$classification)
-  zz <- as.integer(simulateZ(length(y(object)), p(object)))
-  cnt <- 1
-  while (length(table(zz)) < K) {
-    if (cnt > 10) {
-      stop("Too few observations or too many components.")
+  ##browser()
+  ##zs.bootstrap <- as.integer(mc$classification)
+  ##splits <- split(ys, zs.bootstrap)
+  ##mins <- sort(sapply(splits, min))
+  yy <- y(object)
+  if(length(thetas) != K) browser()
+  if(K > 1){
+    zz <- tryCatch(kmeans(yy, centers=thetas)$cluster, error=function(e) NULL)
+    if(is.null(zz)) browser()
+    if(length(table(zz)) < K) browser()
+  } else {
+    zz <- rep(1L, length(yy))
+  }
+  ##zz <- as.integer(simulateZ(length(y(object)), p(object)))
+  if(FALSE){
+    cnt <- 1
+    while (length(table(zz)) < K) {
+      if (cnt > 10) {
+        stop("Too few observations or too many components.")
+      }
+      p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are
+      zz <- as.integer(simulateZ(length(y(object)), p(object)))
+      cnt <- cnt + 1
     }
-    p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are
-    zz <- as.integer(simulateZ(length(y(object)), p(object)))
-    cnt <- cnt + 1
   }
   mu(object) <- mean(thetas)
   if(K > 1){
@@ -145,13 +159,20 @@ setMethod("startingValues", "MarginalModel", function(object){
     y.batch <- y(object)[j]
     ys <- sample(y.batch, length(y.batch), replace=TRUE)
     ##ys <- ys + rnorm(length(ys), 0, 0.1)
-    km <- kmeans(ys, K)
-    thetas <- as.numeric(km$centers[, 1])
+    if(K > 1){
+      km <- kmeans(ys, K)
+      thetas <- as.numeric(km$centers[, 1])
+      ##zs <- as.integer(kmeans(y.batch, centers=thetas[ix])$cluster)
+    } else {
+      thetas <- mean(ys)
+    }
     ix <- order(thetas)
     T[i, ] <- thetas[ix]
-    ##zs <- as.integer(kmeans(y.batch, centers=thetas[ix])$cluster)
     ps <- as.numeric(rdirichlet(1, alpha(hypp)))
-    zs <- as.integer(simulateZ(length(y.batch), ps))
+    if(K > 1){
+      zs <- kmeans(y.batch, centers=thetas[ix])$cluster
+    } else zs <- rep(1L, length(y.batch))
+    ##zs <- as.integer(simulateZ(length(y.batch), ps))
     ##zs <- as.integer(factor(km$cluster, levels=ix))
     ##ps <- (table(zs)/length(zs))
     if(length(ps) != K) browser()
@@ -245,14 +266,18 @@ setMethod("startingValues", "MarginalModel", function(object){
     sds <- sqrt(params$variance$sigmasq)
     ps <- params$pro
     T[i, ] <- thetas
-    zs <- as.integer(simulateZ(length(ylist[[i]]), ps))
+    if(length(thetas) > 1){
+      zlist[[i]] <- kmeans(ylist[[i]], centers=thetas)$cluster
+    } else {
+      zlist[[i]] <- rep(1L, length(ys))
+    }
+    ##zs <- as.integer(simulateZ(length(ylist[[i]]), ps))
     ##zz <- simulateZ(length(y(object)), p(object))
     ##zz <- simulateZ(length(ys), p(object))
     ##zs <- as.integer(kmeans(ylist[[i]], centers=thetas)$cluster)
     ##zs <- as.integer(mc$classification)
     P[i, ] <- ps
     S[i, ] <- sds
-    zlist[[i]] <- zs
   }
   zz <- unlist(zlist)
   ## *should do a weighted average since batches are unequally sized
@@ -277,13 +302,17 @@ setMethod("startingValues", "MarginalModel", function(object){
 
 .init_batchmodel2 <- function(object){
   u <- runif(1, 0, 1)
-  if(u < 1/3){
+  if(u < 0.05){
     object <- .init_priors(object)
+    if(!is.finite(log_lik(object)) || is.na(log_lik(object))){
+      object <- .init_mclust(object)
+    }
   }
-  if(u < 2/3 & u >= 1/3){
+  if(u < 0.5 & u >= 0.25){
     object <- .init_kmeans(object)
+    if(!is.finite(log_lik(object)) || is.na(log_lik(object))) stop()
   }
-  if(u >= 2/3){
+  if(u >= 0.25){
     object <- .init_mclust(object)
   }
   object

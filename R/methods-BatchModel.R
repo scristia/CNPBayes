@@ -1,3 +1,30 @@
+#' Constructor for list of batch models
+#'
+#' An object of class BatchModel is constructed for each k, creating a list of
+#' BatchModels.
+#'
+#' @param data numeric vector of average log R ratios
+#' @param k numeric vector indicating the number of mixture components for each model
+#' @param ... additional arguments to \code{HyperparametersBatch}
+#' @return a list. Each element of the list is a \code{BatchModel}
+#' @examples
+#' mlist <- BatchModelList(data=y(BatchModelExample), k=1:4, batch=batch(BatchModelExample))
+#' @export
+BatchModelList <- function(data=numeric(),
+                           k=numeric(),
+                           batch,
+                           mcmc.params=McmcParams(),
+                           ...){
+  model.list <- vector("list", length(k))
+  for(i in seq_along(k)){
+    hypp <- HyperparametersBatch(k=k[i], ...)
+    model.list[[i]] <- BatchModel(data=data, k=k[i], batch=batch,
+                                  mcmc.params=mcmc.params,
+                                  hypp=hypp)
+  }
+  model.list
+}
+
 #' Create an object for running hierarchical MCMC simulations.
 #' @examples
 #'      model <- BatchModel(rnorm(10), k=1, batch=rep(1:2, each=5))
@@ -8,9 +35,17 @@
 #' @param mcmc.params An object of class 'McmcParams'
 #' @return An object of class `BatchModel`
 #' @export
-BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
+BatchModel <- function(data=numeric(),
+                       k=3,
+                       batch,
+                       hypp,
+                       mcmc.params){
   if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
   if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
+  if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
+  if(missing(k) & !missing(hypp)){
+    k <- k(hypp)
+  }
   mcmc.chains <- McmcChains()
   bf <- factor(batch)
   batch <- as.integer(bf)
@@ -61,8 +96,12 @@ BatchModel <- function(data=numeric(), k=2L, batch, hypp, mcmc.params){
              batchElements=nbatch,
              .internal.constraint=5e-4,
              .internal.counter=0L)
+  set.seed(1)
+  ##for(i in 1:50){
   obj <- startingValues(obj)
-  obj <- ensureAllComponentsObserved(obj)
+  ##  if(all(is.na(theta(obj)))) stop()
+  ##obj <- ensureAllComponentsObserved(obj)
+  ##if(all(is.na(theta(obj)))) browser()
   obj
 }
 
@@ -174,7 +213,7 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
              data.prec=matrix(NA, B, 1),
              z=integer(length(data)),
              zfreq=zfreq,
-             probz=matrix(1, length(data), 1),
+             probz=matrix(0, length(data), 1),
              logprior=numeric(1),
              loglik=numeric(1),
              mcmc.chains=mcmc.chains,
@@ -183,6 +222,7 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
              batchElements=nbatch,
              .internal.constraint=5e-4)
   obj <- startingValues(obj)
+  obj@probz[, 1] <- 1
   obj
 }
 
@@ -191,6 +231,10 @@ setValidity("BatchModel", function(object){
   ztab <- table(batch(object), z(object))
   if(any(ztab < 1)){
     msg <- "All components in each batch must have 1 or more observations"
+    return(msg)
+  }
+  if(ncol(ztab) != nrow(ztab)){
+    msg <- "All batches much have at least one observation from each component"
     return(msg)
   }
   msg

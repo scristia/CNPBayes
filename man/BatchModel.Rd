@@ -4,7 +4,8 @@
 \alias{BatchModel}
 \title{Create an object for running hierarchical MCMC simulations.}
 \usage{
-BatchModel(data = numeric(), k = 2L, batch, hypp, mcmc.params)
+BatchModel(data = numeric(), k, batch, hypp = HyperparametersBatch(k = k),
+  mcmc.params)
 }
 \arguments{
 \item{data}{the data for the simulation.}
