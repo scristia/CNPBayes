@@ -223,7 +223,7 @@ blockUpdates <- function(reduced_gibbs, root) {
 #' @seealso \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
 #' @export
 mlParams <- function(root=1/10,
-                     reject.threshold=1e-50,
+                     reject.threshold=exp(-1),
                      prop.threshold=0.5,
                      prop.effective.size=0.05,
                      ignore.effective.size=FALSE,
