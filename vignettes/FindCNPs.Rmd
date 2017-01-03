@@ -102,7 +102,7 @@ Variation.
 ```{r pca}
 cnv.region2 <- reduce(unlist(grl))
 i.pc <- subjectHits(findOverlaps(cnv.region2, rowRanges(se)))
-x <- assays(se)[["lrr"]][i.pc, ]
+x <- assays(se)[["cn"]][i.pc, ]
 nas <- rowSums(is.na(x))
 na.index <- which(nas > 0)
 x <- x[-na.index, , drop=FALSE]
