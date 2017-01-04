@@ -43,7 +43,7 @@ simulateThetas <- function(y, K){
 tau2Hyperparams <- function(thetas){
   tau2hat <- var(thetas)
   itau2 <- 1/tau2hat
-  qInverseTau2(mn=itau2, sd=0.1)
+  qInverseTau2(mn=itau2, sd=0.001)
 }
 
 
@@ -58,10 +58,12 @@ tau2Hyperparams <- function(thetas){
   mc <- Mclust(ys, G=K)
   params <- mc$parameters
   thetas <- params$mean
-  tau2.hp <- tau2Hyperparams(thetas)
-  eta.0(hypp) <- tau2.hp$eta.0
-  m2.0(hypp) <- tau2.hp$m2.0
-  hyperParams(object) <- hypp
+  if(K > 1){
+    tau2.hp <- tau2Hyperparams(thetas)
+    eta.0(hypp) <- tau2.hp$eta.0
+    m2.0(hypp) <- tau2.hp$m2.0
+    hyperParams(object) <- hypp
+  }
 
   s2s <- params$variance$sigmasq
   ps <- params$pro
@@ -199,6 +201,12 @@ setMethod("startingValues", "MarginalModel", function(object){
   p <- colMeans(P)
   mu(object) <- colMeans(T)
   tau2(object) <- colVars(T)
+  if(K > 1){
+    tau2.hypp <- tau2HyperparamsBatch(T)
+    eta.0(hypp) <- tau2.hypp$eta.0
+    m2.0(hypp) <- tau2.hypp$m2.0
+    hyperParams(object) <- hypp
+  }
   p(object) <- p
   z(object) <- zz
   theta(object) <- T
@@ -261,8 +269,13 @@ tau2HyperparamsBatch <- function(thetas){
   tau2s <- colVars(thetas)
   itau2s <- 1/tau2s
   med <- median(itau2s)
-  qInverseTau2(med, sd=0.1)
+  qInverseTau2(mn=med, sd=med/100)
 }
+
+##tau2HyperparamsBatch <- function(tau2s){
+##  mn <- 1/var(tau2s)
+##  qInverseTau2(mn=mn, sd=0.001)
+##}
 
 .init_mclust <- function(object){
   hypp <- hyperParams(object)
@@ -302,11 +315,12 @@ tau2HyperparamsBatch <- function(thetas){
   p <- colMeans(P)
   mu(object) <- colMeans(T)
   tau2(object) <- colVars(T)
-
-  tau2.hypp <- tau2HyperparamsBatch(T)
-  eta.0(hypp) <- tau2.hypp$eta.0
-  m2.0(hypp) <- tau2.hypp$m2.0
-
+  if(K > 1){
+    tau2.hypp <- tau2HyperparamsBatch(T)
+    eta.0(hypp) <- tau2.hypp$eta.0
+    m2.0(hypp) <- tau2.hypp$m2.0
+    hyperParams(object) <- hypp
+  }
   p(object) <- p
   z(object) <- zz
   theta(object) <- T
@@ -333,7 +347,9 @@ tau2HyperparamsBatch <- function(thetas){
   }
   if(u < 0.5 & u >= 0.25){
     object <- .init_kmeans(object)
-    if(!is.finite(log_lik(object)) || is.na(log_lik(object))) stop()
+    if(!is.finite(log_lik(object)) || is.na(log_lik(object))){
+      object <- .init_mclust(object)
+    } 
   }
   if(u >= 0.25){
     object <- .init_mclust(object)
