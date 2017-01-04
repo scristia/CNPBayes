@@ -315,7 +315,8 @@ multipleStarts2 <- function(object){
                       MarginalModel(y(object), mcmc.params=mcmcp,
                                     hypp=hyperParams(object), k=k(object)))
   }
-  models <- suppressMessages(lapply(mmod, runBurnin))
+  ##models <- suppressMessages(lapply(mmod, runBurnin))
+  models <- mmod
   lp <- sapply(models, log_lik)
   isfin <- is.finite(lp)
   if(any(!isfin)){
@@ -343,7 +344,8 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", c("MixtureModel", "integer"),
-    function(object, k) {
+          function(object, k) {
+            .Deprecated("Use MarginalModelList or BatchModelList prior to posteriorSimulation")
         if (length(k) > 1) {
           mlist <- vector("list", length(k))
           for (i in seq_along(k)) {
@@ -523,21 +525,32 @@ sortComponentLabels <- function(model){
   if(nStarts(post) > 0){
     ##post <- multipleStarts(post)
     post <- multipleStarts2(post)
-  } else {
-    if(burnin(post) > 0 ){
-      post <- runBurnin(post)
-    }
+  } 
+  if(burnin(post) > 0 ){
+    post <- runBurnin(post)
   }
   post <- sortComponentLabels(post)
   if( iter(post)==0 ) return(post)
   post <- runMcmc(post)
   modes(post) <- computeModes(post)
-  post <- sortComponentLabels(post)
-##  if(nRestarts(model) > 0){
-##    post <- runMcmc(post)
-##    modes(post) <- computeModes(post)
-##    post <- sortComponentLabels(post)
-##  }
+  ix <- order(theta(post))
+  ## if not ordered, sort and run additional iterations
+  ## without burnin from the same starting values
+  if(!identical(ix, seq_along(ix))){
+    post <- sortComponentLabels(post)
+    mp.orig <- mcmcParams(post)
+    mcmcParams(post) <- McmcParams(burnin=0,
+                                   thin=thin(mp.orig),
+                                   iter=iter(mp.orig),
+                                   nStarts=0)
+    post <- posteriorSimulation(post)
+    modes(post) <- computeModes(post)
+    ix <- order(theta(post))
+    if(!identical(ix, seq_along(ix))){
+      post <- sortComponentLabels(post)
+    }
+    mcmcParams(post) <- mp.orig
+  }
   post
 }
 
