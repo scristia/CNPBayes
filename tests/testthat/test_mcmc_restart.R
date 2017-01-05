@@ -61,6 +61,7 @@ test_that("test_mcmc_restart", {
     ##
     ## checks consistency of chain with slot for theta
     ##
+    mcmcp <- McmcParams(nStarts=10, iter=1)
     modelk1 <- BatchModel(data = y(truth),
                           k = 3,
                           mcmc.params = mcmcp,
@@ -76,7 +77,5 @@ test_that("test_mcmc_restart", {
 
     model2 <- modelk
     mcmcParams(model2) <- McmcParams(iter=10, nStarts=0)
-    model2 <- posteriorSimulation(model2)
-    th3 <- as.numeric(thetac(model2)[1, ])
-    expect_identical(th3, th2)
+    expect_warning(posteriorSimulation(model2), "label switching")
 })

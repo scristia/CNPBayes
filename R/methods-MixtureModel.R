@@ -363,8 +363,9 @@ setMethod("posteriorSimulation", c("MixtureModel", "integer"),
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
-    function(object, k) {
-        posteriorSimulation(object, as.integer(k))
+          function(object, k) {
+            .Deprecated("Use MarginalModelList or BatchModelList prior to posteriorSimulation")
+            posteriorSimulation(object, as.integer(k))
     })
 
 
@@ -379,17 +380,20 @@ setMethod("posteriorSimulation", "list",
             results
           })
 
-reorderMultiBatch <- function(model){
-##  end.of.chain <- tail(thetac(model))
-##  if(!all(is.na(end.of.chain))){
-##    model <- useModes(model)
-##  }
+.ordered_thetas_multibatch<- function(model){
   thetas <- theta(model)
   checkOrder <- function(theta) identical(order(theta), seq_along(theta))
   is_ordered <- apply(thetas, 1, checkOrder)
-  if(all(is_ordered)) return(model)
-  message("Sort and relabel mixture components by increasing theta")
-  message("Additional MCMC iterations with nStarts = 0 needed")
+  all(is_ordered)
+}
+
+reorderMultiBatch <- function(model){
+  is_ordered <- .ordered_thetas_multibatch(model)
+  if(is_ordered) return(model)
+  ## thetas are not all ordered
+  ##message("Sort and relabel mixture components by increasing theta")
+  ##message("Additional MCMC iterations with nStarts = 0 needed")
+  thetas <- theta(model)
   s2s <- sigma2(model)
   K <- k(model)
   ix <- order(thetas[1, ])
@@ -441,8 +445,8 @@ reorderSingleBatch <- function(model){
   K <- k(model)
   ix <- order(thetas)
   if(identical(ix, seq_len(K))) return(model)
-  message("Sort and relabel mixture components by increasing theta")
-  message("Additional MCMC iterations with nStarts = 0 needed")
+  ##message("Sort and relabel mixture components by increasing theta")
+  ##message("Additional MCMC iterations with nStarts = 0 needed")
   thetas <- thetas[ix]
   s2s <- sigma2(model)[ix]
   zs <- as.integer(factor(z(model), levels=ix))
@@ -479,8 +483,8 @@ reorderPooledVar <- function(model){
   K <- k(model)
   ix <- order(thetas)
   if(identical(ix, seq_len(K))) return(model)
-  message("Sort and relabel mixture components by increasing theta")
-  message("Additional MCMC iterations with nStarts = 0 needed")
+  ##message("Sort and relabel mixture components by increasing theta")
+  ##message("Additional MCMC iterations with nStarts = 0 needed")
   thetas <- thetas[ix]
   ##s2s <- sigma2(model)
   zs <- as.integer(factor(z(model), levels=ix))
@@ -521,11 +525,19 @@ sortComponentLabels <- function(model){
   model
 }
 
+setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
+setMethod("isOrdered", "MixtureModel", function(object){
+  identical(order(theta(object)), seq_along(theta(object)))
+})
+
+setMethod("isOrdered", "BatchModel", function(object){
+  .ordered_thetas_multibatch(object)
+})
+
 .posteriorSimulation <- function(post){
   if(nStarts(post) > 0){
-    ##post <- multipleStarts(post)
     post <- multipleStarts2(post)
-  } 
+  }
   if(burnin(post) > 0 ){
     post <- runBurnin(post)
   }
@@ -533,24 +545,20 @@ sortComponentLabels <- function(model){
   if( iter(post)==0 ) return(post)
   post <- runMcmc(post)
   modes(post) <- computeModes(post)
-  ix <- order(theta(post))
-  ## if not ordered, sort and run additional iterations
-  ## without burnin from the same starting values
-  if(!identical(ix, seq_along(ix))){
-    post <- sortComponentLabels(post)
-    mp.orig <- mcmcParams(post)
-    mcmcParams(post) <- McmcParams(burnin=0,
-                                   thin=thin(mp.orig),
-                                   iter=iter(mp.orig),
-                                   nStarts=0)
-    post <- posteriorSimulation(post)
-    modes(post) <- computeModes(post)
-    ix <- order(theta(post))
-    if(!identical(ix, seq_along(ix))){
-      post <- sortComponentLabels(post)
-    }
-    mcmcParams(post) <- mp.orig
-  }
+  if(isOrdered(post)) return(post)
+  ## not ordered: try additional MCMC simulations after re-ordering
+  post <- sortComponentLabels(post)
+  mp.orig <- mcmcParams(post)
+  mcmcParams(post) <- McmcParams(burnin=0,
+                                 thin=thin(mp.orig),
+                                 iter=iter(mp.orig),
+                                 nStarts=0)
+  post <- runMcmc(post)
+  modes(post) <- computeModes(post)
+  mcmcParams(post) <- mp.orig
+  if(isOrdered(post)) return(post)
+  warning("label switching")
+  post <- sortComponentLabels(post)
   post
 }
 

@@ -1,50 +1,50 @@
 context("BatchModel")
 
 test_that("test_batch_moderate", {
-    set.seed(100)
-    nbatch <- 3
-    k <- 3
-    means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
-        0, 0.05), nbatch, k, byrow = FALSE)
-    sds <- matrix(0.15, nbatch, k)
-    sds[, 1] <- 0.3
-    N <- 1000
-    truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
-                                                  length.out = N),
-                               p = c(1/10, 1/5, 1 - 0.1 - 0.2),
-                               theta = means,
-                               sds = sds)
-    mcmcp <- McmcParams(iter = 1000, burnin = 0, thin=0,
-                        nStarts = 50)
-    model <- BatchModel(data = y(truth), batch = batch(truth),
-                        k = 3, mcmc.params = mcmcp) ##, hypp = hypp)
-    model2 <- posteriorSimulation(model)
-    model2 <- useModes(model2)
-    expect_equal(theta(truth), theta(model2), tolerance=0.1)
-    if (FALSE) {
-      plist <- ggMultiBatchChains(model2)
-      plist[["batch"]]
-      plist3 <- ggMultiBatchChains(model4)
-      plist3[["batch"]]
-        zz <- as.integer(z(truth))
-        ps <- c(mean(zz == 1), mean(zz == 2), mean(zz == 3))
-        modelk <- model
-        plot.ts(pic(modelk), plot.type = "single")
-        abline(h = p(truth))
-        par(mfrow = c(1, 3))
-        trace(modelk, "theta", col = 1:3)
-        abline(h = theta(truth))
-        plot.ts(sigmac(modelk), plot.type = "single")
-        abline(h = sigma(truth))
-        op <- par(mfrow = c(1, 2), las = 1)
-        CNPBayes::plot(truth)
-        CNPBayes::plot(modelk)
-        par(op)
-        mc <- chains(modelk)
-        plot.ts(sigma(mc), col = "gray")
-        plot.ts(theta(mc), col = "gray")
-        plot.ts(p(mc), col = "gray")
-    }
+  set.seed(100)
+  nbatch <- 3
+  k <- 3
+  means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+      0, 0.05), nbatch, k, byrow = FALSE)
+  sds <- matrix(0.15, nbatch, k)
+  sds[, 1] <- 0.3
+  N <- 1000
+  truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+                                                length.out = N),
+                             p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+                             theta = means,
+                             sds = sds)
+  mcmcp <- McmcParams(iter = 1000, burnin = 0, thin=0,
+                      nStarts = 50)
+  model <- BatchModel(data = y(truth), batch = batch(truth),
+                      k = 3, mcmc.params = mcmcp) ##, hypp = hypp)
+  model2 <- posteriorSimulation(model)
+  model2 <- useModes(model2)
+  expect_equal(theta(truth), theta(model2), tolerance=0.1)
+  if (FALSE) {
+    plist <- ggMultiBatchChains(model2)
+    plist[["batch"]]
+    plist3 <- ggMultiBatchChains(model4)
+    plist3[["batch"]]
+      zz <- as.integer(z(truth))
+      ps <- c(mean(zz == 1), mean(zz == 2), mean(zz == 3))
+      modelk <- model
+      plot.ts(pic(modelk), plot.type = "single")
+      abline(h = p(truth))
+      par(mfrow = c(1, 3))
+      trace(modelk, "theta", col = 1:3)
+      abline(h = theta(truth))
+      plot.ts(sigmac(modelk), plot.type = "single")
+      abline(h = sigma(truth))
+      op <- par(mfrow = c(1, 2), las = 1)
+      CNPBayes::plot(truth)
+      CNPBayes::plot(modelk)
+      par(op)
+      mc <- chains(modelk)
+      plot.ts(sigma(mc), col = "gray")
+      plot.ts(theta(mc), col = "gray")
+      plot.ts(p(mc), col = "gray")
+  }
 })
 
 test_that("test_batchEasy", {
