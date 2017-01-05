@@ -335,6 +335,11 @@ multipleStarts2 <- function(object){
   model
 }
 
+psParams <- function(warnings=TRUE,
+                     returnNULLonWarnings=FALSE){
+  list(warnings=warnings)
+}
+
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", "MixtureModel", function(object){
@@ -345,7 +350,7 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", c("MixtureModel", "integer"),
           function(object, k) {
-            .Deprecated("Use MarginalModelList or BatchModelList prior to posteriorSimulation")
+            .Deprecated("Method is deprecated for signature 'MixtureModel, integer'.  Use MarginalModelList or BatchModelList prior to posteriorSimulation")
         if (length(k) > 1) {
           mlist <- vector("list", length(k))
           for (i in seq_along(k)) {
@@ -364,7 +369,6 @@ setMethod("posteriorSimulation", c("MixtureModel", "integer"),
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
           function(object, k) {
-            .Deprecated("Use MarginalModelList or BatchModelList prior to posteriorSimulation")
             posteriorSimulation(object, as.integer(k))
     })
 
@@ -373,12 +377,31 @@ setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
 #' @aliases posteriorSimulation,list-method
 setMethod("posteriorSimulation", "list",
           function(object) {
+            params <- psParams()
             results <- vector("list", length(object))
             for(i in seq_along(results)){
-              results[[i]] <- posteriorSimulation(object[[i]])
+              results[[i]] <- .posteriorSimulation(object[[i]], params)
+            }
+            ##isnull <- sapply(results, is.null)
+            ##results <- results[!isnull]
+            results
+          })
+
+setMethod("posteriorSimulation2", "MixtureModel", function(object, params=psParams()){
+  .posteriorSimulation2(object, params)
+})
+
+setMethod("posteriorSimulation2", "list",
+          function(object, params=psParams(warnings=FALSE, NAonWarnings=TRUE)) {
+            results <- vector("list", length(object))
+            for(i in seq_along(results)){
+              results[[i]] <- posteriorSimulation(object[[i]], params=params)
             }
             results
           })
+
+
+
 
 .ordered_thetas_multibatch<- function(model){
   thetas <- theta(model)
@@ -534,7 +557,7 @@ setMethod("isOrdered", "BatchModel", function(object){
   .ordered_thetas_multibatch(object)
 })
 
-.posteriorSimulation <- function(post){
+.posteriorSimulation <- function(post, params=psParams()){
   if(nStarts(post) > 0){
     post <- multipleStarts2(post)
   }
@@ -557,7 +580,10 @@ setMethod("isOrdered", "BatchModel", function(object){
   modes(post) <- computeModes(post)
   mcmcParams(post) <- mp.orig
   if(isOrdered(post)) return(post)
-  warning("label switching")
+  if(params[["warnings"]]) {
+    warning("label switching")
+    ##if(params$returnNULLonWarnings) return(NULL)
+  }
   post <- sortComponentLabels(post)
   post
 }
