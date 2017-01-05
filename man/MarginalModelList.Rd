@@ -4,14 +4,15 @@
 \alias{MarginalModelList}
 \title{Constructor for list of single-batch models}
 \usage{
-MarginalModelList(data = numeric(), k = numeric(), ...)
+MarginalModelList(data = numeric(), k = numeric(),
+  mcmc.params = McmcParams(), ...)
 }
 \arguments{
 \item{data}{numeric vector of average log R ratios}
 
 \item{k}{numeric vector indicating the number of mixture components for each model}
 
-\item{...}{additional arguments passed to \code{{MarginalModel}}}
+\item{...}{additional arguments passed to \code{Hyperparameters}}
 }
 \value{
 a list. Each element of the list is a \code{BatchModel}

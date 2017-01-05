@@ -4,7 +4,7 @@
 \alias{MarginalModel}
 \title{Create an object for running marginal MCMC simulations.}
 \usage{
-MarginalModel(data = numeric(), k, hypp, mcmc.params)
+MarginalModel(data = numeric(), k = 3, hypp, mcmc.params)
 }
 \arguments{
 \item{data}{the data for the simulation.}
