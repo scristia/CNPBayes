@@ -369,6 +369,7 @@ setMethod("posteriorSimulation", c("MixtureModel", "integer"),
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
           function(object, k) {
+            stop("Specifying k not allowed.  See BatchModelList or MarginalModelList for creating a list object.")
             posteriorSimulation(object, as.integer(k))
     })
 
@@ -387,18 +388,18 @@ setMethod("posteriorSimulation", "list",
             results
           })
 
-setMethod("posteriorSimulation2", "MixtureModel", function(object, params=psParams()){
-  .posteriorSimulation2(object, params)
-})
+## setMethod("posteriorSimulation2", "MixtureModel", function(object, params=psParams()){
+##   .posteriorSimulation2(object, params)
+## })
 
-setMethod("posteriorSimulation2", "list",
-          function(object, params=psParams(warnings=FALSE, NAonWarnings=TRUE)) {
-            results <- vector("list", length(object))
-            for(i in seq_along(results)){
-              results[[i]] <- posteriorSimulation(object[[i]], params=params)
-            }
-            results
-          })
+## setMethod("posteriorSimulation2", "list",
+##           function(object, params=psParams(warnings=FALSE, NAonWarnings=TRUE)) {
+##             results <- vector("list", length(object))
+##             for(i in seq_along(results)){
+##               results[[i]] <- posteriorSimulation(object[[i]], params=params)
+##             }
+##             results
+##           })
 
 
 
@@ -581,7 +582,7 @@ setMethod("isOrdered", "BatchModel", function(object){
   mcmcParams(post) <- mp.orig
   if(isOrdered(post)) return(post)
   if(params[["warnings"]]) {
-    warning("label switching")
+    warning("label switching: model k=", k(post))
     ##if(params$returnNULLonWarnings) return(NULL)
   }
   post <- sortComponentLabels(post)
