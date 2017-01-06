@@ -59,3 +59,16 @@ se2 <- SummarizedExperiment(assays=SimpleList(cn=lrr(se),
                                               baf=baf(se)),
                             rowRanges=rowRanges(se))
 saveRDS(se2, file="~/Software/CNPBayes/inst/extdata/simulated_se.rds")
+
+
+library(CNPBayes)
+library(SummarizedExperiment)
+se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
+grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
+cnv.region <- consensusCNP(grl, max.width=5e6)
+i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
+med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
+set.seed(1337)
+mp <- McmcParams(nStarts=100, burnin=0, iter=0)
+sb <- MarginalModel(data=med.summary, mcmc.params=mp, k=4)
+saveRDS(sb, file="CNPBayes/inst/extdata/DeletionModelExample.rds")
