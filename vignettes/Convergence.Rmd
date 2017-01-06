@@ -32,17 +32,13 @@ number so that the example runs quickly.
 
 ```{r post-sim}
 set.seed(1)
-
 N <- 200
 n <- 81
 lrr <- replicate(N, mean(rnorm(n)))
-mp <- McmcParams(iter=50, burnin=10, thin=1, nStarts=10)
-model <- MarginalModel(data=lrr, mcmc.params=mp)
-m.list <- posteriorSimulation(model, k=1:4)
-## run 10 additional iterations using the last iteration of the above chain as
-## the starting value
-mcmcParams(m.list) <- McmcParams(nStarts=0, iter=100, burnin=0)
-m.list <- posteriorSimulation(m.list)
+mp <- McmcParams(iter=100, burnin=00, nStarts=10)
+sb.list <- MarginalModelList(data=lrr, mcmc.params=mp, k=1:4)
+## ignore the warnings -- label switching occurs because model is overfit
+sb.list <- posteriorSimulation(sb.list)
 ```
 
 One approach for selecting the best model is to compute the marginal likelihood
@@ -53,27 +49,27 @@ needed. For chains with a high autocorrelation, specifying the thin parameter
 will increase the independence of the simulations saved to the chain.
 
 ```{r marginal-lik, eval=FALSE}
-m.lik <- marginalLikelihood(m.list)
+m.lik <- marginalLikelihood(sb.list)
 m.lik
 ```
 
 ```{r plot1}
-data1 <- as.data.frame(theta(chains(m.list[[1]]))) %>%
+data1 <- as.data.frame(theta(chains(sb.list[[1]]))) %>%
     mutate(iter=1:100) %>%
     gather(component, theta, V1) %>%
     mutate(model=1)
 
-data2 <- as.data.frame(theta(chains(m.list[[2]]))) %>%
+data2 <- as.data.frame(theta(chains(sb.list[[2]]))) %>%
     mutate(iter=1:100) %>%
     gather(component, theta, V1:V2) %>%
     mutate(model=2)
 
-data3 <- as.data.frame(theta(chains(m.list[[3]]))) %>%
+data3 <- as.data.frame(theta(chains(sb.list[[3]]))) %>%
     mutate(iter=1:100) %>%
     gather(component, theta, V1:V3) %>%
     mutate(model=3)
 
-data4 <- as.data.frame(theta(chains(m.list[[4]]))) %>%
+data4 <- as.data.frame(theta(chains(sb.list[[4]]))) %>%
     mutate(iter=1:100) %>%
     gather(component, theta, V1:V4) %>%
     mutate(model=4)
