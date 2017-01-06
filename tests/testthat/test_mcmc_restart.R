@@ -74,8 +74,4 @@ test_that("test_mcmc_restart", {
     modelk <- posteriorSimulation(modelk1)
     th2 <- CNPBayes:::thetac(modelk)[1, ]
     expect_identical(th2, th1)
-
-    model2 <- modelk
-    mcmcParams(model2) <- McmcParams(iter=10, nStarts=0)
-    expect_warning(posteriorSimulation(model2), "label switching")
 })

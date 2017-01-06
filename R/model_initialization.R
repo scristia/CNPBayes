@@ -272,6 +272,15 @@ tau2HyperparamsBatch <- function(thetas){
 ##  qInverseTau2(mn=mn, sd=0.001)
 ##}
 
+.initialize_z <- function(y, centers){
+  if(length(centers) > 1){
+    z <- kmeans(y, centers=centers)$cluster
+  } else {
+    z <- rep(1L, length(y))
+  }
+  z
+}
+
 .init_mclust <- function(object){
   hypp <- hyperParams(object)
   sigma2.0(object) <- rgamma(1, a(hypp), b(hypp))
@@ -292,14 +301,13 @@ tau2HyperparamsBatch <- function(thetas){
     sds <- sqrt(params$variance$sigmasq)
     ps <- params$pro
     T[i, ] <- thetas
-    if(length(thetas) > 1){
-      zlist[[i]] <- kmeans(ylist[[i]], centers=thetas)$cluster
-    } else {
-      zlist[[i]] <- rep(1L, length(ys))
-    }
+    zlist[[i]] <- .initialize_z(ylist[[i]], thetas)
     P[i, ] <- ps
     S[i, ] <- sds
   }
+  ##
+  ## since batches are not ordered, unlist(z) still matches the original y's
+  ##
   zz <- unlist(zlist)
   ## *should do a weighted average since batches are unequally sized
   p <- colMeans(P)
@@ -313,6 +321,9 @@ tau2HyperparamsBatch <- function(thetas){
   }
   p(object) <- p
   z(object) <- zz
+  ## since batches are required to be in batch order, this is not necessary
+  ##y(object) <- unlist(ylist)
+  ##batch(object) <- unlist(split(batch(object), batch(object)))
   theta(object) <- T
   sigma2(object) <- S^2
   zFreq(object) <- as.integer(table(zz))

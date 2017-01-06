@@ -180,6 +180,12 @@ setValidity("BatchModel", function(object){
     msg <- "All batches much have at least one observation from each component"
     return(msg)
   }
+  ## A valid batch model should have data ordered by batch
+  deltas <- diff(batch(model))
+  if(!all(deltas > 0)){
+    msg <- "Constructor for BatchModel should return data and batch assignment in batch-order"
+    return(msg)
+  }
   msg
 })
 

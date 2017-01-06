@@ -22,6 +22,7 @@
 #'                            p=c(1/5, 1/3, 1-1/3-1/5))
 #' @export
 simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
+  ## order ys by batch
   if(length(p) != ncol(theta)) stop("length of p must be same as ncol(theta)")
   if(sum(p)!=1) stop("elements of p must sum to 1")
   if(missing(batch)) {
@@ -29,6 +30,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
   } else {
     batch <- as.integer(factor(batch))
   }
+  batch <- sort(batch)
   if(missing(zz)) {
     zz <- simulateZ(N, p)
   }

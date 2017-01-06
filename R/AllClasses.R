@@ -118,7 +118,7 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot logprior log likelihood of prior: log(p(sigma2.0)p(nu.0)p(mu))
 #' @slot loglik log likelihood: \eqn{\sum p_k \Phi(\theta_k, \sigma_k)}
 #' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
-#' @slot batch a vector of the different batch numbers
+#' @slot batch an integer-vector numbering the different batches. Must the same length as \code{data}.
 #' @slot batchElements a vector labeling from which batch each observation came from
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot mcmc.params An object of class 'McmcParams'

@@ -63,7 +63,7 @@ test_that("test_batchEasy", {
     mcmcp <- McmcParams(iter = 50, burnin = 0)
     set.seed(123)
     model <- BatchModel(y(truth), batch = batch(truth), k = 3,
-        mcmc.params = mcmcp)
+                        mcmc.params = mcmcp)
     model <- CNPBayes:::startAtTrueValues(model, truth)
     expect_identical(batch(truth), batch(model))
     expect_identical(y(truth), y(model))
@@ -91,14 +91,12 @@ test_that("test_batchEasy", {
     }
     set.seed(1)
     ##mcmcp <- McmcParams(iter = 300, burnin = 300, nStarts = 5)
-    mcmcp <- McmcParams(iter = 0, burnin = 0, nStarts = 50)
+    mcmcp <- McmcParams(iter = 20, burnin = 50, nStarts = 50)
     model <- BatchModel(y(truth), batch = batch(truth), k = 3,
                         mcmc.params = mcmcp)
     model <- posteriorSimulation(model)
-    nStarts(model) <- 0
-    iter(model, force=TRUE) <- 500
-    expect_warning(model2 <- posteriorSimulation(model))
-    ##model3 <- posteriorSimulation(model2)
+    expect_equal(theta(model), theta(truth),
+                 scale=0.01, tolerance=1)
     if (FALSE) {
         BatchModelExample <- model
         save(BatchModelExample, file = "data/BatchModelExample.RData")
@@ -201,22 +199,22 @@ test_that("test_kbatch", {
     p <- c(p, 1 - sum(p))
     truth <- simulateBatchData(N = N, batch = batch, theta = means,
         sds = sds, p = p)
-    mp <- McmcParams(iter = 100, burnin = 250, nStarts = 20)
+    mp <- McmcParams(iter = 100, burnin = 50, nStarts = 10)
     kmod <- BatchModel(y(truth), batch(truth), k = 3, mcmc.params = mp)
     kmod <- posteriorSimulation(kmod)
     cn <- map(kmod)
     set.seed(1000)
     ##ds <- downSampleEachBatch(y(kmod), nt=250, batch=batch(kmod))
-    index <- c(sample(seq_len(N), 500), which(batch %in% 4:5))
+    index <- sort(unique(c(sample(seq_len(N), 500), which(batch(kmod) %in% 4:5))))
     ## subsample
-    mp <- McmcParams(iter = 100, burnin = 500, nStarts = 20)
+    mp <- McmcParams(iter = 100, burnin = 100, nStarts = 20)
     kmod2 <- BatchModel(y(kmod)[index], batch=batch(kmod)[index],
                         k=3, mcmc.params=mp)
     kmod2 <- posteriorSimulation(kmod2)
     yy <- setNames(y(truth), seq_along(y(truth)))
     df <- imputeFromSampledData(kmod2, yy, index)
     cn2 <- df$cn
-    expect_equal(mean(cn != cn2), 0, tolerance=0.004, scale=1)
+    expect_true(mean(cn != cn2) < 0.01)
     cn2 <- map(kmod2)
     pz <- probz(kmod2)
     pz <- mapCnProbability(kmod2)
