@@ -67,16 +67,12 @@ tau2Hyperparams <- function(thetas){
 
   s2s <- params$variance$sigmasq
   ps <- params$pro
-  ##browser()
   ##zs.bootstrap <- as.integer(mc$classification)
   ##splits <- split(ys, zs.bootstrap)
   ##mins <- sort(sapply(splits, min))
   yy <- y(object)
-  if(length(thetas) != K) browser()
   if(K > 1){
     zz <- tryCatch(kmeans(yy, centers=thetas)$cluster, error=function(e) NULL)
-    if(is.null(zz)) browser()
-    if(length(table(zz)) < K) browser()
   } else {
     zz <- rep(1L, length(yy))
   }
@@ -165,7 +161,6 @@ setMethod("startingValues", "MarginalModel", function(object){
   T <- S <- matrix(NA, nB, K)
   P <- S
   zlist <- vector("list", length(B))
-  ##browser()
   for(i in seq_along(B)){
     is.batch <- batch(object)==B[i]
     j <- which(is.batch)
@@ -188,7 +183,6 @@ setMethod("startingValues", "MarginalModel", function(object){
     ##zs <- as.integer(simulateZ(length(y.batch), ps))
     ##zs <- as.integer(factor(km$cluster, levels=ix))
     ##ps <- (table(zs)/length(zs))
-    if(length(ps) != K) browser()
     P[i, ] <- ps
     sds <- sapply(split(ys, zs), sd)
     if(length(sds) < K){
@@ -247,6 +241,7 @@ setMethod("startingValues", "MarginalModel", function(object){
   mu(object) <- colMeans(thetas)
   tau2(object) <- colVars(thetas)
   p(object) <- as.numeric(rdirichlet(1, alpha(hypp)))
+  theta(object) <- thetas
   if(length(y(object)) > 0){
     zz <- simulateZ(length(y(object)), p(object))
     z(object) <- as.integer(factor(zz))
@@ -302,11 +297,6 @@ tau2HyperparamsBatch <- function(thetas){
     } else {
       zlist[[i]] <- rep(1L, length(ys))
     }
-    ##zs <- as.integer(simulateZ(length(ylist[[i]]), ps))
-    ##zz <- simulateZ(length(y(object)), p(object))
-    ##zz <- simulateZ(length(ys), p(object))
-    ##zs <- as.integer(kmeans(ylist[[i]], centers=thetas)$cluster)
-    ##zs <- as.integer(mc$classification)
     P[i, ] <- ps
     S[i, ] <- sds
   }
@@ -339,19 +329,19 @@ tau2HyperparamsBatch <- function(thetas){
 
 .init_batchmodel2 <- function(object){
   u <- runif(1, 0, 1)
-  if(u < 0.05){
-    object <- .init_priors(object)
+  if(u <= 0.25){
+    ##    object <- .init_priors(object)
+    ##    if(!is.finite(log_lik(object)) || is.na(log_lik(object))){
+    ##      object <- .init_mclust(object)
+    ##    }
+    ##  }
+    ##  if(u < 0.5 & u >= 0.25){
+    object <- .init_kmeans(object)
     if(!is.finite(log_lik(object)) || is.na(log_lik(object))){
       object <- .init_mclust(object)
     }
   }
-  if(u < 0.5 & u >= 0.25){
-    object <- .init_kmeans(object)
-    if(!is.finite(log_lik(object)) || is.na(log_lik(object))){
-      object <- .init_mclust(object)
-    } 
-  }
-  if(u >= 0.25){
+  if(u > 0.25){
     object <- .init_mclust(object)
   }
   object
