@@ -61,7 +61,7 @@ test_that("test_mcmc_restart", {
     ##
     ## checks consistency of chain with slot for theta
     ##
-    mcmcp <- McmcParams(nStarts=10, iter=1)
+    mcmcp <- McmcParams(nStarts=0, iter=1)
     modelk1 <- BatchModel(data = y(truth),
                           k = 3,
                           mcmc.params = mcmcp,

@@ -11,7 +11,7 @@ test_that("overfit model", {
   # correct 78th observation
   galaxies[78] <- 26960
   galaxies2 <- (galaxies-median(galaxies))/1000
-  mp <- McmcParams(iter=0, burnin=0, nStarts=20)
+  mp <- McmcParams(iter=500, burnin=500, nStarts=20)
   ##    taut2hat = var(theta(model))
   ## qInverseTau2(mn=0.01, sd=0.001)
   mlist <- MarginalModelList(data=galaxies2,
@@ -23,12 +23,8 @@ test_that("overfit model", {
   ## sample and select the best model from the log likelihood evaluated on the
   ## full dataset
   mlist2 <- posteriorSimulation(mlist)
-  mlist3 <- mlist2
-  mcmcParams(mlist3) <- McmcParams(nStarts=0, burnin=100, iter=250)
-  mlist3 <- posteriorSimulation(mlist3)
-  expect_false(failEffectiveSize(mlist3[[3]]))
-  ml <- marginalLikelihood(mlist3)
-  ##ml <- as.numeric(ml)
+  expect_false(failEffectiveSize(mlist2[[3]]))
+  ml <- marginalLikelihood(mlist2)
   expect_equivalent(which.max(ml), 3L)
   if(FALSE){
     ## I verified that 1000 burnin, 1000 iter, and thin of 10 converges for k=3
@@ -75,7 +71,7 @@ test_that("batch overfit galaxy", {
   galaxies3 <- c(galaxies2, galaxies2 + 10)
   ##mp <- McmcParams(thin=10, iter=1000, burnin=5000, nStarts=1)
   ##mp <- McmcParams(thin=10, iter=1000, burnin=50, nStarts=100)
-  mp <- McmcParams(burnin=0, nStarts=20, iter=0)
+  mp <- McmcParams(burnin=200, nStarts=20, iter=100)
   model.list <- BatchModelList(data=galaxies3,
                                batch=rep(1:2, each=length(galaxies)),
                                k=1:4,
@@ -85,28 +81,19 @@ test_that("batch overfit galaxy", {
   ## default prior on tau is far too informative for the galaxy data
   ##hypp <- HyperparametersBatch(eta.0=0.08, m2.0=50, k=3)
   mlist <- posteriorSimulation(model.list)
-  mcmcParams(mlist) <- McmcParams(nStarts=0, iter=100, burnin=0)
-  mlist2 <- posteriorSimulation(mlist)
-  mlist3 <- posteriorSimulation(mlist2)
-  ##
-  ## visual inspection of k=3 for mlist3 shows that their is no label swapping
-  ## -- expect p(theta* | ...) >> 0
-  ##
-  ##plist3 <- ggMultiBatchChains(mlist3[[2]])
-  ##plist3[["batch"]]
-  pstar <- marginal_theta_batch(mlist3[[3]])
+  pstar <- marginal_theta_batch(mlist[[3]])
   expect_false(failSmallPstar(pstar))
-  pstar4 <- marginal_theta_batch(mlist3[[4]])
-  pstar <- .blockUpdatesBatch(mlist3[[3]], mlParams())
-  expect_true(failSmallPstar(pstar4))
-  expect_warning(.blockUpdatesBatch(mlist3[[4]], mlParams()))
-  sum(round(log(apply(pstar, 2, mean)), 3))
-  ml <- marginalLikelihood(mlist3, mlParams(ignore.effective.size=TRUE,
-                                            warnings=FALSE))
+  pstar4 <- marginal_theta_batch(mlist[[4]])
+  ##pstar <- .blockUpdatesBatch(mlist[[3]], mlParams())
+  ##expect_true(failSmallPstar(pstar4))
+  ##expect_warning(.blockUpdatesBatch(mlist[[4]], mlParams()))
+  ##sum(round(log(apply(pstar, 2, mean)), 3))
+  ml <- marginalLikelihood(mlist, mlParams(ignore.effective.size=TRUE,
+                                           warnings=FALSE))
   expect_equivalent(which.max(ml), 3L)
   ## For the k=4 model, there is some label switching. A correction factor is
   ## not needed in the calculation of the marginal likelihood.
-  expect_false(failEffectiveSize(mlist3[[3]]))
+  expect_false(failEffectiveSize(mlist[[3]]))
   if(FALSE){
     ## verify stage two log lik is reasonable for the precision
     ## (code below from overview vignette)
@@ -121,8 +108,10 @@ test_that("batch overfit galaxy", {
     hist(rgamma(1000, shape=shape, rate=rate), breaks=100)
     ##likprec[0] = sum(log(dgamma(1.0/sigma2(_, k),
     ##                            0.5*nu0[0], 1.0/(0.5*nu0[0]*s20[0])))) ;
-    plist <- ggMultiBatchChains(mod)
-    plist[["single"]]
+    plist <- ggMultiBatchChains(mlist[[3]])
+    plist[["batch"]]
+    plist4 <- ggMultiBatchChains(mlist[[4]])
+    plist4[["batch"]]
   }
 })
 

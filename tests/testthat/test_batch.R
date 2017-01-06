@@ -97,14 +97,13 @@ test_that("test_batchEasy", {
     model <- posteriorSimulation(model)
     nStarts(model) <- 0
     iter(model, force=TRUE) <- 500
-    model2 <- posteriorSimulation(model)
+    expect_warning(model2 <- posteriorSimulation(model))
     ##model3 <- posteriorSimulation(model2)
     if (FALSE) {
         BatchModelExample <- model
         save(BatchModelExample, file = "data/BatchModelExample.RData")
     }
-    i <- order(theta(model2)[1, ])
-    expect_equal(theta(truth), theta(model2)[, i], tolerance=0.1)
+    expect_equal(theta(truth), theta(model2), tolerance=0.1)
     if (FALSE) {
         op <- par(mfrow = c(1, 2), las = 1)
         plot(truth)
@@ -194,6 +193,7 @@ test_that("test_kbatch", {
         1, 0.1)), 5, k, byrow = FALSE)
     sds <- matrix(0.1, 5, k)
     N <- 3000
+    ## the last 2 batches are much smaller
     probs <- c(1/3, 1/3, 3/10, 0.02, 0.013)
     probs <- probs/sum(probs)
     batch <- sample(1:5, size = N, prob = probs, replace = TRUE)
@@ -201,21 +201,22 @@ test_that("test_kbatch", {
     p <- c(p, 1 - sum(p))
     truth <- simulateBatchData(N = N, batch = batch, theta = means,
         sds = sds, p = p)
-    mp <- McmcParams(iter = 50, burnin = 0, nStarts = 50)
+    mp <- McmcParams(iter = 100, burnin = 250, nStarts = 20)
     kmod <- BatchModel(y(truth), batch(truth), k = 3, mcmc.params = mp)
-    kmod <- posteriorSimulation(kmod)
-    mcmcParams(kmod) <- McmcParams(iter=200, nStarts=0)
     kmod <- posteriorSimulation(kmod)
     cn <- map(kmod)
     set.seed(1000)
-    index <- sample(seq_len(N), 1000)
-    kmod2 <- BatchModel(y(truth)[index], batch(truth)[index],
-        k = 3, mcmc.params = mp)
+    ##ds <- downSampleEachBatch(y(kmod), nt=250, batch=batch(kmod))
+    index <- c(sample(seq_len(N), 500), which(batch %in% 4:5))
+    ## subsample
+    mp <- McmcParams(iter = 100, burnin = 500, nStarts = 20)
+    kmod2 <- BatchModel(y(kmod)[index], batch=batch(kmod)[index],
+                        k=3, mcmc.params=mp)
     kmod2 <- posteriorSimulation(kmod2)
     yy <- setNames(y(truth), seq_along(y(truth)))
-    df <- CNPBayes:::imputeFromSampledData(kmod2, yy, index)
+    df <- imputeFromSampledData(kmod2, yy, index)
     cn2 <- df$cn
-    expect_equal(mean(cn != cn2), 0, tolerance=0.001, scale=1)
+    expect_equal(mean(cn != cn2), 0, tolerance=0.004, scale=1)
     cn2 <- map(kmod2)
     pz <- probz(kmod2)
     pz <- mapCnProbability(kmod2)
@@ -244,4 +245,26 @@ test_that("test_kbatch", {
 
 test_that("test_unequal_batch_data", {
     expect_error(BatchModel(data = 1:10, batch = 1:9))
+})
+
+test_that("different starts", {
+  set.seed(25)
+  bmodel <- BatchModelExample
+  bmodel.list <- replicate(10,
+                           BatchModel(y(bmodel),
+                                      k=3,
+                                      batch=batch(bmodel)))
+  model <- selectByLogLik(bmodel.list)
+  logliks <- unique(sapply(bmodel.list, log_lik))
+  expect_identical(length(logliks), length(bmodel.list))
+  expect_equal(log_lik(model), -286.84, tolerance=0.05, scale=1)
+
+  mmodel <- MarginalModelExample
+  mmodel.list <- replicate(10,
+                           MarginalModel(y(mmodel),
+                                         k=3))
+  logliks <- unique(sapply(mmodel.list, log_lik))
+  expect_identical(length(logliks), length(mmodel.list))
+  model <- selectByLogLik(mmodel.list)
+  expect_equal(log_lik(model), max(logliks, na.rm=TRUE))
 })

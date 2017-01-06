@@ -231,7 +231,6 @@ test_that("test_selectK_easy", {
                             mcmc(theta.chains[, 2]))
 
     }
-    ##ml <- marginalLikelihood(mlist)
     ##
     ## We get the correct answer only by diagnosing the lack of convergence
     ##
@@ -246,33 +245,19 @@ test_that("test_selectK_easy", {
     expect_true(argmax == 2L)
 })
 
-test_that("posteriorSimulation methods", {
-    set.seed(1)
-    mp <- McmcParams(iter=10, burnin=0)
-    model <- MarginalModel(data=rnorm(10), k=2, mcmc.params=mp)
-
-    # normal method
-    posteriorSimulation(model)
-
-    ## multiple components
-    mlist <- MarginalModelList(data=y(model), k=1:3)
-    post <- posteriorSimulation(mlist)
-    expect_identical(length(post), 3L)
-})
-
 test_that("targeted_seq data", {
   ##
   ## The marginal likelihood is less useful for selecting models - can we merge
   ## and then compute the marginal lik?
   ##
   set.seed(123)
-  mp <- McmcParams(iter=500, burnin=500, nStarts=25)
+  mp <- McmcParams(iter=500, burnin=1000, nStarts=25)
   extfile <- file.path(system.file("extdata", package="CNPBayes"),
                        "targeted_seq.txt")
   dat <- read.delim(extfile)[[1]]
   dat <- sample(dat, 500)
   mlist <- MarginalModelList(data=dat, k=2:4, mcmc.params=mp)
-  mlist <- posteriorSimulation(mlist)
+  expect_warning(mlist <- posteriorSimulation(mlist), "label switching: model k=4")
   ##mcmcParams(mlist) <- McmcParams(nStarts=0, iter=1000)
   ##mlist <- posteriorSimulation(mlist)
   ##
