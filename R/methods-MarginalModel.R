@@ -8,11 +8,14 @@ NULL
 #'
 #' @param data numeric vector of average log R ratios
 #' @param k numeric vector indicating the number of mixture components for each model
+#' @param mcmc.params an object of class \code{McmcParams}
 #' @param ... additional arguments passed to \code{Hyperparameters}
-#' @seealso \code{\link{MarginalModel}}
+#' @seealso \code{\link{MarginalModel}} \code{\link{BatchModelList}}
 #' @return a list. Each element of the list is a \code{BatchModel}
 #' @examples
 #' mlist <- MarginalModelList(data=y(MarginalModelExample), k=1:4)
+#' mcmcParams(mlist) <- McmcParams(iter=1, burnin=1, nStarts=0)
+#' mlist2 <- posteriorSimulation(mlist)
 #' @export
 MarginalModelList <- function(data=numeric(), k=numeric(),
                               mcmc.params=McmcParams(),
