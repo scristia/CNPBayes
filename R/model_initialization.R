@@ -101,6 +101,9 @@ tau2Hyperparams <- function(thetas){
   p(object) <- ps
   z(object) <- zz
   theta(object) <- thetas
+  if(length(s2s) != length(thetas)){
+    s2s <- rep(s2s[1], length(thetas))
+  }
   sigma2(object) <- s2s
   zFreq(object) <- as.integer(table(zz))
   dataPrec(object) <- 1/computeVars(object)
