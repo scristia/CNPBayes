@@ -59,7 +59,10 @@ tau2Hyperparams <- function(thetas){
   ys <- y(object)
   ys <- sample(ys, length(ys), replace=TRUE)
   K <- k(object)
-  mc <- Mclust(ys, G=K)
+  mc <- tryCatch(Mclust(ys, G=K), warning=function(w) NULL)
+  if(is.null(mc)){
+    stop("Trouble selecting starting values with mclust.")
+  }
   params <- mc$parameters
   thetas <- params$mean
   if(K > 1){
@@ -68,7 +71,6 @@ tau2Hyperparams <- function(thetas){
     m2.0(hypp) <- tau2.hp$m2.0
     hyperParams(object) <- hypp
   }
-
   s2s <- params$variance$sigmasq
   ps <- params$pro
   ##zs.bootstrap <- as.integer(mc$classification)
@@ -156,9 +158,13 @@ setMethod("startingValues", "MarginalModel", function(object){
     model <- tryCatch(.init_sb2(object), error=function(e) NULL)
     counter <- counter + 1
   }
-  if(is.null(model)){
-    stop("k is too large. Try a different k")
+  K <- k(object)
+  while(is.null(model) & K > 1){
+    K <- K - 1
+    k(object) <- K
+    model <- tryCatch(.init_sb2(object), error=function(e) NULL)
   }
+  if(is.null(model)) stop("No good initial values identified")
   model
 })
 
@@ -287,7 +293,8 @@ tau2HyperparamsBatch <- function(thetas){
 
 .initialize_z <- function(y, centers){
   if(length(centers) > 1){
-    z <- kmeans(y, centers=centers)$cluster
+    z <- tryCatch(kmeans(y, centers=centers)$cluster, error=function(e) NULL)
+    if(is.null(z)) stop("Empty clusters because k is too large")
   } else {
     z <- rep(1L, length(y))
   }
@@ -308,7 +315,8 @@ tau2HyperparamsBatch <- function(thetas){
   for(i in seq_along(B)){
     ys <- ylist[[i]]
     ys <- sample(ys, length(ys), replace=TRUE)
-    mc <- Mclust(ys, G=K)
+    mc <- tryCatch(Mclust(ys, G=K), warning=function(w) NULL)
+    if(is.null(mc)) stop("Error initializing values for batch model")
     params <- mc$parameters
     thetas <- params$mean
     sds <- sqrt(params$variance$sigmasq)
@@ -351,6 +359,7 @@ tau2HyperparamsBatch <- function(thetas){
   object
 }
 
+
 .init_batchmodel2 <- function(object){
   u <- runif(1, 0, 1)
   if(u <= 0.25){
@@ -360,15 +369,28 @@ tau2HyperparamsBatch <- function(thetas){
     ##    }
     ##  }
     ##  if(u < 0.5 & u >= 0.25){
-    object <- .init_kmeans(object)
-    if(!is.finite(log_lik(object)) || is.na(log_lik(object))){
-      object <- .init_mclust(object)
+    counter <- 0; model <- NULL; not.valid <- FALSE
+    while(counter < 3 && is.null(model) || not.valid){
+      model <- tryCatch(.init_kmeans(object), error=function(e) NULL)
+      if(!is.null(model)){
+        not.valid <- !is.finite(log_lik(model)) || is.na(log_lik(model))
+      }
+      counter <- counter+1
     }
+    if(is.null(model)) stop("No good initial values identified")
   }
   if(u > 0.25){
-    object <- .init_mclust(object)
+    counter <- 0; model <- NULL; not.valid <- FALSE
+    while(counter < 3 && is.null(model) || not.valid){
+      model <- tryCatch(.init_mclust(object), error=function(e) NULL)
+      if(!is.null(model)){
+        not.valid <- !is.finite(log_lik(model)) || is.na(log_lik(model))
+      }
+      counter <- counter+1
+    }
+    if(is.null(model)) stop("No good initial values identified")
   }
-  object
+  model
 }
 
 .init_batchmodel3 <- function(object){
