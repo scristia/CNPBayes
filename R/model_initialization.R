@@ -46,6 +46,10 @@ tau2Hyperparams <- function(thetas){
   qInverseTau2(mn=itau2, sd=0.001)
 }
 
+.initialize_z_singlebatch <- function(y, centers){
+  kmeans(y, centers=centers)$cluster
+}
+
 
 .init_sb2 <- function(object){
   hypp <- hyperParams(object)
@@ -72,7 +76,7 @@ tau2Hyperparams <- function(thetas){
   ##mins <- sort(sapply(splits, min))
   yy <- y(object)
   if(K > 1){
-    zz <- tryCatch(kmeans(yy, centers=thetas)$cluster, error=function(e) NULL)
+    zz <- .initialize_z_singlebatch(yy, thetas)
   } else {
     zz <- rep(1L, length(yy))
   }
@@ -145,8 +149,17 @@ tau2Hyperparams <- function(thetas){
 
 setMethod("startingValues", "MarginalModel", function(object){
   ##object <- .init_sb1(object)
-  object <- .init_sb2(object)
-  object
+  counter <- 0; model <- NULL
+  while(counter < 3 && is.null(model)){
+    ## when k is too large, kmeans for finding cluster centers will not work
+    ## -- try a couple of times before quitting
+    model <- tryCatch(.init_sb2(object), error=function(e) NULL)
+    counter <- counter + 1
+  }
+  if(is.null(model)){
+    stop("k is too large. Try a different k")
+  }
+  model
 })
 
 .init_kmeans <- function(object){
