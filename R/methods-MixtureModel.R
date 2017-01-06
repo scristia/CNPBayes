@@ -15,9 +15,6 @@ setValidity("MixtureModel", function(object){
   if(nu.0(object) > 100){
     return("nu.0 can not exceed 100")
   }
-  if(length(sigma(object)) != length(theta(object))){
-    return("theta and sigma vectors must be the same length")
-  }
   msg
 })
 
@@ -353,7 +350,8 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", c("MixtureModel", "integer"),
           function(object, k) {
-            .Deprecated("Method is deprecated for signature 'MixtureModel, integer'.  Use MarginalModelList or BatchModelList prior to posteriorSimulation")
+            ##.Deprecated("Method is deprecated for signature 'MixtureModel, integer'.  Use MarginalModelList or BatchModelList prior to posteriorSimulation")
+            stop("Specifying k not allowed.  See BatchModelList or MarginalModelList for creating a list object.")
         if (length(k) > 1) {
           mlist <- vector("list", length(k))
           for (i in seq_along(k)) {

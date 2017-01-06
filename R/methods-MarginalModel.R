@@ -80,6 +80,8 @@ MarginalModel <- function(data=numeric(), k=3, hypp, mcmc.params){
   object <- startingValues(object)
 }
 
+
+
 SingleBatchPooledVar <- function(data=numeric(), k=2, hypp, mcmc.params){
   obj <- MarginalModel(data, k, hypp, mcmc.params)
   obj@sigma2 <- mean(sigma2(obj))
@@ -88,6 +90,14 @@ SingleBatchPooledVar <- function(data=numeric(), k=2, hypp, mcmc.params){
   obj@mcmc.chains <- ch
   as(obj, "SingleBatchPooledVar")
 }
+
+## this will not work because SingleBatchPooledVar inherits from MarginalModel
+##setValidity("MarginalModel", function(object){
+##  if(length(sigma(object)) != length(theta(object))){
+##    return("theta and sigma vectors must be the same length")
+##  }
+##  TRUE
+##})
 
 setValidity("SingleBatchPooledVar", function(object){
   s2 <- sigma2(object)
