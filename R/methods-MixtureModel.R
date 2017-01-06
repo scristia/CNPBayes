@@ -299,39 +299,39 @@ multipleStarts <- function(object){
   bmodel
 }
 
+selectByLogLik <- function(model.list){
+  lp <- sapply(model.list, log_lik)
+  isfin <- is.finite(lp)
+  isnonzero <- lp != 0
+  is.candidate <- isfin & isnonzero
+  if(!any(is.candidate)){
+    stop("Bad starting values.")
+  }
+  lp <- lp[is.candidate]
+  model.list <- model.list[is.candidate]
+  select <- which.max(lp)
+  if(length(select) == 0 ) stop("No model selected")
+  model <- model.list[[select]]
+  model
+}
+
 multipleStarts2 <- function(object){
   if(k(object)==1) return(object)
   mcmcp <- mcmcParams(object)
   ##
   ##
   if(is(object, "BatchModel")){
-    mmod <- replicate(nStarts(mcmcp),
-                      BatchModel(y(object), mcmc.params=mcmcp,
-                                 hypp=hyperParams(object), k=k(object),
-                                 batch=batch(object)))
+    model.list <- replicate(nStarts(mcmcp),
+                            BatchModel(y(object), mcmc.params=mcmcp,
+                                       hypp=hyperParams(object), k=k(object),
+                                       batch=batch(object)))
   }
   if(is(object, "MarginalModel")){
-    mmod <- replicate(nStarts(mcmcp),
-                      MarginalModel(y(object), mcmc.params=mcmcp,
-                                    hypp=hyperParams(object), k=k(object)))
+    model.list <- replicate(nStarts(mcmcp),
+                            MarginalModel(y(object), mcmc.params=mcmcp,
+                                          hypp=hyperParams(object), k=k(object)))
   }
-  ##models <- suppressMessages(lapply(mmod, runBurnin))
-  models <- mmod
-  lp <- sapply(models, log_lik)
-  isfin <- is.finite(lp)
-  if(any(!isfin)){
-    index <- which(!isfin)
-    for(i in index){
-      log_lik(models[[i]]) <- computeLoglik(models[[i]])
-    }
-  }
-  lp <- sapply(models, log_lik)
-  select <- which.max(lp)
-  if(length(select) == 0 ) stop("No model selected")
-  ##models <- models[isfin]
-  ##lp <- lp[isfin]
-  ##if(length(lp) == 0) browser()
-  model <- models[[select]]
+  model <- selectByLogLik(model.list)
   model
 }
 
