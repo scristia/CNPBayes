@@ -101,17 +101,6 @@ test_that("test_batchEasy", {
         BatchModelExample <- model
         save(BatchModelExample, file = "data/BatchModelExample.RData")
     }
-    expect_equal(theta(truth), theta(model2), tolerance=0.1)
-    if (FALSE) {
-        op <- par(mfrow = c(1, 2), las = 1)
-        plot(truth)
-        plot(model)
-        par(op)
-        op <- par(mfrow = c(1, 3))
-        tracePlot(model, "theta", col = 1:3)
-        par(op)
-        plot.ts(muc(model), plot.type = "single", col = 1:3)
-    }
 })
 
 
@@ -170,13 +159,10 @@ test_that("test_hard4", {
   set.seed(123)
   truth <- hardTruth(p1=0.02, s = 0.1, N=500)
   se <- as(truth, "SummarizedExperiment")
-  mcmcp <- McmcParams(iter = 0, burnin = 0, nStarts = 50)
+  mcmcp <- McmcParams(iter = 100, burnin = 100, nStarts = 20)
   modelk <- BatchModel(data = y(truth), batch = batch(truth),
                        k = 3, mcmc.params = mcmcp)
-  mmodel <- posteriorSimulation(modelk)
-  mcmcParams(mmodel) <- McmcParams(nStarts=0, iter=1000, thin=1)
-  model2 <- posteriorSimulation(mmodel)
-  model2 <- useModes(model2)
+  model2 <- posteriorSimulation(modelk)
   thetas <- theta(model2)
   pmix <- p(model2)
   expect_equal(theta(truth), thetas, tolerance=0.1)
