@@ -54,7 +54,7 @@ m.lik
 ```
 
 ```{r plot1}
-data1 <- as.data.frame(theta(chains(sb.list[[1]]))) %>%
+ data1 <- as.data.frame(theta(chains(sb.list[[1]]))) %>%
     mutate(iter=1:100) %>%
     gather(component, theta, V1) %>%
     mutate(model=1)
@@ -104,4 +104,14 @@ ggplot(data_2.4, aes(x=box.cat, y=theta)) +
     xlab("")
 ```
 
+
+A shortcut for plotting the chains (here, for the k=3 model):
+
+```{r chains}
+plist <- ggSingleBatchChains(sb.list[[3]])
+## chains of component-specific parameters
+plist[["comp"]]
+## single-value parameters
+plist[["single"]]
+```
 # References
