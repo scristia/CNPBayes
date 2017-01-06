@@ -12,6 +12,10 @@ BatchModelList(data = numeric(), k = numeric(), batch,
 
 \item{k}{numeric vector indicating the number of mixture components for each model}
 
+\item{batch}{vector of batch labels}
+
+\item{mcmc.params}{a \code{McmcParams} object}
+
 \item{...}{additional arguments to \code{HyperparametersBatch}}
 }
 \value{
@@ -23,5 +27,10 @@ BatchModels.
 }
 \examples{
 mlist <- BatchModelList(data=y(BatchModelExample), k=1:4, batch=batch(BatchModelExample))
+mcmcParams(mlist) <- McmcParams(iter=1, burnin=1, nStarts=0)
+mlist2 <- posteriorSimulation(mlist)
+}
+\seealso{
+\code{\link{BatchModel}}.  For single-batch data, use \code{\link{MarginalModelList}}.
 }
 

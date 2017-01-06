@@ -566,7 +566,7 @@ setMethod("isOrdered", "BatchModel", function(object){
     post <- runBurnin(post)
   }
   post <- sortComponentLabels(post)
-  if( iter(post)==0 ) return(post)
+  if( iter(post) < 1 ) return(post)
   post <- runMcmc(post)
   modes(post) <- computeModes(post)
   if(isOrdered(post)) return(post)

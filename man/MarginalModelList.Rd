@@ -12,6 +12,8 @@ MarginalModelList(data = numeric(), k = numeric(),
 
 \item{k}{numeric vector indicating the number of mixture components for each model}
 
+\item{mcmc.params}{an object of class \code{McmcParams}}
+
 \item{...}{additional arguments passed to \code{Hyperparameters}}
 }
 \value{
@@ -23,8 +25,10 @@ MarginalModels.
 }
 \examples{
 mlist <- MarginalModelList(data=y(MarginalModelExample), k=1:4)
+mcmcParams(mlist) <- McmcParams(iter=1, burnin=1, nStarts=0)
+mlist2 <- posteriorSimulation(mlist)
 }
 \seealso{
-\code{\link{MarginalModel}}
+\code{\link{MarginalModel}} \code{\link{BatchModelList}}
 }
 
