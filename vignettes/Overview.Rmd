@@ -29,14 +29,13 @@ analysis of the Welcome Trust Case Control Consortium (WTCCC) genotype
 data [@cardin] and implemented in the R package CNVCALL
 (http://niallcardin.com/CNVCALL).
 
-This vignette provides a concise workflow for fitting mixture models
+This vignette provides a concise workfklow for fitting mixture models
 in large array-based genome-wide association studies.  We refer the
 reader to other vignettes included with this package for details
 regarding implementation.
 
 ```{r lib} 
 library(CNPBayes)
-library(GenomicRanges)
 library(SummarizedExperiment)
 ```
 
@@ -59,7 +58,7 @@ i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
 med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
 ```
 
-See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`. 
+See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`.
 
 A `MixtureModel` is constructed using this summarized data for a CNP locus with
 a call to `MarginalModel` or `BatchModel`, depending on whether the simulation
@@ -72,9 +71,10 @@ the same batch. For illustration, we demonstrate how one could construct a
 `BatchModel` with two batches, but we do not try to run MCMC on this object.
 
 ```{r model_construction}
-mp <- McmcParams(nStarts=50, burnin=0, iter=1000)
-model.marginal <- MarginalModel(data=med.summary, mcmc.params=mp)
-model.batch <- BatchModel(data=med.summary, 
+mp <- McmcParams(nStarts=10, burnin=200, iter=200)
+set.seed(1337)
+sb.list <- MarginalModelList(data=med.summary, mcmc.params=mp, k=1:4)
+mb.list <- BatchModelList(data=med.summary, k=1:4,
                           batch=c(rep(1, 12), rep(2, 23)),
                           mcmc.params=mp)
 ```
@@ -91,15 +91,15 @@ In addition, we fit models with and without a term for batch.
 The `posteriorSimulation` function takes a constructed `MixtureModel` and `k`, a
 vector of the number of components for which to fit models. The posterior
 simulations of each model is held in a list. MCMC simulations for the batch
-model (not evaluated) have the same interface.
+model (not evaluated) have the same interface. Warnings regarding label
+switching can indidate that the burnin is insufficient, or that the model is
+overfit. Here, there are clearly only 2 components but we proceeed with the
+overfit models.
 
 ```{r posteriorSimulation}
-set.seed(1337)
-mlist.sb <- posteriorSimulation(model.marginal, k=1:4)
-mcmcParams(mlist.sb) <- McmcParams(iter=1000, burnin=0, nStarts=0)
-mlist.sb <- posteriorSimulation(mlist.sb)
-##mlist.mb <- posteriorSimulation(model.batch, k=1:4)
-##mlist.mb <- posteriorSimulation(mlist.mb)
+set.seed(13)
+sb.list <- posteriorSimulation(sb.list)
+mb.list <- posteriorSimulation(mb.list)
 ```
 
 ## Selecting a model
@@ -111,7 +111,10 @@ the single-batch and multi-batch models to determine the best fit.
 
 ```{r likelihood}
 ## marginal likelihood of each model
-sb.lik <- marginalLikelihood(mlist.sb)
+ml.lik <- c(marginalLikelihood(sb.list),
+            marginalLikelihood(mb.list))
+best.model <- names(ml.lik)[which.max(ml.lik)]
+best.model
 ```
 
 
@@ -120,8 +123,7 @@ sb.lik <- marginalLikelihood(mlist.sb)
 For the selected model, we can view the *maximum a posteriori* estimates for
 component.
 ```{r map}
-select <- which.max(sb.lik)
-selected.model <- mlist.sb[[select]]
+selected.model <- sb.list[[2]]
 map(selected.model)
 ```
 

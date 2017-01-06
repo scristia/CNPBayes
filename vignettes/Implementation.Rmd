@@ -33,6 +33,7 @@ data [@cardin] and implemented in the R package CNVCALL
 
 ```{r lib} 
 library(CNPBayes)
+library(ggplot2)
 ```
 
 # Implementation
@@ -253,7 +254,7 @@ density estimates.
 
 ```{r batch}
 ## Create McmcParams for batch model
-mp <- McmcParams(iter=2000, burnin=1000, thin=1)
+mp <- McmcParams(iter=500, burnin=50, thin=1, nStarts=10)
 
 ## Create Hyperparameters for batch model
 hypp <- Hyperparameters(type="batch", k=3)
@@ -271,16 +272,12 @@ sim.data <- simulateBatchData(N=N,
                               theta=means,
                               sds=sds,
                               p=c(1/5, 1/3, 1-1/3-1/5))
-
 # create BatchModel and run posteriorSimulation
 model <- BatchModel(data=y(sim.data), k=3,
                     batch=batch(sim.data),
                     hypp=hypp,
                     mcmc.params=mp)
-
 model <- posteriorSimulation(model)
-plot(DensityModel(model), y(sim.data),
-     breaks=100)
 ```
 
 While aspects of the `BatchModel` look somewhat Gaussian, there is some 
@@ -293,17 +290,12 @@ evidence of departure from a normal distribution. Due to this skewness, a
 Generally, the number of components is not known *a priori*. To
 estimate the number of components *K*, the `marginalLikelihood`
 function is used. It is important to note that a list of models passed to this
-function must have converged. For ease of use, one can specify `k` in the 
-posteriorSimulation to use the same data, `Hyperparameters`, and `mcmc.params`,
-but with a different number of components.
+function must have converged. 
 
 ```{r marginalLikelihood}
-mp <- McmcParams(iter=2e3, burnin=1e3)
-model <- MarginalModel(data=y(sim.data), k=2, mcmc.params=mp)
-
-mlist <- list(posteriorSimulation(model),
-              posteriorSimulation(model, k=3))
-
+mp <- McmcParams(iter=500, burnin=100, nStarts=10)
+mlist <- MarginalModelList(data=y(sim.data), k=2:3, mcmc.params=mp)
+mlist <- posteriorSimulation(mlist)
 x <- marginalLikelihood(mlist)
 x
 ```
@@ -332,7 +324,6 @@ m2 <- MarginalModel(data=y(sim.data), k=3,
                     hypp=hypp2,
                     mcmc.params=mp)
 m2 <- posteriorSimulation(m2)
-
 bic(m1)
 bic(m2)
 ```
@@ -342,10 +333,10 @@ chosen. Using the Bayesian Information Criterion, the correct model is chosen
 in this simple example.
 
 Finally, in an overfit model (one with too many components), merging components
-is supported. 
+is supported.
 
 ```{r merge}
-mp <- McmcParams(iter=500, burnin=1000, thin=1)
+mp <- McmcParams(iter=100, burnin=100, thin=1, nStarts=10)
 model <- MarginalModel(data=y(sim.data), k=4,
                        hypp=Hyperparameters(k=4),
                        mcmc.params=mp)
@@ -414,17 +405,9 @@ sim.data <- simulateBatchData(N=N,
                               theta=means,
                               sds=sds,
                               p=c(1/5, 1/3, 1-1/3-1/5))
-
-plot(sim.data)
-
+ggMultiBatch(sim.data)
 model <- BatchModel(data=y(sim.data), k=3,
-                    batch=batch(sim.data))
-
-model <- BatchModel(data=y(sim.data), k=3,
-                    batch=collapseBatch(model))
-
-model <- posteriorSimulation(model)
-library(ggplot2)
+                    batch=collapseBatch(sim.data))
 ggMultiBatch(model)
 ```
 
