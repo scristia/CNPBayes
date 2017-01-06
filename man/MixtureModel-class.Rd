@@ -46,7 +46,7 @@ BatchModel and MarginalModel both inherit from this class.
 
 \item{\code{mcmc.chains}}{an object of class 'McmcChains' to store MCMC samples}
 
-\item{\code{batch}}{a vector of the different batch numbers}
+\item{\code{batch}}{an integer-vector numbering the different batches. Must the same length as \code{data}.}
 
 \item{\code{batchElements}}{a vector labeling from which batch each observation came from}
 
