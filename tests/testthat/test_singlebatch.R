@@ -81,7 +81,7 @@ test_that("test_marginal_pooled", {
     nu0_pooled <- CNPBayes:::nu0_pooled(model)
     sigma20_pooled <- CNPBayes:::sigma2_0_pooled(model)
     s_pooled <- sqrt(s2_pooled)
-    expect_equal(object=s_pooled, expected=0.3, tolerance=0.02)
+    expect_equal(object=s_pooled, expected=0.3, tolerance=0.03)
 
     ylist <- split(y(model), z(model))
     tmp <- vector("list", length(ylist))
@@ -245,41 +245,3 @@ test_that("test_selectK_easy", {
     expect_true(argmax == 2L)
 })
 
-test_that("targeted_seq data", {
-  ##
-  ## The marginal likelihood is less useful for selecting models - can we merge
-  ## and then compute the marginal lik?
-  ##
-  set.seed(123)
-  mp <- McmcParams(iter=500, burnin=1000, nStarts=25)
-  extfile <- file.path(system.file("extdata", package="CNPBayes"),
-                       "targeted_seq.txt")
-  dat <- read.delim(extfile)[[1]]
-  dat <- sample(dat, 500)
-  mlist <- MarginalModelList(data=dat, k=2:4, mcmc.params=mp)
-  expect_warning(mlist <- posteriorSimulation(mlist), "label switching: model k=4")
-  ##mcmcParams(mlist) <- McmcParams(nStarts=0, iter=1000)
-  ##mlist <- posteriorSimulation(mlist)
-  ##
-  ## Select k=3
-  ##
-  dmlist <- lapply(mlist, DensityModel, merge=TRUE)
-  n.comp <- sapply(dmlist, function(x) length(modes(x)))
-  ## remove merge models where number components are duplicated
-  mlist <- mlist[!duplicated(n.comp)]
-  m.y <- marginalLikelihood(mlist)##, params=params)
-  argmax <- which.max(m.y)
-  expect_true(argmax == 2L)
-  if(FALSE){
-    plist <- ggSingleBatchChains(mlist[[2]])
-    plist[["comp"]]
-
-    plist3 <- ggSingleBatchChains(mlist[[3]])
-    plist3[["comp"]]
-
-    ggSingleBatch(mlist[[3]])
-    ggSingleBatch(mlist[[2]])
-
-    pstar <- marginal_theta(mlist[[2]])
-  }
-})
