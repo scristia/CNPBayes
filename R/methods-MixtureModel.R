@@ -236,15 +236,21 @@ setMethod("computePrior", "MarginalModel", function(object){
   pZ
 }
 
+
 setReplaceMethod("probz", "MixtureModel", function(object, value){
   object@probz <- value
   object
 })
 
+## TODO Dangerous to have accessor do something more than return the value of it
+## slot.  Further
+## probz(object) <- probz(object)
+## will not behave as expected
 #' @rdname probz-method
 #' @aliases probz,MixtureModel-method
 setMethod("probz", "MixtureModel", function(object) {
-  object@probz/iter(object)
+  ## because first iteration not saved
+  object@probz/(iter(object)-1)
 })
 
 
