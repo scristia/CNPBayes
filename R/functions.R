@@ -408,3 +408,94 @@ tempFun <- function(model.marginal, model.batch){
   mlist.marginal <- posteriorSimulation(model.marginal, k=1:4)
   mlist.batch <- posteriorSimulation(model.batch, k=1:4)
 }
+
+#' Parameters for merging
+#'
+#' @param threshold numeric value in [0, 0.5]. For a given observation (sample),
+#'   mixture component probabilities > threshold and less than 1-threshold are
+#'   combined.
+#' @param proportion.subjects numeric value in [0, 1]. Two components are
+#'   combined if the fraction of subjects with component probabilities in the
+#'   range [threshold, 1-threshold] exceeds this value.
+mergeParams <- function(threshold=0.25, proportion.subjects=0.5){
+  list(threshold=threshold,
+       proportion.subjects=proportion.subjects)
+}
+
+.in_interval <- function(x, p){
+  x >= p & x <= (1-p)
+}
+
+#' @param p length-k numeric vector, where k is the number of mixture components
+#' @param threshold length-one numeric vector in interval [0, 0.5]
+#' @return length-k integer-vector of component labels
+.merge_prob <- function(p, threshold=0.25){
+  if(length(p) == 1) return(1L)
+  K <- length(p)
+  labels <- seq_along(p) ## no merging
+  in.int <- .in_interval(p, threshold)
+  ##
+  ## if all probabilities are in the [threshold, 1-threshold],
+  ## return a single label
+  ##
+  if(all(in.int)) return(rep(1L, K))
+  if(!any(in.int)) return(labels)
+  while(any(in.int)){
+    index <- which(in.int)
+    ## by convention, label by the minimum value
+    min.index <- min(index)
+    labels[index] <- min.index
+    pnew <- tapply(p, labels, sum)
+    in.int <- .in_interval(pnew, threshold)
+  }
+  return(labels)
+}
+
+mergeLabels <- function(p, params){
+  threshold <- params$threshold
+  t(apply(p, 1, .merge_prob, threshold=threshold))
+}
+
+assessMerge <- function(p.z, params=mergeParams()){
+  ##p.z <- probz(model)
+  threshold <- params[["threshold"]]
+  uncertain.component <- p.z > threshold & p.z <= (1-threshold)
+  ## what fraction of subjects have low posterior probabilities
+  frac.obs.uncertain <- colMeans(uncertain.component)
+  cutoff <- params[["proportion.subjects"]]
+  if(!any(frac.obs.uncertain >= cutoff)) return(NULL)
+  index <- which(frac.obs.uncertain >= cutoff)
+  if(length(index) < 2) stop("expect index vector to be >= 2")
+  merge.components <- head(index, 2)
+  merge.components
+}
+
+.merge_components <- function(model, components){
+  if(is.null(components)) return(NULL)
+  if(length(components) < 2) stop("expected at least 2 components to merge")
+  K <- head(components, 2)
+  cnts <- model@probz
+  cnts.update <- cnts
+  combined <- rowSums(cnts[, K])
+  cnts.update[, max(K)] <- combined
+  cnts.update[, min(K)] <- 0
+  probz(model) <- cnts.update
+  model
+}
+
+mergeComponents <- function(model, params){
+  model2 <- model
+  K <- k(model)
+  map.list <- list()
+  counter <- 1
+  for(i in 1:K){
+    p.z <- probz(model2)
+    components <- assessMerge(p.z, params)
+    if(length(components) == 0) break()
+    model2 <- .merge_components(model2, components)
+    map.list[[counter]] <- components
+    counter <- counter+1
+  }
+  model2
+}
+
