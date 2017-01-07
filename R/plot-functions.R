@@ -197,6 +197,29 @@ ggMultiBatchChains <- function(model){
   list(batch=p.batch, comp=p.comp, single=p.single)
 }
 
+singleBatchDensities <- function(object){
+  probs <- p(object)
+  mus <- theta(object)
+  sigmas <- sigma(object)
+  psi <- cbind(probs, mus, sigmas)
+  yy <- y(object)
+  quantiles <- seq(min(yy), max(yy), length.out=500)
+  d <- apply(psi, 1, function(x, quantiles){
+    x[1] * dnorm(quantiles, mean=x[2], sd=x[3])
+  }, quantiles=quantiles)
+  overall <- rowSums(d)
+  ix <- order(mus)
+  d.vec <- c(as.numeric(d[, ix]), overall)
+  x <- rep(quantiles, ncol(d) + 1)
+  K <- seq_along(mus) - 1 ## assume homozygous deletion is first component
+  name <- rep(paste0("cn", K), each=length(quantiles))
+  all.names <- c(name, rep("overall", length(quantiles)))
+  levels <- c("overall", unique(name))
+  df <- data.frame(d=d.vec, x=x, name=all.names)
+  df$name <- factor(df$name, levels=levels)
+  df
+}
+
 #' ggplot wrapper for plotting the data at a single CNP and the model-based densities
 #'
 #' @param model a \code{BatchModel} or  \code{MarginalModel} object
@@ -212,8 +235,12 @@ ggSingleBatch <- function(model){
   df <- singleBatchDensities(model)
   df.observed <- data.frame(y=observed(model))
   ..density.. <- name <- x <- d <- NULL
-  ggplot(df, aes(x, d)) +
-    geom_histogram(data=df.observed,
+  if(FALSE){
+    ggplot(df, aes(x, d)) + geom_point() + facet_wrap(~name)
+  }
+  ## see stat_function
+  ggplot(df, aes(x, d, group=name)) +
+    geom_histogram(data=df.observed, 
                    aes(y, ..density..),
                    bins=300, inherit.aes=FALSE) +
     geom_area(stat="identity", aes(color=name, fill=name),
