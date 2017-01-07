@@ -43,7 +43,8 @@ simulateThetas <- function(y, K){
 tau2Hyperparams <- function(thetas){
   tau2hat <- var(thetas)
   itau2 <- 1/tau2hat
-  qInverseTau2(mn=itau2, sd=0.001)
+  ##qInverseTau2(mn=itau2, sd=0.001)
+  qInverseTau2(mn=itau2, sd=itau2/10)
 }
 
 .initialize_z_singlebatch <- function(y, centers){
