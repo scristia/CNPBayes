@@ -79,10 +79,12 @@ simulateData <- function(N, p, theta, sds){
   y <- rnorm(N, theta[zz], sds[zz])
   object <- MarginalModel(data=y, k=length(theta))
   z(object) <- as.integer(factor(zz, levels=unique(sort(zz))))
-  p(object) <- p
+  ##p(object) <- p
   theta(object) <- as.numeric(sapply(split(y(object), z(object)), mean))
   sigma2(object) <- as.numeric(sapply(split(y(object), z(object)), var))
-  p(object) <- as.numeric(sapply(split(y(object), z(object)), length)/length(z(object)))
+  p(object) <- as.numeric(sapply(split(y(object),
+                                       z(object)),
+                                 length)/length(z(object)))
   mu(object) <- mean(theta(object))
   tau2(object) <- var(theta(object))
   log_lik(object) <- computeLoglik(object)
