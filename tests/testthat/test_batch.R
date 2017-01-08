@@ -218,7 +218,7 @@ test_that("test_kbatch", {
         trace(cnProbability, browser)
         prz <- cnProbability(prz, 4)
         plot(jitter(prz, amount = 0.05), jitter(cn, amount = 0.05),
-            pch = 20, cex = 0.3)
+             pch = 20, cex = 0.3)
         table(cn)
         pz <- cnProbability(probz(fit$models[[4]]), 4)
         r <- y(fit$models[[4]])
