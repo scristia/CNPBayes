@@ -23,7 +23,17 @@ context("merging")
   ##          -  this could be decided based on the degree of overlap or even
   ##             the standard deviation (large variance may indicate outlier component)
   ##       - Extend the SingleBatch and MultiBatch classes to add a @mapping slot
+  ##             SingleBatchCopyNumber
+  ##             MultiBatchCopyNumber
+  ##  - Methods needed for the *BatchCopyNumer classes:
+  ##       - k(object)  returns number of distinct copy number states
+  ##            - returns number of components if mapping is identity
+  ##       - probz(object)
+  ##            - when mapping is many to one, posterior probability is added
+  ##              for components with the same copy number label
   ##       - gg* plotting methods should be similar, but color code by the mapping
+  ##       - Note the marginal likelihood, BIC, etc are defined only for the superclass
+  ##           - these methods have nothing to do with the *BatchCopyNumber models
   ##
   ##
   ##  - simulate two components, but with substantial overlap
