@@ -1,9 +1,30 @@
 context("merging")
 
-test_that("simple merge", {
+.test_that <- function(name, expr) NULL
+
+.test_that("simple merge", {
   set.seed(1)
   ##
-  ## IDEA: There is only one copy number state, but data is not quite normal
+  ## IDEA: There is only one copy number state, but data is not quite normal and
+  ## more than a single component is needed to adequately fit the data
+  ##
+  ##  - the fact that, in truth, there is a single copy number state generating
+  ##    should not effect how we fit or select models
+  ##
+  ##  - copy number inference is a completely separate step that should be
+  ##    downstream of model selection
+  ##
+  ##  - Downstream steps:
+  ##       - determine what components belong to a single copy number state
+  ##         (a mapping vector of length K denoting distinct copy number states)
+  ##           - first step is just to determine which states are distinct
+  ##           - second step is to provide the most probable copy number of the
+  ##             distinct states
+  ##          -  this could be decided based on the degree of overlap or even
+  ##             the standard deviation (large variance may indicate outlier component)
+  ##       - Extend the SingleBatch and MultiBatch classes to add a @mapping slot
+  ##       - gg* plotting methods should be similar, but color code by the mapping
+  ##
   ##
   ##  - simulate two components, but with substantial overlap
   ##
@@ -13,6 +34,11 @@ test_that("simple merge", {
   ##
   ##  - merge the components, keeping all probabilistic estimates intact
   ##
+  ## pseudocode:
+  ## model <- SingleBatch()
+  ## model <- posteriorSimulation(model)
+  ## cn.model <- mapToCopyNumber(model)
+  ## ggSingleBatch(cn.model) ## method should dispatch
   truth <- simulateData(N=100, p=c(0.9, 0.1),
                         theta=c(0, 0.25), sds=c(0.2, 0.2))
   mp <- McmcParams(iter = 500, burnin = 150, nStarts = 25)
@@ -41,6 +67,7 @@ test_that("simple merge", {
   trace(CNPBayes:::assessMerge, browser)
   ## merge components 1 and 2
   expect_identical(assessMerge(probz(model), params=mergeParams()), 1:2)
+
 
   p <- cbind(rep(1, 10), rep(0, 10), rep(0, 10))
   ## no merging
@@ -77,50 +104,44 @@ test_that("simple merge", {
   model <- MarginalModel(data = y(truth), k = 2, mcmc.params = mp)
   model <- posteriorSimulation(model)
 
-
-
-
   expect_identical(p(model2), 1)
+
   trace(CNPBayes:::singleBatchDensities, browser)
+
   tmp <- CNPBayes:::singleBatchDensities(model2)
 
   expect_true(all(z(model2) == 1L))
   expect_true(all(probz(model2) == 1))
 
-    .merge_prob(frac.obs.uncertain, cutoff)
-    new.labels <- mergeLabels(p.z, params)
-    ##
-    ##
-    ##
-    fraction.relabeled <- 
+  .merge_prob(frac.obs.uncertain, cutoff)
+  new.labels <- mergeLabels(p.z, params)
+  ##
+  ##
+  ##
+  ##fraction.relabeled <- 
 
-
-    posterior.prob <- colMeans(p.z)
-    if(all(posterior.prob > threshold)){
-      return(model)
-    }
-    ## combine components with substantial overlap
-    zz <- z(chains(model))
-    ## suppose 4-comp model
-    ## - components 1 and 2 overlap
-    ## - components 3 and 4 overlap
-    ## posterior.probs:
-    ## 0.34, 0.66, 0.55, 0.45
-    ## 
-    ## Can tell apart by the p.z matrix
-    ##  y[1]  0.34, 0.66, 0, 0
-    ##  y[2]  0,  0, 0.55, 0.45
-    ##
-    ## Need function that merges for each z.
-    apply(p.z, 1)
-    components.to.combine <- which(posterior.prob < threshold)
-    ## recursive?
-    remove.component <- max(components.to.combine)
-    expand.component <- components.to.combine[]
-
-
+  posterior.prob <- colMeans(p.z)
+  if(all(posterior.prob > threshold)){
+    return(model)
   }
-
+  ## combine components with substantial overlap
+  zz <- z(chains(model))
+  ## suppose 4-comp model
+  ## - components 1 and 2 overlap
+  ## - components 3 and 4 overlap
+  ## posterior.probs:
+  ## 0.34, 0.66, 0.55, 0.45
+  ## 
+  ## Can tell apart by the p.z matrix
+  ##  y[1]  0.34, 0.66, 0, 0
+  ##  y[2]  0,  0, 0.55, 0.45
+  ##
+  ## Need function that merges for each z.
+  apply(p.z, 1)
+  components.to.combine <- which(posterior.prob < threshold)
+  ## recursive?
+  remove.component <- max(components.to.combine)
+  expand.component <- components.to.combine[]
 })
 
 
