@@ -12,14 +12,16 @@ ggSingleBatchChains(model)
 
 ggMultiBatchChains(model)
 
-ggSingleBatch(model)
-
-ggMultiBatch(model)
+ggSingleBatch(model, bins)
 
 multiBatchDensities(model)
+
+ggMultiBatch(model, bins)
 }
 \arguments{
 \item{model}{a \code{BatchModel} or  \code{MarginalModel} object}
+
+\item{bins}{length-one integer vector indicating the number of bins for the histograms (passed to \code{geom_histogram})}
 }
 \value{
 a list of \code{ggplot} objects. Chains are grouped by the length of

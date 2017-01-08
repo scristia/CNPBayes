@@ -217,24 +217,7 @@ dens <- function(x, mean, sd, p1, p2){
 ##drawEachComponent <- function(x, batches, thetas, sds, P, batchPr,
 ##cols, plot=TRUE){
 
-batchDensities <- function(x, batches, thetas, sds, P, batchPr){
-  K <- length(batches)
-  mlist <- vector("list", K)
-  for(j in seq_len(ncol(thetas))){
-    mlist[[j]] <- .batchdens(x, batches, thetas[, j], sds[, j], P[, j], batchPr)
-  }
-  names(mlist) <- paste0("component", seq_len(K))
-  mlist
-}
 
-.batchdens <- function(x, batches, thetas, sds, p1, p2){
-  marginal <- matrix(NA, length(x), length(batches))
-  for(b in seq_along(batches)){
-    marginal[, b] <- dens(x, thetas[b], sds[b], p1[b], p2[b])
-  }
-  colnames(marginal) <- batches
-  marginal
-}
 
 findModes <- function(quantiles, x){ ##quantiles, density
   signs <- sign(diff(x))

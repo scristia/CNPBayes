@@ -205,13 +205,15 @@ singleBatchDensities <- function(object){
   qnorm(c(0.001, 0.999), mean=mean, sd=sd)
 }
 
-dnorm_quantiles <- function(mean, sd){
+dnorm_quantiles <- function(y, mean, sd){
   x <- list()
   for(i in seq_along(mean)){
     x[[i]] <- .range_quantiles(mean[i], sd[i])
   }
   xx <- unlist(x)
-  seq(min(xx), max(xx), by=0.001)
+  limits <- c(min(y, min(xx)),
+              max(y, max(xx)))
+  seq(limits[1], limits[2], length.out=500)
 }
 
 .dnorm_poly <- function(x, p, mean, sd){
@@ -222,14 +224,10 @@ dnorm_quantiles <- function(mean, sd){
                     x=xx)
 }
 
-dnorm_poly <- function(model){
-  mixprob <- p(model)
-  means <- theta(model)
-  sds <- sigma(model)
+dnorm_singlebatch <- function(qtiles, p, mean, sd){
   df.list <- list()
-  qtiles <- dnorm_quantiles(means, sds)
-  for(i in seq_along(means)){
-    dat <- .dnorm_poly(qtiles, mixprob[i], means[i], sds[i])
+  for(i in seq_along(mean)){
+    dat <- .dnorm_poly(qtiles, p[i], mean[i], sd[i])
      if(i == 1){
       overall <- dat$y
     } else{
@@ -239,15 +237,25 @@ dnorm_poly <- function(model){
   }
   df <- do.call(rbind, df.list)
   L <- sapply(df.list, nrow)
-  df$component <- factor(rep(seq_along(means), L))
+  df$component <- factor(rep(seq_along(mean), L))
   df.overall <- data.frame(y=overall, x=dat$x)
   df.overall$component <- "marginal"
   df <- rbind(df, df.overall)
-  df$component <- factor(df$component, levels=c("marginal", seq_along(means)))
-  if(k(model) == 1){
+  df$component <- factor(df$component, levels=c("marginal", seq_along(mean)))
+  if(length(mean) == 1){
     df <- df[df$component != "overall", ]
     df$component <- factor(df$component)
   }
+  df
+}
+
+dnorm_poly <- function(model){
+  mixprob <- p(model)
+  means <- theta(model)
+  sds <- sigma(model)
+  df.list <- list()
+  qtiles <- dnorm_quantiles(y(model), means, sds)
+  df <- dnorm_singlebatch(qtiles, mixprob, means, sds)
   df
 }
 
@@ -270,6 +278,7 @@ ggSingleBatch <- function(model, bins){
   if(missing(bins))
     bins <- nrow(df.observed)/2
   dat <- dnorm_poly(model)
+  comonent <- x <- y <- ..density.. <- NULL
   ggplot(dat, aes(x, y, group=component)) +
     geom_histogram(data=df.observed, aes(y, ..density..),
                    bins=bins,
@@ -281,29 +290,62 @@ ggSingleBatch <- function(model, bins){
     guides(fill=guide_legend(""), color=guide_legend(""))
 }
 
-#' @export
-#' @rdname ggplot-functions
-ggMultiBatch <- function(model){
-  colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
-              "#D55E00", "#CC79A7",  "#009E73")
-  df <- multiBatchDensities(model)
-  nb <- nBatch(model)
-  df.observed <- data.frame(y=observed(model),
-                            batch=batch(model))
-  y <- ..density.. <- name <- x <- d <- NULL
-  ggplot(df, aes(x, d)) +
-    geom_histogram(data=df.observed,
-                   aes(y, ..density..),
-                   bins=300, inherit.aes=FALSE) +
-    geom_area(stat="identity", aes(color=name, fill=name),
-              alpha=0.4) +
-    xlab("quantiles") + ylab("density") +
-    scale_color_manual(values=colors) +
-    scale_fill_manual(values=colors) +
-    guides(fill=guide_legend(""), color=guide_legend("")) +
-    facet_wrap(~batch, nrow=nb)
+
+dnorm_poly_multibatch <- function(model){
+  mixprob <- p(model)
+  means <- theta(model)
+  sds <- sigma(model)
+  df.list <- list()
+  yy <- y(model)
+  qtiles <- dnorm_quantiles(y(model),
+                            as.numeric(means),
+                            as.numeric(sds))
+  df.list <- list()
+  batch.labels <- unique(batch(model))
+  w <- table(batch(model))/length(y(model))
+  for(i in seq_len(nrow(means))){
+    dat <- dnorm_singlebatch(qtiles, mixprob, means[i, ], sds[i, ])
+    ## marginal in 'dat' is the marginal for that batch
+    dat$y <- dat$y * w[i]
+    dat$batch <- paste0("batch: ", batch.labels[i])
+    if(i == 1){
+      overall <- dat$y
+    } else{
+      overall <- overall + dat$y
+    }
+    df.list[[i]] <- dat
+  }
+  df <- do.call(rbind, df.list)
+  L <- sapply(df.list, nrow)
+  ##df$component <- factor(rep(seq_along(means), L))
+  df$batch <- factor(df$batch)
+  df.overall <- data.frame(y=overall, x=dat$x,
+                           component=dat$component,
+                           batch="overall")
+  df <- rbind(df, df.overall)
+  df$batch <- factor(df$batch,
+                     levels=c("overall", paste0("batch: ", batch.labels)))
+  df
 }
 
+batchDensities <- function(x, batches, thetas, sds, P, batchPr){
+  K <- length(batches)
+  mlist <- vector("list", K)
+  for(j in seq_len(ncol(thetas))){
+    mlist[[j]] <- .batchdens(x, batches, thetas[, j], sds[, j], P[, j], batchPr)
+  }
+  names(mlist) <- paste0("component", seq_len(K))
+  mlist
+}
+
+.batchdens <- function(x, batches, thetas, sds, p1, p2){
+  marginal <- matrix(NA, length(x), length(batches))
+  for(b in seq_along(batches)){
+    marginal[, b] <- dens(x, thetas[b], sds[b], p1[b], p2[b])
+  }
+  colnames(marginal) <- batches
+  marginal
+}
 
 #' @export
 #' @examples
@@ -311,40 +353,43 @@ ggMultiBatch <- function(model){
 #' head(df)
 #' @rdname ggplot-functions
 multiBatchDensities <- function(model){
-  probs <- p(model)
-  thetas <- theta(model)
-  sigmas <- sigma(model)
-  P <- matrix(probs, nrow(thetas), ncol(thetas), byrow=TRUE)
-  rownames(P) <- uniqueBatch(model)
-  avglrrs <- observed(model)
-  quantiles <- seq(min(avglrrs), max(avglrrs), length.out=500)
-  batchPr <- table(batch(model))/length(y(model))
-  dens.list <- batchDensities(quantiles, uniqueBatch(model),
-                              thetas, sigmas, P, batchPr)
-  ##component <- lapply(dens.list, rowSums)
-  ##overall <- rowSums(do.call(cbind, component))
-  ix <- order(thetas[1, ])
-  dens.list <- dens.list[ix]
-  d <- do.call(rbind, dens.list)
-  K <- ncol(thetas)
-  NB <- nBatch(model)
-  over <- Reduce("+", dens.list)
-  batches.overall <- rep(uniqueBatch(model), each=nrow(over))
-  quantile.overall <- rep(quantiles, nBatch(model))
-  overall <- as.numeric(over)
-
-  d.vec <- as.numeric(d)
-  d.vec <- c(d.vec, overall)
-  batches <- c(rep(uniqueBatch(model), each=nrow(d)),
-               batches.overall)
-  K <- seq_len(ncol(thetas))
-  name <- paste0("cn", K-1)
-  name <- rep(rep(name, elementNROWS(dens.list)), nBatch(model))
-  name <- c(name, rep("overall", length(overall)))
-  x <- rep(rep(quantiles, length(dens.list)), nBatch(model))
-  x <- c(x, quantile.overall)
-  df <- data.frame(x=x, d=d.vec, name=name, batch=batches)
-  df$batch <- factor(df$batch, uniqueBatch(model))
-  df$name <- factor(df$name, levels=c("overall", paste0("cn", K-1)))
-  df
+  dnorm_poly_multibatch(model)
 }
+
+#' @export
+#' @rdname ggplot-functions
+ggMultiBatch <- function(model, bins){
+  colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
+              "#D55E00", "#CC79A7",  "#009E73")
+  ##df <- multiBatchDensities(model)
+  dat <- dnorm_poly_multibatch(model)
+  nb <- nBatch(model)
+  if(missing(bins))
+    bins <- nrow(df.observed)/2
+  df.observed <- data.frame(y=observed(model),
+                            batch=paste0("batch: ", batch(model)))
+  component <- y <- ..density.. <- x <- y <- NULL
+  ggplot(dat, aes(x, y, group=component)) +
+    geom_histogram(data=df.observed, aes(y, ..density..),
+                   bins=bins,
+                   inherit.aes=FALSE) +
+    geom_polygon(aes(fill=component, color=component), alpha=0.4) +
+    xlab("quantiles") + ylab("density") +
+    scale_color_manual(values=colors) +
+    scale_fill_manual(values=colors) +
+    guides(fill=guide_legend(""), color=guide_legend("")) +
+    facet_wrap(~batch, nrow=nb)
+}
+
+##  ggplot(df, aes(x, d)) +
+##    geom_histogram(data=df.observed,
+##                   aes(y, ..density..),
+##                   bins=300, inherit.aes=FALSE) +
+##    geom_area(stat="identity", aes(color=name, fill=name),
+##              alpha=0.4) +
+##    xlab("quantiles") + ylab("density") +
+##    scale_color_manual(values=colors) +
+##    scale_fill_manual(values=colors) +
+##    guides(fill=guide_legend(""), color=guide_legend("")) +
+##    facet_wrap(~batch, nrow=nb)
+##}
