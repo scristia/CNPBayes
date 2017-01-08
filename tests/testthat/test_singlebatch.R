@@ -169,7 +169,7 @@ test_that("test_selectK_easy", {
     mp0 <- McmcParams(iter = 1, burnin = 0, nStarts = 1)
     mp <- McmcParams(iter = 1000, burnin = 50, nStarts = 20)
     model <- MarginalModel(data = y(truth), k = 2, mcmc.params = mp0)
-    expect_warning(mlist <- posteriorSimulation(model, k = 2:4))
+    expect_error(mlist <- posteriorSimulation(model, k = 2:4))
     mlist <- MarginalModelList(data=y(truth), k=2:4, mcmc.params=mp)
     mlist <- posteriorSimulation(mlist)
     if(FALSE){
