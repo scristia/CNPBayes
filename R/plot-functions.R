@@ -254,19 +254,21 @@ dnorm_poly <- function(model){
 #' ggplot wrapper for plotting the data at a single CNP and the model-based densities
 #'
 #' @param model a \code{BatchModel} or  \code{MarginalModel} object
+#' @param bins length-one integer vector indicating the number of bins for the histograms (passed to \code{geom_histogram})
 #' @examples
 #' ggMultiBatch(BatchModelExample)
 #' ggSingleBatch(MarginalModelExample)
 #' @export
 #' @return a \code{ggplot} object
 #' @rdname ggplot-functions
-ggSingleBatch <- function(model){
+ggSingleBatch <- function(model, bins){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
   df.observed <- data.frame(y=observed(model))
   ## see stat_function
   ##  ggplot(df, aes(x, d, group=name)) +
-  bins <- nrow(df.observed)/2
+  if(missing(bins))
+    bins <- nrow(df.observed)/2
   dat <- dnorm_poly(model)
   ggplot(dat, aes(x, y, group=component)) +
     geom_histogram(data=df.observed, aes(y, ..density..),
@@ -277,36 +279,7 @@ ggSingleBatch <- function(model){
     scale_color_manual(values=colors) +
     scale_fill_manual(values=colors) +
     guides(fill=guide_legend(""), color=guide_legend(""))
-##
-##  df <- singleBatchDensities(model)
-##  df.observed <- data.frame(y=observed(model))
-##  ..density.. <- name <- x <- d <- NULL
-##  if(FALSE){
-##    ggplot(df, aes(x, d)) + geom_point() + facet_wrap(~name)
-##  }
-##  ## see stat_function
-##  ggplot(df, aes(x, d, group=name)) +
-##    geom_histogram(data=df.observed, 
-##                   aes(y, ..density..),
-##                   bins=300, inherit.aes=FALSE) +
-##    geom_area(stat="identity", aes(color=name, fill=name),
-##              alpha=0.4) +
-##    xlab("quantiles") + ylab("density") +
-##    scale_color_manual(values=colors) +
-##    scale_fill_manual(values=colors) +
-##    guides(fill=guide_legend(""), color=guide_legend(""))
 }
-
-##.dnorm_quantiles <- function(mean, sd){
-##  quants <- seq(0.005, 0.995, by=0.005)
-##  x <- qnorm(quants, mean=mean, sd=sd)
-##  x
-##}
-
-
-
-
-
 
 #' @export
 #' @rdname ggplot-functions
