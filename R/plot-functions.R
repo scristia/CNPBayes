@@ -5,7 +5,7 @@ meltMultiBatchChains <- function(model){
   th$iter <- factor(1:nrow(th))
   th.m <- melt(th)
   ##
-  ## 
+  ##
   ##
   K <- k(model)
   B <- nBatch(model)
@@ -198,25 +198,56 @@ ggMultiBatchChains <- function(model){
 }
 
 singleBatchDensities <- function(object){
-  probs <- p(object)
-  mus <- theta(object)
-  sigmas <- sigma(object)
-  psi <- cbind(probs, mus, sigmas)
-  yy <- y(object)
-  quantiles <- seq(min(yy), max(yy), length.out=500)
-  d <- apply(psi, 1, function(x, quantiles){
-    x[1] * dnorm(quantiles, mean=x[2], sd=x[3])
-  }, quantiles=quantiles)
-  overall <- rowSums(d)
-  ix <- order(mus)
-  d.vec <- c(as.numeric(d[, ix]), overall)
-  x <- rep(quantiles, ncol(d) + 1)
-  K <- seq_along(mus) - 1 ## assume homozygous deletion is first component
-  name <- rep(paste0("cn", K), each=length(quantiles))
-  all.names <- c(name, rep("overall", length(quantiles)))
-  levels <- c("overall", unique(name))
-  df <- data.frame(d=d.vec, x=x, name=all.names)
-  df$name <- factor(df$name, levels=levels)
+  dnorm_poly(object)
+}
+
+.range_quantiles <- function(mean, sd){
+  qnorm(c(0.001, 0.999), mean=mean, sd=sd)
+}
+
+dnorm_quantiles <- function(mean, sd){
+  x <- list()
+  for(i in seq_along(mean)){
+    x[[i]] <- .range_quantiles(mean[i], sd[i])
+  }
+  xx <- unlist(x)
+  seq(min(xx), max(xx), by=0.001)
+}
+
+.dnorm_poly <- function(x, p, mean, sd){
+  y <- p*dnorm(x, mean=mean, sd=sd)
+  yy <- c(y, rep(0, length(y)))
+  xx <- c(x, rev(x))
+  tmp <- data.frame(y=yy,
+                    x=xx)
+}
+
+dnorm_poly <- function(model){
+  mixprob <- p(model)
+  means <- theta(model)
+  sds <- sigma(model)
+  df.list <- list()
+  qtiles <- dnorm_quantiles(means, sds)
+  for(i in seq_along(means)){
+    dat <- .dnorm_poly(qtiles, mixprob[i], means[i], sds[i])
+     if(i == 1){
+      overall <- dat$y
+    } else{
+      overall <- overall + dat$y
+    }
+    df.list[[i]] <- dat
+  }
+  df <- do.call(rbind, df.list)
+  L <- sapply(df.list, nrow)
+  df$component <- factor(rep(seq_along(means), L))
+  df.overall <- data.frame(y=overall, x=dat$x)
+  df.overall$component <- "marginal"
+  df <- rbind(df, df.overall)
+  df$component <- factor(df$component, levels=c("marginal", seq_along(means)))
+  if(k(model) == 1){
+    df <- df[df$component != "overall", ]
+    df$component <- factor(df$component)
+  }
   df
 }
 
@@ -232,24 +263,49 @@ singleBatchDensities <- function(object){
 ggSingleBatch <- function(model){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
-  df <- singleBatchDensities(model)
   df.observed <- data.frame(y=observed(model))
-  ..density.. <- name <- x <- d <- NULL
-  if(FALSE){
-    ggplot(df, aes(x, d)) + geom_point() + facet_wrap(~name)
-  }
   ## see stat_function
-  ggplot(df, aes(x, d, group=name)) +
-    geom_histogram(data=df.observed, 
-                   aes(y, ..density..),
-                   bins=300, inherit.aes=FALSE) +
-    geom_area(stat="identity", aes(color=name, fill=name),
-              alpha=0.4) +
+  ##  ggplot(df, aes(x, d, group=name)) +
+  bins <- nrow(df.observed)/2
+  dat <- dnorm_poly(model)
+  ggplot(dat, aes(x, y, group=component)) +
+    geom_histogram(data=df.observed, aes(y, ..density..),
+                   bins=bins,
+                   inherit.aes=FALSE) +
+    geom_polygon(aes(fill=component, color=component), alpha=0.4) +
     xlab("quantiles") + ylab("density") +
     scale_color_manual(values=colors) +
     scale_fill_manual(values=colors) +
     guides(fill=guide_legend(""), color=guide_legend(""))
+##
+##  df <- singleBatchDensities(model)
+##  df.observed <- data.frame(y=observed(model))
+##  ..density.. <- name <- x <- d <- NULL
+##  if(FALSE){
+##    ggplot(df, aes(x, d)) + geom_point() + facet_wrap(~name)
+##  }
+##  ## see stat_function
+##  ggplot(df, aes(x, d, group=name)) +
+##    geom_histogram(data=df.observed, 
+##                   aes(y, ..density..),
+##                   bins=300, inherit.aes=FALSE) +
+##    geom_area(stat="identity", aes(color=name, fill=name),
+##              alpha=0.4) +
+##    xlab("quantiles") + ylab("density") +
+##    scale_color_manual(values=colors) +
+##    scale_fill_manual(values=colors) +
+##    guides(fill=guide_legend(""), color=guide_legend(""))
 }
+
+##.dnorm_quantiles <- function(mean, sd){
+##  quants <- seq(0.005, 0.995, by=0.005)
+##  x <- qnorm(quants, mean=mean, sd=sd)
+##  x
+##}
+
+
+
+
 
 
 #' @export
