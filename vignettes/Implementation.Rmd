@@ -228,10 +228,11 @@ model <- MarginalModel(data=y(sim.data), k=3,
 model <- posteriorSimulation(model)
 ```
 
+TODO: REFACTOR
 The results of a `DensityModel` call returns an object of class
 `DensityModel`. Use the data and a `DensityModel` for plotting.
 
-```{r plot}
+```{r plot, eval=FALSE}
 plot(DensityModel(model), y(sim.data), 
      main="Marginal Model posterior")
 ```
@@ -342,15 +343,15 @@ model <- MarginalModel(data=y(sim.data), k=4,
                        mcmc.params=mp)
 model <- posteriorSimulation(model)
 
-dm <- DensityModel(model)
-modes(dm)
+##dm <- DensityModel(model)
+##modes(dm)
 
-dm_merged <- DensityModel(model, merge=TRUE)
-k(dm_merged)
+##dm_merged <- DensityModel(model, merge=TRUE)
+##k(dm_merged)
 
-par(mfrow=c(1,2), las=1)
-plot(dm, y(sim.data))
-plot(dm_merged, y(sim.data))
+##par(mfrow=c(1,2), las=1)
+##plot(dm, y(sim.data))
+##plot(dm_merged, y(sim.data))
 ```
 
 This merging procedure also ensures that there is no underfitting. For example,
@@ -362,10 +363,10 @@ model <- MarginalModel(data=y(sim.data), k=3,
                        hypp=Hyperparameters(k=3),
                        mcmc.params=mp)
 model <- posteriorSimulation(model)
-dm <- DensityModel(model)
-dm_merged <- DensityModel(model, merge=TRUE)
-k(dm)
-k(dm_merged)
+##dm <- DensityModel(model)
+##dm_merged <- DensityModel(model, merge=TRUE)
+##k(dm)
+##k(dm_merged)
 ```
 
 # Batch Estimation

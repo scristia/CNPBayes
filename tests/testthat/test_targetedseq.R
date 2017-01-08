@@ -14,7 +14,7 @@ test_that("targeted_seq data", {
   mlist <- MarginalModelList(data=dat, k=2:4, mcmc.params=mp)
   mlist <- posteriorSimulation(mlist)
   ##expect_warning(mlist <- posteriorSimulation(mlist), "label switching: model k=4")
-  ##
+ ##
   ## Select k=3
   ##
   ml <- marginalLikelihood(mlist)

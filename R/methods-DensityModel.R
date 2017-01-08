@@ -91,6 +91,7 @@ setMethod("densitiesCluster", "MarginalModel", function(object){
 #' @return An object of class 'DensityModel'
 #' @export
 DensityModel <- function(object, merge=FALSE){
+ .Deprecated()
   if(!missing(object)){
     if(!merge){
       dens <- densities(object)
