@@ -300,6 +300,21 @@ setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
   .gg_singlebatch(model, bins)
 })
 
+.relabel_component <- function(dat, model){
+  comp <- as.character(dat$component)
+  index <- comp %in% as.character(seq_len(k(model)))
+  comp2 <- comp[index]
+  ##cn <- .remap(comp2, mapping(model))
+  cn <- mapping(model)[as.integer(comp2)]
+  cn <- as.character(cn)
+  levs <- unique(cn)
+  ##cn <- mapping(model)[z(model)]
+  ##comp <- as.character(comp)
+  comp[index] <- cn
+  comp <- factor(comp, levels=c("marginal", levs))
+  comp
+}
+
 .gg_singlebatch_copynumber <- function(model, bins){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
@@ -309,14 +324,9 @@ setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
   if(missing(bins))
     bins <- nrow(df.observed)/2
   dat <- dnorm_poly(model)
-  index <- dat$component %in% seq_len(k(model))
-  comp <- dat$component
-  comp2 <- comp[index]
-  comp2 <- as.integer(as.character(comp2))
-  cn <- .remap(comp2, mapping(model))
-  comp[index] <- cn
-  comp <- factor(comp)
-  dat$component <- comp
+  dat$component <- .relabel_component(dat, model)
+  if(FALSE)
+    with(dat, table(component, component2))
   component <- x <- y <- ..density.. <- NULL
   ggplot(dat, aes(x, y, group=component)) +
     geom_histogram(data=df.observed, aes(y, ..density..),
@@ -326,7 +336,7 @@ setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
     xlab("quantiles") + ylab("density") +
     scale_color_manual(values=colors) +
     scale_fill_manual(values=colors) +
-    guides(fill=guide_legend(""), color=guide_legend(""))  
+    guides(fill=guide_legend(""), color=guide_legend(""))
 }
 
 
