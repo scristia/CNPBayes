@@ -1,5 +1,37 @@
 context("Copy number models")
 
+  ##
+  ## IDEA: There is only one copy number state, but data is not quite normal and
+  ## more than a single component is needed to adequately fit the data
+  ##
+  ##  - the fact that, in truth, there is a single copy number state generating
+  ##    should not effect how we fit or select models
+  ##
+  ##  - copy number inference is a completely separate step that should be
+  ##    downstream of model selection
+  ##
+  ##  - Downstream steps:
+  ##       - determine what components belong to a single copy number state
+  ##         (a mapping vector of length K denoting distinct copy number states)
+  ##           - first step is just to determine which states are distinct
+  ##           - second step is to provide the most probable copy number of the
+  ##             distinct states
+  ##          -  this could be decided based on the degree of overlap or even
+  ##             the standard deviation (large variance may indicate outlier component)
+  ##       - Extend the SingleBatch and MultiBatch classes to add a @mapping slot
+  ##             SingleBatchCopyNumber
+  ##             MultiBatchCopyNumber
+  ##  - Methods needed for the *BatchCopyNumer classes:
+  ##       - k(object)  returns number of distinct copy number states
+  ##            - returns number of components if mapping is identity
+  ##       - probz(object)
+  ##            - when mapping is many to one, posterior probability is added
+  ##              for components with the same copy number label
+  ##       - gg* plotting methods should be similar, but color code by the mapping
+  ##       - Note the marginal likelihood, BIC, etc are defined only for the superclass
+  ##           - these methods have nothing to do with the *BatchCopyNumber models
+  ##
+
 test_that("Methods defined for the class", {
   sb <- MarginalModelExample
   cn.model <- SingleBatchCopyNumber(sb)
@@ -149,7 +181,7 @@ test_that("Mapping components to copy number (multiple batches)", {
   ## Scenario: Suppose best fit model was MultiBatch with 3 components. In
   ## truth, components 2 and 3 correspond to 1 copy number state that have more
   ## variation than one would expect if Gaussian.
-  ##    
+  ##
   set.seed(100)
   nbatch <- 3
   k <- 3
@@ -177,3 +209,91 @@ test_that("Mapping components to copy number (multiple batches)", {
   if(FALSE)
     ggMultiBatch(cn.model)
 })
+
+##
+## This is a tough example. Best approach is unclear.
+##
+smallPlates <- function(x){
+  tab <- table(x)
+  names(tab)[tab < 20]
+}
+
+readLocalHapmap <- function(){
+  ddir <- "~/Dropbox/labs/cnpbayes"
+  lrr <- readRDS(file.path(ddir, "data/EA_198_lrr.rds"))
+  lrr1 <- lapply(lrr, function(x) x/1000)
+  batch.id <- c(rep(0,8), rep(1, 8))
+  avg.lrr <- unlist(lapply(lrr1, colMeans, na.rm=TRUE))
+  plate <- substr(names(avg.lrr), 1, 5)
+  avg.lrr <- avg.lrr[!plate %in% smallPlates(plate)]
+  plate <- plate[!plate %in% smallPlates(plate)]
+  names(avg.lrr) <- plate
+  avg.lrr
+}
+
+mclustMeans <- function(y, batch){
+  ylist <- split(y, plates2)
+  .mclust <- function(y){
+    Mclust(y)$parameters$mean
+  }
+  mns <- lapply(ylist, .mclust)
+  L <- sapply(mns, length)
+  collections <- split(names(L), L)
+}
+
+.test_that <- function(expr, name) NULL
+
+.test_that("hapmap", {
+  set.seed(134)
+  dat <- readLocalHapmap()
+  b <- collapseBatch(dat, names(dat))
+  mp <- McmcParams(iter=1000, burnin=500, nStarts=20)
+  ml <- BatchModelList(dat, k=2:5, batch=b, mcmc.params=mp)
+  ml <- posteriorSimulation(ml)
+  ggMultiBatchChains(ml[[4]])[["batch"]]
+
+  sb <- MarginalModelList(dat, k=4:8, mcmc.params=mp)
+  sb <- posteriorSimulation(sb)
+  tmp <- sample(dat, length(dat), replace=TRUE)
+  ggSingleBatchChains(sb[[2]])[["comp"]]
+  ggSingleBatch(sb[[3]])
+  ggSingleBatch(sb[[4]])
+  ggSingleBatch(sb[[5]])
+
+  ggSingleBatch(model)
+  ## evaluate merging for k=4
+  m4 <- mlist[[3]]
+  ggSingleBatch(m4)
+  ##
+  ## here, component 2 has a large variance
+  ##
+  ggSingleBatchChains(m4)[["comp"]]
+
+
+
+
+
+  model <- mlist[[select]]
+  d <- densities(model)
+  dc <- densitiesCluster(model, merge=TRUE)
+  dmlist <- lapply(mlist, DensityModel, merge=TRUE)
+  n.comp <- sapply(dmlist, function(x) length(modes(x)))
+  ## remove merge models where number components are duplicated
+  mlist <- mlist[!duplicated(n.comp)]
+  m.y <- marginalLikelihood(mlist)##, params=params)
+  argmax <- which.max(m.y)
+  expect_true(argmax == 2L)
+  if(FALSE){
+    plist <- ggSingleBatchChains(mlist[[2]])
+    plist[["comp"]]
+
+    plist3 <- ggSingleBatchChains(mlist[[3]])
+    plist3[["comp"]]
+
+    ggSingleBatch(mlist[[3]])
+    ggSingleBatch(mlist[[2]])
+
+    pstar <- marginal_theta(mlist[[2]])
+  }
+})
+
