@@ -300,8 +300,8 @@ downSampleEachBatch <- function(y, nt, batch){
     tiles <- factor(paste(ntile(x, nt), batch.id, sep="_"))
     xx <- sapply(split(x, tiles), mean)
     tiles <- setNames(as.character(tiles), obs.index)
-    S[[i]] <- list(y=xx, 
-                   labels=tiles, 
+    S[[i]] <- list(y=xx,
+                   labels=tiles,
                    batch.id=rep(batch.id, length(xx)))
   }
 
@@ -318,6 +318,7 @@ downSampleEachBatch <- function(y, nt, batch){
 #' Create tile labels for each observation
 #'
 #' A wrapper for function downSampleEachBatch. Batches are automatically merged as needed.
+#' 
 #' @param batch.file the name of a file contaning RDS data to be read in.
 #' @param plate a vector containing the labels  from which batch each observation came from.
 #' @param y in memory data
@@ -402,4 +403,40 @@ gelmanDiag <- function(model){
                         mcmc(chain2))
   result <- gelman.diag(theta.mc)
   result$mpsrf
+}
+
+##
+## This is a tough example. Best approach is unclear.
+##
+smallPlates <- function(x){
+  tab <- table(x)
+  names(tab)[tab < 20]
+}
+
+.read_hapmap <- function(){
+  ddir <- "~/Dropbox/labs/cnpbayes"
+  lrr <- readRDS(file.path(ddir, "data/EA_198_lrr.rds"))
+}
+
+readLocalHapmap <- function(){
+  lrr <- .read_hapmap()
+  lrr1 <- lapply(lrr, function(x) x/1000)
+  batch.id <- c(rep(0,8), rep(1, 8))
+  ##avg.lrr <- unlist(lapply(lrr1, colMeans, na.rm=TRUE))
+  avg.lrr <- unlist(lapply(lrr1, colMedians, na.rm=TRUE))
+  plate <- substr(names(avg.lrr), 1, 5)
+  avg.lrr <- avg.lrr[!plate %in% smallPlates(plate)]
+  plate <- plate[!plate %in% smallPlates(plate)]
+  names(avg.lrr) <- plate
+  avg.lrr
+}
+
+mclustMeans <- function(y, batch){
+  ylist <- split(y, plates2)
+  .mclust <- function(y){
+    Mclust(y)$parameters$mean
+  }
+  mns <- lapply(ylist, .mclust)
+  L <- sapply(mns, length)
+  collections <- split(names(L), L)
 }
