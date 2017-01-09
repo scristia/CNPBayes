@@ -259,17 +259,7 @@ dnorm_poly <- function(model){
   df
 }
 
-#' ggplot wrapper for plotting the data at a single CNP and the model-based densities
-#'
-#' @param model a \code{BatchModel} or  \code{MarginalModel} object
-#' @param bins length-one integer vector indicating the number of bins for the histograms (passed to \code{geom_histogram})
-#' @examples
-#' ggMultiBatch(BatchModelExample)
-#' ggSingleBatch(MarginalModelExample)
-#' @export
-#' @return a \code{ggplot} object
-#' @rdname ggplot-functions
-ggSingleBatch <- function(model, bins){
+.gg_singlebatch <- function(model, bins){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
   df.observed <- data.frame(y=observed(model))
@@ -278,7 +268,7 @@ ggSingleBatch <- function(model, bins){
   if(missing(bins))
     bins <- nrow(df.observed)/2
   dat <- dnorm_poly(model)
-  comonent <- x <- y <- ..density.. <- NULL
+  component <- x <- y <- ..density.. <- NULL
   ggplot(dat, aes(x, y, group=component)) +
     geom_histogram(data=df.observed, aes(y, ..density..),
                    bins=bins,
@@ -289,6 +279,65 @@ ggSingleBatch <- function(model, bins){
     scale_fill_manual(values=colors) +
     guides(fill=guide_legend(""), color=guide_legend(""))
 }
+
+#' ggplot wrapper for plotting the data at a single CNP and the model-based densities
+#'
+#' @param model a \code{BatchModel} or  \code{MarginalModel} object
+#' @param bins length-one integer vector indicating the number of bins for the histograms (passed to \code{geom_histogram})
+#' @examples
+#' ggMultiBatch(BatchModelExample)
+#' ggSingleBatch(MarginalModelExample)
+#' @export
+#' @return a \code{ggplot} object
+#' @rdname ggplot-functions
+setGeneric("ggSingleBatch", function(model, bins) standardGeneric("ggSingleBatch"))
+
+#' @export
+#' @rdname ggplot-functions
+setGeneric("ggMultiBatch", function(model, bins) standardGeneric("ggMultiBatch"))
+
+setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
+  .gg_singlebatch(model, bins)
+})
+
+.gg_singlebatch_copynumber <- function(model, bins){
+  colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
+              "#D55E00", "#CC79A7",  "#009E73")
+  df.observed <- data.frame(y=observed(model))
+  ## see stat_function
+  ##  ggplot(df, aes(x, d, group=name)) +
+  if(missing(bins))
+    bins <- nrow(df.observed)/2
+  dat <- dnorm_poly(model)
+  index <- dat$component %in% seq_len(k(model))
+  comp <- dat$component
+  comp2 <- comp[index]
+  comp2 <- as.integer(as.character(comp2))
+  cn <- .remap(comp2, mapping(model))
+  comp[index] <- cn
+  comp <- factor(comp)
+  dat$component <- comp
+  component <- x <- y <- ..density.. <- NULL
+  ggplot(dat, aes(x, y, group=component)) +
+    geom_histogram(data=df.observed, aes(y, ..density..),
+                   bins=bins,
+                   inherit.aes=FALSE) +
+    geom_polygon(aes(fill=component, color=component), alpha=0.4) +
+    xlab("quantiles") + ylab("density") +
+    scale_color_manual(values=colors) +
+    scale_fill_manual(values=colors) +
+    guides(fill=guide_legend(""), color=guide_legend(""))  
+}
+
+
+setMethod("ggSingleBatch", "SingleBatchCopyNumber", function(model, bins){
+  .gg_singlebatch_copynumber(model, bins)
+})
+
+setMethod("ggMultiBatch", "MultiBatchCopyNumber", function(model, bins){
+  .gg_multibatch_copynumber(model, bins)
+})
+
 
 
 dnorm_poly_multibatch <- function(model){
@@ -356,18 +405,16 @@ multiBatchDensities <- function(model){
   dnorm_poly_multibatch(model)
 }
 
-#' @export
-#' @rdname ggplot-functions
-ggMultiBatch <- function(model, bins){
+.gg_multibatch <- function(model, bins){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
   ##df <- multiBatchDensities(model)
   dat <- dnorm_poly_multibatch(model)
   nb <- nBatch(model)
-  if(missing(bins))
-    bins <- nrow(df.observed)/2
   df.observed <- data.frame(y=observed(model),
                             batch=paste0("batch: ", batch(model)))
+  if(missing(bins))
+    bins <- nrow(df.observed)/2
   component <- y <- ..density.. <- x <- y <- NULL
   ggplot(dat, aes(x, y, group=component)) +
     geom_histogram(data=df.observed, aes(y, ..density..),
@@ -381,15 +428,45 @@ ggMultiBatch <- function(model, bins){
     facet_wrap(~batch, nrow=nb)
 }
 
-##  ggplot(df, aes(x, d)) +
-##    geom_histogram(data=df.observed,
-##                   aes(y, ..density..),
-##                   bins=300, inherit.aes=FALSE) +
-##    geom_area(stat="identity", aes(color=name, fill=name),
-##              alpha=0.4) +
-##    xlab("quantiles") + ylab("density") +
-##    scale_color_manual(values=colors) +
-##    scale_fill_manual(values=colors) +
-##    guides(fill=guide_legend(""), color=guide_legend("")) +
-##    facet_wrap(~batch, nrow=nb)
-##}
+.gg_multibatch_copynumber <- function(model, bins){
+  colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
+              "#D55E00", "#CC79A7",  "#009E73")
+  ##df <- multiBatchDensities(model)
+  dat <- dnorm_poly_multibatch(model)
+  dat2 <- dat
+  index <- dat$component %in% seq_len(k(model))
+  comp <- dat$component
+  comp2 <- comp[index]
+  comp2 <- as.integer(as.character(comp2))
+  cn <- .remap(comp2, mapping(model))
+  comp[index] <- cn
+  comp <- factor(comp)
+  dat$component <- comp
+  nb <- nBatch(model)
+  df.observed <- data.frame(y=observed(model),
+                            batch=paste0("batch: ", batch(model)))
+  if(missing(bins))
+    bins <- nrow(df.observed)/2
+  component <- ..density.. <- x <- y <- NULL
+  ggplot(dat, aes(x, y, group=component)) +
+    geom_histogram(data=df.observed, aes(y, ..density..),
+                   bins=bins,
+                   inherit.aes=FALSE) +
+    geom_polygon(aes(fill=component, color=component),
+                 alpha=0.4) +
+    xlab("quantiles") + ylab("density") +
+    scale_color_manual(values=colors) +
+    scale_fill_manual(values=colors) +
+    guides(fill=guide_legend(""), color=guide_legend("")) +
+    facet_wrap(~batch, nrow=nb)
+}
+
+#' @rdname ggplot-functions
+setMethod("ggMultiBatch", "BatchModel", function(model, bins){
+  .gg_multibatch(model, bins)
+})
+
+#' @rdname ggplot-functions
+setMethod("ggMultiBatch", "MultiBatchCopyNumber", function(model, bins){
+  .gg_multibatch_copynumber(model, bins)
+})

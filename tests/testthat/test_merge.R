@@ -55,7 +55,6 @@ context("merging")
   model <- MarginalModel(data = y(truth), k = 2, mcmc.params = mp)
   model <- posteriorSimulation(model)
 
-  ## why doesn't probz get updated for first iteration
   m <- MarginalModel(data = y(truth), k = 2,
                      mcmc.params = McmcParams(iter=2, burnin=0))
   m <- posteriorSimulation(m)

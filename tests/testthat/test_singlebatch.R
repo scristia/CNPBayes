@@ -42,6 +42,7 @@ test_that("test_marginal_hard", {
     expect_equal(theta(truth), theta(model), tolerance=0.15)
     expect_equal(sigma(truth), colMeans(sigmac(model)), tolerance=0.1)
     expect_equal(p(truth), colMeans(pic(model)), tolerance=0.18)
+    expect_identical(numberObs(truth), 1000L)
     if (FALSE) {
         op <- par(mfrow = c(1, 2), las = 1)
         plot(truth)

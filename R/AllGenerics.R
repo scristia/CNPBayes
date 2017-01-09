@@ -1,6 +1,15 @@
 #' @include help.R
 NULL
 
+#' Number of observations
+#'
+#' @param model a MixtureModel-derived object
+#' @examples
+#' numberObs(MarginalModelExample)
+#' @export
+#' @rdname numberObs-method
+setGeneric("numberObs", function(model) standardGeneric("numberObs"))
+
 #' Number of components.
 #'
 #' This function retrieves the number of a priori components.

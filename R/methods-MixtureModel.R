@@ -236,6 +236,8 @@ setMethod("computePrior", "MarginalModel", function(object){
   pZ
 }
 
+setMethod("numberObs", "MixtureModel", function(model) length(y(model)))
+
 
 setReplaceMethod("probz", "MixtureModel", function(object, value){
   object@probz <- value
@@ -252,7 +254,6 @@ setMethod("probz", "MixtureModel", function(object) {
   ## because first iteration not saved
   object@probz/(iter(object)-1)
 })
-
 
 setMethod("runBurnin", "MarginalModel", function(object){
   mcmc_marginal_burnin(object, mcmcParams(object))
@@ -422,8 +423,6 @@ reorderMultiBatch <- function(model){
   is_ordered <- .ordered_thetas_multibatch(model)
   if(is_ordered) return(model)
   ## thetas are not all ordered
-  ##message("Sort and relabel mixture components by increasing theta")
-  ##message("Additional MCMC iterations with nStarts = 0 needed")
   thetas <- theta(model)
   s2s <- sigma2(model)
   K <- k(model)
@@ -447,37 +446,14 @@ reorderMultiBatch <- function(model){
   dataMean(model) <- computeMeans(model)
   dataPrec(model) <- computePrec(model)
   log_lik(model) <- computeLoglik(model)
-  ##
-  ## reset modes
-  ##
-##   if(!all(is.na(end.of.chain))){
-##     mode.list <- modes(model)
-##     mode.list[["theta"]] <- theta(model)
-##     mode.list[["mu"]] <- mu(model)
-##     mode.list[["sigma2"]] <- sigma2(model)
-##     mode.list[["tau2"]] <- tau2(model)
-##     mode.list[["mixprob"]] <- p(model)
-##     mode.list[["tau2"]] <- tau2(model)
-##     mode.list[["nu0"]] <- nu.0(model)
-##     mode.list[["sigma2.0"]] <- sigma2.0(model)
-##     mode.list[["zfreq"]] <- zFreq(model)
-##     mode.list[["loglik"]] <- log_lik(model)
-##     modes(model) <- mode.list
-##   }
   model
 }
 
 reorderSingleBatch <- function(model){
-##  end.of.chain <- tail(thetac(model))
-##  if(!all(is.na(end.of.chain))){
-##    model <- useModes(model)
-##  }
   thetas <- theta(model)
   K <- k(model)
   ix <- order(thetas)
   if(identical(ix, seq_len(K))) return(model)
-  ##message("Sort and relabel mixture components by increasing theta")
-  ##message("Additional MCMC iterations with nStarts = 0 needed")
   thetas <- thetas[ix]
   s2s <- sigma2(model)[ix]
   zs <- as.integer(factor(z(model), levels=ix))
@@ -488,73 +464,38 @@ reorderSingleBatch <- function(model){
   z(model) <- zs
   dataPrec(model) <- 1/computeVars(model)
   dataMean(model) <- computeMeans(model)
-##   if(!all(is.na(end.of.chain))){
-##     mode.list <- modes(model)
-##     mode.list[["theta"]] <- theta(model)
-##     mode.list[["mu"]] <- mu(model)
-##     mode.list[["sigma2"]] <- sigma2(model)
-##     mode.list[["tau2"]] <- tau2(model)
-##     mode.list[["mixprob"]] <- p(model)
-##     mode.list[["tau2"]] <- tau2(model)
-##     mode.list[["nu0"]] <- nu.0(model)
-##     mode.list[["sigma2.0"]] <- sigma2.0(model)
-##     mode.list[["zfreq"]] <- zFreq(model)
-##     mode.list[["loglik"]] <- log_lik(model)
-##     modes(model) <- mode.list
-##   }
   model
 }
 
 reorderPooledVar <- function(model){
-##  end.of.chain <- tail(thetac(model))
-##  if(!all(is.na(end.of.chain))){
-##    model <- useModes(model)
-##  }
   thetas <- theta(model)
   K <- k(model)
   ix <- order(thetas)
   if(identical(ix, seq_len(K))) return(model)
-  ##message("Sort and relabel mixture components by increasing theta")
-  ##message("Additional MCMC iterations with nStarts = 0 needed")
   thetas <- thetas[ix]
-  ##s2s <- sigma2(model)
   zs <- as.integer(factor(z(model), levels=ix))
   ps <- p(model)[ix]
-  ##sigma2(model) <- s2s
   theta(model) <- thetas
   p(model) <- ps
   z(model) <- zs
   dataPrec(model) <- 1/computeVars(model)
   dataMean(model) <- computeMeans(model)
-##  if(!all(is.na(end.of.chain))){
-##    mode.list <- modes(model)
-##    mode.list[["theta"]] <- theta(model)
-##    mode.list[["mu"]] <- mu(model)
-##    mode.list[["sigma2"]] <- sigma2(model)
-##    mode.list[["tau2"]] <- tau2(model)
-##    mode.list[["mixprob"]] <- p(model)
-##    mode.list[["tau2"]] <- tau2(model)
-##    mode.list[["nu0"]] <- nu.0(model)
-##    mode.list[["sigma2.0"]] <- sigma2.0(model)
-##    mode.list[["zfreq"]] <- zFreq(model)
-##    mode.list[["loglik"]] <- log_lik(model)
-##    modes(model) <- mode.list
-##  }
   model
 }
 
-sortComponentLabels <- function(model){
-  if(class(model) == "MarginalModel"){
-    model <- reorderSingleBatch(model)
-  }
-  if(class(model) == "BatchModel"){
-    model <- reorderMultiBatch(model)
-  }
-  if(class(model) == "SingleBatchPooledVar"){
-    model <- reorderPooledVar(model)
-  }
-  model
-}
+setGeneric("sortComponentLabels", function(model) standardGeneric("sortComponentLabels"))
+
+setMethod("sortComponentLabels", "MarginalModel", function(model){
+  reorderSingleBatch(model)  
+})
+
+setMethod("sortComponentLabels", "BatchModel", function(model){
+  reorderMultiBatch(model)
+})
+
+setMethod("sortComponentLabels", "SingleBatchPooledVar", function(model){
+  reorderPooledVar(model)
+})
 
 setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
 setMethod("isOrdered", "MixtureModel", function(object){

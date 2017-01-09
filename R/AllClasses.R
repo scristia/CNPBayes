@@ -210,6 +210,14 @@ setClass("SingleBatchPooledVar", contains="MarginalModel")
 
 setClass("UnivariateBatchModel", contains="BatchModel")
 
+
+setClass("SingleBatchCopyNumber", contains="MarginalModel",
+         representation(mapping="numeric"))
+
+setClass("MultiBatchCopyNumber", contains="BatchModel",
+         representation(mapping="numeric"))
+
+
 #' An object to store estimated mixture model densities
 #'
 #' Instances of DensityModel store the estimated densities for each

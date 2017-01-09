@@ -29,7 +29,6 @@ MarginalModelList <- function(data=numeric(), k=numeric(),
   model.list
 }
 
-
 #' Create an object for running marginal MCMC simulations.
 #' @examples
 #'      model <- MarginalModel(data=rnorm(10), k=1)
