@@ -112,9 +112,7 @@ test_that("Methods defined for the class", {
   mapping(cn.model) <- c(1, 2, 2)
   if(FALSE)
     ggMultiBatch(cn.model)
-
 })
-
 
 
 test_that("Mapping components to copy number (single batch)", {
@@ -123,6 +121,10 @@ test_that("Mapping components to copy number (single batch)", {
   params <- mapParams()
   map <- mapComponents(cn.model, params)
   expect_identical(map, 1:3)
+  mapping(cn.model) <- map
+
+  map2 <- mapCopyNumber(cn.model, params)
+  expect_identical(map2, factor(seq_len(k(cn.model))))
 
   ##
   ## two components: merge both
@@ -140,6 +142,11 @@ test_that("Mapping components to copy number (single batch)", {
   if(FALSE)
     ggSingleBatch(cn.model)
 
+  cn.map <- mapCopyNumber(cn.model)
+  expect_identical(cn.map, factor(rep(2, 2)))
+  mapping(cn.model) <- cn.map
+  if(FALSE)
+    ggSingleBatch(cn.model)
   ##
   ## three components: merge all
   ##
@@ -153,10 +160,8 @@ test_that("Mapping components to copy number (single batch)", {
   cn.model <- SingleBatchCopyNumber(model)
 
   map <- mapComponents(cn.model, params)
-  expect_identical(map, c(1L, 1L, 3L))
-  mapping(cn.model) <- map
-  map <- mapComponents(cn.model, params)
   expect_identical(map, c(1L, 1L, 1L))
+  mapping(cn.model) <- map
 
   ##
   ## merge 2 of 3 components 
@@ -167,7 +172,10 @@ test_that("Mapping components to copy number (single batch)", {
   model <- posteriorSimulation(truth)
   cn.model <- SingleBatchCopyNumber(model)
   map <- mapComponents(cn.model, params)
+  mapping(cn.model) <- map
   expect_identical(map, c(1L, 1L, 3L))
+  map2 <- mapCopyNumber(cn.model)
+  expect_identical(map2, factor(c(2, 2, 3)))
 })
 
 test_that("Mapping components to copy number (multiple batches)", {
@@ -178,9 +186,9 @@ test_that("Mapping components to copy number (multiple batches)", {
   expect_identical(map, 1:3)
 
   ##
-  ## Scenario: Suppose best fit model was MultiBatch with 3 components. In
-  ## truth, components 2 and 3 correspond to 1 copy number state that have more
-  ## variation than one would expect if Gaussian.
+  ## Assume best fit model is MultiBatch with 3 components. In truth, components
+  ## 2 and 3 correspond to 1 copy number state that have more variation than one
+  ## would expect if Gaussian.
   ##
   set.seed(100)
   nbatch <- 3
@@ -210,36 +218,7 @@ test_that("Mapping components to copy number (multiple batches)", {
     ggMultiBatch(cn.model)
 })
 
-##
-## This is a tough example. Best approach is unclear.
-##
-smallPlates <- function(x){
-  tab <- table(x)
-  names(tab)[tab < 20]
-}
 
-readLocalHapmap <- function(){
-  ddir <- "~/Dropbox/labs/cnpbayes"
-  lrr <- readRDS(file.path(ddir, "data/EA_198_lrr.rds"))
-  lrr1 <- lapply(lrr, function(x) x/1000)
-  batch.id <- c(rep(0,8), rep(1, 8))
-  avg.lrr <- unlist(lapply(lrr1, colMeans, na.rm=TRUE))
-  plate <- substr(names(avg.lrr), 1, 5)
-  avg.lrr <- avg.lrr[!plate %in% smallPlates(plate)]
-  plate <- plate[!plate %in% smallPlates(plate)]
-  names(avg.lrr) <- plate
-  avg.lrr
-}
-
-mclustMeans <- function(y, batch){
-  ylist <- split(y, plates2)
-  .mclust <- function(y){
-    Mclust(y)$parameters$mean
-  }
-  mns <- lapply(ylist, .mclust)
-  L <- sapply(mns, length)
-  collections <- split(names(L), L)
-}
 
 .test_that <- function(expr, name) NULL
 
@@ -250,15 +229,23 @@ mclustMeans <- function(y, batch){
   mp <- McmcParams(iter=1000, burnin=500, nStarts=20)
   ml <- BatchModelList(dat, k=2:5, batch=b, mcmc.params=mp)
   ml <- posteriorSimulation(ml)
-  ggMultiBatchChains(ml[[4]])[["batch"]]
+  if(FALSE)
+    ggMultiBatchChains(ml[[4]])[["batch"]]
 
-  sb <- MarginalModelList(dat, k=4:8, mcmc.params=mp)
+  mp <- McmcParams(iter=1000, burnin=500, nStarts=20)
+  sb <- MarginalModelList(dat, k=2:5, mcmc.params=mp)
   sb <- posteriorSimulation(sb)
-  tmp <- sample(dat, length(dat), replace=TRUE)
-  ggSingleBatchChains(sb[[2]])[["comp"]]
-  ggSingleBatch(sb[[3]])
-  ggSingleBatch(sb[[4]])
-  ggSingleBatch(sb[[5]])
+  ml.mb <- marginalLikelihood(ml)
+  ml.sb <- marginalLikelihood(sb)
+  select <- which.max(c(ml.mb, ml.sb))
+  ## single-batch 3 components selected
+  if(FALSE){
+    ggSingleBatch(sb[[2]])
+    ggSingleBatch(sb[[4]])
+    ggSingleBatch(sb[[5]])
+  }
+
+
 
   ggSingleBatch(model)
   ## evaluate merging for k=4
