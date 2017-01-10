@@ -1,23 +1,39 @@
 #' @include AllClasses.R
 NULL
 
+#' Mapping of mixture component indices to copy number states
+#'
+#' @param object a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
+#' @export
+#' @examples
+#' cn.model <- SingleBatchCopyNumber(MarginalModelExample)
+#' map <- mapComponents(cn.model)
+#' mapping(cn.model) <- map
+#' @rdname CopyNumber-methods
 setGeneric("mapping", function(object) standardGeneric("mapping"))
+
+#' @export
+#' @rdname CopyNumber-methods
 setGeneric("mapping<-", function(object, value) standardGeneric("mapping<-"))
 
+#' @aliases mapping,SingleBatchCopyNumber-method
 setMethod("mapping", "SingleBatchCopyNumber", function(object){
   object@mapping
 })
 
+#' @aliases mapping,MultiBatchCopyNumber-method
 setMethod("mapping", "MultiBatchCopyNumber", function(object){
   object@mapping
 })
 
+#' @aliases mapping,SingleBatchCopyNumber,numeric-method
 setReplaceMethod("mapping", c("SingleBatchCopyNumber", "numeric"),
                  function(object, value){
                    object@mapping <- value
                    object
                  })
 
+#' @aliases mapping,MultiBatchCopyNumber,numeric-method
 setReplaceMethod("mapping", c("MultiBatchCopyNumber", "numeric"),
                  function(object, value){
                    object@mapping <- value
@@ -34,6 +50,14 @@ setMethod("numberStates", "MultiBatchCopyNumber", function(model){
   length(unique(mapping(model)))
 })
 
+#' Posterior probabilities for copy number states
+#'
+#' In contrast to posterior probabilities for mixture components, this function
+#' returns posterior probabilities for distinct copy number states.
+#'
+#' @param model a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
+#' @export
+#' @export
 setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 
 manyToOneMapping <- function(model){
@@ -71,10 +95,14 @@ manyToOneMapping <- function(model){
   result
 }
 
+#' @aliases probCopyNumber,SingleBatchCopyNumber-method
+#' @rdname CopyNumber-methods
 setMethod("probCopyNumber", "SingleBatchCopyNumber", function(model){
   .prob_copynumber(model)
 })
 
+#' @aliases probCopyNumber,MultiBatchCopyNumber-method
+#' @rdname CopyNumber-methods
 setMethod("probCopyNumber", "MultiBatchCopyNumber", function(model){
   .prob_copynumber(model)
 })
@@ -187,6 +215,13 @@ isOutlier <- function(model, params=mapParams()){
 #' mm <- SingleBatchCopyNumber(mm)
 #' mapComponents(mm)
 #' map(mm) <- SingleBatchCopyNumber(mm)
+#' \dontrun{
+#'  ggSingleBatch(mm)
+#' }
+#' ## Batch model
+#' bmodel <- BatchModelExample
+#' bmodel <- MultiBatchCopyNumber(bmodel)
+#' mapComponents(bmodel)
 #' @export
 mapComponents <- function(model, params=mapParams()){
   p <- probz(model)
@@ -222,6 +257,14 @@ mapComponents <- function(model, params=mapParams()){
   K
 }
 
+#' Constructor for copy number models (single-batch)
+#'
+#' Used for mapping mixture components to distict copy number states
+#'
+#' @param model a \code{MarginalModel}
+#' @examples
+#' SingleBatchCopyNumber(MarginalModelExample)
+#' @export
 SingleBatchCopyNumber <- function(model){
   sb.model <- as(model, "SingleBatchCopyNumber")
   mapping(sb.model) <- seq_len(k(model))
@@ -235,7 +278,11 @@ MultiBatchCopyNumber <- function(model){
 }
 
 #' Name biological equivalent of components
+#' 
 #' @examples
+#' cn.model <- SingleBatchModel(MarginalModelExample)
+#' mapping(cn.model) <- mapComponents(cn.model)
+#' mapCopyNumber(MarginalModelExample)
 #' @param x  A vector of component LRR means
 #' @param approx  A vector indicating the approximate locations of labels
 #' @param homozygous_check  A boolean indicating whether to check for homozygous deletion first

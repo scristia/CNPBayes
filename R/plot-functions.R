@@ -296,6 +296,8 @@ setGeneric("ggSingleBatch", function(model, bins) standardGeneric("ggSingleBatch
 #' @rdname ggplot-functions
 setGeneric("ggMultiBatch", function(model, bins) standardGeneric("ggMultiBatch"))
 
+#' @aliases ggSingleBatch,MarginalModel-method
+#' @rdname ggplot-functions
 setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
   .gg_singlebatch(model, bins)
 })
@@ -340,6 +342,8 @@ setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
 }
 
 
+#' @aliases ggSingleBatch,SingleBatchCopyNumber-method
+#' @rdname ggplot-functions
 setMethod("ggSingleBatch", "SingleBatchCopyNumber", function(model, bins){
   .gg_singlebatch_copynumber(model, bins)
 })

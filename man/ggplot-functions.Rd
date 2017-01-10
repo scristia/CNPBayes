@@ -7,6 +7,8 @@
 \alias{ggMultiBatch,MultiBatchCopyNumber-method}
 \alias{ggMultiBatchChains}
 \alias{ggSingleBatch}
+\alias{ggSingleBatch,MarginalModel-method}
+\alias{ggSingleBatch,SingleBatchCopyNumber-method}
 \alias{ggSingleBatchChains}
 \alias{multiBatchDensities}
 \title{ggplot-style functions for diagnosing convergence}
@@ -18,6 +20,10 @@ ggMultiBatchChains(model)
 ggSingleBatch(model, bins)
 
 ggMultiBatch(model, bins)
+
+\S4method{ggSingleBatch}{MarginalModel}(model, bins)
+
+\S4method{ggSingleBatch}{SingleBatchCopyNumber}(model, bins)
 
 multiBatchDensities(model)
 

@@ -117,39 +117,37 @@ best.model <- names(ml.lik)[which.max(ml.lik)]
 best.model
 ```
 
-## Mapping mixture components to copy number assignments
+## Mapping mixture components to copy number states
 
 The model selected by the above procedure may not necessarily have mixture
 components that correspond to distinct copy number states. For example, if there
 are not many probes in a CNP region the average log R ratios are more likely to
 be skewed. See also the discussion in [@cardin]. Following model selection, we
-map mixture components to distinct copy number states. Our assumption in this
-step is that if we fit a skewed distribution with more than 1 Gaussian
-components, those Guassian mixture components should have substantial overlap as
-evidenced by a large number of observations with posterior probabilities in the
-interval [c, 1-c]. The `mapParams` function specifies parameters for determining
-whether two components should be considered a single copy number state or
-multiple states.
+map mixture components to distinct copy number states. Mixture components with
+substantial overlap can be identified as having a large number of observations
+with posterior probabilities in the interval [c, 1-c]. The `mapParams` function
+specifies parameters for mapping mixture components to distinct copy number
+states.
 
 ```{r map_distinct}
-cn.model <- SingleBatchCopyNumber(best.model)
+cn.model <- SingleBatchCopyNumber(sb.list[[2]])
 mapping(cn.model) <- mapComponents(cn.model)
 ## posterior probabilities for copy number states
-head(probz(cn.model))
+head(probCopyNumber(cn.model))
 ```
 
 For a `SingleBatchCopyNumber` instance, posterior probabilities are derived for
  distinct copy number states (not mixture components). When there is a
  one-to-one mapping between mixture components and copy number, the posterior
  probabilities are identical. Had the mapping step produced a many-to-one
- mapping from mixture components to copy number, the posterior probabilities are
- added for components that correspond to the same copy number. To make this
- obvious, below we map both mixture components to a single state and recompute
- the copy number probabilities.
+ mapping from mixture components to copy number, the posterior probabilities
+ would be added for components that correspond to the same copy number. To make
+ this obvious, below we map both mixture components to a single state and
+ recompute the copy number probabilities.
 
 ```{r posterior_prob}
 mapping(cn.model) <- c(1, 1)
-head(probz(cn.model))
+head(probCopyNumber(cn.model))
 ```
   
 ## Extracting MAP estimates and posterior probabilities

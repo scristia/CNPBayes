@@ -236,6 +236,8 @@ setMethod("computePrior", "MarginalModel", function(object){
   pZ
 }
 
+#' @aliases numberObs,MixtureModel-method
+#' @rdname numberObs-method
 setMethod("numberObs", "MixtureModel", function(model) length(y(model)))
 
 

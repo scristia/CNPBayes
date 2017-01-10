@@ -2,9 +2,11 @@
 % Please edit documentation in R/copynumber-models.R
 \name{mapParams}
 \alias{mapParams}
-\title{Parameters for merging two components}
+\title{Parameters for mapping mixture components to distinct copy number states}
 \usage{
-mapParams(threshold = 0.1, proportion.subjects = 0.5)
+mapParams(threshold = 0.1, proportion.subjects = 0.5,
+  outlier.variance.ratio = 5, max.homozygous = c(-1.5, -0.5),
+  min.foldchange = 1.5)
 }
 \arguments{
 \item{threshold}{numeric value in [0, 0.5]. For a given observation (sample),
@@ -14,8 +16,28 @@ combined.}
 \item{proportion.subjects}{numeric value in [0, 1]. Two components are
 combined if the fraction of subjects with component probabilities in the
 range [threshold, 1-threshold] exceeds this value.}
+
+\item{max_homozygous}{length-2 numeric vector of cutoffs used for
+establishing a homozygous deletion component. The first element is the
+cutoff for the mean log R ratios when there are 2 or more states. The
+second element is the cutoff for the mean log R ratio when there are 3 or
+more states.}
+
+\item{min_foldchange}{a length-one numeric vector. When there are 3 or more
+states, we compute the ratio of the distance between the means of the
+sorted components 1 and 2 (the 2 components with lowest means) and the
+distance between the means of components 2 and 3. If the ratio (i) exceeds
+the value specified by this parameter, (ii) there are 3 or more states, and
+(iii) the first component has a mean less than \code{max_homozygous[2]}, we
+infer that the first component is a homozygous deletion.}
 }
 \description{
-Parameters for merging two components
+Parameters for mapping mixture components to distinct copy number states
+}
+\examples{
+mapParams()
+}
+\seealso{
+\code{\link{mapComponents}}
 }
 

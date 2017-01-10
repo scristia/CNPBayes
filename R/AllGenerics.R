@@ -559,7 +559,8 @@ setGeneric("thin<-", function(object, value) standardGeneric("thin<-"))
 #'
 #' # Fit batch models of different sizes (k=1 and 2)
 #' mcmcParams(BatchModelExample) <- mp
-#' mlist <- posteriorSimulation(BatchModelExample, k=1:2)
+#' mlist <- BatchModelList(BatchModelExample, k=1:2)
+#' mlist <- posteriorSimulation(mlist)
 #' ## continue running 10 additional iterations by setting nStarts=0. The last
 #' #value of the chains will be used as the first value of the next chain
 #' mcmcParams(mlist) <- McmcParams(iter=10, burnin=0, nStarts=0)
