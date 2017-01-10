@@ -17,13 +17,17 @@ combined.}
 combined if the fraction of subjects with component probabilities in the
 range [threshold, 1-threshold] exceeds this value.}
 
-\item{max_homozygous}{length-2 numeric vector of cutoffs used for
+\item{outlier.variance.ratio}{if the ratio of the component variance to the
+median variance of the other component exceeds the value of this argument,
+the component is considered to correspond to outliers.}
+
+\item{max.homozygous}{length-2 numeric vector of cutoffs used for
 establishing a homozygous deletion component. The first element is the
 cutoff for the mean log R ratios when there are 2 or more states. The
 second element is the cutoff for the mean log R ratio when there are 3 or
 more states.}
 
-\item{min_foldchange}{a length-one numeric vector. When there are 3 or more
+\item{min.foldchange}{a length-one numeric vector. When there are 3 or more
 states, we compute the ratio of the distance between the means of the
 sorted components 1 and 2 (the 2 components with lowest means) and the
 distance between the means of components 2 and 3. If the ratio (i) exceeds

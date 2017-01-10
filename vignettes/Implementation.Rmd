@@ -83,15 +83,15 @@ observation is saved).
 Hyperparameters for the mixture model are specified as an instance of class
 `Hyperparameters`. Hyperparameters include:  
 
-- `k` the number of components (or copy number). Defaults to 2.  
+- `k` the number of components. Defaults to 2.  
 
 - `mu.0` and `tau2.0` priors for $\mu \sim$ N(`mu.0`, `tau2.0`), the 
   overall mean of components. Default to 0 and 100 respectively.  
 
-- `eta.0` and `m2.0` priors for 
-  $\tau^2 \sim$ Ga(shape=`eta.0`, rate=`m2.0`), the overall variance 
-  across components. Default to 1 and 0.1 respectively for *marginal* models 
-  and 1800 and 1/60 respectively for *batch* models.  
+- `eta.0` and `m2.0` priors for $\tau^2 \sim$ Ga(shape=`eta.0`, rate=`m2.0`),
+  the overall variance across components. (For the `BatchModel` discussed in
+  greater detail below, $\tau^2$ is component-specific, representing the
+  cross-batch variance of means for each component.)
 
 - `alpha` the prior mixture probabilities. Does not have to sum to 1. By
   default, a noninformative prior of equal mixtures is used.  
@@ -228,30 +228,26 @@ model <- MarginalModel(data=y(sim.data), k=3,
 model <- posteriorSimulation(model)
 ```
 
-TODO: REFACTOR
-The results of a `DensityModel` call returns an object of class
-`DensityModel`. Use the data and a `DensityModel` for plotting.
+To visualize the data and overlay the model-based approximation of the posterior:
 
-```{r plot, eval=FALSE}
-plot(DensityModel(model), y(sim.data), 
-     main="Marginal Model posterior")
+```{r plot}
+ggSingleBatch(model)
 ```
 
 ## BatchModel
 
-In general, the construction and posterior simulation of a `BatchModel` is 
-similar to that of a `MarginalModel`. The `BatchModel` is hierarchical over 
-the batches, and thus requires information about the batches. Instances of 
-`McmcParams` are equivalent between `BatchModel` and `MarginalModel`. 
-However, an object of class `Hyperparameters` is constructed with a `type` 
-of "batch". Additionally, simulated batch data is created using 
-`simulateBatchData` which requires `theta` and `sds` to be specifed as 
-$B \times K$ matrices, for $K$ components and $B$ batches. `simulateBatchData` 
-also requires a `batch` parameter, labelling the batch of each observation. 
-Finally, `BatchModel`s are constructed using the function `BatchModel` which 
-operates similarly to `MarginalModel` but requires a `batch` parameter, 
-similar to `Hyperparameters`. `plot`s of `BatchModel`s include batch specific 
-density estimates.
+In general, the construction and posterior simulation of a `BatchModel` is
+similar to that of a `MarginalModel`. The `BatchModel` is hierarchical over the
+batches, and thus requires information about the batches. Instances of
+`McmcParams` are equivalent between `BatchModel` and `MarginalModel`. However,
+an object of class `Hyperparameters` is constructed with `type = "batch"`.
+Additionally, simulated batch data is created using `simulateBatchData` which
+requires `theta` and `sds` to be specifed as $B \times K$ matrices, for $K$
+components and $B$ batches. `simulateBatchData` also requires a `batch`
+parameter, labelling the batch of each observation. Finally, `BatchModel`s are
+constructed using the function `BatchModel` which operates similarly to
+`MarginalModel` but requires a `batch` parameter, similar to `Hyperparameters`.
+`plot`s of `BatchModel`s include batch specific density estimates.
 
 ```{r batch}
 ## Create McmcParams for batch model
@@ -288,10 +284,10 @@ evidence of departure from a normal distribution. Due to this skewness, a
 
 # K unknown
 
-Generally, the number of components is not known *a priori*. To
-estimate the number of components *K*, the `marginalLikelihood`
-function is used. It is important to note that a list of models passed to this
-function must have converged. 
+Generally, the number of components is not known *a priori*. To estimate the
+number of components *K*, we estimate the marginal likelihood using the
+`marginalLikelihood` function. It is important to note that a list of models
+passed to this function must have converged.
 
 ```{r marginalLikelihood}
 mp <- McmcParams(iter=500, burnin=100, nStarts=10)
@@ -333,40 +329,31 @@ As the data is simulated from a three component distribution, `m2` should be
 chosen. Using the Bayesian Information Criterion, the correct model is chosen
 in this simple example.
 
-Finally, in an overfit model (one with too many components), merging components
-is supported.
+Finally, the mixture components may not necessarily correspond to distinct copy
+number states. For example, if the number of probes in a CNP region is small,
+the average log R ratio calculated for each sample is more likely to be skewed.
+In practice, one would fit many models (e.g., k = 1 - 4), select the best model
+by the marginal likelihood, and then map components from the best model to
+distinct copy number states. However, to illustrate the mapping procedure we
+intentionally overfit the 3-component model in the code chunk below by setting
+`k=4`. We then instantiate a copy number model (`SingleBatchCopyNumber`) and
+apply the function `mapComponents`. Note that posterior probabilities for copy
+number states take into account the many-to-one mapping of components to copy
+number and that the plotting function appropriately color codes the mixtures by
+the copy number state.
 
-```{r merge}
+```{r mapComponents}
 mp <- McmcParams(iter=100, burnin=100, thin=1, nStarts=10)
 model <- MarginalModel(data=y(sim.data), k=4,
                        hypp=Hyperparameters(k=4),
                        mcmc.params=mp)
 model <- posteriorSimulation(model)
-
-##dm <- DensityModel(model)
-##modes(dm)
-
-##dm_merged <- DensityModel(model, merge=TRUE)
-##k(dm_merged)
-
-##par(mfrow=c(1,2), las=1)
-##plot(dm, y(sim.data))
-##plot(dm_merged, y(sim.data))
-```
-
-This merging procedure also ensures that there is no underfitting. For example,
-merging a model with three true components will yield a model with three
-components.
-
-```{r merge-under}
-model <- MarginalModel(data=y(sim.data), k=3,
-                       hypp=Hyperparameters(k=3),
-                       mcmc.params=mp)
-model <- posteriorSimulation(model)
-##dm <- DensityModel(model)
-##dm_merged <- DensityModel(model, merge=TRUE)
-##k(dm)
-##k(dm_merged)
+cn.model <- SingleBatchCopyNumber(model)
+trace(CNPBayes::mapComponents, browser)
+mapping(cn.model) <- mapComponents(cn.model)
+mapping(cn.model)
+head(probCopyNumber(cn.model))
+ggSingleBatch(cn.model)
 ```
 
 # Batch Estimation

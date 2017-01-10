@@ -16,15 +16,16 @@ Map mixture components to distinct copy number states
 }
 \examples{
 mm <- MarginalModelExample
-mm <- SingleBatchCopyNumber(mm)
-mapComponents(mm)
-map(mm) <- SingleBatchCopyNumber(mm)
+cn.model <- SingleBatchCopyNumber(mm)
+mapping(cn.model) <- mapComponents(cn.model)
+mapping(cn.model)
 \dontrun{
  ggSingleBatch(mm)
 }
 ## Batch model
 bmodel <- BatchModelExample
 bmodel <- MultiBatchCopyNumber(bmodel)
-mapComponents(bmodel)
+mapping(bmodel) <- mapComponents(bmodel)
+mapping(bmodel)
 }
 

@@ -2,8 +2,15 @@
 % Please edit documentation in R/copynumber-models.R
 \docType{methods}
 \name{mapping}
+\alias{mapCopyNumber}
 \alias{mapping}
+\alias{mapping,MultiBatchCopyNumber,numeric-method}
+\alias{mapping,MultiBatchCopyNumber-method}
+\alias{mapping,SingleBatchCopyNumber,numeric-method}
+\alias{mapping,SingleBatchCopyNumber-method}
 \alias{mapping<-}
+\alias{mapping<-,MultiBatchCopyNumber,numeric-method}
+\alias{mapping<-,SingleBatchCopyNumber,numeric-method}
 \alias{probCopyNumber,MultiBatchCopyNumber-method}
 \alias{probCopyNumber,SingleBatchCopyNumber-method}
 \title{Mapping of mixture component indices to copy number states}
@@ -12,19 +19,41 @@ mapping(object)
 
 mapping(object) <- value
 
+\S4method{mapping}{SingleBatchCopyNumber}(object)
+
+\S4method{mapping}{MultiBatchCopyNumber}(object)
+
+\S4method{mapping}{SingleBatchCopyNumber,numeric}(object) <- value
+
+\S4method{mapping}{MultiBatchCopyNumber,numeric}(object) <- value
+
 \S4method{probCopyNumber}{SingleBatchCopyNumber}(model)
 
 \S4method{probCopyNumber}{MultiBatchCopyNumber}(model)
+
+mapCopyNumber(model, params = mapParams())
 }
 \arguments{
 \item{object}{a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance}
+
+\item{value}{a numeric vector mapping component indices to copy number state indices}
+
+\item{params}{a list of parameters for mapping component indices to copy number}
+}
+\value{
+a factor vector of length k
 }
 \description{
 Mapping of mixture component indices to copy number states
+
+Map mixture components to copy number states
 }
 \examples{
 cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 map <- mapComponents(cn.model)
 mapping(cn.model) <- map
+cn.model <- SingleBatchModel(MarginalModelExample)
+mapping(cn.model) <- mapComponents(cn.model)
+mapCopyNumber(MarginalModelExample)
 }
 

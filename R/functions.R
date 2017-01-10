@@ -432,7 +432,7 @@ readLocalHapmap <- function(){
 }
 
 mclustMeans <- function(y, batch){
-  ylist <- split(y, plates2)
+  ylist <- split(y, batch)
   .mclust <- function(y){
     Mclust(y)$parameters$mean
   }

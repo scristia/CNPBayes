@@ -17,16 +17,20 @@ setGeneric("mapping", function(object) standardGeneric("mapping"))
 setGeneric("mapping<-", function(object, value) standardGeneric("mapping<-"))
 
 #' @aliases mapping,SingleBatchCopyNumber-method
+#' @rdname CopyNumber-methods
 setMethod("mapping", "SingleBatchCopyNumber", function(object){
   object@mapping
 })
 
 #' @aliases mapping,MultiBatchCopyNumber-method
+#' @rdname CopyNumber-methods
 setMethod("mapping", "MultiBatchCopyNumber", function(object){
   object@mapping
 })
 
+#' @param value a numeric vector mapping component indices to copy number state indices
 #' @aliases mapping,SingleBatchCopyNumber,numeric-method
+#' @rdname CopyNumber-methods
 setReplaceMethod("mapping", c("SingleBatchCopyNumber", "numeric"),
                  function(object, value){
                    object@mapping <- value
@@ -34,6 +38,7 @@ setReplaceMethod("mapping", c("SingleBatchCopyNumber", "numeric"),
                  })
 
 #' @aliases mapping,MultiBatchCopyNumber,numeric-method
+#' @rdname CopyNumber-methods
 setReplaceMethod("mapping", c("MultiBatchCopyNumber", "numeric"),
                  function(object, value){
                    object@mapping <- value
@@ -150,18 +155,21 @@ setMethod("copyNumber", "MultiBatchCopyNumber", function(object){
 #' @param proportion.subjects numeric value in [0, 1]. Two components are
 #'   combined if the fraction of subjects with component probabilities in the
 #'   range [threshold, 1-threshold] exceeds this value.
-#' @param max_homozygous length-2 numeric vector of cutoffs used for
+#' @param outlier.variance.ratio if the ratio of the component variance to the
+#'   median variance of the other component exceeds the value of this argument,
+#'   the component is considered to correspond to outliers. 
+#' @param max.homozygous length-2 numeric vector of cutoffs used for
 #'   establishing a homozygous deletion component. The first element is the
 #'   cutoff for the mean log R ratios when there are 2 or more states. The
 #'   second element is the cutoff for the mean log R ratio when there are 3 or
 #'   more states.
-#' @param min_foldchange a length-one numeric vector. When there are 3 or more
+#' @param min.foldchange a length-one numeric vector. When there are 3 or more
 #'   states, we compute the ratio of the distance between the means of the
 #'   sorted components 1 and 2 (the 2 components with lowest means) and the
 #'   distance between the means of components 2 and 3. If the ratio (i) exceeds
 #'   the value specified by this parameter, (ii) there are 3 or more states, and
 #'   (iii) the first component has a mean less than \code{max_homozygous[2]}, we
-#'   infer that the first component is a homozygous deletion. 
+#'   infer that the first component is a homozygous deletion.
 #' @export
 #' @examples
 #' mapParams()
@@ -212,26 +220,33 @@ isOutlier <- function(model, params=mapParams()){
 #' @param params a list of mapping parameters
 #' @examples
 #' mm <- MarginalModelExample
-#' mm <- SingleBatchCopyNumber(mm)
-#' mapComponents(mm)
-#' map(mm) <- SingleBatchCopyNumber(mm)
+#' cn.model <- SingleBatchCopyNumber(mm)
+#' mapping(cn.model) <- mapComponents(cn.model)
+#' mapping(cn.model)
 #' \dontrun{
 #'  ggSingleBatch(mm)
 #' }
 #' ## Batch model
 #' bmodel <- BatchModelExample
 #' bmodel <- MultiBatchCopyNumber(bmodel)
-#' mapComponents(bmodel)
+#' mapping(bmodel) <- mapComponents(bmodel)
+#' mapping(bmodel)
 #' @export
 mapComponents <- function(model, params=mapParams()){
   p <- probz(model)
   K <- mapping(model)
   threshold <- params[["threshold"]]
-  uncertain.component <- p > threshold & p <= (1-threshold)
+  near.one <- p < 0.05 | p > 0.95
+  ##
+  ## the denominator should not include observations classified with probability near 1 to
+  ##
+  select <- rowSums(p > 0.99) == 0
+  p <- p[select, , drop=FALSE]
+  frac.uncertain <- colMeans(p >= threshold & p <= (1-threshold))
   ##
   ## what fraction of subjects have low posterior probabilities
   ##
-  frac.uncertain <- colMeans(uncertain.component)
+  ##frac.uncertain <- n.uncertain/as.numeric(table(z(model)))
   cutoff <- params[["proportion.subjects"]]
   if(all(frac.uncertain < cutoff)){
     return(K)
@@ -277,17 +292,18 @@ MultiBatchCopyNumber <- function(model){
   mb.model
 }
 
-#' Name biological equivalent of components
+#' Map mixture components to copy number states
 #' 
 #' @examples
 #' cn.model <- SingleBatchModel(MarginalModelExample)
 #' mapping(cn.model) <- mapComponents(cn.model)
 #' mapCopyNumber(MarginalModelExample)
-#' @param x  A vector of component LRR means
-#' @param approx  A vector indicating the approximate locations of labels
-#' @param homozygous_check  A boolean indicating whether to check for homozygous deletion first
-#' @return A vector of labels e.g. \code{c("Homozygous Deletion", "Diploid")}
+#' @param params  a list of parameters for mapping component indices to copy number 
+#' 
+#' @return a factor vector of length k
+#'
 #' @export
+#' @rdname CopyNumber-methods
 mapCopyNumber <- function(model,
                           params=mapParams()) {
   ##  labels <- c("Homozygous Deletion",
