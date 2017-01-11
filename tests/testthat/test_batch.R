@@ -19,6 +19,9 @@ test_that("test_batch_moderate", {
   model <- BatchModel(data = y(truth), batch = batch(truth),
                       k = 3, mcmc.params = mcmcp) ##, hypp = hypp)
   model2 <- posteriorSimulation(model)
+
+  pz <- probz(model2)
+  expect_true(all(pz >= 0 | pz <= 1))
   model2 <- useModes(model2)
   expect_equal(theta(truth), theta(model2), tolerance=0.1)
   if (FALSE) {
