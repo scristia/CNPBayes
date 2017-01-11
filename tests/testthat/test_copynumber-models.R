@@ -204,6 +204,7 @@ test_that("Mapping components to copy number (multiple batches)", {
                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
                              theta = means,
                              sds = sds)
+  truth@probz[]
   mp <- McmcParams(iter=200, burnin=0, nStarts=0)
   mcmcParams(truth) <- mp
   model <- posteriorSimulation(truth)
@@ -211,7 +212,8 @@ test_that("Mapping components to copy number (multiple batches)", {
     ggMultiBatch(model)
 
   cn.model <- MultiBatchCopyNumber(model)
-  map <- mapComponents(cn.model)
+  trace(CNPBayes:::mapComponents, browser)
+  map <- CNPBayes:::mapComponents(cn.model)
   expect_identical(map, c(1L, 2L, 2L))
   mapping(cn.model) <- map
   if(FALSE)

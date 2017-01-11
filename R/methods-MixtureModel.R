@@ -534,6 +534,8 @@ setMethod("isOrdered", "BatchModel", function(object){
                                  thin=thin(mp.orig),
                                  iter=iter(mp.orig),
                                  nStarts=0)
+  ## reset counter for posterior probabilities
+  post@probz[] <- 0
   post <- runMcmc(post)
   modes(post) <- computeModes(post)
   mcmcParams(post) <- mp.orig
