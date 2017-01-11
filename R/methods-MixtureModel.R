@@ -251,17 +251,10 @@ setReplaceMethod("probz", "MixtureModel", function(object, value){
 ## probz(object) <- probz(object)
 ## will not behave as expected
 #' @rdname probz-method
-#' @aliases probz,MarginalModel-method
-setMethod("probz", "MarginalModel", function(object) {
+#' @aliases probz,MixtureModel-method
+setMethod("probz", "MixtureModel", function(object) {
   ## because first iteration not saved
   object@probz/(iter(object)-1)
-})
-
-#' @rdname probz-method
-#' @aliases probz,BatchModel-method
-setMethod("probz", "BatchModel", function(object) {
-  ## because first iteration not saved
-  object@probz/(iter(object))
 })
 
 setMethod("runBurnin", "MarginalModel", function(object){
