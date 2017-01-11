@@ -186,6 +186,12 @@ setValidity("BatchModel", function(object){
     msg <- "Constructor for BatchModel should return data and batch assignment in batch-order"
     return(msg)
   }
+  pz <- probz(object)
+  maxprob <- max(pz)
+  if(maxprob > 1 ){
+    msg <- "Posterior probabilities exceed 1"
+    return(msg)
+  }
   msg
 })
 

@@ -242,6 +242,7 @@ mapComponents <- function(model, params=mapParams()){
   ##
   select <- rowSums(p > 0.99) == 0
   p <- p[select, , drop=FALSE]
+  if(nrow(p) == 0) return(K)
   frac.uncertain <- colMeans(p >= threshold & p <= (1-threshold))
   ##
   ## what fraction of subjects have low posterior probabilities
