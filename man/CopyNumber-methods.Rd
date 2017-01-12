@@ -2,6 +2,8 @@
 % Please edit documentation in R/copynumber-models.R
 \docType{methods}
 \name{mapping}
+\alias{MultiBatchCopyNumber}
+\alias{SingleBatchCopyNumber}
 \alias{mapCopyNumber}
 \alias{mapping}
 \alias{mapping,MultiBatchCopyNumber,numeric-method}
@@ -34,6 +36,10 @@ probCopyNumber(model)
 
 \S4method{probCopyNumber}{MultiBatchCopyNumber}(model)
 
+SingleBatchCopyNumber(model)
+
+MultiBatchCopyNumber(model)
+
 mapCopyNumber(model, params = mapParams())
 }
 \arguments{
@@ -44,8 +50,14 @@ mapCopyNumber(model, params = mapParams())
 \item{model}{a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance}
 
 \item{params}{a list of parameters for mapping component indices to copy number}
+
+\item{model}{a \code{MarginalModel}}
 }
 \value{
+a \code{SingleBatchCopyNumber} instance
+
+a \code{MultiBatchCopyNumber} instance
+
 a factor vector of length k
 }
 \description{
@@ -54,12 +66,15 @@ Mapping of mixture component indices to copy number states
 In contrast to posterior probabilities for mixture components, this function
 returns posterior probabilities for distinct copy number states.
 
+Used for mapping mixture components to distict copy number states
+
 Map mixture components to copy number states
 }
 \examples{
 cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 map <- mapComponents(cn.model)
 mapping(cn.model) <- map
+SingleBatchCopyNumber(MarginalModelExample)
 cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 mapping(cn.model) <- mapComponents(cn.model)
 mapCopyNumber(cn.model)

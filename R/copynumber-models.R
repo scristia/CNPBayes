@@ -280,15 +280,20 @@ mapComponents <- function(model, params=mapParams()){
 #' Used for mapping mixture components to distict copy number states
 #'
 #' @param model a \code{MarginalModel}
+#' @return a \code{SingleBatchCopyNumber} instance
 #' @examples
 #' SingleBatchCopyNumber(MarginalModelExample)
 #' @export
+#' @rdname CopyNumber-methods
 SingleBatchCopyNumber <- function(model){
   sb.model <- as(model, "SingleBatchCopyNumber")
   mapping(sb.model) <- seq_len(k(model))
   sb.model
 }
 
+#' @return a \code{MultiBatchCopyNumber} instance
+#' @export
+#' @rdname CopyNumber-methods
 MultiBatchCopyNumber <- function(model){
   mb.model <- as(model, "MultiBatchCopyNumber")
   mapping(mb.model) <- seq_len(k(model))
