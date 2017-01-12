@@ -116,6 +116,7 @@ test_that("Methods defined for the class", {
 
 
 test_that("Mapping components to copy number (single batch)", {
+  set.seed(514)
   sb <- MarginalModelExample
   cn.model <- SingleBatchCopyNumber(sb)
   params <- mapParams()
@@ -133,7 +134,7 @@ test_that("Mapping components to copy number (single batch)", {
                         theta=c(0, 0.25), sds=c(0.2, 0.2))
   mp <- McmcParams(iter = 500, burnin = 0, nStarts = 0)
   mcmcParams(truth) <- mp
-  model <- posteriorSimulation(truth)
+  expect_warning(model <- posteriorSimulation(truth))
 
   cn.model <- SingleBatchCopyNumber(model)
   map <- mapComponents(cn.model, params)
@@ -166,10 +167,13 @@ test_that("Mapping components to copy number (single batch)", {
   ##
   ## merge 2 of 3 components 
   ##
+  set.seed(123)
   truth <- simulateData(N=100, p=c(0.1, 0.8, 0.1),
                         theta=c(-0.3, 0, 1), sds=c(0.2, 0.2, 0.2))
   mcmcParams(truth) <- McmcParams(iter=200, burnin=0)
-  model <- posteriorSimulation(truth)
+  ## label switching will occur because components are not well separated
+  expect_warning(model <- posteriorSimulation(truth),
+                 "label switching: model k=3")
   cn.model <- SingleBatchCopyNumber(model)
   map <- mapComponents(cn.model, params)
   mapping(cn.model) <- map
@@ -207,15 +211,19 @@ test_that("Mapping components to copy number (multiple batches)", {
   truth@probz[]
   mp <- McmcParams(iter=200, burnin=0, nStarts=0)
   mcmcParams(truth) <- mp
-  model <- posteriorSimulation(truth)
+  expect_warning(model <- posteriorSimulation(truth),
+                 "label switching: model k=3")
+  expect_true(all(range(probz(model)) == c(0, 1)))
   if(FALSE)
     ggMultiBatch(model)
 
   cn.model <- MultiBatchCopyNumber(model)
-  trace(CNPBayes:::mapComponents, browser)
-  map <- CNPBayes:::mapComponents(cn.model)
+  ## trace(CNPBayes:::mapComponents, browser)
+  map <- mapComponents(cn.model)
   expect_identical(map, c(1L, 2L, 2L))
   mapping(cn.model) <- map
+  ## mapCopyNumber not yet defined for MultiBatch models
+  ##cn <- mapCopyNumber(cn.model)
   if(FALSE)
     ggMultiBatch(cn.model)
 })
