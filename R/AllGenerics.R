@@ -76,7 +76,7 @@ setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
 #' @export
 #' @docType methods
 #' @rdname tau2-method
-#' @seealso \code{Hyperparameters}
+#' @seealso \code{Hyperparameters}, see \code{\link{ggSingleBatchChains}} for plotting
 setGeneric("tau2", function(object) standardGeneric("tau2"))
 setGeneric("tau2<-", function(object, value) standardGeneric("tau2<-"))
 setGeneric("nu.0<-", function(object, value) standardGeneric("nu.0<-"))
@@ -136,7 +136,7 @@ setGeneric("McmcChains", function(object) standardGeneric("McmcChains"))
 
 setGeneric("hist")
 
-#' Plot the densities estimated from a mixture model for a copy number polymorphism
+#' Deprecated plot method for DensityModel class
 #'
 #' Plot estimates of the posterior density for each component and the
 #' overall, marginal density.  For batch models, one can additionally
@@ -152,8 +152,7 @@ setGeneric("hist")
 #' will be plotted.
 #' @param ... Additional arguments passed to \code{hist}.
 #' @return A plot showing the density estimate
-#' @examples
-#' plot(MarginalModelExample)
+#' ##plot(MarginalModelExample)
 #' @export
 setGeneric("plot")
 
@@ -440,11 +439,23 @@ setGeneric("tablez", function(object) standardGeneric("tablez"))
 #' @rdname nStarts-method
 setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 
-#' Reset number of MCMC chains in simulation.
+#' Reset number of starting values 
 #'
-#' This function changes the number of chains used for an MCMC simulation.
+#' @details Simulating starting values from the priors makes it imperative to
+#'   run a large nubmer of simulations for burnin and to carefully evaluate the
+#'   chains following burning for convergence. The adequacy of the burnin is
+#'   difficult to assess in high-dimensional settings with a large number of
+#'   CNPs. To avoid starting in regions of low posterior probabilitiy, we use
+#'   existing EM-based methods in the package \code{{mclust}} to select starting
+#'   values from \code{N} bootstrap sample of the observed data, where \code{N}
+#'   is specificed as in the example below. For each bootstrap sample, starting
+#'   values for the model are estimated. For each set of simulated starting
+#'   values, the log likelihood of the full data is evaluated. The starting
+#'   values with the largest log likelihood are used as initial values for the
+#'   MCMC simulations.
+#'
 #' @examples
-#' number_of_chains <- 3
+#' number_of_chains <- 10
 #' nStarts(MarginalModelExample) <- number_of_chains
 #' @param value new number of chains
 #' @export
@@ -709,18 +720,16 @@ setGeneric("marginalLikelihood",
 #' @export
 setGeneric("chromosome", function(object, ...) standardGeneric("chromosome"))
 
-#' Calculate proportion of relabeling instances
+#' Deprecated function for estimating relabeling instances
 #'
-#' When fitting an object of class \code{MixtureModel}, label switching can occur i.e. the mean 
-#' of component one can be less than the mean of component two at one iteration of the 
-#' MCMC sampler and at the next instance, the order is switched. Label switching should be 
-#' kept at a minimum. This function returns the proportion of MCMC sample iterations where 
+#' When fitting an object of class \code{MixtureModel}, label switching can occur i.e. the mean
+#' of component one can be less than the mean of component two at one iteration of the
+#' MCMC sampler and at the next instance, the order is switched. Label switching should be
+#' kept at a minimum. This function returns the proportion of MCMC sample iterations where
 #' label switching has occurred.
 #' @param object An object of class \code{MarginalModel} or \code{BatchModel}
 #' @param merge A logical indicating whether the components should be merged before checking for label switching
 #' @return A single proportion for a \code{MarginalModel} or a vector of proportions, one for each batch for a \code{BatchModel}
-#' @examples
-#'      labelSwitching(MarginalModelExample)
 #' @export
 #' @rdname labelSwitching-method
 setGeneric("labelSwitching", function(object, merge=TRUE) standardGeneric("labelSwitching"))

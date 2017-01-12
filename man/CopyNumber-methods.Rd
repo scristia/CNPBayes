@@ -50,8 +50,6 @@ mapCopyNumber(model, params = mapParams())
 \item{model}{a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance}
 
 \item{params}{a list of parameters for mapping component indices to copy number}
-
-\item{model}{a \code{MarginalModel}}
 }
 \value{
 a \code{SingleBatchCopyNumber} instance

@@ -18,17 +18,6 @@ clusters(object)
 k-means clustering of the component means using the modes as centers.
 }
 \description{
-Accessor for extracting the kmeans clusters from a DensityModel
-instance
-}
-\examples{
-truth <- simulateData(N=2500, p=rep(1/3, 3),
-                      theta=c(-1, 0, 1),
-                      sds=rep(0.1, 3))
-dm <- DensityModel(truth)
-clusters(dm)
-}
-\seealso{
-\code{\link{DensityModel-class}}
+DensityModel constructor and methods are Deprecated
 }
 

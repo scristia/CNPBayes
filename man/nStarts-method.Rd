@@ -33,11 +33,25 @@ An integer of the number of different starts.
 \description{
 This function retrieves the number of chains used for an MCMC simulation.
 
-This function changes the number of chains used for an MCMC simulation.
+Reset number of starting values
+}
+\details{
+Simulating starting values from the priors makes it imperative to
+  run a large nubmer of simulations for burnin and to carefully evaluate the
+  chains following burning for convergence. The adequacy of the burnin is
+  difficult to assess in high-dimensional settings with a large number of
+  CNPs. To avoid starting in regions of low posterior probabilitiy, we use
+  existing EM-based methods in the package \code{{mclust}} to select starting
+  values from \code{N} bootstrap sample of the observed data, where \code{N}
+  is specificed as in the example below. For each bootstrap sample, starting
+  values for the model are estimated. For each set of simulated starting
+  values, the log likelihood of the full data is evaluated. The starting
+  values with the largest log likelihood are used as initial values for the
+  MCMC simulations.
 }
 \examples{
 number_of_chains <- nStarts(MarginalModelExample)
-number_of_chains <- 3
+number_of_chains <- 10
 nStarts(MarginalModelExample) <- number_of_chains
 }
 

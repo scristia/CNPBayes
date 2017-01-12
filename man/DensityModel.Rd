@@ -17,14 +17,9 @@ density as the centers for the \code{kmeans} function.}
 An object of class 'DensityModel'
 }
 \description{
-Instantiates an instance of 'DensityModel' (or 'DensityBatchModel')
-from a MarginalModel or BatchModel object. See the corresponding
-class for additional details and examples.
-}
-\examples{
-     dm <- DensityModel(MarginalModelExample)
+DensityModel constructor has been deprecated.
 }
 \seealso{
-\code{\link{DensityModel-class}} \code{\link{kmeans}}
+See \code{\link{ggSingleBatch}} and \code{\link{ggMultiBatch}} for visualization
 }
 

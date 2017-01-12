@@ -4,7 +4,7 @@
 \name{labelSwitching}
 \alias{labelSwitching}
 \alias{labelSwitching,MixtureModel-method}
-\title{Calculate proportion of relabeling instances}
+\title{Deprecated function for estimating relabeling instances}
 \usage{
 labelSwitching(object, merge = TRUE)
 
@@ -19,13 +19,10 @@ labelSwitching(object, merge = TRUE)
 A single proportion for a \code{MarginalModel} or a vector of proportions, one for each batch for a \code{BatchModel}
 }
 \description{
-When fitting an object of class \code{MixtureModel}, label switching can occur i.e. the mean 
-of component one can be less than the mean of component two at one iteration of the 
-MCMC sampler and at the next instance, the order is switched. Label switching should be 
-kept at a minimum. This function returns the proportion of MCMC sample iterations where 
+When fitting an object of class \code{MixtureModel}, label switching can occur i.e. the mean
+of component one can be less than the mean of component two at one iteration of the
+MCMC sampler and at the next instance, the order is switched. Label switching should be
+kept at a minimum. This function returns the proportion of MCMC sample iterations where
 label switching has occurred.
-}
-\examples{
-     labelSwitching(MarginalModelExample)
 }
 

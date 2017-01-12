@@ -154,6 +154,7 @@ setMethod("show", "DensityBatchModel", function(object){
 
 
 .plotMarginal <- function(x, y, ...){
+  .Deprecated("See ggSingleBatch and ggMultiBatch")
   object <- x
   args <- list(...)
   if(!"breaks" %in% names(args)){

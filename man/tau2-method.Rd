@@ -43,6 +43,6 @@ plot.ts(tau2(chains(BatchModelExample)))
 
 }
 \seealso{
-\code{Hyperparameters}
+\code{Hyperparameters}, see \code{\link{ggSingleBatchChains}} for plotting
 }
 

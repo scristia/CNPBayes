@@ -278,7 +278,6 @@ mapComponents <- function(model, params=mapParams()){
 #'
 #' Used for mapping mixture components to distict copy number states
 #'
-#' @param model a \code{MarginalModel}
 #' @return a \code{SingleBatchCopyNumber} instance
 #' @examples
 #' SingleBatchCopyNumber(MarginalModelExample)

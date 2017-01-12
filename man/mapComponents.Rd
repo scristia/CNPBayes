@@ -7,8 +7,6 @@
 mapComponents(model, params = mapParams())
 }
 \arguments{
-\item{model}{\code{SingleBatchCopyNumber} or \code{{MultiBatchCopyNumber}} model}
-
 \item{params}{a list of mapping parameters}
 }
 \description{

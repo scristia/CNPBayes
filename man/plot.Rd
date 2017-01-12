@@ -8,7 +8,7 @@
 \alias{plot,DensityModel,ANY-method}
 \alias{plot,DensityModel,numeric-method}
 \alias{plot,MarginalModel,ANY-method}
-\title{Plot the densities estimated from a mixture model for a copy number polymorphism}
+\title{Deprecated plot method for DensityModel class}
 \usage{
 plot(x, y, ...)
 
@@ -36,13 +36,11 @@ will be plotted.}
 }
 \value{
 A plot showing the density estimate
+##plot(MarginalModelExample)
 }
 \description{
 Plot estimates of the posterior density for each component and the
 overall, marginal density.  For batch models, one can additionally
 plot batch-specific density estimates.
-}
-\examples{
-plot(MarginalModelExample)
 }
 
