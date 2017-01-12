@@ -11,6 +11,7 @@
 \alias{mapping<-}
 \alias{mapping<-,MultiBatchCopyNumber,numeric-method}
 \alias{mapping<-,SingleBatchCopyNumber,numeric-method}
+\alias{probCopyNumber}
 \alias{probCopyNumber,MultiBatchCopyNumber-method}
 \alias{probCopyNumber,SingleBatchCopyNumber-method}
 \title{Mapping of mixture component indices to copy number states}
@@ -27,6 +28,8 @@ mapping(object) <- value
 
 \S4method{mapping}{MultiBatchCopyNumber,numeric}(object) <- value
 
+probCopyNumber(model)
+
 \S4method{probCopyNumber}{SingleBatchCopyNumber}(model)
 
 \S4method{probCopyNumber}{MultiBatchCopyNumber}(model)
@@ -38,6 +41,8 @@ mapCopyNumber(model, params = mapParams())
 
 \item{value}{a numeric vector mapping component indices to copy number state indices}
 
+\item{model}{a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance}
+
 \item{params}{a list of parameters for mapping component indices to copy number}
 }
 \value{
@@ -46,14 +51,17 @@ a factor vector of length k
 \description{
 Mapping of mixture component indices to copy number states
 
+In contrast to posterior probabilities for mixture components, this function
+returns posterior probabilities for distinct copy number states.
+
 Map mixture components to copy number states
 }
 \examples{
 cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 map <- mapComponents(cn.model)
 mapping(cn.model) <- map
-cn.model <- SingleBatchModel(MarginalModelExample)
+cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 mapping(cn.model) <- mapComponents(cn.model)
-mapCopyNumber(MarginalModelExample)
+mapCopyNumber(cn.model)
 }
 
