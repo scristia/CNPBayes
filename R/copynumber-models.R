@@ -216,7 +216,6 @@ isOutlier <- function(model, params=mapParams()){
 
 #' Map mixture components to distinct copy number states
 #'
-#' @param model \code{SingleBatchCopyNumber} or \code{{MultiBatchCopyNumber}} model
 #' @param params a list of mapping parameters
 #' @examples
 #' mm <- MarginalModelExample

@@ -658,14 +658,9 @@ setGeneric("densitiesCluster", function(object) standardGeneric("densitiesCluste
 #' Accessor for extracting the kmeans clusters from a DensityModel
 #' instance
 #'
+#' DensityModel constructor and methods are Deprecated
+#'
 #' @param object an instance of class 'DensityModel'
-#' @seealso \code{\link{DensityModel-class}}
-#' @examples
-#' truth <- simulateData(N=2500, p=rep(1/3, 3),
-#'                       theta=c(-1, 0, 1),
-#'                       sds=rep(0.1, 3))
-#' dm <- DensityModel(truth)
-#' clusters(dm)
 #' @export
 #' @docType methods
 #' @rdname clusters-method

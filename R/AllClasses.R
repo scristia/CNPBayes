@@ -218,19 +218,9 @@ setClass("MultiBatchCopyNumber", contains="BatchModel",
          representation(mapping="numeric"))
 
 
-#' An object to store estimated mixture model densities
+#' Deprecated class for storing estimated mixture model densities
 #'
-#' Instances of DensityModel store the estimated densities for each
-#' component and the overall (marginal) estimate of the density. The
-#' derived class DensityBatchModel additionally stores the density for
-#' each batch / component combination (i.e., if there are 3 components
-#' and 10 batches, there are 30 estimated densities).  The intended
-#' use-case of the DensityModel class is to faciliate visualization of
-#' the estimated densities (see examples) as well as to provide an
-#' estimate of the number of modes in the overall density. If the
-#' number of estimated modes is smaller than the number of components
-#' of the best-fitting mixture model, post-hoc merging of components
-#' may be useful.
+#' 
 #' @slot component The component densities.
 #' @slot overall The overall (marginal across batches and components) estimate of the density.
 #' @slot modes A numeric vector providing the estimated modes in the
@@ -241,44 +231,6 @@ setClass("MultiBatchCopyNumber", contains="BatchModel",
 #' component means using the modes as centers.  If an object of class
 #' \code{DensityModel} is instantiated with \code{merge=FALSE}, this
 #' slot takes values 1, ..., K, where K is the number of components.
-#' @examples
-#' ## marginal model
-#' truth <- simulateData(N=2500, p=rep(1/3, 3),
-#'                       theta=c(-1, 0, 1),
-#'                       sds=rep(0.1, 3))
-#' dm <- DensityModel(truth)
-#' print(dm)
-#' dm.merged <- DensityModel(truth, merge=TRUE)
-#' print(dm.merged)
-#' ## here, because there are 3 distinct modes, specifying merge=TRUE
-#' ## does not change the resulting clusters
-#' identical(clusters(dm), clusters(dm.merged))
-#' ## These objects can be plotted
-#' plot(dm)
-#' ## Note that calling plot on a MixtureModel-derived object returns
-#' ## a density object as a side-effect of the plotting
-#' dm2 <- CNPBayes::plot(truth)
-#' identical(dm, dm2)
-#' ## batch model
-#' k <- 3
-#' nbatch <- 3
-#' means <- matrix(c(-1.2, -1.0, -0.8,
-#'                  -0.2, 0, 0.2,
-#'                   0.8, 1, 1.2), nbatch, k, byrow=FALSE)
-#' sds <- matrix(0.1, nbatch, k)
-#' N <- 1500
-#' truth <- simulateBatchData(N=N,
-#'                            batch=rep(letters[1:3], length.out=N),
-#'                            theta=means,
-#'                            sds=sds,
-#'                            p=c(1/5, 1/3, 1-1/3-1/5))
-#' dm <- DensityModel(truth)
-#' dm.merged <- DensityModel(truth, merge=TRUE)
-#' print(dm)
-#' dm2 <- CNPBayes::plot(truth)
-#' identical(dm, dm2)
-#' ## suppress plotting of the batch-specific densities
-#' CNPBayes::plot(dm2, show.batch=FALSE)
 #' @aliases DensityBatchModel-class
 #' @seealso \code{\link{DensityModel}}
 #' @export

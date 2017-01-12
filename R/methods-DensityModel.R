@@ -78,12 +78,8 @@ setMethod("densitiesCluster", "MarginalModel", function(object){
 
 #' Constructor for DensityModel class
 #'
-#' Instantiates an instance of 'DensityModel' (or 'DensityBatchModel')
-#' from a MarginalModel or BatchModel object. See the corresponding
-#' class for additional details and examples.
-#' @examples
-#'      dm <- DensityModel(MarginalModelExample)
-#' @seealso \code{\link{DensityModel-class}} \code{\link{kmeans}}
+#' DensityModel constructor has been deprecated.  
+#' @seealso See \code{\link{ggSingleBatch}} and \code{\link{ggMultiBatch}} for visualization
 #' @param object see \code{showMethods(DensityModel)}
 #' @param merge Logical.  Whether to use kmeans clustering to cluster
 #' the component means using the estimated modes from the overall
@@ -365,5 +361,11 @@ setMethod("densities", "SingleBatchPooledVar", function(object){
 #' @rdname clusters-method
 #' @aliases clusters,DensityModel-method
 #' @return k-means clustering of the component means using the modes as centers.
-setMethod("clusters", "DensityModel", function(object) object@clusters)
-setMethod("quantiles", "DensityModel", function(object) object@quantiles)
+setMethod("clusters", "DensityModel", function(object) {
+  .Deprecated()
+  object@clusters
+})
+
+##setMethod("quantiles", "DensityModel", function(object){
+##  object@quantiles
+##})
