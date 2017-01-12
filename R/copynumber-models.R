@@ -61,7 +61,7 @@ setMethod("numberStates", "MultiBatchCopyNumber", function(model){
 #' returns posterior probabilities for distinct copy number states.
 #'
 #' @param model a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
-#' @export
+#' @rdname CopyNumber-methods
 #' @export
 setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 
@@ -236,7 +236,6 @@ mapComponents <- function(model, params=mapParams()){
   p <- probz(model)
   K <- mapping(model)
   threshold <- params[["threshold"]]
-  near.one <- p < 0.05 | p > 0.95
   ##
   ## the denominator should not include observations classified with probability near 1 to
   ##
@@ -253,6 +252,9 @@ mapComponents <- function(model, params=mapParams()){
     return(K)
   }
   vars <- sigma2(model)
+  if(!isMarginalModel(model)){
+    vars <- colMeans(vars)
+  }
   var.ratio <- vars/median(vars)
   index <- which(frac.uncertain >= cutoff)
   var.ratio <- var.ratio[index]
@@ -294,13 +296,13 @@ MultiBatchCopyNumber <- function(model){
 }
 
 #' Map mixture components to copy number states
-#' 
+#'
 #' @examples
-#' cn.model <- SingleBatchModel(MarginalModelExample)
+#' cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 #' mapping(cn.model) <- mapComponents(cn.model)
-#' mapCopyNumber(MarginalModelExample)
+#' mapCopyNumber(cn.model)
 #' @param params  a list of parameters for mapping component indices to copy number 
-#' 
+#'
 #' @return a factor vector of length k
 #'
 #' @export
