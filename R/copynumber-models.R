@@ -4,6 +4,7 @@ NULL
 #' Mapping of mixture component indices to copy number states
 #'
 #' @param object a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
+#' @param model a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
 #' @export
 #' @examples
 #' cn.model <- SingleBatchCopyNumber(MarginalModelExample)
@@ -60,7 +61,6 @@ setMethod("numberStates", "MultiBatchCopyNumber", function(model){
 #' In contrast to posterior probabilities for mixture components, this function
 #' returns posterior probabilities for distinct copy number states.
 #'
-#' @param model a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
 #' @rdname CopyNumber-methods
 #' @export
 setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))

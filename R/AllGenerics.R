@@ -559,22 +559,24 @@ setGeneric("thin<-", function(object, value) standardGeneric("thin<-"))
 #' # Fit model with pre-specified number of components (k=3)
 #' set.seed(123)
 #' ## specify small number of iterations so that the example runs quickly
-#' mp <- McmcParams(iter=5, burnin=1, nStarts=5)
+#' mp <- McmcParams(iter=2, burnin=0, nStarts=3)
 #' mcmcParams(MarginalModelExample) <- mp
 #' posteriorSimulation(MarginalModelExample)
 #'
 #' # Run additional iterations, but set nStart = 0 so that the last value of the
 #' # chain is the first value of the next chain
-#' mcmcParams(MarginalModelExample) <- McmcParams(iter=10, nStarts=0, burnin=0)
+#' mcmcParams(MarginalModelExample) <- McmcParams(iter=5, nStarts=0, burnin=0)
 #' posteriorSimulation(MarginalModelExample)
 #'
 #' # Fit batch models of different sizes (k=1 and 2)
 #' mcmcParams(BatchModelExample) <- mp
-#' mlist <- BatchModelList(y(BatchModelExample), k=1:2)
+#' yy <- sample(y(BatchModelExample), 300)
+#' batches <- rep(1:3, length.out=length(yy))
+#' mlist <- BatchModelList(yy, batch=batches, k=1:2, mcmc.params=mp)
 #' mlist <- posteriorSimulation(mlist)
 #' ## continue running 10 additional iterations by setting nStarts=0. The last
 #' #value of the chains will be used as the first value of the next chain
-#' mcmcParams(mlist) <- McmcParams(iter=10, burnin=0, nStarts=0)
+#' mcmcParams(mlist) <- McmcParams(iter=3, burnin=0, nStarts=0)
 #' mlist <- posteriorSimulation(mlist)
 #' @param object see showMethods(posteriorSimulation)
 #' @param k The number of a priori components. This is optional and if not
