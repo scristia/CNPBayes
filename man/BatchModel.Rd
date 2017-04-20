@@ -26,4 +26,3 @@ Create an object for running hierarchical MCMC simulations.
 \examples{
      model <- BatchModel(rnorm(10), k=1, batch=rep(1:2, each=5))
 }
-

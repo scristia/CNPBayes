@@ -8,4 +8,3 @@
 \description{
 Bayesian mixture models for copy number estimation
 }
-

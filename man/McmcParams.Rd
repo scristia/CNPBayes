@@ -27,4 +27,3 @@ Create an object of class 'McmcParams' to specify iterations, burnin, etc.
 \examples{
      mp <- McmcParams(iter=100, burnin=10)
 }
-

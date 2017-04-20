@@ -25,4 +25,3 @@ MCMC sampler and at the next instance, the order is switched. Label switching sh
 kept at a minimum. This function returns the proportion of MCMC sample iterations where
 label switching has occurred.
 }
-

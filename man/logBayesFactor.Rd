@@ -17,4 +17,3 @@ Models of varying component sizes are compared. The log bayes factor is
 calculated comparing each set of two models by marginal likelihood, 
 as computed by \code{marginalLikelihood}.
 }
-

@@ -65,4 +65,3 @@ mlParams()
 \seealso{
 \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
 }
-

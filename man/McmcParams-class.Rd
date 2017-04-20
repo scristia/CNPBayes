@@ -21,10 +21,10 @@ An object to specify MCMC options for a later simulation
 
 \item{\code{param_updates}}{Indicates whether each parameter should be updated (1) or fixed (0).}
 }}
+
 \examples{
 McmcParams()
 McmcParams(iter=1000)
 mp <- McmcParams()
 iter(mp)
 }
-

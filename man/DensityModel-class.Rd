@@ -2,8 +2,8 @@
 % Please edit documentation in R/AllClasses.R
 \docType{class}
 \name{DensityModel-class}
-\alias{DensityBatchModel-class}
 \alias{DensityModel-class}
+\alias{DensityBatchModel-class}
 \title{Deprecated class for storing estimated mixture model densities}
 \description{
 Deprecated class for storing estimated mixture model densities
@@ -26,7 +26,7 @@ component means using the modes as centers.  If an object of class
 \code{DensityModel} is instantiated with \code{merge=FALSE}, this
 slot takes values 1, ..., K, where K is the number of components.}
 }}
+
 \seealso{
 \code{\link{DensityModel}}
 }
-

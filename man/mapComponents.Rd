@@ -26,4 +26,3 @@ bmodel <- MultiBatchCopyNumber(bmodel)
 mapping(bmodel) <- mapComponents(bmodel)
 mapping(bmodel)
 }
-

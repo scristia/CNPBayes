@@ -22,4 +22,3 @@ Retrieve the probability of latent variable membership by observation.
 \examples{
      probz(MarginalModelExample)
 }
-

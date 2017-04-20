@@ -19,4 +19,3 @@ Number of observations
 \examples{
 numberObs(MarginalModelExample)
 }
-

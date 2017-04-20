@@ -24,4 +24,3 @@ Short cut for \code{as.character(seqnames(g))} where g is a
    chromosome(g)
 }
 }
-

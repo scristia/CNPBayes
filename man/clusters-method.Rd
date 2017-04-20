@@ -20,4 +20,3 @@ k-means clustering of the component means using the modes as centers.
 \description{
 DensityModel constructor and methods are Deprecated
 }
-

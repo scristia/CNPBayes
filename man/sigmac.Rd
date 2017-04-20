@@ -19,4 +19,3 @@ Retrieve standard deviation of each component/batch mean at each iteration of th
 \examples{
      sigmac(MarginalModelExample)
 }
-

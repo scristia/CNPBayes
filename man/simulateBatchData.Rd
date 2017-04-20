@@ -39,4 +39,3 @@ truth <- simulateBatchData(N=N,
                            sds=sds,
                            p=c(1/5, 1/3, 1-1/3-1/5))
 }
-

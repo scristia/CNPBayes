@@ -19,4 +19,3 @@ Retrieve standard deviations of each component/batch mean.
 \examples{
      sigma(MarginalModelExample)
 }
-

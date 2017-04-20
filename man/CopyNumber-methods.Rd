@@ -2,20 +2,20 @@
 % Please edit documentation in R/copynumber-models.R
 \docType{methods}
 \name{mapping}
-\alias{MultiBatchCopyNumber}
-\alias{SingleBatchCopyNumber}
-\alias{mapCopyNumber}
 \alias{mapping}
-\alias{mapping,MultiBatchCopyNumber,numeric-method}
-\alias{mapping,MultiBatchCopyNumber-method}
-\alias{mapping,SingleBatchCopyNumber,numeric-method}
-\alias{mapping,SingleBatchCopyNumber-method}
 \alias{mapping<-}
-\alias{mapping<-,MultiBatchCopyNumber,numeric-method}
+\alias{mapping,SingleBatchCopyNumber-method}
+\alias{mapping,MultiBatchCopyNumber-method}
 \alias{mapping<-,SingleBatchCopyNumber,numeric-method}
+\alias{mapping,SingleBatchCopyNumber,numeric-method}
+\alias{mapping<-,MultiBatchCopyNumber,numeric-method}
+\alias{mapping,MultiBatchCopyNumber,numeric-method}
 \alias{probCopyNumber}
-\alias{probCopyNumber,MultiBatchCopyNumber-method}
 \alias{probCopyNumber,SingleBatchCopyNumber-method}
+\alias{probCopyNumber,MultiBatchCopyNumber-method}
+\alias{SingleBatchCopyNumber}
+\alias{MultiBatchCopyNumber}
+\alias{mapCopyNumber}
 \title{Mapping of mixture component indices to copy number states}
 \usage{
 mapping(object)
@@ -77,4 +77,3 @@ cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 mapping(cn.model) <- mapComponents(cn.model)
 mapCopyNumber(cn.model)
 }
-

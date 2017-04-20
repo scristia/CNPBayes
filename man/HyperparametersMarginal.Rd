@@ -56,4 +56,3 @@ marginal mixture model
 HyperparametersMarginal(k=3)
 
 }
-

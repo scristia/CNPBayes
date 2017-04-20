@@ -44,4 +44,3 @@ mapParams()
 \seealso{
 \code{\link{mapComponents}}
 }
-

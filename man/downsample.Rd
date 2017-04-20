@@ -23,4 +23,3 @@ Tile labels for each observation
 \description{
 A wrapper for function downSampleEachBatch. Batches are automatically merged as needed.
 }
-

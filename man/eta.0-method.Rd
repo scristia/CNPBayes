@@ -3,8 +3,8 @@
 \docType{methods}
 \name{eta.0}
 \alias{eta.0}
-\alias{eta.0,Hyperparameters-method}
 \alias{eta.0,MixtureModel-method}
+\alias{eta.0,Hyperparameters-method}
 \title{Retrieve the rate parameter for the tau2 distribution.}
 \usage{
 eta.0(object)
@@ -25,4 +25,3 @@ Retrieve the rate parameter for the tau2 distribution.
 \examples{
      eta.0(MarginalModelExample)
 }
-

@@ -95,4 +95,3 @@ seqinfo(truth) <- seqinfo(grl)
 identical(cnps, truth)
 
 }
-

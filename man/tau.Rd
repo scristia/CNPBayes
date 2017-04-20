@@ -18,4 +18,3 @@ Retrieve overall standard deviation.
 \examples{
      tau(MarginalModelExample)
 }
-

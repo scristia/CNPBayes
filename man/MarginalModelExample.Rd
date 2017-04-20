@@ -17,4 +17,3 @@ This data is a simulated example of Marginal data
 \author{
 Jacob Carey
 }
-

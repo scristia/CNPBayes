@@ -19,4 +19,3 @@ A vector of collapsed batch labels
 \description{
 Batches drawn from the same distribution as identified by Kolmogorov-Smirnov test are combined.
 }
-

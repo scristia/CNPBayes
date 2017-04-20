@@ -18,4 +18,3 @@ Retrieve mixture proportions.
 \examples{
      p(MarginalModelExample)
 }
-

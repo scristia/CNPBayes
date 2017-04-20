@@ -18,4 +18,3 @@ Retrieve overall standard deviation averaged across MCMC simulations.
 \examples{
      tauMean(MarginalModelExample)
 }
-

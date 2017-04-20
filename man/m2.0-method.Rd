@@ -3,8 +3,8 @@
 \docType{methods}
 \name{m2.0}
 \alias{m2.0}
-\alias{m2.0,Hyperparameters-method}
 \alias{m2.0,MixtureModel-method}
+\alias{m2.0,Hyperparameters-method}
 \title{Retrieve the shape parameter for the tau2 distribution.}
 \usage{
 m2.0(object)
@@ -25,4 +25,3 @@ Retrieve the shape parameter for the tau2 distribution.
 \examples{
      m2.0(MarginalModelExample)
 }
-

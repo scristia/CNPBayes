@@ -26,4 +26,3 @@ HyperparametersMarginal and HyperparametersBatch models.
 \examples{
      hypp <- Hyperparameters("marginal", k=2)
 }
-

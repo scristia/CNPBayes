@@ -22,4 +22,3 @@ DensityModel constructor has been deprecated.
 \seealso{
 See \code{\link{ggSingleBatch}} and \code{\link{ggMultiBatch}} for visualization
 }
-

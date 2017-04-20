@@ -27,4 +27,3 @@ Calculate posterior proportion of cases by component
      case_control_posterior <- posterior_cases(MarginalModelExample,
                                                case_control)
 }
-

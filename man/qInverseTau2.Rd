@@ -43,4 +43,3 @@ hypp <- Hyperparameters(type="batch")
 results3 <- qInverseTau2(eta.0(hypp), m2.0(hypp))
 default.precision.quantiles <- results3$quantiles
 }
-

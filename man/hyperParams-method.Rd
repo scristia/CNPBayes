@@ -3,8 +3,8 @@
 \docType{methods}
 \name{hyperParams}
 \alias{hyperParams}
-\alias{hyperParams,MixtureModel-method}
 \alias{hyperParams<-}
+\alias{hyperParams,MixtureModel-method}
 \alias{hyperParams<-,MixtureModel,Hyperparameters-method}
 \alias{hyperParams<-,MixtureModel-method}
 \title{Accessor for Hyperparameters object for a MixtureModel-derived object}
@@ -40,4 +40,3 @@ hypp <- Hyperparameters(type="marginal",
 hyperParams(MarginalModelExample) <- hypp
 
 }
-

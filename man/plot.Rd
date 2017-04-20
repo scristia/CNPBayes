@@ -3,11 +3,12 @@
 \docType{methods}
 \name{plot}
 \alias{plot}
-\alias{plot,BatchModel,ANY-method}
-\alias{plot,DensityBatchModel,ANY-method}
 \alias{plot,DensityModel,ANY-method}
 \alias{plot,DensityModel,numeric-method}
 \alias{plot,MarginalModel,ANY-method}
+\alias{plot,BatchModel,ANY-method}
+\alias{plot,DensityBatchModel,ANY-method}
+\alias{plot,BatchModel,ANY-method}
 \title{Deprecated plot method for DensityModel class}
 \usage{
 plot(x, y, ...)
@@ -43,4 +44,3 @@ Plot estimates of the posterior density for each component and the
 overall, marginal density.  For batch models, one can additionally
 plot batch-specific density estimates.
 }
-

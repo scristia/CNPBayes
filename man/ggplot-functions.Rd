@@ -2,15 +2,15 @@
 % Please edit documentation in R/plot-functions.R
 \docType{methods}
 \name{ggSingleBatchChains}
-\alias{ggMultiBatch}
-\alias{ggMultiBatch,BatchModel-method}
-\alias{ggMultiBatch,MultiBatchCopyNumber-method}
+\alias{ggSingleBatchChains}
 \alias{ggMultiBatchChains}
 \alias{ggSingleBatch}
+\alias{ggMultiBatch}
 \alias{ggSingleBatch,MarginalModel-method}
 \alias{ggSingleBatch,SingleBatchCopyNumber-method}
-\alias{ggSingleBatchChains}
 \alias{multiBatchDensities}
+\alias{ggMultiBatch,BatchModel-method}
+\alias{ggMultiBatch,MultiBatchCopyNumber-method}
 \title{ggplot-style functions for diagnosing convergence}
 \usage{
 ggSingleBatchChains(model)
@@ -68,4 +68,3 @@ ggSingleBatch(MarginalModelExample)
 df <- multiBatchDensities(BatchModelExample)
 head(df)
 }
-

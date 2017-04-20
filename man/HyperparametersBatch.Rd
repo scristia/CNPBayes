@@ -61,4 +61,3 @@ batch mixture model
 HyperparametersBatch(k=3)
 
 }
-

@@ -27,4 +27,3 @@ ds <- downSampleEachBatch(y, 10, batch)
 \seealso{
 \code{\link[dplyr]{ntile}}
 }
-

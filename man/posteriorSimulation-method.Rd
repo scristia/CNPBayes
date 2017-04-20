@@ -4,7 +4,9 @@
 \name{posteriorSimulation}
 \alias{posteriorSimulation}
 \alias{posteriorSimulation,MixtureModel,ANY-method}
+\alias{posteriorSimulation,MixtureModel-method}
 \alias{posteriorSimulation,MixtureModel,integer-method}
+\alias{posteriorSimulation,MixtureModel-method}
 \alias{posteriorSimulation,MixtureModel,numeric-method}
 \alias{posteriorSimulation,MixtureModel-method}
 \alias{posteriorSimulation,list,ANY-method}
@@ -64,4 +66,3 @@ mlist <- posteriorSimulation(mlist)
 \seealso{
 \code{\link{ggMultiBatchChains}} and \code{\link{ggSingleBatchChains}} for diagnosing convergence.  See \code{\link{ggMultiBatch}} and \code{\link{ggSingleBatch}} for plotting the model-based densities.
 }
-

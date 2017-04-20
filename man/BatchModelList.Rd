@@ -33,4 +33,3 @@ mlist2 <- posteriorSimulation(mlist)
 \seealso{
 \code{\link{BatchModel}}.  For single-batch data, use \code{\link{MarginalModelList}}.
 }
-

@@ -3,11 +3,13 @@
 \docType{methods}
 \name{mcmcParams}
 \alias{mcmcParams}
-\alias{mcmcParams,MixtureModel-method}
-\alias{mcmcParams,list-method}
 \alias{mcmcParams<-}
+\alias{mcmcParams,MixtureModel-method}
 \alias{mcmcParams<-,MixtureModel-method}
+\alias{mcmcParams,MixtureModel-method}
 \alias{mcmcParams<-,list-method}
+\alias{mcmcParams,list-method}
+\alias{mcmcParams,list-method}
 \title{Retrieve MCMC parameters from model.}
 \usage{
 mcmcParams(object)
@@ -40,4 +42,3 @@ Replace number of iterations, burnin, etc. Any update of the MCMC parameters wil
 \examples{
      mcmcParams(MarginalModelExample)
 }
-

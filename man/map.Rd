@@ -18,4 +18,3 @@ Calculate the maximum a posteriori estimate of latent variable assignment.
 \examples{
      map(MarginalModelExample)
 }
-

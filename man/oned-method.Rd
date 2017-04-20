@@ -19,4 +19,3 @@ A vector the length of the data
 \description{
 Retrieve data.
 }
-

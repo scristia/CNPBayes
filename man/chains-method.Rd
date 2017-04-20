@@ -29,4 +29,3 @@ dim(theta.chain)
 plot.ts(theta.chain, plot.type="single",
         col=seq_len(k(MarginalModelExample)))
 }
-

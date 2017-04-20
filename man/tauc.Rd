@@ -19,4 +19,3 @@ Retrieve overall standard deviation at each iteration of the MCMC.
 \examples{
      tauc(MarginalModelExample)
 }
-

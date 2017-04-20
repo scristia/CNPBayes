@@ -3,14 +3,14 @@
 \docType{methods}
 \name{marginalLikelihood}
 \alias{marginalLikelihood}
-\alias{marginalLikelihood,BatchModel,ANY-method}
-\alias{marginalLikelihood,BatchModel-method}
-\alias{marginalLikelihood,MarginalModel,ANY-method}
 \alias{marginalLikelihood,MarginalModel-method}
-\alias{marginalLikelihood,SingleBatchPooledVar,ANY-method}
+\alias{marginalLikelihood,MarginalModel,ANY-method}
 \alias{marginalLikelihood,SingleBatchPooledVar-method}
-\alias{marginalLikelihood,list,ANY-method}
+\alias{marginalLikelihood,SingleBatchPooledVar,ANY-method}
+\alias{marginalLikelihood,BatchModel-method}
+\alias{marginalLikelihood,BatchModel,ANY-method}
 \alias{marginalLikelihood,list-method}
+\alias{marginalLikelihood,list,ANY-method}
 \title{Compute the marginal likelihood of a converged model.}
 \usage{
 marginalLikelihood(model, params = mlParams())
@@ -51,4 +51,3 @@ Compute the marginal likelihood of a converged model.
 
 Note: currently thinning of the reduced MCMC chains is not allowed.
 }
-
