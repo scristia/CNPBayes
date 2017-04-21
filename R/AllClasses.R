@@ -1,4 +1,5 @@
 #' @include AllGenerics.R
+NULL
 
 setClassUnion("numericOrMatrix", c("numeric", "matrix"))
 
