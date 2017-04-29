@@ -24,7 +24,7 @@ test_that("test_consensusCNP", {
     cnps <- consensusCNP(grl, max.width = 5e+05)
     truth <- GRanges(c("chr1", "chr5"), IRanges(c(10000100L,
         101000999L), c(10100100L, 101400999L)))
-    seqlevels(truth, force = TRUE) <- seqlevels(grl)
+    seqlevels(truth, pruning.mode = "coarse") <- seqlevels(grl)
     seqinfo(truth) <- seqinfo(grl)
     expect_identical(truth, cnps)
 })

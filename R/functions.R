@@ -125,7 +125,7 @@ defineCnpRegions <- function(grl, thr=0.02){
 #' truth <- GRanges(c("chr1", "chr5"),
 #'                  IRanges(c(10000100L, 101000999L),
 #'                          c(10100100L, 101400999L)))
-#' seqlevels(truth, force=TRUE) <- seqlevels(grl)
+#' seqlevels(truth, pruning.mode="coarse") <- seqlevels(grl)
 #' seqinfo(truth) <- seqinfo(grl)
 #' identical(cnps, truth)
 #'
@@ -160,7 +160,7 @@ consensusCNP <- function(grl, transcripts, min.width=2e3, max.width=200e3, min.p
   if(!missing(transcripts)){
     regions <- annotateRegions(regions, transcripts)
   }
-  seqlevels(regions, force=TRUE) <- seqlevels(si)
+  seqlevels(regions, pruning.mode="coarse") <- seqlevels(si)
   seqinfo(regions) <- si
   regions
 }
