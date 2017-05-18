@@ -39,7 +39,6 @@ setMethod("collapseBatch", "numeric", function(object, plate, THR=0.1){
   N <- choose(length(unique(plate)), 2)
   cond2 <- TRUE
   while(N > 1 && cond2){
-    message(".", appendLF=TRUE)
     B <- plate
     plate <- .collapseBatch(object, plate, THR=THR)
     cond2 <- !identical(B, plate)
