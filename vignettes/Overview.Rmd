@@ -102,6 +102,15 @@ sb.list <- posteriorSimulation(sb.list)
 mb.list <- posteriorSimulation(mb.list)
 ```
 
+
+The above procedure will fit mixture models with 1, 2, 3, and 4 components even if, in truth, one component is sufficient. When too many components are specified, do not be suprised to see a warning message such as
+
+> 1: In .posteriorSimulation(object[[i]], params) :
+>  label switching: model k=3
+
+One motivation of the batch model is to model differences in location or scale that can be explained by batch, thereby reducing the need for ad-hoc merging of components to infer the latent copy number states.  However, if the data is not approximately normal within a batch, we can not expect a 1-1 mapping between components labels and latent copy number. The section `Mapping mixture components to copy number states` below attempts to deal with this issue. 
+
+
 ## Selecting a model
 
 Marginal likelihood is estimated for each of the 4 single-batch models. The
