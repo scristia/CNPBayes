@@ -165,7 +165,9 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
              batchElements=nbatch,
              .internal.constraint=5e-4)
   obj <- startingValues(obj)
-  obj@probz[, 1] <- 1
+  if(!is.null(obj)){
+    obj@probz[, 1] <- 1
+  }
   obj
 }
 
