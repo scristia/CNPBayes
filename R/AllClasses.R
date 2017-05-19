@@ -123,6 +123,7 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot batchElements a vector labeling from which batch each observation came from
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot mcmc.params An object of class 'McmcParams'
+#' @slot label_switch length-one logical indicating problems with label switching
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 setClass("MixtureModel", representation("VIRTUAL",
                                         k = "integer",
@@ -147,6 +148,7 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         batchElements="integer",
                                         modes="list",
                                         mcmc.params="McmcParams",
+                                        label_switch="logical",
                                         .internal.constraint="numeric",
                                         .internal.counter="integer"))
 
@@ -174,6 +176,7 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot batch a vector of the different batch numbers
 #' @slot batchElements a vector labeling from which batch each observation came from
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
+#' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 setClass("BatchModel", contains="MixtureModel")
@@ -204,6 +207,7 @@ setClass("BatchModel", contains="MixtureModel")
 #' @slot batchElements a vector labeling from which batch each observation came from
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot mcmc.params An object of class 'McmcParams'
+#' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 setClass("MarginalModel", contains="MixtureModel")
 

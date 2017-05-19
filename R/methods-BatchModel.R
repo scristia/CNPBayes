@@ -99,6 +99,7 @@ BatchModel <- function(data=numeric(),
              mcmc.params=mcmc.params,
              batch=batch[ix],
              batchElements=nbatch,
+             label_switch=FALSE,
              .internal.constraint=5e-4,
              .internal.counter=0L)
   obj <- startingValues(obj)
@@ -163,6 +164,7 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
              mcmc.params=mcmc.params,
              batch=batch[ix],
              batchElements=nbatch,
+             label_switch=FALSE,
              .internal.constraint=5e-4)
   obj <- startingValues(obj)
   if(!is.null(obj)){

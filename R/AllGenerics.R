@@ -735,3 +735,6 @@ setGeneric("chromosome", function(object, ...) standardGeneric("chromosome"))
 #' @export
 #' @rdname labelSwitching-method
 setGeneric("labelSwitching", function(object, merge=TRUE) standardGeneric("labelSwitching"))
+
+setGeneric("label_switch", function(object) standardGeneric("label_switch"))
+setGeneric("label_switch<-", function(object, value) standardGeneric("label_switch<-"))

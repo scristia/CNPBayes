@@ -54,6 +54,8 @@ Run marginal MCMC simulation
 
 \item{\code{mcmc.params}}{An object of class 'McmcParams'}
 
+\item{\code{label_switch}}{length-one logical vector indicating whether label-switching occurs (possibly an overfit model)}
+
 \item{\code{.internal.constraint}}{Constraint on parameters. For internal use only.}
 }}
 

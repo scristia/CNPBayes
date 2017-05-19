@@ -534,6 +534,12 @@ setMethod("isOrdered", "BatchModel", function(object){
   mcmcParams(post) <- mp.orig
   if(isOrdered(post)) return(post)
   if(params[["warnings"]]) {
+    ##
+    ## at this point, we've tried to run the twice after burnin and we still
+    ## have mixing. Most likely, we are fitting a model with k too big
+    ## - make a note of this in the model
+    ## - print a warning
+    label_switch(post) <- TRUE
     warning("label switching: model k=", k(post))
     ##if(params$returnNULLonWarnings) return(NULL)
   }
@@ -1031,3 +1037,11 @@ setReplaceMethod("thin", c("MixtureModel", "numeric"), function(object, value){
 setMethod("mcmcParams", "list", function(object){
   mcmcParams(object[[1]])
 })
+
+setMethod("label_switch", "MixtureModel", function(object) object@label_switch)
+
+setReplaceMethod("label_switch", c("MixtureModel", "logical"),
+                 function(object, value){
+                   object@label_switch <- value
+                   object
+                 })

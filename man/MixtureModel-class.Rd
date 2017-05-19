@@ -54,6 +54,8 @@ BatchModel and MarginalModel both inherit from this class.
 
 \item{\code{mcmc.params}}{An object of class 'McmcParams'}
 
+\item{\code{label_switch}}{length-one logical indicating problems with label switching}
+
 \item{\code{.internal.constraint}}{Constraint on parameters. For internal use only.}
 }}
 
