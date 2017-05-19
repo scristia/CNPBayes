@@ -1,5 +1,24 @@
 context("BatchModel")
 
+test_that("initial values", {
+  extdata <- system.file("extdata", package="CNPBayes")
+  dat <- readRDS(file.path(extdata, "mckean_data.rds"))
+  data <- dat$y
+  batch <- dat$batch
+  mcmc.params <- mp
+  k <- 1:4
+  model.list <- vector("list", length(k))
+  set.seed(2)
+  j <- 3
+  hypp <- HyperparametersBatch(k=k[j])
+  ## k = 3 is too many components
+  model <- BatchModel(data=data, k=k[j],
+                      batch=batch,
+                      mcmc.params=mcmc.params,
+                      hypp=hypp)
+  expect_true(!is.na(log_lik(model)))
+})
+
 test_that("test_batch_moderate", {
   set.seed(100)
   nbatch <- 3
