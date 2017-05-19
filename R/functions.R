@@ -459,3 +459,58 @@ mclustMeans <- function(y, batch){
   L <- sapply(mns, length)
   collections <- split(names(L), L)
 }
+
+posteriorPredictive <- function(model){
+  if(is(model, "MarginalModel")){
+    y <- .posterior_predictive_sb(model)
+    return(y)
+  }
+  y <- .posterior_predictive_mb(model)
+  y
+}
+
+.posterior_predictive_sb <- function(model){
+  mp <- McmcParams(iter=500, burnin=50)
+  mcmcParams(model) <- mp
+  model <- posteriorSimulation(model)
+  ch <- chains(model)
+  alpha <- p(ch)
+  thetas <- theta(ch)
+  sigmas <- sigma(ch)
+  Y <- matrix(NA, nrow(alpha), ncol(alpha))
+  K <- seq_len(k(model))
+  N <- length(K)
+  for(i in 1:nrow(alpha)){
+    zz <- sample(K, N, prob=alpha[i, ], replace=TRUE)
+    y <- rnorm(ncol(thetas), thetas[i, ], sigmas[i, ])
+    Y[i, ] <- y
+  }
+  as.numeric(Y)
+}
+
+.posterior_predictive_mb <- function(model){
+  ch <- chains(model)
+  alpha <- p(ch)
+  thetas <- theta(ch)
+  sigmas <- sigma(ch)
+  tab <- table(batch(model))
+  nb <- nrow(theta(model))
+  K <- k(model)
+  nn <- K * nb
+  Y <- matrix(NA, nrow(alpha), nn)
+  ylist <- list()
+  labels <- seq_len(K)
+  for(i in 1:nrow(alpha)){
+    ## same p assumed for each batch
+    a <- alpha[i, ]
+    zz <- sample(labels, nn, prob=a, replace=TRUE)
+    mu <- matrix(thetas[i, ], nb, K)
+    s <- matrix(sigmas[i, ], nb, K)
+    for(b in 1:nb){
+      ylist[[b]] <- rnorm(K, (mu[b, ])[zz], (s[b, ])[zz])
+    }
+    y <- unlist(ylist)
+    Y[i, ] <- y
+  }
+  as.numeric(Y)
+}
