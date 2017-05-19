@@ -214,6 +214,10 @@ setMethod("startingValues", "MarginalModel", function(object){
     S[i, ] <- sds
     zlist[[i]] <- zs
   }
+  ## if only one observation, sd is NA
+  sd.mns <- colMeans(S, na.rm=TRUE)
+  sd.mns <- matrix(sd.mns, nrow(S), ncol(S), byrow=TRUE)
+  S[is.na(S)] <- sd.mns[is.na(S)]
   zz <- unlist(zlist)
   p <- colMeans(P)
   mu(object) <- colMeans(T)
@@ -316,6 +320,7 @@ tau2HyperparamsBatch <- function(thetas){
   ylist <- split(y(object), batch(object))
   n.b <- elementNROWS(ylist)
   zlist <- vector("list", length(B))
+  ##browser()
   for(i in seq_along(B)){
     ys <- ylist[[i]]
     ys <- sample(ys, length(ys), replace=TRUE)
@@ -366,33 +371,19 @@ tau2HyperparamsBatch <- function(thetas){
 
 .init_batchmodel2 <- function(object){
   u <- runif(1, 0, 1)
+  model <- NULL
+  counter <- 0
   if(u <= 0.25){
-    ##    object <- .init_priors(object)
-    ##    if(!is.finite(log_lik(object)) || is.na(log_lik(object))){
-    ##      object <- .init_mclust(object)
-    ##    }
-    ##  }
-    ##  if(u < 0.5 & u >= 0.25){
-    counter <- 0; model <- NULL; not.valid <- FALSE
-    while(counter < 3 && is.null(model) || not.valid){
+    while(is.null(model) && counter < 30){
       model <- tryCatch(.init_kmeans(object), error=function(e) NULL)
-      if(!is.null(model)){
-        not.valid <- !is.finite(log_lik(model)) || is.na(log_lik(model))
-      }
       counter <- counter+1
     }
-    if(is.null(model)) stop("No good initial values identified")
   }
   if(u > 0.25){
-    counter <- 0; model <- NULL; not.valid <- FALSE
-    while(counter < 3 && is.null(model) || not.valid){
+    while(is.null(model) && counter < 30){
       model <- tryCatch(.init_mclust(object), error=function(e) NULL)
-      if(!is.null(model)){
-        not.valid <- !is.finite(log_lik(model)) || is.na(log_lik(model))
-      }
       counter <- counter+1
     }
-    if(is.null(model)) stop("No good initial values identified")
   }
   model
 }
@@ -468,8 +459,17 @@ tau2HyperparamsBatch <- function(thetas){
   object
 }
 
+
 setMethod("startingValues", "BatchModel", function(object){
   ##.init_batchmodel(object)
   if(length(y(object)) == 0) return(object)
   .init_batchmodel2(object)
 })
+
+setMethod("startingValues", "BatchModel", function(object){
+  ##.init_batchmodel(object)
+  if(length(y(object)) == 0) return(object)
+  .init_batchmodel2(object)
+})
+
+
