@@ -5,7 +5,7 @@ test_that("initial values", {
   dat <- readRDS(file.path(extdata, "mckean_data.rds"))
   data <- dat$y
   batch <- dat$batch
-  mcmc.params <- mp
+  mcmc.params <- McmcParams()
   k <- 1:4
   model.list <- vector("list", length(k))
   set.seed(2)
