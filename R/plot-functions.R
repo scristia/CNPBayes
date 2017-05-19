@@ -276,6 +276,7 @@ dnorm_poly <- function(model){
     geom_polygon(aes(fill=component, color=component), alpha=0.4) +
     xlab("quantiles") + ylab("density") +
     scale_color_manual(values=colors) +
+    scale_y_sqrt() +
     scale_fill_manual(values=colors) +
     guides(fill=guide_legend(""), color=guide_legend(""))
 }
@@ -438,6 +439,7 @@ multiBatchDensities <- function(model){
     xlab("quantiles") + ylab("density") +
     scale_color_manual(values=colors) +
     scale_fill_manual(values=colors) +
+    scale_y_sqrt() +
     guides(fill=guide_legend(""), color=guide_legend("")) +
     facet_wrap(~batch, nrow=nb)
 }
@@ -445,6 +447,7 @@ multiBatchDensities <- function(model){
 .gg_multibatch_copynumber <- function(model, bins){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
+
   ##df <- multiBatchDensities(model)
   dat <- dnorm_poly_multibatch(model)
   dat2 <- dat
@@ -462,15 +465,17 @@ multiBatchDensities <- function(model){
   if(missing(bins))
     bins <- nrow(df.observed)/2
   component <- ..density.. <- x <- y <- NULL
+  ## how to make the density and polygon on same y-scale
   ggplot(dat, aes(x, y, group=component)) +
     geom_histogram(data=df.observed, aes(y, ..density..),
-                   bins=bins,
-                   inherit.aes=FALSE) +
+                   ##bins=bins,
+                   inherit.aes=FALSE, binwidth=0.05) +
     geom_polygon(aes(fill=component, color=component),
                  alpha=0.4) +
     xlab("quantiles") + ylab("density") +
     scale_color_manual(values=colors) +
-    scale_fill_manual(values=colors) +
+      scale_fill_manual(values=colors) +
+      scale_y_sqrt() +
     guides(fill=guide_legend(""), color=guide_legend("")) +
     facet_wrap(~batch, nrow=nb)
 }

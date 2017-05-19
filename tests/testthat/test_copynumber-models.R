@@ -7,7 +7,7 @@ context("Copy number models")
   ##  - the fact that, in truth, there is a single copy number state generating
   ##    should not effect how we fit or select models
   ##
-  ##  - copy number inference is a completely separate step that should be
+  ##  - copy number inference is a separate step that can be
   ##    downstream of model selection
   ##
   ##  - Downstream steps:
