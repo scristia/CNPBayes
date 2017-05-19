@@ -35,8 +35,8 @@ reader to other vignettes included with this package for details
 regarding implementation.
 
 ```{r lib} 
-library(CNPBayes)
-library(SummarizedExperiment)
+suppressPackageStartupMessages(library(CNPBayes))
+suppressPackageStartupMessages(library(SummarizedExperiment))
 ```
 
 # Workflow
@@ -171,7 +171,33 @@ map(selected.model)
 We can plot the average log R ratios and overlay the model-based densities:
 
 ```{r ggsinglebatch}
-ggSingleBatch(selected.model)
+ggSingleBatch(selected.model, bins=50)
+```
+
+## Big data
+
+If thousands of samples are available, we generally do not need to fit the model to all samples in order to adequately estimate the mixture distribution. Below, we indicate a workflow for downsampling. First, we downsample the data in the `BatchModelExample`, requiring only 100 observations per batch.  If some batches had fewer than 100 observations, all the data in the small batch would be used.
+
+```{r downsample}
+model <- BatchModelExample
+ds <- downSampleEachBatch(y(model), 100, batch(model))
+str(ds)
+```
+
+Next, we fit the model to the down-sampled data in the usual way:
+
+```{r fit_downsample}
+model.ds <- BatchModel(ds$y, batch=ds$batch, k=3)
+model.ds <- posteriorSimulation(model.ds)
+```
+
+Finally, we map the posterior probabilities of components in the downsampled data back to the full dataset.
+
+```{r remap_posteriorprobs}
+probs <- probz(model.ds)
+rownames(probs) <- names(y(model.ds))
+probs.ds <- probs[ds$label, ]
+dim(probs.ds)
 ```
 
 # References
