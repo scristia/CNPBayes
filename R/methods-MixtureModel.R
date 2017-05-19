@@ -393,6 +393,11 @@ setMethod("posteriorSimulation", "list",
             for(i in seq_along(results)){
               results[[i]] <- .posteriorSimulation(object[[i]], params)
             }
+            ncomp <- sapply(results, k)
+            if(is(results[[1]], "MarginalModel")){
+              label <- "SB"
+            } else label <- "MB"
+            names(results) <- paste0(label, ncomp)
             ##isnull <- sapply(results, is.null)
             ##results <- results[!isnull]
             results
