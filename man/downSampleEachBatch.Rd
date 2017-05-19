@@ -23,6 +23,23 @@ Create tile labels for each observation
 y <- runif(100)
 batch <- sample(letters[1:3], 100, replace=TRUE)
 ds <- downSampleEachBatch(y, 10, batch)
+
+model <- BatchModelExample
+ds <- downSampleEachBatch(y(model), 100, batch(model))
+model.ds <- BatchModel(ds$y, batch=ds$batch, k=3)
+model.ds <- posteriorSimulation(model.ds)
+## map the posterior probabilities of the downsampled data back to the
+## original observations
+probs <- probz(model.ds)
+rownames(probs) <- names(y(model.ds))
+probs.ds <- probs[ds$label, ]
+
+## compare downsampled results to that of fitting the fulll data
+model <- posteriorSimulation(model)
+probs.full <- probz(model)
+probs.full <- round(probs.full, 1)
+reduced <- round(probs.ds, 1)
+not.equal <- rowSums(full != reduced) > 0
 }
 \seealso{
 \code{\link[dplyr]{ntile}}
