@@ -284,9 +284,27 @@ permnK <- function(k, maxperm){
 #' y <- runif(100)
 #' batch <- sample(letters[1:3], 100, replace=TRUE)
 #' ds <- downSampleEachBatch(y, 10, batch)
+#'
+#' model <- BatchModelExample
+#' ds <- downSampleEachBatch(y(model), 100, batch(model))
+#' model.ds <- BatchModel(ds$y, batch=ds$batch, k=3)
+#' model.ds <- posteriorSimulation(model.ds)
+#' ## map the posterior probabilities of the downsampled data back to the
+#' ## original observations
+#' probs <- probz(model.ds)
+#' rownames(probs) <- names(y(model.ds))
+#' probs.ds <- probs[ds$label, ]
+#'
+#' ## compare downsampled results to that of fitting the fulll data
+#' model <- posteriorSimulation(model)
+#' probs.full <- probz(model)
+#' probs.full <- round(probs.full, 1)
+#' reduced <- round(probs.ds, 1)
+#' not.equal <- rowSums(full != reduced) > 0
 downSampleEachBatch <- function(y, nt, batch){
   ## NULL out these two variables to avoid NOTE about
   ## no visible binding for global variable
+  yy <- y
   x <- obs.index <- NULL
   yb <- split(y, batch)
   indices <- split(seq_along(y), batch)
@@ -298,6 +316,7 @@ downSampleEachBatch <- function(y, nt, batch){
     obs.index <- indices[[i]]
 
     tiles <- factor(paste(ntile(x, nt), batch.id, sep="_"))
+    ## for each tile, use the mean observation
     xx <- sapply(split(x, tiles), mean)
     tiles <- setNames(as.character(tiles), obs.index)
     S[[i]] <- list(y=xx,
@@ -312,7 +331,7 @@ downSampleEachBatch <- function(y, nt, batch){
   ## tile labels must be in the same order as the original y vector
   ##
   tiles <- tiles[order(as.numeric(names(tiles)))]
-  list(y=ys, labels=tiles, batch=batch.id)
+  list(y=ys, labels=tiles, batch=batch.id, orig.data=yy)
 }
 
 #' Create tile labels for each observation
