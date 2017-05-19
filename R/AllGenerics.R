@@ -736,5 +736,15 @@ setGeneric("chromosome", function(object, ...) standardGeneric("chromosome"))
 #' @rdname labelSwitching-method
 setGeneric("labelSwitching", function(object, merge=TRUE) standardGeneric("labelSwitching"))
 
+#' Accessor for determing whether label switching occurred during MCMC
+#'
+#'
+#' @param a MixtureModel-derived class
+#' @export
+#' @examples
+#' label_switch(MarginalModelExample)
+#' 
 setGeneric("label_switch", function(object) standardGeneric("label_switch"))
+
+
 setGeneric("label_switch<-", function(object, value) standardGeneric("label_switch<-"))
