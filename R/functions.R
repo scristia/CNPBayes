@@ -460,6 +460,29 @@ mclustMeans <- function(y, batch){
   collections <- split(names(L), L)
 }
 
+#' Simulate data from the posterior predictive distribution
+#'
+#' Simulating from the posterior predictive distribution can be helpful for assessing the adequacy of the mixture model.
+#'
+#' @examples
+#'
+#'  model <- MarginalModelExample
+#'  mp <- McmcParams(iter=200, burnin=50)
+#'  mcmcParams(model) <- mp
+#'  model <- posteriorSimulation(model)
+#'  pd <- posteriorPredictive(model)
+#'  if(FALSE) qqplot(pd, y(model))
+#'
+#' \dontrun{
+#'     bmodel <- BatchModelExample
+#'     mp <- McmcParams(iter=500, burnin=150, nStarts=20)
+#'     mcmcParams(bmodel) <- mp
+#'     bmodel <- posteriorSimulation(bmodel)
+#'     batchy <- posteriorPredictive(bmodel)
+#' }
+#' 
+#' @param model a MarginalModel or MultiBatchModel
+#' @export
 posteriorPredictive <- function(model){
   if(is(model, "MarginalModel")){
     y <- .posterior_predictive_sb(model)
