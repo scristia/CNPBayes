@@ -304,4 +304,5 @@ test_that("model_select", {
   ml.lik <- c(marginalLikelihood(sb.list, params),
               marginalLikelihood(mb.list, params))
   best.model <- names(ml.lik)[which.max(ml.lik)]
+  expect_true(substr(best.model, 1, 3) == "SB3")
 })
