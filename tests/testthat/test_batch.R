@@ -274,3 +274,34 @@ test_that("different starts", {
   model <- selectByLogLik(mmodel.list)
   expect_equal(log_lik(model), max(logliks, na.rm=TRUE))
 })
+
+test_that("model_select", {
+  extdata <- system.file("extdata", package="CNPBayes")
+  r <- readRDS(file.path(extdata, "lrr_roi_2.rds"))
+  r.list <- lapply(r, colMedians, na.rm=TRUE)
+  r.list <- r.list[elementNROWS(r.list) > 20]
+  r <- unlist(r.list)
+  plates <- rep(names(r.list), elementNROWS(r.list))
+  batches <- collapseBatch(r, plates, 0.01)
+
+  mp <- McmcParams(nStarts=10, burnin=500, iter=1000, thin=10)
+  sb.list <- MarginalModelList(data=r, mcmc.params=mp, k=2:4)
+  mb.list <- BatchModelList(data=r, k=2:4,
+                            batch=batches,
+                            mcmc.params=mp)
+
+
+  sb.list <- posteriorSimulation(sb.list)
+  mb.list <- posteriorSimulation(mb.list)
+
+  sb.list <- sb.list[!sapply(sb.list, label_switch)]
+  mb.list <- mb.list[!sapply(mb.list, label_switch)]
+
+  ml <- marginalLikelihood(sb.list[[2]])
+  expect_true(!is.na(ml))
+
+  params <- mlParams(ignore.small.pstar=TRUE)
+  ml.lik <- c(marginalLikelihood(sb.list, params),
+              marginalLikelihood(mb.list, params))
+  best.model <- names(ml.lik)[which.max(ml.lik)]
+})
