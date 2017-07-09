@@ -60,7 +60,7 @@ tau2Hyperparams <- function(thetas){
   ys <- y(object)
   ys <- sample(ys, length(ys), replace=TRUE)
   K <- k(object)
-  mc <- tryCatch(invisible(Mclust(ys, G=K)), warning=function(w) NULL)
+  captureOutput(mc <- tryCatch(invisible(Mclust(ys, G=K)), warning=function(w) NULL))
   if(is.null(mc)){
     stop("Trouble selecting starting values with mclust.")
   }
@@ -324,7 +324,7 @@ tau2HyperparamsBatch <- function(thetas){
   for(i in seq_along(B)){
     ys <- ylist[[i]]
     ys <- sample(ys, length(ys), replace=TRUE)
-    mc <- tryCatch(invisible(Mclust(ys, G=K)), warning=function(w) NULL)
+    captureOutput(mc <- tryCatch(invisible(Mclust(ys, G=K)), warning=function(w) NULL))
     if(is.null(mc)) stop("Error initializing values for batch model")
     params <- mc$parameters
     thetas <- params$mean
