@@ -6,13 +6,13 @@
 #' @importFrom gtools rdirichlet ddirichlet
 #' @importFrom GenomeInfoDb seqinfo seqlevels<- seqlevels seqinfo<- seqnames
 #' @import IRanges
-#' @importFrom utils captureOutput
+#' @importFrom utils capture.output
 #' @import GenomicRanges
 #' @importFrom Rcpp evalCpp
 #' @import S4Vectors
 #' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom matrixStats colSds colVars colMedians rowCums rowProds colMaxs
+#' @importFrom matrixStats colSds colVars colMedians rowProds colMaxs
 #' @importFrom BiocGenerics unlist
 #' @importFrom graphics lines par
 #' @importFrom stats dnorm qnorm kmeans ks.test plot.ts qgamma rbeta rgamma rgeom rnorm runif setNames rpois
