@@ -2,7 +2,6 @@
 #include "updates_marginal.h" // getK
 #include "miscfunctions.h" // for rdirichlet, tableZ, ...
 #include <Rmath.h>
-#include <Rcpp.h>
 
 using namespace Rcpp ;
 
@@ -133,11 +132,73 @@ Rcpp::NumericMatrix multinomialPr_pooled(Rcpp::S4 xmod) {
   return probs ;
 }
 
+// Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
+//   RNGScope scope ;
+//   Rcpp::S4 model(xmod) ;
+//   Rcpp::S4 hypp(model.slot("hyperparams")) ;
+//   int K = getK(hypp) ;
+//   NumericVector x = model.slot("data") ;
+//   int n = x.size() ;
+//   NumericMatrix p(n, K);
+//   p = multinomialPr_pooled(xmod) ;
+//   NumericMatrix cumP(n, K);
+//   for(int i=0; i < n; i++){
+//     for(int k = 0; k < K; k++){
+//       if(k > 0){
+//         cumP(i, k) = cumP(i, k-1) + p(i, k) ;
+//       } else {
+//         cumP(i, k) = p(i, k) ;
+//       }
+//     }
+//     cumP(i, K-1) = 1.000001 ;
+//   }
+//   //return cumP ;
+//   NumericVector u = runif(n) ;
+//   IntegerVector zz(n) ;
+//   IntegerVector freq(K) ;
+//   for(int k = 0; k < K; k++) {
+//     freq[k]=0;
+//   }
+//   for(int i = 0; i < n; i++){
+//     int k = 0 ;
+//     while(k < K) {
+//       if( u[i] < cumP(i, k)){
+//         zz[i] = k + 1 ;
+//         freq[k] += 1 ;
+//         break ;
+//       }
+//       k += 1 ;
+//     }
+//     cumP(i, K-1) = 1.00001 ;  // just to be certain
+//   }
+//   if(is_true(all(freq > 1))){
+//     return zz ;
+//   }
+//   //
+//   // Don't update z if there are states with zero frequency
+//   //  
+//   for(int k = 0; k < K; ++k){
+//     if( freq[k] >= 2 ) continue ;
+//     NumericVector r(2) ;
+//     IntegerVector i(2) ;
+//     r = runif(2, 0, 1) * n ;
+//     for(int j = 0; j < 2; ++j){
+//       // cast as integer
+//       i = (int) r[j] ;
+//       zz[i] = k + 1 ;
+//     }
+//     freq[k] = sum(zz == (k+1)) ;
+//   }
+//   return zz ;
+// }
+
+// Be smarter about assigning samples to a component with zero or one
+// observations
 
 // [[Rcpp::export]]
 Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;  
+  Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector x = model.slot("data") ;
@@ -155,7 +216,6 @@ Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
     }
     cumP(i, K-1) = 1.000001 ;
   }
-  //return cumP ;
   NumericVector u = runif(n) ;
   IntegerVector zz(n) ;
   IntegerVector freq(K) ;
@@ -179,20 +239,25 @@ Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
   }
   //
   // Don't update z if there are states with zero frequency
-  //  
+  //
+  int j = 0;
+  //return zz ;
   for(int k = 0; k < K; ++k){
     if( freq[k] >= 2 ) continue ;
-    NumericVector r(2) ;
-    IntegerVector i(2) ;
-    r = runif(2, 0, 1) * n ;
-    for(int j = 0; j < 2; ++j){
-      // cast as integer
-      i = (int) r[j] ;
+    NumericVector u2 = cumP(_, k) ;
+    double tmp = sum(u2) ;
+    u2 = u2 / tmp ;
+    NumericVector cumprob = cumsum( u2 );
+    NumericVector u3 = runif( 2 ) ;
+    // IntegerVector index(2) ;
+    for(int i = 0; i < n; i++){
+      if(u3[j] > cumprob[i]) continue ;
       zz[i] = k + 1 ;
+      j += 1 ;
+      if(j > 1) break ;
     }
-    freq[k] = sum(zz == (k+1)) ;
   }
-  return zz ;  
+  return zz ;
 }
 
 

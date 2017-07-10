@@ -21,3 +21,29 @@ test_that("sigma2_pooled", {
   (s2.R <- 1/prec.R)
   expect_equal(s2.R, s2.cpp)
 })
+
+test_that("missing component", {
+  set.seed(2000)
+  truth <- simulateData(N = 45, theta = c(-2, 0),
+                        sds = c(0.1, 0.1),
+                        p = c(1/50, 49/50))
+  mcmcp <- McmcParams(iter = 10, burnin = 0)
+  yy <- y(truth)
+  ## idea: the second observation should be re-assigned to the first component with greater probability than the other observations
+  yy[1] <- -2
+  yy[2] <- -0.75
+  model <- CNPBayes:::SingleBatchPooledVar(yy, k = 2)
+  updates <- .param_updates()
+  updates["theta"] <- 0L
+  mp <- McmcParams(iter=5, burnin=0, param_updates=updates, nStarts=0)
+  theta(model) <- c(-2, 0)
+  sigma2(model) <- 0.1^2
+  truez <- c(1L, rep(2L, length(yy)-1))
+  z(model) <- truez
+  expectedz <- truez
+  expectedz[2] <- 1L
+  p <- .Call("CNPBayes_multinomialPr_pooled", model)
+  model@probz <- p
+  zz <- .Call('CNPBayes_z_pooled', model)
+  expect_identical(zz, expectedz)
+})
