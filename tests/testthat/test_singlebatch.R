@@ -27,19 +27,35 @@ test_that("test_marginal_empty_component", {
                         p = c(0.005, 1/10, 1 - 0.005 - 1/10))
   yy <- y(truth)
   s <- (yy - median(yy))/sd(yy)
-  mp <- McmcParams(iter = 5, burnin = 5, nStarts = 1)
+  mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 1)
+
+  qInverseTau2(mn=0.5, sd=0.5)
   hp <- Hyperparameters(k=3,
-                        tau2.0=2,
+                        tau2.0=1,
                         mu.0=0,
-                        eta.0=1,
-                        m2.0=0.01)
+                        eta.0=2,
+                        m2.0=2)
+  hist(sqrt(1/rgamma(1000, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))), breaks=250,
+       xlim=c(0, 5))
   summary(sqrt(1/rgamma(200, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))))
+  ##mns <- rnorm(3, 0, sqrt(1/rgamma(1, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))))
   set.seed(123)
-  trace(MarginalModel2, browser)
-  MarginalModel2(data = y(truth), k = 3,
-                 mcmc.params = mp,
-                 hypp=hp)
-  expect_false(any(is.na(CNPBayes:::computeMeans(model))))
+  m <- MarginalModel2(data = y(truth), k = 3,
+                      mcmc.params = mp,
+                      hypp=hp)
+  m2 <- posteriorSimulation(m)
+
+  if(FALSE){
+    ggSingleBatch(m2)
+    plist <- ggSingleBatchChains(m2)
+    plist[[1]]
+
+    library(purrr)
+    m.list <- replicate(4, MarginalModel2(data=y(truth), k=3, mcmc.params=mp, hypp=hp))
+    m.list2 <- purrr::map(m.list, posteriorSimulation)
+
+  }
+
 })
 
 test_that("test_marginal_few_data", {

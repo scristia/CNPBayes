@@ -27,7 +27,9 @@ Imports:
     SummarizedExperiment,
     mclust,
     reshape2,
-    ggplot2
+    ggplot2,
+    magrittr,
+    purrr
 Suggests:
     testthat,
     knitr,
@@ -44,6 +46,7 @@ Collate:
     'RcppExports.R'
     'copynumber-models.R'
     'data.R'
+    'diagnostics.R'
     'functions.R'
     'marginal_likelihood.R'
     'methods-DensityModel.R'

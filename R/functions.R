@@ -220,7 +220,7 @@ annotateRegions <- function(regions, transcripts){
 imputeFromSampledData <-  function(model, data, index){
   if(is.null(names(data))) stop("data must be a named vector")
   pz2 <- probz(model)
-  cn <- map(model)
+  cn <- map_z(model)
   ##pz2 <- mapCnProbability(pz, k(model))
   ##r2 <- quantile(data, probs=seq(0, 1, by=0.01))
   df <- data.frame(r=data,

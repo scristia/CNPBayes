@@ -14,21 +14,21 @@ test_that("test_probz", {
     expect_true(all(pz == 0))
     iter(model, force = TRUE) <- 2
     burnin(model) <- 0
-    zz <- map(posteriorSimulation(model))
+    zz <- map_z(posteriorSimulation(model))
     expect_equal(true_z, zz)
     model2 <- CNPBayes:::modelOtherModes(model, maxperm = 2)[[2]]
     z2 <- zz <- z(model2)
     expect_true(sum(zz != true_z) > 500)
     mcmcParams(model2) <- mcmcParams(model)
     model2 <- posteriorSimulation(model2)
-    zz <- map(model2)
+    zz <- map_z(model2)
     expect_equal(true_z, zz)
     model3 <- CNPBayes:::modelOtherModes(model, maxperm = 3)[[3]]
     z3 <- z(model3)
     expect_true(sum(z3 != true_z) > 500)
     expect_true(sum(z2 != z3) > 500)
     model3 <- posteriorSimulation(model3)
-    mz3 <- map(model3)
+    mz3 <- map_z(model3)
     ##table(mz3, true_z)
     expect_equal(true_z, mz3)
 })

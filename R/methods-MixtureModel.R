@@ -642,14 +642,12 @@ makeUnique <- function(x){
 #' Calculate the maximum a posteriori estimate of latent variable assignment.
 #'
 #' @examples
-#'      map(MarginalModelExample)
+#'      map_z(MarginalModelExample)
 #' @param object an object of class MixtureModel.
 #' @return map estimate of latent variable assignment for each observation
 #' @export
-map <- function(object) {
-  estimates <- apply(probz(object), 1, which.max)
-  names(estimates) <- names(y(object))
-  estimates
+map_z <- function(object) {
+  max.col(probz(object))
 }
 
 setMethod("thetac", "MixtureModel", function(object) theta(chains(object)))
@@ -949,13 +947,10 @@ useModes <- function(object){
   m2
 }
 
-
-
 mapModel <- function(model){
   model2 <- restartAtChainIndex(model, argMax(model))
   model2
 }
-
 
 #' Probabiliistic copy number assigments.
 #'

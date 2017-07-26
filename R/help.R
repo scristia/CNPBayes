@@ -21,5 +21,7 @@
 #' @importFrom reshape2 melt
 #' @importMethodsFrom SummarizedExperiment assays SummarizedExperiment
 #' @import ggplot2
+#' @importFrom magrittr set_colnames
+#' @importFrom purrr map
 #' @useDynLib CNPBayes
 NULL
