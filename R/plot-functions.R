@@ -75,7 +75,7 @@ meltSingleBatchChains <- function(model){
   th$iter <- factor(1:nrow(th))
   th.m <- melt(th)
   ##
-  ## 
+  ##
   ##
   K <- k(model)
   comp <- rep(seq_len(K), each=nrow(th))
@@ -83,11 +83,18 @@ meltSingleBatchChains <- function(model){
   th.m$iter <- as.integer(th.m$iter)
 
   s <- as.data.frame(sigma(ch))
-  s$iter <- th$iter
+  if(class(model) == "SingleBatchPooledVar"){
+    s$iter <- factor(1:nrow(s))
+  } else s$iter <- th$iter
   s$param <- "sigma"
   s.m <- melt(s)
-  s.m$iter <- th.m$iter
-  s.m$comp <- th.m$comp
+  if(class(model) == "SingleBatchPooledVar"){
+    s.m$iter <- seq_len(nrow(s.m))
+    s.m$comp <- "pooled"
+  } else {
+    s.m$iter <- th.m$iter
+    s.m$comp <- th.m$comp
+  }
 
   nu0 <- as.data.frame(nu.0(ch))
   nu0$iter <- th$iter
@@ -253,6 +260,9 @@ dnorm_poly <- function(model){
   mixprob <- p(model)
   means <- theta(model)
   sds <- sigma(model)
+  if(class(model) == "SingleBatchPooledVar"){
+    sds <- rep(sds, k(model))
+  }
   df.list <- list()
   qtiles <- dnorm_quantiles(y(model), means, sds)
   df <- dnorm_singlebatch(qtiles, mixprob, means, sds)

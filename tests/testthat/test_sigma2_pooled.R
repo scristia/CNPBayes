@@ -47,3 +47,18 @@ test_that("missing component", {
   zz <- .Call('CNPBayes_z_pooled', model)
   expect_identical(zz, expectedz)
 })
+
+## test_that("joint expression, copynumber, methylation model", {
+##   extdata <- system.file("extdata", package="CNPBayes")
+##   cdkn2a.list <- readRDS(file.path(extdata, "expr_meth_cn_model.rds"))
+##   cdkn2a <- cdkn2a.list[[10]]
+## 
+##   library(magrittr)
+##   library(dplyr)
+##   starting_values(cdkn2a)
+##   starting.vals <- cdkn2a %>% group_by(probe_both, methylated_or_deleted) %>%
+##     summarize(mu_expr=median(expression, na.rm=TRUE),
+##               sd_expr=sd(expression, na.rm=TRUE))
+##   starting.vals
+##   gene_model(cdkn2a)
+## })
