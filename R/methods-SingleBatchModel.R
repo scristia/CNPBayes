@@ -81,6 +81,60 @@ MarginalModel <- function(data=numeric(), k=3, hypp, mcmc.params){
 }
 
 
+MarginalModel2 <- function(data=numeric(), k=3, hypp, mcmc.params){
+  if(missing(hypp)) hypp <- Hyperparameters(k=3)
+  batch <- rep(1L, length(data))
+  if(missing(k)){
+    k <- k(hypp)
+  } else{
+    k(hypp) <- k
+  }
+  if(missing(mcmc.params)) {
+    mcmc.params <- McmcParams(iter=1000, burnin=100, nStarts=4)
+  }
+  if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
+  nbatch <- setNames(as.integer(table(batch)), levels(batch))
+  std.data <- (data-median(data))/sd(data)
+
+  hp <- hypp
+  mu <- rnorm(1, mu.0(hp), sqrt(tau2.0(hp)))
+  tau2 <- 1/rgamma(1, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
+  theta <- sort(rnorm(k(hp), mean=mu, sd=sqrt(tau2)))
+  logsigma <- rnorm(k(hp), log(0.3), 1)
+  sigma2 <- exp(logsigma)^2
+  p <- rdirichlet(1, alpha(hp))[1, ]
+  sigma2.0 <- rgamma(1, a(hp), b(hp))
+  nu.0 <- max(rgeom(1, betas(hp)), 1)
+  object <- new("MarginalModel",
+                k=as.integer(k),
+                hyperparams=hypp,
+                theta=theta,
+                sigma2=sigma2,
+                mu=mu,
+                tau2=tau2,
+                nu.0=nu.0,
+                sigma2.0=sigma2.0,
+                pi=p,
+                data=std.data,
+                data.mean=numeric(k),
+                data.prec=numeric(k),
+                z=integer(length(data)),
+                zfreq=integer(k),
+                probz=matrix(0, length(data), k),
+                logprior=numeric(1),
+                loglik=numeric(1),
+                mcmc.chains=McmcChains(),
+                batch=batch,
+                batchElements=nbatch,
+                modes=list(),
+                mcmc.params=mcmc.params,
+                label_switch=FALSE,
+                .internal.constraint=5e-4,
+                .internal.counter=0L)
+  object
+}
+
+
 
 SingleBatchPooledVar <- function(data=numeric(), k=2, hypp, mcmc.params){
   obj <- MarginalModel(data, k, hypp, mcmc.params)
