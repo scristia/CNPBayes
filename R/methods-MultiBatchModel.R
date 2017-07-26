@@ -175,31 +175,33 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
 
 ##
 ## This is the problem with calling new("BatchModel", ) with placeholders for values
-setValidity("BatchModel", function(object){
-  msg <- TRUE
-  ztab <- table(batch(object), z(object))
-##  if(any(ztab < 1)){
-##    msg <- "All components in each batch must have 1 or more observations"
-##    return(msg)
-##  }
-##  if(ncol(ztab) != nrow(ztab)){
-##    msg <- "All batches much have at least one observation from each component"
-##    return(msg)
-##  }
-  ## A valid batch model should have data ordered by batch
-##  deltas <- diff(batch(object))
-##  if(!all(deltas > 0)){
-##    msg <- "Constructor for BatchModel should return data and batch assignment in batch-order"
-##    return(msg)
-##  }
-  pz <- probz(object)
-  maxprob <- max(pz)
-  if(maxprob > 1 ){
-    msg <- "Posterior probabilities exceed 1"
-    return(msg)
-  }
-  msg
-})
+## setValidity("BatchModel", function(object){
+##   msg <- TRUE
+##   ztab <- table(batch(object), z(object))
+## ##  if(any(ztab < 1)){
+## ##    msg <- "All components in each batch must have 1 or more observations"
+## ##    return(msg)
+## ##  }
+## ##  if(ncol(ztab) != nrow(ztab)){
+## ##    msg <- "All batches much have at least one observation from each component"
+## ##    return(msg)
+## ##  }
+##   ## A valid batch model should have data ordered by batch
+## ##  deltas <- diff(batch(object))
+## ##  if(!all(deltas > 0)){
+## ##    msg <- "Constructor for BatchModel should return data and batch assignment in batch-order"
+## ##    return(msg)
+##   ##  }
+## ##  if(length(y(object)) > 0){
+## ##    pz <- probz(object)
+## ##    maxprob <- max(pz)
+## ##    if(maxprob > 1 ){
+## ##      msg <- "Posterior probabilities exceed 1"
+## ##      return(msg)
+## ##    }
+## ##  }
+##   msg
+## })
 
 #' extract data, latent variable, and batch for given observation
 #' @name extract
