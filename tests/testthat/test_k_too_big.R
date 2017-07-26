@@ -1,5 +1,7 @@
 context("K too big")
 
+.test_that <- function(name, expr) NULL
+
 test_that("K too big", {
   set.seed(1337)
   mp <- McmcParams(nStarts=100, burnin=0, iter=0)

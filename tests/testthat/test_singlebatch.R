@@ -18,6 +18,30 @@ test_that("test_marginal_empty_component", {
     expect_false(any(is.na(CNPBayes:::computeMeans(model))))
 })
 
+
+.test_that("test_MarginalModel2", {
+  set.seed(1)
+  truth <- simulateData(N = 200,
+                        theta = c(-2, -0.4, 0),
+                        sds = c(0.3, 0.15, 0.15),
+                        p = c(0.005, 1/10, 1 - 0.005 - 1/10))
+  yy <- y(truth)
+  s <- (yy - median(yy))/sd(yy)
+  mp <- McmcParams(iter = 5, burnin = 5, nStarts = 1)
+  hp <- Hyperparameters(k=3,
+                        tau2.0=2,
+                        mu.0=0,
+                        eta.0=1,
+                        m2.0=0.01)
+  summary(sqrt(1/rgamma(200, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))))
+  set.seed(123)
+  trace(MarginalModel2, browser)
+  MarginalModel2(data = y(truth), k = 3,
+                 mcmc.params = mp,
+                 hypp=hp)
+  expect_false(any(is.na(CNPBayes:::computeMeans(model))))
+})
+
 test_that("test_marginal_few_data", {
     expect_error(model <- MarginalModel(data = 0:1, k = 3))
 })

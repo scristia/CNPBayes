@@ -1,5 +1,7 @@
 context("BatchModel")
 
+.test_that <- function(name, expr)  NULL
+
 test_that("initial values", {
   extdata <- system.file("extdata", package="CNPBayes")
   dat <- readRDS(file.path(extdata, "mckean_data.rds"))
@@ -275,7 +277,7 @@ test_that("different starts", {
   expect_equal(log_lik(model), max(logliks, na.rm=TRUE))
 })
 
-test_that("model_select", {
+.test_that("model_select", {
   extdata <- system.file("extdata", package="CNPBayes")
   r <- readRDS(file.path(extdata, "lrr_roi_2.rds"))
   r.list <- lapply(r, colMedians, na.rm=TRUE)

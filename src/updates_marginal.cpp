@@ -541,7 +541,7 @@ Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;  
+  int K = getK(hypp) ;
   Rcpp::S4 params(mcmcp) ;
   IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;
@@ -557,13 +557,13 @@ Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
       model.slot("pi") = update_p(xmod) ;
     if(up[3] > 0)
       model.slot("mu") = update_mu(xmod) ;
-    if(up[4] > 0)    
+    if(up[4] > 0)
       model.slot("tau2") = update_tau2(xmod) ;
-    if(up[5] > 0)    
+    if(up[5] > 0)
       model.slot("nu.0") = update_nu0(xmod) ;
-    if(up[6] > 0)        
+    if(up[6] > 0)
       model.slot("sigma2.0") = update_sigma2_0(xmod) ;
-    if(up[7] > 0){        
+    if(up[7] > 0){
       model.slot("z") = update_z(xmod) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     }

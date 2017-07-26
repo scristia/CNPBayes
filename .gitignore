@@ -6,7 +6,6 @@ TODO.org
 *.o*
 *.sw?
 *.log
-*.RDS
 *.csv
 temp.r
 *.pdf
@@ -19,7 +18,6 @@ inst/*.html
 vignettes/*.R
 vignettes/.build.timestamp
 README.html
-*.RDS
 /vignettes/figure/batch-1.png
 vignettes/figure
 inst/unitTests
