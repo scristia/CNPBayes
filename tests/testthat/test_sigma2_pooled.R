@@ -6,8 +6,8 @@ test_that("sigma2_pooled", {
                         sds = c(0.3, 0.15, 0.15),
                         p = c(0.005, 1/10, 1 - 0.005 - 1/10))
   mcmcp <- McmcParams(iter = 10, burnin = 10)
-  model <- CNPBayes:::SingleBatchPooledVar(y(truth), k = 3)
-  model <- CNPBayes:::posteriorSimulationPooled(model, iter=1, burnin=0, thin=1)
+  model <- SingleBatchPooledVar(y(truth), k = 3)
+  model <- posteriorSimulationPooled(model, iter=1, burnin=0, thin=1)
 
   set.seed(1223)
   (s2.cpp <- sigma2_pooled(model))
@@ -32,7 +32,7 @@ test_that("missing component", {
   ## idea: the second observation should be re-assigned to the first component with greater probability than the other observations
   yy[1] <- -2
   yy[2] <- -0.75
-  model <- CNPBayes:::SingleBatchPooledVar(yy, k = 2)
+  model <- SingleBatchPooledVar(yy, k = 2)
   updates <- .param_updates()
   updates["theta"] <- 0L
   mp <- McmcParams(iter=5, burnin=0, param_updates=updates, nStarts=0)
@@ -42,23 +42,8 @@ test_that("missing component", {
   z(model) <- truez
   expectedz <- truez
   expectedz[2] <- 1L
-  p <- .Call("CNPBayes_multinomialPr_pooled", model)
+  p <- multinomialPr_pooled(model)
   model@probz <- p
-  zz <- .Call('CNPBayes_z_pooled', model)
+  zz <- z_pooled(model)
   expect_identical(zz, expectedz)
 })
-
-## test_that("joint expression, copynumber, methylation model", {
-##   extdata <- system.file("extdata", package="CNPBayes")
-##   cdkn2a.list <- readRDS(file.path(extdata, "expr_meth_cn_model.rds"))
-##   cdkn2a <- cdkn2a.list[[10]]
-## 
-##   library(magrittr)
-##   library(dplyr)
-##   starting_values(cdkn2a)
-##   starting.vals <- cdkn2a %>% group_by(probe_both, methylated_or_deleted) %>%
-##     summarize(mu_expr=median(expression, na.rm=TRUE),
-##               sd_expr=sd(expression, na.rm=TRUE))
-##   starting.vals
-##   gene_model(cdkn2a)
-## })

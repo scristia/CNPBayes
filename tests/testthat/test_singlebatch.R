@@ -196,8 +196,9 @@ test_that("test_selectK_easy", {
     model <- MarginalModel(data = y(truth), k = 2, mcmc.params = mp0)
     expect_error(mlist <- posteriorSimulation(model, k = 2:4))
     mlist <- MarginalModelList(data=y(truth), k=2:4, mcmc.params=mp)
-    expect_warning(mlist <- posteriorSimulation(mlist),
-                   "label switching: model k=4")
+    mlist2 <- posteriorSimulation(mlist)
+    ##expect_warning(mlist <- posteriorSimulation(mlist),
+    ##               "label switching: model k=4")
     if(FALSE){
       ##
       ## Visual inspection of the chains for theta shows that the k=4 model has
@@ -266,7 +267,7 @@ test_that("test_selectK_easy", {
     ##
     ##
     ##mlist <- mlist[1:2]
-    m.y <- marginalLikelihood(mlist)
+    m.y <- marginalLikelihood(mlist2)
     argmax <- which.max(m.y)
     expect_true(argmax == 2L)
 })

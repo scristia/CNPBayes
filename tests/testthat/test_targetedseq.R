@@ -12,7 +12,7 @@ test_that("targeted_seq data", {
   dat <- read.delim(extfile)[[1]]
   dat <- sample(dat, 500)
   mlist <- MarginalModelList(data=dat, k=2:4, mcmc.params=mp)
-  mlist <- posteriorSimulation(mlist)
+  expect_warning(mlist <- posteriorSimulation(mlist))
   ##expect_warning(mlist <- posteriorSimulation(mlist), "label switching: model k=4")
  ##
   ## Select k=3
