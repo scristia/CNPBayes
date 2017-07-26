@@ -37,7 +37,7 @@ Suggests:
     MASS,
     dplyr,
     tidyr
-Collate:
+Collate: 
     'help.R'
     'AllGenerics.R'
     'AllClasses.R'
@@ -46,13 +46,13 @@ Collate:
     'data.R'
     'functions.R'
     'marginal_likelihood.R'
-    'methods-BatchModel.R'
     'methods-DensityModel.R'
     'methods-Hyperparameters.R'
-    'methods-MixtureModel.R'
-    'methods-MarginalModel.R'
     'methods-McmcChains.R'
     'methods-McmcParams.R'
+    'methods-MixtureModel.R'
+    'methods-MultiBatchModel.R'
+    'methods-SingleBatchModel.R'
     'methods-SummarizedExperiment.R'
     'model_initialization.R'
     'plot-functions.R'
