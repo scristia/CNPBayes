@@ -104,7 +104,7 @@ Rcpp::NumericVector stageTwoLogLik_pooled(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericMatrix multinomialPr_pooled(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;  
+  Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector theta = model.slot("theta") ;
@@ -112,7 +112,7 @@ Rcpp::NumericMatrix multinomialPr_pooled(Rcpp::S4 xmod) {
   NumericVector sigma = sqrt(sigma2) ;
   NumericVector p = model.slot("pi") ;
   NumericVector x = model.slot("data") ;
-  int n = x.size() ;  
+  int n = x.size() ;
   NumericMatrix lik(n, K) ;
   NumericMatrix probs(n, K) ;
   NumericVector tmp(n) ;
@@ -132,69 +132,8 @@ Rcpp::NumericMatrix multinomialPr_pooled(Rcpp::S4 xmod) {
   return probs ;
 }
 
-// Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
-//   RNGScope scope ;
-//   Rcpp::S4 model(xmod) ;
-//   Rcpp::S4 hypp(model.slot("hyperparams")) ;
-//   int K = getK(hypp) ;
-//   NumericVector x = model.slot("data") ;
-//   int n = x.size() ;
-//   NumericMatrix p(n, K);
-//   p = multinomialPr_pooled(xmod) ;
-//   NumericMatrix cumP(n, K);
-//   for(int i=0; i < n; i++){
-//     for(int k = 0; k < K; k++){
-//       if(k > 0){
-//         cumP(i, k) = cumP(i, k-1) + p(i, k) ;
-//       } else {
-//         cumP(i, k) = p(i, k) ;
-//       }
-//     }
-//     cumP(i, K-1) = 1.000001 ;
-//   }
-//   //return cumP ;
-//   NumericVector u = runif(n) ;
-//   IntegerVector zz(n) ;
-//   IntegerVector freq(K) ;
-//   for(int k = 0; k < K; k++) {
-//     freq[k]=0;
-//   }
-//   for(int i = 0; i < n; i++){
-//     int k = 0 ;
-//     while(k < K) {
-//       if( u[i] < cumP(i, k)){
-//         zz[i] = k + 1 ;
-//         freq[k] += 1 ;
-//         break ;
-//       }
-//       k += 1 ;
-//     }
-//     cumP(i, K-1) = 1.00001 ;  // just to be certain
-//   }
-//   if(is_true(all(freq > 1))){
-//     return zz ;
-//   }
-//   //
-//   // Don't update z if there are states with zero frequency
-//   //  
-//   for(int k = 0; k < K; ++k){
-//     if( freq[k] >= 2 ) continue ;
-//     NumericVector r(2) ;
-//     IntegerVector i(2) ;
-//     r = runif(2, 0, 1) * n ;
-//     for(int j = 0; j < 2; ++j){
-//       // cast as integer
-//       i = (int) r[j] ;
-//       zz[i] = k + 1 ;
-//     }
-//     freq[k] = sum(zz == (k+1)) ;
-//   }
-//   return zz ;
-// }
-
 // Be smarter about assigning samples to a component with zero or one
 // observations
-
 // [[Rcpp::export]]
 Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
   RNGScope scope ;
