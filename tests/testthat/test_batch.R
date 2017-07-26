@@ -14,6 +14,7 @@ test_that("initial values", {
   j <- 3
   hypp <- HyperparametersBatch(k=k[j])
   ## k = 3 is too many components
+  ##trace(BatchModel, browser)
   model <- BatchModel(data=data, k=k[j],
                       batch=batch,
                       mcmc.params=mcmc.params,

@@ -11,7 +11,7 @@ test_that("overfit model", {
   # correct 78th observation
   galaxies[78] <- 26960
   galaxies2 <- (galaxies-median(galaxies))/1000
-  mp <- McmcParams(iter=500, burnin=500, nStarts=20)
+  mp <- McmcParams(iter=500, burnin=1000, nStarts=1, thin=5)
   ##    taut2hat = var(theta(model))
   ## qInverseTau2(mn=0.01, sd=0.001)
   mlist <- MarginalModelList(data=galaxies2,
