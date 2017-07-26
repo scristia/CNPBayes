@@ -465,11 +465,3 @@ setMethod("startingValues", "BatchModel", function(object){
   if(length(y(object)) == 0) return(object)
   .init_batchmodel2(object)
 })
-
-setMethod("startingValues", "BatchModel", function(object){
-  ##.init_batchmodel(object)
-  if(length(y(object)) == 0) return(object)
-  .init_batchmodel2(object)
-})
-
-
