@@ -64,14 +64,14 @@ test_that("test_marginal_empty_component", {
   ggSingleBatchChains(model)[[1]]
   ggSingleBatchChains(model)[[2]]
   ggSingleBatch(model)
-}
+})
 
 
 test_that("test_marginal_few_data", {
-    expect_error(model <- MarginalModel(data = 0:1, k = 3))
+  expect_error(model <- MarginalModel(data = 0:1, k = 3))
 })
 
-test_that("test_marginal_hard", {
+test_that("marginal-hard", {
     set.seed(1337)
     truth <- simulateData(N = 1000,
                           theta = c(-2, -0.4, 0),
@@ -133,10 +133,6 @@ test_that("test_marginal_hard", {
                             eta.0=2,
                             m2.0=2)
       model <- gibbs(mp=mp, hp=hp, dat=y(truth))
-
-      
-
-
 
       ch <- ggSingleBatchChains(model)
       ch[[1]]

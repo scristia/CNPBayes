@@ -24,7 +24,7 @@
 #' @importFrom magrittr set_colnames "%>%"
 #' @importFrom purrr map
 #' @importFrom tidyr gather
-#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate bind_rows
 #' @importFrom tibble as.tibble
 #' @useDynLib CNPBayes
 NULL

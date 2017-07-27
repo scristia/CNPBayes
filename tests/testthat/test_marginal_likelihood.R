@@ -26,6 +26,7 @@ test_that("overfit model", {
   expect_false(failEffectiveSize(mlist2[[3]]))
   ml <- marginalLikelihood(mlist2)
   expect_equivalent(which.max(ml), 3L)
+ 
   if(FALSE){
     ## I verified that 1000 burnin, 1000 iter, and thin of 10 converges for k=3
     library(ggplot2)
