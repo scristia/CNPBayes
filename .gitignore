@@ -22,3 +22,5 @@ README.html
 vignettes/figure
 inst/unitTests
 /vignettes/Overview.md
+/R/methods-BatchModel.R
+/R/methods-MarginalModel.R
