@@ -75,6 +75,7 @@ MarginalModel <- function(data=numeric(), k=3, hypp, mcmc.params){
                 modes=list(),
                 mcmc.params=mcmc.params,
                 label_switch=FALSE,
+                marginal_lik=as.numeric(NA),
                 .internal.constraint=5e-4,
                 .internal.counter=0L)
   object <- startingValues(object)
@@ -94,7 +95,8 @@ MarginalModel2 <- function(data=numeric(), k=3, hypp, mcmc.params){
   }
   if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
   nbatch <- setNames(as.integer(table(batch)), levels(batch))
-  std.data <- (data-median(data))/sd(data)
+  ##std.data <- (data-median(data))/sd(data)
+  std.data <- data
 
   hp <- hypp
   mu <- rnorm(1, mu.0(hp), sqrt(tau2.0(hp)))
@@ -129,6 +131,7 @@ MarginalModel2 <- function(data=numeric(), k=3, hypp, mcmc.params){
                 modes=list(),
                 mcmc.params=mcmc.params,
                 label_switch=FALSE,
+                marginal_lik=as.numeric(NA),
                 .internal.constraint=5e-4,
                 .internal.counter=0L)
   object

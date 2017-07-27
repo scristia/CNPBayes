@@ -748,3 +748,6 @@ setGeneric("label_switch", function(object) standardGeneric("label_switch"))
 
 
 setGeneric("label_switch<-", function(object, value) standardGeneric("label_switch<-"))
+
+setGeneric("marginal_lik", function(object) standardGeneric("marginal_lik"))
+setGeneric("marginal_lik<-", function(object, value) standardGeneric("marginal_lik<-"))

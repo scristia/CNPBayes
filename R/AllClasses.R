@@ -149,6 +149,7 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         modes="list",
                                         mcmc.params="McmcParams",
                                         label_switch="logical",
+                                        marginal_lik="numeric",
                                         .internal.constraint="numeric",
                                         .internal.counter="integer"))
 

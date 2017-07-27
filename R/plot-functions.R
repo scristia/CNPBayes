@@ -70,71 +70,57 @@ meltMultiBatchChains <- function(model){
 
 meltSingleBatchChains <- function(model){
   ch <- chains(model)
-  th <- as.data.frame(theta(ch))
-  th$param <- "theta"
-  th$iter <- factor(1:nrow(th))
-  th.m <- melt(th)
-  ##
-  ##
-  ##
-  K <- k(model)
-  comp <- rep(seq_len(K), each=nrow(th))
-  th.m$comp <- factor(paste0("k=", comp))
-  th.m$iter <- as.integer(th.m$iter)
-
-  s <- as.data.frame(sigma(ch))
+  th <- as.tibble(theta(ch)) %>%
+    set_colnames(paste0("theta", seq_len(k(model))))
+  th$iter <- 1:nrow(th)
+  th.m <- gather(th, key="parameter", value="value", -iter) %>%
+    mutate(comp=gsub("theta", "", parameter))
+  sig <- as.tibble(sigma(ch)) %>%
+    set_colnames(paste0("sigma", seq_len(k(model))))
   if(class(model) == "SingleBatchPooledVar"){
-    s$iter <- factor(1:nrow(s))
-  } else s$iter <- th$iter
-  s$param <- "sigma"
-  s.m <- melt(s)
-  if(class(model) == "SingleBatchPooledVar"){
-    s.m$iter <- seq_len(nrow(s.m))
-    s.m$comp <- "pooled"
-  } else {
-    s.m$iter <- th.m$iter
-    s.m$comp <- th.m$comp
-  }
-
-  nu0 <- as.data.frame(nu.0(ch))
+    sig$iter <- 1:nrow(sig)
+  } else sig$iter <- th$iter
+  s.m <- gather(sig, key="parameter", value="value", -iter) %>%
+    mutate(comp=gsub("sigma", "", parameter))
+  nu0 <- as.tibble(nu.0(ch)) %>%
+    set_colnames("nu0")
   nu0$iter <- th$iter
-  nu0$param <- "nu0"
-  nu0.m <- melt(nu0)
+  nu0.m <- gather(nu0, key="parameter", value="value", -iter)
 
-  s20 <- as.data.frame(sigma2.0(ch))
+  s20 <- as.tibble(sigma2.0(ch)) %>%
+    set_colnames("s20")
   s20$iter <- th$iter
-  s20$param <- "s20"
-  s20.m <- melt(s20)
+  s20.m <- gather(s20, key="parameter", value="value", -iter)
 
-  mus <- as.data.frame(mu(ch))
+  mus <- as.tibble(mu(ch))%>%
+    set_colnames("mu")
   mus$iter <- th$iter
-  mus$param <- "mu"
-  mus.m <- melt(mus)
-  ##mus.m$comp <- factor(rep(seq_len(k(model)), each=iter(model)))
+  mus.m <- gather(mus, key="parameter", value="value", -iter)
 
-  prob <- as.data.frame(p(ch))
+  prob <- as.tibble(p(ch)) %>%
+    set_param_names("p")
   prob$iter <- th$iter
-  prob$param <- "p"
-  prob.m <- melt(prob)
-  p.comp <- rep(seq_len(k(model)), each=iter(model))
-  prob.m$comp <- factor(paste0("k=", p.comp))
+  prob.m <- gather(prob, key="parameter", value="value", -iter) %>%
+    mutate(comp=gsub("p", "", parameter))
 
-  taus <- as.data.frame(tau(ch))
+  taus <- as.tibble(tau(ch)) %>%
+    set_colnames("tau")
   taus$iter <- th$iter
-  taus$param <- "tau"
-  taus.m <- melt(taus)
-  ##taus.m$comp <- factor(rep(seq_len(k(model)), each=iter(model)))
-  ##prob.m$iter <- taus.m$iter <- mus.m$iter <- as.integer(mus.m$iter)
-  taus.m$iter <- as.integer(mus.m$iter)
-  dat.comp <- rbind(th.m,
-                    s.m,
-                    prob.m)
-  dat.comp$iter <- as.integer(dat.comp$iter)
-  dat <- rbind(nu0.m,
-               s20.m,
-               mu=mus.m,
-               tau=taus.m)
-  dat$iter <- as.integer(dat$iter)
+  taus.m <- gather(taus, key="parameter", value="value", -iter)
+
+  ll <- as.tibble(log_lik(ch)) %>%
+    set_colnames("log lik") %>%
+    mutate(iter=th$iter) %>%
+    gather(key="parameter", value="value", -iter)
+  dat.comp <- bind_rows(th.m,
+                        s.m,
+                        prob.m)
+
+  dat <- bind_rows(nu0.m,
+                   s20.m,
+                   mu=mus.m,
+                   tau=taus.m,
+                   loglik=ll)
   list(comp=dat.comp,
        single=dat)
 }
@@ -167,14 +153,15 @@ ggSingleBatchChains <- function(model){
   dat.comp <- melt.ch[["comp"]]     ## component-specific
   dat.single <- melt.ch[["single"]] ## single-parameter
   iter <- value <- comp <- param <- NULL
+
   p.comp <- ggplot(dat.comp, aes(iter, value, group=comp)) +
     geom_point(size=0.3, aes(color=comp)) +
     geom_line(aes(color=comp)) +
-    facet_wrap(~param, scales="free_y")
-  p.single <- ggplot(dat.single, aes(iter, value, group="param")) +
+    facet_wrap(~parameter, scales="free_y")
+  p.single <- ggplot(dat.single, aes(iter, value, group="parameter")) +
     geom_point(size=0.3, color="gray") +
     geom_line(color="gray") +
-    facet_wrap(~param, scales="free_y")
+    facet_wrap(~parameter, scales="free_y")
    list(comp=p.comp, single=p.single)
 }
 

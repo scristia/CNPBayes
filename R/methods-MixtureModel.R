@@ -403,19 +403,6 @@ setMethod("posteriorSimulation", "list",
             results
           })
 
-## setMethod("posteriorSimulation2", "MixtureModel", function(object, params=psParams()){
-##   .posteriorSimulation2(object, params)
-## })
-
-## setMethod("posteriorSimulation2", "list",
-##           function(object, params=psParams(warnings=FALSE, NAonWarnings=TRUE)) {
-##             results <- vector("list", length(object))
-##             for(i in seq_along(results)){
-##               results[[i]] <- posteriorSimulation(object[[i]], params=params)
-##             }
-##             results
-##           })
-
 
 
 
@@ -1043,5 +1030,15 @@ setMethod("label_switch", "MixtureModel", function(object) object@label_switch)
 setReplaceMethod("label_switch", c("MixtureModel", "logical"),
                  function(object, value){
                    object@label_switch <- value
+                   object
+                 })
+
+setMethod("marginal_lik", "MixtureModel", function(object){
+  object@marginal_lik
+})
+
+setReplaceMethod("marginal_lik", c("MixtureModel", "numeric"),
+                 function(object, value){
+                   object@marginal_lik <- value
                    object
                  })

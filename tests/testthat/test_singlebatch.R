@@ -28,7 +28,6 @@ test_that("test_marginal_empty_component", {
   yy <- y(truth)
   s <- (yy - median(yy))/sd(yy)
   mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 1)
-
   qInverseTau2(mn=0.5, sd=0.5)
   hp <- Hyperparameters(k=3,
                         tau2.0=1,
@@ -40,23 +39,33 @@ test_that("test_marginal_empty_component", {
   summary(sqrt(1/rgamma(200, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))))
   ##mns <- rnorm(3, 0, sqrt(1/rgamma(1, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))))
   set.seed(123)
-  m <- MarginalModel2(data = y(truth), k = 3,
+  m <- MarginalModel2(data = y(truth),
+                      k = 3,
                       mcmc.params = mp,
                       hypp=hp)
   m2 <- posteriorSimulation(m)
-
   if(FALSE){
     ggSingleBatch(m2)
     plist <- ggSingleBatchChains(m2)
     plist[[1]]
-
-    library(purrr)
-    m.list <- replicate(4, MarginalModel2(data=y(truth), k=3, mcmc.params=mp, hypp=hp))
-    m.list2 <- purrr::map(m.list, posteriorSimulation)
-
   }
+  ##
+  ## takes too long
+  ##
+  library(purrr)
+  mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 1, thin=10)
+  mod.list <- replicate(4, MarginalModel2(data=y(truth), k=3, mcmc.params=mp, hypp=hp))
+  mod.list2 <- map(mod.list, posteriorSimulation)
+  mc.list <- mcmcList(mod.list2)
+  expect_is(mc.list, "mcmc.list")
+  diagnostics(mod.list2)
+  model <- combineModels(mod.list2)
+  diagnostics(list(model))
+  ggSingleBatchChains(model)[[1]]
+  ggSingleBatchChains(model)[[2]]
+  ggSingleBatch(model)
+}
 
-})
 
 test_that("test_marginal_few_data", {
     expect_error(model <- MarginalModel(data = 0:1, k = 3))
@@ -84,11 +93,58 @@ test_that("test_marginal_hard", {
     expect_equal(p(truth), colMeans(pic(model)), tolerance=0.18)
     expect_identical(numberObs(truth), 1000L)
     if (FALSE) {
-        op <- par(mfrow = c(1, 2), las = 1)
-        plot(truth)
-        plot(model)
-        par(op)
-        plot.ts(sigmac(model), col = 1:3, plot.type = "single")
+      set.seed(5986)
+      library(purrr)
+      mp <- McmcParams(iter = 1000,
+                       burnin = 1000,
+                       nStarts = 4,
+                       thin=10)
+      hp <- Hyperparameters(k=3,
+                            tau2.0=0.5,
+                            mu.0=0,
+                            eta.0=2,
+                            m2.0=2)
+      model <- gibbs(mp=mp, hp=hp, dat=y(truth))
+      ch <- ggSingleBatchChains(model)
+      ch[[1]]
+      ch[[2]]
+      fig1 <- ggSingleBatch(model)
+      fig2 <- ggSingleBatch(truth)
+      library(gridExtra)
+      grid.arrange(fig2, fig1, ncol=1)
+
+      ##
+      ## what happens when we over-specify the model?
+      ## - expect warnings from label swapping
+      expect_true(is.na(marginal_lik(MarginalModel2())))
+      hp <- Hyperparameters(k=4,
+                            tau2.0=0.5,
+                            mu.0=0,
+                            eta.0=2,
+                            m2.0=2)
+      expect_warning(model <- gibbs(mp=mp, hp=hp, dat=y(truth)))
+      expect_true(is.na(marginal_lik(model)))
+      ##
+      ## what happens when we under-specify the model?
+      ##
+      hp <- Hyperparameters(k=2,
+                            tau2.0=0.5,
+                            mu.0=0,
+                            eta.0=2,
+                            m2.0=2)
+      model <- gibbs(mp=mp, hp=hp, dat=y(truth))
+
+      
+
+
+
+      ch <- ggSingleBatchChains(model)
+      ch[[1]]
+      ch[[2]]
+      fig1 <- ggSingleBatch(model)
+      fig2 <- ggSingleBatch(truth)
+      library(gridExtra)
+      grid.arrange(fig2, fig1, ncol=1)
     }
 })
 

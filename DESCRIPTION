@@ -29,7 +29,10 @@ Imports:
     reshape2,
     ggplot2,
     magrittr,
-    purrr
+    purrr,
+    tidyr,
+    dplyr,
+    tibble
 Suggests:
     testthat,
     knitr,
@@ -49,11 +52,13 @@ Collate:
     'diagnostics.R'
     'functions.R'
     'marginal_likelihood.R'
+    'methods-BatchModel.R'
     'methods-DensityModel.R'
     'methods-Hyperparameters.R'
+    'methods-MixtureModel.R'
+    'methods-MarginalModel.R'
     'methods-McmcChains.R'
     'methods-McmcParams.R'
-    'methods-MixtureModel.R'
     'methods-MultiBatchModel.R'
     'methods-SingleBatchModel.R'
     'methods-SummarizedExperiment.R'
