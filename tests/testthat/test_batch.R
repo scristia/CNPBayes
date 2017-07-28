@@ -22,6 +22,41 @@ test_that("initial values", {
   expect_true(!is.na(log_lik(model)))
 })
 
+.test_that("MultiBatchModel", {
+  set.seed(100)
+  nbatch <- 3
+  k <- 3
+  means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+      0, 0.05), nbatch, k, byrow = FALSE)
+  sds <- matrix(0.15, nbatch, k)
+  sds[, 1] <- 0.3
+  N <- 1000
+  truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+                                                length.out = N),
+                             p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+                             theta = means,
+                             sds = sds)
+
+  batches <- batch(truth)
+  dat <- y(truth)
+
+  hp <- HyperparametersBatch(k=3,
+                             mu=-0.75,
+                             tau2.0=0.4,
+                             eta.0=32,
+                             m2.0=0.5) ## why is alpha not set
+  mb <- MultiBatchModel()
+  library(purrr)
+  mp <- McmcParams(iter = 1000,
+                   burnin = 1000,
+                   nStarts = 4,
+                   thin=10)
+  hp <- Hyperparameters(tau2.0=0.4,
+                        mu.0=-0.75,
+                        eta.0=32,
+                        m2.0=0.5)
+})
+
 test_that("test_batch_moderate", {
   set.seed(100)
   nbatch <- 3
@@ -96,7 +131,7 @@ test_that("test_batchEasy", {
     expect_identical(sigma(truth), sigma(model))
     expect_identical(p(truth), p(model))
     expect_identical(z(truth), z(model))
-    iter(model) <- 50
+    iter(model) <- 50L
     if (FALSE) {
         model <- .Call("mcmc_batch", model, mcmcParams(model))
         set.seed(123)
