@@ -107,6 +107,65 @@ BatchModel <- function(data=numeric(),
 }
 
 
+MultiBatchModel <- function(dat=numeric(),
+                            hp=HyperparametersBatch(),
+                            mp=McmcParams(),
+                            batches=integer()){
+  ub <- unique(batches)
+  nbatch <- setNames(as.integer(table(batches)), ub)
+  B <- length(ub)
+  N <- length(dat)
+  ## move to setValidity
+  if(length(dat) != length(batches)) {
+    stop("batch vector must be the same length as data")
+  }
+  K <- k(hp)
+  ## mu_k is the average across batches of the thetas for component k
+  ## tau_k is the sd of the batch means for component k
+  mu <- sort(rnorm(k(hp), mu.0(hp), sqrt(tau2.0(hp))))
+  tau2 <- 1/rgamma(k(hp), 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
+  p <- rdirichlet(1, alpha(hp))[1, ]
+  sim_theta <- function(mu, tau, B) sort(rnorm(B, mu, tau))
+  ##library(magrittr)
+  thetas <- map2(mu, sqrt(tau2), sim_theta, B) %>%
+    do.call(cbind, .) %>%
+    apply(., 1, sort) %>%
+    t
+  nu.0 <- 3.5
+  sigma2.0 <- 0.25
+  sigma2s <- 1/rgamma(k(hp) * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
+    matrix(B, k(hp))
+  obj <- new("BatchModel",
+             k=as.integer(K),
+             hyperparams=hp,
+             theta=thetas,
+             sigma2=sigma2s,
+             mu=mu,
+             tau2=tau2,
+             nu.0=nu.0,
+             sigma2.0=sigma2.0,
+             pi=p,
+             data=dat,
+             data.mean=matrix(NA, B, K),
+             data.prec=matrix(NA, B, K),
+             z=integer(N),
+             zfreq=integer(K),
+             probz=matrix(0, N, K),
+             logprior=numeric(1),
+             loglik=numeric(1),
+             mcmc.chains=McmcChains(),
+             mcmc.params=mp,
+             batch=batches,
+             batchElements=nbatch,
+             label_switch=FALSE,
+             marginal_lik=as.numeric(NA),
+             .internal.constraint=5e-4,
+             .internal.counter=0L)
+  chains(obj) <- McmcChains(obj)
+  obj
+}
+
+
 ensureAllComponentsObserved <- function(obj){
   zz <- table(batch(obj), z(obj))
   K <- seq_len(k(obj))
