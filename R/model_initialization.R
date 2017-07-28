@@ -74,26 +74,11 @@ tau2Hyperparams <- function(thetas){
   }
   s2s <- params$variance$sigmasq
   ps <- params$pro
-  ##zs.bootstrap <- as.integer(mc$classification)
-  ##splits <- split(ys, zs.bootstrap)
-  ##mins <- sort(sapply(splits, min))
   yy <- y(object)
   if(K > 1){
     zz <- .initialize_z_singlebatch(yy, thetas)
   } else {
     zz <- rep(1L, length(yy))
-  }
-  ##zz <- as.integer(simulateZ(length(y(object)), p(object)))
-  if(FALSE){
-    cnt <- 1
-    while (length(table(zz)) < K) {
-      if (cnt > 10) {
-        stop("Too few observations or too many components.")
-      }
-      p(object) <- as.numeric(rdirichlet(1, alpha(hypp))) ## rows are
-      zz <- as.integer(simulateZ(length(y(object)), p(object)))
-      cnt <- cnt + 1
-    }
   }
   mu(object) <- mean(thetas)
   if(K > 1){
