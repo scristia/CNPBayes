@@ -9,7 +9,7 @@
 #' @param param_updates labeled vector specifying whether each parameter is to be updated (1) or not (0).
 #' @return An object of class 'McmcParams'
 #' @export
-McmcParams <- function(iter=1000L, burnin=0L, thin, nStarts=1,
+McmcParams <- function(iter=1000L, burnin=0L, thin=1L, nStarts=1L,
                        param_updates=.param_updates()){
   if(missing(thin)) thin <- rep(1L, length(iter))
   new("McmcParams", iter=as.integer(iter),
