@@ -62,6 +62,11 @@ mcmcList <- function(model.list){
   vars.list <- map(vars.list, mcmc)
   ##loglik2 <- mcmc(do.call(rbind, loglik))
   mlist <- mcmc.list(vars.list)
+  if(k(model.list[[1]]) == 1){
+    ## there is no p chain
+    dropP <- function(x) x[, -match("p1", colnames(x))]
+    mlist <- map(mlist, dropP)
+  }
   mlist
 }
 
@@ -188,32 +193,32 @@ gelman_rubin <- function(mcmc_list, hp){
   r
 }
 
-gibbs <- function(mp, hp, dat, max_burnin=32000){
+gibbs <- function(hp, mp, dat, max_burnin=32000){
   nchains <- nStarts(mp)
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
   while(burnin(mp) < max_burnin){
-    message("burnin: ", burnin(mp), ", thin: ", thin(mp))
+    message("k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mod.list <- replicate(nchains,
-                          MarginalModel2(data=dat,
-                                         k=k(hp),
-                                         mcmc.params=mp,
-                                         hypp=hp))
+                          MarginalModel2(dat=dat,
+                                         hp=hp,
+                                         mp=mp))
     mod.list <- map(mod.list, posteriorSimulation)
     label_swapping <- map_lgl(mod.list, label_switch)
     if(any(label_swapping)){
       ## try one more time
       mod.list <- replicate(nchains,
-                            MarginalModel2(data=dat,
-                                           k=k(hp),
-                                           mcmc.params=mp,
-                                           hypp=hp))
+                            MarginalModel2(dat=dat,
+                                           mp=mp,
+                                           hp=hp))
       mod.list <- map(mod.list, posteriorSimulation)
       label_swapping <- map_lgl(mod.list, label_switch)
-      message("Label switching detected")
-      mlist <- mcmcList(mod.list)
-      neff <- effectiveSize(mlist)
-      r <- gelman_rubin(mlist, hp)
-      break()
+      if(any(label_swapping)){
+        message("Label switching detected")
+        mlist <- mcmcList(mod.list)
+        neff <- effectiveSize(mlist)
+        r <- gelman_rubin(mlist, hp)
+        break()
+      }
     }
     mod.list <- mod.list[ selectModels(mod.list) ]
     mlist <- mcmcList(mod.list)
@@ -227,9 +232,9 @@ gibbs <- function(mp, hp, dat, max_burnin=32000){
       ## neff is > 500 but mpsrf is big -- more burnin; new starts
     } else {
       ## neff is small-- autocorrelation or label switching
-      mp@thin <- thin(mp) * 2
+      mp@thin <- as.integer(thin(mp) * 2)
     }
-    burnin(mp) <- burnin(mp) * 2
+    burnin(mp) <- as.integer(burnin(mp) * 2)
   }
   model <- combineModels(mod.list)
   meets_conditions <- all(neff > 500) && r$mpsrf < 2 && !label_switch(model)
@@ -237,22 +242,38 @@ gibbs <- function(mp, hp, dat, max_burnin=32000){
     ##
     ## evaluate marginal likelihood
     ##
-    marginal_lik(model) <- marginalLikelihood(model)
-    message("   marginal likelihood: ", round(marginal_lik(model), 2))
+    ml <- tryCatch(marginalLikelihood(model), warning=function(w) NULL)
+    if(!is.null(ml)){
+      marginal_lik(model) <- ml
+      message("   marginal likelihood: ", round(marginal_lik(model), 2))
+    } else {
+      warning("Unable to compute marginal likelihood")
+    }
   }
   model
 }
 
-gibbs_multipleK <- function(mp, hp, k_range=c(1, 4), dat, max_burnin=32000){
+gibbs_multipleK <- function(hp,
+                            mp,
+                            k_range=c(1, 4),
+                            dat,
+                            max_burnin=32000,
+                            reduce_size=TRUE){
   K <- seq(k_range[1], k_range[2])
   updateK <- function(ncomp, h) {
     k(h) <- ncomp
     h
   }
   hp.list <- map(K, updateK, hp)
-  model.list <- vector("list", length(K))
-  for(i in seq_along(model.list)){
-    model.list[[i]] <- gibbs(mp, hp.list[[i]], dat, max_burnin)
-  }
-  model.list
+  model.list <- map(hp.list,
+                    gibbs,
+                    mp=mp,
+                    dat=dat,
+                    max_burnin=max_burnin)
+  ## sort by marginal likelihood
+  ix <- order(map_dbl(mod.list, marginal_lik), decreasing=TRUE)
+  ##
+  ## if(reduce_size) TODO:  remove z chain, keep y in one object
+  ##
+  model.list[ix]
 }
