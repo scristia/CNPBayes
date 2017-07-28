@@ -19,7 +19,7 @@ test_that("test_marginal_empty_component", {
 })
 
 
-.test_that("test_MarginalModel2", {
+.test_that("MarginalModel2", {
   set.seed(1)
   truth <- simulateData(N = 200,
                         theta = c(-2, -0.4, 0),
@@ -28,14 +28,14 @@ test_that("test_marginal_empty_component", {
   yy <- y(truth)
   s <- (yy - median(yy))/sd(yy)
   mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 1)
-  qInverseTau2(mn=0.5, sd=0.5)
+  x <- qInverseTau2(mn=0.5, sd=0.5)
   hp <- Hyperparameters(k=3,
-                        tau2.0=1,
+                        tau2.0=0.5,
                         mu.0=0,
-                        eta.0=2,
-                        m2.0=2)
-  hist(sqrt(1/rgamma(1000, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))), breaks=250,
-       xlim=c(0, 5))
+                        eta.0=x$eta.0,
+                        m2.0=x$m2.0)
+  hist(sqrt(1/rgamma(1000, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))), breaks=250)
+
   summary(sqrt(1/rgamma(200, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))))
   ##mns <- rnorm(3, 0, sqrt(1/rgamma(1, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))))
   set.seed(123)
@@ -53,8 +53,10 @@ test_that("test_marginal_empty_component", {
   ## takes too long
   ##
   library(purrr)
-  mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 1, thin=10)
-  mod.list <- replicate(4, MarginalModel2(data=y(truth), k=3, mcmc.params=mp, hypp=hp))
+  ##mp <- McmcParams(iter = 1000, burnin = 10, nStarts = 1, thin=1)
+  mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 10, thin=1)
+  mod.list <- replicate(4, MarginalModel2(data=y(truth), k=3,
+                                          mcmc.params=mp, hypp=hp))
   mod.list2 <- map(mod.list, posteriorSimulation)
   mc.list <- mcmcList(mod.list2)
   expect_is(mc.list, "mcmc.list")
@@ -64,6 +66,45 @@ test_that("test_marginal_empty_component", {
   ggSingleBatchChains(model)[[1]]
   ggSingleBatchChains(model)[[2]]
   ggSingleBatch(model)
+})
+
+.test_that("segfault", {
+    set.seed(1337)
+    truth <- simulateData(N = 1000,
+                          theta = c(-2, -0.4, 0),
+                          sds = c(0.3, 0.15, 0.15),
+                          p = c(0.005, 1/10, 1 - 0.005 - 1/10))
+    library(purrr)
+    mp <- McmcParams(iter = 1000,
+                     burnin = 1000,
+                     nStarts = 4,
+                     thin=10)
+    hp <- Hyperparameters(tau2.0=0.4,
+                          mu.0=-0.75,
+                          eta.0=32,
+                          m2.0=0.5)
+    set.seed(123)
+    mod.list <- gibbs_multipleK(hp=hp, mp=mp, dat=y(truth))
+
+    hp <- Hyperparameters(k=4,
+                          tau2.0=0.4,
+                          mu.0=-0.75,
+                          eta.0=32,
+                          m2.0=0.5)
+    set.seed(5986)
+    model <- gibbs(mp=mp, hp=hp, dat=y(truth))
+    set.seed(134)
+    model <- gibbs(mp=mp, hp=hp, dat=y(truth))
+    set.seed(2496)
+    model <- gibbs(mp=mp, hp=hp, dat=y(truth))
+    set.seed(496)
+    model <- gibbs(mp=mp, hp=hp, dat=y(truth))
+    set.seed(1)
+    replicate(20, model <- gibbs(mp=mp, hp=hp, dat=y(truth)))
+
+    set.seed(1)
+    k(hp) <- 5
+    model <- gibbs(mp=mp, hp=hp, dat=y(truth))
 })
 
 
@@ -93,18 +134,18 @@ test_that("marginal-hard", {
     expect_equal(p(truth), colMeans(pic(model)), tolerance=0.18)
     expect_identical(numberObs(truth), 1000L)
     if (FALSE) {
-      set.seed(5986)
       library(purrr)
       mp <- McmcParams(iter = 1000,
                        burnin = 1000,
                        nStarts = 4,
                        thin=10)
       hp <- Hyperparameters(k=3,
-                            tau2.0=0.5,
-                            mu.0=0,
-                            eta.0=2,
-                            m2.0=2)
-      model <- gibbs(mp=mp, hp=hp, dat=y(truth))
+                            tau2.0=0.4,
+                            mu.0=-0.75,
+                            eta.0=32,
+                            m2.0=0.5)
+      set.seed(5986)
+      model <- gibbs(mp=mp, hp=hp, dat=y(truth), max_burnin=100000)
       ch <- ggSingleBatchChains(model)
       ch[[1]]
       ch[[2]]
@@ -117,30 +158,19 @@ test_that("marginal-hard", {
       ## what happens when we over-specify the model?
       ## - expect warnings from label swapping
       expect_true(is.na(marginal_lik(MarginalModel2())))
-      hp <- Hyperparameters(k=4,
-                            tau2.0=0.5,
-                            mu.0=0,
-                            eta.0=2,
-                            m2.0=2)
+      k(hp) <- 4
       expect_warning(model <- gibbs(mp=mp, hp=hp, dat=y(truth)))
       expect_true(is.na(marginal_lik(model)))
       ##
       ## what happens when we under-specify the model?
       ##
-      hp <- Hyperparameters(k=2,
-                            tau2.0=0.5,
-                            mu.0=0,
-                            eta.0=2,
-                            m2.0=2)
+      k(hp) <- 2
       model <- gibbs(mp=mp, hp=hp, dat=y(truth))
 
-      ch <- ggSingleBatchChains(model)
-      ch[[1]]
-      ch[[2]]
-      fig1 <- ggSingleBatch(model)
-      fig2 <- ggSingleBatch(truth)
-      library(gridExtra)
-      grid.arrange(fig2, fig1, ncol=1)
+      k(hp) <- 1
+      model <- gibbs(mp=mp, hp=hp, dat=y(truth))
+
+      model.list <- gibbs_multipleK(hp, mp, dat=y(truth))
     }
 })
 
@@ -253,6 +283,8 @@ test_that("test_marginalEasy", {
   ##sigma2.0(model)
 })
 
+
+
 test_that("test_selectK_easy", {
     set.seed(1)
     means <- c(-1, 0, 1)
@@ -339,4 +371,3 @@ test_that("test_selectK_easy", {
     argmax <- which.max(m.y)
     expect_true(argmax == 2L)
 })
-
