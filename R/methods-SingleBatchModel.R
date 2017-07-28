@@ -81,35 +81,35 @@ MarginalModel <- function(data=numeric(), k=3, hypp, mcmc.params){
   object <- startingValues(object)
 }
 
+## empirical starts
+##  if(length(dat) > 1){
+##    capture.output(mc <- tryCatch(Mclust(dat, G=K), warning=function(w) NULL))
+##    if(is.null(mc)){
+##      stop("Trouble selecting starting values with mclust.")
+##    } else{
+##      zz <- as.integer(mc$classification)
+##      theta <- as.numeric(tapply(dat, zz, mean))
+##      sigma2 <- as.numeric(tapply(dat, zz, var))
+##    }
+##  }
+##sigma2.0 <- 1/rgamma(1, a(hp), b(hp))
+##nu.0 <- max(rgeom(1, betas(hp)), 1)
 
-MarginalModel2 <- function(data=numeric(), k=3, hypp, mcmc.params){
-  if(missing(hypp)) hypp <- Hyperparameters(k=3)
-  batch <- rep(1L, length(data))
-  if(missing(k)){
-    k <- k(hypp)
-  } else{
-    k(hypp) <- k
-  }
-  if(missing(mcmc.params)) {
-    mcmc.params <- McmcParams(iter=1000, burnin=100, nStarts=4)
-  }
-  if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
-  nbatch <- setNames(as.integer(table(batch)), levels(batch))
-  ##std.data <- (data-median(data))/sd(data)
-  std.data <- data
 
-  hp <- hypp
+MarginalModel2 <- function(dat=numeric(), hp=Hyperparameters(),
+                           mp=McmcParams(iter=1000, burnin=1000,
+                                         thin=10, nStarts=4)){
+  K <- k(hp)
   mu <- rnorm(1, mu.0(hp), sqrt(tau2.0(hp)))
   tau2 <- 1/rgamma(1, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
-  theta <- sort(rnorm(k(hp), mean=mu, sd=sqrt(tau2)))
-  logsigma <- rnorm(k(hp), log(0.3), 1)
-  sigma2 <- exp(logsigma)^2
   p <- rdirichlet(1, alpha(hp))[1, ]
-  sigma2.0 <- rgamma(1, a(hp), b(hp))
-  nu.0 <- max(rgeom(1, betas(hp)), 1)
+  theta <- rnorm(k(hp), mu, sqrt(tau2))
+  nu.0 <- 3.5
+  sigma2.0 <- 0.25
+  sigma2 <- 1/rgamma(k(hp), 0.5 * nu.0, 0.5 * nu.0 * sigma2.0)
   object <- new("MarginalModel",
-                k=as.integer(k),
-                hyperparams=hypp,
+                k=as.integer(K),
+                hyperparams=hp,
                 theta=theta,
                 sigma2=sigma2,
                 mu=mu,
@@ -117,23 +117,24 @@ MarginalModel2 <- function(data=numeric(), k=3, hypp, mcmc.params){
                 nu.0=nu.0,
                 sigma2.0=sigma2.0,
                 pi=p,
-                data=std.data,
-                data.mean=numeric(k),
-                data.prec=numeric(k),
-                z=integer(length(data)),
-                zfreq=integer(k),
-                probz=matrix(0, length(data), k),
+                data=dat,
+                data.mean=numeric(K),
+                data.prec=numeric(K),
+                z=integer(length(dat)),
+                zfreq=integer(K),
+                probz=matrix(0, length(dat), K),
                 logprior=numeric(1),
                 loglik=numeric(1),
                 mcmc.chains=McmcChains(),
-                batch=batch,
-                batchElements=nbatch,
+                batch=rep(1L, length(dat)),
+                batchElements=1L,
                 modes=list(),
-                mcmc.params=mcmc.params,
+                mcmc.params=mp,
                 label_switch=FALSE,
                 marginal_lik=as.numeric(NA),
                 .internal.constraint=5e-4,
                 .internal.counter=0L)
+  chains(object) <- McmcChains(object)
   object
 }
 
