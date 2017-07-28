@@ -547,10 +547,17 @@ Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   Rcpp::S4 params(mcmcp) ;
   IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;
+  // Rprintf("the value of S[%i] \n", S);
   if( S < 1 ){
     return xmod ;
   }
   for(int s = 0; s < S; ++s){
+    if(up[7] > 0){
+      model.slot("z") = update_z(xmod) ;
+      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    }
+    model.slot("data.mean") = compute_means(xmod) ;
+    model.slot("data.prec") = compute_prec(xmod) ;
     if(up[0] > 0)
       model.slot("theta") = update_theta(xmod) ;
     if(up[1] > 0)
@@ -565,12 +572,6 @@ Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
       model.slot("nu.0") = update_nu0(xmod) ;
     if(up[6] > 0)
       model.slot("sigma2.0") = update_sigma2_0(xmod) ;
-    if(up[7] > 0){
-      model.slot("z") = update_z(xmod) ;
-      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-    }
-    model.slot("data.mean") = compute_means(xmod) ;
-    model.slot("data.prec") = compute_prec(xmod) ;
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
