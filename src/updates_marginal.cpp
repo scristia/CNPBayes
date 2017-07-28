@@ -5,6 +5,14 @@
 
 using namespace Rcpp ;
 
+// From stackoverflow http://stackoverflow.com/questions/21609934/ordering-permutation-in-rcpp-i-e-baseorder
+
+Rcpp::IntegerVector ordertheta_(Rcpp::NumericVector x) {
+  NumericVector sorted = clone(x).sort();
+  //return match(sorted, x);
+  return match(x, sorted) ;
+}
+
 // [[Rcpp::export]]
 Rcpp::NumericVector loglik(Rcpp::S4 xmod) {
   RNGScope scope ;
@@ -282,7 +290,7 @@ Rcpp::NumericMatrix update_multinomialPr(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::IntegerVector update_z(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;  
+  Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector x = model.slot("data") ;
@@ -491,13 +499,7 @@ Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod) {
     return sigma2_new;
 }
 
-// From stackoverflow http://stackoverflow.com/questions/21609934/ordering-permutation-in-rcpp-i-e-baseorder
 
-Rcpp::IntegerVector ordertheta_(Rcpp::NumericVector x) {
-  NumericVector sorted = clone(x).sort();
-  //return match(sorted, x);
-  return match(x, sorted) ;
-}
 
 //
 // For the posterior probability of a copy number state, order the z
