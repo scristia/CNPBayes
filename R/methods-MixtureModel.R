@@ -259,7 +259,6 @@ setMethod("probz", "MixtureModel", function(object) {
 
 setMethod("runBurnin", "MarginalModel", function(object){
   mcmc_marginal_burnin(object, mcmcParams(object))
-
 })
 
 setMethod("runBurnin", "SingleBatchPooledVar", function(object){
@@ -501,7 +500,7 @@ setMethod("isOrdered", "BatchModel", function(object){
 })
 
 .posteriorSimulation <- function(post, params=psParams()){
-  if(nStarts(post) > 0){
+  if(nStarts(post) > 1){
     post <- multipleStarts2(post)
   }
   if(burnin(post) > 0 ){
