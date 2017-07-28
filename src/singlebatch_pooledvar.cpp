@@ -177,7 +177,7 @@ Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
     return zz ;
   }
   //
-  // Don't update z if there are states with zero frequency
+  // Reassign samples with highest probability of belonging to missing component
   //
   int j = 0;
   //return zz ;

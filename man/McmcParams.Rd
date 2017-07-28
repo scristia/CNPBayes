@@ -4,7 +4,7 @@
 \alias{McmcParams}
 \title{Create an object of class 'McmcParams' to specify iterations, burnin, etc.}
 \usage{
-McmcParams(iter = 1000L, burnin = 0L, thin, nStarts = 1,
+McmcParams(iter = 1000L, burnin = 0L, thin = 1L, nStarts = 1L,
   param_updates = .param_updates())
 }
 \arguments{
