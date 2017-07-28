@@ -12,8 +12,8 @@ test_that("test_probz", {
     expect_equal(z(model), z(truth))
     pz <- probz(model)
     expect_true(all(pz == 0))
-    iter(model, force = TRUE) <- 2
-    burnin(model) <- 0
+    iter(model, force = TRUE) <- 2L
+    burnin(model) <- 0L
     zz <- map_z(posteriorSimulation(model))
     expect_equal(true_z, zz)
     model2 <- CNPBayes:::modelOtherModes(model, maxperm = 2)[[2]]
