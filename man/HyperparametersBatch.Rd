@@ -5,7 +5,7 @@
 \title{Create an object of class 'HyperparametersBatch' for the
 batch mixture model}
 \usage{
-HyperparametersBatch(k = 0L, mu.0 = 0, tau2.0 = 100, eta.0 = 1800,
+HyperparametersBatch(k = 3L, mu.0 = 0, tau2.0 = 100, eta.0 = 1800,
   m2.0 = 1/60, alpha, beta = 0.1, a = 1.8, b = 6)
 }
 \arguments{

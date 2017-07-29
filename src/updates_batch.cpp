@@ -667,6 +667,12 @@ Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
     return xmod ;
   }
   for(int s = 0; s < S; ++s){
+    if(up[7] > 0){        
+      model.slot("z") = update_z_batch(xmod) ;
+      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    }
+    model.slot("data.mean") = compute_means_batch(xmod) ;
+    model.slot("data.prec") = compute_prec_batch(xmod) ;
     if(up[0] > 0)
       try {
         model.slot("theta") = update_theta_batch(xmod) ;
@@ -687,12 +693,6 @@ Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
       model.slot("nu.0") = update_nu0_batch(xmod) ;
     if(up[2] > 0)
       model.slot("pi") = update_p_batch(xmod) ;
-    if(up[7] > 0){        
-      model.slot("z") = update_z_batch(xmod) ;
-      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-    }
-    model.slot("data.mean") = compute_means_batch(xmod) ;
-    model.slot("data.prec") = compute_prec_batch(xmod) ;
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
