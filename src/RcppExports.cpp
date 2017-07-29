@@ -640,14 +640,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // mcmc_marginal_burnin
-Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
-RcppExport SEXP _CNPBayes_mcmc_marginal_burnin(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp);
+RcppExport SEXP _CNPBayes_mcmc_marginal_burnin(SEXP objectSEXP, SEXP mcmcpSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
     Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
-    rcpp_result_gen = Rcpp::wrap(mcmc_marginal_burnin(xmod, mcmcp));
+    rcpp_result_gen = Rcpp::wrap(mcmc_marginal_burnin(object, mcmcp));
     return rcpp_result_gen;
 END_RCPP
 }

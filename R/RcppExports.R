@@ -229,8 +229,8 @@ update_sigma2 <- function(xmod) {
     .Call('_CNPBayes_update_sigma2', PACKAGE = 'CNPBayes', xmod)
 }
 
-mcmc_marginal_burnin <- function(xmod, mcmcp) {
-    .Call('_CNPBayes_mcmc_marginal_burnin', PACKAGE = 'CNPBayes', xmod, mcmcp)
+mcmc_marginal_burnin <- function(object, mcmcp) {
+    .Call('_CNPBayes_mcmc_marginal_burnin', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
 mcmc_marginal <- function(object, mcmcp) {
