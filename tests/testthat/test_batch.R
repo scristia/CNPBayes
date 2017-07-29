@@ -36,25 +36,79 @@ test_that("initial values", {
                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
                              theta = means,
                              sds = sds)
-
   batches <- batch(truth)
   dat <- y(truth)
-
   hp <- HyperparametersBatch(k=3,
                              mu=-0.75,
                              tau2.0=0.4,
                              eta.0=32,
-                             m2.0=0.5) ## why is alpha not set
-  mb <- MultiBatchModel()
-  library(purrr)
+                             m2.0=0.5)
+  ##trace(MultiBatchModel, browser)
+  expect_true(validObject(MultiBatchModel()))
   mp <- McmcParams(iter = 1000,
                    burnin = 1000,
                    nStarts = 4,
                    thin=10)
-  hp <- Hyperparameters(tau2.0=0.4,
-                        mu.0=-0.75,
-                        eta.0=32,
-                        m2.0=0.5)
+  model <- MultiBatchModel(hp=hp, mp=mp, dat=y(truth),
+                           batches=batch(truth))
+  expect_true(validObject(model))
+
+  library(purrr)
+  mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 1, thin=1)
+  m <- MultiBatchModel(dat=y(truth),
+                       mp=mp, hp=hp,
+                       batches=batch(truth))
+  m2 <- posteriorSimulation(m)
+  gelman_rubin(mcmcList(list(m2)), hp)
+
+  mod.list <- replicate(4, MultiBatchModel(dat=y(truth),
+                                           mp=mp, hp=hp,
+                                           batches=batch(truth)))
+  mod.list2 <- map(mod.list, posteriorSimulation)
+  model <- combine_batch(mod.list2)
+  mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 4, thin=5)
+  set.seed(4894)
+  model <- gibbs_batch(dat=y(truth), mp=mp, hp=hp,
+                       batches=batch(truth))
+  marginal_lik(model)
+
+  k(hp) <- 4
+  m4 <- gibbs_batch(dat=y(truth), mp=mp, hp=hp,
+                    batches=batch(truth))
+  expect_true(is.na(marginal_lik(m4)))
+
+  k(hp) <- 1
+  mod <- MultiBatchModel(dat=y(truth), batches=batch(truth), hp=hp, mp=mp)
+  k(hp) <- 2
+  mod <- MultiBatchModel(dat=y(truth), batches=batch(truth), hp=hp, mp=mp)
+  mod.list <- gibbs_batch_K(dat=y(truth),
+                            mp=mp, hp=hp,
+                            k_range=c(1, 4),
+                            batches=batch(truth))
+
+  hp.sb <- Hyperparameters(tau2.0=0.4,
+                           mu.0=-0.75,
+                           eta.0=32,
+                           m2.0=0.5)
+  ## ignoring the batches
+  mod.list2 <- gibbs_K(dat=y(truth), mp=mp, hp=hp.sb)
+  hp.list <- list(single_batch=hp.sb,
+                  multi_batch=hp)
+  models <- gibbs_all(hp.list=hp.list, dat=y(truth),
+                      batches=batch(truth),
+                      mp=mp,
+                      top=3)
+  expect_is(models[[1]], "BatchModel")
+  expect_identical(k(models[[1]]), 3L)
+
+  p1 <- ggMultiBatch(truth)
+  p2 <- ggMultiBatch(models[[1]])
+  library(gridExtra)
+  grid.arrange(p1, p2)
+  ## ML_MB2 > ML_SB3
+  ggMultiBatch(models[[2]])
+  ggSingleBatch(models[[3]])
+  map_dbl(models, marginal_lik)
 })
 
 test_that("test_batch_moderate", {
@@ -228,6 +282,19 @@ test_that("test_hard4", {
   expect_equal(theta(truth), thetas, tolerance=0.1)
   expect_equal(sigma(truth), sigma(model2), tolerance=0.15)
   expect_equal(p(truth), pmix, tolerance=0.04)
+  if(FALSE){
+    hp <- HyperparametersBatch(k=3,
+                               mu=-0.75,
+                               tau2.0=0.4,
+                               eta.0=32,
+                               m2.0=0.5)
+    mp <- McmcParams(iter=1000L, thin=5L, burnin=1000L,
+                     nStarts=4L)
+    models <- gibbs_batch_K(dat=y(truth), batches=batch(truth),
+                            mp=mp, hp=hp)
+    map_dbl(models, marginal_lik)
+    map_dbl(models, k)
+  }
 })
 
 test_that("test_kbatch", {
