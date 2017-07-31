@@ -1,4 +1,5 @@
 setMethod("densitiesCluster", "BatchModel", function(object){
+  .Deprecated("See MultiBatchModel")
   dens <- densities(object)
   modes <- dens[["modes"]]
   if(length(modes(object)) > 0){
@@ -43,9 +44,87 @@ setMethod("densitiesCluster", "BatchModel", function(object){
        clusters=km, data=dens$data)
 })
 
+setMethod("densitiesCluster", "MultiBatchModel", function(object){
+  dens <- densities(object)
+  modes <- dens[["modes"]]
+  if(length(modes(object)) > 0){
+    object <- useModes(object)
+  }
+  ix <- order(mu(object))
+  thetas <- mu(object)[ix]
+  names(thetas) <- ix
+  if(length(modes) == 1) {
+    km <- setNames(rep(1, length(thetas)), seq_along(thetas))
+  } else {
+    if(length(thetas) > length(modes)){
+      km <- kmeans(thetas, centers=modes)$cluster
+      names(km) <- seq_along(thetas)
+    } else {
+      ## length modes = length thetas
+      km <- setNames(seq_along(thetas), seq_along(thetas))
+    }
+  }
+  nclusters <- length(unique(km))
+  batch <- dens[["batch"]]
+  batch.list <- split(batch, km)
+  batch2 <- batch.list
+  for(j in seq_along(batch.list)){
+    tmp <- batch.list[[j]]
+    total <- matrix(0, nrow(tmp[[1]]), ncol(tmp[[1]]))
+    for(l in seq_along(tmp)){
+      total <- total+tmp[[l]]
+    }
+    batch2[[j]] <- total
+  }
+  batch <- batch2
+  ##batch <- lapply(batch.list, function(x) do.call("+", x))
+  component <- dens[["component"]]
+  component.list <- split(component, km)
+  length(component.list) == nclusters
+  component <- lapply(component.list, function(x) rowSums(do.call(cbind, x)))
+  overall <- rowSums(do.call(cbind, component))
+  modes <- findModes(dens$quantiles, overall) ## should be the same
+  list(batch=batch, component=component, overall=overall, modes=modes,
+       quantiles=dens$quantiles,
+       clusters=km, data=dens$data)
+})
+
+
 doKmeans <- function(thetas, modes) length(thetas) > length(modes) && length(modes) > 1
 
 setMethod("densitiesCluster", "MarginalModel", function(object){
+  .Deprecated("See SingleBatchModel")
+  dens <- densities(object)
+  modes <- dens[["modes"]]
+  if(length(modes(object)) > 0){
+    object <- useModes(object)
+  }
+  ix <- order(theta(object))
+  thetas <- theta(object)[ix]
+  names(thetas) <- ix
+  if(length(modes) == 1) {
+    km <- setNames(rep(1, length(thetas)), seq_along(thetas))
+  } else {
+    if(length(thetas) > length(modes)){
+      km <- kmeans(thetas, centers=modes)$cluster
+      names(km) <- seq_along(thetas)
+    } else {
+      ## length modes = length thetas
+      km <- setNames(seq_along(thetas), seq_along(thetas))
+    }
+  }
+  nclusters <- length(unique(km))
+  component <- dens[["component"]]
+  component.list <- split(component, km)
+  length(component.list) == nclusters
+  component <- lapply(component.list, function(x) rowSums(do.call(cbind, x)))
+  overall <- rowSums(do.call(cbind, component))
+  modes <- findModes(dens$quantiles, overall) ## should be the same
+  list(component=component, overall=overall, modes=modes,
+       clusters=km, quantiles=dens$quantiles, data=dens$data)
+})
+
+setMethod("densitiesCluster", "SingleBatchModel", function(object){
   dens <- densities(object)
   modes <- dens[["modes"]]
   if(length(modes(object)) > 0){
@@ -306,7 +385,63 @@ setMethod("densities", "BatchModel", function(object){
        clusters=clusters, quantiles=quantiles, data=data)
 })
 
+setMethod("densities", "MultiBatchModel", function(object){
+  quantiles <- seq(min(observed(object)), max(observed(object)),  length.out=250)
+  ## use the modes if available
+  if(length(modes(object)) > 0){
+    object <- useModes(object)
+  }
+  data <- y(object)
+  thetas <- theta(object)
+  sds <- sigma(object)
+  P <- p(object)
+  P <- matrix(P, nBatch(object), k(object), byrow=TRUE)
+  rownames(P) <- uniqueBatch(object)
+  ix <- order(mu(object))
+  thetas <- thetas[, ix, drop=FALSE]
+  sds <- sds[, ix, drop=FALSE]
+  P <- P[, ix, drop=FALSE]
+  batchPr <- table(batch(object))/length(y(object))
+  dens.list <- batchDensities(quantiles, uniqueBatch(object),
+                              thetas, sds, P, batchPr)
+  component <- lapply(dens.list, rowSums)
+  overall <- rowSums(do.call(cbind, component))
+  modes <- findModes(quantiles, overall)
+  clusters <- seq_len(k(object))
+  names(clusters) <- ix
+  list(batch=dens.list, component=component, overall=overall, modes=modes,
+       clusters=clusters, quantiles=quantiles, data=data)
+})
+
+
 setMethod("densities", "MarginalModel", function(object){
+  quantiles <- seq(min(observed(object)), max(observed(object)),  length.out=250)
+  ## use the modes if available
+  if(length(modes(object)) > 0){
+    object <- useModes(object)
+  }
+  data <- y(object)
+  thetas <- theta(object)
+  sds <- sigma(object)
+  P <- p(object)
+  ix <- order(thetas)
+  thetas <- thetas[ix]
+  sds <- sds[ix]
+  P <- P[ix]
+  dens.list <- vector("list", length(thetas))
+  for(i in seq_along(dens.list)){
+    dens.list[[i]] <- P[i]*dnorm(quantiles, mean=thetas[i], sd=sds[i])
+  }
+  ##component <- lapply(dens.list, rowSums)
+  overall <- rowSums(do.call(cbind, dens.list))
+  modes <- findModes(quantiles, overall)
+  clusters <- seq_len(k(object))
+  names(clusters) <- ix
+  list(component=dens.list, overall=overall, modes=modes,
+       clusters=clusters, quantiles=quantiles, data=data)
+})
+
+setMethod("densities", "SingleBatchModel", function(object){
   quantiles <- seq(min(observed(object)), max(observed(object)),  length.out=250)
   ## use the modes if available
   if(length(modes(object)) > 0){

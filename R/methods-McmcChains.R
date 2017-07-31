@@ -90,6 +90,10 @@ setMethod("McmcChains", "BatchModel", function(object){
   .initializeMcmcBatch(object)
 })
 
+setMethod("McmcChains", "MultiBatchModel", function(object){
+  .initializeMcmcBatch(object)
+})
+
 #' @rdname mu-method
 #' @aliases mu,McmcChains-method
 setMethod("mu", "McmcChains", function(object) object@mu)

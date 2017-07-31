@@ -20,10 +20,43 @@ BatchModelList <- function(data=numeric(),
                            batch,
                            mcmc.params=McmcParams(),
                            ...){
+  .Deprecated("See MultiBatchModelList")
   model.list <- vector("list", length(k))
   for(i in seq_along(k)){
     hypp <- HyperparametersBatch(k=k[i], ...)
     model.list[[i]] <- BatchModel(data=data, k=k[i], batch=batch,
+                                  mcmc.params=mcmc.params,
+                                  hypp=hypp)
+  }
+  model.list
+}
+
+#' Constructor for list of batch models
+#'
+#' An object of class MultiBatchModel is constructed for each k, creating a list of
+#' BatchModels.
+#'
+#' @param data numeric vector of average log R ratios
+#' @param batch vector of batch labels
+#' @param mcmc.params a \code{McmcParams} object
+#' @param k numeric vector indicating the number of mixture components for each model
+#' @param ... additional arguments to \code{HyperparametersBatch}
+#' @return a list. Each element of the list is a \code{BatchModel}
+#' @seealso \code{\link{BatchModel}}.  For single-batch data, use \code{\link{MarginalModelList}}.
+#' @examples
+#' mlist <- BatchModelList(data=y(MultiBatchModelExample), k=1:4, batch=batch(MultiBatchModelExample))
+#' mcmcParams(mlist) <- McmcParams(iter=1, burnin=1, nStarts=0)
+#' mlist2 <- posteriorSimulation(mlist)
+#' @export
+MultiBatchModelList <- function(data=numeric(),
+                           k=numeric(),
+                           batch,
+                           mcmc.params=McmcParams(),
+                           ...){
+  model.list <- vector("list", length(k))
+  for(i in seq_along(k)){
+    hypp <- HyperparametersBatch(k=k[i], ...)
+    model.list[[i]] <- MultiBatchModel(data=data, k=k[i], batch=batch,
                                   mcmc.params=mcmc.params,
                                   hypp=hypp)
   }
@@ -63,7 +96,7 @@ BatchModel <- function(data=numeric(),
     if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
     zz <- as.integer(factor(numeric(k)))
     zfreq <- as.integer(table(zz))
-    obj <- MarginalModel(data, k, hypp, mcmc.params)
+    obj <- SingleBatchModel(data, k, hypp, mcmc.params)
     return(obj)
   }
   if(k == 1) {
@@ -78,6 +111,82 @@ BatchModel <- function(data=numeric(),
     stop("batch vector must be the same length as data")
   }
   obj <- new("BatchModel",
+             k=as.integer(k),
+             hyperparams=hypp,
+             theta=matrix(NA, B, k),
+             sigma2=matrix(NA, B, k),
+             mu=numeric(k),
+             tau2=numeric(k),
+             nu.0=numeric(1),
+             sigma2.0=numeric(1),
+             pi=numeric(k),
+             data=data[ix],
+             data.mean=matrix(NA, B, k),
+             data.prec=matrix(NA, B, k),
+             z=zz,
+             zfreq=zfreq,
+             probz=matrix(0, length(data), k),
+             logprior=numeric(1),
+             loglik=numeric(1),
+             mcmc.chains=mcmc.chains,
+             mcmc.params=mcmc.params,
+             batch=batch[ix],
+             batchElements=nbatch,
+             label_switch=FALSE,
+             .internal.constraint=5e-4,
+             .internal.counter=0L)
+  obj <- startingValues(obj)
+  obj
+}
+
+#' Create an object for running hierarchical MCMC simulations.
+#' @examples
+#'      model <- MultiBatchModel(rnorm(10), k=1, batch=rep(1:2, each=5))
+#' @param data the data for the simulation.
+#' @param k An integer value specifying the number of latent classes.
+#' @param batch a vector of the different batch numbers (must be sorted)
+#' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @param mcmc.params An object of class 'McmcParams'
+#' @return An object of class `MultiBatchModel`
+#' @export
+MultiBatchModel <- function(data=numeric(),
+                       k=3,
+                       batch,
+                       hypp,
+                       mcmc.params){
+  if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
+  if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
+  if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
+  if(missing(k) & !missing(hypp)){
+    k <- k(hypp)
+  }
+  mcmc.chains <- McmcChains()
+  bf <- factor(batch)
+  batch <- as.integer(bf)
+  ub <- unique(batch)
+  ##ix <- order(batch)
+  ix <- seq_along(batch)
+  nbatch <- setNames(as.integer(table(batch)), levels(bf))
+  B <- length(ub)
+  if(B==1 && length(data) > 0){
+    if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
+    zz <- as.integer(factor(numeric(k)))
+    zfreq <- as.integer(table(zz))
+    obj <- SingleBatchModel(data, k, hypp, mcmc.params)
+    return(obj)
+  }
+  if(k == 1) {
+    if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
+    obj <- UnivariateBatchModel(data, k, batch, hypp, mcmc.params)
+    return(obj)
+  }
+  if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
+  zz <- integer(length(data))
+  zfreq <- as.integer(table(zz))
+  if(length(data) != length(batch)) {
+    stop("batch vector must be the same length as data")
+  }
+  obj <- new("MultiBatchModel",
              k=as.integer(k),
              hyperparams=hypp,
              theta=matrix(NA, B, k),
@@ -223,9 +332,44 @@ setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+#' extract data, latent variable, and batch for given observation
+#' @name extract
+#' @param x An object of class MultiBatchModel, McmcChains, or McmcParams
+#' @param i An element of the instance to be extracted.
+#' @param j Not used.
+#' @param ... Not used.
+#' @param drop Not used.
+#' @return An object of class 'MultiBatchModel'
+#' @aliases [,MultiBatchModel-method [,MultiBatchModel,ANY-method [,MultiBatchModel,ANY,ANY-method [,MultiBatchModel,ANY,ANY,ANY-method
+#' @docType methods
+#' @rdname extract-methods
+setMethod("[", "MultiBatchModel", function(x, i, j, ..., drop=FALSE){
+  if(!missing(i)){
+    y(x) <- y(x)[i]
+    z(x) <- z(x)[i]
+    batch(x) <- batch(x)[i]
+  }
+  x
+})
+
 #' @rdname bic-method
 #' @aliases bic,BatchModel-method
 setMethod("bic", "BatchModel", function(object){
+  object <- useModes(object)
+  ## K: number of free parameters to be estimated
+  ##   - component and batch-specific parameters:  theta, sigma2  ( k(model) * nBatch(model))
+  ##   - mixing probabilities: (k-1)*nBatch
+  ##   - component-specific parameters: mu, tau2                 2 x k(model)
+  ##   - length-one parameters: sigma2.0, nu.0                   +2
+  K <- 2*k(object)*nBatch(object) + (k(object)-1) + 2*k(object) + 2
+  n <- length(y(object))
+  bicstat <- -2*(log_lik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
+  bicstat
+})
+
+#' @rdname bic-method
+#' @aliases bic,MultiBatchModel-method
+setMethod("bic", "MultiBatchModel", function(object){
   object <- useModes(object)
   ## K: number of free parameters to be estimated
   ##   - component and batch-specific parameters:  theta, sigma2  ( k(model) * nBatch(model))
@@ -244,6 +388,12 @@ setMethod("collapseBatch", "BatchModel", function(object){
   collapseBatch(y(object), as.character(batch(object)))
 })
 
+#' @rdname collapseBatch-method
+#' @aliases collapseBatch,MultiBatchModel-method
+setMethod("collapseBatch", "MultiBatchModel", function(object){
+  collapseBatch(y(object), as.character(batch(object)))
+})
+
 
 batchLik <- function(x, p, mean, sd)  p*dnorm(x, mean, sd)
 
@@ -253,11 +403,24 @@ setMethod("computeMeans", "BatchModel", function(object){
 
 })
 
+setMethod("computeMeans", "MultiBatchModel", function(object){
+  compute_means_batch(object)
+
+})
+
 setMethod("computePrec", "BatchModel", function(object){
   compute_prec_batch(object)
 })
 
+setMethod("computePrec", "MultiBatchModel", function(object){
+  compute_prec_batch(object)
+})
+
 setMethod("computePrior", "BatchModel", function(object){
+  compute_logprior_batch(object)
+})
+
+setMethod("computePrior", "MultiBatchModel", function(object){
   compute_logprior_batch(object)
 })
 
@@ -288,9 +451,17 @@ setMethod("computeModes", "BatchModel", function(object){
   .computeModesBatch(object)
 })
 
+setMethod("computeModes", "MultiBatchModel", function(object){
+  .computeModesBatch(object)
+})
+
 componentVariances <- function(y, z)  v <- sapply(split(y, z), var)
 
 setMethod("computeVars", "BatchModel", function(object){
+  compute_vars_batch(object)
+})
+
+setMethod("computeVars", "MultiBatchModel", function(object){
   compute_vars_batch(object)
 })
 
@@ -298,7 +469,16 @@ setMethod("computeVars", "BatchModel", function(object){
 #' @aliases mu,BatchModel-method
 setMethod("mu", "BatchModel", function(object) object@mu)
 
+#' @rdname mu-method
+#' @aliases mu,MultiBatchModel-method
+setMethod("mu", "MultiBatchModel", function(object) object@mu)
+
 setReplaceMethod("mu", "BatchModel", function(object, value){
+  object@mu <- value
+  object
+})
+
+setReplaceMethod("mu", "MultiBatchModel", function(object, value){
   object@mu <- value
   object
 })
@@ -312,12 +492,30 @@ setReplaceMethod("p", "BatchModel", function(object, value){
   object
 })
 
+setReplaceMethod("p", "MultiBatchModel", function(object, value){
+  object@pi <- value
+  object
+})
+
 setMethod("pMean", "BatchModel", function(object) {
   mns <- colMeans(pic(object))
   mns
 })
 
+setMethod("pMean", "MultiBatchModel", function(object) {
+  mns <- colMeans(pic(object))
+  mns
+})
+
 setMethod("showMeans", "BatchModel", function(object){
+  thetas <- round(theta(object), 2)
+  mns <- c("\n", paste0(t(cbind(thetas, "\n")), collapse="\t"))
+  mns <- paste0("\t", mns[2])
+  mns <- paste0("\n", mns[1])
+  mns
+})
+
+setMethod("showMeans", "MultiBatchModel", function(object){
   thetas <- round(theta(object), 2)
   mns <- c("\n", paste0(t(cbind(thetas, "\n")), collapse="\t"))
   mns <- paste0("\t", mns[2])
@@ -333,8 +531,22 @@ setMethod("showSigmas", "BatchModel", function(object){
   sigmas
 })
 
+setMethod("showSigmas", "MultiBatchModel", function(object){
+  sigmas <- round(sqrt(sigma2(object)), 2)
+  sigmas <- c("\n", paste0(t(cbind(sigmas, "\n")), collapse="\t"))
+  sigmas <- paste0("\t", sigmas[2])
+  sigmas <- paste0("\n", sigmas[1])
+  sigmas
+})
+
 
 setReplaceMethod("sigma2", "BatchModel", function(object, value){
+  rownames(value) <- uniqueBatch(object)
+  object@sigma2 <- value
+  object
+})
+
+setReplaceMethod("sigma2", "MultiBatchModel", function(object, value){
   rownames(value) <- uniqueBatch(object)
   object@sigma2 <- value
   object
@@ -349,7 +561,21 @@ setMethod("sigma2", "BatchModel", function(object) {
   s2
 })
 
+#' @rdname sigma2-method
+#' @aliases sigma2,MultiBatchModel-method
+setMethod("sigma2", "MultiBatchModel", function(object) {
+  s2 <- object@sigma2
+  ##s2 <- matrix(s2, nBatch(object), k(object))
+  rownames(s2) <- uniqueBatch(object)
+  s2
+})
+
 setMethod("tablez", "BatchModel", function(object){
+  tab <- table(batch(object), z(object))
+  tab[uniqueBatch(object), , drop=FALSE]
+})
+
+setMethod("tablez", "MultiBatchModel", function(object){
   tab <- table(batch(object), z(object))
   tab[uniqueBatch(object), , drop=FALSE]
 })
@@ -361,11 +587,29 @@ setMethod("sigmaMean", "BatchModel", function(object) {
   mns
 })
 
+setMethod("sigmaMean", "MultiBatchModel", function(object) {
+  mns <- colMeans(sigmac(object))
+  mns <- matrix(mns, nBatch(object), k(object))
+  rownames(mns) <- uniqueBatch(object)
+  mns
+})
+
+
 #' @rdname tau2-method
 #' @aliases tau2,BatchModel-method
 setMethod("tau2", "BatchModel", function(object) object@tau2)
 
+#' @rdname tau2-method
+#' @aliases tau2,BatchModel-method
+setMethod("tau2", "MultiBatchModel", function(object) object@tau2)
+
+
 setReplaceMethod("tau2", "BatchModel", function(object, value){
+  object@tau2 <- value
+  object
+})
+
+setReplaceMethod("tau2", "MultiBatchModel", function(object, value){
   object@tau2 <- value
   object
 })
@@ -379,6 +623,16 @@ setMethod("theta", "BatchModel", function(object) {
   b
 })
 
+#' @rdname theta-method
+#' @aliases theta,MultiBatchModel-method
+setMethod("theta", "MultiBatchModel", function(object) {
+  b <- object@theta
+  ##b <- matrix(b, nBatch(object), k(object))
+  rownames(b) <- uniqueBatch(object)
+  b
+})
+
+
 setReplaceMethod("theta", "BatchModel", function(object, value){
   rownames(value) <- uniqueBatch(object)
   object@theta <- value
@@ -386,8 +640,21 @@ setReplaceMethod("theta", "BatchModel", function(object, value){
 })
 
 
+setReplaceMethod("theta", "MultiBatchModel", function(object, value){
+  rownames(value) <- uniqueBatch(object)
+  object@theta <- value
+  object
+})
+
 
 setMethod("thetaMean", "BatchModel", function(object) {
+  mns <- colMeans(thetac(object))
+  mns <- matrix(mns, nBatch(object), k(object))
+  rownames(mns) <- uniqueBatch(object)
+  mns
+})
+
+setMethod("thetaMean", "MultiBatchModel", function(object) {
   mns <- colMeans(thetac(object))
   mns <- matrix(mns, nBatch(object), k(object))
   rownames(mns) <- uniqueBatch(object)
@@ -407,11 +674,30 @@ setMethod("show", "BatchModel", function(object){
   cat("     logprior (s):", round(logPrior(object), 1), "\n")
 })
 
+setMethod("show", "MultiBatchModel", function(object){
+  ##callNextMethod()
+  cls <- class(object)
+  cat(paste0("An object of class ", cls), "\n")
+  cat("     n. obs      :", length(y(object)), "\n")
+  cat("     n. batches  :", nBatch(object), "\n")
+  cat("     k           :", k(object), "\n")
+  cat("     nobs/batch  :", table(batch(object)), "\n")
+  cat("     loglik (s)  :", round(log_lik(object), 1), "\n")
+  cat("     logprior (s):", round(logPrior(object), 1), "\n")
+})
+
 setMethod("tablez", "BatchModel", function(object){
   tab <- table(batch(object), z(object))
   tab <- tab[uniqueBatch(object), , drop=FALSE]
   tab
 })
+
+setMethod("tablez", "MultiBatchModel", function(object){
+  tab <- table(batch(object), z(object))
+  tab <- tab[uniqueBatch(object), , drop=FALSE]
+  tab
+})
+
 
 uniqueBatch <- function(object) unique(batch(object))
 

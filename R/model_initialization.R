@@ -9,6 +9,15 @@ setMethod("initializeTheta", "BatchModel", function(object){
   th
 })
 
+setMethod("initializeTheta", "MultiBatchModel", function(object){
+  th <- matrix(NA, nBatch(object), k(object))
+  for(j in seq_len(k(object))){
+    th[, j] <- rnorm(nBatch(object), mu(object)[j], tau(object)[j])
+  }
+  th
+})
+
+
 .sigma2_batch <- function(object){
   s2 <- 1/rgamma(nBatch(object)*k(object),
                  shape=1/2*nu.0(object),
@@ -18,6 +27,10 @@ setMethod("initializeTheta", "BatchModel", function(object){
 }
 
 setMethod("initializeSigma2", "BatchModel", function(object){
+  .sigma2_batch(object)
+})
+
+setMethod("initializeSigma2", "MultiBatchModel", function(object){
   .sigma2_batch(object)
 })
 
@@ -154,6 +167,25 @@ tau2Hyperparams <- function(thetas){
 }
 
 setMethod("startingValues", "MarginalModel", function(object){
+  ##object <- .init_sb1(object)
+  counter <- 0; model <- NULL
+  while(counter < 3 && is.null(model)){
+    ## when k is too large, kmeans for finding cluster centers will not work
+    ## -- try a couple of times before quitting
+    model <- tryCatch(.init_sb2(object), error=function(e) NULL)
+    counter <- counter + 1
+  }
+  K <- k(object)
+  while(is.null(model) & K > 1){
+    K <- K - 1
+    k(object) <- K
+    model <- tryCatch(.init_sb2(object), error=function(e) NULL)
+  }
+  if(is.null(model)) stop("No good initial values identified")
+  model
+})
+
+setMethod("startingValues", "SingleBatchModel", function(object){
   ##object <- .init_sb1(object)
   counter <- 0; model <- NULL
   while(counter < 3 && is.null(model)){
@@ -461,6 +493,12 @@ tau2HyperparamsBatch <- function(thetas){
 
 
 setMethod("startingValues", "BatchModel", function(object){
+  ##.init_batchmodel(object)
+  if(length(y(object)) == 0) return(object)
+  .init_batchmodel2(object)
+})
+
+setMethod("startingValues", "MultiBatchModel", function(object){
   ##.init_batchmodel(object)
   if(length(y(object)) == 0) return(object)
   .init_batchmodel2(object)

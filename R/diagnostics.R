@@ -125,7 +125,7 @@ combineModels <- function(model.list){
   if(all(is.na(ml))) {
     ml <- as.numeric(NA)
   } else ml <- mean(ml, na.rm=TRUE)
-  model <- new("MarginalModel",
+  model <- new("SingleBatchModel",
                k=k(hp),
                hyperparams=hp,
                theta=pm.th,
