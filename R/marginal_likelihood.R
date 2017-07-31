@@ -291,6 +291,13 @@ setMethod("marginalLikelihood", "MarginalModel",
             .ml_singlebatch(model, params)
           })
 
+#' @rdname marginalLikelihood-method
+#' @aliases marginalLikelihood,SingleBatchModel-method marginalLikelihood,SingleBatchModel,ANY-method
+setMethod("marginalLikelihood", "SingleBatchModel",
+          function(model, params=mlParams()) {
+            .ml_singlebatch(model, params)
+          })
+
 ## used for debugging
 computeML <- function(model, params=mlParams()){
   ## calculate p(x|theta)
@@ -443,6 +450,13 @@ setMethod("marginalLikelihood", "SingleBatchPooledVar",
 #' @rdname marginalLikelihood-method
 #' @aliases marginalLikelihood,BatchModel-method marginalLikelihood,BatchModel,ANY-method
 setMethod("marginalLikelihood", "BatchModel",
+          function(model, params=mlParams()){
+            .ml_batchmodel(model, params)
+          })
+
+#' @rdname marginalLikelihood-method
+#' @aliases marginalLikelihood,MultiBatchModel-method marginalLikelihood,MultiBatchModel,ANY-method
+setMethod("marginalLikelihood", "MultiBatchModel",
           function(model, params=mlParams()){
             .ml_batchmodel(model, params)
           })

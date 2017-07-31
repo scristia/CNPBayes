@@ -153,6 +153,7 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         .internal.constraint="numeric",
                                         .internal.counter="integer"))
 
+
 #' An object for running MCMC simulations.
 #'
 #' Run hierarchical MCMC for batch model.
@@ -180,10 +181,10 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
-setClass("BatchModel", contains="MixtureModel")
+setClass("MultiBatchModel", contains="MixtureModel")
 
 
-#' The 'MarginalModel' class
+#' The 'SingleBatchModel' class
 #'
 #' Run marginal MCMC simulation
 #' @slot k An integer value specifying the number of latent classes.
@@ -210,19 +211,27 @@ setClass("BatchModel", contains="MixtureModel")
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
-setClass("MarginalModel", contains="MixtureModel")
+setClass("SingleBatchModel", contains="MixtureModel")
 
-setClass("SingleBatchPooledVar", contains="MarginalModel")
+# setClass("SingleBatchPooledVar", contains="MarginalModel")
 
-setClass("UnivariateBatchModel", contains="BatchModel")
+setClass("SingleBatchPooledVar", contains="SingleBatchModel")
 
+# setClass("UnivariateBatchModel", contains="BatchModel")
 
-setClass("SingleBatchCopyNumber", contains="MarginalModel",
+setClass("UnivariateBatchModel", contains="MultiBatchModel")
+
+# setClass("SingleBatchCopyNumber", contains="MarginalModel",
+#          representation(mapping="numeric"))
+
+setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
          representation(mapping="numeric"))
 
-setClass("MultiBatchCopyNumber", contains="BatchModel",
-         representation(mapping="numeric"))
+# setClass("MultiBatchCopyNumber", contains="BatchModel",
+#          representation(mapping="numeric"))
 
+setClass("MultiBatchCopyNumber", contains="MultiBatchModel",
+         representation(mapping="numeric"))
 
 #' Deprecated class for storing estimated mixture model densities
 #'

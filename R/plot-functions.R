@@ -283,8 +283,8 @@ dnorm_poly <- function(model){
 #' @param model a \code{BatchModel} or  \code{MarginalModel} object
 #' @param bins length-one integer vector indicating the number of bins for the histograms (passed to \code{geom_histogram})
 #' @examples
-#' ggMultiBatch(BatchModelExample)
-#' ggSingleBatch(MarginalModelExample)
+#' ggMultiBatch(MultiBatchModelExample)
+#' ggSingleBatch(SingleBatchModelExample)
 #' @export
 #' @return a \code{ggplot} object
 #' @rdname ggplot-functions
@@ -297,6 +297,12 @@ setGeneric("ggMultiBatch", function(model, bins) standardGeneric("ggMultiBatch")
 #' @aliases ggSingleBatch,MarginalModel-method
 #' @rdname ggplot-functions
 setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
+  .gg_singlebatch(model, bins)
+})
+
+#' @aliases ggSingleBatch,SingleBatchModel-method
+#' @rdname ggplot-functions
+setMethod("ggSingleBatch", "SingleBatchModel", function(model, bins){
   .gg_singlebatch(model, bins)
 })
 
@@ -410,7 +416,7 @@ batchDensities <- function(x, batches, thetas, sds, P, batchPr){
 
 #' @export
 #' @examples
-#' df <- multiBatchDensities(BatchModelExample)
+#' df <- multiBatchDensities(MultiBatchModelExample)
 #' head(df)
 #' @rdname ggplot-functions
 multiBatchDensities <- function(model){
@@ -479,6 +485,11 @@ multiBatchDensities <- function(model){
 
 #' @rdname ggplot-functions
 setMethod("ggMultiBatch", "BatchModel", function(model, bins){
+  .gg_multibatch(model, bins)
+})
+
+#' @rdname ggplot-functions
+setMethod("ggMultiBatch", "MultiBatchModel", function(model, bins){
   .gg_multibatch(model, bins)
 })
 

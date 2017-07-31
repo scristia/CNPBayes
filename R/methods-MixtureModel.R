@@ -47,6 +47,35 @@ setValidity("BatchModel", function(object){
   msg
 })
 
+setValidity("MultiBatchModel", function(object){
+  msg <- TRUE
+  if(length(p(object)) != k(object)){
+    msg <- "Mixture probability vector must be the same length as k"
+    return(msg)
+  }
+  if(ncol(theta(object)) != k(object)){
+    msg <- "theta matrix must have k columns"
+    return(msg)
+  }
+  if(ncol(sigma(object)) != k(object)){
+    msg <- "sigma matrix must have k columns"
+    return(msg)
+  }
+  if(length(mu(object)) != k(object)){
+    msg <- "mu vector must be length k "
+    return(msg)
+  }
+  if(length(tau(object)) != k(object)){
+    msg <- "tau vector must be length k "
+    return(msg)
+  }
+  if(k(object) != k(hyperParams(object))){
+    msg <- "k must be the same in the hyperparameters and in the model object"
+    return(msg)
+  }
+  msg
+})
+
 #' @rdname hyperParams-method
 #' @aliases hyperParams,MixtureModel-method
 setMethod("hyperParams", "MixtureModel", function(object) object@hyperparams)
@@ -73,7 +102,7 @@ observed <- function(object) object@data
 #' Retrieve standard deviations of each component/batch mean.
 #'
 #' @examples
-#'      sigma(MarginalModelExample)
+#'      sigma(SingleBatchModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A vector of length K, or a matrix of size B x K, where
 #' K is the number of components and B is the number of batches
@@ -83,7 +112,7 @@ sigma <- function(object) sqrt(sigma2(object))
 #' Retrieve overall standard deviation.
 #'
 #' @examples
-#'      tau(MarginalModelExample)
+#'      tau(SingleBatchModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A vector of standard deviations
 #' @export
@@ -261,6 +290,11 @@ setMethod("runBurnin", "MarginalModel", function(object){
   mcmc_marginal_burnin(object, mcmcParams(object))
 })
 
+setMethod("runBurnin", "SingleBatchModel", function(object){
+  mcmc_marginal_burnin(object, mcmcParams(object))
+
+})
+
 setMethod("runBurnin", "SingleBatchPooledVar", function(object){
   burnin_singlebatch_pooled(object, mcmcParams(object))
 })
@@ -269,7 +303,15 @@ setMethod("runBurnin", "BatchModel", function(object){
   mcmc_batch_burnin(object, mcmcParams(object))
 })
 
+setMethod("runBurnin", "MultiBatchModel", function(object){
+  mcmc_batch_burnin(object, mcmcParams(object))
+})
+
 setMethod("runMcmc", "MarginalModel", function(object){
+  mcmc_marginal(object, mcmcParams(object))
+})
+
+setMethod("runMcmc", "SingleBatchModel", function(object){
   mcmc_marginal(object, mcmcParams(object))
 })
 
@@ -281,10 +323,15 @@ setMethod("runMcmc", "BatchModel", function(object){
   mcmc_batch(object, mcmcParams(object))
 })
 
+setMethod("runMcmc", "MultiBatchModel", function(object){
+  mcmc_batch(object, mcmcParams(object))
+})
+
+
 multipleStarts <- function(object){
   if(k(object)==1) return(object)
   mcmcp <- mcmcParams(object)
-  mmod <- replicate(nStarts(mcmcp), MarginalModel(y(object), mcmc.params=mcmcp,
+  mmod <- replicate(nStarts(mcmcp), SingleBatchModel(y(object), mcmc.params=mcmcp,
                                                   hypp=hyperParams(object), k=k(object)))
   models <- suppressMessages(lapply(mmod, runBurnin))
   lp <- sapply(models, log_lik)
@@ -295,7 +342,7 @@ multipleStarts <- function(object){
   ##
   ##  initialize batch model
   ##
-  bmodel <- BatchModel(data=y(model), batch=batch(object), k=k(object), hypp=hyperParams(object))
+  bmodel <- MultiBatchModel(data=y(model), batch=batch(object), k=k(object), hypp=hyperParams(object))
   mcmcParams(bmodel, force=TRUE) <- mcmcParams(object)
   theta(bmodel) <- matrix(theta(model), nBatch(object), k(object), byrow=TRUE)
   mu(bmodel) <- theta(model)
@@ -328,20 +375,21 @@ multipleStarts2 <- function(object){
   mcmcp <- mcmcParams(object)
   ##
   ##
-  if(is(object, "BatchModel")){
+  if(is(object, "MultiBatchModel")){
     model.list <- replicate(nStarts(mcmcp),
-                            BatchModel(y(object), mcmc.params=mcmcp,
+                            MultiBatchModel(y(object), mcmc.params=mcmcp,
                                        hypp=hyperParams(object), k=k(object),
                                        batch=batch(object)))
   }
-  if(is(object, "MarginalModel")){
+  if(is(object, "SingleBatchModel")){
     model.list <- replicate(nStarts(mcmcp),
-                            MarginalModel(y(object), mcmc.params=mcmcp,
+                            SingleBatchModel(y(object), mcmc.params=mcmcp,
                                           hypp=hyperParams(object), k=k(object)))
   }
   model <- selectByLogLik(model.list)
   model
 }
+
 
 psParams <- function(warnings=TRUE,
                      returnNULLonWarnings=FALSE){
@@ -359,7 +407,7 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
 setMethod("posteriorSimulation", c("MixtureModel", "integer"),
           function(object, k) {
             ##.Deprecated("Method is deprecated for signature 'MixtureModel, integer'.  Use MarginalModelList or BatchModelList prior to posteriorSimulation")
-            stop("Specifying k not allowed.  See BatchModelList or MarginalModelList for creating a list object.")
+            stop("Specifying k not allowed.  See MutliBatchModelList or SingleBatchModelList for creating a list object.")
         if (length(k) > 1) {
           mlist <- vector("list", length(k))
           for (i in seq_along(k)) {
@@ -378,7 +426,7 @@ setMethod("posteriorSimulation", c("MixtureModel", "integer"),
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
           function(object, k) {
-            stop("Specifying k not allowed.  See BatchModelList or MarginalModelList for creating a list object.")
+            stop("Specifying k not allowed.  See MultiBatchModelList or SingleBatchModelList for creating a list object.")
             posteriorSimulation(object, as.integer(k))
     })
 
@@ -393,7 +441,7 @@ setMethod("posteriorSimulation", "list",
               results[[i]] <- .posteriorSimulation(object[[i]], params)
             }
             ncomp <- sapply(results, k)
-            if(is(results[[1]], "MarginalModel")){
+            if(is(results[[1]], "SingleBatchModel")){
               label <- "SB"
             } else label <- "MB"
             names(results) <- paste0(label, ncomp)
@@ -482,7 +530,11 @@ setMethod("sortComponentLabels", "MarginalModel", function(model){
   reorderSingleBatch(model)  
 })
 
-setMethod("sortComponentLabels", "BatchModel", function(model){
+setMethod("sortComponentLabels", "SingleBatchModel", function(model){
+  reorderSingleBatch(model)  
+})
+
+setMethod("sortComponentLabels", "MultiBatchModel", function(model){
   reorderMultiBatch(model)
 })
 
@@ -496,6 +548,10 @@ setMethod("isOrdered", "MixtureModel", function(object){
 })
 
 setMethod("isOrdered", "BatchModel", function(object){
+  .ordered_thetas_multibatch(object)
+})
+
+setMethod("isOrdered", "MultiBatchModel", function(object){
   .ordered_thetas_multibatch(object)
 })
 
@@ -648,7 +704,7 @@ logLikc <- function(object) log_lik(chains(object))
 #' Retrieve standard deviation of each component/batch mean at each iteration of the MCMC.
 #'
 #' @examples
-#'      sigmac(MarginalModelExample)
+#'      sigmac(SingleBatchModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A matrix of size N x K where N is the number of observations
 #' and K is the number of components
@@ -658,7 +714,7 @@ sigmac <- function(object) sigma(chains(object))
 #' Retrieve mixture proportions at each iteration of the MCMC.
 #'
 #' @examples
-#'      pic(MarginalModelExample)
+#'      pic(SingleBatchModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A matrix of size MCMC iterations x Number of components
 #' @export
@@ -671,7 +727,7 @@ setMethod("pMean", "MixtureModel", function(object){
 #' Retrieve overall mean at each iteration of the MCMC.
 #'
 #' @examples
-#'      muc(MarginalModelExample)
+#'      muc(SingleBatchModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A vector of length N or matrix of size N x B, where N is the 
 #' number of observations and B is the number of unique batches.
@@ -681,13 +737,13 @@ muc <- function(object) mu(chains(object))
 #' Retrieve overall mean averaged across MCMC simulations.
 #'
 #' @examples
-#'      muMean(MarginalModelExample)
+#'      muMean(SingleBatchModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A vector of size 1 or number of batches
 #' @export
 muMean <- function(object) {
   x <- muc(object)
-  if(is(object, "BatchModel")){
+  if(is(object, "MultiBatchModel")){
     return(colMeans(x))
   }
   mean(x)
@@ -696,7 +752,7 @@ muMean <- function(object) {
 #' Retrieve overall standard deviation at each iteration of the MCMC.
 #'
 #' @examples
-#'      tauc(MarginalModelExample)
+#'      tauc(SingleBatchModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A vector of length N or matrix of size N x B, where N is the 
 #' number of observations and B is the number of unique batches.
@@ -706,13 +762,13 @@ tauc <- function(object) sqrt(tau2(chains(object)))
 #' Retrieve overall standard deviation averaged across MCMC simulations.
 #'
 #' @examples
-#'      tauMean(MarginalModelExample)
+#'      tauMean(SingleBatchModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A vector of size 1 or number of batches
 #' @export
 tauMean <- function(object){
   x <- tauc(object)
-  if(is(object, "BatchModel")){
+  if(is(object, "MultiBatchModel")){
     return(colMeans(x))
   }
   mean(x)
@@ -751,7 +807,9 @@ argMax <- function(object){
 }
 
 setMethod("isMarginalModel", "MarginalModel", function(object) TRUE)
+setMethod("isMarginalModel", "SingleBatchModel", function(object) TRUE)
 setMethod("isMarginalModel", "BatchModel", function(object) FALSE)
+setMethod("isMarginalModel", "MultiBatchModel", function(object) FALSE)
 
 startAtTrueValues <- function(model, truth){
   theta(model) <- theta(truth)
@@ -925,7 +983,7 @@ useModes <- function(object){
   ##
   ## update z using the modal values from above
   ##
-  if(is(object, "MarginalModel")){
+  if(is(object, "SingleBatchModel")){
     z(m2) <- update_z(m2)
   } else {
     z(m2) <- update_z_batch(m2)
