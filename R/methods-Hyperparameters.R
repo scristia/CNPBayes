@@ -106,8 +106,71 @@ HyperparametersBatch <- function(k=3L,
                                  beta=0.1, ## mean is 1/10
                                  a=1.8,
                                  b=6){
+  .Deprecated("See HyperparametersMultiBatch")
   if(missing(alpha)) alpha <- rep(1, k)
   new("HyperparametersBatch",
+      k=as.integer(k),
+      mu.0=mu.0,
+      tau2.0=tau2.0,
+      eta.0=eta.0,
+      m2.0=m2.0,
+      alpha=alpha,
+      beta=beta,
+      a=a,
+      b=b)
+}
+
+#' Create an object of class 'HyperparametersMultiBatch' for the
+#' batch mixture model
+#'
+#' @param k  length-one integer vector specifying number of components
+#' (typically 1 <= k <= 4)
+#' @param mu.0 length-one numeric vector of the of the normal prior
+#' for the component means.
+#' @param tau2.0 length-one numeric vector of the variance for the normal
+#' prior of the component means
+#' @param eta.0 length-one numeric vector of the shape parameter for
+#' the Inverse Gamma prior of the component variances, tau2_h.  The
+#' shape parameter is parameterized as 1/2 * eta.0.  In the batch
+#' model, tau2_h describes the inter-batch heterogeneity of means for
+#' component h.
+#' @param m2.0 length-one numeric vector of the rate parameter for the
+#' Inverse Gamma prior of the component variances, tau2_h.  The rate
+#' parameter is parameterized as 1/2 * eta.0 * m2.0.  In the batch
+#' model, tau2_h describes the inter-batch heterogeneity of means for
+#' component h.
+#' @param alpha length-k numeric vector of the shape parameters for
+#' the dirichlet prior on the mixture probabilities
+#' @param beta length-one numeric vector for the parameter of the
+#' geometric prior for nu.0 (nu.0 is the shape parameter of the
+#' Inverse Gamma sampling distribution for the component-specific
+#' variances. Together, nu.0 and sigma2.0 model inter-component
+#' heterogeneity in variances.).  beta is a probability and must be
+#' in the interval [0,1].
+#' @param a length-one numeric vector of the shape parameter for the
+#' Gamma prior used for sigma2.0 (sigma2.0 is the shape parameter of
+#' the Inverse Gamma sampling distribution for the component-specific
+#' variances).
+#' @param b a length-one numeric vector of the rate parameter for the
+#' Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
+#' the Inverse Gamma sampling distribution for the component-specific
+#' variances)
+#' @return An object of class HyperparametersBatch
+#' @examples
+#' HyperparametersMultiBatch(k=3)
+#'
+#' @export
+HyperparametersMultiBatch <- function(k=0L,
+                                 mu.0=0,
+                                 tau2.0=100,
+                                 eta.0=1800,
+                                 m2.0=1/60,
+                                 alpha,
+                                 beta=0.1, ## mean is 1/10
+                                 a=1.8,
+                                 b=6){
+  if(missing(alpha)) alpha <- rep(1, k)
+  new("HyperparametersMultiBatch",
       k=as.integer(k),
       mu.0=mu.0,
       tau2.0=tau2.0,
@@ -178,6 +241,65 @@ HyperparametersMarginal <- function(k=0L,
       b=b)
 }
 
+#' Create an object of class 'HyperparametersSingleBatch' for the
+#' single batch mixture model
+#'
+#' @param k  length-one integer vector specifying number of components
+#' (typically 1 <= k <= 4)
+#' @param mu.0  length-one numeric vector of the mean for the normal
+#' prior of the component means
+#' @param tau2.0 length-one numeric vector of the variance for the normal
+#' prior of the component means
+#' @param eta.0 length-one numeric vector of the shape parameter for
+#' the Inverse Gamma prior of the component variances.  The shape
+#' parameter is parameterized as 1/2 * eta.0.
+#' @param m2.0 length-one numeric vector of the rate parameter for
+#' the Inverse Gamma prior of the component variances.  The rate
+#' parameter is parameterized as 1/2 * eta.0 * m2.0.
+#' @param alpha length-k numeric vector of the shape parameters for
+#' the dirichlet prior on the mixture probabilities
+#' @param beta length-one numeric vector for the parameter of the
+#' geometric prior for nu.0 (nu.0 is the shape parameter of the
+#' Inverse Gamma sampling distribution for the component-specific
+#' variances).  beta is a probability and must be in the interval
+#' [0,1].
+#' @param a length-one numeric vector of the shape parameter for the
+#' Gamma prior used for sigma2.0 (sigma2.0 is the shape parameter of
+#' the Inverse Gamma sampling distribution for the component-specific
+#' variances)
+#' @param b a length-one numeric vector of the rate parameter for the
+#' Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
+#' the Inverse Gamma sampling distribution for the component-specific
+#' variances)
+#'
+#' @return An object of class HyperparametersSingleBatch
+#' @examples
+#' HyperparametersSingleBatch(k=3)
+#'
+#' @export
+HyperparametersSingleBatch <- function(k=0L,
+                                    mu.0=0,
+                                    tau2.0=100,
+                                    eta.0=1,
+                                    m2.0=0.1,
+                                    alpha,
+                                    beta=0.1, ## mean is 1/10
+                                    a=1.8,
+                                    b=6){
+  if(missing(alpha)) alpha <- rep(1, k)
+  ##if(missing(tau2)) tau2 <- rep(1, k)
+  new("HyperparametersSingleBatch",
+      k=as.integer(k),
+      mu.0=mu.0,
+      tau2.0=tau2.0,
+      eta.0=eta.0,
+      m2.0=m2.0,
+      alpha=alpha,
+      beta=beta,
+      a=a,
+      b=b)
+}
+
 setValidity("Hyperparameters", function(object){
   msg <- TRUE
   if(k(object) != alpha(object)){
@@ -203,8 +325,8 @@ setValidity("Hyperparameters", function(object){
 
 #' @export
 Hyperparameters <- function(type="batch", k=2L, ...){
-  if(type=="marginal") return(HyperparametersMarginal(k, ...))
-  if(type=="batch") return(HyperparametersBatch(k, ...))
+  if(type=="marginal") return(HyperparametersSingleBatch(k, ...))
+  if(type=="batch") return(HyperparametersMultiBatch(k, ...))
 }
 
 #' @rdname k-method

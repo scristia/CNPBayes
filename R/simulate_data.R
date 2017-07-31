@@ -6,7 +6,7 @@
 #' @param sds a vector of standard deviations, one per component/batch
 #' @param batch a vector of labels indication from which batch each simulation should come from
 #' @param zz a vector indicating latent variable membership. Can be omitted.
-#' @return An object of class 'BatchModel'
+#' @return An object of class 'MultiBatchModel'
 #' @examples
 #' k <- 3
 #' nbatch <- 3
@@ -46,7 +46,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
     yy[index] <- rnorm(nn, mu[cn], s[cn])
   }
   ##ix <- order(batch)
-  object <- BatchModel(yy, batch=batch, k=ncol(theta))
+  object <- MultiBatchModel(yy, batch=batch, k=ncol(theta))
   z(object) <- as.integer(factor(zz))
   ##
   ## Must initialize the slots independently (must point to different
@@ -68,7 +68,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
 #' @param p a vector indicating probability of membership to each component
 #' @param theta a vector of means, one per component
 #' @param sds a vector of standard deviations, one per component
-#' @return An object of class 'MarginalModel'
+#' @return An object of class 'SingleBatchModel'
 #' @examples
 #' truth <- simulateData(N=2500, p=rep(1/3, 3),
 #'                       theta=c(-1, 0, 1),
@@ -77,7 +77,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
 simulateData <- function(N, p, theta, sds){
   zz <- simulateZ(N, p)
   y <- rnorm(N, theta[zz], sds[zz])
-  object <- MarginalModel(data=y, k=length(theta))
+  object <- SingleBatchModel(data=y, k=length(theta))
   z(object) <- as.integer(factor(zz, levels=unique(sort(zz))))
   ##p(object) <- p
   theta(object) <- as.numeric(sapply(split(y(object), z(object)), mean))

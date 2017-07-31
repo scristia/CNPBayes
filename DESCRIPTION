@@ -49,6 +49,7 @@ Collate:
     'RcppExports.R'
     'copynumber-models.R'
     'data.R'
+    'deprecated_functions.R'
     'diagnostics.R'
     'functions.R'
     'marginal_likelihood.R'
