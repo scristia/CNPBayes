@@ -5,6 +5,7 @@
 \name{collapseBatch}
 \alias{collapseBatch}
 \alias{collapseBatch,BatchModel-method}
+\alias{collapseBatch,MultiBatchModel-method}
 \alias{collapseBatch,SummarizedExperiment-method}
 \alias{collapseBatch,numeric-method}
 \title{Estimate batch from a collection of chemistry plates or some other
@@ -13,6 +14,8 @@ variable that captures the time in which the arrays were processed.}
 collapseBatch(object, plate, THR = 0.1)
 
 \S4method{collapseBatch}{BatchModel}(object)
+
+\S4method{collapseBatch}{MultiBatchModel}(object)
 
 \S4method{collapseBatch}{SummarizedExperiment}(object, plate, THR = 0.1)
 

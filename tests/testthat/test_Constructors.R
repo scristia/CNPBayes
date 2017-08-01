@@ -14,7 +14,7 @@ test_that("test_constructor", {
     expect_true(validObject(mc))
     hp <- Hyperparameters()
     expect_true(validObject(hp))
-    expect_true(validObject(HyperparametersBatch()))
+    expect_true(validObject(HyperparametersMultiBatch()))
     expect_true(validObject(HyperparametersMarginal()))
     truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1,
         0, 1), sds = rep(0.1, 3))
@@ -34,7 +34,7 @@ test_that("test_constructor", {
     expect_true(nrow(CNPBayes:::thetac(mmod)) == 10)
     iter(mmod, force = TRUE) <- 1000L
     expect_true(nrow(CNPBayes:::thetac(mmod)) == 1000)
-    bmod <- BatchModel()
+    bmod <- MultiBatchModel()
     expect_true(validObject(bmod))
     k <- nbatch <- 3
     means <- matrix(c(-1.2, -1, -0.8, -0.2, 0, 0.2, 0.8, 1, 1.2),
@@ -44,13 +44,13 @@ test_that("test_constructor", {
         length.out = 2500), theta = means, sds = sds, p = c(1/5,
         1/3, 1 - 1/3 - 1/5))
     expect_true(validObject(truth))
-    bmod <- BatchModel(data = y(truth), k = 3)
+    bmod <- MultiBatchModel(data = y(truth), k = 3)
     expect_true(is(bmod, "MarginalModel"))
-    bmod <- BatchModel(data = y(truth), batch = batch(truth))
-    expect_true(is(bmod, "BatchModel"))
+    bmod <- MultiBatchModel(data = y(truth), batch = batch(truth))
+    expect_true(is(bmod, "MultiBatchModel"))
     expect_equal(y(bmod), y(truth))
     expect_equal(batch(bmod), batch(truth))
-    expect_error(BatchModel(data = y(truth), batch = rep(1:3,
+    expect_error(MultiBatchModel(data = y(truth), batch = rep(1:3,
         each = 2), k = 3))
     expect_true(iter(bmod) == 1000L)
     expect_true(burnin(bmod) == 100L)

@@ -16,5 +16,5 @@ A vector of size 1 or number of batches
 Retrieve overall standard deviation averaged across MCMC simulations.
 }
 \examples{
-     tauMean(MarginalModelExample)
+     tauMean(SingleBatchModelExample)
 }

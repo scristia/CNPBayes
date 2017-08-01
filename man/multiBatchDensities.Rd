@@ -32,7 +32,7 @@ Create a data.frame of the component densities for each batch
 
    ## this parameter setting for m2.0 allows a lot of varation of the thetas
    ## between batch
-   hypp <- CNPBayes:::HyperparametersBatch(m2.0 = 1/60, eta.0 = 1800,
+   hypp <- CNPBayes:::HyperparametersMultiBatch(m2.0 = 1/60, eta.0 = 1800,
                                            k = 3, a = 1/6, b = 180)
    model <- BatchModel(data = y(truth), batch = batch(truth),
                        k = 3, mcmc.params = mcmcp, hypp = hypp)

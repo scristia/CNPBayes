@@ -7,9 +7,11 @@
 \alias{ggSingleBatch}
 \alias{ggMultiBatch}
 \alias{ggSingleBatch,MarginalModel-method}
+\alias{ggSingleBatch,SingleBatchModel-method}
 \alias{ggSingleBatch,SingleBatchCopyNumber-method}
 \alias{multiBatchDensities}
 \alias{ggMultiBatch,BatchModel-method}
+\alias{ggMultiBatch,MultiBatchModel-method}
 \alias{ggMultiBatch,MultiBatchCopyNumber-method}
 \title{ggplot-style functions for diagnosing convergence}
 \usage{
@@ -23,11 +25,15 @@ ggMultiBatch(model, bins)
 
 \S4method{ggSingleBatch}{MarginalModel}(model, bins)
 
+\S4method{ggSingleBatch}{SingleBatchModel}(model, bins)
+
 \S4method{ggSingleBatch}{SingleBatchCopyNumber}(model, bins)
 
 multiBatchDensities(model)
 
 \S4method{ggMultiBatch}{BatchModel}(model, bins)
+
+\S4method{ggMultiBatch}{MultiBatchModel}(model, bins)
 
 \S4method{ggMultiBatch}{MultiBatchCopyNumber}(model, bins)
 }
@@ -63,8 +69,8 @@ plist.mb[["batch"]]
 plist.mb[["comp"]]
 ## chains for parameter vectors of length 1
 plist.mb[["single"]]
-ggMultiBatch(BatchModelExample)
-ggSingleBatch(MarginalModelExample)
-df <- multiBatchDensities(BatchModelExample)
+ggMultiBatch(MultiBatchModelExample)
+ggSingleBatch(SingleBatchModelExample)
+df <- multiBatchDensities(MultiBatchModelExample)
 head(df)
 }

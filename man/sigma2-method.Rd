@@ -7,7 +7,9 @@
 \alias{sigma2,McmcChains-method}
 \alias{sigma2,missing-method}
 \alias{sigma2,BatchModel-method}
+\alias{sigma2,MultiBatchModel-method}
 \alias{sigma2,MarginalModel-method}
+\alias{sigma2,SingleBatchModel-method}
 \title{Retrieve the variances of each component and batch distribution}
 \usage{
 sigma2(object)
@@ -16,7 +18,11 @@ sigma2(object)
 
 \S4method{sigma2}{BatchModel}(object)
 
+\S4method{sigma2}{MultiBatchModel}(object)
+
 \S4method{sigma2}{MarginalModel}(object)
+
+\S4method{sigma2}{SingleBatchModel}(object)
 }
 \arguments{
 \item{object}{see \code{showMethods(sigma2)}}

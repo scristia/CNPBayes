@@ -16,5 +16,5 @@ A vector of standard deviations
 Retrieve overall standard deviation.
 }
 \examples{
-     tau(MarginalModelExample)
+     tau(SingleBatchModelExample)
 }

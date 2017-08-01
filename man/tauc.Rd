@@ -17,5 +17,5 @@ number of observations and B is the number of unique batches.
 Retrieve overall standard deviation at each iteration of the MCMC.
 }
 \examples{
-     tauc(MarginalModelExample)
+     tauc(SingleBatchModelExample)
 }

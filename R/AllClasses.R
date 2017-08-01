@@ -53,6 +53,20 @@ setClass("HyperparametersMarginal", contains="Hyperparameters")
 #' @slot b rate for sigma2.0
 setClass("HyperparametersBatch",  contains="Hyperparameters")
 
+#' An object to specify the hyperparameters of a batch effect model.
+#'
+#' This class inherits from the Hyperparameters class. This class is for hyperparameters which are hierachical over the batches.
+#' @slot k Number of components
+#' @slot mu.0 Prior mean for mu.
+#' @slot tau2.0 prior variance on mu
+#' @slot eta.0 rate paramater for tau2
+#' @slot m2.0 shape parameter for tau2
+#' @slot alpha mixture probabilities
+#' @slot beta parameter for nu.0 distribution
+#' @slot a shape for sigma2.0
+#' @slot b rate for sigma2.0
+setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
+
 #' An object to hold estimated paraeters.
 #'
 #' An object of this class holds estimates of each parameter at each iteration of the MCMC simulation.
@@ -182,6 +196,35 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 setClass("MultiBatchModel", contains="MixtureModel")
+
+#' DEPRECATED class.  Use MultiBatchModel
+#'
+#' Run hierarchical MCMC for batch model.
+#' @slot k An integer value specifying the number of latent classes.
+#' @slot hyperparams An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @slot theta the means of each component and batch
+#' @slot sigma2 the variances of each component and batch
+#' @slot nu.0 the shape parameter for sigma2
+#' @slot sigma2.0 the rate parameter for sigma2
+#' @slot pi mixture probabilities which are assumed to be the same for all batches
+#' @slot mu means from batches, averaged across batches
+#' @slot tau2 variances from batches,  weighted by precisions
+#' @slot data the data for the simulation.
+#' @slot data.mean the empirical means of the components
+#' @slot data.prec the empirical precisions
+#' @slot z latent variables
+#' @slot zfreq table of latent variables
+#' @slot probz n x k matrix of probabilities
+#' @slot logprior log likelihood of prior: log(p(sigma2.0)p(nu.0)p(mu))
+#' @slot loglik log likelihood: \eqn{\sum p_k \Phi(\theta_k, \sigma_k)}
+#' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
+#' @slot batch a vector of the different batch numbers
+#' @slot batchElements a vector labeling from which batch each observation came from
+#' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
+#' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
+#' @slot mcmc.params An object of class 'McmcParams'
+#' @slot .internal.constraint Constraint on parameters. For internal use only.
+setClass("BatchModel", contains="MixtureModel")
 
 
 #' The 'SingleBatchModel' class

@@ -221,7 +221,7 @@ MultiBatchModel <- function(data=numeric(),
                        mcmc.params){
   if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
   if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
-  if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
+  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=k)
   if(missing(k) & !missing(hypp)){
     k <- k(hypp)
   }
@@ -241,11 +241,11 @@ MultiBatchModel <- function(data=numeric(),
     return(obj)
   }
   if(k == 1) {
-    if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
+    if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=1)
     obj <- UnivariateBatchModel(data, k, batch, hypp, mcmc.params)
     return(obj)
   }
-  if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
+  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=k)
   zz <- integer(length(data))
   zfreq <- as.integer(table(zz))
   if(length(data) != length(batch)) {
@@ -282,7 +282,7 @@ MultiBatchModel <- function(data=numeric(),
 
 
 MultiBatchModel2 <- function(dat=numeric(),
-                            hp=HyperparametersBatch(),
+                            hp=HyperparametersMultiBatch(),
                             mp=McmcParams(),
                             batches=integer()){
   if(length(dat) == 0){
@@ -377,7 +377,7 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
   ##B <- length(levels(batch))
   nbatch <- elementNROWS(split(batch, batch))
   B <- length(nbatch)
-  if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
+  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=1)
   obj <- new("UnivariateBatchModel",
              k=as.integer(k),
              hyperparams=hypp,
@@ -852,7 +852,7 @@ uniqueBatch <- function(object) unique(batch(object))
 #'
 #'    ## this parameter setting for m2.0 allows a lot of varation of the thetas
 #'    ## between batch
-#'    hypp <- CNPBayes:::HyperparametersBatch(m2.0 = 1/60, eta.0 = 1800,
+#'    hypp <- CNPBayes:::HyperparametersMultiBatch(m2.0 = 1/60, eta.0 = 1800,
 #'                                            k = 3, a = 1/6, b = 180)
 #'    model <- BatchModel(data = y(truth), batch = batch(truth),
 #'                        k = 3, mcmc.params = mcmcp, hypp = hypp)

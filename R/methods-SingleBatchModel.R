@@ -165,7 +165,7 @@ SingleBatchModel <- function(data=numeric(), k=3, hypp, mcmc.params){
 }
 
 
-SingleBatchModel <- function(dat=numeric(), hp=Hyperparameters(),
+SingleBatchModel2 <- function(dat=numeric(), hp=Hyperparameters(),
                            mp=McmcParams(iter=1000, burnin=1000,
                                          thin=10, nStarts=4)){
   K <- k(hp)

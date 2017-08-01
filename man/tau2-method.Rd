@@ -6,7 +6,10 @@
 \alias{tau2}
 \alias{tau2,McmcChains-method}
 \alias{tau2,BatchModel-method}
+\alias{tau2,MultiBatchModel-method}
+\alias{tau2,BatchModel-method}
 \alias{tau2,MarginalModel-method}
+\alias{tau2,SingleBatchModel-method}
 \title{Accessor for the tau2 parameter in the hierarchical mixture model}
 \usage{
 tau2(object)
@@ -15,7 +18,11 @@ tau2(object)
 
 \S4method{tau2}{BatchModel}(object)
 
+\S4method{tau2}{MultiBatchModel}(object)
+
 \S4method{tau2}{MarginalModel}(object)
+
+\S4method{tau2}{SingleBatchModel}(object)
 }
 \arguments{
 \item{object}{see \code{showMethods(tau2)}}
