@@ -5,7 +5,7 @@ context("SingleBatchModel")
 .test_that("test_constraint", {
     baf <- readRDS(system.file("extdata", "baf.rds", package = "CNPBayes"))
     set.seed(17)
-    model <- MarginalModel(baf, k = 2)
+    model <- SingleBatchModel(baf, k = 2)
     model <- posteriorSimulation(model)
 })
 
@@ -14,7 +14,7 @@ test_that("test_marginal_empty_component", {
     truth <- simulateData(N = 10, p = rep(1/3, 3), theta = c(-1,
         0, 1), sds = rep(0.1, 3))
     mp <- McmcParams(iter = 5, burnin = 5, nStarts = 1)
-    model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
+    model <- SingleBatchModel(data = y(truth), k = 3, mcmc.params = mp)
     expect_false(any(is.na(CNPBayes:::computeMeans(model))))
 })
 
@@ -109,7 +109,7 @@ test_that("test_marginal_empty_component", {
 
 
 test_that("test_marginal_few_data", {
-  expect_error(model <- MarginalModel(data = 0:1, k = 3))
+  expect_error(model <- SingleBatchModel(data = 0:1, k = 3))
 })
 
 test_that("marginal-hard", {
@@ -125,7 +125,7 @@ test_that("marginal-hard", {
     ##
     mcmcp <- McmcParams(iter = 500, burnin = 200, thin = 0,
                         nStarts = 20)
-    model <- MarginalModel(y(truth), k = 3)
+    model <- SingleBatchModel(y(truth), k = 3)
     model <- posteriorSimulation(model)
     i <- order(theta(model))
     expect_identical(i, 1:3)
@@ -181,7 +181,7 @@ test_that("test_marginal_Moderate", {
     ## verify that if we start at the true value, we remain in a region of
     ## high posterior probability after an arbitrary number of mcmc updates
     mcmcp <- McmcParams(iter = 250, burnin = 250, thin = 2, nStarts=0)
-    model <- MarginalModel(y(truth), k = 3, mcmc.params = mcmcp)
+    model <- SingleBatchModel(y(truth), k = 3, mcmc.params = mcmcp)
     model <- startAtTrueValues(model, truth)
     model <- posteriorSimulation(model)
     expect_equal(theta(truth), theta(model), tolerance=0.15)
@@ -196,7 +196,7 @@ test_that("test_marginal_pooled", {
                           sds = c(0.3, 0.3, 0.3),
                           p = c(0.05, 0.1, 0.8))
     mcmcp <- McmcParams(iter = 500, burnin = 500, thin = 2, nStarts=0)
-    model <- MarginalModel(y(truth), k = 3, mcmc.params = mcmcp)
+    model <- SingleBatchModel(y(truth), k = 3, mcmc.params = mcmcp)
     model <- startAtTrueValues(model, truth)
     model <- posteriorSimulation(model)
     expect_equal(theta(truth), theta(model), tolerance=0.15)
@@ -247,7 +247,7 @@ test_that("test_marginalEasy", {
     truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1,
         0, 1), sds = rep(0.1, 3))
     mp <- McmcParams(iter = 100, burnin = 0, nStarts = 20)
-    model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
+    model <- SingleBatchModel(data = y(truth), k = 3, mcmc.params = mp)
     model <- posteriorSimulation(model)
     if (FALSE) {
         MarginalModelExample <- model
@@ -268,7 +268,7 @@ test_that("test_marginalEasy", {
 .test_that("test_segfaultExcept", {
   baf <- readRDS(system.file("extdata", "baf.rds", package = "CNPBayes"))
   set.seed(17)
-  model <- MarginalModel(baf, k = 2)
+  model <- SingleBatchModel(baf, k = 2)
   mcmcParams(model) <- McmcParams(iter=1000, nStarts=20, burnin=0)
   model@.internal.constraint <- -1
   ## this is a constraint on sigma2.0
@@ -293,7 +293,7 @@ test_that("test_selectK_easy", {
                           sds = sds)
     mp0 <- McmcParams(iter = 1, burnin = 0, nStarts = 1)
     mp <- McmcParams(iter = 1000, burnin = 50, nStarts = 20)
-    model <- MarginalModel(data = y(truth), k = 2, mcmc.params = mp0)
+    model <- SingleBatchModel(data = y(truth), k = 2, mcmc.params = mp0)
     expect_error(mlist <- posteriorSimulation(model, k = 2:4))
     mlist <- MarginalModelList(data=y(truth), k=2:4, mcmc.params=mp)
     mlist2 <- posteriorSimulation(mlist)
