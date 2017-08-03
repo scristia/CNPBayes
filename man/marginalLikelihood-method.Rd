@@ -5,10 +5,14 @@
 \alias{marginalLikelihood}
 \alias{marginalLikelihood,MarginalModel-method}
 \alias{marginalLikelihood,MarginalModel,ANY-method}
+\alias{marginalLikelihood,SingleBatchModel-method}
+\alias{marginalLikelihood,SingleBatchModel,ANY-method}
 \alias{marginalLikelihood,SingleBatchPooledVar-method}
 \alias{marginalLikelihood,SingleBatchPooledVar,ANY-method}
 \alias{marginalLikelihood,BatchModel-method}
 \alias{marginalLikelihood,BatchModel,ANY-method}
+\alias{marginalLikelihood,MultiBatchModel-method}
+\alias{marginalLikelihood,MultiBatchModel,ANY-method}
 \alias{marginalLikelihood,list-method}
 \alias{marginalLikelihood,list,ANY-method}
 \title{Compute the marginal likelihood of a converged model.}
@@ -17,10 +21,14 @@ marginalLikelihood(model, params = mlParams())
 
 \S4method{marginalLikelihood}{MarginalModel}(model, params = mlParams())
 
+\S4method{marginalLikelihood}{SingleBatchModel}(model, params = mlParams())
+
 \S4method{marginalLikelihood}{SingleBatchPooledVar}(model,
   params = mlParams())
 
 \S4method{marginalLikelihood}{BatchModel}(model, params = mlParams())
+
+\S4method{marginalLikelihood}{MultiBatchModel}(model, params = mlParams())
 
 \S4method{marginalLikelihood}{list}(model, params = mlParams(warnings =
   FALSE))

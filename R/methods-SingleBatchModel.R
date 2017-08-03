@@ -165,14 +165,15 @@ SingleBatchModel <- function(data=numeric(), k=3, hypp, mcmc.params){
 }
 
 
-MarginalModel2 <- function(dat=numeric(), hp=Hyperparameters(),
+SingleBatchModel2 <- function(dat=numeric(), hp=Hyperparameters(),
                            mp=McmcParams(iter=1000, burnin=1000,
                                          thin=10, nStarts=4)){
   K <- k(hp)
-  mu <- rnorm(1, mu.0(hp), sqrt(tau2.0(hp)))
+  ##mu <- rnorm(1, mu.0(hp), sqrt(tau2.0(hp)))
+  mu <- rnorm(1, median(dat), sd(dat)) 
   tau2 <- 1/rgamma(1, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
   p <- rdirichlet(1, alpha(hp))[1, ]
-  theta <- rnorm(k(hp), mu, sqrt(tau2))
+  theta <- sort(rnorm(k(hp), mu, sqrt(tau2)))
   nu.0 <- 3.5
   sigma2.0 <- 0.25
   sigma2 <- 1/rgamma(k(hp), 0.5 * nu.0, 0.5 * nu.0 * sigma2.0)

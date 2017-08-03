@@ -6,7 +6,9 @@
 \alias{mu}
 \alias{mu,McmcChains-method}
 \alias{mu,BatchModel-method}
+\alias{mu,MultiBatchModel-method}
 \alias{mu,MarginalModel-method}
+\alias{mu,SingleBatchModel-method}
 \title{Retrieve overall mean}
 \usage{
 mu(object)
@@ -15,7 +17,11 @@ mu(object)
 
 \S4method{mu}{BatchModel}(object)
 
+\S4method{mu}{MultiBatchModel}(object)
+
 \S4method{mu}{MarginalModel}(object)
+
+\S4method{mu}{SingleBatchModel}(object)
 }
 \arguments{
 \item{object}{see \code{showMethods(mu)}}

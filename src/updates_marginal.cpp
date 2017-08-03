@@ -539,8 +539,9 @@ Rcpp::IntegerMatrix compute_probz(Rcpp::S4 xmod){
 // BURNIN: Don't move chains, no thinning, no need to compute loglik at each iteration
 //
 // [[Rcpp::export]]
-Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
+Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   RNGScope scope ;
+  Rcpp::S4 xmod = clone(object) ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;

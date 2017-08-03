@@ -16,13 +16,13 @@
 #' @importFrom BiocGenerics unlist
 #' @importFrom graphics lines par
 #' @importFrom stats dnorm qnorm kmeans ks.test plot.ts qgamma rbeta rgamma rgeom rnorm runif setNames rpois
-#' @importFrom coda effectiveSize mcmc.list gelman.diag mcmc
+#' @importFrom coda effectiveSize mcmc.list gelman.diag mcmc as.mcmc.list
 #' @importFrom mclust Mclust mclustBIC
 #' @importFrom reshape2 melt
 #' @importMethodsFrom SummarizedExperiment assays SummarizedExperiment
 #' @import ggplot2
 #' @importFrom magrittr set_colnames "%>%"
-#' @importFrom purrr map
+#' @importFrom purrr map map2
 #' @importFrom tidyr gather
 #' @importFrom dplyr mutate bind_rows
 #' @importFrom tibble as.tibble

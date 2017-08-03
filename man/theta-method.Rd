@@ -6,7 +6,9 @@
 \alias{theta}
 \alias{theta,McmcChains-method}
 \alias{theta,BatchModel-method}
+\alias{theta,MultiBatchModel-method}
 \alias{theta,MarginalModel-method}
+\alias{theta,SingleBatchModel-method}
 \title{Accessor for the theta parameter in the hierarchical mixture model}
 \usage{
 theta(object)
@@ -15,7 +17,11 @@ theta(object)
 
 \S4method{theta}{BatchModel}(object)
 
+\S4method{theta}{MultiBatchModel}(object)
+
 \S4method{theta}{MarginalModel}(object)
+
+\S4method{theta}{SingleBatchModel}(object)
 }
 \arguments{
 \item{object}{see \code{showMethods(theta)}}

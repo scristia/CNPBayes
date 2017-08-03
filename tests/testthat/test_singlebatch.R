@@ -170,7 +170,7 @@ test_that("marginal-hard", {
       k(hp) <- 1
       model <- gibbs(mp=mp, hp=hp, dat=y(truth))
 
-      model.list <- gibbs_multipleK(hp, mp, dat=y(truth))
+      model.list <- gibbs_K(hp, mp, dat=y(truth))
     }
 })
 

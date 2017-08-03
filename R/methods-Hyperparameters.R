@@ -97,7 +97,7 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 #' HyperparametersBatch(k=3)
 #'
 #' @export
-HyperparametersBatch <- function(k=0L,
+HyperparametersBatch <- function(k=3L,
                                  mu.0=0,
                                  tau2.0=100,
                                  eta.0=1800,
@@ -370,3 +370,17 @@ setMethod("show", "Hyperparameters", function(object){
   cat("   a      :", a(object), "\n")
   cat("   b      :", b(object), "\n")
 })
+
+hyperparam_list <- function(){
+  hp <- HyperparametersBatch(mu=-0.75,
+                             tau2.0=0.4,
+                             eta.0=32,
+                             m2.0=0.5)
+  hp.sb <- Hyperparameters(tau2.0=0.4,
+                           mu.0=-0.75,
+                           eta.0=32,
+                           m2.0=0.5)
+  hp.list <- list(single_batch=hp.sb,
+                  multi_batch=hp)
+  hp.list
+}

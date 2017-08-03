@@ -17,5 +17,5 @@ K is the number of components and B is the number of batches
 Retrieve standard deviations of each component/batch mean.
 }
 \examples{
-     sigma(MarginalModelExample)
+     sigma(SingleBatchModelExample)
 }

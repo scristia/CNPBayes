@@ -20,7 +20,65 @@ context("Down sampling")
 
   ##meds <- colMedians(xx)
   dat <- readLocalHapmap()
-  mp <- McmcParams(iter=1000, burnin=1000, nStarts=20)
+
+  mp <- McmcParams(iter=1000, burnin=1000,
+                   nStarts=4, thin=10)
+  batches <- collapseBatch(dat, names(dat), THR=0.05) %>%
+    factor %>% as.integer
+  hp.list <- hyperparam_list()
+
+  hp <- hp.list[["single_batch"]]
+  k(hp) <- 4
+  nStarts(mp) <- 1L
+  burnin(mp) <- 10000L
+  iter(mp) <- 0L
+  set.seed(123)
+  sb <- replicate(20, SingleBatchModel(hp=hp,
+                                       mp=mp,
+                                       dat=dat))
+  tmp <- map(sb, posteriorSimulation)
+  set_mp <- function(model, mp){
+    mcmcParams(model) <- mp
+    model
+  }
+  iter(mp) <- 1000L
+  burnin(mp) <- 0L
+  tmp2 <- map(tmp, set_mp, mp)
+  tmp3 <- map(tmp2, posteriorSimulation)
+
+  mp <- McmcParams(iter=1000L,
+                   thin=10L,
+                   nStarts=4L,
+                   burnin=10000L)
+  sb <- gibbs(mp=mp, dat=dat, hp=hp)
+
+
+  tmp <- posteriorSimulation(sb)
+  nStarts(mp) <- 4L
+
+  tmp2 <- gibbs(dat=dat, mp=mp, hp=hp)
+  models <- gibbs_all(dat=dat,
+                      batches=batches,
+                      mp=mp,
+                      hp.list=hp.list)
+  cn.model <- SingleBatchCopyNumber(models[[1]])
+  p1 <- ggSingleBatch(models[[1]])
+  p2 <- ggSingleBatch(cn.model)
+  library(grid.arrange)
+  grid.arrange(p1, p2)
+
+  hp <- hp.list[["single_batch"]]
+  k(hp) <- 4
+  mp2 <- mp
+  iter(mp2) <- 0L
+  mm.list <- replicate(4, MarginalModel2(dat=dat, mp=mp, hp=hp))
+  mm.list <- map(mm.list, posteriorSimulation)
+  mm <- posteriorSimulation(mm)
+
+  sb.models <- gibbs(dat=dat, mp=mp2, hp=hp)
+
+
+
   sb <- MarginalModelList(dat, k=2:6, mcmc.params=mp)
   sb <- posteriorSimulation(sb)
   ml <- marginalLikelihood(sb)
@@ -39,7 +97,7 @@ context("Down sampling")
   if(FALSE)
     ggSingleBatch(cn.model)
 
-  trace(CNPBayes:::mapCopyNumber, browser)
+  ##trace(CNPBayes:::mapCopyNumber, browser)
   params <- mapParams()
   CNPBayes:::mapCopyNumber(cn.model)
   map <- mapCopyNumber(cn.model)
@@ -63,8 +121,6 @@ context("Down sampling")
   ml <- marginalLikelihood(sb[[5]],
                            mlParams(ignore.effective.size=TRUE,
                                     ignore.small.pstar=TRUE))
-
-
 
   set.seed(134)
   dat <- readLocalHapmap()

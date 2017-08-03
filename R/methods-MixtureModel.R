@@ -18,64 +18,6 @@ setValidity("MixtureModel", function(object){
   msg
 })
 
-setValidity("BatchModel", function(object){
-  msg <- TRUE
-  if(length(p(object)) != k(object)){
-    msg <- "Mixture probability vector must be the same length as k"
-    return(msg)
-  }
-  if(ncol(theta(object)) != k(object)){
-    msg <- "theta matrix must have k columns"
-    return(msg)
-  }
-  if(ncol(sigma(object)) != k(object)){
-    msg <- "sigma matrix must have k columns"
-    return(msg)
-  }
-  if(length(mu(object)) != k(object)){
-    msg <- "mu vector must be length k "
-    return(msg)
-  }
-  if(length(tau(object)) != k(object)){
-    msg <- "tau vector must be length k "
-    return(msg)
-  }
-  if(k(object) != k(hyperParams(object))){
-    msg <- "k must be the same in the hyperparameters and in the model object"
-    return(msg)
-  }
-  msg
-})
-
-setValidity("MultiBatchModel", function(object){
-  msg <- TRUE
-  if(length(p(object)) != k(object)){
-    msg <- "Mixture probability vector must be the same length as k"
-    return(msg)
-  }
-  if(ncol(theta(object)) != k(object)){
-    msg <- "theta matrix must have k columns"
-    return(msg)
-  }
-  if(ncol(sigma(object)) != k(object)){
-    msg <- "sigma matrix must have k columns"
-    return(msg)
-  }
-  if(length(mu(object)) != k(object)){
-    msg <- "mu vector must be length k "
-    return(msg)
-  }
-  if(length(tau(object)) != k(object)){
-    msg <- "tau vector must be length k "
-    return(msg)
-  }
-  if(k(object) != k(hyperParams(object))){
-    msg <- "k must be the same in the hyperparameters and in the model object"
-    return(msg)
-  }
-  msg
-})
-
 #' @rdname hyperParams-method
 #' @aliases hyperParams,MixtureModel-method
 setMethod("hyperParams", "MixtureModel", function(object) object@hyperparams)
@@ -562,33 +504,33 @@ setMethod("isOrdered", "MultiBatchModel", function(object){
   if(burnin(post) > 0 ){
     post <- runBurnin(post)
   }
+  if(!isOrdered(post)) label_switch(post) <- TRUE
   post <- sortComponentLabels(post)
   if( iter(post) < 1 ) return(post)
   post <- runMcmc(post)
   modes(post) <- computeModes(post)
-  if(isOrdered(post)) return(post)
-  ## not ordered: try additional MCMC simulations after re-ordering
+  if(isOrdered(post)){
+    label_switch(post) <- FALSE
+    return(post)
+  }
+  ## not ordered: try additional MCMC simulations
+  label_switch(post) <- TRUE
   post <- sortComponentLabels(post)
-  mp.orig <- mcmcParams(post)
-  mcmcParams(post) <- McmcParams(burnin=0,
-                                 thin=thin(mp.orig),
-                                 iter=iter(mp.orig),
-                                 nStarts=0)
   ## reset counter for posterior probabilities
   post@probz[] <- 0
   post <- runMcmc(post)
   modes(post) <- computeModes(post)
-  mcmcParams(post) <- mp.orig
-  if(isOrdered(post)) return(post)
+  ##mcmcParams(post) <- mp.orig
+  if(isOrdered(post)){
+    label_switch(post) <- FALSE
+    return(post)
+  }
+  label_switch(post) <- TRUE
   if(params[["warnings"]]) {
     ##
     ## at this point, we've tried to run the twice after burnin and we still
     ## have mixing. Most likely, we are fitting a model with k too big
-    ## - make a note of this in the model
-    ## - print a warning
-    label_switch(post) <- TRUE
     warning("label switching: model k=", k(post))
-    ##if(params$returnNULLonWarnings) return(NULL)
   }
   post <- sortComponentLabels(post)
   post

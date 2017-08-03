@@ -1,3 +1,32 @@
+setValidity("BatchModel", function(object){
+  msg <- TRUE
+  if(length(p(object)) != k(object)){
+    msg <- "Mixture probability vector must be the same length as k"
+    return(msg)
+  }
+  if(ncol(theta(object)) != k(object)){
+    msg <- "theta matrix must have k columns"
+    return(msg)
+  }
+  if(ncol(sigma(object)) != k(object)){
+    msg <- "sigma matrix must have k columns"
+    return(msg)
+  }
+  if(length(mu(object)) != k(object)){
+    msg <- "mu vector must be length k "
+    return(msg)
+  }
+  if(length(tau(object)) != k(object)){
+    msg <- "tau vector must be length k "
+    return(msg)
+  }
+  if(k(object) != k(hyperParams(object))){
+    msg <- "k must be the same in the hyperparameters and in the model object"
+    return(msg)
+  }
+  msg
+})
+
 #' Constructor for list of batch models
 #'
 #' An object of class BatchModel is constructed for each k, creating a list of
@@ -139,6 +168,42 @@ BatchModel <- function(data=numeric(),
   obj
 }
 
+.empty_batch_model <- function(hp){
+  K <- k(hp)
+  B <- 0
+  N <- 0
+  obj <- new("BatchModel",
+             k=as.integer(K),
+             hyperparams=hp,
+             theta=matrix(NA, 0, K),
+             sigma2=matrix(NA, 0, K),
+             mu=numeric(K),
+             tau2=numeric(K),
+             nu.0=numeric(1),
+             sigma2.0=numeric(1),
+             pi=numeric(K),
+             data=numeric(0),
+             data.mean=matrix(NA, B, K),
+             data.prec=matrix(NA, B, K),
+             z=integer(0),
+             zfreq=integer(K),
+             probz=matrix(0, N, K),
+             logprior=numeric(1),
+             loglik=numeric(1),
+             mcmc.chains=McmcChains(),
+             mcmc.params=mp,
+             batch=integer(0),
+             batchElements=integer(0),
+             label_switch=FALSE,
+             marginal_lik=as.numeric(NA),
+             .internal.constraint=5e-4,
+             .internal.counter=0L)
+  chains(obj) <- McmcChains(obj)
+  obj
+}
+
+
+
 #' Create an object for running hierarchical MCMC simulations.
 #' @examples
 #'      model <- MultiBatchModel(rnorm(10), k=1, batch=rep(1:2, each=5))
@@ -156,7 +221,7 @@ MultiBatchModel <- function(data=numeric(),
                        mcmc.params){
   if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
   if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
-  if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
+  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=k)
   if(missing(k) & !missing(hypp)){
     k <- k(hypp)
   }
@@ -176,11 +241,11 @@ MultiBatchModel <- function(data=numeric(),
     return(obj)
   }
   if(k == 1) {
-    if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
+    if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=1)
     obj <- UnivariateBatchModel(data, k, batch, hypp, mcmc.params)
     return(obj)
   }
-  if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
+  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=k)
   zz <- integer(length(data))
   zfreq <- as.integer(table(zz))
   if(length(data) != length(batch)) {
@@ -216,10 +281,13 @@ MultiBatchModel <- function(data=numeric(),
 }
 
 
-MultiBatchModel <- function(dat=numeric(),
-                            hp=HyperparametersBatch(),
+MultiBatchModel2 <- function(dat=numeric(),
+                            hp=HyperparametersMultiBatch(),
                             mp=McmcParams(),
                             batches=integer()){
+  if(length(dat) == 0){
+    return(.empty_batch_model(hp))
+  }
   ub <- unique(batches)
   nbatch <- setNames(as.integer(table(batches)), ub)
   B <- length(ub)
@@ -240,6 +308,7 @@ MultiBatchModel <- function(dat=numeric(),
     do.call(cbind, .) %>%
     apply(., 1, sort) %>%
     t
+  if(K == 1) thetas <- t(thetas)
   nu.0 <- 3.5
   sigma2.0 <- 0.25
   sigma2s <- 1/rgamma(k(hp) * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
@@ -308,7 +377,7 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
   ##B <- length(levels(batch))
   nbatch <- elementNROWS(split(batch, batch))
   B <- length(nbatch)
-  if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
+  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=1)
   obj <- new("UnivariateBatchModel",
              k=as.integer(k),
              hyperparams=hypp,
@@ -783,7 +852,7 @@ uniqueBatch <- function(object) unique(batch(object))
 #'
 #'    ## this parameter setting for m2.0 allows a lot of varation of the thetas
 #'    ## between batch
-#'    hypp <- CNPBayes:::HyperparametersBatch(m2.0 = 1/60, eta.0 = 1800,
+#'    hypp <- CNPBayes:::HyperparametersMultiBatch(m2.0 = 1/60, eta.0 = 1800,
 #'                                            k = 3, a = 1/6, b = 180)
 #'    model <- BatchModel(data = y(truth), batch = batch(truth),
 #'                        k = 3, mcmc.params = mcmcp, hypp = hypp)

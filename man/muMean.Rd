@@ -16,5 +16,5 @@ A vector of size 1 or number of batches
 Retrieve overall mean averaged across MCMC simulations.
 }
 \examples{
-     muMean(MarginalModelExample)
+     muMean(SingleBatchModelExample)
 }

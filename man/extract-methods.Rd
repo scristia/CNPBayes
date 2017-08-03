@@ -14,6 +14,11 @@
 \alias{[,BatchModel,ANY-method}
 \alias{[,BatchModel,ANY,ANY-method}
 \alias{[,BatchModel,ANY,ANY,ANY-method}
+\alias{extract}
+\alias{[,MultiBatchModel-method}
+\alias{[,MultiBatchModel,ANY-method}
+\alias{[,MultiBatchModel,ANY,ANY-method}
+\alias{[,MultiBatchModel,ANY,ANY,ANY-method}
 \title{extract estimated parameters at particular iteration of simulation.}
 \usage{
 \S4method{[}{McmcChains,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
@@ -21,9 +26,21 @@
 \S4method{[}{McmcParams,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
 \S4method{[}{BatchModel,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
+
+\S4method{[}{MultiBatchModel,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 }
 \arguments{
 \item{x}{An object of class BatchModel, McmcChains, or McmcParams}
+
+\item{i}{An element of the instance to be extracted.}
+
+\item{j}{Not used.}
+
+\item{...}{Not used.}
+
+\item{drop}{Not used.}
+
+\item{x}{An object of class MultiBatchModel, McmcChains, or McmcParams}
 
 \item{i}{An element of the instance to be extracted.}
 
@@ -39,11 +56,15 @@ An object of class 'McmcChains'
 An object of class 'McmcParams'
 
 An object of class 'BatchModel'
+
+An object of class 'MultiBatchModel'
 }
 \description{
 extract estimated parameters at particular iteration of simulation.
 
 Allows a user to pass a vector for burnin, thin, and iter.
+
+extract data, latent variable, and batch for given observation
 
 extract data, latent variable, and batch for given observation
 }
