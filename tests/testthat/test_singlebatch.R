@@ -295,10 +295,10 @@ test_that("test_selectK_easy", {
     mp <- McmcParams(iter = 1000, burnin = 50, nStarts = 20)
     model <- SingleBatchModel(data = y(truth), k = 2, mcmc.params = mp0)
     expect_error(mlist <- posteriorSimulation(model, k = 2:4))
-    mlist <- MarginalModelList(data=y(truth), k=2:4, mcmc.params=mp)
+    mlist <- SingleBatchModelList(data=y(truth), k=2:4, mcmc.params=mp)
     mlist2 <- posteriorSimulation(mlist)
-    ##expect_warning(mlist <- posteriorSimulation(mlist),
-    ##               "label switching: model k=4")
+##    expect_warning(mlist <- posteriorSimulation(mlist),
+##                   "label switching: model k=4")
     if(FALSE){
       ##
       ## Visual inspection of the chains for theta shows that the k=4 model has

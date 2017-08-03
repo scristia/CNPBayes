@@ -194,6 +194,11 @@ setMethod("computePrec", "MarginalModel", function(object){
 })
 
 setMethod("computePrior", "MarginalModel", function(object){
+  .Deprecate("See SingleBatchModel")
+  compute_logprior(object)
+})
+
+setMethod("computePrior", "SingleBatchModel", function(object){
   compute_logprior(object)
 })
 

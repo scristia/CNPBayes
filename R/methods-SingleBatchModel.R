@@ -292,12 +292,12 @@ setReplaceMethod("tau2", "SingleBatchModel", function(object, value){
 })
 
 setReplaceMethod("mu", "MarginalModel", function(object, value){
+  .Deprecated("See SingleBatchModel")
   object@mu <- value
   object
 })
 
 setReplaceMethod("mu", "SingleBatchModel", function(object, value){
-  .Deprecated("See SingleBatchModel")
   object@mu <- value
   object
 })
