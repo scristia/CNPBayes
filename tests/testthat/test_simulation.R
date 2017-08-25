@@ -17,7 +17,7 @@ test_that("test_simulation", {
       pc <- -pc
     }
     mp <- McmcParams(iter = 1000, burnin = 500, nStarts = 1)
-    mlist <- MarginalModelList(data=pc, k=1:4, mcmc.params=mp)
+    mlist <- SingleBatchModelList(data=pc, k=1:4, mcmc.params=mp)
     mlist <- posteriorSimulation(mlist)
     m.y <- marginalLikelihood(mlist)
     expect_true(which.max(m.y) == 4L)

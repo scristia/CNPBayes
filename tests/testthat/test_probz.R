@@ -6,7 +6,7 @@ test_that("test_probz", {
         0, 1), sds = rep(0.1, 3))
     mp <- McmcParams(iter = 500, burnin = 500, nStarts=0)
     set.seed(123)
-    model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
+    model <- SingleBatchModel(data = y(truth), k = 3, mcmc.params = mp)
     model <- CNPBayes:::startAtTrueValues(model, truth)
     true_z <- z(truth)
     expect_equal(z(model), z(truth))

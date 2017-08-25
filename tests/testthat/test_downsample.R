@@ -71,7 +71,7 @@ context("Down sampling")
   k(hp) <- 4
   mp2 <- mp
   iter(mp2) <- 0L
-  mm.list <- replicate(4, MarginalModel2(dat=dat, mp=mp, hp=hp))
+  mm.list <- replicate(4, SingleBatchModel2(dat=dat, mp=mp, hp=hp))
   mm.list <- map(mm.list, posteriorSimulation)
   mm <- posteriorSimulation(mm)
 
@@ -79,7 +79,7 @@ context("Down sampling")
 
 
 
-  sb <- MarginalModelList(dat, k=2:6, mcmc.params=mp)
+  sb <- SingleBatchModelList(dat, k=2:6, mcmc.params=mp)
   sb <- posteriorSimulation(sb)
   ml <- marginalLikelihood(sb)
   select <- which.max(ml)
@@ -132,7 +132,7 @@ context("Down sampling")
   b <- collapseBatch(dat, names(dat))
   mp <- McmcParams(iter=1000, burnin=1000, nStarts=20, thin=10)
   dat2 <- downSampleEachBatch(dat, 50, b)
-  sb <- MarginalModelList(dat2$y, k=2:5, mcmc.params=mp)
+  sb <- SingleBatchModelList(dat2$y, k=2:5, mcmc.params=mp)
   sb <- posteriorSimulation(sb)
   ggSingleBatch(sb[[2]])
   ml <- marginalLikelihood(sb)
@@ -151,7 +151,7 @@ context("Down sampling")
   ##
   ## pseudocode
   ##
-  model.fulldata <- MarginalModel(data)
+  model.fulldata <- SingleBatchModel(data)
   model.partdata <- downSample(model.fulldata)
   model.partdata <- posteriorSimulation(model.partdata)
   model.fulldata1 <- upSample(model.partdata)

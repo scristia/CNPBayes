@@ -98,7 +98,7 @@ test_that("initial values", {
                       batches=batch(truth),
                       mp=mp,
                       top=3)
-  expect_is(models[[1]], "BatchModel")
+  expect_is(models[[1]], "MultiBatchModel")
   expect_identical(k(models[[1]]), 3L)
 
   p1 <- ggMultiBatch(truth)
@@ -373,7 +373,7 @@ test_that("different starts", {
   expect_identical(length(logliks), length(bmodel.list))
   expect_equal(log_lik(model), -286.84, tolerance=0.05, scale=1)
 
-  mmodel <- MarginalModelExample
+  mmodel <- SingleBatchModelExample
 
   mmodel.list <- replicate(10,
                            SingleBatchModel(y(mmodel),
@@ -394,7 +394,7 @@ test_that("different starts", {
   batches <- collapseBatch(r, plates, 0.01)
 
   mp <- McmcParams(nStarts=10, burnin=500, iter=1000, thin=10)
-  sb.list <- MarginalModelList(data=r, mcmc.params=mp, k=2:4)
+  sb.list <- SingleBatchModelList(data=r, mcmc.params=mp, k=2:4)
   mb.list <- MultiBatchModelList(data=r, k=2:4,
                             batch=batches,
                             mcmc.params=mp)

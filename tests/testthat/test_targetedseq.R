@@ -11,7 +11,7 @@ test_that("targeted_seq data", {
                        "targeted_seq.txt")
   dat <- read.delim(extfile)[[1]]
   dat <- sample(dat, 500)
-  mlist <- MarginalModelList(data=dat, k=2:4, mcmc.params=mp)
+  mlist <- SingleBatchModelList(data=dat, k=2:4, mcmc.params=mp)
   expect_warning(mlist <- posteriorSimulation(mlist))
   ##expect_warning(mlist <- posteriorSimulation(mlist), "label switching: model k=4")
  ##

@@ -5,7 +5,7 @@ test_that("test_relabel_marginal", {
     truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1, 
         0, 1), sds = rep(0.1, 3))
     mp <- McmcParams(iter = 500, burnin = 500)
-    model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
+    model <- SingleBatchModel(data = y(truth), k = 3, mcmc.params = mp)
     model <- posteriorSimulation(model)
     zindex <- c(3, 2, 1)
     model2 <- CNPBayes:::relabel(model, zindex)
@@ -26,7 +26,7 @@ test_that("test_relabel_marginal", {
         truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1, 
             0, 1), sds = rep(0.5, 3))
         mp <- McmcParams(iter = 500, burnin = 500)
-        model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
+        model <- SingleBatchModel(data = y(truth), k = 3, mcmc.params = mp)
         model <- posteriorSimulation(model)
         zindex <- c(3, 2, 1)
         model2 <- CNPBayes:::relabel(model, zindex)

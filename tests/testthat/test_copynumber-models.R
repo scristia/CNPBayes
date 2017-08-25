@@ -33,7 +33,7 @@ context("Copy number models")
   ##
 
 test_that("Methods defined for the class", {
-  sb <- MarginalModelExample
+  sb <- SingleBatchModelExample
   cn.model <- SingleBatchCopyNumber(sb)
 
   expect_false(manyToOneMapping(cn.model))
@@ -117,7 +117,7 @@ test_that("Methods defined for the class", {
 
 test_that("Mapping components to copy number (single batch)", {
   set.seed(514)
-  sb <- MarginalModelExample
+  sb <- SingleBatchModelExample
   cn.model <- SingleBatchCopyNumber(sb)
   params <- mapParams()
   map <- mapComponents(cn.model, params)
@@ -243,7 +243,7 @@ test_that("Mapping components to copy number (multiple batches)", {
     ggMultiBatchChains(ml[[4]])[["batch"]]
 
   mp <- McmcParams(iter=1000, burnin=500, nStarts=20)
-  sb <- MarginalModelList(dat, k=2:5, mcmc.params=mp)
+  sb <- SingleBatchModelList(dat, k=2:5, mcmc.params=mp)
   sb <- posteriorSimulation(sb)
   ml.mb <- marginalLikelihood(ml)
   ml.sb <- marginalLikelihood(sb)

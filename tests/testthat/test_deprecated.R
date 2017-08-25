@@ -1,5 +1,5 @@
 context("Deprecated")
 
 test_that("Deprecated", {
-  expect_warning(DensityModel(MarginalModelExample))
+  expect_warning(DensityModel(SingleBatchModelExample))
 })

@@ -6,7 +6,7 @@ test_that("computeMeans", {
                         sds = c(0.3, 0.15, 0.15),
                         p = c(0.005, 1/10, 1 - 0.005 - 1/10))
   mcmcp <- McmcParams(iter = 10, burnin = 10)
-  model <- MarginalModel(y(truth), k = 3)
+  model <- SingleBatchModel(y(truth), k = 3)
   model <- posteriorSimulation(model)
   mns <- sapply(split(y(model), z(model)), mean)
   mns <- as.numeric(mns)

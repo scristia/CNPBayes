@@ -13,7 +13,7 @@ test_that("ggfun", {
   tmp <- ggSingleBatch(truth)
   expect_is(tmp, "ggplot")
 
-  tmp <- ggSingleBatch(MarginalModelExample, bins=200)
+  tmp <- ggSingleBatch(SingleBatchModelExample, bins=200)
   expect_is(tmp, "ggplot")
 
   bmod <- BatchModelExample

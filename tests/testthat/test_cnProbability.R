@@ -7,7 +7,7 @@ test_that("test_cnProbability", {
     if (FALSE) 
         plot(truth)
     mp <- McmcParams(iter = 200, burnin = 100, nStarts = 1)
-    model <- MarginalModel(data = y(truth), k = 3, mcmc.params = mp)
+    model <- SingleBatchModel(data = y(truth), k = 3, mcmc.params = mp)
     model <- posteriorSimulation(model)
     map_model <- CNPBayes:::mapModel(model)
     expect_identical(z(map_model), CNPBayes:::zChain(model)[CNPBayes:::argMax(model), 

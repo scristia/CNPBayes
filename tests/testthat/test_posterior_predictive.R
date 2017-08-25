@@ -2,7 +2,7 @@ context("Posterior predictive distribution")
 
 test_that("posteriorPredictive", {
   set.seed(149)
-  model <- MarginalModelExample
+  model <- SingleBatchModelExample
   mp <- McmcParams(iter=500, burnin=50)
   mcmcParams(model) <- mp
   model <- posteriorSimulation(model)

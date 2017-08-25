@@ -11,7 +11,7 @@ test_that("galaxy model", {
     # fit model
     mp <- McmcParams(thin=10, iter=1000, burnin=10000, nStarts=5)
     hypp <- Hyperparameters(type="marginal", k=3, m2.0=100)
-    model <- MarginalModel(data=galaxies/1000, k=3,
+    model <- SingleBatchModel(data=galaxies/1000, k=3,
                            hypp=hypp,
                            mcmc.params=mp)
     fit <- posteriorSimulation(model)

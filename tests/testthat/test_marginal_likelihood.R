@@ -14,7 +14,7 @@ test_that("overfit model", {
   mp <- McmcParams(iter=500, burnin=1000, nStarts=1, thin=5)
   ##    taut2hat = var(theta(model))
   ## qInverseTau2(mn=0.01, sd=0.001)
-  mlist <- MarginalModelList(data=galaxies2,
+  mlist <- SingleBatchModelList(data=galaxies2,
                              mcmc.params=mp,
                              k=1:4,
                              eta.0=200,
@@ -73,14 +73,14 @@ test_that("batch overfit galaxy", {
   ##mp <- McmcParams(thin=10, iter=1000, burnin=5000, nStarts=1)
   ##mp <- McmcParams(thin=10, iter=1000, burnin=50, nStarts=100)
   mp <- McmcParams(burnin=200, nStarts=20, iter=100)
-  model.list <- BatchModelList(data=galaxies3,
+  model.list <- MultiBatchModelList(data=galaxies3,
                                batch=rep(1:2, each=length(galaxies)),
                                k=1:4,
                                mcmc.params=mp,
                                eta.0=0.08,
                                m2.0=50)
   ## default prior on tau is far too informative for the galaxy data
-  ##hypp <- HyperparametersBatch(eta.0=0.08, m2.0=50, k=3)
+  ##hypp <- HyperparametersMultiBatch(eta.0=0.08, m2.0=50, k=3)
   mlist <- posteriorSimulation(model.list)
   pstar <- marginal_theta_batch(mlist[[3]])
   expect_false(failSmallPstar(pstar))
@@ -132,13 +132,13 @@ test_that("batch overfit galaxy", {
   galaxies2 <- (galaxies-median(galaxies))/sd(galaxies)
   hypp <- Hyperparameters(type="marginal", eta.0=200, m2.0=50,
                           a=2, b=1, tau2.0=1000)
-  model <- MarginalModel(data=galaxies2,
+  model <- SingleBatchModel(data=galaxies2,
                          hypp=hypp,
                          mcmc.params=mp)
 
 
   nstarts <- 100
-  mlist <- replicate(100, MarginalModel(y(model),
+  mlist <- replicate(100, SingleBatchModel(y(model),
                                         mcmc.params=mcmcParams(model),
                                         hypp=hyperParams(model),
                                         k=k(model)))

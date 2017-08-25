@@ -367,9 +367,54 @@ newMarginalModel <- function(object){
   object2
 }
 
+newSingleBatchModel <- function(object){
+  mp <- mcmcParams(object)
+  object2 <- SingleBatchModel(y(object), k=k(object), mcmc.params=mp,
+                           hypp=hyperParams(object))
+  theta(object2) <- theta(object)
+  sigma2(object2) <- sigma2(object)
+  p(object2) <- p(object)
+  z(object2) <- z(object)
+  nu.0(object2) <- nu.0(object)
+  mu(object2) <- mu(object)
+  tau2(object2) <- tau2(object)
+  zFreq(object2) <- zFreq(object)
+  probz(object2) <- probz(object)
+  sigma2.0(object2) <- sigma2.0(object)
+  dataMean(object2) <- dataMean(object)
+  dataPrec(object2) <- dataPrec(object)
+  log_lik(object2) <- log_lik(object)
+  logPrior(object2) <- logPrior(object)
+  modes(object2) <- modes(object)
+  object2
+}
+
 newBatchModel <- function(object){
   mp <- mcmcParams(object)
   object2 <- MultiBatchModel(y(object), batch=batch(object),
+                        k=k(object), mcmc.params=mp,
+                        hypp=hyperParams(object))
+  theta(object2) <- theta(object)
+  sigma2(object2) <- sigma2(object)
+  p(object2) <- p(object)
+  z(object2) <- z(object)
+  nu.0(object2) <- nu.0(object)
+  mu(object2) <- mu(object)
+  tau2(object2) <- tau2(object)
+  zFreq(object2) <- zFreq(object)
+  probz(object2) <- probz(object)
+  sigma2.0(object2) <- sigma2.0(object)
+  dataMean(object2) <- dataMean(object)
+  dataPrec(object2) <- dataPrec(object)
+  log_lik(object2) <- log_lik(object)
+  logPrior(object2) <- logPrior(object)
+  modes(object2) <- modes(object)
+  object2
+}
+
+newMultiBatchModel <- function(object){
+  mp <- mcmcParams(object)
+  object2 <- MultiMultiBatchModel(y(object), batch=batch(object),
                         k=k(object), mcmc.params=mp,
                         hypp=hyperParams(object))
   theta(object2) <- theta(object)
@@ -405,8 +450,38 @@ setMethod("relabel", "MarginalModel", function(object, zindex){
   object
 })
 
+setMethod("relabel", "SingleBatchModel", function(object, zindex){
+  object <- newSingleBatchModel(object)
+  if(identical(zindex, seq_len(k(object)))) return(object)
+  ##
+  ## Permute the labels for the components
+  ##
+  zz <- factor(z(object), levels=zindex)
+  zz <- as.integer(zz)
+  z(object) <- zz
+  zFreq(object) <- as.integer(table(zz))
+  dataMean(object) <- dataMean(object)[zindex]
+  dataPrec(object) <- dataPrec(object)[zindex]
+  object
+})
+
 setMethod("relabel", "BatchModel", function(object, zindex){
   object <- newBatchModel(object)
+  if(identical(zindex, seq_len(k(object)))) return(object)
+  ##
+  ## Permute only the latent variables
+  ##
+  zz <- factor(z(object), levels=zindex)
+  zz <- as.integer(zz)
+  z(object) <- zz
+  zFreq(object) <- as.integer(table(zz))
+  dataMean(object) <- dataMean(object)[, zindex, drop=FALSE]
+  dataPrec(object) <- dataPrec(object)[, zindex, drop=FALSE]
+  object
+})
+
+setMethod("relabel", "MultiBatchModel", function(object, zindex){
+  object <- newMultiBatchModel(object)
   if(identical(zindex, seq_len(k(object)))) return(object)
   ##
   ## Permute only the latent variables

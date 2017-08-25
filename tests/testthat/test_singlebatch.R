@@ -19,7 +19,7 @@ test_that("test_marginal_empty_component", {
 })
 
 
-.test_that("MarginalModel2", {
+.test_that("SingleBatchModel2", {
   set.seed(1)
   truth <- simulateData(N = 200,
                         theta = c(-2, -0.4, 0),
@@ -39,7 +39,7 @@ test_that("test_marginal_empty_component", {
   summary(sqrt(1/rgamma(200, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))))
   ##mns <- rnorm(3, 0, sqrt(1/rgamma(1, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))))
   set.seed(123)
-  m <- MarginalModel2(data = y(truth),
+  m <- SingleBatchModel2(data = y(truth),
                       k = 3,
                       mcmc.params = mp,
                       hypp=hp)
@@ -55,7 +55,7 @@ test_that("test_marginal_empty_component", {
   library(purrr)
   ##mp <- McmcParams(iter = 1000, burnin = 10, nStarts = 1, thin=1)
   mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 10, thin=1)
-  mod.list <- replicate(4, MarginalModel2(data=y(truth), k=3,
+  mod.list <- replicate(4, SingleBatchModel2(data=y(truth), k=3,
                                           mcmc.params=mp, hypp=hp))
   mod.list2 <- map(mod.list, posteriorSimulation)
   mc.list <- mcmcList(mod.list2)
@@ -157,7 +157,7 @@ test_that("marginal-hard", {
       ##
       ## what happens when we over-specify the model?
       ## - expect warnings from label swapping
-      expect_true(is.na(marginal_lik(MarginalModel2())))
+      expect_true(is.na(marginal_lik(SingleBatchModel2())))
       k(hp) <- 4
       expect_warning(model <- gibbs(mp=mp, hp=hp, dat=y(truth)))
       expect_true(is.na(marginal_lik(model)))
@@ -250,8 +250,8 @@ test_that("test_marginalEasy", {
     model <- SingleBatchModel(data = y(truth), k = 3, mcmc.params = mp)
     model <- posteriorSimulation(model)
     if (FALSE) {
-        MarginalModelExample <- model
-        save(MarginalModelExample, file = "data/MarginalModelExample.RData")
+        SingleBatchModelExample <- model
+        save(SingleBatchModelExample, file = "data/SingleBatchModelExample.RData")
     }
     expect_equal(theta(model), theta(truth), tolerance=0.03)
     expect_equal(sigma(model), sigma(truth), tolerance=0.11)

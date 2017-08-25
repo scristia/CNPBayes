@@ -13,7 +13,7 @@ test_that("test_loglik", {
     loglik <- sum(log(p_[1] * dnorm(yy, th[1], sd[1]) + p_[2] *
         dnorm(yy, th[2], sd[2]) + p_[3] * dnorm(yy, th[3], sd[3])))
     expect_equal(ll.truth, loglik)
-    model <- BatchModel(data = y(truth),
+    model <- MultiBatchModel(data = y(truth),
                         batch = rep(letters[1:3],
                                     length.out = length(y(truth))), k = 3)
     mp <- McmcParams(iter=250, burnin=500, nStarts=10)

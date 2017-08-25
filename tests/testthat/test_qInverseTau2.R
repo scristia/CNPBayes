@@ -48,9 +48,9 @@ test_that("test_qInverseTau2", {
           sds = sds)
       mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 1,
           nStarts = 10)
-      hypp <- CNPBayes:::HyperparametersBatch(m2.0 = 1/60, eta.0 = 1800,
+      hypp <- CNPBayes:::HyperparametersMultiBatch(m2.0 = 1/60, eta.0 = 1800,
           k = 3, a = 1/6, b = 180)
-      model <- BatchModel(data = y(truth), batch = batch(truth),
+      model <- MultiBatchModel(data = y(truth), batch = batch(truth),
           k = 3, mcmc.params = mcmcp, hypp = hypp)
       model <- posteriorSimulation(model)
     }
