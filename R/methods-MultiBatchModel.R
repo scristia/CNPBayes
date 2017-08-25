@@ -84,7 +84,7 @@ MultiBatchModelList <- function(data=numeric(),
                            ...){
   model.list <- vector("list", length(k))
   for(i in seq_along(k)){
-    hypp <- HyperparametersBatch(k=k[i], ...)
+    hypp <- HyperparametersMultiBatch(k=k[i], ...)
     model.list[[i]] <- MultiBatchModel(data=data, k=k[i], batch=batch,
                                   mcmc.params=mcmc.params,
                                   hypp=hypp)
