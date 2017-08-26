@@ -2,9 +2,9 @@ context("Order component labels")
 
 test_that("ordered_thetas", {
   expect_true(isOrdered(SingleBatchModelExample))
-  expect_false(isOrdered(BatchModelExample))
+  expect_false(isOrdered(MultiBatchModelExample))
 
-  bmodel <- sortComponentLabels(BatchModelExample)
+  bmodel <- sortComponentLabels(MultiBatchModelExample)
   expect_true(isOrdered(bmodel))
 
   mmodel <- SingleBatchModelExample
