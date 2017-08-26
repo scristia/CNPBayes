@@ -41,7 +41,8 @@ setAs("BatchModel", "MultiBatchModel", function(from, to){
 })
 
 setAs("MarginalModel", "SingleBatchModel", function(from, to){
-  hypp <- as(hyperParams(from), "HyperparametersSingleBatch")
+  ##hypp <- as(hyperParams(from), "Hyperparameters")
+  hypp <- hyperParams(from)
   new("SingleBatchModel",
       k=k(from),
       hyperparams=hypp,

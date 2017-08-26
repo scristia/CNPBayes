@@ -322,7 +322,6 @@ setValidity("Hyperparameters", function(object){
 #' Additional hyperparameters can be passed to the
 #' HyperparametersMarginal and HyperparametersBatch models.
 #'
-
 #' @export
 Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="marginal") return(HyperparametersSingleBatch(k, ...))
