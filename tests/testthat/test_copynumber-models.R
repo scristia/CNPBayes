@@ -73,7 +73,7 @@ test_that("Methods defined for the class", {
     ggSingleBatch(cn.model)
   }
 
-  mb <- BatchModelExample
+  mb <- MultiBatchModelExample
   cn.model <- MultiBatchCopyNumber(mb)
   expect_false(manyToOneMapping(cn.model))
   cn <- copyNumber(cn.model)
@@ -183,7 +183,7 @@ test_that("Mapping components to copy number (single batch)", {
 })
 
 test_that("Mapping components to copy number (multiple batches)", {
-  sb <- BatchModelExample
+  sb <- MultiBatchModelExample
   cn.model <- MultiBatchCopyNumber(sb)
   params <- mapParams()
   map <- mapComponents(cn.model, params)
