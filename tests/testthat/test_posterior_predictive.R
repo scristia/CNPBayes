@@ -8,7 +8,7 @@ test_that("posteriorPredictive", {
   model <- posteriorSimulation(model)
   y <- posteriorPredictive(model)
 
-  bmodel <- BatchModelExample
+  bmodel <- MultiBatchModelExample
   mp <- McmcParams(iter=500, burnin=150, nStarts=20)
   mcmcParams(bmodel) <- mp
   bmodel <- posteriorSimulation(bmodel)

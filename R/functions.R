@@ -484,7 +484,7 @@ mclustMeans <- function(y, batch){
 #' @param model a MarginalModel or MultiBatchModel
 #' @export
 posteriorPredictive <- function(model){
-  if(is(model, "MarginalModel")){
+  if(is(model, "SingleBatchModel")){
     y <- .posterior_predictive_sb(model)
     return(y)
   }
