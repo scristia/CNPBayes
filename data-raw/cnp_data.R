@@ -72,3 +72,9 @@ set.seed(1337)
 mp <- McmcParams(nStarts=100, burnin=0, iter=0)
 sb <- MarginalModel(data=med.summary, mcmc.params=mp, k=4)
 saveRDS(sb, file="CNPBayes/inst/extdata/DeletionModelExample.rds")
+
+sb <- readRDS("../inst/extdata/DeletionModelExample.rds")
+sb <- updateObject(sb)
+sb <- as(sb, "SingleBatchModel")
+saveRDS(sb, file="../inst/extdata/DeletionModelExample.rds")
+
