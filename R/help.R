@@ -22,7 +22,7 @@
 #' @importMethodsFrom SummarizedExperiment assays SummarizedExperiment
 #' @import ggplot2
 #' @importFrom magrittr set_colnames "%>%"
-#' @importFrom purrr map map2
+#' @importFrom purrr map map2 map_lgl map_dbl map_chr
 #' @importFrom tidyr gather
 #' @importFrom dplyr mutate bind_rows
 #' @importFrom tibble as.tibble

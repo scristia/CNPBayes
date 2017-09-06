@@ -44,24 +44,24 @@ test_that("initial values", {
                              eta.0=32,
                              m2.0=0.5)
   ##trace(MultiBatchModel, browser)
-  expect_true(validObject(MultiBatchModel()))
+  expect_true(validObject(MultiBatchModel2()))
   mp <- McmcParams(iter = 1000,
                    burnin = 1000,
                    nStarts = 4,
                    thin=10)
-  model <- MultiBatchModel(hp=hp, mp=mp, dat=y(truth),
+  model <- MultiBatchModel2(hp=hp, mp=mp, dat=y(truth),
                            batches=batch(truth))
   expect_true(validObject(model))
 
   library(purrr)
   mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 1, thin=1)
-  m <- MultiBatchModel(dat=y(truth),
-                       mp=mp, hp=hp,
-                       batches=batch(truth))
+  m <- MultiBatchModel2(dat=y(truth),
+                        mp=mp, hp=hp,
+                        batches=batch(truth))
   m2 <- posteriorSimulation(m)
   gelman_rubin(mcmcList(list(m2)), hp)
 
-  mod.list <- replicate(4, MultiBatchModel(dat=y(truth),
+  mod.list <- replicate(4, MultiBatchModel2(dat=y(truth),
                                            mp=mp, hp=hp,
                                            batches=batch(truth)))
   mod.list2 <- map(mod.list, posteriorSimulation)
@@ -78,9 +78,9 @@ test_that("initial values", {
   expect_true(is.na(marginal_lik(m4)))
 
   k(hp) <- 1
-  mod <- MultiBatchModel(dat=y(truth), batches=batch(truth), hp=hp, mp=mp)
+  mod <- MultiBatchModel2(dat=y(truth), batches=batch(truth), hp=hp, mp=mp)
   k(hp) <- 2
-  mod <- MultiBatchModel(dat=y(truth), batches=batch(truth), hp=hp, mp=mp)
+  mod <- MultiBatchModel2(dat=y(truth), batches=batch(truth), hp=hp, mp=mp)
   mod.list <- gibbs_batch_K(dat=y(truth),
                             mp=mp, hp=hp,
                             k_range=c(1, 4),
@@ -100,15 +100,15 @@ test_that("initial values", {
                       top=3)
   expect_is(models[[1]], "MultiBatchModel")
   expect_identical(k(models[[1]]), 3L)
-
   p1 <- ggMultiBatch(truth)
   p2 <- ggMultiBatch(models[[1]])
   library(gridExtra)
   grid.arrange(p1, p2)
   ## ML_MB2 > ML_SB3
+  ggMultiBatch(models[[1]])
   ggMultiBatch(models[[2]])
   ggSingleBatch(models[[3]])
-  map_dbl(models, marginal_lik)
+  purrr::map_dbl(models, marginal_lik)
 })
 
 test_that("test_batch_moderate", {

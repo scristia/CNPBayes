@@ -4,8 +4,7 @@
 \alias{SingleBatchModel}
 \title{Create an object for running single batch MCMC simulations.}
 \usage{
-SingleBatchModel(dat = numeric(), hp = Hyperparameters(),
-  mp = McmcParams(iter = 1000, burnin = 1000, thin = 10, nStarts = 4))
+SingleBatchModel(data = numeric(), k = 3, hypp, mcmc.params)
 }
 \arguments{
 \item{data}{the data for the simulation.}

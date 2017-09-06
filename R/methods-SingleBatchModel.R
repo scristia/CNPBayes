@@ -177,7 +177,7 @@ SingleBatchModel2 <- function(dat=numeric(), hp=Hyperparameters(),
   nu.0 <- 3.5
   sigma2.0 <- 0.25
   sigma2 <- 1/rgamma(k(hp), 0.5 * nu.0, 0.5 * nu.0 * sigma2.0)
-  object <- new("MarginalModel",
+  object <- new("SingleBatchModel",
                 k=as.integer(K),
                 hyperparams=hp,
                 theta=theta,

@@ -285,9 +285,9 @@ permnK <- function(k, maxperm){
 #' batch <- sample(letters[1:3], 100, replace=TRUE)
 #' ds <- downSampleEachBatch(y, 10, batch)
 #'
-#' model <- BatchModelExample
+#' model <- MultiBatchModelExample
 #' ds <- downSampleEachBatch(y(model), 100, batch(model))
-#' model.ds <- BatchModel(ds$y, batch=ds$batch, k=3)
+#' model.ds <- MultiBatchModel(ds$y, batch=ds$batch, k=3)
 #' model.ds <- posteriorSimulation(model.ds)
 #' ## map the posterior probabilities of the downsampled data back to the
 #' ## original observations

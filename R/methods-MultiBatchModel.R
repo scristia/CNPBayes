@@ -282,9 +282,9 @@ MultiBatchModel <- function(data=numeric(),
 
 
 MultiBatchModel2 <- function(dat=numeric(),
-                            hp=HyperparametersMultiBatch(),
-                            mp=McmcParams(),
-                            batches=integer()){
+                             hp=HyperparametersMultiBatch(),
+                             mp=McmcParams(),
+                             batches=integer()){
   if(length(dat) == 0){
     return(.empty_batch_model(hp))
   }
@@ -313,7 +313,7 @@ MultiBatchModel2 <- function(dat=numeric(),
   sigma2.0 <- 0.25
   sigma2s <- 1/rgamma(k(hp) * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
     matrix(B, k(hp))
-  obj <- new("BatchModel",
+  obj <- new("MultiBatchModel",
              k=as.integer(K),
              hyperparams=hp,
              theta=thetas,

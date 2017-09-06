@@ -272,11 +272,15 @@ selectModels <- function(model.list){
 }
 
 gelman_rubin <- function(mcmc_list, hp){
+  anyNA <- function(x){
+    any(is.na(x))
+  }
+  any_nas <- map_lgl(mcmc_list, anyNA)
+  mcmc_list <- mcmc_list[ !any_nas ]
+  if(length(mcmc_list) < 4 ) stop("NAs in chains")
   r <- tryCatch(gelman.diag(mcmc_list, autoburnin=FALSE), error=function(e) NULL)
   if(is.null(r)){
-    any_nas <- any(colSums(is.na(mcmc_list[[1]])) > 0)
-    if(any_nas) stop("NAs in chains.")
-    ## happens because p is not positive definite
+    ## gelman rubin can fail if p is not positive definite
     pcolumn <- match(paste0("p", k(hp)), colnames(mcmc_list[[1]]))
     f <- function(x, pcolumn){
       x[, -pcolumn]
@@ -290,7 +294,7 @@ gelman_rubin <- function(mcmc_list, hp){
 
 constructor <- function(nm, hp, mp, batches){
   x <- switch(nm,
-              SingleBatchModel=SingleBatchModel(dat=dat, hp=hp, mp=mp),
+              SingleBatchModel=SingleBatchModel2(dat=dat, hp=hp, mp=mp),
               MultiBatchModel=MultiBatchModel(dat=dat, hp=hp, mp=mp, batches=batches))
   x
 }
@@ -303,7 +307,7 @@ gibbs <- function(hp, mp, dat, max_burnin=32000){
   }
   while(burnin(mp) < max_burnin){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    mod.list <- replicate(nchains, SingleBatchModel(dat=dat,
+    mod.list <- replicate(nchains, SingleBatchModel2(dat=dat,
                                                   hp=hp,
                                                   mp=mp))
     mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
@@ -313,7 +317,7 @@ gibbs <- function(hp, mp, dat, max_burnin=32000){
       ## try one more time
       mp@thin <- as.integer(thin(mp) * 2)
       mod.list2 <- replicate(nswap,
-                             SingleBatchModel(dat=dat,
+                             SingleBatchModel2(dat=dat,
                                               mp=mp,
                                               hp=hp))
       mod.list2 <- suppressWarnings(map(mod.list2, posteriorSimulation))
@@ -374,10 +378,10 @@ gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches){
   }
   while(burnin(mp) < max_burnin && thin(mp) < 100){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    mod.list <- replicate(nchains, MultiBatchModel(dat=dat,
-                                                   hp=hp,
-                                                   mp=mp,
-                                                   batches=batches))
+    mod.list <- replicate(nchains, MultiBatchModel2(dat=dat,
+                                                    hp=hp,
+                                                    mp=mp,
+                                                    batches=batches))
     mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
     label_swapping <- map_lgl(mod.list, label_switch)
     nswap <- sum(label_swapping)
@@ -385,7 +389,7 @@ gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches){
       mp@thin <- as.integer(thin(mp) * 2)
       message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
       mod.list2 <- replicate(nswap,
-                            MultiBatchModel(dat=dat,
+                            MultiBatchModel2(dat=dat,
                                             mp=mp,
                                             hp=hp,
                                             batches=batches))
@@ -441,7 +445,7 @@ gibbs_K <- function(hp,
                     max_burnin=max_burnin)
   names(model.list) <- paste0("SB", map_dbl(model.list, k))
   ## sort by marginal likelihood
-  ix <- order(map_dbl(mod.list, marginal_lik), decreasing=TRUE)
+  ix <- order(map_dbl(model.list, marginal_lik), decreasing=TRUE)
   ##
   ## if(reduce_size) TODO:  remove z chain, keep y in one object
   ##
@@ -472,6 +476,64 @@ gibbs_batch_K <- function(hp,
   models <- model.list[ix]
 }
 
+reload <- function(){
+  svpacks(); load_all("CNPBayes"); papp()
+}
+
+reload2 <- function(){
+  svpacks()
+  load_all("CNPBayes")
+  document("CNPBayes")
+  load_all("CNPBayes")
+  papp()
+}
+
+#' Evaluate both single-batch and multi-batch models with the specified range for the number of components, returning the top models sorted by marginal likelihood
+#' 
+#' @param hp.list a list of hyperparameters. See example.
+#' @param mp a \code{McmcParams} object
+#' @param dat numeric vector of CNP summary statistics (e.g., median log R ratios)
+#' @param batches an integer vector of the same length as the data providing an index for the batch
+#' @param k_range a length-two integer vector providing the minimum and maximum number of components
+#' @param max_burnin a length-one integer vector indicating the maximum number of burnin iterations
+#' @param top the number of models to return after ordering by the marginal likelihood
+#' @return a list of models
+#' @examples
+#'
+#'  set.seed(100)
+#'  nbatch <- 3
+#'  k <- 3
+#'  means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+#'      0, 0.05), nbatch, k, byrow = FALSE)
+#'  sds <- matrix(0.15, nbatch, k)
+#'  sds[, 1] <- 0.3
+#'  N <- 1000
+#'  truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+#'                                                length.out = N),
+#'                             p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+#'                             theta = means,
+#'                             sds = sds)
+#'  hp <- HyperparametersMultiBatch(k=3,
+#'                             mu=-0.75,
+#'                             tau2.0=0.4,
+#'                             eta.0=32,
+#'                             m2.0=0.5)
+#'  hp.sb <- Hyperparameters(tau2.0=0.4,
+#'                           mu.0=-0.75,
+#'                           eta.0=32,
+#'                           m2.0=0.5)
+#'  hp.list <- list(single_batch=hp.sb,
+#'                  multi_batch=hp)
+#'  mp <- McmcParams(iter = 1000,
+#'                   burnin = 1000,
+#'                   nStarts = 4,
+#'                   thin=10)
+#' \dontrun{
+#'    models <- gibbs_all(hp.list=hp.list, dat=y(truth),
+#'                        batches=batch(truth),
+#'                        mp=mp,
+#'                        top=3)
+#' }
 gibbs_all <- function(hp.list, mp, dat, batches,
                       k_range=c(1, 4),
                       max_burnin=32000,
