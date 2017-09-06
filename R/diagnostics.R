@@ -81,7 +81,7 @@ diagnostics <- function(model.list){
   list(neff=neff, r=r)
 }
 
-combine_batch <- function(model.list){
+combine_batch <- function(model.list, batches){
   ch.list <- map(model.list, chains)
   th <- map(ch.list, theta) %>% do.call(rbind, .)
   s2 <- map(ch.list, sigma2) %>% do.call(rbind, .)
@@ -417,7 +417,7 @@ gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches){
     burnin(mp) <- as.integer(burnin(mp) * 2)
     mp@thin <- as.integer(thin(mp) * 2)
   }
-  model <- combine_batch(mod.list)
+  model <- combine_batch(mod.list, batches)
   meets_conditions <- all(neff > 500) && r$mpsrf < 2 && !label_switch(model)
   if(meets_conditions){
     model <- compute_marginal_lik(model)
@@ -534,7 +534,10 @@ reload2 <- function(){
 #'                        mp=mp,
 #'                        top=3)
 #' }
-gibbs_all <- function(hp.list, mp, dat, batches,
+gibbs_all <- function(hp.list,
+                      mp,
+                      dat,
+                      batches,
                       k_range=c(1, 4),
                       max_burnin=32000,
                       top=3){
