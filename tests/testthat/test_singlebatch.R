@@ -39,10 +39,9 @@ test_that("test_marginal_empty_component", {
   summary(sqrt(1/rgamma(200, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))))
   ##mns <- rnorm(3, 0, sqrt(1/rgamma(1, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))))
   set.seed(123)
-  m <- SingleBatchModel2(data = y(truth),
-                      k = 3,
-                      mcmc.params = mp,
-                      hypp=hp)
+  m <- SingleBatchModel2(dat=y(truth),
+                         mp=mp,
+                         hp=hp)
   m2 <- posteriorSimulation(m)
   if(FALSE){
     ggSingleBatch(m2)

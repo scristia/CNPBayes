@@ -277,7 +277,7 @@ gelman_rubin <- function(mcmc_list, hp){
   }
   any_nas <- map_lgl(mcmc_list, anyNA)
   mcmc_list <- mcmc_list[ !any_nas ]
-  if(length(mcmc_list) < 4 ) stop("NAs in chains")
+  if(length(mcmc_list) < 2 ) stop("Need at least two MCMC chains")
   r <- tryCatch(gelman.diag(mcmc_list, autoburnin=FALSE), error=function(e) NULL)
   if(is.null(r)){
     ## gelman rubin can fail if p is not positive definite
