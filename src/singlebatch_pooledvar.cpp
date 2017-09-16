@@ -331,6 +331,12 @@ Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
     return xmod ;
   }
   for(int s = 0; s < S; ++s){
+    if(up[7] > 0){
+      model.slot("z") = z_pooled(xmod) ;
+      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    }
+    model.slot("data.mean") = compute_means(xmod) ;
+    model.slot("data.prec") = compute_prec(xmod) ;
     if(up[0] > 0)
       model.slot("theta") = theta_pooled(xmod) ;
     if(up[1] > 0)
@@ -345,12 +351,6 @@ Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
       model.slot("nu.0") = nu0_pooled(xmod) ;
     if(up[6] > 0)
       model.slot("sigma2.0") = sigma2_0_pooled(xmod) ;
-    if(up[7] > 0){
-      model.slot("z") = z_pooled(xmod) ;
-      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-    }
-    model.slot("data.mean") = compute_means(xmod) ;
-    model.slot("data.prec") = compute_prec(xmod) ;
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
@@ -514,26 +514,26 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     model.slot("logprior") = lp ;
     // Thinning
     for(int t = 0; t < T; ++t){
+      if(up[7] > 0){
+        model.slot("z") = z_pooled(xmod) ;
+        model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+      }
+      model.slot("data.mean") = compute_means(xmod) ;
+      model.slot("data.prec") = compute_prec(xmod) ;
       if(up[0] > 0)
         model.slot("theta") = theta_pooled(xmod) ;
-      if(up[1] > 0)      
+      if(up[1] > 0)
         model.slot("sigma2") = sigma2_pooled(xmod) ;
       if(up[2] > 0)
         model.slot("pi") = update_p(xmod) ;
-      if(up[3] > 0)      
+      if(up[3] > 0)
         model.slot("mu") = update_mu(xmod) ;
-      if(up[4] > 0)      
+      if(up[4] > 0)
         model.slot("tau2") = update_tau2(xmod) ;
       if(up[5] > 0)
         model.slot("nu.0") = nu0_pooled(xmod) ;
       if(up[6] > 0)
         model.slot("sigma2.0") = sigma2_0_pooled(xmod) ;
-      if(up[7] > 0){
-        model.slot("z") = z_pooled(xmod) ;
-        model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-      } 
-      model.slot("data.mean") = compute_means(xmod) ;
-      model.slot("data.prec") = compute_prec(xmod) ;
     }
   }
   //
@@ -553,4 +553,3 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   model.slot("mcmc.chains") = chain ;
   return xmod ;
 }
-
