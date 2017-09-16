@@ -18,9 +18,23 @@ MultiBatchPooled <- function(dat=numeric(),
 
 #' @rdname sigma2-method
 #' @aliases sigma2,MultiBatchModel-method
-setMethod("sigma2", "MultiBatchModel", function(object) {
+setMethod("sigma2", "MultiBatchPooled", function(object) {
   s2 <- object@sigma2
   ##s2 <- matrix(s2, nBatch(object), k(object))
   names(s2) <- uniqueBatch(object)
   s2
+})
+
+setReplaceMethod("sigma2", "MultiBatchPooled", function(object, value){
+  names(value) <- uniqueBatch(object)
+  object@sigma2 <- value
+  object
+})
+
+
+setMethod("sigmaMean", "MultiBatchPooled", function(object) {
+  mns <- colMeans(sigmac(object))
+  ##mns <- matrix(mns, nBatch(object), k(object))
+  names(mns) <- uniqueBatch(object)
+  mns
 })
