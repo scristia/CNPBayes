@@ -284,3 +284,66 @@ setMethod("sigma2", "BatchModel", function(object) {
   rownames(s2) <- uniqueBatch(object)
   s2
 })
+
+
+setMethod("tablez", "BatchModel", function(object){
+  tab <- table(batch(object), z(object))
+  tab[uniqueBatch(object), , drop=FALSE]
+})
+
+
+setMethod("sigmaMean", "BatchModel", function(object) {
+  mns <- colMeans(sigmac(object))
+  mns <- matrix(mns, nBatch(object), k(object))
+  rownames(mns) <- uniqueBatch(object)
+  mns
+})
+
+#' @rdname tau2-method
+#' @aliases tau2,BatchModel-method
+setMethod("tau2", "BatchModel", function(object) object@tau2)
+
+setReplaceMethod("tau2", "BatchModel", function(object, value){
+  object@tau2 <- value
+  object
+})
+
+#' @rdname theta-method
+#' @aliases theta,BatchModel-method
+setMethod("theta", "BatchModel", function(object) {
+  b <- object@theta
+  ##b <- matrix(b, nBatch(object), k(object))
+  rownames(b) <- uniqueBatch(object)
+  b
+})
+
+setReplaceMethod("theta", "BatchModel", function(object, value){
+  rownames(value) <- uniqueBatch(object)
+  object@theta <- value
+  object
+})
+
+setMethod("thetaMean", "BatchModel", function(object) {
+  mns <- colMeans(thetac(object))
+  mns <- matrix(mns, nBatch(object), k(object))
+  rownames(mns) <- uniqueBatch(object)
+  mns
+})
+
+setMethod("show", "BatchModel", function(object){
+  ##callNextMethod()
+  cls <- class(object)
+  cat(paste0("An object of class ", cls), "\n")
+  cat("     n. obs      :", length(y(object)), "\n")
+  cat("     n. batches  :", nBatch(object), "\n")
+  cat("     k           :", k(object), "\n")
+  cat("     nobs/batch  :", table(batch(object)), "\n")
+  cat("     loglik (s)  :", round(log_lik(object), 1), "\n")
+  cat("     logprior (s):", round(logPrior(object), 1), "\n")
+})
+
+setMethod("tablez", "BatchModel", function(object){
+  tab <- table(batch(object), z(object))
+  tab <- tab[uniqueBatch(object), , drop=FALSE]
+  tab
+})
