@@ -300,16 +300,13 @@ setClass("BatchModel", contains="MixtureModel")
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 setClass("SingleBatchModel", contains="MixtureModel")
 
-# setClass("SingleBatchPooledVar", contains="MarginalModel")
 
 setClass("SingleBatchPooledVar", contains="SingleBatchModel")
 
-# setClass("UnivariateBatchModel", contains="BatchModel")
+setClass("MultiBatchPooled", contains="MultiBatchModel")
 
 setClass("UnivariateBatchModel", contains="MultiBatchModel")
 
-# setClass("SingleBatchCopyNumber", contains="MarginalModel",
-#          representation(mapping="numeric"))
 
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
          representation(mapping="numeric"))

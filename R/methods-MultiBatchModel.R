@@ -908,3 +908,73 @@ multiBatchDensities <- function(object){
   df$name <- factor(df$name, levels=c("overall", paste0("cn", K-1)))
   df
 }
+
+newBatchModel <- function(object){
+  mp <- mcmcParams(object)
+  object2 <- MultiBatchModel(y(object), batch=batch(object),
+                        k=k(object), mcmc.params=mp,
+                        hypp=hyperParams(object))
+  theta(object2) <- theta(object)
+  sigma2(object2) <- sigma2(object)
+  p(object2) <- p(object)
+  z(object2) <- z(object)
+  nu.0(object2) <- nu.0(object)
+  mu(object2) <- mu(object)
+  tau2(object2) <- tau2(object)
+  zFreq(object2) <- zFreq(object)
+  probz(object2) <- probz(object)
+  sigma2.0(object2) <- sigma2.0(object)
+  dataMean(object2) <- dataMean(object)
+  dataPrec(object2) <- dataPrec(object)
+  log_lik(object2) <- log_lik(object)
+  logPrior(object2) <- logPrior(object)
+  modes(object2) <- modes(object)
+  object2
+}
+
+newMultiBatchModel <- function(object){
+  mp <- mcmcParams(object)
+  object2 <- MultiMultiBatchModel(y(object), batch=batch(object),
+                        k=k(object), mcmc.params=mp,
+                        hypp=hyperParams(object))
+  theta(object2) <- theta(object)
+  sigma2(object2) <- sigma2(object)
+  p(object2) <- p(object)
+  z(object2) <- z(object)
+  nu.0(object2) <- nu.0(object)
+  mu(object2) <- mu(object)
+  tau2(object2) <- tau2(object)
+  zFreq(object2) <- zFreq(object)
+  probz(object2) <- probz(object)
+  sigma2.0(object2) <- sigma2.0(object)
+  dataMean(object2) <- dataMean(object)
+  dataPrec(object2) <- dataPrec(object)
+  log_lik(object2) <- log_lik(object)
+  logPrior(object2) <- logPrior(object)
+  modes(object2) <- modes(object)
+  object2
+}
+
+setMethod("relabel", "MultiBatchModel", function(object, zindex){
+  object <- newMultiBatchModel(object)
+  if(identical(zindex, seq_len(k(object)))) return(object)
+  ##
+  ## Permute only the latent variables
+  ##
+  zz <- factor(z(object), levels=zindex)
+  zz <- as.integer(zz)
+  z(object) <- zz
+  zFreq(object) <- as.integer(table(zz))
+  dataMean(object) <- dataMean(object)[, zindex, drop=FALSE]
+  dataPrec(object) <- dataPrec(object)[, zindex, drop=FALSE]
+  object
+})
+
+setMethod("updateMultinomialProb", "MultiBatchModel", function(object){
+  update_multinomialPr_batch(object)
+})
+
+
+setMethod("computeLoglik", "MultiBatchModel", function(object){
+  compute_loglik_batch(object)
+})
