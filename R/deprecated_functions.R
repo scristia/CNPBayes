@@ -261,3 +261,26 @@ setMethod("computeLoglik", "BatchModel", function(object){
 setMethod("computeLoglik", "MarginalModel", function(object){
   loglik(object)
 })
+
+setReplaceMethod("sigma2", "BatchModel", function(object, value){
+  rownames(value) <- uniqueBatch(object)
+  object@sigma2 <- value
+  object
+})
+
+setMethod("showSigmas", "BatchModel", function(object){
+  sigmas <- round(sqrt(sigma2(object)), 2)
+  sigmas <- c("\n", paste0(t(cbind(sigmas, "\n")), collapse="\t"))
+  sigmas <- paste0("\t", sigmas[2])
+  sigmas <- paste0("\n", sigmas[1])
+  sigmas
+})
+
+#' @rdname sigma2-method
+#' @aliases sigma2,BatchModel-method
+setMethod("sigma2", "BatchModel", function(object) {
+  s2 <- object@sigma2
+  ##s2 <- matrix(s2, nBatch(object), k(object))
+  rownames(s2) <- uniqueBatch(object)
+  s2
+})

@@ -84,8 +84,8 @@ SingleBatchModel <- function(data=numeric(), k=3, hypp, mcmc.params){
 
 
 SingleBatchModel2 <- function(dat=numeric(), hp=Hyperparameters(),
-                           mp=McmcParams(iter=1000, burnin=1000,
-                                         thin=10, nStarts=4)){
+                              mp=McmcParams(iter=1000, burnin=1000,
+                                            thin=10, nStarts=4)){
   K <- k(hp)
   ##mu <- rnorm(1, mu.0(hp), sqrt(tau2.0(hp)))
   mu <- rnorm(1, median(dat), sd(dat)) 

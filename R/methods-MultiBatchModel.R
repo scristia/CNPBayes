@@ -168,11 +168,11 @@ BatchModel <- function(data=numeric(),
   obj
 }
 
-.empty_batch_model <- function(hp){
+.empty_batch_model <- function(hp, mp){
   K <- k(hp)
   B <- 0
   N <- 0
-  obj <- new("BatchModel",
+  obj <- new("MultiBatchModel",
              k=as.integer(K),
              hyperparams=hp,
              theta=matrix(NA, 0, K),
@@ -283,10 +283,11 @@ MultiBatchModel <- function(data=numeric(),
 
 MultiBatchModel2 <- function(dat=numeric(),
                              hp=HyperparametersMultiBatch(),
-                             mp=McmcParams(),
+                             mp=McmcParams(iter=1000, thin=10,
+                                           burnin=1000, nStarts=4),
                              batches=integer()){
   if(length(dat) == 0){
-    return(.empty_batch_model(hp))
+    return(.empty_batch_model(hp, mp))
   }
   ub <- unique(batches)
   nbatch <- setNames(as.integer(table(batches)), ub)
@@ -651,14 +652,6 @@ setMethod("showMeans", "MultiBatchModel", function(object){
   mns
 })
 
-setMethod("showSigmas", "BatchModel", function(object){
-  sigmas <- round(sqrt(sigma2(object)), 2)
-  sigmas <- c("\n", paste0(t(cbind(sigmas, "\n")), collapse="\t"))
-  sigmas <- paste0("\t", sigmas[2])
-  sigmas <- paste0("\n", sigmas[1])
-  sigmas
-})
-
 setMethod("showSigmas", "MultiBatchModel", function(object){
   sigmas <- round(sqrt(sigma2(object)), 2)
   sigmas <- c("\n", paste0(t(cbind(sigmas, "\n")), collapse="\t"))
@@ -668,25 +661,10 @@ setMethod("showSigmas", "MultiBatchModel", function(object){
 })
 
 
-setReplaceMethod("sigma2", "BatchModel", function(object, value){
-  rownames(value) <- uniqueBatch(object)
-  object@sigma2 <- value
-  object
-})
-
 setReplaceMethod("sigma2", "MultiBatchModel", function(object, value){
   rownames(value) <- uniqueBatch(object)
   object@sigma2 <- value
   object
-})
-
-#' @rdname sigma2-method
-#' @aliases sigma2,BatchModel-method
-setMethod("sigma2", "BatchModel", function(object) {
-  s2 <- object@sigma2
-  ##s2 <- matrix(s2, nBatch(object), k(object))
-  rownames(s2) <- uniqueBatch(object)
-  s2
 })
 
 #' @rdname sigma2-method
