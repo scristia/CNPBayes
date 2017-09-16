@@ -38,3 +38,34 @@ setMethod("sigmaMean", "MultiBatchPooled", function(object) {
   names(mns) <- uniqueBatch(object)
   mns
 })
+
+.modesMultiBatchPooled <- function(object){
+  i <- argMax(object)
+  mc <- chains(object)
+  B <- nBatch(object)
+  K <- k(object)
+  thetamax <- matrix(theta(mc)[i, ], B, K)
+  sigma2max <- sigma2(mc)[i, ]
+  pmax <- p(mc)[i, ]
+  mumax <- mu(mc)[i, ]
+  tau2max <- tau2(mc)[i,]
+  modes <- list(theta=thetamax,
+                sigma2=sigma2max,
+                mixprob=pmax,
+                mu=mumax,
+                tau2=tau2max,
+                nu0=nu.0(mc)[i],
+                sigma2.0=sigma2.0(mc)[i],
+                zfreq=zFreq(mc)[i, ],
+                loglik=log_lik(mc)[i],
+                logprior=logPrior(mc)[i])
+  modes
+}
+
+setMethod("computeModes", "MultiBatchPooled", function(object){
+  .modesMultiBatchPooled(object)
+})
+
+setMethod("computeLoglik", "MultiBatchModel", function(object){
+  loglik_multibatch_pvar(object)
+})

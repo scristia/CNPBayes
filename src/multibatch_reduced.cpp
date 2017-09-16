@@ -22,7 +22,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     Rcpp::S4 model_(xmod);
     Rcpp::S4 model = clone(model_);
     Rcpp::S4 params=model.slot("mcmc.params");
-    Rcpp::S4 chains(model.slot("mcmc.chains")); 
+    Rcpp::S4 chains(model.slot("mcmc.chains"));
     int S = params.slot("iter");
     Rcpp::List modes = model.slot("modes");
     Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
@@ -121,7 +121,7 @@ Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
         mu = model.slot("mu");
         tau2 = model.slot("tau2");
         tau = sqrt(tau2);
-        
+
         // calculate probability
         double prod = 0.0;
 
@@ -142,7 +142,7 @@ Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
 Rcpp::NumericVector marginal_sigma2_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
     Rcpp::RNGScope scope;
     Rcpp::S4 model_(xmod);
-    Rcpp::S4 model = clone(model_) ;    
+    Rcpp::S4 model = clone(model_) ;
     Rcpp::S4 params(mcmcp);
     int S = params.slot("iter");
 
@@ -159,7 +159,7 @@ Rcpp::NumericVector marginal_sigma2_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
 
     for (int k = 0; k < K; ++k) {
         prec(Rcpp::_, k) = 1.0 / sigma2star(Rcpp::_, k);
-    }  
+    }
 
     Rcpp::NumericVector logp_prec(S);
 
@@ -204,7 +204,7 @@ Rcpp::NumericVector marginal_sigma2_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
 
     return logp_prec;
 }
-    
+
 // [[Rcpp::export]]
 Rcpp::S4 simulate_z_reduced1_batch(Rcpp::S4 object) {
     Rcpp::RNGScope scope;
@@ -231,7 +231,7 @@ Rcpp::S4 simulate_z_reduced1_batch(Rcpp::S4 object) {
 
     //
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
-    //  
+    //
     for (int s = 0; s < S; ++s) {
         // update parameters
         model.slot("z") = update_z_batch(model);
@@ -279,7 +279,7 @@ Rcpp::S4 simulate_z_reduced2_batch(Rcpp::S4 object) {
     //
     Rcpp::IntegerMatrix Z = chains.slot("z");
     model.slot("theta") = thetastar;
-    model.slot("sigma2") = sigma2star;  
+    model.slot("sigma2") = sigma2star;
     int S = params.slot("iter");
 
     //
@@ -333,7 +333,7 @@ Rcpp::S4 permutedz_reduced1_batch(Rcpp::S4 xmod) {
 
     //
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
-    //  
+    //
     for (int s = 0; s < S; ++s) {
         //model.slot("z") = update_z(xmod) ;
         model.slot("z") = Z(s, Rcpp::_);
@@ -387,7 +387,7 @@ Rcpp::S4 permutedz_reduced2_batch(Rcpp::S4 xmod) {
     // Run reduced Gibbs:
     //   -- theta is fixed at modal ordinate
     //   -- sigma2 is fixed at modal ordinate
-    //  
+    //
     for (int s = 0; s < S; ++s) {
         //model.slot("z") = update_z(xmod) ;
         model.slot("z") = Z(s, Rcpp::_);
@@ -422,9 +422,9 @@ Rcpp::NumericVector p_pmix_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::S4 hypp = model.slot("hyperparams");
     Rcpp::List modes = model.slot("modes");
 
-    Rcpp::NumericVector x = model.slot("data");      
+    Rcpp::NumericVector x = model.slot("data");
     int K = hypp.slot("k");
-    int S = mcmcp.slot("iter");    
+    int S = mcmcp.slot("iter");
 
     Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
     Rcpp::NumericVector pstar = clone(p_);
@@ -476,7 +476,7 @@ Rcpp::S4 reduced_sigma_batch(Rcpp::S4 xmod) {
     Rcpp::NumericMatrix pichain = chains.slot("pi");
     Rcpp::NumericMatrix sigmachain = chains.slot("sigma2");
     int S = params.slot("iter");
-    
+
     Rcpp::NumericVector sigma2 = model.slot("sigma2");
     Rcpp::NumericVector pi = model.slot("pi");
     Rcpp::NumericVector tau = model.slot("tau2");
@@ -484,7 +484,7 @@ Rcpp::S4 reduced_sigma_batch(Rcpp::S4 xmod) {
 
     //
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
-    //  
+    //
     for(int s=0; s < S; ++s){
         model.slot("z") = update_z_batch(model);
         Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
@@ -568,14 +568,14 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::NumericVector sigma2_n(1);
     Rcpp::NumericVector shape(1);
     Rcpp::NumericVector rate(1);
-    Rcpp::NumericVector sigma2_new(K) ;  
+    Rcpp::NumericVector sigma2_new(K) ;
 
     //
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
     //
     for (int k = 0; k < K; ++k) {
-        prec(Rcpp::_, k) = 1.0 / sigma2star(Rcpp::_, k);
-    }  
+         prec(Rcpp::_, k) = 1.0 / sigma2star(Rcpp::_, k);
+    }
 
     for (int s = 0; s < S; ++s) {
         s20 = s20chain[s];
@@ -660,7 +660,7 @@ Rcpp::S4 reduced_pi_batch(Rcpp::S4 xmod) {
     // Run reduced Gibbs:
     //   -- theta is fixed at modal ordinate
     //   -- sigma2 is fixed at modal ordinate
-    //  
+    //
     for (int s = 0; s < S; ++s) {
         // update parameters
         model.slot("z") = update_z_batch(model);
@@ -722,7 +722,7 @@ Rcpp::S4 reduced_mu_batch(Rcpp::S4 xmod) {
     // Run reduced Gibbs:
     //   -- theta is fixed at modal ordinate
     //   -- sigma2 is fixed at modal ordinate
-    //  
+    //
     for (int s = 0; s < S; ++s) {
         // update parameters
         model.slot("z") = update_z_batch(model);
@@ -747,11 +747,10 @@ Rcpp::S4 reduced_mu_batch(Rcpp::S4 xmod) {
     return model;
 }
 
-
 // [[Rcpp::export]]
 Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::RNGScope scope;
-    
+
     Rcpp::S4 model(xmod);
     Rcpp::S4 mcmcp = model.slot("mcmc.params");
     Rcpp::S4 chains = model.slot("mcmc.chains");
@@ -873,7 +872,7 @@ Rcpp::S4 reduced_tau_batch(Rcpp::S4 xmod) {
     // Run reduced Gibbs:
     //   -- theta is fixed at modal ordinate
     //   -- sigma2 is fixed at modal ordinate
-    //  
+    //
     for (int s = 0; s < S; ++s) {
         // update parameters
         model.slot("z") = update_z_batch(model);
@@ -1157,11 +1156,11 @@ Rcpp::NumericVector p_s20_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::NumericMatrix sigma2star = clone(sigma2_);
     Rcpp::NumericVector s20star = clone(s20_);
     double nu0star = clone(nu0_)[0];
-    
+
     // get hyperparameters
     int K = hypp.slot("k");
     double a = hypp.slot("a");
-    double b = hypp.slot("b");  
+    double b = hypp.slot("b");
 
     // calculate a_k, b_k
     double prec = 0.0;
@@ -1179,4 +1178,3 @@ Rcpp::NumericVector p_s20_reduced_batch(Rcpp::S4 xmod) {
 
     return p_s20;
 }
-

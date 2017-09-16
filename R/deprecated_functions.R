@@ -1,3 +1,8 @@
+#' @include plot-functions.R
+#' @include methods-MixtureModel.R
+NULL
+
+
 ### From AllClasses.R
 
 #' An object for running MCMC simulations.
@@ -346,4 +351,52 @@ setMethod("tablez", "BatchModel", function(object){
   tab <- table(batch(object), z(object))
   tab <- tab[uniqueBatch(object), , drop=FALSE]
   tab
+})
+
+#' @rdname marginalLikelihood-method
+#' @aliases marginalLikelihood,MarginalModel-method marginalLikelihood,MarginalModel,ANY-method
+setMethod("marginalLikelihood", "MarginalModel",
+          function(model, params=mlParams()) {
+            .ml_singlebatch(model, params)
+          })
+
+#' @rdname marginalLikelihood-method
+#' @aliases marginalLikelihood,BatchModel-method marginalLikelihood,BatchModel,ANY-method
+setMethod("marginalLikelihood", "BatchModel",
+          function(model, params=mlParams()){
+            .ml_batchmodel(model, params)
+          })
+
+setMethod("runBurnin", "MarginalModel", function(object){
+  mcmc_marginal_burnin(object, mcmcParams(object))
+})
+
+setMethod("runBurnin", "BatchModel", function(object){
+  mcmc_batch_burnin(object, mcmcParams(object))
+})
+
+setMethod("runMcmc", "MarginalModel", function(object){
+  mcmc_marginal(object, mcmcParams(object))
+})
+
+setMethod("runMcmc", "BatchModel", function(object){
+  mcmc_batch(object, mcmcParams(object))
+})
+
+setMethod("computeModes", "BatchModel", function(object){
+  .computeModesBatch(object)
+})
+
+setMethod("sortComponentLabels", "MarginalModel", function(model){
+  reorderSingleBatch(model)  
+})
+
+setMethod("isOrdered", "BatchModel", function(object){
+  .ordered_thetas_multibatch(object)
+})
+
+
+#' @rdname ggplot-functions
+setMethod("ggMultiBatch", "BatchModel", function(model, bins){
+  .gg_multibatch(model, bins)
 })

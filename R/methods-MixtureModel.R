@@ -30,14 +30,10 @@ setReplaceMethod("hyperParams", c("MixtureModel", "Hyperparameters"),
     object
 })
 
-
-
-
 setReplaceMethod("batch", "MixtureModel", function(object, value){
   object@batch <- value
   object
 })
-
 
 observed <- function(object) object@data
 
@@ -233,10 +229,6 @@ setMethod("probz", "MixtureModel", function(object) {
   object@probz/(iter(object)-1)
 })
 
-setMethod("runBurnin", "MarginalModel", function(object){
-  mcmc_marginal_burnin(object, mcmcParams(object))
-})
-
 setMethod("runBurnin", "SingleBatchModel", function(object){
   mcmc_marginal_burnin(object, mcmcParams(object))
 
@@ -246,16 +238,12 @@ setMethod("runBurnin", "SingleBatchPooledVar", function(object){
   burnin_singlebatch_pooled(object, mcmcParams(object))
 })
 
-setMethod("runBurnin", "BatchModel", function(object){
-  mcmc_batch_burnin(object, mcmcParams(object))
-})
-
 setMethod("runBurnin", "MultiBatchModel", function(object){
   mcmc_batch_burnin(object, mcmcParams(object))
 })
 
-setMethod("runMcmc", "MarginalModel", function(object){
-  mcmc_marginal(object, mcmcParams(object))
+setMethod("runBurnin", "MultiBatchPooled", function(object){
+  burnin_multibatch_pvar(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "SingleBatchModel", function(object){
@@ -266,14 +254,13 @@ setMethod("runMcmc", "SingleBatchPooledVar", function(object){
   mcmc_singlebatch_pooled(object, mcmcParams(object))
 })
 
-setMethod("runMcmc", "BatchModel", function(object){
-  mcmc_batch(object, mcmcParams(object))
-})
-
 setMethod("runMcmc", "MultiBatchModel", function(object){
   mcmc_batch(object, mcmcParams(object))
 })
 
+setMethod("runMcmc", "MultiBatchPooled", function(object){
+  mcmc_multibatch_pvar(object, mcmcParams(object))
+})
 
 multipleStarts <- function(object){
   if(k(object)==1) return(object)
@@ -437,6 +424,39 @@ reorderMultiBatch <- function(model){
   model
 }
 
+reorderMultiBatchPooled <- function(model){
+  is_ordered <- .ordered_thetas_multibatch(model)
+  if(is_ordered) return(model)
+  ## thetas are not all ordered
+  thetas <- theta(model)
+  s2s <- sigma2(model)
+  K <- k(model)
+  ix <- order(thetas[1, ])
+  B <- nBatch(model)
+  zlist <- split(z(model), batch(model))
+  ##
+  ## How to reorder sigmas?
+  ##
+  for(i in seq_len(B)){
+    ix.next <- order(thetas[i, ])
+    thetas[i, ] <- thetas[i, ix.next]
+    zlist[[i]] <- as.integer(factor(zlist[[i]], levels=ix.next))
+  }
+  zs <- unlist(zlist)
+  ps <- p(model)[ix]
+  s2s <- s2s[ix]
+  mu(model) <- mu(model)[ix]
+  tau2(model) <- tau2(model)[ix]
+  sigma2(model) <- s2s
+  theta(model) <- thetas
+  p(model) <- ps
+  z(model) <- zs
+  dataMean(model) <- computeMeans(model)
+  dataPrec(model) <- computePrec(model)
+  log_lik(model) <- computeLoglik(model)
+  model
+}
+
 reorderSingleBatch <- function(model){
   thetas <- theta(model)
   K <- k(model)
@@ -473,16 +493,16 @@ reorderPooledVar <- function(model){
 
 setGeneric("sortComponentLabels", function(model) standardGeneric("sortComponentLabels"))
 
-setMethod("sortComponentLabels", "MarginalModel", function(model){
-  reorderSingleBatch(model)  
-})
-
 setMethod("sortComponentLabels", "SingleBatchModel", function(model){
-  reorderSingleBatch(model)  
+  reorderSingleBatch(model)
 })
 
 setMethod("sortComponentLabels", "MultiBatchModel", function(model){
   reorderMultiBatch(model)
+})
+
+setMethod("sortComponentLabels", "MultiBatchPooled", function(model){
+  reorderMultiBatchPooled(model)
 })
 
 setMethod("sortComponentLabels", "SingleBatchPooledVar", function(model){
@@ -492,10 +512,6 @@ setMethod("sortComponentLabels", "SingleBatchPooledVar", function(model){
 setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
 setMethod("isOrdered", "MixtureModel", function(object){
   identical(order(theta(object)), seq_along(theta(object)))
-})
-
-setMethod("isOrdered", "BatchModel", function(object){
-  .ordered_thetas_multibatch(object)
 })
 
 setMethod("isOrdered", "MultiBatchModel", function(object){
@@ -509,6 +525,40 @@ setMethod("isOrdered", "MultiBatchModel", function(object){
   if(burnin(post) > 0 ){
     post <- runBurnin(post)
   }
+  if(!isOrdered(post)) label_switch(post) <- TRUE
+  post <- sortComponentLabels(post)
+  if( iter(post) < 1 ) return(post)
+  post <- runMcmc(post)
+  modes(post) <- computeModes(post)
+  if(isOrdered(post)){
+    label_switch(post) <- FALSE
+    return(post)
+  }
+  ## not ordered: try additional MCMC simulations
+  label_switch(post) <- TRUE
+  post <- sortComponentLabels(post)
+  ## reset counter for posterior probabilities
+  post@probz[] <- 0
+  post <- runMcmc(post)
+  modes(post) <- computeModes(post)
+  ##mcmcParams(post) <- mp.orig
+  if(isOrdered(post)){
+    label_switch(post) <- FALSE
+    return(post)
+  }
+  label_switch(post) <- TRUE
+  if(params[["warnings"]]) {
+    ##
+    ## at this point, we've tried to run the twice after burnin and we still
+    ## have mixing. Most likely, we are fitting a model with k too big
+    warning("label switching: model k=", k(post))
+  }
+  post <- sortComponentLabels(post)
+  post
+}
+
+.posteriorSimulation2 <- function(post, params=psParams()){
+  post <- runBurnin(post)
   if(!isOrdered(post)) label_switch(post) <- TRUE
   post <- sortComponentLabels(post)
   if( iter(post) < 1 ) return(post)
@@ -559,6 +609,11 @@ posteriorSimulationPooled <- function(object, iter=1000,
   object <- sortComponentLabels(object)
   object
 }
+
+mcmcMultiBatchPooled <- function(object){
+  .posteriorSimulation(object)
+}
+
 
 setReplaceMethod("dataMean", "MixtureModel", function(object, value){
   object@data.mean <- value

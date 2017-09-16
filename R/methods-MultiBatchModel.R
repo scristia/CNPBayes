@@ -576,10 +576,6 @@ setMethod("computePrior", "MultiBatchModel", function(object){
   modes
 }
 
-setMethod("computeModes", "BatchModel", function(object){
-  .computeModesBatch(object)
-})
-
 setMethod("computeModes", "MultiBatchModel", function(object){
   .computeModesBatch(object)
 })

@@ -9,6 +9,46 @@ tableZ <- function(K, z) {
     .Call('_CNPBayes_tableZ', PACKAGE = 'CNPBayes', K, z)
 }
 
+theta_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_theta_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+sigma_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_sigma_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+p_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_p_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+pi_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_pi_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+mu_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_mu_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+tau_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_tau_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+nu0_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_nu0_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+prob_nu0_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_prob_nu0_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+s20_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_s20_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+prob_s20_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_prob_s20_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
 loglik_multibatch_pvar <- function(xmod) {
     .Call('_CNPBayes_loglik_multibatch_pvar', PACKAGE = 'CNPBayes', xmod)
 }

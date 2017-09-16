@@ -285,13 +285,6 @@ mlParams <- function(root=1/10,
 }
 
 #' @rdname marginalLikelihood-method
-#' @aliases marginalLikelihood,MarginalModel-method marginalLikelihood,MarginalModel,ANY-method
-setMethod("marginalLikelihood", "MarginalModel",
-          function(model, params=mlParams()) {
-            .ml_singlebatch(model, params)
-          })
-
-#' @rdname marginalLikelihood-method
 #' @aliases marginalLikelihood,SingleBatchModel-method marginalLikelihood,SingleBatchModel,ANY-method
 setMethod("marginalLikelihood", "SingleBatchModel",
           function(model, params=mlParams()) {
@@ -446,13 +439,6 @@ setMethod("marginalLikelihood", "SingleBatchPooledVar",
   names(m.y) <- paste0("MB", k(model))
   m.y
 }
-
-#' @rdname marginalLikelihood-method
-#' @aliases marginalLikelihood,BatchModel-method marginalLikelihood,BatchModel,ANY-method
-setMethod("marginalLikelihood", "BatchModel",
-          function(model, params=mlParams()){
-            .ml_batchmodel(model, params)
-          })
 
 #' @rdname marginalLikelihood-method
 #' @aliases marginalLikelihood,MultiBatchModel-method marginalLikelihood,MultiBatchModel,ANY-method

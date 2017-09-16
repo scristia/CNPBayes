@@ -148,6 +148,7 @@ Rcpp::NumericVector update_mu_batch(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector update_tau2_batch(Rcpp::S4 xmod){
   RNGScope scope ;
+
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   double m2_0 = hypp.slot("m2.0") ;

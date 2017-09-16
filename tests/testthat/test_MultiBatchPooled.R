@@ -73,3 +73,69 @@ test_that("MultiBatchPooled MCMC", {
   model2 <- burnin_multibatch_pvar(model, mp)
   model2 <- mcmc_multibatch_pvar(model, mp)
 })
+
+.test_that <- function(nm, expr) NULL
+
+.test_that("Marginal likelihood for MultiBatchPooled", {
+  data("MultiBatchPooledExample")
+  model <- MultiBatchPooledExample
+  mp <- McmcParams(iter=500, burnin=1000, nStarts=1, thin=1)
+  mcmcParams(model) <- mp
+  model2 <- runBurnin(model)
+  model2 <- runMcmc(model)
+  model2 <- .posteriorSimulation2(model)
+  if(FALSE)  ggMultiBatch(model2)
+
+  ## posteriorSimulation returns a sigma matrix
+  ##  red_gibbs <- .blockUpdatesBatch(model2, params)
+  ##  pstar <- blockUpdates(red_gibbs, root)
+  ##ptheta.star <- marginal_theta_batch(model)
+  ptheta.star <- theta_multibatch_pvar_red(model2)
+  ##model.psigma2 <- reduced_sigma_batch(model.reduced)
+  model.psigma2 <- sigma_multibatch_pvar_red(model2)
+  expect_true(identical(modes(model.psigma2), modes(model2)))
+  ##psigma.star <- p_sigma_reduced_batch(model.psigma2)
+  psigma.star <- p_multibatch_pvar_red(model.psigma2)
+  ##model.pistar <- reduced_pi_batch(model.reduced)
+  model.pistar <- pi_multibatch_pvar_red(model2)
+  expect_identical(modes(model.pistar), modes(model2))
+
+  p.pi.star <- p_pmix_reduced_batch(model.pistar)
+  ##
+  ## Block updates for stage 2 parameters
+  ##
+  ##model.mustar <- reduced_mu_batch(model.reduced)
+  model.mustar <- mu_multibatch_pvar_red(model2)
+  expect_identical(modes(model.mustar), modes(model2))
+  ## call from multibatch_reduced.cpp
+  p.mustar <- p_mu_reduced_batch(model.mustar)
+  ##
+  ##model.taustar <- reduced_tau_batch(model.reduced)
+  model.taustar <- tau_multibatch_pvar_red(model2)
+  ##
+  expect_identical(modes(model.taustar), modes(model2))
+  ## call from multibatch_reduced
+  p.taustar <- p_tau_reduced_batch(model.mustar)
+
+  ##model.nu0star <- reduced_nu0_batch(model.reduced)
+  model.nu0star <- nu0_multibatch_pvar_red(model2)
+
+  expect_identical(modes(model.nu0star), modes(model2))
+  p.nu0star <- prob_nu0_multibatch_pvar_red(model.nu0star)
+  ##p.nu0star <- p_nu0_reduced_batch(model.nu0star)
+
+  ##model.s20star <- reduced_s20_batch(model.reduced)
+  model.s20star <- s20_multibatch_pvar_red(model2)
+
+  ##p.s20star <- p_s20_reduced_batch(model.s20star)
+  p.s20star <- prob_s20_multibatch_pvar_red(model.s20star)
+
+  reduced_gibbs <- cbind(ptheta.star, psigma.star,
+                         p.mustar, p.pi.star,
+                         p.taustar, p.nu0star,
+                         p.s20star)
+  colnames(reduced_gibbs) <- c("theta", "sigma", "pi", "mu",
+                               "tau", "nu0", "s20")
+
+})
+
