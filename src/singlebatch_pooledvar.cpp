@@ -59,7 +59,7 @@ Rcpp::NumericVector loglik_pooled(Rcpp::S4 xmod) {
   //double lik;
   NumericVector loglik(1) ;
   loglik[0] = 0.0 ;
-  NumericVector y(1);    
+  NumericVector y(1);
   NumericVector lik(n);
   // Below is equivalent to rowSums(lik) in .loglikMarginal
   for(int k = 0; k < K; k++) {
@@ -203,7 +203,7 @@ Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericVector nu0_pooled(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;  
+  Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   double sigma2_0 = model.slot("sigma2.0") ;
@@ -253,7 +253,7 @@ Rcpp::NumericVector nu0_pooled(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericVector sigma2_0_pooled(Rcpp::S4 xmod) {
     RNGScope scope ;
-    Rcpp::S4 model(xmod) ;  
+    Rcpp::S4 model(xmod) ;
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
     double a = hypp.slot("a") ;
     double b = hypp.slot("b") ;
@@ -323,7 +323,7 @@ Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;  
+  int K = getK(hypp) ;
   Rcpp::S4 params(mcmcp) ;
   IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;
@@ -385,7 +385,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericMatrix pmix = chain.slot("pi") ;
   NumericMatrix zfreq = chain.slot("zfreq") ;
   IntegerMatrix Z = chain.slot("z") ;
-  NumericVector mu = chain.slot("mu") ;  
+  NumericVector mu = chain.slot("mu") ;
   NumericVector tau2 = chain.slot("tau2") ;
   NumericVector nu0 = chain.slot("nu.0") ;
   NumericVector sigma2_0 = chain.slot("sigma2.0") ;
@@ -402,7 +402,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericVector n0(1) ;//nu0
   IntegerVector z(N) ;
   NumericVector s20(1) ; //sigma2_0
-  NumericVector mns(1) ;   
+  NumericVector mns(1) ;
   NumericVector precs(1) ;
   NumericVector ll(1) ;
   NumericVector lls2(1) ; // stage 2 log likelihood
@@ -445,7 +445,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       } catch(...) {
           ::Rf_error("c++ exception (unknown reason)");
       }
-      model.slot("theta") = th ;      
+      model.slot("theta") = th ;
     } else {
       th = model.slot("theta") ;
     }
@@ -469,21 +469,21 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       m = model.slot("mu") ;
     }
     mu[s] = m[0] ;
-    if(up[4] > 0){    
+    if(up[4] > 0){
       t2 = update_tau2(xmod) ;
       model.slot("tau2") = t2 ;
     } else {
       t2 = model.slot("tau2") ;
     }
     tau2[s] = t2[0] ;
-    if(up[5] > 0){        
+    if(up[5] > 0){
       n0 = nu0_pooled(xmod) ;
       model.slot("nu.0") = n0 ;
     } else {
       n0 = model.slot("nu.0") ;
     }
     nu0[s] = n0[0] ;
-    if(up[6] > 0){        
+    if(up[6] > 0){
       s20 = sigma2_0_pooled(xmod) ;
       model.slot("sigma2.0") = s20 ;
     } else {
@@ -495,7 +495,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("z") = z ;
       tmp = tableZ(K, z) ;
       model.slot("zfreq") = tmp ;
-      model.slot("probz") = compute_probz(xmod) ;          
+      model.slot("probz") = compute_probz(xmod) ;
     } else {
       z = model.slot("z") ;
       tmp = model.slot("zfreq") ;

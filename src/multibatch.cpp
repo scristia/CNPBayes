@@ -26,8 +26,8 @@ Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod){
     for(int k = 0; k < K; k++){
       nn(j, k) = sum((z == (k+1)) & (batch == ub[j]));
     }
-  }  
-  return nn ;  
+  }
+  return nn ;
 }
 
 // [[Rcpp::export]]
@@ -36,7 +36,7 @@ Rcpp::NumericVector compute_loglik_batch(Rcpp::S4 xmod){
   Rcpp::S4 model(xmod) ;
   int K = getK(model.slot("hyperparams")) ;
   NumericVector x = model.slot("data") ;
-  int N = x.size() ;  
+  int N = x.size() ;
   NumericVector p = model.slot("pi") ;
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = uniqueBatch(batch);
@@ -411,7 +411,7 @@ Rcpp::NumericMatrix compute_vars_batch(Rcpp::S4 xmod) {
   int n = x.size() ;
   IntegerVector z = model.slot("z") ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;  
+  int K = getK(hypp) ;
   IntegerVector nn = model.slot("zfreq") ;
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = uniqueBatch(batch) ;
@@ -419,7 +419,7 @@ Rcpp::NumericMatrix compute_vars_batch(Rcpp::S4 xmod) {
   NumericMatrix vars(B, K) ;
   NumericMatrix tabz = tableBatchZ(xmod) ;
   NumericMatrix mn = model.slot("data.mean") ;
-  
+
   NumericVector this_batch(n) ;
   NumericVector is_z(n) ;
   NumericVector tau2 = model.slot("tau2") ;

@@ -250,9 +250,9 @@ Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod) {
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = uniqueBatch(batch) ;
   NumericVector p = model.slot("pi") ;
-  NumericMatrix sigma2 = model.slot("sigma2") ;
+  NumericVector sigma2 = model.slot("sigma2") ;
   NumericMatrix theta = model.slot("theta") ;
-  int B = sigma2.nrow() ;
+  int B = theta.nrow() ;
   NumericVector x = model.slot("data") ;
   IntegerVector nb = model.slot("batchElements") ;
   int N = x.size() ;
@@ -264,8 +264,8 @@ Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod) {
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
-      tmp = p[k] * dnorm(x, theta(b, k), sqrt(sigma2(b, k))) * this_batch ;
-      // if(is_true(any(tmp < 1e-10))) tmp[tmp < 1e-10] = 1e-10 ;
+      //tmp = p[k] * dnorm(x, theta(b, k), sqrt(sigma2(b, k))) * this_batch ;
+      tmp = p[k] * dnorm(x, theta(b, k), sqrt(sigma2[b])) * this_batch ;
       dens += tmp ;
     }
     lik(_, k) = dens ;
@@ -391,10 +391,10 @@ Rcpp::NumericMatrix vars_multibatch_pvar(Rcpp::S4 xmod) {
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = uniqueBatch(batch) ;
   int B = ub.size() ;
-  NumericMatrix vars(B, K) ;
+  //NumericMatrix vars(B, K) ;
+  NumericVector vars(B) ;
   NumericMatrix tabz = tableBatchZ(xmod) ;
   NumericMatrix mn = model.slot("data.mean") ;
-
   NumericVector this_batch(n) ;
   NumericVector is_z(n) ;
   NumericVector tau2 = model.slot("tau2") ;

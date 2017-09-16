@@ -259,7 +259,7 @@ Rcpp::NumericVector update_p(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericMatrix update_multinomialPr(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;  
+  Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector theta = model.slot("theta") ;
@@ -267,7 +267,7 @@ Rcpp::NumericMatrix update_multinomialPr(Rcpp::S4 xmod) {
   NumericVector sigma = sqrt(sigma2) ;
   NumericVector p = model.slot("pi") ;
   NumericVector x = model.slot("data") ;
-  int n = x.size() ;  
+  int n = x.size() ;
   NumericMatrix lik(n, K) ;
   NumericMatrix probs(n, K) ;
   NumericVector tmp(n) ;
@@ -369,7 +369,7 @@ Rcpp::NumericVector compute_vars(Rcpp::S4 xmod) {
   int n = x.size() ;
   IntegerVector z = model.slot("z") ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;  
+  int K = getK(hypp) ;
   // IntegerVector nn = model.slot("zfreq") ;
   IntegerVector nn ;
   nn = tableZ(K, z) ;
@@ -389,7 +389,7 @@ Rcpp::NumericVector compute_vars(Rcpp::S4 xmod) {
       vars[k] = tau2[0] ;
     } else {
       vars[k] = sum(pow(x - mn[k], 2.0) * is_z) / (nn[k]-1) ;
-    }      
+    }
   }
   return vars ;
 }
@@ -399,7 +399,7 @@ Rcpp::NumericVector compute_prec(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;  
+  int K = getK(hypp) ;
   NumericVector vars(K) ;
   NumericVector prec(K) ;
   vars = compute_vars(xmod) ;
