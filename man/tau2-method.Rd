@@ -6,8 +6,8 @@
 \name{tau2}
 \alias{tau2}
 \alias{tau2,MarginalModel-method}
-\alias{tau2,McmcChains-method}
 \alias{tau2,BatchModel-method}
+\alias{tau2,McmcChains-method}
 \alias{tau2,MultiBatchModel-method}
 \alias{tau2,BatchModel-method}
 \alias{tau2,SingleBatchModel-method}
@@ -17,9 +17,9 @@ tau2(object)
 
 \S4method{tau2}{MarginalModel}(object)
 
-\S4method{tau2}{McmcChains}(object)
-
 \S4method{tau2}{BatchModel}(object)
+
+\S4method{tau2}{McmcChains}(object)
 
 \S4method{tau2}{MultiBatchModel}(object)
 

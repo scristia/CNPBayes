@@ -43,8 +43,6 @@ Rcpp::NumericVector theta_pooled(Rcpp::S4 xmod) {
     return thetas;
 }
 
-
-
 // [[Rcpp::export]]
 Rcpp::NumericVector loglik_pooled(Rcpp::S4 xmod) {
   RNGScope scope ;

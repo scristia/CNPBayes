@@ -17,28 +17,16 @@ sigma20_multibatch_pvar <- function(xmod) {
     .Call('_CNPBayes_sigma20_multibatch_pvar', PACKAGE = 'CNPBayes', xmod)
 }
 
+nu0_multibatch_pvar <- function(xmod) {
+    .Call('_CNPBayes_nu0_multibatch_pvar', PACKAGE = 'CNPBayes', xmod)
+}
+
 multinomialPr_multibatch_pvar <- function(xmod) {
     .Call('_CNPBayes_multinomialPr_multibatch_pvar', PACKAGE = 'CNPBayes', xmod)
 }
 
 z_multibatch_pvar <- function(xmod) {
     .Call('_CNPBayes_z_multibatch_pvar', PACKAGE = 'CNPBayes', xmod)
-}
-
-means_multibatch_pvar <- function(xmod) {
-    .Call('_CNPBayes_means_multibatch_pvar', PACKAGE = 'CNPBayes', xmod)
-}
-
-vars_multibatch_pvar <- function(xmod) {
-    .Call('_CNPBayes_vars_multibatch_pvar', PACKAGE = 'CNPBayes', xmod)
-}
-
-prec_multibatch_pvar <- function(xmod) {
-    .Call('_CNPBayes_prec_multibatch_pvar', PACKAGE = 'CNPBayes', xmod)
-}
-
-logprior_multibatch_pvar <- function(xmod) {
-    .Call('_CNPBayes_logprior_multibatch_pvar', PACKAGE = 'CNPBayes', xmod)
 }
 
 stagetwo_multibatch_pvar <- function(xmod) {
@@ -145,12 +133,24 @@ compute_loglik_batch <- function(xmod) {
     .Call('_CNPBayes_compute_loglik_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
+update_mu_batch <- function(xmod) {
+    .Call('_CNPBayes_update_mu_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_tau2_batch <- function(xmod) {
+    .Call('_CNPBayes_update_tau2_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
 update_sigma20_batch <- function(xmod) {
     .Call('_CNPBayes_update_sigma20_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_multinomialPr_batch <- function(xmod) {
     .Call('_CNPBayes_update_multinomialPr_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_p_batch <- function(xmod) {
+    .Call('_CNPBayes_update_p_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_z_batch <- function(xmod) {

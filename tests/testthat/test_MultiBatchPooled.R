@@ -44,24 +44,32 @@ test_that("MultiBatchPooled MCMC", {
   pr <- multinomialPr_multibatch_pvar(model)
   zz <- z_multibatch_pvar(model)
   z(model) <- zz
-  ## I think this could be replaced by the method for MultiBatchModel
-  mns <- means_multibatch_pvar(model)
+  ## unchanged
+  mns <- compute_means_batch(model)
   dataMean(model) <- mns
-  ##
-  ## SingleBatchPooled used compute_prec defined for SingleBatchModel
-  ## -- the precision is a k-length vector
-  ## -> left vars_multibatch_pvar the same as in MultiBatch
-  ## -> left prec_multibatch_pvar the same as in MultiBatch
-  vars <- vars_multibatch_pvar(model)
-  prec <- prec_multibatch_pvar(model)
+  prec <- compute_prec_batch(model)
   dataPrec(model) <- prec
   thetas <- theta_multibatch_pvar(model)
   theta(model) <- thetas
   sigma2s <- sigma2_multibatch_pvar(model)
   sigma2(model) <- sigma2s
-  mus <- mu_multibatch_pvar(model)
-  tau2s <- tau2_multibatch_pvar(model)
+  ## same as MultiBatch
+  mus <- update_mu_batch(model)
+  mu(model) <- mus
+  ## unchanged
+  tau2s <- update_tau2_batch(model)
+  tau2(model) <- tau2s
+
   s20 <- sigma20_multibatch_pvar(model)
-  nu.0 <- nu0_multibatch_pvar(model)
-  ps <- p_multibatch_pvar(model)
+  sigma2.0(model) <- s20
+  nu0 <- nu0_multibatch_pvar(model)
+  nu.0(model) <- nu0
+  ## unchanged
+  ps <- update_p_batch(model)
+
+  ll <- loglik_multibatch_pvar(model)
+  ll <- stagetwo_multibatch_pvar(model)
+  mp <- McmcParams(iter=10, burnin=5, nStarts=1, thin=2)
+  model2 <- burnin_multibatch_pvar(model, mp)
+  model2 <- mcmc_multibatch_pvar(model, mp)
 })
