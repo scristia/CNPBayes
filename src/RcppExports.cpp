@@ -140,7 +140,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // sigma2_multibatch_pvar
-Rcpp::NumericMatrix sigma2_multibatch_pvar(Rcpp::S4 xmod);
+Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_sigma2_multibatch_pvar(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -380,6 +380,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type x(xSEXP);
     rcpp_result_gen = Rcpp::wrap(uniqueBatch(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// tableBatchZ
+Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_tableBatchZ(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(tableBatchZ(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1240,6 +1251,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_reduced_s20_batch", (DL_FUNC) &_CNPBayes_reduced_s20_batch, 1},
     {"_CNPBayes_p_s20_reduced_batch", (DL_FUNC) &_CNPBayes_p_s20_reduced_batch, 1},
     {"_CNPBayes_uniqueBatch", (DL_FUNC) &_CNPBayes_uniqueBatch, 1},
+    {"_CNPBayes_tableBatchZ", (DL_FUNC) &_CNPBayes_tableBatchZ, 1},
     {"_CNPBayes_compute_loglik_batch", (DL_FUNC) &_CNPBayes_compute_loglik_batch, 1},
     {"_CNPBayes_update_sigma20_batch", (DL_FUNC) &_CNPBayes_update_sigma20_batch, 1},
     {"_CNPBayes_update_multinomialPr_batch", (DL_FUNC) &_CNPBayes_update_multinomialPr_batch, 1},

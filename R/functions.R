@@ -537,3 +537,18 @@ posteriorPredictive <- function(model){
   }
   as.numeric(Y)
 }
+
+reload <- function(){
+  wd <- getwd()
+  svpacks(); load_all("CNPBayes")
+  setwd(wd)
+}
+
+reload2 <- function(){
+  wd <- getwd()
+  svpacks()
+  load_all("CNPBayes")
+  document("CNPBayes")
+  load_all("CNPBayes")
+  setwd(wd)
+}

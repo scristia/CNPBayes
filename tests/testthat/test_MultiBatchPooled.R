@@ -43,14 +43,22 @@ test_that("MultiBatchPooled MCMC", {
   model <- MultiBatchPooledExample
   pr <- multinomialPr_multibatch_pvar(model)
   zz <- z_multibatch_pvar(model)
+  z(model) <- zz
   ## I think this could be replaced by the method for MultiBatchModel
   mns <- means_multibatch_pvar(model)
+  dataMean(model) <- mns
+  ##
+  ## SingleBatchPooled used compute_prec defined for SingleBatchModel
+  ## -- the precision is a k-length vector
+  ## -> left vars_multibatch_pvar the same as in MultiBatch
+  ## -> left prec_multibatch_pvar the same as in MultiBatch
   vars <- vars_multibatch_pvar(model)
   prec <- prec_multibatch_pvar(model)
-
-
+  dataPrec(model) <- prec
   thetas <- theta_multibatch_pvar(model)
+  theta(model) <- thetas
   sigma2s <- sigma2_multibatch_pvar(model)
+  sigma2(model) <- sigma2s
   mus <- mu_multibatch_pvar(model)
   tau2s <- tau2_multibatch_pvar(model)
   s20 <- sigma20_multibatch_pvar(model)

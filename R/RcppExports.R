@@ -137,6 +137,10 @@ uniqueBatch <- function(x) {
     .Call('_CNPBayes_uniqueBatch', PACKAGE = 'CNPBayes', x)
 }
 
+tableBatchZ <- function(xmod) {
+    .Call('_CNPBayes_tableBatchZ', PACKAGE = 'CNPBayes', xmod)
+}
+
 compute_loglik_batch <- function(xmod) {
     .Call('_CNPBayes_compute_loglik_batch', PACKAGE = 'CNPBayes', xmod)
 }

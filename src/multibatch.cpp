@@ -13,6 +13,7 @@ Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x) {
   return b ;
 }
 
+// [[Rcpp::export]]
 Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;

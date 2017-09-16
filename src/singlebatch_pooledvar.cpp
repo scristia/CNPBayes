@@ -302,8 +302,8 @@ Rcpp::NumericVector sigma2_pooled(Rcpp::S4 xmod) {
         int k = 0;
         while (k <= K) {
             if ( z[i] == k + 1 ) {
-                ss[0] += pow(x[i] - theta[k], 2.0);
-                break;
+              ss[0] += pow(x[i] - theta[k], 2.0);
+              break;
             }
             k++;
         }
