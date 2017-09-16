@@ -207,6 +207,8 @@ combineModels <- function(model.list){
   pm.s20 <- mean(s2.0)
   pz <- map(model.list, probz) %>% Reduce("+", .)
   pz <- pz/length(model.list)
+  ## the accessor will divide by number of iterations - 1
+  pz <- pz * (iter(mp) - 1)
   zz <- max.col(pz)
   yy <- y(model.list[[1]])
   y_mns <- as.numeric(tapply(yy, zz, mean))
@@ -308,8 +310,8 @@ gibbs <- function(hp, mp, dat, max_burnin=32000){
   while(burnin(mp) < max_burnin){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mod.list <- replicate(nchains, SingleBatchModel2(dat=dat,
-                                                  hp=hp,
-                                                  mp=mp))
+                                                     hp=hp,
+                                                     mp=mp))
     mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
     label_swapping <- map_lgl(mod.list, label_switch)
     nswap <- sum(label_swapping)

@@ -54,8 +54,9 @@ test_that("test_marginal_empty_component", {
   library(purrr)
   ##mp <- McmcParams(iter = 1000, burnin = 10, nStarts = 1, thin=1)
   mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 10, thin=1)
-  mod.list <- replicate(4, SingleBatchModel2(data=y(truth), k=3,
-                                          mcmc.params=mp, hypp=hp))
+  mod.list <- replicate(4, SingleBatchModel2(dat=y(truth), 
+                                             mp=mp,
+                                             hp=hp))
   mod.list2 <- map(mod.list, posteriorSimulation)
   mc.list <- mcmcList(mod.list2)
   expect_is(mc.list, "mcmc.list")
