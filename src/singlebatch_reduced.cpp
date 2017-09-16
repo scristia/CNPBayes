@@ -1,5 +1,6 @@
 #include "miscfunctions.h" // for rdirichlet, tableZ, ...
-#include "updates_marginal.h"
+#include "singlebatch.h"
+#include "singlebatch_reduced.h"
 #include "update.h"
 #include <Rcpp.h>
 

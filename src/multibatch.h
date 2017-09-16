@@ -1,5 +1,5 @@
-#ifndef _update_batch_H
-#define _update_batch_H
+#ifndef _multibatch_H
+#define _multibatch_H
 
 Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x);
 Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod);

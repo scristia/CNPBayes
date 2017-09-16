@@ -29,6 +29,151 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// loglik_multibatch_pvar
+Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_loglik_multibatch_pvar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(loglik_multibatch_pvar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sigma20_multibatch_pvar
+Rcpp::NumericVector sigma20_multibatch_pvar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_sigma20_multibatch_pvar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(sigma20_multibatch_pvar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// multinomialPr_multibatch_pvar
+Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_multinomialPr_multibatch_pvar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(multinomialPr_multibatch_pvar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// z_multibatch_pvar
+Rcpp::IntegerVector z_multibatch_pvar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_z_multibatch_pvar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(z_multibatch_pvar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// means_multibatch_pvar
+Rcpp::NumericMatrix means_multibatch_pvar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_means_multibatch_pvar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(means_multibatch_pvar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// vars_multibatch_pvar
+Rcpp::NumericMatrix vars_multibatch_pvar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_vars_multibatch_pvar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(vars_multibatch_pvar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// prec_multibatch_pvar
+Rcpp::NumericMatrix prec_multibatch_pvar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_prec_multibatch_pvar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(prec_multibatch_pvar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// logprior_multibatch_pvar
+Rcpp::NumericVector logprior_multibatch_pvar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_logprior_multibatch_pvar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(logprior_multibatch_pvar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// stagetwo_multibatch_pvar
+Rcpp::NumericVector stagetwo_multibatch_pvar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_stagetwo_multibatch_pvar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(stagetwo_multibatch_pvar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// theta_multibatch_pvar
+Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_theta_multibatch_pvar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(theta_multibatch_pvar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sigma2_multibatch_pvar
+Rcpp::NumericMatrix sigma2_multibatch_pvar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_sigma2_multibatch_pvar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(sigma2_multibatch_pvar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// burnin_multibatch_pvar
+Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
+RcppExport SEXP _CNPBayes_burnin_multibatch_pvar(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
+    rcpp_result_gen = Rcpp::wrap(burnin_multibatch_pvar(xmod, mcmcp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mcmc_multibatch_pvar
+Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp);
+RcppExport SEXP _CNPBayes_mcmc_multibatch_pvar(SEXP objectSEXP, SEXP mcmcpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
+    rcpp_result_gen = Rcpp::wrap(mcmc_multibatch_pvar(object, mcmcp));
+    return rcpp_result_gen;
+END_RCPP
+}
 // marginal_theta_batch
 Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_marginal_theta_batch(SEXP xmodSEXP) {
@@ -1063,6 +1208,19 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_rMultinom", (DL_FUNC) &_CNPBayes_rMultinom, 2},
     {"_CNPBayes_tableZ", (DL_FUNC) &_CNPBayes_tableZ, 2},
+    {"_CNPBayes_loglik_multibatch_pvar", (DL_FUNC) &_CNPBayes_loglik_multibatch_pvar, 1},
+    {"_CNPBayes_sigma20_multibatch_pvar", (DL_FUNC) &_CNPBayes_sigma20_multibatch_pvar, 1},
+    {"_CNPBayes_multinomialPr_multibatch_pvar", (DL_FUNC) &_CNPBayes_multinomialPr_multibatch_pvar, 1},
+    {"_CNPBayes_z_multibatch_pvar", (DL_FUNC) &_CNPBayes_z_multibatch_pvar, 1},
+    {"_CNPBayes_means_multibatch_pvar", (DL_FUNC) &_CNPBayes_means_multibatch_pvar, 1},
+    {"_CNPBayes_vars_multibatch_pvar", (DL_FUNC) &_CNPBayes_vars_multibatch_pvar, 1},
+    {"_CNPBayes_prec_multibatch_pvar", (DL_FUNC) &_CNPBayes_prec_multibatch_pvar, 1},
+    {"_CNPBayes_logprior_multibatch_pvar", (DL_FUNC) &_CNPBayes_logprior_multibatch_pvar, 1},
+    {"_CNPBayes_stagetwo_multibatch_pvar", (DL_FUNC) &_CNPBayes_stagetwo_multibatch_pvar, 1},
+    {"_CNPBayes_theta_multibatch_pvar", (DL_FUNC) &_CNPBayes_theta_multibatch_pvar, 1},
+    {"_CNPBayes_sigma2_multibatch_pvar", (DL_FUNC) &_CNPBayes_sigma2_multibatch_pvar, 1},
+    {"_CNPBayes_burnin_multibatch_pvar", (DL_FUNC) &_CNPBayes_burnin_multibatch_pvar, 2},
+    {"_CNPBayes_mcmc_multibatch_pvar", (DL_FUNC) &_CNPBayes_mcmc_multibatch_pvar, 2},
     {"_CNPBayes_marginal_theta_batch", (DL_FUNC) &_CNPBayes_marginal_theta_batch, 1},
     {"_CNPBayes_p_theta_zpermuted_batch", (DL_FUNC) &_CNPBayes_p_theta_zpermuted_batch, 1},
     {"_CNPBayes_simulate_z_reduced1_batch", (DL_FUNC) &_CNPBayes_simulate_z_reduced1_batch, 1},

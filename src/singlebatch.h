@@ -1,5 +1,5 @@
-#ifndef _update_marginal_H
-#define _update_marginal_H
+#ifndef _singlebatch_H
+#define _singlebatch_H
 
 Rcpp::NumericVector loglik(Rcpp::S4 xmod); 
 Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_, 
