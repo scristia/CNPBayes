@@ -29,3 +29,7 @@ setValidity("SingleBatchPooledVar", function(object){
   }
   TRUE
 })
+
+setMethod("updateZ", "SingleBatchPooledVar", function(object){
+  z_pooled(object)
+})

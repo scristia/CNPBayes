@@ -1,9 +1,11 @@
-meltMultiBatchChains <- function(model){
+.meltMultiBatchChains <- function(model){
   ch <- chains(model)
   th <- as.data.frame(theta(ch))
   th$param <- "theta"
   th$iter <- factor(1:nrow(th))
-  th.m <- melt(th)
+  ##th.m <- melt(th)
+  th.m <- gather(th, key="variable", values=-c(param, iter)) %>%
+    as.tibble
   ##
   ##
   ##
@@ -20,8 +22,11 @@ meltMultiBatchChains <- function(model){
   s <- as.data.frame(sigma(ch))
   s$iter <- th$iter
   s$param <- "sigma"
-  s.m <- melt(s)
-  s.m$iter <- th.m$iter
+  s.m <- s %>% as.tibble %>%
+    gather(param, value, -iter) %>%
+    mutate(param="sigma")
+  ##s.m <- melt(s)
+  ##s.m$iter <- th.m$iter
   s.m$batch <- th.m$batch
   s.m$comp <- th.m$comp
 
@@ -63,6 +68,71 @@ meltMultiBatchChains <- function(model){
                s20.m)
   dat$iter <- as.integer(dat$iter)
   list(batch=dat.batch,
+       comp=dat.comp,
+       single=dat)
+}
+
+.meltMultiBatchPooledChains <- function(model){
+  ch <- chains(model)
+  th <- as.data.frame(theta(ch))
+  th$param <- "theta"
+  th$iter <- factor(1:nrow(th))
+  ##th.m <- melt(th)
+  th.m <- gather(th, key="variable", values=-c(param, iter)) %>%
+    as.tibble
+  ##
+  ##
+  ##
+  K <- k(model)
+  B <- nBatch(model)
+  btch <- matrix(uniqueBatch(model), B, K, byrow=FALSE)
+  btch <- rep(as.character(btch), each=iter(model))
+  comp <- matrix(1:K, B, K, byrow=TRUE)
+  comp <- rep(as.numeric(comp), each=iter(model))
+  th.m$batch <- factor(btch)
+  th.m$comp <- factor(paste0("k=", comp))
+  th.m$iter <- as.integer(th.m$iter)
+
+  s <- as.data.frame(sigma(ch))
+  s.m <- s %>% as.tibble %>%
+    mutate(iter=seq_len(iter(model))) %>%
+    gather(param, value, -iter) %>%
+    mutate(param="sigma",
+           iter=factor(iter),
+           batch=factor(rep(uniqueBatch(model), each=iter(model))))
+
+  nu0.m <- as.tibble(nu.0(ch)) %>%
+    mutate(iter=th$iter,
+           param="nu0")
+  s20.m <- as.tibble(sigma2.0(ch)) %>%
+    mutate(iter=th$iter,
+           param="s20")
+
+  mus.m <- as.tibble(mu(ch)) %>% 
+    mutate(iter=th$iter) %>%
+    gather(param, value, -iter) %>%
+    mutate(param="mu",
+           comp=rep(seq_len(k(model)), each=iter(model))) %>%
+    mutate(comp=factor(paste0("k=", .$comp)))
+
+  prob.m <- as.tibble(p(ch)) %>%
+    mutate(iter=th$iter) %>%
+    gather(param, value, -iter) %>%
+    mutate(param="p",
+           comp=mus.m$comp)
+
+  taus.m <- as.tibble(tau(ch)) %>%
+    mutate(iter=th$iter) %>%
+    gather(param, value, -iter) %>%
+    mutate(param="tau",
+           comp=mus.m$comp)
+
+  ##dat.batch <- bind_rows(th.m, s.m)
+  dat.comp <- rbind(mus.m, taus.m, prob.m)
+  dat <- bind_rows(nu0.m, s20.m)
+  dat$iter <- as.integer(dat$iter)
+  list(theta=th.m,
+       sigma=s.m,
        comp=dat.comp,
        single=dat)
 }
@@ -165,11 +235,16 @@ ggSingleBatchChains <- function(model){
    list(comp=p.comp, single=p.single)
 }
 
+setMethod("gatherChains", "MultiBatchModel", function(object){
+  .meltMultiBatchChains(object)
+})
 
-#' @export
-#' @rdname ggplot-functions
-ggMultiBatchChains <- function(model){
-  melt.ch <- meltMultiBatchChains(model)
+setMethod("gatherChains", "MultiBatchModel", function(object){
+  .meltMultiBatchPooledChains(object)
+})
+
+.ggMultiBatchChains <- function(model){
+  melt.ch <- gatherChains(model)
   dat.batch <- melt.ch$batch
   dat.comp <- melt.ch$comp
   dat.single <- melt.ch$single
@@ -190,6 +265,42 @@ ggMultiBatchChains <- function(model){
     facet_wrap(~param, scales="free_y")
   list(batch=p.batch, comp=p.comp, single=p.single)
 }
+
+.ggMultiBatchPooledChains <- function(model){
+  melt.ch <- gatherChains(model)
+  iter <- value <- batch <- param <- comp <- NULL
+  p.theta <- ggplot(melt.ch$theta, aes(iter, value, group=batch)) +
+    geom_point(size=0.3, aes(color=batch)) +
+    geom_line(aes(color=batch)) +
+    facet_grid(param ~ comp, scales="free_y")
+
+  p.sigma <- ggplot(melt.ch$sigma, aes(iter, value, group=batch)) +
+    geom_point(size=0.3, aes(color=batch)) +
+    geom_line(aes(color=batch)) 
+    ##facet_grid(param ~ comp, scales="free_y")
+
+  p.comp <- ggplot(melt.ch$comp, aes(iter, value, group=comp)) +
+    geom_point(size=0.3, aes(color=comp)) +
+    geom_line(aes(color=comp)) +
+    facet_wrap(~param, scales="free_y")
+
+  p.single <- ggplot(melt.ch$single, aes(iter, value, group="param")) +
+    geom_point(size=0.3, color="gray") +
+    geom_line(color="gray") +
+    facet_wrap(~param, scales="free_y")
+  list(theta=p.theta, sigma=p.sigma, comp=p.comp, single=p.single)
+}
+
+
+#' @export
+#' @rdname ggplot-functions
+setMethod("ggChains", "MultiBatchModel", function(model){
+  .ggMultiBatchChains(model)
+})
+
+setMethod("ggChains", "MultiBatchPooled", function(model){
+  .ggMultiBatchPooledChains(model)
+})
 
 singleBatchDensities <- function(object){
   dnorm_poly(object)

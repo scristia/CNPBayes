@@ -156,7 +156,7 @@ Rcpp::S4 sigma_multibatch_pvar_red(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector p_multibatch_pvar_red(Rcpp::S4 xmod) {
+Rcpp::NumericVector psigma_multibatch_pvar_red(Rcpp::S4 xmod) {
   // sigma and p fixed
   Rcpp::RNGScope scope;
 
@@ -475,7 +475,7 @@ Rcpp::S4 nu0_multibatch_pvar_red(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector prob_nu0_multibatch_pvar_red(Rcpp::S4 xmod) {
+Rcpp::NumericVector pnu0_multibatch_pvar_red(Rcpp::S4 xmod) {
     Rcpp::RNGScope scope;
     // get model and accessories
     Rcpp::S4 model(xmod);
@@ -591,7 +591,7 @@ Rcpp::S4 s20_multibatch_pvar_red(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector prob_s20_multibatch_pvar_red(Rcpp::S4 xmod) {
+Rcpp::NumericVector ps20_multibatch_pvar_red(Rcpp::S4 xmod) {
     Rcpp::RNGScope scope;
 
     // get model and accessories

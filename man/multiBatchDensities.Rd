@@ -4,7 +4,7 @@
 \alias{multiBatchDensities}
 \title{Create a data.frame of the component densities for each batch}
 \usage{
-multiBatchDensities(model)
+multiBatchDensities(object)
 }
 \arguments{
 \item{object}{an object of class \code{BatchModel}}

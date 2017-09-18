@@ -478,8 +478,9 @@ gibbs_batch_K <- function(hp,
   models <- model.list[ix]
 }
 
+
 #' Evaluate both single-batch and multi-batch models with the specified range for the number of components, returning the top models sorted by marginal likelihood
-#' 
+#'
 #' @param hp.list a list of hyperparameters. See example.
 #' @param mp a \code{McmcParams} object
 #' @param dat numeric vector of CNP summary statistics (e.g., median log R ratios)

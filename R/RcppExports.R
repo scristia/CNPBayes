@@ -17,8 +17,8 @@ sigma_multibatch_pvar_red <- function(xmod) {
     .Call('_CNPBayes_sigma_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
 }
 
-p_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_p_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+psigma_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_psigma_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
 }
 
 pi_multibatch_pvar_red <- function(xmod) {
@@ -37,16 +37,16 @@ nu0_multibatch_pvar_red <- function(xmod) {
     .Call('_CNPBayes_nu0_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
 }
 
-prob_nu0_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_prob_nu0_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+pnu0_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_pnu0_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
 }
 
 s20_multibatch_pvar_red <- function(xmod) {
     .Call('_CNPBayes_s20_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
 }
 
-prob_s20_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_prob_s20_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+ps20_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_ps20_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
 }
 
 loglik_multibatch_pvar <- function(xmod) {

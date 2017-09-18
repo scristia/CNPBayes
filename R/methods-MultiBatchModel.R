@@ -888,3 +888,7 @@ setMethod("updateMultinomialProb", "MultiBatchModel", function(object){
 setMethod("computeLoglik", "MultiBatchModel", function(object){
   compute_loglik_batch(object)
 })
+
+setMethod("updateZ", "MultiBatchModel", function(object){
+  update_z_batch(object)
+})

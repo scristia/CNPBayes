@@ -552,3 +552,21 @@ reload2 <- function(){
   load_all("CNPBayes")
   setwd(wd)
 }
+
+useModes <- function(object){
+  m2 <- object
+  theta(m2) <- modes(object)[["theta"]]
+  sigma2(m2) <- modes(object)[["sigma2"]]
+  tau2(m2) <- modes(object)[["tau2"]]
+  nu.0(m2) <- modes(object)[["nu0"]]
+  sigma2.0(m2) <- modes(object)[["sigma2.0"]]
+  p(m2) <- modes(object)[["mixprob"]]
+  zFreq(m2) <- as.integer(modes(object)[["zfreq"]])
+  log_lik(m2) <- modes(object)[["loglik"]]
+  logPrior(m2) <- modes(object)[["logprior"]]
+  ##
+  ## update z using the modal values from above
+  ##
+  z(m2) <- updateZ(m2)
+  m2
+}

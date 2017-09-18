@@ -344,3 +344,7 @@ reorderSingleBatchChains <- function(model){
   chains(model) <- ch
   model
 }
+
+setMethod("updateZ", "SingleBatchModel", function(object){
+  update_z(object)
+})

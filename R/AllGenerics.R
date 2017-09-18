@@ -743,7 +743,7 @@ setGeneric("labelSwitching", function(object, merge=TRUE) standardGeneric("label
 #' @export
 #' @examples
 #' label_switch(MarginalModelExample)
-#' 
+#'
 setGeneric("label_switch", function(object) standardGeneric("label_switch"))
 
 
@@ -751,3 +751,9 @@ setGeneric("label_switch<-", function(object, value) standardGeneric("label_swit
 
 setGeneric("marginal_lik", function(object) standardGeneric("marginal_lik"))
 setGeneric("marginal_lik<-", function(object, value) standardGeneric("marginal_lik<-"))
+
+setGeneric("updateZ", function(object) standardGeneric("updateZ"))
+
+setGeneric("gatherChains", function(object) standardGeneric("gatherChains"))
+
+setGeneric("ggChains", function(model) standardGeneric("ggChains"))

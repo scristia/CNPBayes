@@ -27,26 +27,21 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
     }
   }
   model.psigma2 <- reduced_sigma(model.reduced)
-  ##identical(modes(model.psigma2), modes(model))
   psigma.star <- p_sigma_reduced(model.psigma2)
 
   model.pistar <- reduced_pi(model.reduced)
-  ##identical(modes(model.pistar), modes(model))
   p.pi.star <- p_pmix_reduced(model.pistar)
 
   ##
   ## Block updates for stage 2 parameters
   ##
   model.mustar <- reduced_mu(model.reduced)
-  ##stopifnot(identical(modes(model.mustar), modes(model)))
   p.mustar <- p_mu_reduced(model.mustar)
 
   model.taustar <- reduced_tau(model.reduced)
-  ##identical(modes(model.taustar), modes(model))
   p.taustar <- p_tau_reduced(model.mustar)
 
   model.nu0star <- reduced_nu0(model.reduced)
-  identical(modes(model.nu0star), modes(model))
   p.nu0star <- p_nu0_reduced(model.nu0star)
 
   model.s20star <- reduced_s20(model.reduced)
@@ -170,6 +165,58 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   reduced_gibbs
 }
 
+.blockUpdatesMultiBatchPooled <- function(model, params=mlParams()){
+  reject.threshold <- params$reject.threshold
+  prop.threshold <- params$prop.threshold
+  ignore.small.pstar <- params$ignore.small.pstar
+  warnings <- params$warnings
+
+  model.reduced <- model
+  ##ptheta.star <- marginal_theta_batch(model)
+  ptheta.star <- theta_multibatch_pvar_red(model)
+  if(paramUpdates(model)[["theta"]]==0) {
+    ignore.small.pstar <- TRUE
+  }
+  if(!ignore.small.pstar){
+    failed <- failSmallPstar(ptheta.star, params)
+    if (failed) {
+      msg <- paste("The model for k=", k(model), " may be overfit.",
+                   "This can lead to an incorrect marginal likelihood")
+      if(warnings) warning(msg)
+      return(matrix(NA))
+    }
+  }
+  model.psigma2 <- sigma_multibatch_pvar_red(model.reduced)
+  psigma.star <- psigma_multibatch_pvar_red(model.psigma2)
+
+  model.pistar <- pi_multibatch_pvar_red(model.reduced)
+  p.pi.star <- p_pmix_reduced_batch(model.pistar)
+
+  ##
+  ## Block updates for stage 2 parameters
+  ##
+  model.mustar <- mu_multibatch_pvar_red(model.reduced)
+  p.mustar <- p_mu_reduced_batch(model.mustar)
+
+  model.taustar <- tau_multibatch_pvar_red(model.reduced)
+  p.taustar <- p_tau_reduced_batch(model.mustar)
+
+  model.nu0star <- nu0_multibatch_pvar_red(model.reduced)
+  p.nu0star <- pnu0_multibatch_pvar_red(model.nu0star)
+
+  model.s20star <- s20_multibatch_pvar_red(model.reduced)
+  p.s20star <- ps20_multibatch_pvar_red(model.s20star)
+
+  reduced_gibbs <- cbind(ptheta.star, psigma.star, p.mustar, p.pi.star,
+                         p.taustar, p.nu0star, p.s20star)
+
+  colnames(reduced_gibbs) <- c("theta", "sigma", "pi", "mu",
+                               "tau", "nu0", "s20")
+
+  reduced_gibbs
+}
+
+
 blockUpdates <- function(reduced_gibbs, root) {
   pstar <- apply(reduced_gibbs, 2, function(x) log(mean(x^(root), na.rm=TRUE)))
 }
@@ -284,12 +331,7 @@ mlParams <- function(root=1/10,
   m.y
 }
 
-#' @rdname marginalLikelihood-method
-#' @aliases marginalLikelihood,SingleBatchModel-method marginalLikelihood,SingleBatchModel,ANY-method
-setMethod("marginalLikelihood", "SingleBatchModel",
-          function(model, params=mlParams()) {
-            .ml_singlebatch(model, params)
-          })
+
 
 ## used for debugging
 computeML <- function(model, params=mlParams()){
@@ -394,13 +436,7 @@ effectiveSizeWarning <- function(model){
   m.y
 }
 
-#' @rdname marginalLikelihood-method
-#' @aliases marginalLikelihood,SingleBatchPooledVar-method marginalLikelihood,SingleBatchPooledVar,ANY-method
-setMethod("marginalLikelihood", "SingleBatchPooledVar",
-          function(model, params=mlParams()){
-            ## calculate effective size of thetas and check against threshold
-            .ml_pooled(model, params)
-          })
+
 
 .ml_batchmodel <- function(model, params=mlParams()){
   ## calculate effective size of thetas and check against threshold
@@ -440,12 +476,75 @@ setMethod("marginalLikelihood", "SingleBatchPooledVar",
   m.y
 }
 
+.ml_multibatch_pooled <- function(model, params=mlParams()){
+  ## calculate effective size of thetas and check against threshold
+  warnings <- params$warnings
+  if (failEffectiveSize(model, params)) {
+    if(warnings) warning(effectiveSizeWarning(model))
+    naresult <- setNames(NA, paste0("MB", k(model)))
+    if(!params$ignore.effective.size)
+      return(naresult)
+  }
+  ## get parameters from list params
+  niter <- iter(model)
+  root <- params$root
+  reject.threshold <- params$reject.threshold
+  prop.threshold <- params$prop.threshold
+
+  ## calculate p(x|theta)
+  logLik <- modes(model)[["loglik"]] ## includes 2nd stage
+  model2 <- useModes(model)
+  stage2.loglik <- stageTwoLogLik_pooled(model2)
+
+  ## calculate log p(theta)
+  logPrior <- modes(model)[["logprior"]]
+
+  mp <- McmcParams(iter=niter)
+  red_gibbs <- .blockUpdatesMultiBatchPooled(model2, params)
+  pstar <- blockUpdates(red_gibbs, root)
+  if(failEffectiveSize(model, params)){
+    ## this can fail because the model is mixing beteen components
+    ## and the correction factor is not needed
+    correction.factor <- 0
+  } else correction.factor <- log(factorial(k(model)))
+  ## calculate p(x|model)
+  m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
+    correction.factor
+  names(m.y) <- paste0("MBP", k(model))
+  m.y
+}
+
+#' @rdname marginalLikelihood-method
+#' @aliases marginalLikelihood,SingleBatchModel-method marginalLikelihood,SingleBatchModel,ANY-method
+setMethod("marginalLikelihood", "SingleBatchModel",
+          function(model, params=mlParams()) {
+            .ml_singlebatch(model, params)
+          })
+
+#' @rdname marginalLikelihood-method
+#' @aliases marginalLikelihood,SingleBatchPooledVar-method marginalLikelihood,SingleBatchPooledVar,ANY-method
+setMethod("marginalLikelihood", "SingleBatchPooledVar",
+          function(model, params=mlParams()){
+            ## calculate effective size of thetas and check against threshold
+            .ml_pooled(model, params)
+          })
+
 #' @rdname marginalLikelihood-method
 #' @aliases marginalLikelihood,MultiBatchModel-method marginalLikelihood,MultiBatchModel,ANY-method
 setMethod("marginalLikelihood", "MultiBatchModel",
           function(model, params=mlParams()){
             .ml_batchmodel(model, params)
           })
+
+#' @rdname marginalLikelihood-method
+#' @aliases marginalLikelihood,MultiBatchPooled-method marginalLikelihood,MultiBatchModel,ANY-method
+setMethod("marginalLikelihood", "MultiBatchPooled",
+          function(model, params=mlParams()){
+            .ml_multibatch_pooled(model, params)
+          })
+
+
+
 
 .ml_list <- function(model.list, params=mlParams(warnings=FALSE)){
   ml <- sapply(model.list, marginalLikelihood, params=params)
