@@ -12,13 +12,11 @@ test_that("initial values", {
   model.list <- vector("list", length(k))
   set.seed(2)
   j <- 3
-  hypp <- HyperparametersMultiBatch(k=k[j])
-  ## k = 3 is too many components
-  ##trace(BatchModel, browser)
-  model <- MultiBatchModel(data=data, k=k[j],
-                           batch=batch,
-                           mcmc.params=mcmc.params,
-                           hypp=hypp)
+  hypp <- HyperparametersMultiBatch(k=4)
+  model <- MultiBatchModel2(dat=dat$y,
+                            batches=as.integer(factor(dat$batch)),
+                            hp=hypp)
+  expect_identical(ncol(sigma(model)), 4L)
   expect_true(!is.na(log_lik(model)))
 })
 

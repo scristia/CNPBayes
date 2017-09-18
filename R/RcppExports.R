@@ -81,8 +81,8 @@ sigma2_multibatch_pvar <- function(xmod) {
     .Call('_CNPBayes_sigma2_multibatch_pvar', PACKAGE = 'CNPBayes', xmod)
 }
 
-burnin_multibatch_pvar <- function(xmod, mcmcp) {
-    .Call('_CNPBayes_burnin_multibatch_pvar', PACKAGE = 'CNPBayes', xmod, mcmcp)
+burnin_multibatch_pvar <- function(object, mcmcp) {
+    .Call('_CNPBayes_burnin_multibatch_pvar', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
 mcmc_multibatch_pvar <- function(object, mcmcp) {
@@ -225,8 +225,8 @@ update_sigma2_batch <- function(xmod) {
     .Call('_CNPBayes_update_sigma2_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-mcmc_batch_burnin <- function(xmod, mcmcp) {
-    .Call('_CNPBayes_mcmc_batch_burnin', PACKAGE = 'CNPBayes', xmod, mcmcp)
+mcmc_batch_burnin <- function(object, mcmcp) {
+    .Call('_CNPBayes_mcmc_batch_burnin', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
 mcmc_batch <- function(object, mcmcp) {
@@ -329,8 +329,8 @@ sigma2_pooled <- function(xmod) {
     .Call('_CNPBayes_sigma2_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
-burnin_singlebatch_pooled <- function(xmod, mcmcp) {
-    .Call('_CNPBayes_burnin_singlebatch_pooled', PACKAGE = 'CNPBayes', xmod, mcmcp)
+burnin_singlebatch_pooled <- function(object, mcmcp) {
+    .Call('_CNPBayes_burnin_singlebatch_pooled', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
 mcmc_singlebatch_pooled <- function(object, mcmcp) {

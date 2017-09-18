@@ -47,3 +47,8 @@ test_that("missing component", {
   zz <- z_pooled(model)
   expect_identical(zz, expectedz)
 })
+
+test_that("SingleBatchPooled", {
+
+
+})

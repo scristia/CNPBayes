@@ -78,6 +78,7 @@ test_that("MultiBatchPooled MCMC", {
 
 .test_that <- function(nm, expr) NULL
 
+
 test_that("Marginal likelihood for MultiBatchPooled", {
   data("MultiBatchPooledExample")
   model <- MultiBatchPooledExample
@@ -129,6 +130,77 @@ test_that("Marginal likelihood for MultiBatchPooled", {
 })
 
 
+test_that("k=4 seg fault", {
+  nbatch <- 3
+  k <- 3
+  means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+                    0, 0.05),
+                  nbatch, k, byrow = FALSE)
+  sds <- matrix(rep(c(0.1, 0.15, 0.2), each=3),
+                nrow=nbatch, ncol=k, byrow=TRUE)
+  N <- 500
+  truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+                                                length.out = N),
+                             p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+                             theta = means,
+                             sds = sds)
+  mp <- McmcParams(iter=500, burnin=1000, nStarts=1, thin=1)
+  hp <- HyperparametersMultiBatch(k=4,
+                                  mu=-0.75,
+                                  tau2.0=0.4,
+                                  eta.0=32,
+                                  m2.0=0.5)
+  model <- MultiBatchPooled(dat=y(truth), mp=mp, hp=hp,
+                            batches=batch(truth))
+  B <- length(uniqueBatch(model))
+  expect_identical(length(sigma(model)), B)
+  expect_identical(ncol(theta(model)), 4L)
+
+  ## this generates a segfault
+  ##model2 <- .posteriorSimulation2(model)
+  pr <- multinomialPr_multibatch_pvar(model)
+  zz <- z_multibatch_pvar(model)
+  z(model) <- zz
+  ## unchanged
+  mns <- compute_means_batch(model)
+  dataMean(model) <- mns
+  prec <- compute_prec_batch(model)
+  dataPrec(model) <- prec
+  thetas <- theta_multibatch_pvar(model)
+  theta(model) <- thetas
+  sigma2s <- sigma2_multibatch_pvar(model)
+  sigma2(model) <- sigma2s
+  ## same as MultiBatch
+  mus <- update_mu_batch(model)
+  mu(model) <- mus
+  ## unchanged
+  tau2s <- update_tau2_batch(model)
+  tau2(model) <- tau2s
+
+  s20 <- sigma20_multibatch_pvar(model)
+  sigma2.0(model) <- s20
+  nu0 <- nu0_multibatch_pvar(model)
+  nu.0(model) <- nu0
+  ## unchanged
+  ps <- update_p_batch(model)
+
+  ll <- loglik_multibatch_pvar(model)
+  lp <- compute_logprior_batch(model)
+  ll <- stagetwo_multibatch_pvar(model)
+
+  model2 <- burnin_multibatch_pvar(model, mp)
+  model2 <- mcmc_multibatch_pvar(model, mp)
+  tmp <- chains(model2)
+
+  ## .posteriorSimulation2
+  post <- runBurnin(model)
+  if(!isOrdered(post)) label_switch(post) <- TRUE
+  post <- sortComponentLabels(post)
+  post
+  computeModes(post)
+})
+
+
 test_that("MultiBatchPooled model selection", {
   nbatch <- 3
   k <- 3
@@ -144,7 +216,7 @@ test_that("MultiBatchPooled model selection", {
                              theta = means,
                              sds = sds)
   mp <- McmcParams(iter=1000, burnin=1000, nStarts=4, thin=1)
-  hp <- HyperparametersMultiBatch(k=3,
+  hp <- HyperparametersMultiBatch(k=4,
                                   mu=-0.75,
                                   tau2.0=0.4,
                                   eta.0=32,
@@ -152,7 +224,9 @@ test_that("MultiBatchPooled model selection", {
   batches <- batch(truth)
   set.seed(941)
   options(warn=2, error=utils::recover)
-  ## fit model with k=3
+  model <- MultiBatchPooled(dat=y(truth), mp=mp, hp=hp,
+                            batches=batch(truth))
+  ## fit model with k=4
   model <- gibbs_multibatch_pooled(hp, mp, y(truth),
                                    batches=batch(truth))
   if(FALSE){
@@ -164,19 +238,14 @@ test_that("MultiBatchPooled model selection", {
     figs$sigma
     ggMultiBatch(model)
   }
-  ## fit model with k=4
-  hp <- HyperparametersMultiBatch(k=4,
-                                  mu=-0.75,
-                                  tau2.0=0.4,
-                                  eta.0=32,
-                                  m2.0=0.5)
-  model <- gibbs_multibatch_pooled(hp, mp, y(truth),
-                                   batches=batch(truth))
   ## fit models k=1 -> k=4
   mlist <- gibbsMultiBatchPooled(hp=hp,
                                  mp=mp,
                                  dat=y(truth),
                                  batches=batch(truth))
+  purrr::map_dbl(mlist, marginal_lik)
+  model <- mlist[[1]]
+  expect_identical(k(mlist[[1]]), 3L)
   if(FALSE){
     ggMultiBatch(model)
     figs <- ggChains(model)
@@ -184,6 +253,5 @@ test_that("MultiBatchPooled model selection", {
     figs$sigma
     figs$comp
     figs$sigma
-    ggMultiBatchChains(model)
   }
 })

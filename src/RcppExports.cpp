@@ -228,14 +228,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // burnin_multibatch_pvar
-Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
-RcppExport SEXP _CNPBayes_burnin_multibatch_pvar(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp);
+RcppExport SEXP _CNPBayes_burnin_multibatch_pvar(SEXP objectSEXP, SEXP mcmcpSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
     Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
-    rcpp_result_gen = Rcpp::wrap(burnin_multibatch_pvar(xmod, mcmcp));
+    rcpp_result_gen = Rcpp::wrap(burnin_multibatch_pvar(object, mcmcp));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -626,14 +626,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // mcmc_batch_burnin
-Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
-RcppExport SEXP _CNPBayes_mcmc_batch_burnin(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp);
+RcppExport SEXP _CNPBayes_mcmc_batch_burnin(SEXP objectSEXP, SEXP mcmcpSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
     Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
-    rcpp_result_gen = Rcpp::wrap(mcmc_batch_burnin(xmod, mcmcp));
+    rcpp_result_gen = Rcpp::wrap(mcmc_batch_burnin(object, mcmcp));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -914,14 +914,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // burnin_singlebatch_pooled
-Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
-RcppExport SEXP _CNPBayes_burnin_singlebatch_pooled(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp);
+RcppExport SEXP _CNPBayes_burnin_singlebatch_pooled(SEXP objectSEXP, SEXP mcmcpSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
     Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
-    rcpp_result_gen = Rcpp::wrap(burnin_singlebatch_pooled(xmod, mcmcp));
+    rcpp_result_gen = Rcpp::wrap(burnin_singlebatch_pooled(object, mcmcp));
     return rcpp_result_gen;
 END_RCPP
 }

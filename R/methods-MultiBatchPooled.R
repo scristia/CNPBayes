@@ -238,3 +238,64 @@ gibbsMultiBatchPooled <- function(hp,
   ix <- order(map_dbl(model.list, marginal_lik), decreasing=TRUE)
   models <- model.list[ix]
 }
+
+gibbsPooled <- function(hp.list,
+                        mp,
+                        dat,
+                        batches,
+                        k_range=c(1, 4),
+                        max_burnin=32000,
+                        top=3){
+  message("Fitting multi-batch models K=", min(k_range), " to K=", max(k_range))
+  mb.models <- gibbsMultiBatchPooled(hp.list[["multi_batch"]],
+                                     k_range=k_range,
+                                     mp=mp,
+                                     dat=dat,
+                                     batches=batches,
+                                     max_burnin=max_burnin)
+  message("Fitting single-batch models K=", min(k_range), " to K=", max(k_range))
+  sb.models <- gibbs_K(hp.list[["single_batch"]],
+                       k_range=k_range,
+                       mp=mp,
+                       dat=dat,
+                       max_burnin=max_burnin)
+  models <- c(mb.models, sb.models)
+  ml <- map_dbl(models, marginal_lik)
+  ix <- head(order(ml, decreasing=TRUE), top)
+  models <- models[ix]
+  models
+}
+
+reorderMultiBatchPooled <- function(model){
+  is_ordered <- .ordered_thetas_multibatch(model)
+  if(is_ordered) return(model)
+  ## thetas are not all ordered
+  thetas <- theta(model)
+  ##s2s <- sigma2(model)
+  K <- k(model)
+  ix <- order(thetas[1, ])
+  B <- nBatch(model)
+  zlist <- split(z(model), batch(model))
+  for(i in seq_len(B)){
+    ix.next <- order(thetas[i, ])
+    thetas[i, ] <- thetas[i, ix.next]
+    zlist[[i]] <- as.integer(factor(zlist[[i]], levels=ix.next))
+  }
+  zs <- unlist(zlist)
+  ps <- p(model)[ix]
+  ## sigmas are batch-specific not component-specific, and therefore do not need to be reordered
+  mu(model) <- mu(model)[ix]
+  tau2(model) <- tau2(model)[ix]
+  ##sigma2(model) <- s2s
+  theta(model) <- thetas
+  p(model) <- ps
+  z(model) <- zs
+  dataMean(model) <- computeMeans(model)
+  dataPrec(model) <- computePrec(model)
+  log_lik(model) <- computeLoglik(model)
+  model
+}
+
+setMethod("sortComponentLabels", "MultiBatchPooled", function(model){
+  reorderMultiBatchPooled(model)
+})

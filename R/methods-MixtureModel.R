@@ -424,38 +424,7 @@ reorderMultiBatch <- function(model){
   model
 }
 
-reorderMultiBatchPooled <- function(model){
-  is_ordered <- .ordered_thetas_multibatch(model)
-  if(is_ordered) return(model)
-  ## thetas are not all ordered
-  thetas <- theta(model)
-  s2s <- sigma2(model)
-  K <- k(model)
-  ix <- order(thetas[1, ])
-  B <- nBatch(model)
-  zlist <- split(z(model), batch(model))
-  ##
-  ## How to reorder sigmas?
-  ##
-  for(i in seq_len(B)){
-    ix.next <- order(thetas[i, ])
-    thetas[i, ] <- thetas[i, ix.next]
-    zlist[[i]] <- as.integer(factor(zlist[[i]], levels=ix.next))
-  }
-  zs <- unlist(zlist)
-  ps <- p(model)[ix]
-  s2s <- s2s[ix]
-  mu(model) <- mu(model)[ix]
-  tau2(model) <- tau2(model)[ix]
-  sigma2(model) <- s2s
-  theta(model) <- thetas
-  p(model) <- ps
-  z(model) <- zs
-  dataMean(model) <- computeMeans(model)
-  dataPrec(model) <- computePrec(model)
-  log_lik(model) <- computeLoglik(model)
-  model
-}
+
 
 reorderSingleBatch <- function(model){
   thetas <- theta(model)
@@ -499,10 +468,6 @@ setMethod("sortComponentLabels", "SingleBatchModel", function(model){
 
 setMethod("sortComponentLabels", "MultiBatchModel", function(model){
   reorderMultiBatch(model)
-})
-
-setMethod("sortComponentLabels", "MultiBatchPooled", function(model){
-  reorderMultiBatchPooled(model)
 })
 
 setMethod("sortComponentLabels", "SingleBatchPooledVar", function(model){
