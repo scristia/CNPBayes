@@ -272,8 +272,13 @@ test_that("test_hard4", {
   truth <- hardTruth(p1=0.02, s = 0.1, N=500)
   se <- as(truth, "SummarizedExperiment")
   mcmcp <- McmcParams(iter = 100, burnin = 100, nStarts = 20)
-  modelk <- MultiBatchModel(data = y(truth), batch = batch(truth),
-                       k = 3, mcmc.params = mcmcp)
+  hp <- HyperparametersMultiBatch(k=3,
+                             mu=-0.75,
+                             tau2.0=0.4,
+                             eta.0=32,
+                             m2.0=0.5)
+  modelk <- MultiBatchModel2(y(truth), hp, mp=mcmcp,
+                             batches=batch(truth))
   model2 <- posteriorSimulation(modelk)
   thetas <- theta(model2)
   pmix <- p(model2)

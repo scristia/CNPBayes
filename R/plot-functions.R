@@ -147,7 +147,7 @@ meltSingleBatchChains <- function(model){
     mutate(comp=gsub("theta", "", parameter))
   sig <- as.tibble(sigma(ch)) %>%
     set_colnames(paste0("sigma", seq_len(k(model))))
-  if(class(model) == "SingleBatchPooledVar"){
+  if(class(model) == "SingleBatchPooled"){
     sig$iter <- 1:nrow(sig)
   } else sig$iter <- th$iter
   s.m <- gather(sig, key="parameter", value="value", -iter) %>%
@@ -187,6 +187,68 @@ meltSingleBatchChains <- function(model){
                         prob.m)
 
   dat <- bind_rows(nu0.m,
+                   s20.m,
+                   mu=mus.m,
+                   tau=taus.m,
+                   loglik=ll)
+  list(comp=dat.comp,
+       single=dat)
+}
+
+meltSingleBatchPooledChains <- function(model){
+  ch <- chains(model)
+  th <- as.tibble(theta(ch)) %>%
+    set_colnames(paste0("theta", seq_len(k(model))))
+  th$iter <- 1:nrow(th)
+  th.m <- gather(th, key="parameter", value="value", -iter) %>%
+    mutate(comp=gsub("theta", "", parameter))
+  sig <- as.tibble(sigma(ch)) %>%
+    set_colnames("value") %>%
+    mutate(iter=seq_len(iter(model))) %>%
+    mutate(parameter="sigma")
+##  if(class(model) == "SingleBatchPooled"){
+##    sig$iter <- 1:nrow(sig)
+##  } else sig$iter <- th$iter
+##  s.m <- gather(sig, key="parameter", value="value", -iter) %>%
+##    mutate(comp=gsub("sigma", "", parameter))
+  nu0 <- as.tibble(nu.0(ch)) %>%
+    set_colnames("nu0")
+  nu0$iter <- th$iter
+  nu0.m <- gather(nu0, key="parameter", value="value", -iter)
+  nu0$iter <- th$iter
+  nu0.m <- gather(nu0, key="parameter", value="value", -iter)
+
+  prob <- as.tibble(p(ch)) %>%
+    set_param_names("p")
+  prob$iter <- th$iter
+  prob.m <- gather(prob, key="parameter", value="value", -iter) %>%
+    mutate(comp=gsub("p", "", parameter))
+
+  s20 <- as.tibble(sigma2.0(ch)) %>%
+    set_colnames("s20")
+  s20$iter <- th$iter
+  s20.m <- gather(s20, key="parameter", value="value", -iter)
+
+  mus <- as.tibble(mu(ch))%>%
+    set_colnames("mu")
+  mus$iter <- th$iter
+  mus.m <- gather(mus, key="parameter", value="value", -iter)
+
+  taus <- as.tibble(tau(ch)) %>%
+    set_colnames("tau")
+  taus$iter <- th$iter
+  taus.m <- gather(taus, key="parameter", value="value", -iter)
+
+  ll <- as.tibble(log_lik(ch)) %>%
+    set_colnames("log lik") %>%
+    mutate(iter=th$iter) %>%
+    gather(key="parameter", value="value", -iter)
+  dat.comp <- bind_rows(th.m,
+                        ##sig,
+                        prob.m)
+  sig <- sig[ , colnames(nu0.m) ]
+  dat <- bind_rows(sig,
+                   nu0.m,
                    s20.m,
                    mu=mus.m,
                    tau=taus.m,
@@ -235,8 +297,29 @@ ggSingleBatchChains <- function(model){
    list(comp=p.comp, single=p.single)
 }
 
+
+ggSingleBatchPooledChains <- function(model){
+  melt.ch <- gatherChains(model)
+  dat.comp <- melt.ch[["comp"]]     ## component-specific
+  dat.single <- melt.ch[["single"]] ## single-parameter
+  iter <- value <- comp <- param <- NULL
+  p.comp <- ggplot(dat.comp, aes(iter, value, group=comp)) +
+    geom_point(size=0.3, aes(color=comp)) +
+    geom_line(aes(color=comp)) +
+    facet_wrap(~parameter, scales="free_y")
+  p.single <- ggplot(dat.single, aes(iter, value, group="parameter")) +
+    geom_point(size=0.3, color="gray") +
+    geom_line(color="gray") +
+    facet_wrap(~parameter, scales="free_y")
+   list(comp=p.comp, single=p.single)
+}
+
 setMethod("gatherChains", "MultiBatchModel", function(object){
   .meltMultiBatchChains(object)
+})
+
+setMethod("gatherChains", "SingleBatchPooled", function(object){
+  meltSingleBatchPooledChains(object)
 })
 
 setMethod("gatherChains", "MultiBatchModel", function(object){
@@ -302,6 +385,10 @@ setMethod("ggChains", "MultiBatchPooled", function(model){
   .ggMultiBatchPooledChains(model)
 })
 
+setMethod("ggChains", "SingleBatchPooled", function(model){
+  ggSingleBatchPooledChains(model)
+})
+
 singleBatchDensities <- function(object){
   dnorm_poly(object)
 }
@@ -358,7 +445,7 @@ dnorm_poly <- function(model){
   mixprob <- p(model)
   means <- theta(model)
   sds <- sigma(model)
-  if(class(model) == "SingleBatchPooledVar"){
+  if(class(model) == "SingleBatchPooled"){
     sds <- rep(sds, k(model))
   }
   df.list <- list()

@@ -243,9 +243,9 @@ test_that("MultiBatchPooled model selection", {
                                  mp=mp,
                                  dat=y(truth),
                                  batches=batch(truth))
-  purrr::map_dbl(mlist, marginal_lik)
+  ##purrr::map_dbl(mlist, marginal_lik)
   model <- mlist[[1]]
-  expect_identical(k(mlist[[1]]), 3L)
+  expect_identical(k(model), 3L)
   if(FALSE){
     ggMultiBatch(model)
     figs <- ggChains(model)

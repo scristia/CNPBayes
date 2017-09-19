@@ -301,7 +301,7 @@ setClass("BatchModel", contains="MixtureModel")
 setClass("SingleBatchModel", contains="MixtureModel")
 
 
-setClass("SingleBatchPooledVar", contains="SingleBatchModel")
+setClass("SingleBatchPooled", contains="SingleBatchModel")
 
 setClass("MultiBatchPooled", contains="MultiBatchModel")
 

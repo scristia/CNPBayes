@@ -175,26 +175,33 @@ Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
     return zz ;
   }
   //
-  // Reassign samples with highest probability of belonging to missing component
+  // Reassign two samples with highest probability of belonging to missing component
   //
-  int j = 0;
-  //return zz ;
-  for(int k = 0; k < K; ++k){
-    if( freq[k] >= 2 ) continue ;
-    NumericVector u2 = cumP(_, k) ;
-    double tmp = sum(u2) ;
-    u2 = u2 / tmp ;
-    NumericVector cumprob = cumsum( u2 );
-    NumericVector u3 = runif( 2 ) ;
-    // IntegerVector index(2) ;
-    for(int i = 0; i < n; i++){
-      if(u3[j] > cumprob[i]) continue ;
-      zz[i] = k + 1 ;
-      j += 1 ;
-      if(j > 1) break ;
-    }
-  }
-  return zz ;
+//  int j = 0;
+//  //return zz ;
+//  for(int k = 0; k < K; ++k){
+//    if( freq[k] >= 2 ) continue ;
+//    NumericVector u2 = cumP(_, k) ;
+//    double tmp = sum(u2) ;
+//    u2 = u2 / tmp ;
+//    NumericVector cumprob = cumsum( u2 );
+//    NumericVector u3 = runif( 2 ) ;
+//    // IntegerVector index(2) ;
+//    for(int i = 0; i < n; i++){
+//      if(u3[j] > cumprob[i]) continue ;
+//      zz[i] = k + 1 ;
+//      j += 1 ;
+//      if(j > 1) break ;
+//    }
+//  }
+  //
+  // Don't update z if there are states with zero frequency
+  //
+  int counter = model.slot(".internal.counter");
+  counter++;
+  model.slot(".internal.counter") = counter;
+  return model.slot("z") ;  
+  //  return zz ;
 }
 
 
@@ -436,6 +443,20 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   Z(0, _) = z ;
   // start at 1 instead of zero. Initial values are as above
   for(int s = 1; s < S; ++s){
+    if(up[7] > 0){
+      z = z_pooled(xmod) ;
+      model.slot("z") = z ;
+      tmp = tableZ(K, z) ;
+      model.slot("zfreq") = tmp ;
+      model.slot("probz") = compute_probz(xmod) ;
+    } else {
+      z = model.slot("z") ;
+      tmp = model.slot("zfreq") ;
+    }
+    Z(s, _) = z ;
+    zfreq(s, _) = tmp ;
+    model.slot("data.mean") = compute_means(xmod) ;
+    model.slot("data.prec") = compute_prec(xmod) ;
     if(up[0] > 0) {
       try {
           th = theta_pooled(xmod) ;
@@ -489,20 +510,6 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       s20 = model.slot("sigma2.0") ;
     }
     sigma2_0[s] = s20[0] ;
-    if(up[7] > 0){
-      z = z_pooled(xmod) ;
-      model.slot("z") = z ;
-      tmp = tableZ(K, z) ;
-      model.slot("zfreq") = tmp ;
-      model.slot("probz") = compute_probz(xmod) ;
-    } else {
-      z = model.slot("z") ;
-      tmp = model.slot("zfreq") ;
-    }
-    Z(s, _) = z ;
-    zfreq(s, _) = tmp ;
-    model.slot("data.mean") = compute_means(xmod) ;
-    model.slot("data.prec") = compute_prec(xmod) ;
     ll = loglik_pooled(xmod) ;
     lls2 = stageTwoLogLik(xmod) ;
     // ll = ll + lls2 ;

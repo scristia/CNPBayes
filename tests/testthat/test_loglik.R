@@ -13,14 +13,22 @@ test_that("test_loglik", {
     loglik <- sum(log(p_[1] * dnorm(yy, th[1], sd[1]) + p_[2] *
         dnorm(yy, th[2], sd[2]) + p_[3] * dnorm(yy, th[3], sd[3])))
     expect_equal(ll.truth, loglik)
-    model <- MultiBatchModel(data = y(truth),
-                        batch = rep(letters[1:3],
-                                    length.out = length(y(truth))), k = 3)
+    hp <- HyperparametersMultiBatch(k=3,
+                                    mu=-0.75,
+                                    tau2.0=0.4,
+                                    eta.0=32,
+                                    m2.0=0.5)
     mp <- McmcParams(iter=250, burnin=500, nStarts=10)
+    model <- MultiBatchModel2(y(truth), hp, mp, 
+                              batches=rep(1:3,
+                                          length.out = length(y(truth))))
+    ##    model <- MultiBatchModel(data = y(truth),
+    ##                             batch = rep(letters[1:3],
+    ##                                         length.out = length(y(truth))), k = 3)
     mcmcParams(model) <- mp
     model <- posteriorSimulation(model)
     ll1 <- log_lik(model)
-    ll2 <- CNPBayes:::computeLoglik(model)
+    ll2 <- computeLoglik(model)
     expect_equal(ll2, ll1, tolerance=0.05)
     yy <- y(model)
     th <- theta(model)

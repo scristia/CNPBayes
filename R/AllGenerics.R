@@ -757,3 +757,7 @@ setGeneric("updateZ", function(object) standardGeneric("updateZ"))
 setGeneric("gatherChains", function(object) standardGeneric("gatherChains"))
 
 setGeneric("ggChains", function(model) standardGeneric("ggChains"))
+
+setGeneric("sortComponentLabels", function(model) standardGeneric("sortComponentLabels"))
+
+setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))

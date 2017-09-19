@@ -229,8 +229,8 @@ test_that("test_marginal_pooled2", {
     set.seed(100)
     truth <- simulateData(N = 2500, theta = c(-2, -0.5, 0),
                           sds = c(0.1, 0.1, 0.1), p = c(0.05, 0.1, 0.8))
-    pooled <- SingleBatchPooledVar(data=y(truth), k=3)
-    pooled <- posteriorSimulationPooled(pooled, iter=1000, burnin=0, thin=1)
+    pooled <- SingleBatchPooled(y(truth), Hyperparameters(k=3))
+    pooled <- .posteriorSimulation2(pooled)
     expect_equal(theta(pooled), theta(truth), tolerance=0.01)
     expect_equal(sigma(pooled), sigma(truth)[3], tolerance=0.01)
     if(FALSE){

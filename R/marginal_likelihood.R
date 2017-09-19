@@ -522,8 +522,8 @@ setMethod("marginalLikelihood", "SingleBatchModel",
           })
 
 #' @rdname marginalLikelihood-method
-#' @aliases marginalLikelihood,SingleBatchPooledVar-method marginalLikelihood,SingleBatchPooledVar,ANY-method
-setMethod("marginalLikelihood", "SingleBatchPooledVar",
+#' @aliases marginalLikelihood,SingleBatchPooled-method marginalLikelihood,SingleBatchPooled,ANY-method
+setMethod("marginalLikelihood", "SingleBatchPooled",
           function(model, params=mlParams()){
             ## calculate effective size of thetas and check against threshold
             .ml_pooled(model, params)

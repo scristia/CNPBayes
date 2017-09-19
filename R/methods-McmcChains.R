@@ -61,7 +61,7 @@ setMethod("McmcChains", "MixtureModel", function(object){
   .initializeMcmc(object)
 })
 
-setMethod("McmcChains", "SingleBatchPooledVar", function(object){
+setMethod("McmcChains", "SingleBatchPooled", function(object){
   .initializeMcmcPooledVar(object)
 })
 

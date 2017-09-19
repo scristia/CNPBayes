@@ -29,6 +29,40 @@ SingleBatchModelList <- function(data=numeric(), k=numeric(),
   model.list
 }
 
+.empty_singlebatch_model <- function(hp, mp){
+  K <- k(hp)
+  B <- 0
+  N <- 0
+  obj <- new("SingleBatchModel",
+             k=as.integer(K),
+             hyperparams=hp,
+             theta=matrix(NA, 0, K),
+             sigma2=matrix(NA, 0, K),
+             mu=numeric(K),
+             tau2=numeric(K),
+             nu.0=numeric(1),
+             sigma2.0=numeric(1),
+             pi=numeric(K),
+             data=numeric(0),
+             data.mean=matrix(NA, B, K),
+             data.prec=matrix(NA, B, K),
+             z=integer(0),
+             zfreq=integer(K),
+             probz=matrix(0, N, K),
+             logprior=numeric(1),
+             loglik=numeric(1),
+             mcmc.chains=McmcChains(),
+             mcmc.params=mp,
+             batch=integer(0),
+             batchElements=integer(0),
+             label_switch=FALSE,
+             marginal_lik=as.numeric(NA),
+             .internal.constraint=5e-4,
+             .internal.counter=0L)
+  chains(obj) <- McmcChains(obj)
+  obj
+}
+
 
 #' Create an object for running single batch MCMC simulations.
 #' @examples
@@ -86,6 +120,9 @@ SingleBatchModel <- function(data=numeric(), k=3, hypp, mcmc.params){
 SingleBatchModel2 <- function(dat=numeric(), hp=Hyperparameters(),
                               mp=McmcParams(iter=1000, burnin=1000,
                                             thin=10, nStarts=4)){
+  if(length(dat) == 0){
+    return(.empty_singlebatch_model(hp, mp))
+  }
   K <- k(hp)
   ##mu <- rnorm(1, mu.0(hp), sqrt(tau2.0(hp)))
   mu <- rnorm(1, median(dat), sd(dat)) 

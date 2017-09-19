@@ -234,7 +234,7 @@ setMethod("runBurnin", "SingleBatchModel", function(object){
 
 })
 
-setMethod("runBurnin", "SingleBatchPooledVar", function(object){
+setMethod("runBurnin", "SingleBatchPooled", function(object){
   burnin_singlebatch_pooled(object, mcmcParams(object))
 })
 
@@ -250,7 +250,7 @@ setMethod("runMcmc", "SingleBatchModel", function(object){
   mcmc_marginal(object, mcmcParams(object))
 })
 
-setMethod("runMcmc", "SingleBatchPooledVar", function(object){
+setMethod("runMcmc", "SingleBatchPooled", function(object){
   mcmc_singlebatch_pooled(object, mcmcParams(object))
 })
 
@@ -444,23 +444,6 @@ reorderSingleBatch <- function(model){
   model
 }
 
-reorderPooledVar <- function(model){
-  thetas <- theta(model)
-  K <- k(model)
-  ix <- order(thetas)
-  if(identical(ix, seq_len(K))) return(model)
-  thetas <- thetas[ix]
-  zs <- as.integer(factor(z(model), levels=ix))
-  ps <- p(model)[ix]
-  theta(model) <- thetas
-  p(model) <- ps
-  z(model) <- zs
-  dataPrec(model) <- 1/computeVars(model)
-  dataMean(model) <- computeMeans(model)
-  model
-}
-
-setGeneric("sortComponentLabels", function(model) standardGeneric("sortComponentLabels"))
 
 setMethod("sortComponentLabels", "SingleBatchModel", function(model){
   reorderSingleBatch(model)
@@ -470,11 +453,6 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
   reorderMultiBatch(model)
 })
 
-setMethod("sortComponentLabels", "SingleBatchPooledVar", function(model){
-  reorderPooledVar(model)
-})
-
-setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
 setMethod("isOrdered", "MixtureModel", function(object){
   identical(order(theta(object)), seq_along(theta(object)))
 })

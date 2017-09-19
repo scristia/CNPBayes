@@ -66,7 +66,7 @@ setMethod("computeModes", "MultiBatchPooled", function(object){
   .modesMultiBatchPooled(object)
 })
 
-setMethod("computeLoglik", "MultiBatchModel", function(object){
+setMethod("computeLoglik", "MultiBatchPooled", function(object){
   loglik_multibatch_pvar(object)
 })
 

@@ -10,8 +10,8 @@
 \alias{marginalLikelihood,BatchModel,ANY-method}
 \alias{marginalLikelihood,SingleBatchModel-method}
 \alias{marginalLikelihood,SingleBatchModel,ANY-method}
-\alias{marginalLikelihood,SingleBatchPooledVar-method}
-\alias{marginalLikelihood,SingleBatchPooledVar,ANY-method}
+\alias{marginalLikelihood,SingleBatchPooled-method}
+\alias{marginalLikelihood,SingleBatchPooled,ANY-method}
 \alias{marginalLikelihood,MultiBatchModel-method}
 \alias{marginalLikelihood,MultiBatchModel,ANY-method}
 \alias{marginalLikelihood,MultiBatchPooled-method}
@@ -28,8 +28,7 @@ marginalLikelihood(model, params = mlParams())
 
 \S4method{marginalLikelihood}{SingleBatchModel}(model, params = mlParams())
 
-\S4method{marginalLikelihood}{SingleBatchPooledVar}(model,
-  params = mlParams())
+\S4method{marginalLikelihood}{SingleBatchPooled}(model, params = mlParams())
 
 \S4method{marginalLikelihood}{MultiBatchModel}(model, params = mlParams())
 

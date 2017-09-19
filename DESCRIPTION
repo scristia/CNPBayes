@@ -56,7 +56,6 @@ Collate:
     'diagnostics.R'
     'functions.R'
     'marginal_likelihood.R'
-    'methods-DensityModel.R'
     'methods-Hyperparameters.R'
     'methods-McmcChains.R'
     'methods-McmcParams.R'
