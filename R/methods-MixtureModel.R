@@ -747,6 +747,9 @@ argMax <- function(object){
   lp <- logPrior(chains(object))
   p <- ll+lp
   p <- p[is.finite(p)]
+  if(length(p) == 0){
+    return(1)
+  }
   maxp <- max(p)
   which(p == maxp)
 }

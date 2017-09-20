@@ -2,7 +2,7 @@
 NULL
 
 ## ad-hoc constructor
-SingleBatchPooled <- function(dat=numeric(),
+.SingleBatchPooled <- function(dat=numeric(),
                               hp=Hyperparameters(),
                               mp=McmcParams(iter=1000, burnin=1000,
                                             thin=10, nStarts=4)){
@@ -12,6 +12,32 @@ SingleBatchPooled <- function(dat=numeric(),
   ch@sigma2 <- matrix(NA, iter(obj), 1)
   obj@mcmc.chains <- ch
   as(obj, "SingleBatchPooled")
+}
+
+## We initialize the z's to be all zeros, then z is updated as the first step of
+## the mcmc. However, if the first update of z results in some components not
+## being observed, then z will not be updated and will stay at zero. This
+## creates NaNs for the thetas and several other parameters
+SingleBatchPooled <- function(dat=numeric(),
+                              hp=Hyperparameters(),
+                              mp=McmcParams(iter=1000, burnin=1000,
+                                            thin=10, nStarts=4)){
+  if(length(dat) == 0){
+    return(.SingleBatchPooled(dat, hp, mp))
+  }
+  iter <- 0
+  validZ <- FALSE
+  mp.tmp <- McmcParams(iter=0, burnin=5, thin=1, nStarts=1)
+  while(!validZ){
+    sb <- .SingleBatchPooled(dat, hp, mp.tmp)
+    sb <- runBurnin(sb)
+    tabz <- table(z(sb))
+    if(length(tabz) == k(hp)) validZ <- TRUE
+    iter <- iter + 1
+    if(iter > 50) stop("Trouble initializing valid model")
+  }
+  mcmcParams(sb) <- mp
+  sb
 }
 
 setValidity("SingleBatchPooled", function(object){
@@ -28,14 +54,12 @@ setMethod("updateZ", "SingleBatchPooled", function(object){
 
 combine_singlebatch_pooled <- function(model.list, batches){
   ch.list <- map(model.list, chains)
-  ##pz <- map(model.list, probz) %>% Reduce("+", .)
-  ##pz <- pz/length(model.list)
-  ##z <- map(ch.list, "z") %>%  Reduce("+", .)
-  ##z <- max.col(pz)
+  fun <- function(ch) ch@pi
+  prob <- map(ch.list, fun) %>% do.call(rbind, .)
   th <- map(ch.list, theta) %>% do.call(rbind, .)
   s2 <- map(ch.list, sigma2) %>% do.call(rbind, .)
   ll <- map(ch.list, log_lik) %>% unlist
-  pp <- map(ch.list, p) %>% do.call(rbind, .)
+  ##pp <- map(ch.list, prob) %>% do.call(rbind, .)
   n0 <- map(ch.list, nu.0) %>% unlist
   s2.0 <- map(ch.list, sigma2.0) %>% unlist
   logp <- map(ch.list, logPrior) %>% unlist
@@ -46,7 +70,7 @@ combine_singlebatch_pooled <- function(model.list, batches){
   mc <- new("McmcChains",
             theta=th,
             sigma2=s2,
-            pi=pp,
+            pi=prob,
             mu=.mu,
             tau2=.tau2,
             nu.0=n0,
@@ -60,7 +84,7 @@ combine_singlebatch_pooled <- function(model.list, batches){
   iter(mp) <- nrow(th)
   pm.th <- colMeans(th)
   pm.s2 <- colMeans(s2)
-  pm.p <- colMeans(pp)
+  pm.p <- colMeans(prob)
   pm.n0 <- median(n0)
   pm.mu <- mean(.mu)
   pm.tau2 <- mean(.tau2)
@@ -114,6 +138,10 @@ combine_singlebatch_pooled <- function(model.list, batches){
   model
 }
 
+finiteLoglik <- function(model){
+  is.finite(log_lik(model))
+}
+
 
 gibbs_singlebatch_pooled <- function(hp, mp, dat, max_burnin=32000){
   nchains <- nStarts(mp)
@@ -128,8 +156,10 @@ gibbs_singlebatch_pooled <- function(hp, mp, dat, max_burnin=32000){
                                                      mp=mp))
     mod.list <- suppressWarnings(map(mod.list, .posteriorSimulation2))
     label_swapping <- map_lgl(mod.list, label_switch)
-    nswap <- sum(label_swapping)
+    finite_loglik <- map_lgl(mod.list, function(m) is.finite(log_lik(m)))
+    nswap <- sum(label_swapping | !finite_loglik)
     if(nswap > 0){
+      index <- label_swapping | !finite_loglik
       mp@thin <- as.integer(thin(mp) * 2)
       message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
       mod.list2 <- replicate(nswap,
@@ -137,14 +167,16 @@ gibbs_singlebatch_pooled <- function(hp, mp, dat, max_burnin=32000){
                                                mp=mp,
                                                hp=hp))
       mod.list2 <- suppressWarnings(map(mod.list2, .posteriorSimulation2))
-      mod.list[ label_swapping ] <- mod.list2
+      mod.list[ index ] <- mod.list2
       label_swapping <- map_lgl(mod.list, label_switch)
-      if(any(label_swapping)){
+      finite_loglik <- map_lgl(mod.list, function(m) is.finite(log_lik(m)))
+      if(any(label_swapping | !finite_loglik)){
         message("  Label switching detected")
         mlist <- mcmcList(mod.list)
         neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
         if(is.null(neff)) neff <- 0
-        r <- gelman_rubin(mlist, hp)
+        r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
+        if(is.null(r)) r <- list(mpsrf=10)
         break()
       }
     }
@@ -152,7 +184,8 @@ gibbs_singlebatch_pooled <- function(hp, mp, dat, max_burnin=32000){
     mlist <- mcmcList(mod.list)
     neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
     if(is.null(neff)) neff <- 0
-    r <- gelman_rubin(mlist, hp)
+    r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
+    if(is.null(r)) r <- list(mpsrf=10)
     message("     r: ", round(r$mpsrf, 2))
     message("     eff size (minimum): ", round(min(neff), 1))
     message("     eff size (median): ", round(median(neff), 1))
@@ -182,7 +215,7 @@ gibbsSingleBatchPooled <- function(hp,
                     mp=mp,
                     dat=dat,
                     max_burnin=max_burnin)
-  names(model.list) <- paste0("MB", map_dbl(model.list, k))
+  names(model.list) <- paste0("SBP", map_dbl(model.list, k))
   ## sort by marginal likelihood
   ##
   ## if(reduce_size) TODO:  remove z chain, keep y in one object

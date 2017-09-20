@@ -128,20 +128,34 @@ test_that("SingleBatchPooled", {
   truth <- simulateData(N = 45, theta = c(-2, 0),
                         sds = c(0.1, 0.1),
                         p = c(1/3, 2/3))
-  mp <- McmcParams(iter = 1000, burnin = 100, nStarts=4)
-  hp <- Hyperparameters(k=2,
-                        mu=-0.75,
-                        tau2.0=0.4,
-                        eta.0=32,
-                        m2.0=0.5)
-  sb <- SingleBatchPooled(dat=y(truth),
-                          mp=mp, hp=hp)
-  hp <- Hyperparameters(k=4,
+  mp <- McmcParams(iter = 1000, burnin = 200, nStarts=4)
+  hp <- Hyperparameters(k=5,
                         mu=-0.75,
                         tau2.0=0.4,
                         eta.0=32,
                         m2.0=0.5)
   model <- gibbs_singlebatch_pooled(hp, mp, dat=y(truth))
-  model <- gibbsSingleBatchPooled(hp, mp, dat=y(truth))
-  expect_identical(k(model[[1]]), 2L)
+  ##k(hp) <- 2L
+  ##model <- gibbs_singlebatch_pooled(hp, mp, dat=y(truth))
+  ##trace(gibbsSinglebatchPooled, browser)
+  model.list <- gibbsSingleBatchPooled(hp, mp, dat=y(truth))
+  expect_identical(k(model.list[[1]]), 2L)
+  expect_identical(names(model.list)[1], "SBP2")
+})
+
+test_that("mcmc steps", {
+  library(purrr)
+  set.seed(2000)
+  truth <- simulateData(N = 45, theta = c(-2, 0),
+                        sds = c(0.1, 0.1),
+                        p = c(1/3, 2/3))
+  mp <- McmcParams(iter = 2, burnin = 0, nStarts=4)
+  hp <- Hyperparameters(k=2,
+                        mu=-0.75,
+                        tau2.0=0.4,
+                        eta.0=32,
+                        m2.0=0.5)
+  sb.list <- replicate(10, SingleBatchPooled(dat=y(truth),
+                                             mp=mp, hp=hp))
+  expect_true(!any(is.na(map_dbl(sb.list, log_lik))))
 })

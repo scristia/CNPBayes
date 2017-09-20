@@ -285,9 +285,10 @@ setMethod("relabel", "SingleBatchModel", function(object, zindex){
 
 .computeModesMarginal <- function(object){
   i <- argMax(object)
+  if(length(i) == 0) i <- iter(object)
   mc <- chains(object)
   thetamax <- theta(mc)[i, ]
-  sigma2max <- sigma2(mc)[i,]
+  sigma2max <- sigma2(mc)[i, ]
   pmax <- p(mc)[i, ]
   modes <- list(theta=thetamax,
                 sigma2=sigma2max,
