@@ -156,13 +156,16 @@ test_that("Mapping components to copy number (single batch)", {
   mcmcParams(truth) <- McmcParams(iter=200, burnin=0)
   if(FALSE)
     ggSingleBatch(truth)
-
-  model <- posteriorSimulation(truth)
+  ##model <- posteriorSimulation(truth)
+  mp <- McmcParams(iter = 1000, burnin = 100, nStarts = 4)
+  hp <- Hyperparameters(tau2.0=100, m2.0=0.1, eta.0=1)
+  model <- SingleBatchModel2(mp=mp, dat=y(truth), hp=Hyperparameters(k=3))
+  model <- .posteriorSimulation2(model)
   cn.model <- SingleBatchCopyNumber(model)
 
-  map <- mapComponents(cn.model, params)
-  expect_identical(map, c(1L, 1L, 1L))
-  mapping(cn.model) <- map
+  mapping <- mapComponents(cn.model, params)
+  expect_identical(mapping, c(1L, 1L, 1L))
+  mapping(cn.model) <- mapping
 
   ##
   ## merge 2 of 3 components 
@@ -171,13 +174,16 @@ test_that("Mapping components to copy number (single batch)", {
   truth <- simulateData(N=100, p=c(0.1, 0.8, 0.1),
                         theta=c(-0.3, 0, 1), sds=c(0.2, 0.2, 0.2))
   mcmcParams(truth) <- McmcParams(iter=200, burnin=0)
-  ## label switching will occur because components are not well separated
-  expect_warning(model <- posteriorSimulation(truth),
-                 "label switching: model k=3")
+  model <- SingleBatchModel2(mp=mp, dat=y(truth), hp=Hyperparameters(k=3))
+  expect_warning(model <- .posteriorSimulation2(model))
   cn.model <- SingleBatchCopyNumber(model)
-  map <- mapComponents(cn.model, params)
-  mapping(cn.model) <- map
-  expect_identical(map, c(1L, 1L, 3L))
+  ## label switching will occur because components are not well separated
+  ## expect_warning(model <- posteriorSimulation(truth),
+  ##                "label switching: model k=3")
+  cn.model <- SingleBatchCopyNumber(model)
+  mapping <- mapComponents(cn.model, params)
+  mapping(cn.model) <- mapping
+  expect_identical(mapping, c(1L, 1L, 3L))
   map2 <- mapCopyNumber(cn.model)
   expect_identical(map2, factor(c(2, 2, 3)))
 })

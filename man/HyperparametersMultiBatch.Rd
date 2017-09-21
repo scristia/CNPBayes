@@ -5,8 +5,8 @@
 \title{Create an object of class 'HyperparametersMultiBatch' for the
 batch mixture model}
 \usage{
-HyperparametersMultiBatch(k = 0L, mu.0 = 0, tau2.0 = 100, eta.0 = 1800,
-  m2.0 = 1/60, alpha, beta = 0.1, a = 1.8, b = 6)
+HyperparametersMultiBatch(k = 0L, mu.0 = 0, tau2.0 = 0.4, eta.0 = 32,
+  m2.0 = 0.5, alpha, beta = 0.1, a = 1.8, b = 6)
 }
 \arguments{
 \item{k}{length-one integer vector specifying number of components

@@ -164,8 +164,9 @@ gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches){
   nchains <- nStarts(mp)
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
   if(iter(mp) < 500){
-    stop("Require at least 500 Monte Carlo simulations")
-  }
+    warning("Require at least 500 Monte Carlo simulations")
+    MIN_EFF <- ceiling(iter(mp) * 0.5)
+  } else MIN_EFF <- 500
   while(burnin(mp) < max_burnin && thin(mp) < 100){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mod.list <- replicate(nchains, MultiBatchPooled(dat=dat,
@@ -203,12 +204,12 @@ gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches){
     message("     r: ", round(r$mpsrf, 2))
     message("     eff size (minimum): ", round(min(neff), 1))
     message("     eff size (median): ", round(median(neff), 1))
-    if(all(neff > 500) && r$mpsrf < 1.2) break()
+    if(all(neff > MIN_EFF) && r$mpsrf < 1.2) break()
     burnin(mp) <- as.integer(burnin(mp) * 2)
     mp@thin <- as.integer(thin(mp) * 2)
   }
   model <- combine_multibatch_pooled(mod.list, batches)
-  meets_conditions <- all(neff > 500) && r$mpsrf < 2 && !label_switch(model)
+  meets_conditions <- all(neff > MIN_EFF) && r$mpsrf < 2 && !label_switch(model)
   if(meets_conditions){
     model <- compute_marginal_lik(model)
   }

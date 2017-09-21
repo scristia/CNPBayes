@@ -32,28 +32,7 @@ test_that("overfit model", {
   expect_identical(names(model)[1], "SB3")
 })
 
-test_that("batch overfit galaxy", {
-  set.seed(1)
-  ## load data
-  library(MASS)
-  data(galaxies)
-  ## correct 78th observation
-  galaxies[78] <- 26960
-  galaxies2 <- (galaxies-median(galaxies))/1000
-  galaxies3 <- c(galaxies2, galaxies2 + 10)
-  mp <- McmcParams(burnin=200, nStarts=5, iter=1000)
-  hp <- HyperparametersMultiBatch(k=3,
-                                  mu=-0.75,
-                                  tau2.0=0.4,
-                                  eta.0=200, ## 32 default
-                                  m2.0=100) ## 0.5 default
-  model.list <- gibbs_batch_K(hp=hp, mp=mp, k_range=c(1, 3), dat=galaxies3,
-                              batches=rep(1:2, each=length(galaxies)))
-  expect_identical(names(model.list)[1], "MB3")
-})
-
 .test_that <- function(name, expr) NULL
-
 .test_that("number starts", {
   set.seed(1)
   # load data
@@ -92,5 +71,4 @@ test_that("batch overfit galaxy", {
   ml2 <- marginalLikelihood(mlist2, mlParams(ignore.effective.size=TRUE,
                                              warnings=FALSE))
   expect_equivalent(which.max(ml2), 2)
-
 })

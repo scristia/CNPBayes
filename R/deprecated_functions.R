@@ -972,3 +972,63 @@ HyperparametersBatch <- function(k=3L,
       a=a,
       b=b)
 }
+
+#' Create an object of class 'HyperparametersMarginal' for the
+#' marginal mixture model
+#'
+#' @param k  length-one integer vector specifying number of components
+#' (typically 1 <= k <= 4)
+#' @param mu.0  length-one numeric vector of the mean for the normal
+#' prior of the component means
+#' @param tau2.0 length-one numeric vector of the variance for the normal
+#' prior of the component means
+#' @param eta.0 length-one numeric vector of the shape parameter for
+#' the Inverse Gamma prior of the component variances.  The shape
+#' parameter is parameterized as 1/2 * eta.0.
+#' @param m2.0 length-one numeric vector of the rate parameter for
+#' the Inverse Gamma prior of the component variances.  The rate
+#' parameter is parameterized as 1/2 * eta.0 * m2.0.
+#' @param alpha length-k numeric vector of the shape parameters for
+#' the dirichlet prior on the mixture probabilities
+#' @param beta length-one numeric vector for the parameter of the
+#' geometric prior for nu.0 (nu.0 is the shape parameter of the
+#' Inverse Gamma sampling distribution for the component-specific
+#' variances).  beta is a probability and must be in the interval
+#' [0,1].
+#' @param a length-one numeric vector of the shape parameter for the
+#' Gamma prior used for sigma2.0 (sigma2.0 is the shape parameter of
+#' the Inverse Gamma sampling distribution for the component-specific
+#' variances)
+#' @param b a length-one numeric vector of the rate parameter for the
+#' Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
+#' the Inverse Gamma sampling distribution for the component-specific
+#' variances)
+#'
+#' @return An object of class HyperparametersMarginal
+#' @examples
+#' HyperparametersMarginal(k=3)
+#'
+#' @export
+HyperparametersMarginal <- function(k=0L,
+                                    mu.0=0,
+                                    tau2.0=100,
+                                    eta.0=1,
+                                    m2.0=0.1,
+                                    alpha,
+                                    beta=0.1, ## mean is 1/10
+                                    a=1.8,
+                                    b=6){
+  .Deprecated()
+  if(missing(alpha)) alpha <- rep(1, k)
+  ##if(missing(tau2)) tau2 <- rep(1, k)
+  new("HyperparametersMarginal",
+      k=as.integer(k),
+      mu.0=mu.0,
+      tau2.0=tau2.0,
+      eta.0=eta.0,
+      m2.0=m2.0,
+      alpha=alpha,
+      beta=beta,
+      a=a,
+      b=b)
+}
