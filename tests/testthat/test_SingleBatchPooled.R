@@ -143,18 +143,21 @@ test_that("SingleBatchPooled", {
   expect_identical(names(model.list)[1], "SBP2")
 })
 
-test_that("mcmc steps", {
+test_that("Valid starts", {
   library(purrr)
   set.seed(2000)
   truth <- simulateData(N = 45, theta = c(-2, 0),
                         sds = c(0.1, 0.1),
                         p = c(1/3, 2/3))
-  mp <- McmcParams(iter = 2, burnin = 0, nStarts=4)
+  mp <- McmcParams(iter = 2, burnin = 0)
   hp <- Hyperparameters(k=2,
                         mu=-0.75,
                         tau2.0=0.4,
                         eta.0=32,
                         m2.0=0.5)
+  sb <- SingleBatchPooled(dat=y(truth), mp=mp, hp=hp)
+  expect_identical(log_lik(sb), loglik_pooled(sb))
+
   sb.list <- replicate(10, SingleBatchPooled(dat=y(truth),
                                              mp=mp, hp=hp))
   expect_true(!any(is.na(map_dbl(sb.list, log_lik))))

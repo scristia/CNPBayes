@@ -74,6 +74,7 @@ test_that("MultiBatchPooled MCMC", {
   mp <- McmcParams(iter=10, burnin=5, nStarts=1, thin=2)
   model2 <- burnin_multibatch_pvar(model, mp)
   model2 <- mcmc_multibatch_pvar(model, mp)
+  expect_true(validObject(model2))
 })
 
 .test_that <- function(nm, expr) NULL
@@ -202,6 +203,7 @@ test_that("k=4 seg fault", {
 
 
 test_that("MultiBatchPooled model selection", {
+  set.seed(123)
   nbatch <- 3
   k <- 3
   means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
@@ -243,7 +245,6 @@ test_that("MultiBatchPooled model selection", {
                                  mp=mp,
                                  dat=y(truth),
                                  batches=batch(truth))
-  ##purrr::map_dbl(mlist, marginal_lik)
   model <- mlist[[1]]
   expect_identical(k(model), 3L)
   if(FALSE){

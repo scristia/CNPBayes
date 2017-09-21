@@ -70,6 +70,11 @@ test_that("test_constructor", {
 
     truth <- simulateData(N = 2500, p = rep(1/3, 3),
                           theta = c(-1, 0, 1), sds = rep(0.1, 3))
-    pooled.model <- SingleBatchPooled(y(truth))
+    hp <- Hyperparameters(k=5,
+                          mu=-0.75,
+                          tau2.0=0.4,
+                          eta.0=32,
+                          m2.0=0.5)
+    pooled.model <- SingleBatchPooled(y(truth), hp=hp)
     expect_true(validObject(pooled.model))
 })

@@ -117,7 +117,7 @@ SingleBatchModel <- function(data=numeric(), k=3, hypp, mcmc.params){
 }
 
 
-SingleBatchModel2 <- function(dat=numeric(), hp=Hyperparameters(),
+.SingleBatchModel2 <- function(dat=numeric(), hp=Hyperparameters(),
                               mp=McmcParams(iter=1000, burnin=1000,
                                             thin=10, nStarts=4)){
   if(length(dat) == 0){
@@ -161,6 +161,28 @@ SingleBatchModel2 <- function(dat=numeric(), hp=Hyperparameters(),
                 .internal.counter=0L)
   chains(object) <- McmcChains(object)
   object
+}
+
+SingleBatchModel2 <- function(dat=numeric(),
+                              hp=Hyperparameters(),
+                              mp=McmcParams(iter=1000, burnin=1000,
+                                            thin=10, nStarts=4)){
+  if(length(dat) == 0){
+    return(.SingleBatchModel2(dat, hp, mp))
+  }
+  iter <- 0
+  validZ <- FALSE
+  mp.tmp <- McmcParams(iter=0, burnin=5, thin=1, nStarts=1)
+  while(!validZ){
+    sb <- .SingleBatchModel2(dat, hp, mp.tmp)
+    sb <- runBurnin(sb)
+    tabz <- table(z(sb))
+    if(length(tabz) == k(hp)) validZ <- TRUE
+    iter <- iter + 1
+    if(iter > 50) stop("Trouble initializing valid model")
+  }
+  mcmcParams(sb) <- mp
+  sb
 }
 
 

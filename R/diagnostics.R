@@ -303,36 +303,49 @@ constructor <- function(nm, hp, mp, batches){
 
 gibbs <- function(hp, mp, dat, max_burnin=32000){
   nchains <- nStarts(mp)
+  if(nchains==1) stop("Must initialize at least 2 chains with nStarts ")
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
   if(iter(mp) < 500){
     stop("Require at least 500 Monte Carlo simulations")
   }
-  while(burnin(mp) < max_burnin){
+  counter <- 0
+  while(burnin(mp) < max_burnin & counter < 5){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mod.list <- replicate(nchains, SingleBatchModel2(dat=dat,
                                                      hp=hp,
                                                      mp=mp))
     mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
     label_swapping <- map_lgl(mod.list, label_switch)
-    nswap <- sum(label_swapping)
-    if(nswap > 0){
-      ## try one more time
+    noswap <- sum(!label_swapping)
+    if(noswap < 3){
+      burnin(mp) <- as.integer(burnin(mp) * 2)
       mp@thin <- as.integer(thin(mp) * 2)
-      mod.list2 <- replicate(nswap,
-                             SingleBatchModel2(dat=dat,
-                                              mp=mp,
-                                              hp=hp))
-      mod.list2 <- suppressWarnings(map(mod.list2, posteriorSimulation))
-      mod.list[ label_swapping ] <- mod.list2
-      label_swapping <- map_lgl(mod.list, label_switch)
-      if(any(label_swapping)){
-        message("  Label switching detected")
-        mlist <- mcmcList(mod.list)
-        neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-        if(is.null(neff)) neff <- 0
-        r <- gelman_rubin(mlist, hp)
-        break()
-      }
+      ## only increment counter for label switching
+      counter <- counter + 1
+      mlist <- mcmcList(mod.list)
+      neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
+      if(is.null(neff))  neff <- 0
+      r <- gelman_rubin(mlist, hp)
+      next()
+      ## try one more time
+      ##      mp@thin <- as.integer(thin(mp) * 2)
+      ##      mod.list2 <- replicate(nswap,
+      ##                             SingleBatchModel2(dat=dat,
+      ##                                              mp=mp,
+      ##                                              hp=hp))
+      ##      mod.list2 <- suppressWarnings(map(mod.list2, posteriorSimulation))
+      ##      mod.list[ label_swapping ] <- mod.list2
+      ##      label_swapping <- map_lgl(mod.list, label_switch)
+      ##      if(any(label_swapping)){
+      ##        message("  Label switching detected")
+      ##        mlist <- mcmcList(mod.list)
+      ##        neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
+      ##        if(is.null(neff)) neff <- 0
+      ##        r <- gelman_rubin(mlist, hp)
+      ##        burnin(mp) <- as.integer(burnin(mp) * 2)
+      ##        mp@thin <- as.integer(thin(mp) * 2)
+      ##        break()
+      ##      }
     }
     mod.list <- mod.list[ selectModels(mod.list) ]
     mlist <- mcmcList(mod.list)
@@ -345,6 +358,7 @@ gibbs <- function(hp, mp, dat, max_burnin=32000){
     if(all(neff > 500) && r$mpsrf < 1.2) break()
     burnin(mp) <- as.integer(burnin(mp) * 2)
     mp@thin <- as.integer(thin(mp) * 2)
+    counter <- 0
   }
   model <- combineModels(mod.list)
   meets_conditions <- all(neff > 500) && r$mpsrf < 2 && !label_switch(model)

@@ -389,6 +389,10 @@ setMethod("ggChains", "SingleBatchPooled", function(model){
   ggSingleBatchPooledChains(model)
 })
 
+setMethod("ggChains", "SingleBatchModel", function(model){
+  ggSingleBatchChains(model)
+})
+
 singleBatchDensities <- function(object){
   dnorm_poly(object)
 }

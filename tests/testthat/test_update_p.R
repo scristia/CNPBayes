@@ -5,10 +5,10 @@ test_that("update_p", {
   truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0),
                         sds = c(0.3, 0.15, 0.15),
                         p = c(0.005, 1/10, 1 - 0.005 - 1/10))
-  mcmcp <- McmcParams(iter = 10, burnin = 10)
-  model <- CNPBayes:::SingleBatchPooledVar(y(truth), k = 3)
+  mp <- McmcParams(iter = 10, burnin = 10)
+  model <- SingleBatchPooled(y(truth), mp=mp)
   set.seed(342)
-  p <- CNPBayes:::update_p(model)
+  p <- update_p(model)
 
   alpha <- alpha(model) + tablez(model)
   set.seed(342)
@@ -21,10 +21,10 @@ test_that("update_mu", {
   truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0),
                         sds = c(0.3, 0.15, 0.15),
                         p = c(0.005, 1/10, 1 - 0.005 - 1/10))
-  mcmcp <- McmcParams(iter = 10, burnin = 10)
-  mod <- CNPBayes:::SingleBatchPooledVar(y(truth), k = 3)
+  mp <- McmcParams(iter = 10, burnin = 10)
+  mod <- SingleBatchPooled(y(truth), mp=mp)
   set.seed(342)
-  (mu.cpp <- CNPBayes:::update_mu(mod))
+  (mu.cpp <- update_mu(mod))
 
   tau2 <- tau2(mod)
   tau2.tilde <- 1/tau2
@@ -48,11 +48,11 @@ test_that("nu0_pooled", {
   truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0),
                         sds = c(0.3, 0.15, 0.15),
                         p = c(0.005, 1/10, 1 - 0.005 - 1/10))
-  mcmcp <- McmcParams(iter = 10, burnin = 10)
-  mod <- CNPBayes:::SingleBatchPooledVar(y(truth), k = 3)
+  mp <- McmcParams(iter = 10, burnin = 10)
+  mod <- SingleBatchPooled(y(truth), mp=mp)
   set.seed(123)
 
-  nu0.cpp <- CNPBayes:::nu0_pooled(mod)
+  nu0.cpp <- nu0_pooled(mod)
   ## R
   K <- k(mod)
   prec <- 1/sigma2(mod)
@@ -86,10 +86,10 @@ test_that("sigma2_0_pooled", {
   truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0),
                         sds = c(0.3, 0.15, 0.15),
                         p = c(0.005, 1/10, 1 - 0.005 - 1/10))
-  mcmcp <- McmcParams(iter = 10, burnin = 10)
-  mod <- CNPBayes:::SingleBatchPooledVar(y(truth), k = 3)
+  mp <- McmcParams(iter = 10, burnin = 10)
+  mod <- SingleBatchPooled(y(truth), mp=mp)
   set.seed(123)
-  s20.cpp <- CNPBayes:::sigma2_0_pooled(mod)
+  s20.cpp <- sigma2_0_pooled(mod)
 
   ## R
   K <- k(mod)
@@ -109,7 +109,7 @@ test_that("sigma2_0_pooled", {
                         sds = c(0.05, 0.05, 0.05),
                         p = c(0.01, 1/10, 1 - 0.01 - 1/10))
   mcmcp <- McmcParams(iter = 0, burnin = 0, nStarts=1000)
-  mod <- CNPBayes:::SingleBatchPooledVar(y(truth), k = 3,
+  mod <- SingleBatchPooledVar(y(truth), k = 3,
                                          mcmc.params=mcmcp)
   mod <- posteriorSimulation(mod)
   mcmcParams(mod) <- McmcParams(iter=1000, burnin=0, nStarts=0)
@@ -117,10 +117,10 @@ test_that("sigma2_0_pooled", {
   mod <- posteriorSimulation(mod)
   K <- k(mod)
   set.seed(123)
-  z.cpp <- CNPBayes:::z_pooled(mod)
+  z.cpp <- z_pooled(mod)
 
   set.seed(123)
-  p.cpp <- CNPBayes:::multinomialPr_pooled(mod)
+  p.cpp <- multinomialPr_pooled(mod)
 
   p <- p(mod)
   x <- y(mod)

@@ -6,7 +6,7 @@ NULL
                               hp=Hyperparameters(),
                               mp=McmcParams(iter=1000, burnin=1000,
                                             thin=10, nStarts=4)){
-  obj <- SingleBatchModel2(dat, hp, mp)
+  obj <- .SingleBatchModel2(dat, hp, mp)
   obj@sigma2 <- mean(sigma2(obj))
   ch <- chains(obj)
   ch@sigma2 <- matrix(NA, iter(obj), 1)
@@ -37,6 +37,7 @@ SingleBatchPooled <- function(dat=numeric(),
     if(iter > 50) stop("Trouble initializing valid model")
   }
   mcmcParams(sb) <- mp
+  log_lik(sb) <- loglik_pooled(sb)
   sb
 }
 

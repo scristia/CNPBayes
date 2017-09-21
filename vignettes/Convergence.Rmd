@@ -17,7 +17,6 @@ A Markov Chain Monte Carlo posterior simulation should be visually inspected to 
 ```{r lib}
 # load CNPBayes
 suppressMessages(library(CNPBayes))
-
 # load packages for manipulating and visualizing data
 suppressMessages(library(dplyr))
 suppressMessages(library(tidyr))
