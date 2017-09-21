@@ -192,7 +192,8 @@ gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches){
         mlist <- mcmcList(mod.list)
         neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
         if(is.null(neff)) neff <- 0
-        r <- gelman_rubin(mlist, hp)
+        r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
+        if(is.null(r)) r <- list(mpsrf=10)
         break()
       }
     }
@@ -200,7 +201,8 @@ gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches){
     mlist <- mcmcList(mod.list)
     neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
     if(is.null(neff)) neff <- 0
-    r <- gelman_rubin(mlist, hp)
+    r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
+    if(is.null(r)) r <- list(mpsrf=10)
     message("     r: ", round(r$mpsrf, 2))
     message("     eff size (minimum): ", round(min(neff), 1))
     message("     eff size (median): ", round(median(neff), 1))
