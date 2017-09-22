@@ -12,27 +12,11 @@ vignette: >
 
 # Introduction
 
-CNPBayes models multi-modal densities via a hierarchical Bayesian
-Gaussian mixture model.  The major application of this model is the
-estimation of copy number at copy number polymorphic loci (CNPs). Two
-versions of the mixture model are implemented.  A *standard* model,
-referred to as a *marginal* model, that has one mean and standard
-deviation for each component, and a *batch* model with batch-specific
-means and standard deviations. Approximation of the posterior is by
-Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp package
-[@Rcpp].  
+CNPBayes models multi-modal densities via a hierarchical Bayesian Gaussian mixture model. The major application of this model is the estimation of copy number at copy number polymorphic loci (CNPs). Four versions of the mixture model are implemented: a *standard* model, referred to as a *SingleBatch* model, that has one mean and standard deviation for each component; a *SingleBatchPooled* model that has a pooled estimate of the standard deviation across all mixture components; a *MultiBatch* model with batch-specific means and standard deviations; and a *MultiBatchPooled* model with batch-specific standard deviations that are pooled across mixture components within each batch. For all versions, approximation of the posterior is by Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp package [@Rcpp].
 
-For an EM-implementation of Gaussian mixture models for CNPs, see the
-Bioconductor package CNVtools [@Barnes2008].  A Bayesian extension of
-this model by some of the same authors was developed to automate the
-analysis of the Welcome Trust Case Control Consortium (WTCCC) genotype
-data [@cardin] and implemented in the R package CNVCALL
-(http://niallcardin.com/CNVCALL).
+For an EM-implementation of Gaussian mixture models for CNPs, see the Bioconductor package CNVtools [@Barnes2008]. A Bayesian extension of this model by some of the same authors was developed to automate the analysis of the Welcome Trust Case Control Consortium (WTCCC) genotype data [@cardin] and implemented in the R package CNVCALL (http://niallcardin.com/CNVCALL).
 
-This vignette provides a concise workfklow for fitting mixture models
-in large array-based genome-wide association studies.  We refer the
-reader to other vignettes included with this package for details
-regarding implementation.
+This vignette provides a concise workfklow for fitting mixture models in large array-based genome-wide association studies. We refer the reader to other vignettes included with this package for details regarding implementation.
 
 ```{r lib} 
 suppressPackageStartupMessages(library(CNPBayes))
@@ -43,14 +27,14 @@ suppressPackageStartupMessages(library(SummarizedExperiment))
 
 ## Delineate CNPs for each ancestry group
 
-Provided in the `CNPBayes` package is example `SnpArrayExperiment` and `GRangesList` data.
+Provided in the `CNPBayes` package is example `SnpArrayExperiment` and `GRangesList` data.  The `GRangesList` object contains a collection of copy number deletions and duplications identified from a hidden Markov model fit independently to each sample in a study.   The `SummarizedExperiment` object contains log R ratios and, optionally, B Allele frequencies, obtained from a SNP array.
 
 ```{r find_cnps}
 se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
 grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
 ```
 
-Using this data, we identify CNP loci and summarize within sample and locus by median.
+Using this data, we identify CNP loci and summarize within sample and locus using the median. We advise against using the first principal component as a summary statistic in large studies. See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`.
 
 ```{r summary, message=FALSE}
 cnv.region <- consensusCNP(grl, max.width=5e6)
@@ -58,43 +42,30 @@ i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
 med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
 ```
 
-See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`.
-
-A `MixtureModel` is constructed using this summarized data for a CNP locus with
-a call to `MarginalModel` or `BatchModel`, depending on whether the simulation
-should be *marginal* across batch effect, or *hierarchical*. The batch of a
-subject is determined by the chemistry plate and is specified using the `batch`
-parameter in the `BatchModel`. Multiple chemistry plates can be grouped in a
-single batch using the function `collapseBatch`. However, as there are only 35
-samples in this toy example, we assume that these samples were all processed in
-the same batch. For illustration, we demonstrate how one could construct a
-`BatchModel` with two batches, but we do not try to run MCMC on this object.
+One of four times of mixture models can be instantiated from the summarized data for a CNP locus using one of the following constructor functions: `SingleBatchModel2` (one mean and standard deviation per mixture component), `SingleBatchPooled` (one mean per mixture component and a pooled estimate of the variance), `MultiBatchModel2` (batch- and component-specific means and variances), `MultiBatchPooled` (batch-specific pooled variance and batch- and component-specific means).  The batch of a subject is determined by the chemistry plate and is specified using the `batch` parameter in the `MultiBatchModel`. We recommend using the `collapseBatch` function to identify chemistry plates that belong to the same batch. However, as there are only 35 samples in this toy example, we assume that these samples were all processed in the same batch. For illustration, we demonstrate how one could construct a `MultiBatchModel` with two batches.  In practice, one should run a longer burnin and more more than 200 iterations following burnin.  In the following code chunk, we initialize an MCMC parameters object that contain parameters governing the number of burnin iterations, the number of iterations following burnin, and the number of independently initialized models (*nStarts*).
 
 ```{r model_construction}
-mp <- McmcParams(nStarts=10, burnin=200, iter=200)
+mp <- McmcParams(nStarts=5, burnin=200, iter=200)
 set.seed(1337)
-sb.list <- MarginalModelList(data=med.summary, mcmc.params=mp, k=1:4)
-mb.list <- BatchModelList(data=med.summary, k=1:4,
-                          batch=c(rep(1, 12), rep(2, 23)),
-                          mcmc.params=mp)
+model <- SingleBatchModel2(dat=med.summary, mp=mp,
+                           hp=Hyperparameters(k=2))
+model2 <- posteriorSimulation(model)
+```
+
+In the following code chunk, we inspect the chains for convergence and overlay the posterior summary of the mixture model on a histogram of the data.
+
+```{r ggfunctions}
+chains <- ggChains(model2)
+chains[[1]]
 ```
 
 For details about model construction and other optional parameters, see [Bayesian mixture models for copy number estimation](Implementation.pdf).
 
 ## Fitting mixture models at each CNP
 
-For array-based estimates and germline genomes, there are typically
-between 1 and 4 copy number states at any given CNP.  Since we do not
-know the number of components a priori, we fit a model for each k.
-In addition, we fit models with and without a term for batch.
+For array-based estimates and germline genomes, there are typically between 1 and 4 copy number states at any given CNP. Since we do not know the number of components a priori, we fit a model for each k. In addition, we fit models with and without a term for batch.
 
-The `posteriorSimulation` function takes a constructed `MixtureModel` and `k`, a
-vector of the number of components for which to fit models. The posterior
-simulations of each model is held in a list. MCMC simulations for the batch
-model (not evaluated) have the same interface. Warnings regarding label
-switching can indidate that the burnin is insufficient, or that the model is
-overfit. Here, there are clearly only 2 components but we proceeed with the
-overfit models.
+The `posteriorSimulation` function takes a constructed `MixtureModel` and `k`, a vector of the number of components for which to fit models. The posterior simulations of each model is held in a list. MCMC simulations for the batch model (not evaluated) have the same interface. Warnings regarding label switching can indidate that the burnin is insufficient, or that the model is overfit. Here, there are clearly only 2 components but we proceeed with the overfit models.
 
 ```{r posteriorSimulation}
 set.seed(13)
@@ -113,16 +84,14 @@ One motivation of the batch model is to model differences in location or scale t
 
 ## Selecting a model
 
-Marginal likelihood is estimated for each of the 4 single-batch models. The
-Bayes' factor is used to select one of these models for further study. First, we select only those models for which we did not have problems with label switching.
+Marginal likelihood is estimated for each of the 4 single-batch models. The Bayes' factor is used to select one of these models for further study. First, we select only those models for which we did not have problems with label switching.
 
 ```{r labelswitching}
 sb.list <- sb.list[ ! sapply(sb.list, label_switch) ]
 mb.list <- mb.list[ ! sapply(mb.list, label_switch) ]
 ```
 
-Had we fit the multi-batch models, one could compare the marginal likelihoods between
-the single-batch and multi-batch models to determine the best fit.
+Had we fit the multi-batch models, one could compare the marginal likelihoods between the single-batch and multi-batch models to determine the best fit.
 
 ```{r likelihood}
 ## marginal likelihood of each model
@@ -135,15 +104,7 @@ best.model
 
 ## Mapping mixture components to copy number states
 
-The model selected by the above procedure may not necessarily have mixture
-components that correspond to distinct copy number states. For example, if there
-are not many probes in a CNP region the average log R ratios are more likely to
-be skewed. See also the discussion in [@cardin]. Following model selection, we
-map mixture components to distinct copy number states. Mixture components with
-substantial overlap can be identified as having a large number of observations
-with posterior probabilities in the interval [c, 1-c]. The `mapParams` function
-specifies parameters for mapping mixture components to distinct copy number
-states.
+The model selected by the above procedure may not necessarily have mixture components that correspond to distinct copy number states. For example, if there are not many probes in a CNP region the average log R ratios are more likely to be skewed. See also the discussion in [@cardin]. Following model selection, we map mixture components to distinct copy number states. Mixture components with substantial overlap can be identified as having a large number of observations with posterior probabilities in the interval [c, 1-c]. The `mapParams` function specifies parameters for mapping mixture components to distinct copy number states.
 
 ```{r map_distinct}
 cn.model <- SingleBatchCopyNumber(sb.list[[2]])
@@ -152,14 +113,7 @@ mapping(cn.model) <- mapComponents(cn.model)
 head(probCopyNumber(cn.model))
 ```
 
-For a `SingleBatchCopyNumber` instance, posterior probabilities are derived for
- distinct copy number states (not mixture components). When there is a
- one-to-one mapping between mixture components and copy number, the posterior
- probabilities are identical. Had the mapping step produced a many-to-one
- mapping from mixture components to copy number, the posterior probabilities
- would be added for components that correspond to the same copy number. To make
- this obvious, below we map both mixture components to a single state and
- recompute the copy number probabilities.
+For a `SingleBatchCopyNumber` instance, posterior probabilities are derived for distinct copy number states (not mixture components). When there is a one-to-one mapping between mixture components and copy number, the posterior probabilities are identical. Had the mapping step produced a many-to-one mapping from mixture components to copy number, the posterior probabilities would be added for components that correspond to the same copy number. To make this obvious, below we map both mixture components to a single state and recompute the copy number probabilities.
 
 ```{r posterior_prob}
 mapping(cn.model) <- c(1, 1)
@@ -168,8 +122,8 @@ head(probCopyNumber(cn.model))
   
 ## Extracting MAP estimates and posterior probabilities
 
-For the selected model, we can view the *maximum a posteriori* estimates for
-component.
+For the selected model, we can view the *maximum a posteriori* estimates for component.
+
 ```{r map}
 selected.model <- sb.list[[2]]
 map(selected.model)

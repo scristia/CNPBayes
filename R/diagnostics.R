@@ -301,7 +301,7 @@ constructor <- function(nm, hp, mp, batches){
   x
 }
 
-gibbs <- function(hp, mp, dat, max_burnin=32000){
+.gibbs <- function(hp, mp, dat, max_burnin=32000){
   nchains <- nStarts(mp)
   if(nchains==1) stop("Must initialize at least 2 chains with nStarts ")
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
@@ -458,7 +458,7 @@ gibbs_K <- function(hp=Hyperparameters(),
   K <- seq(k_range[1], k_range[2])
   hp.list <- map(K, updateK, hp)
   model.list <- map(hp.list,
-                    gibbs,
+                    .gibbs,
                     mp=mp,
                     dat=dat,
                     max_burnin=max_burnin)
@@ -648,3 +648,116 @@ gibbs_pooled <- function(hp.list,
   models <- models[ix]
   models
 }
+
+
+#' Run a Gibbs sampler on one or multiple types of Bayesian Gaussian mixture models
+#'
+#' Model types:
+#' SB (SingleBatchModel):  hierarchical model with mixture component-specific means and variances;
+#' MB (MultiBatchModel): hierarchical model with mixture component- and batch-specific means and variances; 
+#' SBP (SingleBatchPooled):  similar to SB model but with a pooled
+#estimate of the variance across all mixture components; 
+#' MBP (MultiBatchPooled):  similar to MB model but with a pooled estimate of the variance (across mixture components) for each batch.
+#'
+#' @param model a character vector indicating which models to fit (any combination of 'SB', 'MB', 'SBP', and 'MBP')
+#' @param dat numeric vector of the summary copy number data for each sample at a single CNP (e.g., the median log R ratio for each sample)
+#' @param hp.list  a list of hyperparameters for each of the different models.  If missing, this list will be generated automatically with default hyperparameters that work well for copy number data
+#' @param batches  an integer vector of the same length as \code{dat} indicating the batch in which the sample was processed
+#' @param k_range a length-two numeric vector providing the minimum and maximum number of components to model.  For example, c(1, 3) will fit mixture models with 1, 2, and 3 components.
+#' @param max_burnin the maximum number of burnin iterations. See
+#'   details.
+#' @param top a length-one numeric vector indicating how many of the top
+#'   models to return.
+#'
+#' @details For each model specified, a Gibbs sampler will be initiated
+#for \code{nStarts} independently simulated starting values (we suggest
+#\code{nStarts > 2}).  The burnin, number of iterations after burnin,
+#and the thin parameters are specified in the \code{mp} argument.    If
+#the effective number of independent MCMC draws for any of the parameter
+#chains is less than 500 or if the multivariate Gelman Rubin convergence
+#diagnostic is less than 1.2, the thin and the burnin will be doubled
+#and we start over -- new chains are initalized independently and the
+#Gibbs sampler is restarted. This process is repeated until the
+#effective sample size is greater than 500 and the Gelman Rubin
+#convergence diagnostic is less than 1.2.
+#' 
+#' The number of mixture models fit depends on \code{k_range} and
+#\code{model}. For example, if \code{model=c("SBP", "MBP")} and
+#\code{k_range=c(1, 4)}, the number of mixture models evaluated will be
+#2 x 4, or 8. The fitted models will be sorted by the marginal likelihood (when
+#estimable) and only the top models will be returned.
+#'
+#' @return A list of models of length \code{top} sorted by decreasing
+#values of the marginal likelihood.
+#'
+#' @examples
+#'   set.seed(100)
+#'   nbatch <- 3
+#'   k <- 3
+#'   means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+#'       0, 0.05), nbatch, k, byrow = FALSE)
+#'   sds <- matrix(0.15, nbatch, k)
+#'   sds[, 1] <- 0.3
+#'   N <- 1000
+#'   truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+#'                                                 length.out = N),
+#'                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+#'                              theta = means,
+#'                              sds = sds)
+#'
+#' @seealso \code{\link[coda]{gelman.diag}}
+#'   \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
+#' @export
+gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
+                  dat,
+                  mp,
+                  hp.list,
+                  batches,
+                  k_range=c(1, 4),
+                  max_burnin=32e3,
+                  top=2){
+  if(("MB" %in% model || "MBP" %in% model) && missing(batches)){
+    stop("batches is missing.  Must specify batches for MB and MBP models")
+  }
+  model <- unique(model)
+  if(missing(hp.list)){
+    hp.list <- hpList()
+  }
+  message("Fitting models ", paste(model, collapse=", "))
+  if("SB" %in% model){
+    sb <- gibbs_K(hp.list[["SB"]],
+                  k_range=k_range,
+                  mp=mp,
+                  dat=dat,
+                  max_burnin=max_burnin)
+  } else sb <- NULL
+  if("MB" %in% model){
+    mb <- gibbs_batch_K(hp.list[["MB"]],
+                        k_range=k_range,
+                        mp=mp,
+                        dat=dat,
+                        batches=batches,
+                        max_burnin=max_burnin)
+  } else mb <- NULL
+  if("SBP" %in% model){
+    sbp <- gibbsSingleBatchPooled(hp.list[["SBP"]],
+                                  k_range=k_range,
+                                  mp=mp,
+                                  dat=dat,
+                                  max_burnin=max_burnin)
+  } else sbp <- NULL
+  if("MBP" %in% model){
+    mbp <- gibbsMultiBatchPooled(hp.list[["MBP"]],
+                                 k_range=k_range,
+                                 mp=mp,
+                                 dat=dat,
+                                 batches=batches,
+                                 max_burnin=max_burnin)
+  } else mbp <- NULL
+  models <- c(sb, mb, sbp, mbp)
+  ## order models by marginal likelihood
+  ml <- map_dbl(models, marginal_lik)
+  ix <- head(order(ml, decreasing=TRUE), top)
+  models <- models[ix]
+}
+

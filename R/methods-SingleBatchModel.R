@@ -163,6 +163,22 @@ SingleBatchModel <- function(data=numeric(), k=3, hypp, mcmc.params){
   object
 }
 
+#' Constructor for list of single-batch models
+#'
+#' An object of class MarginalModel is constructed for each k, creating a list of
+#' MarginalModels.
+#'
+#' @param dat numeric vector of average log R ratios
+#' @param k numeric vector indicating the number of mixture components for each model
+#' @param mp an object of class \code{McmcParams}
+#' @param hp an object of class \code{Hyperparameters}
+#' @seealso \code{\link{MultiBatchModel}} \code{\link{BatchModelList}}
+#' @return a list. Each element of the list is a \code{BatchModel}
+#' @examples
+#' mlist <- MarginalModelList(data=y(MarginalModelExample), k=1:4)
+#' mcmcParams(mlist) <- McmcParams(iter=1, burnin=1, nStarts=0)
+#' mlist2 <- posteriorSimulation(mlist)
+#' @export
 SingleBatchModel2 <- function(dat=numeric(),
                               hp=Hyperparameters(),
                               mp=McmcParams(iter=1000, burnin=1000,

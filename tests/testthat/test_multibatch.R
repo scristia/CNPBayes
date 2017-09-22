@@ -109,110 +109,61 @@ test_that("initial values", {
   purrr::map_dbl(models, marginal_lik)
 })
 
-test_that("test_batch_moderate", {
-  set.seed(100)
-  nbatch <- 3
-  k <- 3
-  means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
-      0, 0.05), nbatch, k, byrow = FALSE)
-  sds <- matrix(0.15, nbatch, k)
-  sds[, 1] <- 0.3
-  N <- 1000
-  truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
-                                                length.out = N),
-                             p = c(1/10, 1/5, 1 - 0.1 - 0.2),
-                             theta = means,
-                             sds = sds)
-  mcmcp <- McmcParams(iter = 1000, burnin = 0, thin=0,
-                      nStarts = 50)
-  model <- MultiBatchModel(data = y(truth), batch = batch(truth),
-                           k = 3, mcmc.params = mcmcp) ##, hypp = hypp)
-  model2 <- posteriorSimulation(model)
-
-  pz <- probz(model2)
-  expect_true(all(pz >= 0 | pz <= 1))
-  model2 <- useModes(model2)
-  expect_equal(theta(truth), theta(model2), tolerance=0.1)
-  if (FALSE) {
-    plist <- ggMultiBatchChains(model2)
-    plist[["batch"]]
-    plist3 <- ggMultiBatchChains(model4)
-    plist3[["batch"]]
-      zz <- as.integer(z(truth))
-      ps <- c(mean(zz == 1), mean(zz == 2), mean(zz == 3))
-      modelk <- model
-      plot.ts(pic(modelk), plot.type = "single")
-      abline(h = p(truth))
-      par(mfrow = c(1, 3))
-      trace(modelk, "theta", col = 1:3)
-      abline(h = theta(truth))
-      plot.ts(sigmac(modelk), plot.type = "single")
-      abline(h = sigma(truth))
-      op <- par(mfrow = c(1, 2), las = 1)
-      CNPBayes::plot(truth)
-      CNPBayes::plot(modelk)
-      par(op)
-      mc <- chains(modelk)
-      plot.ts(sigma(mc), col = "gray")
-      plot.ts(theta(mc), col = "gray")
-      plot.ts(p(mc), col = "gray")
-  }
-})
 
 test_that("test_batchEasy", {
-    set.seed(123)
-    k <- 3
-    nbatch <- 3
-    means <- matrix(c(-1.2, -1, -0.8, -0.2, 0, 0.2, 0.8, 1, 1.2),
-        nbatch, k, byrow = FALSE)
-    sds <- matrix(0.1, nbatch, k)
-    N <- 1500
-    truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
-        length.out = N), theta = means, sds = sds, p = c(1/5,
-        1/3, 1 - 1/3 - 1/5))
-    ##yy <- y(truth)
-    ##expect_identical(yy[order(batch(truth))], yy)
-    mcmcp <- McmcParams(iter = 50, burnin = 0)
-    set.seed(123)
-    model <- MultiBatchModel(y(truth), batch = batch(truth), k = 3,
-                        mcmc.params = mcmcp)
-    model <- CNPBayes:::startAtTrueValues(model, truth)
-    expect_identical(batch(truth), batch(model))
-    expect_identical(y(truth), y(model))
-    expect_identical(theta(truth), theta(model))
-    expect_identical(sigma(truth), sigma(model))
-    expect_identical(p(truth), p(model))
-    expect_identical(z(truth), z(model))
-    iter(model) <- 50L
-    if (FALSE) {
-        model <- .Call("mcmc_batch", model, mcmcParams(model))
-        set.seed(123)
-        .Call("update_sigma20_batch", model)
-        set.seed(123)
-        .updateSigma2.0Batch(model2)
-        eta.0 <- 1800/100
-        m2.0 <- 1/(60/100)
-        a <- 0.5 * eta.0
-        b <- 0.5 * eta.0 * m2.0
-        x <- rgamma(1000, a, rate = 1/b)
-        ix <- 1/x
-        hist(sqrt(1/x), breaks = 100)
-        s <- mean(sqrt(1/x))
-        theta <- rnorm(1000, -1, s)
-        hist(theta, breaks = 100, xlim = c(-2, 1.5))
-    }
-    set.seed(1)
-    ##mcmcp <- McmcParams(iter = 300, burnin = 300, nStarts = 5)
-    mcmcp <- McmcParams(iter = 20, burnin = 50, nStarts = 50)
-    model <- MultiBatchModel(y(truth), batch = batch(truth), k = 3,
-                        mcmc.params = mcmcp)
-    model <- posteriorSimulation(model)
-    expect_equal(theta(model), theta(truth),
-                 scale=0.01, tolerance=1)
-    if (FALSE) {
-        BatchModelExample <- model
-        save(BatchModelExample, file = "data/BatchModelExample.RData")
-    }
+  set.seed(123)
+  k <- 3
+  nbatch <- 3
+  means <- matrix(c(-1.2, -1, -0.8, -0.2, 0, 0.2, 0.8, 1, 1.2),
+      nbatch, k, byrow = FALSE)
+  sds <- matrix(0.1, nbatch, k)
+  N <- 1500
+  truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+      length.out = N), theta = means, sds = sds, p = c(1/5,
+      1/3, 1 - 1/3 - 1/5))
+  ##yy <- y(truth)
+  ##expect_identical(yy[order(batch(truth))], yy)
+  mcmcp <- McmcParams(iter = 50, burnin = 0)
+  set.seed(123)
+  model <- MultiBatchModel(y(truth), batch = batch(truth), k = 3,
+                      mcmc.params = mcmcp)
+  model <- CNPBayes:::startAtTrueValues(model, truth)
+  expect_identical(batch(truth), batch(model))
+  expect_identical(y(truth), y(model))
+  expect_identical(theta(truth), theta(model))
+  expect_identical(sigma(truth), sigma(model))
+  expect_identical(p(truth), p(model))
+  expect_identical(z(truth), z(model))
+  iter(model) <- 50L
+  if (FALSE) {
+      model <- .Call("mcmc_batch", model, mcmcParams(model))
+      set.seed(123)
+      .Call("update_sigma20_batch", model)
+      set.seed(123)
+      .updateSigma2.0Batch(model2)
+      eta.0 <- 1800/100
+      m2.0 <- 1/(60/100)
+      a <- 0.5 * eta.0
+      b <- 0.5 * eta.0 * m2.0
+      x <- rgamma(1000, a, rate = 1/b)
+      ix <- 1/x
+      hist(sqrt(1/x), breaks = 100)
+      s <- mean(sqrt(1/x))
+      theta <- rnorm(1000, -1, s)
+      hist(theta, breaks = 100, xlim = c(-2, 1.5))
+  }
+  set.seed(1)
+  ##mcmcp <- McmcParams(iter = 300, burnin = 300, nStarts = 5)
+  mcmcp <- McmcParams(iter = 20, burnin = 50, nStarts = 50)
+  model <- MultiBatchModel(y(truth), batch = batch(truth), k = 3,
+                      mcmc.params = mcmcp)
+  model <- posteriorSimulation(model)
+  expect_equal(theta(model), theta(truth),
+               scale=0.01, tolerance=1)
+  if (FALSE) {
+      BatchModelExample <- model
+      save(BatchModelExample, file = "data/BatchModelExample.RData")
+  }
 })
 
 

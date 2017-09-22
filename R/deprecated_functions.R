@@ -1032,3 +1032,113 @@ HyperparametersMarginal <- function(k=0L,
       a=a,
       b=b)
 }
+
+#' Constructor for list of batch models
+#'
+#' An object of class BatchModel is constructed for each k, creating a list of
+#' BatchModels.
+#'
+#' @param data numeric vector of average log R ratios
+#' @param batch vector of batch labels
+#' @param mcmc.params a \code{McmcParams} object
+#' @param k numeric vector indicating the number of mixture components for each model
+#' @param ... additional arguments to \code{HyperparametersBatch}
+#' @return a list. Each element of the list is a \code{BatchModel}
+#' @seealso \code{\link{BatchModel}}.  For single-batch data, use \code{\link{MarginalModelList}}.
+#' @examples
+#' mlist <- BatchModelList(data=y(BatchModelExample), k=1:4, batch=batch(BatchModelExample))
+#' mcmcParams(mlist) <- McmcParams(iter=1, burnin=1, nStarts=0)
+#' mlist2 <- posteriorSimulation(mlist)
+#' @export
+BatchModelList <- function(data=numeric(),
+                           k=numeric(),
+                           batch,
+                           mcmc.params=McmcParams(),
+                           ...){
+  .Deprecated("See MultiBatchModelList")
+  model.list <- vector("list", length(k))
+  for(i in seq_along(k)){
+    hypp <- HyperparametersBatch(k=k[i], ...)
+    model.list[[i]] <- BatchModel(data=data, k=k[i], batch=batch,
+                                  mcmc.params=mcmc.params,
+                                  hypp=hypp)
+  }
+  model.list
+}
+
+#' Create an object for running hierarchical MCMC simulations.
+#' @examples
+#'      model <- BatchModel(rnorm(10), k=1, batch=rep(1:2, each=5))
+#' @param data the data for the simulation.
+#' @param k An integer value specifying the number of latent classes.
+#' @param batch a vector of the different batch numbers (must be sorted)
+#' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @param mcmc.params An object of class 'McmcParams'
+#' @return An object of class `BatchModel`
+#' @export
+BatchModel <- function(data=numeric(),
+                       k=3,
+                       batch,
+                       hypp,
+                       mcmc.params){
+  .Deprecated("See MultiBatchModel2")
+  if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
+  if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
+  if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
+  if(missing(k) & !missing(hypp)){
+    k <- k(hypp)
+  }
+  mcmc.chains <- McmcChains()
+  bf <- factor(batch)
+  batch <- as.integer(bf)
+  ub <- unique(batch)
+  ##ix <- order(batch)
+  ix <- seq_along(batch)
+  nbatch <- setNames(as.integer(table(batch)), levels(bf))
+  B <- length(ub)
+  if(B==1 && length(data) > 0){
+    if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
+    zz <- as.integer(factor(numeric(k)))
+    zfreq <- as.integer(table(zz))
+    obj <- SingleBatchModel(data, k, hypp, mcmc.params)
+    return(obj)
+  }
+  if(k == 1) {
+    if(missing(hypp)) hypp <- HyperparametersBatch(k=1)
+    obj <- UnivariateBatchModel(data, k, batch, hypp, mcmc.params)
+    return(obj)
+  }
+  if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
+  zz <- integer(length(data))
+  zfreq <- as.integer(table(zz))
+  if(length(data) != length(batch)) {
+    stop("batch vector must be the same length as data")
+  }
+  obj <- new("BatchModel",
+             k=as.integer(k),
+             hyperparams=hypp,
+             theta=matrix(NA, B, k),
+             sigma2=matrix(NA, B, k),
+             mu=numeric(k),
+             tau2=numeric(k),
+             nu.0=numeric(1),
+             sigma2.0=numeric(1),
+             pi=numeric(k),
+             data=data[ix],
+             data.mean=matrix(NA, B, k),
+             data.prec=matrix(NA, B, k),
+             z=zz,
+             zfreq=zfreq,
+             probz=matrix(0, length(data), k),
+             logprior=numeric(1),
+             loglik=numeric(1),
+             mcmc.chains=mcmc.chains,
+             mcmc.params=mcmc.params,
+             batch=batch[ix],
+             batchElements=nbatch,
+             label_switch=FALSE,
+             .internal.constraint=5e-4,
+             .internal.counter=0L)
+  obj <- startingValues(obj)
+  obj
+}

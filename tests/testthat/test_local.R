@@ -78,3 +78,28 @@ context("Local tests")
   expect_identical(k(model), 3L)
 })
 
+
+.test_that("test_batch_moderate", {
+  set.seed(100)
+  nbatch <- 3
+  k <- 3
+  means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+      0, 0.05), nbatch, k, byrow = FALSE)
+  sds <- matrix(0.15, nbatch, k)
+  ## first component has higher variance
+  sds[, 1] <- 0.3
+  N <- 1000
+  truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+                                                length.out = N),
+                             p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+                             theta = means,
+                             sds = sds)
+  mp <- McmcParams(iter=1000, burnin=1000, thin=2, nStarts = 4)
+  model.list <- gibbs(c("MB", "MBP"),
+                      mp=mp,
+                      dat=y(truth),
+                      batches=batch(truth),
+                      k_range=c(3, 3))
+  expect_identical(names(model.list)[1], "MB3")
+  expect_equal(theta(truth), theta(model.list[[1]]), tolerance=0.1)
+})

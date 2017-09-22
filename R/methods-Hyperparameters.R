@@ -262,3 +262,12 @@ hyperparam_list <- function(){
                   multi_batch=hp)
   hp.list
 }
+
+hpList <- function(...){
+  sbp <- sb <- Hyperparameters(...)
+  mb <- mbp <- HyperparametersMultiBatch(...)
+  list(SB=sb,
+       MB=mb,
+       SBP=sbp,
+       MBP=mbp)
+}

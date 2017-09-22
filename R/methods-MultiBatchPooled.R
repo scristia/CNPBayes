@@ -233,7 +233,7 @@ gibbsMultiBatchPooled <- function(hp,
                     dat=dat,
                     batches=batches,
                     max_burnin=max_burnin)
-  names(model.list) <- paste0("MB", map_dbl(model.list, k))
+  names(model.list) <- paste0("MBP", map_dbl(model.list, k))
   ## sort by marginal likelihood
   ##
   ## if(reduce_size) TODO:  remove z chain, keep y in one object

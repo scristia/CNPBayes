@@ -89,15 +89,16 @@ abline(v=c(start(cnv.region), end(cnv.region)), lty=2)
 ```
 
 ## CNP Boundaries with PCA Summary
-Another method for summarizing the log R ratops is by the first principal 
-component on the markers for the entire region [@cardin]. A possible 
-disadvantage of this approach is that the scale of the loadings makes it more 
-difficult to interpret the copy number of the mixture components. Instead, 
-the median log R ratio is adequate and retains the original scale. An 
-advantage of the principal component method is that the minimum `start` and 
-maximum `end` can be used to define the CNV region. The principal component 
-method should downweight markers that are not consistent with the Copy Number 
-Variation.
+
+Another method for summarizing the log R ratios is by the first principal
+component on the markers for the entire region [@cardin]. Disadvantages of this
+scale are interpretion of the copy number of the mixture components the
+potential for picking up batch effects rather than biological differences in
+copy number between groups of samples. The primary advantage of a principal
+component analysis is for non-germline events where the CNVs may be partially
+overlapping and do not share the same boundaries. We find that for germline copy
+number analyses, a median summary is adequate, retains an interpretable scale,
+and is less susceptible to batch effects than principal components.
 
 ```{r pca}
 cnv.region2 <- reduce(unlist(grl))
@@ -137,16 +138,10 @@ plot(pc.summary, main="PC summary of\nreduced CNV ranges", cex.main=0.7, pch=20)
 ```
 
 ## Filtering
-Loci with no additions or deletions can be identified as normal distribution. If a loci has log R ratios drawn from a normal distribution, then the loci should not be included in the model fitting process. Removing these unneeded loci can reduce the computational burden. An easy way to identify such loci is by using the Shapiro-Wilk test as a test of normality [@shapiro]. To be conservative, we suggest retaining only those loci which have a *p* value $< 0.1$. 
+Loci with no duplications or deletions can be identified visually as a uni-modal normal distribution. A Shapiro-Wilk test test of normality [@shapiro] can be used to filter unimodal regions.  To be conservative, we suggest retaining only those loci which have a *p* value $< 0.1$. In practice, we prefer Bayes factors or estimates of the marginal likelihood for model selection (see vignette `Overview.Rmd`). 
 
 ```{r shapiro}
 shapiro.test(med.summary)
 ```
-
-## Mixture Model
-After deciding which one dimensional summary to use and summary of the data is
-complete, one can proceed to fitting a `MixtureModel` to the data. Models can
-be hierarchical over the batches, or marginal over the batches.  Please refer 
-to the CNPBayes vignette for fitting a `MixtureModel`.
 
 # References
