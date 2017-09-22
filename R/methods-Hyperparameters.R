@@ -96,7 +96,7 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 #' HyperparametersMultiBatch(k=3)
 #'
 #' @export
-HyperparametersMultiBatch <- function(k=0L,
+HyperparametersMultiBatch <- function(k=3L,
                                  mu.0=0,
                                  tau2.0=0.4,
                                  eta.0=32,
