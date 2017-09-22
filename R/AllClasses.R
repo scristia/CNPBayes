@@ -307,7 +307,6 @@ setClass("MultiBatchPooled", contains="MultiBatchModel")
 
 setClass("UnivariateBatchModel", contains="MultiBatchModel")
 
-
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
          representation(mapping="numeric"))
 

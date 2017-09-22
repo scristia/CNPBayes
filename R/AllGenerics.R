@@ -756,6 +756,10 @@ setGeneric("updateZ", function(object) standardGeneric("updateZ"))
 
 setGeneric("gatherChains", function(object) standardGeneric("gatherChains"))
 
+setGeneric("sortComponentLabels", function(model) standardGeneric("sortComponentLabels"))
+
+setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
+
 #' Trace plots of MCMC chains and mixture model densities
 #'
 #' The \code{ggChains} method provides a convenient wrapper for plotting the chains of all parameters in the various mixture model implementations.  In addition to the estimated number of independent MCMC draws (effective sample size) and Gelman-Rubin convergence diagnostics implemented in \code{gibbs}, visualization of the chains is helpful for assessing convergence.
@@ -788,11 +792,6 @@ setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 #' @param bins a length-one numeric vector indicating the number of bins -- passed to \code{geom_hist}
 setGeneric("ggMixture", function(model, bins) standardGeneric("ggMixture"))
 
-setGeneric("sortComponentLabels", function(model) standardGeneric("sortComponentLabels"))
-
-setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
-
-
 #' ggplot wrapper for plotting the data at a single CNP and the model-based densities
 #'
 #' @param model a \code{BatchModel} or  \code{MarginalModel} object
@@ -808,3 +807,14 @@ setGeneric("ggSingleBatch", function(model, bins) standardGeneric("ggSingleBatch
 #' @export
 #' @rdname ggplot-functions
 setGeneric("ggMultiBatch", function(model, bins) standardGeneric("ggMultiBatch"))
+
+#' Restore model to original dimension
+#'
+#' As the name suggests, the function downSampleEach batch can be used to down sample the observations in each batch. The function upSample restores the model object to the original dimension.
+#'
+#' @examples
+#'
+#' @export
+#' @return a SB, MB, SBP, or MBP model
+#' @rdname downSampleEachBatch
+setGeneric("upSample", function(model, tiles) standardGeneric("upSample"))

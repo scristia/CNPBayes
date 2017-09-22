@@ -72,7 +72,7 @@ Map mixture components to copy number states
 cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 map <- mapComponents(cn.model)
 mapping(cn.model) <- map
-SingleBatchCopyNumber(MarginalModelExample)
+SingleBatchCopyNumber(SingleBatchModelExample)
 cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 mapping(cn.model) <- mapComponents(cn.model)
 mapCopyNumber(cn.model)

@@ -279,7 +279,7 @@ mapComponents <- function(model, params=mapParams()){
 #'
 #' @return a \code{SingleBatchCopyNumber} instance
 #' @examples
-#' SingleBatchCopyNumber(MarginalModelExample)
+#' SingleBatchCopyNumber(SingleBatchModelExample)
 #' @export
 #' @rdname CopyNumber-methods
 SingleBatchCopyNumber <- function(model){
@@ -297,13 +297,27 @@ MultiBatchCopyNumber <- function(model){
   mb.model
 }
 
+setGeneric("CopyNumberModel", function(model) standardGeneric("CopyNumberModel"))
+
+setMethod("CopyNumberModel", "SingleBatchModel", function(model){
+  model <- SingleBatchCopyNumber(model)
+  mapping(model) <- mapComponents(model)
+  model
+})
+
+setMethod("CopyNumberModel", "MultiBatchModel", function(model){
+  model <- MultiBatchCopyNumber(model)
+  mapping(model) <- mapComponents(model)
+  model
+})
+
 #' Map mixture components to copy number states
 #'
 #' @examples
 #' cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 #' mapping(cn.model) <- mapComponents(cn.model)
 #' mapCopyNumber(cn.model)
-#' @param params  a list of parameters for mapping component indices to copy number 
+#' @param params  a list of parameters for mapping component indices to copy number
 #'
 #' @return a factor vector of length k
 #'

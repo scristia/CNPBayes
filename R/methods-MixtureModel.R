@@ -898,3 +898,39 @@ setMethod("posteriorSimulation", "list",
             ##results <- results[!isnull]
             results
           })
+
+tileSummaries <- function(tiles){
+  tile.summaries <- tiles %>% group_by(tile) %>%
+    summarize(avgLRR=mean(logratio),
+              batch=unique(batch))
+  tile.summaries
+}
+
+setMethod("upSample", "MultiBatchModel", function(model, tiles){
+  tile.sum <- tileSummaries(tiles)
+  stopifnot(all.equal(y(model), tile.sum$avgLRR))
+  key <- match(tiles$tile, tile.sum$tile)
+  model2 <- model
+  y(model2) <- tiles$logratio
+  probs <- probz(model)
+  probs2 <- probs[key, ]
+  probz(model2) <- probs2 * (iter(model) - 1)
+  z(model2) <- z(model)[key]
+  batch(model2) <- tiles$batch
+  model2
+})
+
+
+
+setMethod("upSample", "MixtureModel", function(model, tiles){
+  tile.sum <- tileSummaries(tiles)
+  stopifnot(all.equal(y(model), tile.sum$avgLRR))
+  key <- match(tiles$tile, tile.sum$tile)
+  model2 <- model
+  y(model2) <- tiles$logratio
+  probs <- probz(model)
+  probs2 <- probs[key, ]
+  probz(model2) <- probs2 * (iter(model) - 1)
+  z(model2) <- z(model)[key]
+  model2
+})

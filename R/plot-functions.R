@@ -430,7 +430,8 @@ dnorm_poly <- function(model){
   mixprob <- p(model)
   means <- theta(model)
   sds <- sigma(model)
-  if(class(model) == "SingleBatchPooled"){
+  ##if(class(model) == "SingleBatchPooled"){
+  if(lengths(sds) != k(model)){
     sds <- rep(sds, k(model))
   }
   df.list <- list()
@@ -741,7 +742,7 @@ setMethod("ggMixture", "SingleBatchModel", function(model, bins){
 
 #' @rdname ggplot-functions
 setMethod("ggMixture", "MultiBatchModel", function(model, bins){
-  .gg_multibatch_copynumber(model, bins)
+  .gg_multibatch(model, bins)
 })
 
 #' @rdname ggplot-functions
