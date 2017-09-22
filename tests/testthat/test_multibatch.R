@@ -217,40 +217,6 @@ test_that("test_stay_near_truth", {
   ## deletion
 })
 
-test_that("test_hard4", {
-  library(SummarizedExperiment)
-  set.seed(123)
-  truth <- hardTruth(p1=0.02, s = 0.1, N=500)
-  se <- as(truth, "SummarizedExperiment")
-  mcmcp <- McmcParams(iter = 100, burnin = 100, nStarts = 20)
-  hp <- HyperparametersMultiBatch(k=3,
-                             mu=-0.75,
-                             tau2.0=0.4,
-                             eta.0=32,
-                             m2.0=0.5)
-  modelk <- MultiBatchModel2(y(truth), hp, mp=mcmcp,
-                             batches=batch(truth))
-  model2 <- posteriorSimulation(modelk)
-  thetas <- theta(model2)
-  pmix <- p(model2)
-  expect_equal(theta(truth), thetas, tolerance=0.1)
-  expect_equal(sigma(truth), sigma(model2), tolerance=0.15)
-  expect_equal(p(truth), pmix, tolerance=0.04)
-  if(FALSE){
-    hp <- HyperparametersMultiBatch(k=3,
-                               mu=-0.75,
-                               tau2.0=0.4,
-                               eta.0=32,
-                               m2.0=0.5)
-    mp <- McmcParams(iter=1000L, thin=5L, burnin=1000L,
-                     nStarts=4L)
-    models <- gibbs_batch_K(dat=y(truth), batches=batch(truth),
-                            mp=mp, hp=hp)
-    map_dbl(models, marginal_lik)
-    map_dbl(models, k)
-  }
-})
-
 test_that("test_kbatch", {
     set.seed(123)
     k <- 3

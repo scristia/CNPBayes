@@ -160,7 +160,7 @@ test_that("Mapping components to copy number (single batch)", {
   mp <- McmcParams(iter = 1000, burnin = 100, nStarts = 4)
   hp <- Hyperparameters(tau2.0=100, m2.0=0.1, eta.0=1)
   model <- SingleBatchModel2(mp=mp, dat=y(truth), hp=Hyperparameters(k=3))
-  model <- .posteriorSimulation2(model)
+  expect_warning(model <- .posteriorSimulation2(model))
   cn.model <- SingleBatchCopyNumber(model)
 
   mapping <- mapComponents(cn.model, params)

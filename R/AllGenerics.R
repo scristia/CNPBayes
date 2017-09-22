@@ -756,8 +756,55 @@ setGeneric("updateZ", function(object) standardGeneric("updateZ"))
 
 setGeneric("gatherChains", function(object) standardGeneric("gatherChains"))
 
+#' Trace plots of MCMC chains and mixture model densities
+#'
+#' The \code{ggChains} method provides a convenient wrapper for plotting the chains of all parameters in the various mixture model implementations.  In addition to the estimated number of independent MCMC draws (effective sample size) and Gelman-Rubin convergence diagnostics implemented in \code{gibbs}, visualization of the chains is helpful for assessing convergence.
+#'
+#' The \code{ggMixture} method overlays the posterior approximation of the Gaussian mixture on the empirical data.
+#'
+#' @seealso \code{\link{gibbs}}
+#'
+#' @param model A SB, MB, SBP, or MBP model
+#' @return A \code{gg} object
+#' @rdname ggplot-functions
+#' @return A \code{gg} object
+#' @export
+#' @examples
+#'   sb <- SingleBatchModelExample
+#'   iter(sb, force=TRUE) <- 1000
+#'   burnin(sb) <- 100
+#'   sb <- posteriorSimulation(sb)
+#'   fig.chains <- ggChains(sb)
+#'   ## component-specific chains
+#'   fig.chains[["comp"]]
+#'   ## single-parameter chains and log-likelihood
+#'   fig.chains[["single"]]
+#'
+#'   ## plot the mixture
+#'   fig.mix <- ggMixture(sb)
 setGeneric("ggChains", function(model) standardGeneric("ggChains"))
+
+#' @rdname ggplot-functions
+#' @param bins a length-one numeric vector indicating the number of bins -- passed to \code{geom_hist}
+setGeneric("ggMixture", function(model, bins) standardGeneric("ggMixture"))
 
 setGeneric("sortComponentLabels", function(model) standardGeneric("sortComponentLabels"))
 
 setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
+
+
+#' ggplot wrapper for plotting the data at a single CNP and the model-based densities
+#'
+#' @param model a \code{BatchModel} or  \code{MarginalModel} object
+#' @param bins length-one integer vector indicating the number of bins for the histograms (passed to \code{geom_histogram})
+#' @examples
+#' ggMultiBatch(MultiBatchModelExample)
+#' ggSingleBatch(SingleBatchModelExample)
+#' @export
+#' @return a \code{ggplot} object
+#' @rdname ggplot-functions
+setGeneric("ggSingleBatch", function(model, bins) standardGeneric("ggSingleBatch"))
+
+#' @export
+#' @rdname ggplot-functions
+setGeneric("ggMultiBatch", function(model, bins) standardGeneric("ggMultiBatch"))

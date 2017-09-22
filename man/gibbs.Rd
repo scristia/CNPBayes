@@ -5,7 +5,7 @@
 \title{Run a Gibbs sampler on one or multiple types of Bayesian Gaussian mixture models}
 \usage{
 gibbs(model = c("SB", "MB", "SBP", "MBP"), dat, mp, hp.list, batches,
-  k_range = c(1, 4), max_burnin = 32000)
+  k_range = c(1, 4), max_burnin = 32000, top = 2)
 }
 \arguments{
 \item{model}{a character vector indicating which models to fit (any combination of 'SB', 'MB', 'SBP', and 'MBP')}
@@ -18,17 +18,26 @@ gibbs(model = c("SB", "MB", "SBP", "MBP"), dat, mp, hp.list, batches,
 
 \item{k_range}{a length-two numeric vector providing the minimum and maximum number of components to model.  For example, c(1, 3) will fit mixture models with 1, 2, and 3 components.}
 
-\item{max_burnin}{the maximum number of burnin iterations. See details.}
+\item{max_burnin}{the maximum number of burnin iterations. See
+details.}
+
+\item{top}{a length-one numeric vector indicating how many of the top
+models to return.}
+}
+\value{
+A list of models of length \code{top} sorted by decreasing
 }
 \description{
-Model types:\\
-SB (SingleBatchModel):  hierarchical model with mixture component-specific means and variances\\
-MB (MultiBatchModel): hierarchical model with mixture component- and batch-specific means and variances\\
-SBP (SingleBatchPooled):  similar to SB model but with a pooled estimate of the variance across all mixture components\\
+Model types:
+SB (SingleBatchModel):  hierarchical model with mixture component-specific means and variances;
+MB (MultiBatchModel): hierarchical model with mixture component- and batch-specific means and variances; 
+SBP (SingleBatchPooled):  similar to SB model but with a pooled
 MBP (MultiBatchPooled):  similar to MB model but with a pooled estimate of the variance (across mixture components) for each batch.
 }
 \details{
-For each model specified, a Gibbs sampler will be initiated for \code{nStarts} independently simulated starting values (we suggest \code{nStarts > 2}).  The burnin, number of iterations after burnin, and the thin parameters are specified in the \code{mp} argument.    If the effective number of independent MCMC draws for any of the parameter chains is less than 500 or if the multivariate Gelman Rubin convergence diagnostic is less than 1.2, the thin and the burnin will be doubled and we start over -- new chains are initalized independently and the Gibbs sampler is restarted. This process is repeated until the effective sample size is greater than 500 and the Gelman Rubin convergence diagnostic is less than 1.2.
+For each model specified, a Gibbs sampler will be initiated
+
+The number of mixture models fit depends on \code{k_range} and
 }
 \examples{
   set.seed(100)
@@ -47,5 +56,6 @@ For each model specified, a Gibbs sampler will be initiated for \code{nStarts} i
 
 }
 \seealso{
-\code{\link[coda]{gelman.diag}} \code{\link[coda]{effectiveSize}}
+\code{\link[coda]{gelman.diag}}
+  \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
 }

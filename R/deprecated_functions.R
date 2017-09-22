@@ -1142,3 +1142,31 @@ BatchModel <- function(data=numeric(),
   obj <- startingValues(obj)
   obj
 }
+
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,MixtureModel-method
+setMethod("posteriorSimulation", c("MixtureModel", "integer"),
+          function(object, k) {
+            ##.Deprecated("Method is deprecated for signature 'MixtureModel, integer'.  Use MarginalModelList or BatchModelList prior to posteriorSimulation")
+            stop("Specifying k not allowed.  See MutliBatchModelList or SingleBatchModelList for creating a list object.")
+        if (length(k) > 1) {
+          mlist <- vector("list", length(k))
+          for (i in seq_along(k)) {
+            k(object) <- k[i]
+            mlist[[i]] <- .posteriorSimulation(object)
+          }
+          mlist
+        } else {
+          k(object) <- k
+          .posteriorSimulation(object)
+        }
+    }
+)
+
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,MixtureModel-method
+setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
+          function(object, k) {
+            stop("Specifying k not allowed.  See MultiBatchModelList or SingleBatchModelList for creating a list object.")
+            posteriorSimulation(object, as.integer(k))
+    })

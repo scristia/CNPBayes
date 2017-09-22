@@ -374,25 +374,6 @@ setMethod("gatherChains", "MultiBatchModel", function(object){
   list(theta=p.theta, sigma=p.sigma, comp=p.comp, single=p.single)
 }
 
-
-#' @export
-#' @rdname ggplot-functions
-setMethod("ggChains", "MultiBatchModel", function(model){
-  .ggMultiBatchChains(model)
-})
-
-setMethod("ggChains", "MultiBatchPooled", function(model){
-  .ggMultiBatchPooledChains(model)
-})
-
-setMethod("ggChains", "SingleBatchPooled", function(model){
-  ggSingleBatchPooledChains(model)
-})
-
-setMethod("ggChains", "SingleBatchModel", function(model){
-  ggSingleBatchChains(model)
-})
-
 singleBatchDensities <- function(object){
   dnorm_poly(object)
 }
@@ -480,34 +461,6 @@ dnorm_poly <- function(model){
     guides(fill=guide_legend(""), color=guide_legend(""))
 }
 
-#' ggplot wrapper for plotting the data at a single CNP and the model-based densities
-#'
-#' @param model a \code{BatchModel} or  \code{MarginalModel} object
-#' @param bins length-one integer vector indicating the number of bins for the histograms (passed to \code{geom_histogram})
-#' @examples
-#' ggMultiBatch(MultiBatchModelExample)
-#' ggSingleBatch(SingleBatchModelExample)
-#' @export
-#' @return a \code{ggplot} object
-#' @rdname ggplot-functions
-setGeneric("ggSingleBatch", function(model, bins) standardGeneric("ggSingleBatch"))
-
-#' @export
-#' @rdname ggplot-functions
-setGeneric("ggMultiBatch", function(model, bins) standardGeneric("ggMultiBatch"))
-
-#' @aliases ggSingleBatch,MarginalModel-method
-#' @rdname ggplot-functions
-setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
-  .gg_singlebatch(model, bins)
-})
-
-#' @aliases ggSingleBatch,SingleBatchModel-method
-#' @rdname ggplot-functions
-setMethod("ggSingleBatch", "SingleBatchModel", function(model, bins){
-  .gg_singlebatch(model, bins)
-})
-
 .relabel_component <- function(dat, model){
   comp <- as.character(dat$component)
   index <- comp %in% as.character(seq_len(k(model)))
@@ -546,18 +499,6 @@ setMethod("ggSingleBatch", "SingleBatchModel", function(model, bins){
     scale_fill_manual(values=colors) +
     guides(fill=guide_legend(""), color=guide_legend(""))
 }
-
-
-#' @aliases ggSingleBatch,SingleBatchCopyNumber-method
-#' @rdname ggplot-functions
-setMethod("ggSingleBatch", "SingleBatchCopyNumber", function(model, bins){
-  .gg_singlebatch_copynumber(model, bins)
-})
-
-setMethod("ggMultiBatch", "MultiBatchCopyNumber", function(model, bins){
-  .gg_multibatch_copynumber(model, bins)
-})
-
 
 
 dnorm_poly_multibatch <- function(model){
@@ -750,15 +691,83 @@ multiBatchDensities <- function(model){
 
 #' @rdname ggplot-functions
 setMethod("ggMultiBatch", "MultiBatchModel", function(model, bins){
+  .Deprecated("See ggMixture")
   .gg_multibatch(model, bins)
 })
 
 #' @rdname ggplot-functions
 setMethod("ggMultiBatch", "MultiBatchPooled", function(model, bins){
+  .Deprecated("See ggMixture")
   .gg_multibatch_pooled(model, bins)
+})
+
+
+#' @aliases ggSingleBatch,MarginalModel-method
+#' @rdname ggplot-functions
+setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
+  .Deprecated("See ggMixture")
+  .gg_singlebatch(model, bins)
+})
+
+#' @aliases ggSingleBatch,SingleBatchModel-method
+#' @rdname ggplot-functions
+setMethod("ggSingleBatch", "SingleBatchModel", function(model, bins){
+  .Deprecated("See ggMixture")
+  .gg_singlebatch(model, bins)
 })
 
 #' @rdname ggplot-functions
 setMethod("ggMultiBatch", "MultiBatchCopyNumber", function(model, bins){
+  .Deprecated("See ggMixture")
   .gg_multibatch_copynumber(model, bins)
+})
+
+#' @aliases ggSingleBatch,SingleBatchCopyNumber-method
+#' @rdname ggplot-functions
+setMethod("ggSingleBatch", "SingleBatchCopyNumber", function(model, bins){
+  .Deprecated("See ggMixture")
+  .gg_singlebatch_copynumber(model, bins)
+})
+
+#' @rdname ggplot-functions
+setMethod("ggMixture", "MultiBatchCopyNumber", function(model, bins){
+  .gg_multibatch_copynumber(model, bins)
+})
+
+#' @rdname ggplot-functions
+setMethod("ggMixture", "SingleBatchModel", function(model, bins){
+  .gg_singlebatch(model, bins)
+})
+
+#' @rdname ggplot-functions
+setMethod("ggMixture", "MultiBatchModel", function(model, bins){
+  .gg_multibatch_copynumber(model, bins)
+})
+
+#' @rdname ggplot-functions
+setMethod("ggMixture", "MultiBatchPooled", function(model, bins){
+  .gg_multibatch_pooled(model, bins)
+})
+
+#' @rdname ggplot-functions
+setMethod("ggMixture", "SingleBatchCopyNumber", function(model, bins){
+  .gg_singlebatch_copynumber(model, bins)
+})
+
+#' @export
+#' @rdname ggplot-functions
+setMethod("ggChains", "MultiBatchModel", function(model){
+  .ggMultiBatchChains(model)
+})
+
+setMethod("ggChains", "MultiBatchPooled", function(model){
+  .ggMultiBatchPooledChains(model)
+})
+
+setMethod("ggChains", "SingleBatchPooled", function(model){
+  ggSingleBatchPooledChains(model)
+})
+
+setMethod("ggChains", "SingleBatchModel", function(model){
+  ggSingleBatchChains(model)
 })

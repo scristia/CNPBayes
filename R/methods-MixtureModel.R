@@ -330,60 +330,6 @@ psParams <- function(warnings=TRUE,
   list(warnings=warnings)
 }
 
-#' @rdname posteriorSimulation-method
-#' @aliases posteriorSimulation,MixtureModel-method
-setMethod("posteriorSimulation", "MixtureModel", function(object){
-  .posteriorSimulation(object)
-})
-
-#' @rdname posteriorSimulation-method
-#' @aliases posteriorSimulation,MixtureModel-method
-setMethod("posteriorSimulation", c("MixtureModel", "integer"),
-          function(object, k) {
-            ##.Deprecated("Method is deprecated for signature 'MixtureModel, integer'.  Use MarginalModelList or BatchModelList prior to posteriorSimulation")
-            stop("Specifying k not allowed.  See MutliBatchModelList or SingleBatchModelList for creating a list object.")
-        if (length(k) > 1) {
-          mlist <- vector("list", length(k))
-          for (i in seq_along(k)) {
-            k(object) <- k[i]
-            mlist[[i]] <- .posteriorSimulation(object)
-          }
-          mlist
-        } else {
-          k(object) <- k
-          .posteriorSimulation(object)
-        }
-    }
-)
-
-#' @rdname posteriorSimulation-method
-#' @aliases posteriorSimulation,MixtureModel-method
-setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
-          function(object, k) {
-            stop("Specifying k not allowed.  See MultiBatchModelList or SingleBatchModelList for creating a list object.")
-            posteriorSimulation(object, as.integer(k))
-    })
-
-
-#' @rdname posteriorSimulation-method
-#' @aliases posteriorSimulation,list-method
-setMethod("posteriorSimulation", "list",
-          function(object) {
-            params <- psParams()
-            results <- vector("list", length(object))
-            for(i in seq_along(results)){
-              results[[i]] <- .posteriorSimulation(object[[i]], params)
-            }
-            ncomp <- sapply(results, k)
-            if(is(results[[1]], "SingleBatchModel")){
-              label <- "SB"
-            } else label <- "MB"
-            names(results) <- paste0(label, ncomp)
-            ##isnull <- sapply(results, is.null)
-            ##results <- results[!isnull]
-            results
-          })
-
 
 
 
@@ -461,101 +407,6 @@ setMethod("isOrdered", "MultiBatchModel", function(object){
   .ordered_thetas_multibatch(object)
 })
 
-.posteriorSimulation <- function(post, params=psParams()){
-  if(nStarts(post) > 1){
-    post <- multipleStarts2(post)
-  }
-  if(burnin(post) > 0 ){
-    post <- runBurnin(post)
-  }
-  if(!isOrdered(post)) label_switch(post) <- TRUE
-  post <- sortComponentLabels(post)
-  if( iter(post) < 1 ) return(post)
-  post <- runMcmc(post)
-  modes(post) <- computeModes(post)
-  if(isOrdered(post)){
-    label_switch(post) <- FALSE
-    return(post)
-  }
-  ## not ordered: try additional MCMC simulations
-  label_switch(post) <- TRUE
-  post <- sortComponentLabels(post)
-  ## reset counter for posterior probabilities
-  post@probz[] <- 0
-  post <- runMcmc(post)
-  modes(post) <- computeModes(post)
-  ##mcmcParams(post) <- mp.orig
-  if(isOrdered(post)){
-    label_switch(post) <- FALSE
-    return(post)
-  }
-  label_switch(post) <- TRUE
-  if(params[["warnings"]]) {
-    ##
-    ## at this point, we've tried to run the twice after burnin and we still
-    ## have mixing. Most likely, we are fitting a model with k too big
-    warning("label switching: model k=", k(post))
-  }
-  post <- sortComponentLabels(post)
-  post
-}
-
-.posteriorSimulation2 <- function(post, params=psParams()){
-  post <- runBurnin(post)
-  if(!isOrdered(post)) label_switch(post) <- TRUE
-  post <- sortComponentLabels(post)
-  if( iter(post) < 1 ) return(post)
-  post <- runMcmc(post)
-  modes(post) <- computeModes(post)
-  if(isOrdered(post)){
-    label_switch(post) <- FALSE
-    return(post)
-  }
-  ## not ordered: try additional MCMC simulations
-  label_switch(post) <- TRUE
-  post <- sortComponentLabels(post)
-  ## reset counter for posterior probabilities
-  post@probz[] <- 0
-  post <- runMcmc(post)
-  modes(post) <- computeModes(post)
-  ##mcmcParams(post) <- mp.orig
-  if(isOrdered(post)){
-    label_switch(post) <- FALSE
-    return(post)
-  }
-  label_switch(post) <- TRUE
-  if(params[["warnings"]]) {
-    ##
-    ## at this point, we've tried to run the twice after burnin and we still
-    ## have mixing. Most likely, we are fitting a model with k too big
-    warning("label switching: model k=", k(post))
-  }
-  post <- sortComponentLabels(post)
-  post
-}
-
-posteriorSimulationPooled <- function(object, iter=1000,
-                                      burnin=1000,
-                                      thin=10,
-                                      param_updates){
-  if(missing(param_updates)){
-    param_updates <- paramUpdates(object)
-  }
-  mp <- McmcParams(iter=iter, burnin=burnin, thin=thin,
-                   param_updates=param_updates)
-  mcmcParams(object, force=TRUE) <- mp
-  object <- runBurnin(object)
-  object <- sortComponentLabels(object)
-  if(!iter(object) > 0) return(object)
-  object <- runMcmc(object)
-  modes(object) <- computeModes(object)
-  object <- sortComponentLabels(object)
-  object
-}
-
-mcmcMultiBatchPooled <- function(object){
-  .posteriorSimulation(object)
-}
 
 
 setReplaceMethod("dataMean", "MixtureModel", function(object, value){
@@ -1027,3 +878,23 @@ setReplaceMethod("marginal_lik", c("MixtureModel", "numeric"),
                    object@marginal_lik <- value
                    object
                  })
+
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,list-method
+setMethod("posteriorSimulation", "list",
+          function(object) {
+            .Deprecated("See gibbs")
+            params <- psParams()
+            results <- vector("list", length(object))
+            for(i in seq_along(results)){
+              results[[i]] <- .posteriorSimulation(object[[i]], params)
+            }
+            ncomp <- sapply(results, k)
+            if(is(results[[1]], "SingleBatchModel")){
+              label <- "SB"
+            } else label <- "MB"
+            names(results) <- paste0(label, ncomp)
+            ##isnull <- sapply(results, is.null)
+            ##results <- results[!isnull]
+            results
+          })

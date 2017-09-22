@@ -65,6 +65,7 @@ Collate:
     'methods-SingleBatchPooled.R'
     'methods-SummarizedExperiment.R'
     'model_initialization.R'
+    'posteriorSimulation-methods.R'
     'relabeling.R'
     'simulate_data.R'
 VignetteBuilder: knitr
