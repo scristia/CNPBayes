@@ -899,12 +899,6 @@ setMethod("posteriorSimulation", "list",
             results
           })
 
-tileSummaries <- function(tiles){
-  tile.summaries <- tiles %>% group_by(tile) %>%
-    summarize(avgLRR=mean(logratio),
-              batch=unique(batch))
-  tile.summaries
-}
 
 setMethod("upSample", "MultiBatchModel", function(model, tiles){
   tile.sum <- tileSummaries(tiles)

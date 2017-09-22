@@ -2,9 +2,12 @@
 % Please edit documentation in R/functions.R
 \name{tileMedians}
 \alias{tileMedians}
+\alias{tileSummaries}
 \title{Create tile labels for each observation}
 \usage{
 tileMedians(y, nt, batch)
+
+tileSummaries(tiles)
 }
 \arguments{
 \item{y}{vector containing data}
@@ -12,6 +15,8 @@ tileMedians(y, nt, batch)
 \item{nt}{the number of observations per batch}
 
 \item{batch}{a vector containing the labels from which batch each observation came from.}
+
+\item{tiles}{a tibble as constructed by \code{tileMedians}}
 }
 \value{
 A tibble with a tile assigned to each log R ratio
@@ -22,11 +27,7 @@ For large datasets (several thousand subjects), the computational burden for fit
 \examples{
   mb <- MultiBatchModelExample
   tiled.medians <- tileMedians(y(mb), 200, batch(mb))
-  expected <- tiled.medians \%>\% group_by(tile) \%>\%
-    summarize(avgLRR=mean(logratio),
-              batch=unique(batch))
   tile.summaries <- tileSummaries(tiled.medians)
-  expect_identical(tile.summaries, expected)
   mp <- McmcParams(iter=50, burnin=100)
   mb <- MultiBatchModel2(dat=tile.summaries$avgLRR,
                          batches=tile.summaries$batch, mp=mp)

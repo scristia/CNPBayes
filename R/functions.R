@@ -353,16 +353,12 @@ downSampleEachBatch <- function(y, nt, batch){
 #' @param nt the number of observations per batch
 #' @param batch a vector containing the labels from which batch each observation came from.
 #' @return A tibble with a tile assigned to each log R ratio
-#' @seealso \code{\link[dplyr]{ntile}}
+#' @seealso \code{\link[dplyr]{ntile}} 
 #' @export
 #' @examples
 #'   mb <- MultiBatchModelExample
 #'   tiled.medians <- tileMedians(y(mb), 200, batch(mb))
-#'   expected <- tiled.medians %>% group_by(tile) %>%
-#'     summarize(avgLRR=mean(logratio),
-#'               batch=unique(batch))
 #'   tile.summaries <- tileSummaries(tiled.medians)
-#'   expect_identical(tile.summaries, expected)
 #'   mp <- McmcParams(iter=50, burnin=100)
 #'   mb <- MultiBatchModel2(dat=tile.summaries$avgLRR,
 #'                          batches=tile.summaries$batch, mp=mp)
@@ -370,6 +366,7 @@ downSampleEachBatch <- function(y, nt, batch){
 #'   ggMixture(mb)
 #'   mb2 <- upSample(mb, tiled.medians)
 #'   ggMixture(mb2)
+#' @rdname tile-functions
 tileMedians <- function(y, nt, batch){
   yy <- y
   x <- obs.index <- NULL
@@ -414,6 +411,17 @@ tileMedians <- function(y, nt, batch){
   tiles$batch <- as.integer(factor(tiles$batch.var))
   tiles
 }
+
+#' @param tiles a tibble as constructed by \code{tileMedians}
+#' @rdname tile-functions
+#' @export
+tileSummaries <- function(tiles){
+  tile.summaries <- tiles %>% group_by(tile) %>%
+    summarize(avgLRR=mean(logratio),
+              batch=unique(batch))
+  tile.summaries
+}
+
 
 #' Create tile labels for each observation
 #'
