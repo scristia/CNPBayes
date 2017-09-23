@@ -9,19 +9,20 @@
 \alias{ggMultiBatch}
 \alias{ggSingleBatchChains}
 \alias{multiBatchDensities}
-\alias{ggMultiBatch,MultiBatchModel-method}
-\alias{ggMultiBatch,MultiBatchPooled-method}
-\alias{ggSingleBatch,MarginalModel-method}
-\alias{ggSingleBatch,SingleBatchModel-method}
-\alias{ggMultiBatch,MultiBatchCopyNumber-method}
-\alias{ggSingleBatch,SingleBatchCopyNumber-method}
 \alias{ggMixture,MultiBatchCopyNumber-method}
+\alias{ggMixture,MultiBatchCopyNumberPooled-method}
 \alias{ggMixture,SingleBatchModel-method}
 \alias{ggMixture,MultiBatchModel-method}
 \alias{ggMixture,MultiBatchPooled-method}
 \alias{ggMixture,SingleBatchCopyNumber-method}
 \alias{ggChains,MultiBatchModel-method}
 \alias{ggMultiBatch,BatchModel-method}
+\alias{ggMultiBatch,MultiBatchModel-method}
+\alias{ggMultiBatch,MultiBatchPooled-method}
+\alias{ggSingleBatch,MarginalModel-method}
+\alias{ggSingleBatch,SingleBatchModel-method}
+\alias{ggMultiBatch,MultiBatchCopyNumber-method}
+\alias{ggSingleBatch,SingleBatchCopyNumber-method}
 \title{Trace plots of MCMC chains and mixture model densities}
 \usage{
 ggChains(model)
@@ -36,19 +37,9 @@ ggSingleBatchChains(model)
 
 multiBatchDensities(object)
 
-\S4method{ggMultiBatch}{MultiBatchModel}(model, bins)
-
-\S4method{ggMultiBatch}{MultiBatchPooled}(model, bins)
-
-\S4method{ggSingleBatch}{MarginalModel}(model, bins)
-
-\S4method{ggSingleBatch}{SingleBatchModel}(model, bins)
-
-\S4method{ggMultiBatch}{MultiBatchCopyNumber}(model, bins)
-
-\S4method{ggSingleBatch}{SingleBatchCopyNumber}(model, bins)
-
 \S4method{ggMixture}{MultiBatchCopyNumber}(model, bins)
+
+\S4method{ggMixture}{MultiBatchCopyNumberPooled}(model, bins)
 
 \S4method{ggMixture}{SingleBatchModel}(model, bins)
 
@@ -61,6 +52,18 @@ multiBatchDensities(object)
 \S4method{ggChains}{MultiBatchModel}(model)
 
 \S4method{ggMultiBatch}{BatchModel}(model, bins)
+
+\S4method{ggMultiBatch}{MultiBatchModel}(model, bins)
+
+\S4method{ggMultiBatch}{MultiBatchPooled}(model, bins)
+
+\S4method{ggSingleBatch}{MarginalModel}(model, bins)
+
+\S4method{ggSingleBatch}{SingleBatchModel}(model, bins)
+
+\S4method{ggMultiBatch}{MultiBatchCopyNumber}(model, bins)
+
+\S4method{ggSingleBatch}{SingleBatchCopyNumber}(model, bins)
 }
 \arguments{
 \item{model}{A SB, MB, SBP, or MBP model}

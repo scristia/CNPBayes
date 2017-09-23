@@ -6,15 +6,25 @@
 \alias{mapping<-}
 \alias{mapping,SingleBatchCopyNumber-method}
 \alias{mapping,MultiBatchCopyNumber-method}
+\alias{mapping,MultiBatchCopyNumberPooled-method}
+\alias{mapping,MultiBatchCopyNumber-method}
 \alias{mapping<-,SingleBatchCopyNumber,numeric-method}
 \alias{mapping,SingleBatchCopyNumber,numeric-method}
 \alias{mapping<-,MultiBatchCopyNumber,numeric-method}
 \alias{mapping,MultiBatchCopyNumber,numeric-method}
+\alias{mapping<-,MultiBatchCopyNumberPooled,numeric-method}
+\alias{mapping,MultiBatchCopyNumberPooled,numeric-method}
 \alias{probCopyNumber}
 \alias{probCopyNumber,SingleBatchCopyNumber-method}
 \alias{probCopyNumber,MultiBatchCopyNumber-method}
+\alias{probCopyNumber,MultiBatchCopyNumberPooled-method}
 \alias{SingleBatchCopyNumber}
 \alias{MultiBatchCopyNumber}
+\alias{MultiBatchCopyNumberPooled}
+\alias{CopyNumberModel}
+\alias{CopyNumberModel,SingleBatchModel-method}
+\alias{CopyNumberModel,MultiBatchModel-method}
+\alias{CopyNumberModel,MultiBatchPooled-method}
 \alias{mapCopyNumber}
 \title{Mapping of mixture component indices to copy number states}
 \usage{
@@ -26,9 +36,13 @@ mapping(object) <- value
 
 \S4method{mapping}{MultiBatchCopyNumber}(object)
 
+\S4method{mapping}{MultiBatchCopyNumberPooled}(object)
+
 \S4method{mapping}{SingleBatchCopyNumber,numeric}(object) <- value
 
 \S4method{mapping}{MultiBatchCopyNumber,numeric}(object) <- value
+
+\S4method{mapping}{MultiBatchCopyNumberPooled,numeric}(object) <- value
 
 probCopyNumber(model)
 
@@ -36,9 +50,21 @@ probCopyNumber(model)
 
 \S4method{probCopyNumber}{MultiBatchCopyNumber}(model)
 
+\S4method{probCopyNumber}{MultiBatchCopyNumberPooled}(model)
+
 SingleBatchCopyNumber(model)
 
 MultiBatchCopyNumber(model)
+
+MultiBatchCopyNumberPooled(model)
+
+CopyNumberModel(model)
+
+\S4method{CopyNumberModel}{SingleBatchModel}(model)
+
+\S4method{CopyNumberModel}{MultiBatchModel}(model)
+
+\S4method{CopyNumberModel}{MultiBatchPooled}(model)
 
 mapCopyNumber(model, params = mapParams())
 }
@@ -50,9 +76,13 @@ mapCopyNumber(model, params = mapParams())
 \item{model}{a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance}
 
 \item{params}{a list of parameters for mapping component indices to copy number}
+
+\item{model}{a SB, SBP, MB, or MBP model}
 }
 \value{
 a \code{SingleBatchCopyNumber} instance
+
+a \code{MultiBatchCopyNumber} instance
 
 a \code{MultiBatchCopyNumber} instance
 
@@ -66,6 +96,8 @@ returns posterior probabilities for distinct copy number states.
 
 Used for mapping mixture components to distict copy number states
 
+Constructs a CopyNumberModel from SB, SBP, MB, or MBP models
+
 Map mixture components to copy number states
 }
 \examples{
@@ -73,6 +105,8 @@ cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 map <- mapComponents(cn.model)
 mapping(cn.model) <- map
 SingleBatchCopyNumber(SingleBatchModelExample)
+sb <- SingleBatchModelExample
+cn.model <- CopyNumberModel(sb)
 cn.model <- SingleBatchCopyNumber(MarginalModelExample)
 mapping(cn.model) <- mapComponents(cn.model)
 mapCopyNumber(cn.model)

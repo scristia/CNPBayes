@@ -28,6 +28,12 @@ setMethod("mapping", "MultiBatchCopyNumber", function(object){
   object@mapping
 })
 
+#' @aliases mapping,MultiBatchCopyNumber-method
+#' @rdname CopyNumber-methods
+setMethod("mapping", "MultiBatchCopyNumberPooled", function(object){
+  object@mapping
+})
+
 #' @param value a numeric vector mapping component indices to copy number state indices
 #' @aliases mapping,SingleBatchCopyNumber,numeric-method
 #' @rdname CopyNumber-methods
@@ -45,6 +51,14 @@ setReplaceMethod("mapping", c("MultiBatchCopyNumber", "numeric"),
                    object
                  })
 
+#' @aliases mapping,MultiBatchCopyNumberPooled,numeric-method
+#' @rdname CopyNumber-methods
+setReplaceMethod("mapping", c("MultiBatchCopyNumberPooled", "numeric"),
+                 function(object, value){
+                   object@mapping <- value
+                   object
+                 })
+
 setGeneric("numberStates", function(model) standardGeneric("numberStates"))
 
 setMethod("numberStates", "SingleBatchCopyNumber", function(model){
@@ -52,6 +66,10 @@ setMethod("numberStates", "SingleBatchCopyNumber", function(model){
 })
 
 setMethod("numberStates", "MultiBatchCopyNumber", function(model){
+  length(unique(mapping(model)))
+})
+
+setMethod("numberStates", "MultiBatchCopyNumberPooled", function(model){
   length(unique(mapping(model)))
 })
 
@@ -108,6 +126,12 @@ setMethod("probCopyNumber", "SingleBatchCopyNumber", function(model){
 #' @aliases probCopyNumber,MultiBatchCopyNumber-method
 #' @rdname CopyNumber-methods
 setMethod("probCopyNumber", "MultiBatchCopyNumber", function(model){
+  .prob_copynumber(model)
+})
+
+#' @aliases probCopyNumber,MultiBatchCopyNumberPooled-method
+#' @rdname CopyNumber-methods
+setMethod("probCopyNumber", "MultiBatchCopyNumberPooled", function(model){
   .prob_copynumber(model)
 })
 
@@ -297,16 +321,45 @@ MultiBatchCopyNumber <- function(model){
   mb.model
 }
 
+#' @return a \code{MultiBatchCopyNumber} instance
+#' @export
+#' @rdname CopyNumber-methods
+MultiBatchCopyNumberPooled <- function(model){
+  mb.model <- as(model, "MultiBatchCopyNumberPooled")
+  mapping(mb.model) <- seq_len(k(model))
+  mb.model
+}
+
+#' Constructs a CopyNumberModel from SB, SBP, MB, or MBP models
+#'
+#' @param model a SB, SBP, MB, or MBP model
+#' @export
+#' @examples
+#' sb <- SingleBatchModelExample
+#' cn.model <- CopyNumberModel(sb)
+#' @rdname CopyNumber-methods
 setGeneric("CopyNumberModel", function(model) standardGeneric("CopyNumberModel"))
 
+#' @rdname CopyNumber-methods
+#' @aliases CopyNumberModel,SingleBatchModel-method
 setMethod("CopyNumberModel", "SingleBatchModel", function(model){
   model <- SingleBatchCopyNumber(model)
   mapping(model) <- mapComponents(model)
   model
 })
 
+#' @rdname CopyNumber-methods
+#' @aliases CopyNumberModel,MultiBatchModel-method
 setMethod("CopyNumberModel", "MultiBatchModel", function(model){
   model <- MultiBatchCopyNumber(model)
+  mapping(model) <- mapComponents(model)
+  model
+})
+
+#' @rdname CopyNumber-methods
+#' @aliases CopyNumberModel,MultiBatchPooled-method
+setMethod("CopyNumberModel", "MultiBatchPooled", function(model){
+  model <- MultiBatchCopyNumberPooled(model)
   mapping(model) <- mapComponents(model)
   model
 })

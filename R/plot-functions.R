@@ -659,7 +659,11 @@ multiBatchDensities <- function(model){
               "#D55E00", "#CC79A7",  "#009E73")
 
   ##df <- multiBatchDensities(model)
-  dat <- dnorm_poly_multibatch(model)
+  if(class(model) == "MultiBatchCopyNumber"){
+    dat <- dnorm_poly_multibatch(model)
+  } else {
+    dat <- dnorm_poly_multibatch_pooled(model)
+  }
   dat2 <- dat
   index <- dat$component %in% seq_len(k(model))
   comp <- dat$component
@@ -691,47 +695,12 @@ multiBatchDensities <- function(model){
 }
 
 #' @rdname ggplot-functions
-setMethod("ggMultiBatch", "MultiBatchModel", function(model, bins){
-  .Deprecated("See ggMixture")
-  .gg_multibatch(model, bins)
-})
-
-#' @rdname ggplot-functions
-setMethod("ggMultiBatch", "MultiBatchPooled", function(model, bins){
-  .Deprecated("See ggMixture")
-  .gg_multibatch_pooled(model, bins)
-})
-
-
-#' @aliases ggSingleBatch,MarginalModel-method
-#' @rdname ggplot-functions
-setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
-  .Deprecated("See ggMixture")
-  .gg_singlebatch(model, bins)
-})
-
-#' @aliases ggSingleBatch,SingleBatchModel-method
-#' @rdname ggplot-functions
-setMethod("ggSingleBatch", "SingleBatchModel", function(model, bins){
-  .Deprecated("See ggMixture")
-  .gg_singlebatch(model, bins)
-})
-
-#' @rdname ggplot-functions
-setMethod("ggMultiBatch", "MultiBatchCopyNumber", function(model, bins){
-  .Deprecated("See ggMixture")
+setMethod("ggMixture", "MultiBatchCopyNumber", function(model, bins){
   .gg_multibatch_copynumber(model, bins)
 })
 
-#' @aliases ggSingleBatch,SingleBatchCopyNumber-method
 #' @rdname ggplot-functions
-setMethod("ggSingleBatch", "SingleBatchCopyNumber", function(model, bins){
-  .Deprecated("See ggMixture")
-  .gg_singlebatch_copynumber(model, bins)
-})
-
-#' @rdname ggplot-functions
-setMethod("ggMixture", "MultiBatchCopyNumber", function(model, bins){
+setMethod("ggMixture", "MultiBatchCopyNumberPooled", function(model, bins){
   .gg_multibatch_copynumber(model, bins)
 })
 

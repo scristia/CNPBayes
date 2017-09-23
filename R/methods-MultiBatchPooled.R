@@ -302,3 +302,10 @@ reorderMultiBatchPooled <- function(model){
 setMethod("sortComponentLabels", "MultiBatchPooled", function(model){
   reorderMultiBatchPooled(model)
 })
+
+
+setMethod("sigma", "MultiBatchCopyNumberPooled", function(object){
+  s2 <- object@sigma2
+  names(s2) <- uniqueBatch(object)
+  s2
+})

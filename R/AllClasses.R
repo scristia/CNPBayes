@@ -316,6 +316,10 @@ setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
 setClass("MultiBatchCopyNumber", contains="MultiBatchModel",
          representation(mapping="numeric"))
 
+setClass("MultiBatchCopyNumberPooled", contains="MultiBatchModel",
+         representation(mapping="numeric"))
+
+
 #' Deprecated class for storing estimated mixture model densities
 #'
 #' 

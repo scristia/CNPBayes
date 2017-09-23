@@ -864,6 +864,8 @@ setReplaceMethod("label_switch", c("MixtureModel", "logical"),
                    object
                  })
 
+#' @aliases marginal_lik,MixtureModel-method
+#' @rdname marginal_lik
 setMethod("marginal_lik", "MixtureModel", function(object){
   object@marginal_lik
 })
@@ -894,31 +896,32 @@ setMethod("posteriorSimulation", "list",
             results
           })
 
-
+#' @rdname tile-functions
+#' @aliases upSample,MultiBatchModel-method
 setMethod("upSample", "MultiBatchModel", function(model, tiles){
   tile.sum <- tileSummaries(tiles)
-  stopifnot(all.equal(y(model), tile.sum$avgLRR))
+  ##stopifnot(all.equal(y(model), tile.sum$avgLRR))
   key <- match(tiles$tile, tile.sum$tile)
   model2 <- model
   y(model2) <- tiles$logratio
   probs <- probz(model)
-  probs2 <- probs[key, ]
+  probs2 <- probs[key, , drop=FALSE]
   probz(model2) <- probs2 * (iter(model) - 1)
   z(model2) <- z(model)[key]
   batch(model2) <- tiles$batch
   model2
 })
 
-
-
+#' @rdname tile-functions
+#' @aliases upSample,MultiBatchModel-method
 setMethod("upSample", "MixtureModel", function(model, tiles){
   tile.sum <- tileSummaries(tiles)
-  stopifnot(all.equal(y(model), tile.sum$avgLRR))
+  ##stopifnot(all.equal(y(model), tile.sum$avgLRR, tolerance=0.1, scale=1))
   key <- match(tiles$tile, tile.sum$tile)
   model2 <- model
   y(model2) <- tiles$logratio
   probs <- probz(model)
-  probs2 <- probs[key, ]
+  probs2 <- probs[key, , drop=FALSE]
   probz(model2) <- probs2 * (iter(model) - 1)
   z(model2) <- z(model)[key]
   model2

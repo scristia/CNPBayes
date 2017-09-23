@@ -748,7 +748,16 @@ setGeneric("label_switch", function(object) standardGeneric("label_switch"))
 
 setGeneric("label_switch<-", function(object, value) standardGeneric("label_switch<-"))
 
+#' Accessor for marginal likelihood
+#'
+#' @seealso \code{\link{marginalLikelihood}}
+#' @param object a SB, SBP, MB, or MBP model
+#' @export
+#' @examples
+#' sb <- SingleBatchModelExample
+#' marginal_lik(sb)
 setGeneric("marginal_lik", function(object) standardGeneric("marginal_lik"))
+
 setGeneric("marginal_lik<-", function(object, value) standardGeneric("marginal_lik<-"))
 
 setGeneric("updateZ", function(object) standardGeneric("updateZ"))
@@ -789,6 +798,8 @@ setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 
 #' @rdname ggplot-functions
 #' @param bins a length-one numeric vector indicating the number of bins -- passed to \code{geom_hist}
+#' @export
+#' @rdname ggplot-functions
 setGeneric("ggMixture", function(model, bins) standardGeneric("ggMixture"))
 
 #' ggplot wrapper for plotting the data at a single CNP and the model-based densities
@@ -815,5 +826,5 @@ setGeneric("ggMultiBatch", function(model, bins) standardGeneric("ggMultiBatch")
 #'
 #' @export
 #' @return a SB, MB, SBP, or MBP model
-#' @rdname downSampleEachBatch
+#' @rdname tile-functions
 setGeneric("upSample", function(model, tiles) standardGeneric("upSample"))

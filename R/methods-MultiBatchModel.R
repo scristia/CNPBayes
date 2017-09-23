@@ -514,31 +514,13 @@ nBatch <- function(object) length(uniqueBatch(object))
 
 batchElements <- function(object) object@batchElements
 
-setReplaceMethod("p", "BatchModel", function(object, value){
-  object@pi <- value
-  object
-})
-
 setReplaceMethod("p", "MultiBatchModel", function(object, value){
   object@pi <- value
   object
 })
 
-setMethod("pMean", "BatchModel", function(object) {
-  mns <- colMeans(pic(object))
-  mns
-})
-
 setMethod("pMean", "MultiBatchModel", function(object) {
   mns <- colMeans(pic(object))
-  mns
-})
-
-setMethod("showMeans", "BatchModel", function(object){
-  thetas <- round(theta(object), 2)
-  mns <- c("\n", paste0(t(cbind(thetas, "\n")), collapse="\t"))
-  mns <- paste0("\t", mns[2])
-  mns <- paste0("\n", mns[1])
   mns
 })
 

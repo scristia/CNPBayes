@@ -1556,3 +1556,173 @@ setMethod("densities", "SingleBatchPooled", function(object){
 #' @return k-means clustering of the component means using the modes as centers.
 setMethod("clusters", "DensityModel", function(object) object@clusters)
 setMethod("quantiles", "DensityModel", function(object) object@quantiles)
+
+
+#' @rdname ggplot-functions
+setMethod("ggMultiBatch", "MultiBatchModel", function(model, bins){
+  .Deprecated("See ggMixture")
+  .gg_multibatch(model, bins)
+})
+
+#' @rdname ggplot-functions
+setMethod("ggMultiBatch", "MultiBatchPooled", function(model, bins){
+  .Deprecated("See ggMixture")
+  .gg_multibatch_pooled(model, bins)
+})
+
+
+#' @aliases ggSingleBatch,MarginalModel-method
+#' @rdname ggplot-functions
+setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
+  .Deprecated("See ggMixture")
+  .gg_singlebatch(model, bins)
+})
+
+#' @aliases ggSingleBatch,SingleBatchModel-method
+#' @rdname ggplot-functions
+setMethod("ggSingleBatch", "SingleBatchModel", function(model, bins){
+  .Deprecated("See ggMixture")
+  .gg_singlebatch(model, bins)
+})
+
+#' @rdname ggplot-functions
+setMethod("ggMultiBatch", "MultiBatchCopyNumber", function(model, bins){
+  .Deprecated("See ggMixture")
+  .gg_multibatch_copynumber(model, bins)
+})
+
+#' @aliases ggSingleBatch,SingleBatchCopyNumber-method
+#' @rdname ggplot-functions
+setMethod("ggSingleBatch", "SingleBatchCopyNumber", function(model, bins){
+  .Deprecated("See ggMixture")
+  .gg_singlebatch_copynumber(model, bins)
+})
+
+setReplaceMethod("p", "BatchModel", function(object, value){
+  object@pi <- value
+  object
+})
+
+setMethod("pMean", "BatchModel", function(object) {
+  mns <- colMeans(pic(object))
+  mns
+})
+
+setMethod("showMeans", "BatchModel", function(object){
+  thetas <- round(theta(object), 2)
+  mns <- c("\n", paste0(t(cbind(thetas, "\n")), collapse="\t"))
+  mns <- paste0("\t", mns[2])
+  mns <- paste0("\n", mns[1])
+  mns
+})
+
+
+#' Create tile labels for each observation
+#'
+#' A wrapper for function downSampleEachBatch. Batches are automatically merged as needed.
+#' 
+#' @param batch.file the name of a file contaning RDS data to be read in.
+#' @param plate a vector containing the labels  from which batch each observation came from.
+#' @param y in memory data
+#' @param ntiles number of tiles in a batch
+#' @param THR threshold above which to merge batches in Kolmogorov-Smirnov test.
+#' @return Tile labels for each observation
+#' @export
+downsample <- function(batch.file, plate, y, ntiles=250, THR=0.1){
+  .Deprecated(downsample)
+  if(file.exists(batch.file)){
+    batches <- readRDS(batch.file)
+  } else {
+    message("merging plates... ")
+    if(missing(plate)) stop("batch.file does not exist.  Chemistry plate must be specified")
+    batches <- collapseBatch(y, plate, THR=THR)
+    saveRDS(batches, file=batch.file)
+  }
+  ds <- downSampleEachBatch(y, ntiles, batches)
+  if(length(unique(ds$batch)) > 12){
+    batches <- collapseBatch(ds$y, ds$batch, THR=1e-3)
+    ds$batch <- batches
+  }
+  if(any(table(ds$batch) <= 25)){
+    tab <- table(ds$batch)
+    keep <- ds$batch %in% names(tab)[tab > 25]
+    ds$y <- ds$y[keep]
+    ds$batch <- ds$batch[keep]
+  }
+  ds
+}
+
+
+
+#' Create tile labels for each observation
+#'
+#' @param y vector containing data
+#' @param nt the number of observations per batch
+#' @param batch a vector containing the labels from which batch each observation came from.
+#' @return Tile labels for each observation
+#' @seealso \code{\link[dplyr]{ntile}}
+#' @export
+#' @examples
+#' y <- runif(100)
+#' batch <- sample(letters[1:3], 100, replace=TRUE)
+#' ds <- downSampleEachBatch(y, 10, batch)
+#'
+#' model <- MultiBatchModelExample
+#' ds <- downSampleEachBatch(y(model), 100, batch(model))
+#' model.ds <- MultiBatchModel(ds$y, batch=ds$batch, k=3)
+#' model.ds <- posteriorSimulation(model.ds)
+#' ## map the posterior probabilities of the downsampled data back to the
+#' ## original observations
+#' probs <- probz(model.ds)
+#' rownames(probs) <- names(y(model.ds))
+#' probs.ds <- probs[ds$label, ]
+#'
+#' ## compare downsampled results to that of fitting the fulll data
+#' model <- posteriorSimulation(model)
+#' probs.full <- probz(model)
+#' probs.full <- round(probs.full, 1)
+#' reduced <- round(probs.ds, 1)
+#' not.equal <- rowSums(full != reduced) > 0
+downSampleEachBatch <- function(y, nt, batch){
+  .Deprecated("see tileMedians")
+  ## NULL out these two variables to avoid NOTE about
+  ## no visible binding for global variable
+  yy <- y
+  x <- obs.index <- NULL
+  ##
+  ## split observations by batch
+  ##
+  yb <- split(y, batch)
+  indices <- split(seq_along(y), batch)
+  S <- vector("list", length(yb))
+  for (i in 1:length(yb)) {
+    x <- yb[[i]]
+    batch.id <- names(yb)[i]
+    obs.index <- indices[[i]]
+    ##
+    ## observations can be quite different within a tile (e.g., homozygous deletions)
+    ##
+    tiles <- ntile(x, nt) %>% as.tibble %>%
+      mutate(x=x) %>%
+      set_colnames(c("tile", "logratio"))
+
+    tiles2 <- tiles %>%
+      group_by(tile) %>%
+      summarize(spread=abs(diff(range(logratio))),
+                n=n()) %>%
+      arrange(-spread)
+    ## Split tiles with large spread into multiple tiles
+    tiles.keep <- tiles2 %>%
+      filter(spread < 0.05)
+    tiles.drop <- tiles2 %>%
+      filter(spread >= 0.05)
+    newtiles <- tiles %>% filter(tile %in% tiles.drop$tile)
+    newtiles$tile <- seq_len(nrow(newtiles)) + max(tiles$tile)
+    tiles3 <- filter(tiles, tile %in% tiles.keep$tile) %>%
+      bind_rows(newtiles)
+    tiles3$tile <- paste(batch.id, tiles3$tile, sep="_")
+    S[[i]] <- tiles3
+  }
+  tiles <- do.call(bind_rows, S)
+  tiles
+}
