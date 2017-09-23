@@ -6,11 +6,14 @@
 \alias{y}
 \alias{y,MixtureModel-method}
 \alias{y,DensityModel-method}
+\alias{y,DensityModel-method}
 \title{Retrieve data.}
 \usage{
 y(object)
 
 \S4method{y}{MixtureModel}(object)
+
+\S4method{y}{DensityModel}(object)
 
 \S4method{y}{DensityModel}(object)
 }

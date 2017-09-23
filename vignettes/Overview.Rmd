@@ -12,7 +12,7 @@ vignette: >
 
 # Introduction
 
-CNPBayes models multi-modal densities via a hierarchical Bayesian Gaussian mixture model. The major application of this model is the estimation of copy number at copy number polymorphic loci (CNPs). Four versions of the mixture model are implemented: a *standard* model, referred to as a *SingleBatch* model, that has one mean and standard deviation for each component; a *SingleBatchPooled* model that has a pooled estimate of the standard deviation across all mixture components; a *MultiBatch* model with batch-specific means and standard deviations; and a *MultiBatchPooled* model with batch-specific standard deviations that are pooled across mixture components within each batch. For all versions, approximation of the posterior is by Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp package [@Rcpp].
+CNPBayes models multi-modal densities via a hierarchical Bayesian Gaussian mixture model. The major application of this model is the estimation of copy number at copy number polymorphic loci (CNPs). Four versions of the mixture model are implemented: a *standard* model, referred to as a *SingleBatch* (SB) model , that has one mean and standard deviation for each component; a *SingleBatchPooled* (SBP) model that has a pooled estimate of the standard deviation across all mixture components; a *MultiBatch* (MB) model with batch-specific means and standard deviations; and a *MultiBatchPooled* (MBP) model with batch-specific standard deviations that are pooled across mixture components within each batch. For all versions, approximation of the posterior is by Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp package [@Rcpp].
 
 For an EM-implementation of Gaussian mixture models for CNPs, see the Bioconductor package CNVtools [@Barnes2008]. A Bayesian extension of this model by some of the same authors was developed to automate the analysis of the Welcome Trust Case Control Consortium (WTCCC) genotype data [@cardin] and implemented in the R package CNVCALL (http://niallcardin.com/CNVCALL).
 
@@ -27,12 +27,14 @@ suppressPackageStartupMessages(library(SummarizedExperiment))
 
 ## Delineate CNPs for each ancestry group
 
+
 Provided in the `CNPBayes` package is example `SnpArrayExperiment` and `GRangesList` data.  The `GRangesList` object contains a collection of copy number deletions and duplications identified from a hidden Markov model fit independently to each sample in a study.   The `SummarizedExperiment` object contains log R ratios and, optionally, B Allele frequencies, obtained from a SNP array.
 
 ```{r find_cnps}
 se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
 grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
 ```
+
 
 Using this data, we identify CNP loci and summarize within sample and locus using the median. We advise against using the first principal component as a summary statistic in large studies. See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`.
 

@@ -25,7 +25,6 @@ test_that("update_mu", {
   mod <- SingleBatchPooled(y(truth), mp=mp)
   set.seed(342)
   (mu.cpp <- update_mu(mod))
-
   tau2 <- tau2(mod)
   tau2.tilde <- 1/tau2
   tau2.0 <- tau2.0(hyperParams(mod))
@@ -90,7 +89,6 @@ test_that("sigma2_0_pooled", {
   mod <- SingleBatchPooled(y(truth), mp=mp)
   set.seed(123)
   s20.cpp <- sigma2_0_pooled(mod)
-
   ## R
   K <- k(mod)
   a.k <- a(hyperParams(mod)) + 0.5*K*nu.0(mod)
@@ -121,7 +119,6 @@ test_that("sigma2_0_pooled", {
 
   set.seed(123)
   p.cpp <- multinomialPr_pooled(mod)
-
   p <- p(mod)
   x <- y(mod)
   lik <- cbind(p[1]*dnorm(x, theta(mod)[1], sigma(mod)),
@@ -131,7 +128,6 @@ test_that("sigma2_0_pooled", {
   total <- matrix(total, length(total), K, byrow=FALSE)
   p.r <- lik/total
   expect_equal(p.cpp, p.r, tolerance=0.1)
-
   p <- p.cpp
   cumP <- p
   cumP[, 2] <- rowSums(p[, 1:2])

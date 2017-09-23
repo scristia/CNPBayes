@@ -8,6 +8,7 @@
 \alias{k,MixtureModel-method}
 \alias{k<-,MixtureModel-method}
 \alias{k,DensityModel-method}
+\alias{k,DensityModel-method}
 \alias{k<-,Hyperparameters-method}
 \alias{k<-,Hyperparemeters-method}
 \title{Number of components.}
@@ -19,6 +20,8 @@ k(object) <- value
 \S4method{k}{MixtureModel}(object)
 
 \S4method{k}{MixtureModel}(object) <- value
+
+\S4method{k}{DensityModel}(object)
 
 \S4method{k}{DensityModel}(object)
 

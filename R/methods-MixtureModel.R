@@ -231,7 +231,6 @@ setMethod("probz", "MixtureModel", function(object) {
 
 setMethod("runBurnin", "SingleBatchModel", function(object){
   mcmc_marginal_burnin(object, mcmcParams(object))
-
 })
 
 setMethod("runBurnin", "SingleBatchPooled", function(object){
@@ -406,8 +405,6 @@ setMethod("isOrdered", "MixtureModel", function(object){
 setMethod("isOrdered", "MultiBatchModel", function(object){
   .ordered_thetas_multibatch(object)
 })
-
-
 
 setReplaceMethod("dataMean", "MixtureModel", function(object, value){
   object@data.mean <- value
@@ -767,8 +764,6 @@ setReplaceMethod("mcmcParams", "list",
                  })
 
 setMethod("zChain", "MixtureModel", function(object) chains(object)@z)
-
-
 
 mapModel <- function(model){
   model2 <- restartAtChainIndex(model, argMax(model))

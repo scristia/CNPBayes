@@ -8,6 +8,7 @@
 \alias{modes,MixtureModel-method}
 \alias{modes<-,MixtureModel-method}
 \alias{modes,DensityModel-method}
+\alias{modes,DensityModel-method}
 \title{Retrieve the modes from a model.}
 \usage{
 modes(object)
@@ -17,6 +18,8 @@ modes(object) <- value
 \S4method{modes}{MixtureModel}(object)
 
 \S4method{modes}{MixtureModel}(object) <- value
+
+\S4method{modes}{DensityModel}(object)
 
 \S4method{modes}{DensityModel}(object)
 }

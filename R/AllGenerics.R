@@ -548,7 +548,6 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 #' @rdname thin-method
 setGeneric("thin<-", function(object, value) standardGeneric("thin<-"))
 
-
 #' Run the MCMC simulation.
 #'
 #' nStarts chains are run. b burnin iterations are run and then discarded.

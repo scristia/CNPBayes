@@ -93,6 +93,7 @@ Hyperparameters for the mixture model are specified as an instance of class
   greater detail below, $\tau^2$ is component-specific, representing the
   cross-batch variance of means for each component.)
 
+
 - `alpha` the prior mixture probabilities. Does not have to sum to 1. By
   default, a noninformative prior of equal mixtures is used.  
 
@@ -252,7 +253,6 @@ constructed using the function `BatchModel` which operates similarly to
 ```{r batch}
 ## Create McmcParams for batch model
 mp <- McmcParams(iter=500, burnin=50, thin=1, nStarts=10)
-
 ## Create Hyperparameters for batch model
 hypp <- Hyperparameters(type="batch", k=3)
 
@@ -269,11 +269,13 @@ sim.data <- simulateBatchData(N=N,
                               theta=means,
                               sds=sds,
                               p=c(1/5, 1/3, 1-1/3-1/5))
+
 # create BatchModel and run posteriorSimulation
 model <- BatchModel(data=y(sim.data), k=3,
                     batch=batch(sim.data),
                     hypp=hypp,
                     mcmc.params=mp)
+
 model <- posteriorSimulation(model)
 ```
 
@@ -283,6 +285,7 @@ evidence of departure from a normal distribution. Due to this skewness, a
 `BatchModel` does a good job of capturing the shape.
 
 # K unknown
+
 
 Generally, the number of components is not known *a priori*. To estimate the
 number of components *K*, we estimate the marginal likelihood using the

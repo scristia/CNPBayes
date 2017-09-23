@@ -139,9 +139,7 @@ plot(pc.summary, main="PC summary of\nreduced CNV ranges", cex.main=0.7, pch=20)
 
 ## Filtering
 Loci with no duplications or deletions can be identified visually as a uni-modal normal distribution. A Shapiro-Wilk test test of normality [@shapiro] can be used to filter unimodal regions.  To be conservative, we suggest retaining only those loci which have a *p* value $< 0.1$. In practice, we prefer Bayes factors or estimates of the marginal likelihood for model selection (see vignette `Overview.Rmd`). 
-
 ```{r shapiro}
 shapiro.test(med.summary)
 ```
-
 # References

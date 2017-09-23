@@ -283,7 +283,6 @@ Rcpp::NumericVector sigma2_0_pooled(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericVector sigma2_pooled(Rcpp::S4 xmod) {
     Rcpp::RNGScope scope;
-
     // get model
     Rcpp::S4 model(xmod);
 

@@ -6,11 +6,14 @@
 \alias{batch}
 \alias{batch,MixtureModel-method}
 \alias{batch,DensityModel-method}
+\alias{batch,DensityModel-method}
 \title{Retrieve batches from object.}
 \usage{
 batch(object)
 
 \S4method{batch}{MixtureModel}(object)
+
+\S4method{batch}{DensityModel}(object)
 
 \S4method{batch}{DensityModel}(object)
 }

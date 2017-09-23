@@ -9,7 +9,7 @@ test_that("test_simulation", {
   expect_identical(names(dat), c("measurements", "assignments"))
   if(FALSE){
     x <- dat[[1]]
-    if (FALSE) 
+    if (FALSE)
       hist(rowMeans(x[, , 1, 3]), col = "gray", breaks = 80)
     K <- 4
     xx <- x[, , 1, K]

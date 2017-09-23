@@ -119,7 +119,6 @@ HyperparametersMultiBatch <- function(k=3L,
 }
 
 
-
 #' Create an object of class 'HyperparametersSingleBatch' for the
 #' single batch mixture model
 #'

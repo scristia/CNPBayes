@@ -38,11 +38,13 @@ test_that("test_loglik", {
     ub <- unique(model@batch)
     loglik <- rep(0, length(y(model)))
     for (b in ub) {
-        this_batch <- model@batch == ub[b]
-        loglik <- loglik + log(p_[b, 1] * dnorm(yy, th[b, 1],
-            sd[b, 1]) + p_[b, 2] * dnorm(yy, th[b, 2], sd[b,
-            2]) + p_[b, 3] * dnorm(yy, th[b, 3], sd[b, 3])) *
-            this_batch
+      this_batch <- model@batch == ub[b]
+      loglik <- loglik + log(p_[b, 1] *
+                             dnorm(yy, th[b, 1],
+                                   sd[b, 1]) + p_[b, 2] *
+                             dnorm(yy, th[b, 2], sd[b, 2]) +
+                             p_[b, 3] * dnorm(yy, th[b, 3], sd[b, 3])) *
+        this_batch
     }
     ll3 <- sum(loglik)
     expect_equal(ll3, ll2)

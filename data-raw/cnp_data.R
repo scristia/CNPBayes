@@ -77,4 +77,3 @@ sb <- readRDS("../inst/extdata/DeletionModelExample.rds")
 sb <- updateObject(sb)
 sb <- as(sb, "SingleBatchModel")
 saveRDS(sb, file="../inst/extdata/DeletionModelExample.rds")
-

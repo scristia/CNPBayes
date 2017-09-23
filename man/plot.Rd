@@ -9,9 +9,23 @@
 \alias{plot,BatchModel,ANY-method}
 \alias{plot,DensityBatchModel,ANY-method}
 \alias{plot,BatchModel,ANY-method}
+\alias{plot,DensityModel,ANY-method}
+\alias{plot,DensityModel,numeric-method}
+\alias{plot,MarginalModel,ANY-method}
+\alias{plot,BatchModel,ANY-method}
+\alias{plot,DensityBatchModel,ANY-method}
+\alias{plot,BatchModel,ANY-method}
 \title{Deprecated plot method for DensityModel class}
 \usage{
 plot(x, y, ...)
+
+\S4method{plot}{DensityModel,ANY}(x, y, ...)
+
+\S4method{plot}{MarginalModel,ANY}(x, y, ...)
+
+\S4method{plot}{BatchModel,ANY}(x, y, show.batch = TRUE, ...)
+
+\S4method{plot}{DensityBatchModel,ANY}(x, show.batch = TRUE, ...)
 
 \S4method{plot}{DensityModel,ANY}(x, y, ...)
 

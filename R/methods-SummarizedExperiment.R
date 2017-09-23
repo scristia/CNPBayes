@@ -10,6 +10,7 @@ integerMatrix <- function(x, scale=100) {
 }
 
 #' @export
+
 setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   cnmat <- matrix(y(from), 1, length(y(from)))
   cnmat <- integerMatrix(cnmat, 1000)

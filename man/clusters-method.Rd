@@ -4,10 +4,13 @@
 \name{clusters}
 \alias{clusters}
 \alias{clusters,DensityModel-method}
+\alias{clusters,DensityModel-method}
 \title{Accessor for extracting the kmeans clusters from a DensityModel
 instance}
 \usage{
 clusters(object)
+
+\S4method{clusters}{DensityModel}(object)
 
 \S4method{clusters}{DensityModel}(object)
 }
@@ -15,6 +18,8 @@ clusters(object)
 \item{object}{an instance of class 'DensityModel'}
 }
 \value{
+k-means clustering of the component means using the modes as centers.
+
 k-means clustering of the component means using the modes as centers.
 }
 \description{

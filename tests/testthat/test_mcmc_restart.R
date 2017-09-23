@@ -17,7 +17,6 @@ test_that("test_mcmc_restart", {
     theta.first <- thetac(model2)[1, ]
     theta.last <- theta(model)
     expect_identical(theta.first, theta.last)
-
     model <- truth
     mcmcParams(model, force = TRUE) <- McmcParams(iter = 1, burnin = 1)
     model <- posteriorSimulation(model)

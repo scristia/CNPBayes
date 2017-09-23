@@ -2,8 +2,11 @@
 % Please edit documentation in R/deprecated_functions.R
 \name{DensityModel}
 \alias{DensityModel}
+\alias{DensityModel}
 \title{Constructor for DensityModel class}
 \usage{
+DensityModel(object, merge = FALSE)
+
 DensityModel(object, merge = FALSE)
 }
 \arguments{
@@ -12,13 +15,30 @@ DensityModel(object, merge = FALSE)
 \item{merge}{Logical.  Whether to use kmeans clustering to cluster
 the component means using the estimated modes from the overall
 density as the centers for the \code{kmeans} function.}
+
+\item{object}{see \code{showMethods(DensityModel)}}
+
+\item{merge}{Logical.  Whether to use kmeans clustering to cluster
+the component means using the estimated modes from the overall
+density as the centers for the \code{kmeans} function.}
 }
 \value{
+An object of class 'DensityModel'
+
 An object of class 'DensityModel'
 }
 \description{
 DensityModel constructor has been deprecated.
+
+Instantiates an instance of 'DensityModel' (or 'DensityBatchModel')
+from a MarginalModel or BatchModel object. See the corresponding
+class for additional details and examples.
+}
+\examples{
+     dm <- DensityModel(MarginalModelExample)
 }
 \seealso{
 See \code{\link{ggSingleBatch}} and \code{\link{ggMultiBatch}} for visualization
+
+\code{\link{DensityModel-class}} \code{\link{kmeans}}
 }
