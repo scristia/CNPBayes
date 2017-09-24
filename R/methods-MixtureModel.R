@@ -271,7 +271,7 @@ multipleStarts <- function(object){
   select <- which.max(lp)
   if(length(select) == 0) stop("No model selected")
   model <- models[[select]]
-  if(isMarginalModel(object)) return(model)
+  if(isSB(object)) return(model)
   ##
   ##  initialize batch model
   ##
@@ -602,10 +602,10 @@ argMax <- function(object){
   which(p == maxp)
 }
 
-setMethod("isMarginalModel", "MarginalModel", function(object) TRUE)
-setMethod("isMarginalModel", "SingleBatchModel", function(object) TRUE)
-setMethod("isMarginalModel", "BatchModel", function(object) FALSE)
-setMethod("isMarginalModel", "MultiBatchModel", function(object) FALSE)
+setMethod("isSB", "MarginalModel", function(object) TRUE)
+setMethod("isSB", "SingleBatchModel", function(object) TRUE)
+setMethod("isSB", "BatchModel", function(object) FALSE)
+setMethod("isSB", "MultiBatchModel", function(object) FALSE)
 
 startAtTrueValues <- function(model, truth){
   theta(model) <- theta(truth)
@@ -623,7 +623,7 @@ startAtTrueValues <- function(model, truth){
 
 restartAtChainIndex <- function(model, index){
   ch <- chains(model)
-  if(!isMarginalModel(model) ){
+  if(!isSB(model) ){
     B <- nBatch(model)
     K <- k(model)
     theta(model) <- matrix(theta(ch)[index, ], B, K)
@@ -782,7 +782,7 @@ mapCnProbability <- function(model){
   ## mean, variance, and class proportion parameters
   map_model <- mapModel(model)
   p <- updateMultinomialProb(map_model)
-  if(isMarginalModel(model)){
+  if(isSB(model)){
     p <- p[, order(theta(map_model))]
   } else {
     p <- p[, order(mu(map_model))]

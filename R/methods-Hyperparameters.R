@@ -96,6 +96,7 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 #' HyperparametersMultiBatch(k=3)
 #'
 #' @export
+#' @seealso \code{\link{hpList}}
 HyperparametersMultiBatch <- function(k=3L,
                                  mu.0=0,
                                  tau2.0=0.4,
@@ -201,6 +202,7 @@ setValidity("Hyperparameters", function(object){
 #' HyperparametersMarginal and HyperparametersBatch models.
 #'
 #' @export
+#' @rdname Hyperparameters
 Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="marginal") return(HyperparametersSingleBatch(k, ...))
   if(type=="batch") return(HyperparametersMultiBatch(k, ...))
@@ -262,6 +264,18 @@ hyperparam_list <- function(){
   hp.list
 }
 
+#' Create a list of hyperparameter objects for each of the four mixture model implmentations
+#'
+#' The elements of the list are named by the type of model (SB, MB, SBP, MBP).
+#'
+#' @param ... additional arguments passed to hyperparameter constructors
+#' @export
+#' @return a list of hyperparameter objects
+#' @examples
+#' hp.list <- hpList(k=3)
+#' hp.list[["SB"]]
+#' @rdname Hyperparameters
+#' @seealso \code{\link{HyperparametersMultiBatch}} \code{\link{Hyperparameters}}
 hpList <- function(...){
   sbp <- sb <- Hyperparameters(...)
   mb <- mbp <- HyperparametersMultiBatch(...)

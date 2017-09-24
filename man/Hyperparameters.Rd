@@ -2,9 +2,12 @@
 % Please edit documentation in R/methods-Hyperparameters.R
 \name{Hyperparameters}
 \alias{Hyperparameters}
+\alias{hpList}
 \title{Create an object of class 'Hyperparameters'}
 \usage{
 Hyperparameters(type = "batch", k = 2L, ...)
+
+hpList(...)
 }
 \arguments{
 \item{type}{specifies 'marginal' or 'batch'}
@@ -12,12 +15,18 @@ Hyperparameters(type = "batch", k = 2L, ...)
 \item{k}{number of components}
 
 \item{...}{optional parameters.  See details}
+
+\item{...}{additional arguments passed to hyperparameter constructors}
 }
 \value{
 An object of class HyperparametersMarginal or HyperparametersBatch
+
+a list of hyperparameter objects
 }
 \description{
 Create an object of class 'Hyperparameters'
+
+The elements of the list are named by the type of model (SB, MB, SBP, MBP).
 }
 \details{
 Additional hyperparameters can be passed to the
@@ -25,4 +34,9 @@ HyperparametersMarginal and HyperparametersBatch models.
 }
 \examples{
      hypp <- Hyperparameters("marginal", k=2)
+hp.list <- hpList(k=3)
+hp.list[["SB"]]
+}
+\seealso{
+\code{\link{HyperparametersMultiBatch}} \code{\link{Hyperparameters}}
 }

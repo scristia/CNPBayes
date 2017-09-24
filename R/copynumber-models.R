@@ -236,20 +236,24 @@ isOutlier <- function(model, params=mapParams()){
   var.ratio > params[["outlier.variance.ratio"]]
 }
 
+isPooled <- function(model){
+  class(model) %in% c("SingleBatchPooled", "MultiBatchPooled")
+}
+
 
 #' Map mixture components to distinct copy number states
 #'
 #' @param params a list of mapping parameters
 #' @examples
-#' mm <- MarginalModelExample
+#' mm <- SingleBatchModelExample
 #' cn.model <- SingleBatchCopyNumber(mm)
 #' mapping(cn.model) <- mapComponents(cn.model)
 #' mapping(cn.model)
 #' \dontrun{
-#'  ggSingleBatch(mm)
+#'  ggMixture(cn.model)
 #' }
 #' ## Batch model
-#' bmodel <- BatchModelExample
+#' bmodel <- MultiBatchModelExample
 #' bmodel <- MultiBatchCopyNumber(bmodel)
 #' mapping(bmodel) <- mapComponents(bmodel)
 #' mapping(bmodel)
@@ -264,6 +268,7 @@ mapComponents <- function(model, params=mapParams()){
   select <- rowSums(p > 0.99) == 0
   p <- p[select, , drop=FALSE]
   if(nrow(p) == 0) return(K)
+  threshold <- params[["threshold"]]
   frac.uncertain <- colMeans(p >= threshold & p <= (1-threshold))
   ##
   ## what fraction of subjects have low posterior probabilities
@@ -274,7 +279,7 @@ mapComponents <- function(model, params=mapParams()){
     return(K)
   }
   vars <- sigma2(model)
-  if(!isMarginalModel(model)){
+  if(!isSB(model) && !isPooled(model)){
     vars <- colMeans(vars)
   }
   var.ratio <- vars/median(vars)
@@ -309,6 +314,7 @@ mapComponents <- function(model, params=mapParams()){
 SingleBatchCopyNumber <- function(model){
   sb.model <- as(model, "SingleBatchCopyNumber")
   mapping(sb.model) <- seq_len(k(model))
+  mapping(sb.model) <- mapComponents(sb.model)
   sb.model
 }
 
@@ -318,6 +324,7 @@ SingleBatchCopyNumber <- function(model){
 MultiBatchCopyNumber <- function(model){
   mb.model <- as(model, "MultiBatchCopyNumber")
   mapping(mb.model) <- seq_len(k(model))
+  mapping(mb.model) <- mapComponents(mb.model)
   mb.model
 }
 
@@ -327,25 +334,16 @@ MultiBatchCopyNumber <- function(model){
 MultiBatchCopyNumberPooled <- function(model){
   mb.model <- as(model, "MultiBatchCopyNumberPooled")
   mapping(mb.model) <- seq_len(k(model))
+  mapping(mb.model) <- mapComponents(mb.model)
   mb.model
 }
-
-#' Constructs a CopyNumberModel from SB, SBP, MB, or MBP models
-#'
-#' @param model a SB, SBP, MB, or MBP model
-#' @export
-#' @examples
-#' sb <- SingleBatchModelExample
-#' cn.model <- CopyNumberModel(sb)
-#' @rdname CopyNumber-methods
-setGeneric("CopyNumberModel", function(model) standardGeneric("CopyNumberModel"))
 
 #' @rdname CopyNumber-methods
 #' @aliases CopyNumberModel,SingleBatchModel-method
 setMethod("CopyNumberModel", "SingleBatchModel", function(model){
-  model <- SingleBatchCopyNumber(model)
-  mapping(model) <- mapComponents(model)
-  model
+  model.sb <- SingleBatchCopyNumber(model)
+  mapping(model.sb) <- mapComponents(model.sb)
+  model.sb
 })
 
 #' @rdname CopyNumber-methods

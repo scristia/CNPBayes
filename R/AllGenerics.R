@@ -592,7 +592,7 @@ setGeneric("posteriorSimulation", function(object, k) standardGeneric("posterior
 ##   standardGeneric("posteriorSimulation2")
 ## })
 
-setGeneric("isMarginalModel", function(object) standardGeneric("isMarginalModel"))
+setGeneric("isSB", function(object) standardGeneric("isSB"))
 
 setGeneric("computePrior", function(object) standardGeneric("computePrior"))
 
@@ -828,3 +828,13 @@ setGeneric("ggMultiBatch", function(model, bins) standardGeneric("ggMultiBatch")
 #' @return a SB, MB, SBP, or MBP model
 #' @rdname tile-functions
 setGeneric("upSample", function(model, tiles) standardGeneric("upSample"))
+
+#' Constructs a CopyNumberModel from SB, SBP, MB, or MBP models
+#'
+#' @param model a SB, SBP, MB, or MBP model
+#' @export
+#' @examples
+#' sb <- SingleBatchModelExample
+#' cn.model <- CopyNumberModel(sb)
+#' @rdname CopyNumber-methods
+setGeneric("CopyNumberModel", function(model) standardGeneric("CopyNumberModel"))

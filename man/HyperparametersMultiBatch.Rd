@@ -61,3 +61,6 @@ batch mixture model
 HyperparametersMultiBatch(k=3)
 
 }
+\seealso{
+\code{\link{hpList}}
+}

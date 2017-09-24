@@ -12,24 +12,11 @@ vignette: >
 
 # Introduction
 
-CNPBayes models multi-modal densities via a hierarchical Bayesian
-Gaussian mixture model.  The major application of this model is the
-estimation of copy number at copy number polymorphic loci (CNPs). Two
-versions of the mixture model are implemented.  A *standard* model,
-referred to as a *marginal* model, that has one mean and standard
-deviation for each component, and a *batch* model with batch-specific
-means and standard deviations. Approximation of the posterior is by
-Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp package
-[@Rcpp].
+CNPBayes models multi-modal densities via a hierarchical Bayesian Gaussian mixture model. The major application of this model is the estimation of copy number at copy number polymorphic loci (CNPs). As described in the [overview](Overview.Rmd), four versions of the mixture model are implemented: SB, MB, SBP, and MBP. In each case, approximation of the posterior is by Markov Chain Monte Carlo (MCMC) written in C++ using the Rcpp package [@Rcpp].
 
-For an EM-implementation of Gaussian mixture models for CNPs, see the
-Bioconductor package CNVtools [@Barnes2008].  A Bayesian extension of
-this model by some of the same authors was developed to automate the
-analysis of the Welcome Trust Case Control Consortium (WTCCC) genotype
-data [@cardin] and implemented in the R package CNVCALL
-(http://niallcardin.com/CNVCALL).
+For an EM-implementation of Gaussian mixture models for CNPs, see the Bioconductor package CNVtools [@Barnes2008]. A Bayesian extension of this model by some of the same authors was developed to automate the analysis of the Welcome Trust Case Control Consortium (WTCCC) genotype data [@cardin] and implemented in the R package CNVCALL (http://niallcardin.com/CNVCALL).
 
-<!-- how cnpbayes extends / differs from these tools -->
+The key distinction of this package is an emphasis on exploring models that account for batch effects -- differences between groups of samples that were processed at different times and/or by different labs.  For smaller studies, the more standard ``SingleBatchModel` may be reasonable.  This package provides an infrastructure for fitting all of these models and then comparing these models by marginal likelihoods or Bayes factors.  The main applications we envision these models for are in studies of germline diseases containing thousands of samples and several hundred CNPs.  We suggest parallelizing by CNP (e.g., devoting a single core to each CNP), though leave the details on parallelization to the user.
 
 ```{r lib} 
 library(CNPBayes)
@@ -38,69 +25,60 @@ library(ggplot2)
 
 # Implementation
 
-CNPBayes uses several S4 classes to encapsulate key parameters of the
-MCMC simulation, reducing the need for functions with a large number
-of arguments and providing an explicit contract for the arguments
-passed to the C++ back-end. The three core classes are
+CNPBayes uses several S4 classes to encapsulate key parameters of the MCMC simulation, reducing the need for functions with a large number of arguments and providing an explicit contract for the arguments passed to the C++ back-end. The three core classes are
 
-- `McmcParams`: parameters for the number of burnin simulations - the
-  number of chains to initialize, the number of simulations after
-  burnin, and how often simulated values are to be saved.
-
-- `Hyperparameters`: a virtual class extended by `HyperparametersMarginal`
-  and `HyperparametersBatch` for the marginal and batch mixture model
-  implementations, respectively.
-
-- `MixtureModel`: a virtual class with slots for data and
-  hyperparameters, as well as a slot for each parameter. The class is
-  extended by `MarginalModel` and `BatchModel` for the *marginal* and
-  *batch* implementations, respectively. S4 dispatch on these classes
-  is used to handle MCMC updates that are specific to the marginal or
-  batch models.
-
-# Approximating the posterior of a mixture
-
-## MarginalModel
-### McmcParams
-
-
-The class `McmcParams` specifies several MCMC options, including the
-number of saved iterations (`iter`), length of burn-in (`burnin`), and
-the thinning interval (`thin`).  The following code indicates that we
-will run a burnin of 100 iterations saving the first 1000 iterations
-after burnin, with no iterations discarded for thinning.
+- `McmcParams`: parameters for the number of burnin simulations (`burnin`), the number of independent chains to initialize (`nStarts`), the number of simulations after burnin (`iter`), and how often simulated values are to be saved (`thin`).  For example, the following code indicates that we will run four independent chains (`nStarts = 4`) each with a burnin of 100 iterations.  Following the burnin, we will save the first 1000 simulations and no simulations will be discarded for thinning.
 
 ```{r McmcParams} 
-mp <- McmcParams(iter=1000, burnin=100, thin=1)
+mp <- McmcParams(iter=1000, burnin=100, thin=1, nStarts=4)
 ```
 
-If we instead specified `thin=10`, we would need to run 10,000 MCMC
-iterations in order to have a chain of length 1000 (every 10th
-observation is saved).
+- `Hyperparameters`: a virtual class extended by `HyperparametersMultiBatch` and `HyperparametersSingleBatch` for the multi-batch (MB and MBP) and single-batch (SB and SBP) mixture model implementations.  The MBP and SBP models have a pooled estimate of the variance across mixture components. Additional details are provided in the following section.
 
-### Hyperparameters
+- `MixtureModel`: a virtual class with slots for data and hyperparameters, as well as a slot for each parameter. The class is extended by `SingleBatchModel` (SB), `MultiBatchModel` (MB), `SingleBatchPooled` (SBP) and `MultiBatchPooled` (MBP). S4 dispatch on these classes is used to handle MCMC updates that are specific to the single- and multi-batch models.
+
+- After selecting a mixture model by some criteria (e.g., marginal likelihood or Bayes Factor), methods for inferring the copy number of the mixture components are handled by  `SingleBatchCopyNumber` and `MultiBatchCopyNumber` classes.
+
+# Hyperparameters
 
 Hyperparameters for the mixture model are specified as an instance of class
-`Hyperparameters`. Hyperparameters include:  
+`Hyperparameters`. Hyperparameters include:
 
-- `k` the number of components. Defaults to 2.  
+- `k` the number of components. Defaults to 2.
 
-- `mu.0` and `tau2.0` priors for $\mu \sim$ N(`mu.0`, `tau2.0`), the 
-  overall mean of components. Default to 0 and 100 respectively.  
+- `mu.0` and `tau2.0` priors for $\mu \sim$ N(`mu.0`, `tau2.0`), the
+  overall mean of components. Default to 0 and 0.4.
 
 - `eta.0` and `m2.0` priors for $\tau^2 \sim$ Ga(shape=`eta.0`, rate=`m2.0`),
-  the overall variance across components. (For the `BatchModel` discussed in
+  the overall variance across components. (For the `MultiBatchModel` discussed in
   greater detail below, $\tau^2$ is component-specific, representing the
-  cross-batch variance of means for each component.)
+  cross-batch variance of means for each component.) Defaults to 32 and 0.5.
+
+- `alpha` the prior mixture probabilities. Does not have to sum to 1. Defaults to a k-length vector of 1's
+
+- `beta` prior for $\nu_0$. Defaults to 0.1.
+
+- `a` and `b` priors for $\sigma^2_0 \sim$ Ga(shape=`a`, rate=`b`), the rate parameter for $\sigma^2$, the variance for each batch and component.
+
+Instances of the hyperparameters class can be created by a constructor with the same name of the class. For example,
 
 
-- `alpha` the prior mixture probabilities. Does not have to sum to 1. By
-  default, a noninformative prior of equal mixtures is used.  
+```{r hyperparameters}
+  Hyperparameters()
+  HyperparametersMultiBatch()
+```
 
-- `beta` prior for $\nu_0$. Defaults to 0.1.  
+  `hpList` is a convenience function for creating a list of hyperparameter objects appropriate for each of the four types of models:
 
-- `a` and `b` priors for $\sigma^2_0 \sim$ Ga(shape=`a`, rate=`b`), the 
-  rate parameter for $\sigma^2$, the variance for each batch and component.  
+```{r hplist}
+hp.list <- hpList()
+names(hp.list)
+hp.list[["SB"]] ## hyperparameters for SB model
+hp.list <- hpList(k=3) ## each object will have hyperparameters for a 3-component mixture model
+k(hp.list[["SB"]])
+```
+
+A graphical overview of the model.
 
 ```{r graph-marginal, echo=FALSE}
 library(grid)
@@ -193,194 +171,78 @@ grid.line.to(x=unit(sigma2.x, "npc")+e, y=unit(sigma2.y, "npc")+h, arrow=ar,
              gp=gpar(fill="black"))
 ```
 
-Constructing an instance of class `Hyperparameters` for a `MarginalModel` can
-be performed as follows.
-```{r Hyperparameters}
-hypp <- Hyperparameters(type="marginal", k=3)
-```
 
-### simulateData
+# Simple example
 
 CNPBayes allows for the simulation of test data. The number of observations, 
-mixture proportions, means for each component, and standard deviations for 
-each component must be specified. 
+mixture proportions, means for each component, and standard deviations for each component must be specified.
+
 ```{r simulateData}
-sim.data <- simulateData(N=2500, p=rep(1/3, 3),
+set.seed(123)
+sim.data <- simulateData(N=1000, p=rep(1/3, 3),
                          theta=c(-1, 0, 1),
                          sds=rep(0.1, 3))
 ```
 
-### posteriorSimulation
-
-To simulate the posterior distribution, an instance of class `MarginalModel`
-must first be constructed. Note that when initializing objects of this
-class, the parameters `data`, `k` (number of *a priori* components), 
-`hypp`, (object of class `Hyperparameters`) and `mcmc.params` (object of class
-`McmcParams`) should be specified. Default values for `hypp` and `mcmc.params`
-will be used if not specified. The `y` method should be used to retrieve the 
-data from an object. After construction of a model, the `posteriorSimulation` 
-method should be used.
-
-```{r model}
-model <- MarginalModel(data=y(sim.data), k=3,
-                       hypp=hypp,
-                       mcmc.params=mp)
-
-model <- posteriorSimulation(model)
-```
-
-To visualize the data and overlay the model-based approximation of the posterior:
-
-```{r plot}
-ggSingleBatch(model)
-```
-
-## BatchModel
-
-In general, the construction and posterior simulation of a `BatchModel` is
-similar to that of a `MarginalModel`. The `BatchModel` is hierarchical over the
-batches, and thus requires information about the batches. Instances of
-`McmcParams` are equivalent between `BatchModel` and `MarginalModel`. However,
-an object of class `Hyperparameters` is constructed with `type = "batch"`.
-Additionally, simulated batch data is created using `simulateBatchData` which
-requires `theta` and `sds` to be specifed as $B \times K$ matrices, for $K$
-components and $B$ batches. `simulateBatchData` also requires a `batch`
-parameter, labelling the batch of each observation. Finally, `BatchModel`s are
-constructed using the function `BatchModel` which operates similarly to
-`MarginalModel` but requires a `batch` parameter, similar to `Hyperparameters`.
-`plot`s of `BatchModel`s include batch specific density estimates.
+The workhorse function in this package is `gibbs`.  This function allows the user to specify one or all of the four possible mixture model types and for each type fit models with mixture components specified by the argument `k_range`. Below, we run 4 chains for 1000 iterations (100 iterations burnin) for only the k=3 SB model. (In practice, we would fit multiple models and specify a range for k -- e.g, `k_range=c(1, 5)`).  As described in the [convergence vignette](Convergence.Rmd), an attempt is made by `gibbs` to adapt the thinning and burnin parameters to attain convergence.  The models evaluated by `gibbs` are returned in a list where all chains have been combined and the models are sorted by decreasing value of the marginal likelihood. In order to properly assess convergence, this function requires that one run at least 2 independent chains.
 
 ```{r batch}
 ## Create McmcParams for batch model
-mp <- McmcParams(iter=500, burnin=50, thin=1, nStarts=10)
-## Create Hyperparameters for batch model
-hypp <- Hyperparameters(type="batch", k=3)
-
-## simulate batch data
-k <- 3
-nbatch <- 3
-means <- matrix(c(-1.2, -1.0, -0.8,
-                -0.2, 0, 0.2,
-                0.8, 1, 1.2), nbatch, k, byrow=FALSE)
-sds <- matrix(0.1, nbatch, k)
-N <- 1500
-sim.data <- simulateBatchData(N=N,
-                              batch=rep(letters[1:3], length.out=N),
-                              theta=means,
-                              sds=sds,
-                              p=c(1/5, 1/3, 1-1/3-1/5))
-
-# create BatchModel and run posteriorSimulation
-model <- BatchModel(data=y(sim.data), k=3,
-                    batch=batch(sim.data),
-                    hypp=hypp,
-                    mcmc.params=mp)
-
-model <- posteriorSimulation(model)
+mp <- McmcParams(iter=600, burnin=100, thin=1, nStarts=4)
+model.list <- gibbs(model="SB", dat=y(sim.data), k_range=c(3, 3), mp=mp)
 ```
 
-While aspects of the `BatchModel` look somewhat Gaussian, there is some 
-evidence of departure from a normal distribution. Due to this skewness, a
-`MarginalModel` would not capture the distribution well. However, the
-`BatchModel` does a good job of capturing the shape.
+We use Chib's estimator [@chib], running a reduced Gibbs sample to estimate the marginal likelihood of each model. Alternative methods for selection of *k* are also included. As an example, the `bic` method can be used for calculating the Bayesian Information Criterion. As the data is simulated from a three component distribution, `SB3` should be chosen. 
 
-# K unknown
-
-
-Generally, the number of components is not known *a priori*. To estimate the
-number of components *K*, we estimate the marginal likelihood using the
-`marginalLikelihood` function. It is important to note that a list of models
-passed to this function must have converged.
-
-```{r marginalLikelihood}
-mp <- McmcParams(iter=500, burnin=100, nStarts=10)
-mlist <- MarginalModelList(data=y(sim.data), k=2:3, mcmc.params=mp)
-mlist <- posteriorSimulation(mlist)
-x <- marginalLikelihood(mlist)
-x
+```{r model_selection}
+round(sapply(model.list, marginal_lik), 1)
+names(model.list)[1]
 ```
-
-`marginalLikelihood` uses Chib's Estimator [@chib] to run a reduced Gibbs
-to estimate the marginal likelihood of each component size. Additionally, 
-`marginalLikelihood` can be used in a similar manner for `BatchModel`s.
-
-Alternative methods for selection of *k* are also included. As an example, the
-`bic` method can be used for calculating the Bayesian Information Criterion. 
+For comparing models of the same type, one could also use the BIC.
 
 ```{r bic}
-## simulate k=2 model
-sim.data <- simulateData(N=500, p=rep(1/3, 3),
-                         theta=c(-1, 0, 1),
-                         sds=rep(0.1, 3))
-hypp1 <- Hyperparameters(k=2)
-m1 <- MarginalModel(data=y(sim.data), k=2,
-                    hypp=hypp1,
-                    mcmc.params=mp)
-m1 <- posteriorSimulation(m1)
-
-## simulate k=3 model
-hypp2 <- Hyperparameters(k=3)
-m2 <- MarginalModel(data=y(sim.data), k=3,
-                    hypp=hypp2,
-                    mcmc.params=mp)
-m2 <- posteriorSimulation(m2)
-bic(m1)
-bic(m2)
+round(sapply(model.list, bic), 1)
 ```
 
-As the data is simulated from a three component distribution, `m2` should be
-chosen. Using the Bayesian Information Criterion, the correct model is chosen
-in this simple example.
+## Copy number
 
-Finally, the mixture components may not necessarily correspond to distinct copy
-number states. For example, if the number of probes in a CNP region is small,
-the average log R ratio calculated for each sample is more likely to be skewed.
-In practice, one would fit many models (e.g., k = 1 - 4), select the best model
-by the marginal likelihood, and then map components from the best model to
-distinct copy number states. However, to illustrate the mapping procedure we
-intentionally overfit the 3-component model in the code chunk below by setting
-`k=4`. We then instantiate a copy number model (`SingleBatchCopyNumber`) and
-apply the function `mapComponents`. Note that posterior probabilities for copy
-number states take into account the many-to-one mapping of components to copy
-number and that the plotting function appropriately color codes the mixtures by
-the copy number state.
+The mixture components may not necessarily correspond to distinct copy number states. For example, if the number of probes in a CNP region is small, the average log R ratio calculated for each sample is more likely to be skewed.  In practice, one would fit many models (e.g., k = 1 - 4), select the best model by the marginal likelihood, and then map components from the best model to distinct copy number states. Mapping mixture components to copy number states can be done manually using the `mapping<-` function.  The constructor `CopyNumberModel` will automatically create a mapping based on the overlap of the component densities. By mapping mixture components to copy number states, the posterior probability can be computed for each copy number state as opposed to the mixture components.
 
 ```{r mapComponents}
-mp <- McmcParams(iter=100, burnin=100, thin=1, nStarts=10)
-model <- MarginalModel(data=y(sim.data), k=4,
-                       hypp=Hyperparameters(k=4),
-                       mcmc.params=mp)
-model <- posteriorSimulation(model)
-cn.model <- SingleBatchCopyNumber(model)
-trace(CNPBayes::mapComponents, browser)
-mapping(cn.model) <- mapComponents(cn.model)
+model <- model.list[[1]]
+cn.model <- CopyNumberModel(model)
 mapping(cn.model)
+```
+
+The above mapping (1 2 3) proposes a one-to-one mapping between the 3 mixture components and the copy number states. Visualization of the model-based density estimates overlaying the data can be helpful for assessing the adequacy of this particular model:
+
+```{r mapping}
+ggMixture(cn.model)
+```
+
+As our interest is in the posterior probability of the copy number state (not the posterior probability of the mixture components), these probabilities can be computed from a copy number model by the function `probCopyNumber`. 
+
+```{r probCopyNumber}
 head(probCopyNumber(cn.model))
-ggSingleBatch(cn.model)
+```
+
+One can explicitly set the mapping using the `mapping<-` replacement method. For example, here we map the first 2 components to the same state and the probability matrix now has only two columns:
+
+```{r mapping_manual}
+cn.model2 <- cn.model
+mapping(cn.model2) <- c(1, 1, 2)
+head(probCopyNumber(cn.model2))
+```
+
+Again, `ggMixture` can be helpful for assessing the model.  Here, mapping the first 2 components to the same state would only be reasonable if the differences between the first 2 components could be explained by batch effects. To evaluate this, one would want to identify the batches (next section) and fit the `MB` or `MBP` models in the `gibbs` function illustrated above.
+
+```{r ggMixture}
+ggMixture(cn.model2)
 ```
 
 # Batch Estimation
 
-Differences in the one-dimensional summaries between groups of samples
-can arise due to technical sources of variation referred to as *batch
-effects*.  For example, date, temperature, machine calibration, and
-lab technician are all potentially important technical sources of
-variation [@batch-effect].  Batch effects can vary by locus, with some
-loci more susceptible to technical factors that may affect
-measurement.  The 96 well chemistry plate on which the samples were
-processed is often a useful surrogate for batch effects since this
-tends to capture samples that were processed (e.g., PCR amplification)
-and scanned at approximately the same time. However, in large studies
-involving potentially hundreds of chemistry plates, it is not
-computationally feasible to fit fully Bayesian plate-specific mixture
-models.  Because chemistry plates are often processed at similar times
-and may be comparable in terms of the distribution of a statistic of
-interest, it may be more useful (and computationally scalable) to
-*batch* the chemistry plates.  Here, we implement a simple two-sample
-Kolmogorov-Smirnov (KS) test for each pairwise combination of
-chemistry plates in the function `collapseBatch`. The two-sample KS
-test is applied recursively until no two combinations of grouped
-plates can be combined.  We illustrate with a trivial example.
+Differences in the one-dimensional summaries between groups of samples can arise due to technical sources of variation referred to as *batch effects*. For example, date, temperature, machine calibration, and lab technician are all potentially important technical sources of variation [@batch-effect]. Batch effects can vary by locus, with some loci more susceptible to technical factors that may affect measurement. The 96 well chemistry plate on which the samples were processed is often a useful surrogate for batch effects since this tends to capture samples that were processed (e.g., PCR amplification) and scanned at approximately the same time. However, in large studies involving potentially hundreds of chemistry plates, it is not computationally feasible to fit fully Bayesian plate-specific mixture models. Because chemistry plates are often processed at similar times and may be comparable in terms of the distribution of a statistic of interest, it may be more useful (and computationally scalable) to *batch* the chemistry plates. Here, we implement a simple two-sample Kolmogorov-Smirnov (KS) test for each pairwise combination of chemistry plates in the function `collapseBatch`. The two-sample KS test is applied recursively until no two combinations of grouped plates can be combined. We illustrate with a trivial example.
 
 
 ```{r collapseBatch}
@@ -396,13 +258,22 @@ sim.data <- simulateBatchData(N=N,
                               theta=means,
                               sds=sds,
                               p=c(1/5, 1/3, 1-1/3-1/5))
-ggMultiBatch(sim.data)
-model <- BatchModel(data=y(sim.data), k=3,
-                    batch=collapseBatch(sim.data))
-ggMultiBatch(model)
+ggMixture(sim.data)
 ```
 
-As is shown, the model correctly collapses batches two and three, since they
-are drawn from the same distribution.
+Again, one could apply the `gibbs` function to fit this data. Since we know the truth (same variance for each of the 3 mixture component and multiple batches), we could simply run the pooled variance multi-batch model (MBP) with 3 components:
+
+```{r MBP, eval=FALSE}
+gibbs(model=MBP, k_range=c(3, 3))
+```
+
+In practice,  we would evaluate many model and select the best model by the marginal likelihood or the Bayes factor:
+
+```{r fit_many, eval=FALSE}
+model.list <- gibbs(model=c("SBP", "MBP"), k_range=c(1, 5),
+                    dat=y(sim.data),
+                    batches=batches, mp=mp)
+```
+
 
 # References
