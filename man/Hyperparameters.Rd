@@ -14,8 +14,6 @@ hpList(...)
 
 \item{k}{number of components}
 
-\item{...}{optional parameters.  See details}
-
 \item{...}{additional arguments passed to hyperparameter constructors}
 }
 \value{
@@ -29,8 +27,7 @@ Create an object of class 'Hyperparameters'
 The elements of the list are named by the type of model (SB, MB, SBP, MBP).
 }
 \details{
-Additional hyperparameters can be passed to the
-HyperparametersMarginal and HyperparametersBatch models.
+Additional hyperparameters can be passed to the HyperparametersMarginal and HyperparametersBatch models.
 }
 \examples{
      hypp <- Hyperparameters("marginal", k=2)

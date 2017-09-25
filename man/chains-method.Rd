@@ -24,8 +24,8 @@ is called in conjunction with an accessor for one of these
 parameters.
 }
 \examples{
-theta.chain <- theta(chains(MarginalModelExample))
+theta.chain <- theta(chains(SingleBatchModelExample))
 dim(theta.chain)
 plot.ts(theta.chain, plot.type="single",
-        col=seq_len(k(MarginalModelExample)))
+        col=seq_len(k(SingleBatchModelExample)))
 }

@@ -189,11 +189,6 @@ setMethod("computePrec", "MarginalModel", function(object){
   compute_prec(object)
 })
 
-setMethod("computePrior", "MarginalModel", function(object){
-  .Deprecate("See SingleBatchModel")
-  compute_logprior(object)
-})
-
 setMethod("computePrior", "SingleBatchModel", function(object){
   compute_logprior(object)
 })
@@ -477,7 +472,7 @@ makeUnique <- function(x){
 #' Calculate the maximum a posteriori estimate of latent variable assignment.
 #'
 #' @examples
-#'      map_z(MarginalModelExample)
+#'      map_z(SingleBatchModelExample)
 #' @param object an object of class MixtureModel.
 #' @return map estimate of latent variable assignment for each observation
 #' @export
@@ -790,55 +785,6 @@ mapCnProbability <- function(model){
   return(p)
 }
 
-#' @rdname labelSwitching-method
-#' @aliases labelSwitching,MixtureModel-method
-#' @export
-setMethod("labelSwitching", "MixtureModel", 
-    function(object, merge=TRUE) {
-        # put together a map indicating which component a component
-        # is merged into, if merging happens
-        if (merge) {
-            k.orig <- k(object)
-            merged <- DensityModel(object, merge=TRUE)
-            k.merged <- k(merged)
-            comp_map <- clusters(merged)
-            message("Merged from ", k.orig,
-                    " components to ", k.merged,
-                    " components")
-        } else {
-            # if merge==FALSE then this is an identity map
-            comp_map <- clusters(object)
-        }
-
-        # a vector showing the batch of each observation
-        # note that for a MarginalModel, all observations have batch=1
-        batches <- unique(batch(object))
-
-        # get the number of components
-        components <- k(object)
-
-        # empty vector for storing proportion of relabeling for 
-        # each batch
-        prop_relabeled <- numeric(length(batches))
-
-        # grab the thetas for components/batch at each MCMC iteration
-        thetas_all <- theta(chains(object))
-
-        for (batch in batches) {
-            # get indices for the given batch
-            ind <- (batch - 1) * components + 1:components
-
-            # get thetas at each iteration corresponding to the batch
-            thetas_batch <- thetas_all[, ind]
-
-            # calculate the proportion of relabeling for a given batch
-            prop_relabeled[batch] <- 1 - relabeling(thetas_batch, 
-                                                    comp_map)
-        }
-
-        return(prop_relabeled)
-    }
-    )
 
 #' @param value a length-one numeric vector indicating how often to save MCMC iterations to the chain.  For example, a thin of 10 means that every 10th MCMC simulation is saved to the chain.
 #' @rdname thin-method
@@ -856,6 +802,8 @@ setMethod("mcmcParams", "list", function(object){
   mcmcParams(object[[1]])
 })
 
+#' @aliases label_switch,MixtureModel-method
+#' @rdname label_switch
 setMethod("label_switch", "MixtureModel", function(object) object@label_switch)
 
 setReplaceMethod("label_switch", c("MixtureModel", "logical"),
@@ -876,25 +824,6 @@ setReplaceMethod("marginal_lik", c("MixtureModel", "numeric"),
                    object
                  })
 
-#' @rdname posteriorSimulation-method
-#' @aliases posteriorSimulation,list-method
-setMethod("posteriorSimulation", "list",
-          function(object) {
-            .Deprecated("See gibbs")
-            params <- psParams()
-            results <- vector("list", length(object))
-            for(i in seq_along(results)){
-              results[[i]] <- .posteriorSimulation(object[[i]], params)
-            }
-            ncomp <- sapply(results, k)
-            if(is(results[[1]], "SingleBatchModel")){
-              label <- "SB"
-            } else label <- "MB"
-            names(results) <- paste0(label, ncomp)
-            ##isnull <- sapply(results, is.null)
-            ##results <- results[!isnull]
-            results
-          })
 
 #' @rdname tile-functions
 #' @aliases upSample,MultiBatchModel-method
@@ -913,7 +842,7 @@ setMethod("upSample", "MultiBatchModel", function(model, tiles){
 })
 
 #' @rdname tile-functions
-#' @aliases upSample,MultiBatchModel-method
+#' @aliases upSample,MixtureModel-method
 setMethod("upSample", "MixtureModel", function(model, tiles){
   tile.sum <- tileSummaries(tiles)
   ##stopifnot(all.equal(y(model), tile.sum$avgLRR, tolerance=0.1, scale=1))

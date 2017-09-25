@@ -1,34 +1,6 @@
 #' @include methods-MixtureModel.R
 NULL
 
-#' Constructor for list of single-batch models
-#'
-#' An object of class MarginalModel is constructed for each k, creating a list of
-#' MarginalModels.
-#'
-#' @param data numeric vector of average log R ratios
-#' @param k numeric vector indicating the number of mixture components for each model
-#' @param mcmc.params an object of class \code{McmcParams}
-#' @param ... additional arguments passed to \code{Hyperparameters}
-#' @seealso \code{\link{MarginalModel}} \code{\link{BatchModelList}}
-#' @return a list. Each element of the list is a \code{BatchModel}
-#' @examples
-#' mlist <- MarginalModelList(data=y(MarginalModelExample), k=1:4)
-#' mcmcParams(mlist) <- McmcParams(iter=1, burnin=1, nStarts=0)
-#' mlist2 <- posteriorSimulation(mlist)
-#' @export
-SingleBatchModelList <- function(data=numeric(), k=numeric(),
-                              mcmc.params=McmcParams(),
-                              ...){
-  model.list <- vector("list", length(k))
-  for(i in seq_along(k)){
-    hypp <- Hyperparameters(k=k[i], ...)
-    model.list[[i]] <- SingleBatchModel(data=data, k=k[i], mcmc.params=mcmc.params,
-                                     hypp=hypp)
-  }
-  model.list
-}
-
 .empty_singlebatch_model <- function(hp, mp){
   K <- k(hp)
   B <- 0
@@ -61,59 +33,6 @@ SingleBatchModelList <- function(data=numeric(), k=numeric(),
              .internal.counter=0L)
   chains(obj) <- McmcChains(obj)
   obj
-}
-
-
-#' Create an object for running single batch MCMC simulations.
-#' @examples
-#'      model <- SingleBatchModel(data=rnorm(10), k=1)
-#' @param data the data for the simulation.
-#' @param k An integer value specifying the number of latent classes.
-#' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
-#' @param mcmc.params An object of class 'McmcParams'
-#' @return An object of class 'SingleBatchModel'
-#' @export
-SingleBatchModel <- function(data=numeric(), k=3, hypp, mcmc.params){
-  if(missing(hypp)) hypp <- Hyperparameters(k=3)
-  batch <- rep(1L, length(data))
-  if(missing(k)){
-    k <- k(hypp)
-  } else{
-    k(hypp) <- k
-  }
-  if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
-  if(missing(hypp)) hypp <- HyperparametersSingleBatch(k=k)
-  nbatch <- setNames(as.integer(table(batch)), levels(batch))
-  zz <- sample(seq_len(k), length(data), replace=TRUE)
-  zfreq <- as.integer(table(zz))
-  object <- new("SingleBatchModel",
-                k=as.integer(k),
-                hyperparams=hypp,
-                theta=numeric(k),
-                sigma2=numeric(k),
-                mu=numeric(1),
-                tau2=numeric(1),
-                nu.0=1L,
-                sigma2.0=1L,
-                pi=rep(1/k, k),
-                data=data,
-                data.mean=numeric(k),
-                data.prec=numeric(k),
-                z=zz,
-                zfreq=zfreq,
-                probz=matrix(0, length(data), k),
-                logprior=numeric(1),
-                loglik=numeric(1),
-                mcmc.chains=McmcChains(),
-                batch=batch,
-                batchElements=nbatch,
-                modes=list(),
-                mcmc.params=mcmc.params,
-                label_switch=FALSE,
-                marginal_lik=as.numeric(NA),
-                .internal.constraint=5e-4,
-                .internal.counter=0L)
-  object <- startingValues(object)
 }
 
 
@@ -163,21 +82,19 @@ SingleBatchModel <- function(data=numeric(), k=3, hypp, mcmc.params){
   object
 }
 
-#' Constructor for list of single-batch models
+#' Constructors for SB and SBP models
 #'
-#' An object of class MarginalModel is constructed for each k, creating a list of
-#' MarginalModels.
+#' Create objects of class SingleBatchModel or SingleBatchPooled
 #'
 #' @param dat numeric vector of average log R ratios
-#' @param k numeric vector indicating the number of mixture components for each model
 #' @param mp an object of class \code{McmcParams}
 #' @param hp an object of class \code{Hyperparameters}
-#' @seealso \code{\link{MultiBatchModel}} \code{\link{BatchModelList}}
-#' @return a list. Each element of the list is a \code{BatchModel}
+#' @seealso \code{\link{MultiBatchModel2}}
+#' @return An instance of \code{MultiBatchModel}
 #' @examples
-#' mlist <- MarginalModelList(data=y(MarginalModelExample), k=1:4)
-#' mcmcParams(mlist) <- McmcParams(iter=1, burnin=1, nStarts=0)
-#' mlist2 <- posteriorSimulation(mlist)
+#' SingleBatchModel2()
+#' SingleBatchModel2(dat=rnorm(100), hpList(k=2)[["SB"]])
+#' SingleBatchPooled()
 #' @export
 SingleBatchModel2 <- function(dat=numeric(),
                               hp=Hyperparameters(),
@@ -262,32 +179,13 @@ setMethod("theta", "SingleBatchModel", function(object) object@theta)
 #' @aliases sigma2,SingleBatchModel-method
 setMethod("sigma2", "SingleBatchModel", function(object) object@sigma2)
 
-newMarginalModel <- function(object){
-  mp <- mcmcParams(object)
-  object2 <- SingleBatchModel(y(object), k=k(object), mcmc.params=mp,
-                           hypp=hyperParams(object))
-  theta(object2) <- theta(object)
-  sigma2(object2) <- sigma2(object)
-  p(object2) <- p(object)
-  z(object2) <- z(object)
-  nu.0(object2) <- nu.0(object)
-  mu(object2) <- mu(object)
-  tau2(object2) <- tau2(object)
-  zFreq(object2) <- zFreq(object)
-  probz(object2) <- probz(object)
-  sigma2.0(object2) <- sigma2.0(object)
-  dataMean(object2) <- dataMean(object)
-  dataPrec(object2) <- dataPrec(object)
-  log_lik(object2) <- log_lik(object)
-  logPrior(object2) <- logPrior(object)
-  modes(object2) <- modes(object)
-  object2
-}
+
 
 newSingleBatchModel <- function(object){
   mp <- mcmcParams(object)
-  object2 <- SingleBatchModel(y(object), k=k(object), mcmc.params=mp,
-                           hypp=hyperParams(object))
+  object2 <- SingleBatchModel2(dat=y(object),
+                               mp=mp,
+                               hp=hyperParams(object))
   theta(object2) <- theta(object)
   sigma2(object2) <- sigma2(object)
   p(object2) <- p(object)

@@ -82,6 +82,7 @@ diagnostics <- function(model.list){
 }
 
 combine_batch <- function(model.list, batches){
+  . <- NULL
   ch.list <- map(model.list, chains)
   th <- map(ch.list, theta) %>% do.call(rbind, .)
   s2 <- map(ch.list, sigma2) %>% do.call(rbind, .)
@@ -168,10 +169,7 @@ combine_batch <- function(model.list, batches){
 
 combineModels <- function(model.list){
   ch.list <- map(model.list, chains)
-  ##pz <- map(model.list, probz) %>% Reduce("+", .)
-  ##pz <- pz/length(model.list)
-  ##z <- map(ch.list, "z") %>%  Reduce("+", .)
-  ##z <- max.col(pz)
+  . <- NULL
   th <- map(ch.list, theta) %>% do.call(rbind, .)
   s2 <- map(ch.list, sigma2) %>% do.call(rbind, .)
   ll <- map(ch.list, log_lik) %>% unlist
@@ -294,12 +292,12 @@ gelman_rubin <- function(mcmc_list, hp){
   r
 }
 
-constructor <- function(nm, hp, mp, batches){
-  x <- switch(nm,
-              SingleBatchModel=SingleBatchModel2(dat=dat, hp=hp, mp=mp),
-              MultiBatchModel=MultiBatchModel(dat=dat, hp=hp, mp=mp, batches=batches))
-  x
-}
+##constructor <- function(nm, hp, mp, batches){
+##  x <- switch(nm,
+##              SingleBatchModel=SingleBatchModel2(dat=dat, hp=hp, mp=mp),
+##              MultiBatchModel=MultiBatchModel(dat=dat, hp=hp, mp=mp, batches=batches))
+##  x
+##}
 
 .gibbs <- function(hp, mp, dat, max_burnin=32000){
   nchains <- nStarts(mp)
@@ -567,7 +565,7 @@ gibbs_all <- function(hp.list,
   ix <- head(order(ml, decreasing=TRUE), top)
   models <- models[ix]
   names(models) <- paste0("SB", sapply(models, k))
-  expect_identical(names(models)[1], "SB3")
+  models
 }
 
 
@@ -662,6 +660,7 @@ gibbs_pooled <- function(hp.list,
 #' @param model a character vector indicating which models to fit (any combination of 'SB', 'MB', 'SBP', and 'MBP')
 #' @param dat numeric vector of the summary copy number data for each sample at a single CNP (e.g., the median log R ratio for each sample)
 #' @param hp.list  a list of hyperparameters for each of the different models.  If missing, this list will be generated automatically with default hyperparameters that work well for copy number data
+#' @param mp an object of class \code{McmcParams}
 #' @param batches  an integer vector of the same length as \code{dat} indicating the batch in which the sample was processed
 #' @param k_range a length-two numeric vector providing the minimum and maximum number of components to model.  For example, c(1, 3) will fit mixture models with 1, 2, and 3 components.
 #' @param max_burnin the maximum number of burnin iterations. See

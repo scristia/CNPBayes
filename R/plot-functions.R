@@ -3,7 +3,10 @@
   th <- as.data.frame(theta(ch))
   th$param <- "theta"
   th$iter <- factor(1:nrow(th))
-  ##th.m <- melt(th)
+  ##
+  ## to suppress annoying notes
+  ##
+  param <- iter <- NULL
   th.m <- gather(th, key="variable", values=-c(param, iter)) %>%
     as.tibble
   ##
@@ -22,11 +25,9 @@
   s <- as.data.frame(sigma(ch))
   s$iter <- th$iter
   s$param <- "sigma"
-  s.m <- s %>% as.tibble %>%
-    gather(param, value, -iter) %>%
-    mutate(param="sigma")
-  ##s.m <- melt(s)
-  ##s.m$iter <- th.m$iter
+  . <- value <- NULL
+  s.m <- gather(s, key="variable", values=-c(param, iter)) %>%
+    as.tibble
   s.m$batch <- th.m$batch
   s.m$comp <- th.m$comp
 
@@ -61,15 +62,11 @@
   taus.m$comp <- mus.m$comp
   prob.m$iter <- taus.m$iter <- mus.m$iter <- as.integer(mus.m$iter)
 
-  dat.batch <- rbind(th.m,
-                     s.m)
+  dat.batch <- rbind(th.m, s.m)
   dat.comp <- rbind(mus.m, taus.m, prob.m)
-  dat <- rbind(nu0.m,
-               s20.m)
+  dat <- rbind(nu0.m, s20.m)
   dat$iter <- as.integer(dat$iter)
-  list(batch=dat.batch,
-       comp=dat.comp,
-       single=dat)
+  list(batch=dat.batch, comp=dat.comp, single=dat)
 }
 
 .meltMultiBatchPooledChains <- function(model){
@@ -77,7 +74,7 @@
   th <- as.data.frame(theta(ch))
   th$param <- "theta"
   th$iter <- factor(1:nrow(th))
-  ##th.m <- melt(th)
+  . <- param <- iter <- NULL
   th.m <- gather(th, key="variable", values=-c(param, iter)) %>%
     as.tibble
   ##
@@ -93,6 +90,7 @@
   th.m$comp <- factor(paste0("k=", comp))
   th.m$iter <- as.integer(th.m$iter)
 
+  value <- NULL
   s <- as.data.frame(sigma(ch))
   s.m <- s %>% as.tibble %>%
     mutate(iter=seq_len(iter(model))) %>%
@@ -139,6 +137,7 @@
 
 
 meltSingleBatchChains <- function(model){
+  parameter <- NULL
   ch <- chains(model)
   th <- as.tibble(theta(ch)) %>%
     set_colnames(paste0("theta", seq_len(k(model))))
@@ -200,6 +199,7 @@ meltSingleBatchPooledChains <- function(model){
   th <- as.tibble(theta(ch)) %>%
     set_colnames(paste0("theta", seq_len(k(model))))
   th$iter <- 1:nrow(th)
+  parameter <- NULL
   th.m <- gather(th, key="parameter", value="value", -iter) %>%
     mutate(comp=gsub("theta", "", parameter))
   sig <- as.tibble(sigma(ch)) %>%
@@ -266,18 +266,25 @@ meltSingleBatchPooledChains <- function(model){
 #'   object.
 #'
 #' @examples
-#' plist.sb <- ggSingleBatchChains(MarginalModelExample)
+#' sb <- SingleBatchModelExample
+#' plist.sb <- ggChains(sb)
+#' \dontrun{
 #' ## chains for parameter vectors of length k
 #' plist.sb[["comp"]]
 #' ## chains for parameters vectors of length 1
 #' plist.sb[["single"]]
-#' plist.mb <- ggMultiBatchChains(BatchModelExample)
+#' }
+#'
+#' mb <- MultiBatchModelExample
+#' plist.mb <- ggChains(mb)
+#' \dontrun{
 #' ## chains for parameters that are batch- and component-specific
 #' plist.mb[["batch"]]
 #' ## chains for parameters vectors of length k
 #' plist.mb[["comp"]]
 #' ## chains for parameter vectors of length 1
 #' plist.mb[["single"]]
+#' }
 #' @export
 #' @rdname ggplot-functions
 ggSingleBatchChains <- function(model){
@@ -285,7 +292,6 @@ ggSingleBatchChains <- function(model){
   dat.comp <- melt.ch[["comp"]]     ## component-specific
   dat.single <- melt.ch[["single"]] ## single-parameter
   iter <- value <- comp <- param <- NULL
-
   p.comp <- ggplot(dat.comp, aes(iter, value, group=comp)) +
     geom_point(size=0.3, aes(color=comp)) +
     geom_line(aes(color=comp)) +
@@ -294,7 +300,7 @@ ggSingleBatchChains <- function(model){
     geom_point(size=0.3, color="gray") +
     geom_line(color="gray") +
     facet_wrap(~parameter, scales="free_y")
-   list(comp=p.comp, single=p.single)
+  list(comp=p.comp, single=p.single)
 }
 
 
@@ -322,7 +328,7 @@ setMethod("gatherChains", "SingleBatchPooled", function(object){
   meltSingleBatchPooledChains(object)
 })
 
-setMethod("gatherChains", "MultiBatchModel", function(object){
+setMethod("gatherChains", "MultiBatchPooled", function(object){
   .meltMultiBatchPooledChains(object)
 })
 
@@ -431,7 +437,7 @@ dnorm_poly <- function(model){
   means <- theta(model)
   sds <- sigma(model)
   ##if(class(model) == "SingleBatchPooled"){
-  if(lengths(sds) != k(model)){
+  if(length(sds) != k(model)){
     sds <- rep(sds, k(model))
   }
   df.list <- list()
@@ -597,15 +603,6 @@ batchDensities <- function(x, batches, thetas, sds, P, batchPr){
   marginal
 }
 
-#' @export
-#' @examples
-#' df <- multiBatchDensities(MultiBatchModelExample)
-#' head(df)
-#' @rdname ggplot-functions
-multiBatchDensities <- function(model){
-  dnorm_poly_multibatch(model)
-}
-
 .gg_multibatch <- function(model, bins){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
@@ -694,50 +691,73 @@ multiBatchDensities <- function(model){
     facet_wrap(~batch, nrow=nb)
 }
 
+#' @export
 #' @rdname ggplot-functions
+#' @aliases ggMixture,MultiBatchCopyNumber-method
 setMethod("ggMixture", "MultiBatchCopyNumber", function(model, bins){
   .gg_multibatch_copynumber(model, bins)
 })
 
+#' @export
 #' @rdname ggplot-functions
+#' @aliases ggMixture,MultiBatchCopyNumberPooled-method
 setMethod("ggMixture", "MultiBatchCopyNumberPooled", function(model, bins){
   .gg_multibatch_copynumber(model, bins)
 })
 
+#' @export
 #' @rdname ggplot-functions
+#' @aliases ggMixture,SingleBatchModel-method
 setMethod("ggMixture", "SingleBatchModel", function(model, bins){
   .gg_singlebatch(model, bins)
 })
 
+
+#' @export
 #' @rdname ggplot-functions
+#' @aliases ggMixture,MultiBatchModel-method
 setMethod("ggMixture", "MultiBatchModel", function(model, bins){
   .gg_multibatch(model, bins)
 })
 
+#' @export
 #' @rdname ggplot-functions
+#' @aliases ggMixture,MultiBatchPooled-method
 setMethod("ggMixture", "MultiBatchPooled", function(model, bins){
   .gg_multibatch_pooled(model, bins)
 })
 
+#' @export
 #' @rdname ggplot-functions
+#' @aliases ggMixture,SingleBatchCopyNumber-method
 setMethod("ggMixture", "SingleBatchCopyNumber", function(model, bins){
   .gg_singlebatch_copynumber(model, bins)
 })
 
 #' @export
 #' @rdname ggplot-functions
+#' @aliases ggChains,MultiBatchModel-method
 setMethod("ggChains", "MultiBatchModel", function(model){
   .ggMultiBatchChains(model)
 })
 
+#' @export
+#' @rdname ggplot-functions
+#' @aliases ggChains,MultiBatchPooled-method
 setMethod("ggChains", "MultiBatchPooled", function(model){
   .ggMultiBatchPooledChains(model)
 })
 
+#' @export
+#' @rdname ggplot-functions
+#' @aliases ggChains,SingleBatchPooled-method
 setMethod("ggChains", "SingleBatchPooled", function(model){
   ggSingleBatchPooledChains(model)
 })
 
+#' @export
+#' @rdname ggplot-functions
+#' @aliases ggChains,SingleBatchModel-method
 setMethod("ggChains", "SingleBatchModel", function(model){
   ggSingleBatchChains(model)
 })

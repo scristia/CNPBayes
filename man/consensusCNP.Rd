@@ -74,24 +74,30 @@ cnv4 <- GRanges("chr1", IRanges(starts, ends),
 
 all_cnvs <- suppressWarnings(c(cnv1, cnv2, cnv3, cnv4))
 grl <- split(all_cnvs, all_cnvs$id)
-cnps <- consensusCNP(grl)
+\dontrun{
+  cnps <- consensusCNP(grl)
+  ##
+  ## 2nd CNP is filtered because of its size
+  ##
+  truth <- GRanges("chr1", IRanges(10000100L, 10100100L))
+  seqinfo(truth) <- seqinfo(grl)
+  identical(cnps, truth)
+}
 
-##
-## 2nd CNP is filtered because of its size
-##
-truth <- GRanges("chr1", IRanges(10000100L, 10100100L))
-seqinfo(truth) <- seqinfo(grl)
-identical(cnps, truth)
 
 ##
 ## Both CNVs identified
 ##
-cnps <- consensusCNP(grl, max.width=500e3)
+\dontrun{
+  cnps <- consensusCNP(grl, max.width=500e3)
+}
 truth <- GRanges(c("chr1", "chr5"),
                  IRanges(c(10000100L, 101000999L),
                          c(10100100L, 101400999L)))
 seqlevels(truth, pruning.mode="coarse") <- seqlevels(grl)
 seqinfo(truth) <- seqinfo(grl)
-identical(cnps, truth)
+\dontrun{
+  identical(cnps, truth)
+}
 
 }

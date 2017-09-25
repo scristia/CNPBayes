@@ -1,5 +1,25 @@
 context("Local tests")
 
+hardTruth <- function(p1, s, N=1000){
+  set.seed(1234)
+  k <- 3
+  nbatch <- 3
+  means <- matrix(c(-1.9, -2, -1.85,
+                    -0.45, -0.4, -0.35,
+                    -0.1, 0, -0.05), nbatch, k, byrow=FALSE)
+  sds <- matrix(s, nbatch, k)
+  ##p1 <- prop_comp1
+  p2 <- 20*p1
+  p3 <- 1-p1-p2
+  ##N <- 2000
+  truth <- simulateBatchData(N,
+                             theta=means,
+                             sds=sds,
+                             batch=rep(letters[1:3], length.out=N),
+                             p=c(p1, p2, p3))
+  truth
+}
+
 .test_that <- function(nm, expr) NULL
 
 .test_that("targeted seq", {
@@ -244,4 +264,15 @@ context("Local tests")
     map_dbl(models, marginal_lik)
     map_dbl(models, k)
   }
+})
+
+.test_that("Select K easy", {
+    set.seed(1)
+    means <- c(-1, 0, 1)
+    sds <- c(0.1, 0.2, 0.2)
+    truth <- simulateData(N = 250, p = rep(1/3, 3), theta = means,
+                          sds = sds)
+    mp <- McmcParams(iter=1000, burnin=200, nStarts=4, thin=1)
+    mlist <- gibbs("SB", k_range=c(2, 3), mp=mp, dat=y(truth))
+    expect_identical(names(mlist)[1], "SB3")
 })

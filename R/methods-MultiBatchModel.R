@@ -1,65 +1,3 @@
-setValidity("BatchModel", function(object){
-  msg <- TRUE
-  if(length(p(object)) != k(object)){
-    msg <- "Mixture probability vector must be the same length as k"
-    return(msg)
-  }
-  if(ncol(theta(object)) != k(object)){
-    msg <- "theta matrix must have k columns"
-    return(msg)
-  }
-  if(ncol(sigma(object)) != k(object)){
-    msg <- "sigma matrix must have k columns"
-    return(msg)
-  }
-  if(length(mu(object)) != k(object)){
-    msg <- "mu vector must be length k "
-    return(msg)
-  }
-  if(length(tau(object)) != k(object)){
-    msg <- "tau vector must be length k "
-    return(msg)
-  }
-  if(k(object) != k(hyperParams(object))){
-    msg <- "k must be the same in the hyperparameters and in the model object"
-    return(msg)
-  }
-  msg
-})
-
-#' Constructor for list of batch models
-#'
-#' An object of class MultiBatchModel is constructed for each k, creating a list of
-#' BatchModels.
-#'
-#' @param data numeric vector of average log R ratios
-#' @param batch vector of batch labels
-#' @param mcmc.params a \code{McmcParams} object
-#' @param k numeric vector indicating the number of mixture components for each model
-#' @param ... additional arguments to \code{HyperparametersBatch}
-#' @return a list. Each element of the list is a \code{BatchModel}
-#' @seealso \code{\link{BatchModel}}.  For single-batch data, use \code{\link{MarginalModelList}}.
-#' @examples
-#' mlist <- BatchModelList(data=y(MultiBatchModelExample), k=1:4, batch=batch(MultiBatchModelExample))
-#' mcmcParams(mlist) <- McmcParams(iter=1, burnin=1, nStarts=0)
-#' mlist2 <- posteriorSimulation(mlist)
-#' @export
-MultiBatchModelList <- function(data=numeric(),
-                           k=numeric(),
-                           batch,
-                           mcmc.params=McmcParams(),
-                           ...){
-  model.list <- vector("list", length(k))
-  for(i in seq_along(k)){
-    hypp <- HyperparametersMultiBatch(k=k[i], ...)
-    model.list[[i]] <- MultiBatchModel(data=data, k=k[i], batch=batch,
-                                  mcmc.params=mcmc.params,
-                                  hypp=hypp)
-  }
-  model.list
-}
-
-
 .empty_batch_model <- function(hp, mp){
   K <- k(hp)
   B <- 0
@@ -94,94 +32,37 @@ MultiBatchModelList <- function(data=numeric(),
   obj
 }
 
-#' Create an object for running hierarchical MCMC simulations.
-#' @examples
-#'      model <- MultiBatchModel(rnorm(10), k=1, batch=rep(1:2, each=5))
-#' @param data the data for the simulation.
-#' @param k An integer value specifying the number of latent classes.
-#' @param batch a vector of the different batch numbers (must be sorted)
-#' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
-#' @param mcmc.params An object of class 'McmcParams'
-#' @return An object of class `MultiBatchModel`
-#' @export
-MultiBatchModel <- function(data=numeric(),
-                       k=3,
-                       batch,
-                       hypp,
-                       mcmc.params){
-  if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
-  if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
-  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=k)
-  if(missing(k) & !missing(hypp)){
-    k <- k(hypp)
-  }
-  mcmc.chains <- McmcChains()
-  bf <- factor(batch)
-  batch <- as.integer(bf)
-  ub <- unique(batch)
-  ##ix <- order(batch)
-  ix <- seq_along(batch)
-  nbatch <- setNames(as.integer(table(batch)), levels(bf))
-  B <- length(ub)
-  if(B==1 && length(data) > 0){
-    if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
-    zz <- as.integer(factor(numeric(k)))
-    zfreq <- as.integer(table(zz))
-    obj <- SingleBatchModel(data, k, hypp, mcmc.params)
-    return(obj)
-  }
-  if(k == 1) {
-    if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=1)
-    obj <- UnivariateBatchModel(data, k, batch, hypp, mcmc.params)
-    return(obj)
-  }
-  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=k)
-  zz <- integer(length(data))
-  zfreq <- as.integer(table(zz))
-  if(length(data) != length(batch)) {
-    stop("batch vector must be the same length as data")
-  }
-  obj <- new("MultiBatchModel",
-             k=as.integer(k),
-             hyperparams=hypp,
-             theta=matrix(NA, B, k),
-             sigma2=matrix(NA, B, k),
-             mu=numeric(k),
-             tau2=numeric(k),
-             nu.0=numeric(1),
-             sigma2.0=numeric(1),
-             pi=numeric(k),
-             data=data[ix],
-             data.mean=matrix(NA, B, k),
-             data.prec=matrix(NA, B, k),
-             z=zz,
-             zfreq=zfreq,
-             probz=matrix(0, length(data), k),
-             logprior=numeric(1),
-             loglik=numeric(1),
-             mcmc.chains=mcmc.chains,
-             mcmc.params=mcmc.params,
-             batch=batch[ix],
-             batchElements=nbatch,
-             label_switch=FALSE,
-             .internal.constraint=5e-4,
-             .internal.counter=0L)
-  obj <- startingValues(obj)
-  obj
-}
-
 #' Constructor for MultiBatchModel
 #'
 #' Initializes a MultiBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
 #'
-#' @examples
-#'      model <- MultiBatchModel2(rnorm(10), batch=rep(1:2, each=5))
-#' @param data the data for the simulation.
-#' @param k An integer value specifying the number of latent classes.
-#' @param batch a vector of the different batch numbers (must be sorted)
-#' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
-#' @param mcmc.params An object of class 'McmcParams'
+#' @param dat the data for the simulation.
+#' @param batches an integer-vector of the different batches
+#' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @param mp An object of class 'McmcParams'
 #' @return An object of class `MultiBatchModel`
+#' @examples
+#'   model <- MultiBatchModel2(rnorm(10), batch=rep(1:2, each=5))
+#'   set.seed(100)
+#'   nbatch <- 3
+#'   k <- 3
+#'   means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+#'       0, 0.05), nbatch, k, byrow = FALSE)
+#'   sds <- matrix(0.15, nbatch, k)
+#'   sds[, 1] <- 0.3
+#'   N <- 1000
+#'   truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+#'                                                 length.out = N),
+#'                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+#'                              theta = means,
+#'                              sds = sds)
+#' 
+#'     truth <- simulateBatchData(N = 2500,
+#'                                batch = rep(letters[1:3], length.out = 2500),
+#'                                theta = means, sds = sds,
+#'                                p = c(1/5, 1/3, 1 - 1/3 - 1/5))
+#'     MultiBatchModel2(dat=y(truth), batches=batch(truth),
+#'                      hp=hpList(k=3)[["MB"]])
 #' @export
 MultiBatchModel2 <- function(dat=numeric(),
                              hp=HyperparametersMultiBatch(),
@@ -206,7 +87,7 @@ MultiBatchModel2 <- function(dat=numeric(),
   tau2 <- 1/rgamma(k(hp), 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
   p <- rdirichlet(1, alpha(hp))[1, ]
   sim_theta <- function(mu, tau, B) sort(rnorm(B, mu, tau))
-  ##library(magrittr)
+  . <- NULL
   thetas <- map2(mu, sqrt(tau2), sim_theta, B) %>%
     do.call(cbind, .) %>%
     apply(., 1, sort) %>%
@@ -343,25 +224,6 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
 ##   msg
 ## })
 
-#' extract data, latent variable, and batch for given observation
-#' @name extract
-#' @param x An object of class BatchModel, McmcChains, or McmcParams
-#' @param i An element of the instance to be extracted.
-#' @param j Not used.
-#' @param ... Not used.
-#' @param drop Not used.
-#' @return An object of class 'BatchModel'
-#' @aliases [,BatchModel-method [,BatchModel,ANY-method [,BatchModel,ANY,ANY-method [,BatchModel,ANY,ANY,ANY-method
-#' @docType methods
-#' @rdname extract-methods
-setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
-  if(!missing(i)){
-    y(x) <- y(x)[i]
-    z(x) <- z(x)[i]
-    batch(x) <- batch(x)[i]
-  }
-  x
-})
 
 #' extract data, latent variable, and batch for given observation
 #' @name extract
@@ -413,11 +275,6 @@ setMethod("bic", "MultiBatchModel", function(object){
   bicstat
 })
 
-#' @rdname collapseBatch-method
-#' @aliases collapseBatch,BatchModel-method
-setMethod("collapseBatch", "BatchModel", function(object){
-  collapseBatch(y(object), as.character(batch(object)))
-})
 
 #' @rdname collapseBatch-method
 #' @aliases collapseBatch,MultiBatchModel-method
@@ -447,9 +304,6 @@ setMethod("computePrec", "MultiBatchModel", function(object){
   compute_prec_batch(object)
 })
 
-setMethod("computePrior", "BatchModel", function(object){
-  compute_logprior_batch(object)
-})
 
 setMethod("computePrior", "MultiBatchModel", function(object){
   compute_logprior_batch(object)
@@ -570,7 +424,7 @@ setMethod("sigmaMean", "MultiBatchModel", function(object) {
 
 
 #' @rdname tau2-method
-#' @aliases tau2,BatchModel-method
+#' @aliases tau2,MultiBatchModel-method
 setMethod("tau2", "MultiBatchModel", function(object) object@tau2)
 
 setReplaceMethod("tau2", "MultiBatchModel", function(object, value){
@@ -624,84 +478,84 @@ setMethod("tablez", "MultiBatchModel", function(object){
 uniqueBatch <- function(object) unique(batch(object))
 
 
-#' Create a data.frame of the component densities for each batch
-#'
-#' @param object an object of class \code{BatchModel}
-#' @return a \code{{data.frame}}
-#' @export
-#' @examples
-#'    nbatch <- 3
-#'    k <- 3
-#'    means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
-#'        0, 0.05), nbatch, k, byrow = FALSE)
-#'    sds <- matrix(0.15, nbatch, k)
-#'    sds[, 1] <- 0.3
-#'    N <- 1000
-#'    truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
-#'                                                  length.out = N),
-#'                               p = c(1/10, 1/5, 1 - 0.1 - 0.2), theta = means,
-#'                               sds = sds)
-#'    mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 1,
-#'                        nStarts = 10)
-#'
-#'    ## this parameter setting for m2.0 allows a lot of varation of the thetas
-#'    ## between batch
-#'    hypp <- CNPBayes:::HyperparametersMultiBatch(m2.0 = 1/60, eta.0 = 1800,
-#'                                            k = 3, a = 1/6, b = 180)
-#'    model <- BatchModel(data = y(truth), batch = batch(truth),
-#'                        k = 3, mcmc.params = mcmcp, hypp = hypp)
-#'    model <- posteriorSimulation(model)
-#'    df <- multiBatchDensities(model)
-#'    df.observed <- data.frame(y=observed(model), batch=batch(model))
-#'    library(ggplot2)
-#'    ggplot(df, aes(x, d)) +
-#'    geom_histogram(data=df.observed,
-#'                   aes(y, ..density..),
-#'                   bins=300, inherit.aes=FALSE) +
-#'    geom_area(stat="identity", aes(color=name, fill=name),
-#'              alpha=0.4) +
-#'    xlab("quantiles") + ylab("density") +
-#'    scale_color_manual(values=colors) +
-#'    scale_fill_manual(values=colors) +
-#'    guides(fill=guide_legend(""), color=guide_legend("")) +
-#'    facet_wrap(~batch, nrow=2)
-multiBatchDensities <- function(object){
-  probs <- p(object)
-  thetas <- theta(object)
-  sigmas <- sigma(object)
-  P <- matrix(probs, nrow(thetas), ncol(thetas), byrow=TRUE)
-  rownames(P) <- uniqueBatch(object)
-  avglrrs <- observed(object)
-  quantiles <- seq(min(avglrrs), max(avglrrs), length.out=500)
-  batchPr <- table(batch(object))/length(y(object))
-  dens.list <- batchDensities(quantiles, uniqueBatch(object), 
-                              thetas, sigmas, P, batchPr)
-  ##component <- lapply(dens.list, rowSums)
-  ##overall <- rowSums(do.call(cbind, component))
-  ix <- order(thetas[1, ])
-  d <- do.call(rbind, dens.list[ix])
-  K <- ncol(thetas)
-  NB <- nBatch(object)
-  over <- Reduce("+", dens.list)
-  batches.overall <- rep(1:2, each=nrow(over))
-  quantile.overall <- rep(quantiles, 2)
-  overall <- as.numeric(over)
-
-  d.vec <- as.numeric(d, overall)
-  d.vec <- c(d.vec, overall)
-  batches <- c(rep(uniqueBatch(object), each=nrow(d)),
-               batches.overall)
-  K <- seq_len(ncol(thetas))
-  name <- paste0("cn", K-1)
-  name <- rep(rep(name, elementNROWS(dens.list)), 2)
-  name <- c(name, rep("overall", length(overall)))
-  x <- rep(rep(quantiles, length(dens.list)), 2)
-  x <- c(x, quantile.overall)
-  df <- data.frame(x=x, d=d.vec, name=name, batch=batches)
-  df$batch <- factor(df$batch, uniqueBatch(object))
-  df$name <- factor(df$name, levels=c("overall", paste0("cn", K-1)))
-  df
-}
+## Create a data.frame of the component densities for each batch
+##
+## @param object an object of class \code{BatchModel}
+## @return a \code{{data.frame}}
+## @export
+## @examples
+##    nbatch <- 3
+##    k <- 3
+##    means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+##        0, 0.05), nbatch, k, byrow = FALSE)
+##    sds <- matrix(0.15, nbatch, k)
+##    sds[, 1] <- 0.3
+##    N <- 1000
+##    truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+##                                                  length.out = N),
+##                               p = c(1/10, 1/5, 1 - 0.1 - 0.2), theta = means,
+##                               sds = sds)
+##    mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 1,
+##                        nStarts = 10)
+##
+##    ## this parameter setting for m2.0 allows a lot of varation of the thetas
+##    ## between batch
+##    hypp <- CNPBayes:::HyperparametersMultiBatch(m2.0 = 1/60, eta.0 = 1800,
+##                                            k = 3, a = 1/6, b = 180)
+##    model <- BatchModel(data = y(truth), batch = batch(truth),
+##                        k = 3, mcmc.params = mcmcp, hypp = hypp)
+##    model <- posteriorSimulation(model)
+##    df <- multiBatchDensities(model)
+##    df.observed <- data.frame(y=observed(model), batch=batch(model))
+##    library(ggplot2)
+##    ggplot(df, aes(x, d)) +
+##    geom_histogram(data=df.observed,
+##                   aes(y, ..density..),
+##                   bins=300, inherit.aes=FALSE) +
+##    geom_area(stat="identity", aes(color=name, fill=name),
+##              alpha=0.4) +
+##    xlab("quantiles") + ylab("density") +
+##    scale_color_manual(values=colors) +
+##    scale_fill_manual(values=colors) +
+##    guides(fill=guide_legend(""), color=guide_legend("")) +
+##    facet_wrap(~batch, nrow=2)
+##multiBatchDensities <- function(object){
+##  probs <- p(object)
+##  thetas <- theta(object)
+##  sigmas <- sigma(object)
+##  P <- matrix(probs, nrow(thetas), ncol(thetas), byrow=TRUE)
+##  rownames(P) <- uniqueBatch(object)
+##  avglrrs <- observed(object)
+##  quantiles <- seq(min(avglrrs), max(avglrrs), length.out=500)
+##  batchPr <- table(batch(object))/length(y(object))
+##  dens.list <- batchDensities(quantiles, uniqueBatch(object), 
+##                              thetas, sigmas, P, batchPr)
+##  ##component <- lapply(dens.list, rowSums)
+##  ##overall <- rowSums(do.call(cbind, component))
+##  ix <- order(thetas[1, ])
+##  d <- do.call(rbind, dens.list[ix])
+##  K <- ncol(thetas)
+##  NB <- nBatch(object)
+##  over <- Reduce("+", dens.list)
+##  batches.overall <- rep(1:2, each=nrow(over))
+##  quantile.overall <- rep(quantiles, 2)
+##  overall <- as.numeric(over)
+##
+##  d.vec <- as.numeric(d, overall)
+##  d.vec <- c(d.vec, overall)
+##  batches <- c(rep(uniqueBatch(object), each=nrow(d)),
+##               batches.overall)
+##  K <- seq_len(ncol(thetas))
+##  name <- paste0("cn", K-1)
+##  name <- rep(rep(name, elementNROWS(dens.list)), 2)
+##  name <- c(name, rep("overall", length(overall)))
+##  x <- rep(rep(quantiles, length(dens.list)), 2)
+##  x <- c(x, quantile.overall)
+##  df <- data.frame(x=x, d=d.vec, name=name, batch=batches)
+##  df$batch <- factor(df$batch, uniqueBatch(object))
+##  df$name <- factor(df$name, levels=c("overall", paste0("cn", K-1)))
+##  df
+##}
 
 newBatchModel <- function(object){
   mp <- mcmcParams(object)
@@ -728,7 +582,7 @@ newBatchModel <- function(object){
 
 newMultiBatchModel <- function(object){
   mp <- mcmcParams(object)
-  object2 <- MultiMultiBatchModel(y(object), batch=batch(object),
+  object2 <- MultiBatchModel(y(object), batch=batch(object),
                         k=k(object), mcmc.params=mp,
                         hypp=hyperParams(object))
   theta(object2) <- theta(object)

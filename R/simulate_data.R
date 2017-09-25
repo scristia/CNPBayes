@@ -46,7 +46,9 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
     yy[index] <- rnorm(nn, mu[cn], s[cn])
   }
   ##ix <- order(batch)
-  object <- MultiBatchModel(yy, batch=batch, k=ncol(theta))
+  ##object <- MultiBatchModel(yy, batch=batch, k=ncol(theta))
+  object <- MultiBatchModel2(dat=yy, batches=batch,
+                             hpList(k=ncol(theta))[["MB"]])
   z(object) <- as.integer(factor(zz))
   ##
   ## Must initialize the slots independently (must point to different
@@ -77,9 +79,10 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
 simulateData <- function(N, p, theta, sds){
   zz <- simulateZ(N, p)
   y <- rnorm(N, theta[zz], sds[zz])
-  object <- SingleBatchModel(data=y, k=length(theta))
+  ##object <- SingleBatchModel(data=y, k=length(theta))
+  object <- SingleBatchModel2(dat=y, hp=hpList(k=length(theta))[["SB"]])
   z(object) <- as.integer(factor(zz, levels=unique(sort(zz))))
-  ##p(object) <- p
+  p(object) <- p
   theta(object) <- as.numeric(sapply(split(y(object), z(object)), mean))
   sigma2(object) <- as.numeric(sapply(split(y(object), z(object)), var))
   p(object) <- as.numeric(sapply(split(y(object),

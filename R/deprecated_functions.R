@@ -1,161 +1,17 @@
-#' @include plot-functions.R
-#' @include methods-MixtureModel.R
+#' @include Deprecated-classes.R
 NULL
-
-
-### From AllClasses.R
-
-#' An object for running MCMC simulations.
-#'
-#' Run hierarchical MCMC for batch model.
-#' @slot k An integer value specifying the number of latent classes.
-#' @slot hyperparams An object of class `Hyperparameters` used to specify the hyperparameters of the model.
-#' @slot theta the means of each component and batch
-#' @slot sigma2 the variances of each component and batch
-#' @slot nu.0 the shape parameter for sigma2
-#' @slot sigma2.0 the rate parameter for sigma2
-#' @slot pi mixture probabilities which are assumed to be the same for all batches
-#' @slot mu means from batches, averaged across batches
-#' @slot tau2 variances from batches,  weighted by precisions
-#' @slot data the data for the simulation.
-#' @slot data.mean the empirical means of the components
-#' @slot data.prec the empirical precisions
-#' @slot z latent variables
-#' @slot zfreq table of latent variables
-#' @slot probz n x k matrix of probabilities
-#' @slot logprior log likelihood of prior: log(p(sigma2.0)p(nu.0)p(mu))
-#' @slot loglik log likelihood: \eqn{\sum p_k \Phi(\theta_k, \sigma_k)}
-#' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
-#' @slot batch a vector of the different batch numbers
-#' @slot batchElements a vector labeling from which batch each observation came from
-#' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
-#' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
-#' @slot mcmc.params An object of class 'McmcParams'
-#' @slot .internal.constraint Constraint on parameters. For internal use only.
-setClass("BatchModel", contains="MixtureModel")
-
-#' The 'MarginalModel' class
-#'
-#' Run marginal MCMC simulation
-#' @slot k An integer value specifying the number of latent classes.
-#' @slot hyperparams An object of class `Hyperparameters` used to specify the hyperparameters of the model.
-#' @slot theta the means of each component and batch
-#' @slot sigma2 the variances of each component and batch
-#' @slot nu.0 the shape parameter for sigma2
-#' @slot sigma2.0 the rate parameter for sigma2
-#' @slot pi mixture probabilities which are assumed to be the same for all batches
-#' @slot mu overall mean
-#' @slot tau2 overall variance
-#' @slot data the data for the simulation.
-#' @slot data.mean the empirical means of the components
-#' @slot data.prec the empirical precisions
-#' @slot z latent variables
-#' @slot zfreq table of latent variables
-#' @slot probz n x k matrix of probabilities
-#' @slot logprior log likelihood of prior: log(p(sigma2.0)p(nu.0)p(mu))
-#' @slot loglik log likelihood: \eqn{\sum p_k \Phi(\theta_k, \sigma_k)}
-#' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
-#' @slot batch a vector of the different batch numbers
-#' @slot batchElements a vector labeling from which batch each observation came from
-#' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
-#' @slot mcmc.params An object of class 'McmcParams'
-#' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
-#' @slot .internal.constraint Constraint on parameters. For internal use only.
-setClass("MarginalModel", contains="MixtureModel")
-
-
-#' Constructor for list of single-batch models
-#'
-#' An object of class MarginalModel is constructed for each k, creating a list of
-#' MarginalModels.
-#'
-#' @param data numeric vector of average log R ratios
-#' @param k numeric vector indicating the number of mixture components for each model
-#' @param mcmc.params an object of class \code{McmcParams}
-#' @param ... additional arguments passed to \code{Hyperparameters}
-#' @seealso \code{\link{MarginalModel}} \code{\link{BatchModelList}}
-#' @return a list. Each element of the list is a \code{BatchModel}
-#' @examples
-#' mlist <- MarginalModelList(data=y(MarginalModelExample), k=1:4)
-#' mcmcParams(mlist) <- McmcParams(iter=1, burnin=1, nStarts=0)
-#' mlist2 <- posteriorSimulation(mlist)
-#' @export
-MarginalModelList <- function(data=numeric(), k=numeric(),
-                              mcmc.params=McmcParams(),
-                              ...){
-  .Deprecated("See SingleBatchModelList")
-  model.list <- vector("list", length(k))
-  for(i in seq_along(k)){
-    hypp <- Hyperparameters(k=k[i], ...)
-    model.list[[i]] <- MarginalModel(data=data, k=k[i], mcmc.params=mcmc.params,
-                                     hypp=hypp)
-  }
-  model.list
-}
-
-#' Create an object for running marginal MCMC simulations.
-#' @examples
-#'      model <- MarginalModel(data=rnorm(10), k=1)
-#' @param data the data for the simulation.
-#' @param k An integer value specifying the number of latent classes.
-#' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
-#' @param mcmc.params An object of class 'McmcParams'
-#' @return An object of class 'MarginalModel'
-#' @export
-MarginalModel <- function(data=numeric(), k=3, hypp, mcmc.params){
-  .Deprecated("See SingleBatchModel")
-  if(missing(hypp)) hypp <- Hyperparameters(k=3)
-  batch <- rep(1L, length(data))
-  if(missing(k)){
-    k <- k(hypp)
-  } else{
-    k(hypp) <- k
-  }
-  if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
-  if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
-  nbatch <- setNames(as.integer(table(batch)), levels(batch))
-  zz <- sample(seq_len(k), length(data), replace=TRUE)
-  zfreq <- as.integer(table(zz))
-  object <- new("MarginalModel",
-                k=as.integer(k),
-                hyperparams=hypp,
-                theta=numeric(k),
-                sigma2=numeric(k),
-                mu=numeric(1),
-                tau2=numeric(1),
-                nu.0=1L,
-                sigma2.0=1L,
-                pi=rep(1/k, k),
-                data=data,
-                data.mean=numeric(k),
-                data.prec=numeric(k),
-                z=zz,
-                zfreq=zfreq,
-                probz=matrix(0, length(data), k),
-                logprior=numeric(1),
-                loglik=numeric(1),
-                mcmc.chains=McmcChains(),
-                batch=batch,
-                batchElements=nbatch,
-                modes=list(),
-                mcmc.params=mcmc.params,
-                label_switch=FALSE,
-                marginal_lik=as.numeric(NA),
-                .internal.constraint=5e-4,
-                .internal.counter=0L)
-  object <- startingValues(object)
-}
 
 #' @rdname mu-method
 #' @aliases mu,MarginalModel-method
 #' @export
+#' @rdname Deprecated-functions
 setMethod("mu", "MarginalModel", function(object){
   .Deprecated("see SingleBatchModel")
   object@mu
 })
 
-#' @rdname tau2-method
 #' @aliases tau2,MarginalModel-method
+#' @rdname Deprecated-functions
 setMethod("tau2", "MarginalModel", function(object) object@tau2)
 
 setMethod("show", "MarginalModel", function(object) callNextMethod())
@@ -183,10 +39,10 @@ setReplaceMethod("mu", "MarginalModel", function(object, value){
 })
 
 
-#' @rdname bic-method
 #' @aliases bic,MarginalModel-method
+#' @rdname Deprecated-functions
 setMethod("bic", "MarginalModel", function(object){
-  .Deprecated("See SingleBatchModel")
+  .Deprecated("SingleBatchModel")
   object <- useModes(object)
   ## K: number of free parameters to be estimated
   ##   - component-specific parameters:  theta, sigma2   (3 x k(model))
@@ -197,11 +53,11 @@ setMethod("bic", "MarginalModel", function(object){
   -2*(log_lik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
 })
 
-#' @rdname theta-method
+#' @rdname Deprecated-functions
 #' @aliases theta,MarginalModel-method
 setMethod("theta", "MarginalModel", function(object) object@theta)
 
-#' @rdname sigma2-method
+#' @rdname Deprecated-functions
 #' @aliases sigma2,MarginalModel-method
 setMethod("sigma2", "MarginalModel", function(object) object@sigma2)
 
@@ -281,7 +137,7 @@ setMethod("showSigmas", "BatchModel", function(object){
   sigmas
 })
 
-#' @rdname sigma2-method
+#' @rdname Deprecated-functions
 #' @aliases sigma2,BatchModel-method
 setMethod("sigma2", "BatchModel", function(object) {
   s2 <- object@sigma2
@@ -304,7 +160,7 @@ setMethod("sigmaMean", "BatchModel", function(object) {
   mns
 })
 
-#' @rdname tau2-method
+#' @rdname Deprecated-functions
 #' @aliases tau2,BatchModel-method
 setMethod("tau2", "BatchModel", function(object) object@tau2)
 
@@ -313,7 +169,7 @@ setReplaceMethod("tau2", "BatchModel", function(object, value){
   object
 })
 
-#' @rdname theta-method
+#' @rdname Deprecated-functions
 #' @aliases theta,BatchModel-method
 setMethod("theta", "BatchModel", function(object) {
   b <- object@theta
@@ -353,14 +209,16 @@ setMethod("tablez", "BatchModel", function(object){
   tab
 })
 
-#' @rdname marginalLikelihood-method
+#' @param params list of parameters for computing marginal likelihood
+#' @param model MarginalModel
+#' @rdname Deprecated-functions
 #' @aliases marginalLikelihood,MarginalModel-method marginalLikelihood,MarginalModel,ANY-method
 setMethod("marginalLikelihood", "MarginalModel",
           function(model, params=mlParams()) {
             .ml_singlebatch(model, params)
           })
 
-#' @rdname marginalLikelihood-method
+#' @rdname Deprecated-functions
 #' @aliases marginalLikelihood,BatchModel-method marginalLikelihood,BatchModel,ANY-method
 setMethod("marginalLikelihood", "BatchModel",
           function(model, params=mlParams()){
@@ -396,7 +254,8 @@ setMethod("isOrdered", "BatchModel", function(object){
 })
 
 
-#' @rdname ggplot-functions
+#' @param bins length-one numeric vector specifying number of bins for plotting
+#' @rdname Deprecated-functions
 setMethod("ggMultiBatch", "BatchModel", function(model, bins){
   .gg_multibatch(model, bins)
 })
@@ -558,16 +417,11 @@ setMethod("densitiesCluster", "SingleBatchModel", function(object){
        clusters=km, quantiles=dens$quantiles, data=dens$data)
 })
 
-#' Constructor for DensityModel class
-#'
 #' DensityModel constructor has been deprecated.  
 #' @seealso See \code{\link{ggSingleBatch}} and \code{\link{ggMultiBatch}} for visualization
-#' @param object see \code{showMethods(DensityModel)}
-#' @param merge Logical.  Whether to use kmeans clustering to cluster
-#' the component means using the estimated modes from the overall
-#' density as the centers for the \code{kmeans} function.
 #' @return An object of class 'DensityModel'
 #' @export
+#' @rdname Deprecated-functions
 DensityModel <- function(object, merge=FALSE){
  .Deprecated()
   if(!missing(object)){
@@ -591,6 +445,7 @@ DensityModel <- function(object, merge=FALSE){
     quantiles <- numeric()
     data <- numeric()
   }
+ isMarginalModel <- function(object) NULL
   if(isMarginalModel(object)){
     obj <- new("DensityModel", component=component, overall=overall, modes=modes,
                clusters=clusters, data=data, quantiles=quantiles)
@@ -605,17 +460,17 @@ DensityModel <- function(object, merge=FALSE){
 
 setMethod("component", "DensityModel", function(object) object@component)
 
-#' @rdname batch-method
+#' @rdname Deprecated-functions
 #' @aliases batch,DensityModel-method
 setMethod("batch", "DensityModel", function(object) object@batch)
 
 setMethod("overall", "DensityModel", function(object) object@overall)
 
-#' @rdname modes-method
+#' @rdname Deprecated-functions
 #' @aliases modes,DensityModel-method
 setMethod("modes", "DensityModel", function(object) object@modes)
 
-#' @rdname k-method
+#' @rdname Deprecated-functions
 #' @aliases k,DensityModel-method
 setMethod("k", "DensityModel", function(object) length(component(object)))
 
@@ -709,17 +564,17 @@ findModes <- function(quantiles, x){ ##quantiles, density
   modes
 }
 
-#' @rdname y-method
+#' @rdname Deprecated-functions
 #' @aliases y,DensityModel-method
 setMethod("y", "DensityModel", function(object) object@data)
 
-#' @rdname plot
+#' @rdname Deprecated-functions
 #' @aliases plot,DensityModel,numeric-method
 setMethod("plot", "DensityModel", function(x, y, ...){
   .plotMarginal(x, x@data, ...)
 })
 
-#' @rdname plot
+#' @rdname Deprecated-functions
 #' @aliases plot,MarginalModel,ANY-method
 setMethod("plot", "MarginalModel", function(x, y, ...){
   object <- DensityModel(x)
@@ -727,7 +582,7 @@ setMethod("plot", "MarginalModel", function(x, y, ...){
   return(object)
 })
 
-#' @rdname plot
+#' @rdname Deprecated-functions
 #' @aliases plot,BatchModel,ANY-method
 setMethod("plot", "BatchModel", function(x, y, show.batch=TRUE, ...){
   object <- DensityModel(x)
@@ -735,7 +590,7 @@ setMethod("plot", "BatchModel", function(x, y, show.batch=TRUE, ...){
   return(object)
 })
 
-#' @rdname plot
+#' @rdname Deprecated-functions
 #' @aliases plot,BatchModel,ANY-method
 setMethod("plot", "DensityBatchModel", function(x, show.batch=TRUE, ...){
   .plotBatch(x, x@data, show.batch, ...)
@@ -897,9 +752,9 @@ setMethod("densities", "SingleBatchPooled", function(object){
        clusters=clusters, quantiles=quantiles, data=data)
 })
 
-#' @rdname clusters-method
-#' @aliases clusters,DensityModel-method
-#' @return k-means clustering of the component means using the modes as centers.
+
+setGeneric("clusters", function(object) standardGeneric("clusters"))
+
 setMethod("clusters", "DensityModel", function(object) {
   .Deprecated()
   object@clusters
@@ -910,46 +765,9 @@ setMethod("clusters", "DensityModel", function(object) {
 ##})
 
 
-#' Create an object of class 'HyperparametersBatch' for the
-#' batch mixture model
-#'
-#' @param k  length-one integer vector specifying number of components
-#' (typically 1 <= k <= 4)
-#' @param mu.0 length-one numeric vector of the of the normal prior
-#' for the component means.
-#' @param tau2.0 length-one numeric vector of the variance for the normal
-#' prior of the component means
-#' @param eta.0 length-one numeric vector of the shape parameter for
-#' the Inverse Gamma prior of the component variances, tau2_h.  The
-#' shape parameter is parameterized as 1/2 * eta.0.  In the batch
-#' model, tau2_h describes the inter-batch heterogeneity of means for
-#' component h.
-#' @param m2.0 length-one numeric vector of the rate parameter for the
-#' Inverse Gamma prior of the component variances, tau2_h.  The rate
-#' parameter is parameterized as 1/2 * eta.0 * m2.0.  In the batch
-#' model, tau2_h describes the inter-batch heterogeneity of means for
-#' component h.
-#' @param alpha length-k numeric vector of the shape parameters for
-#' the dirichlet prior on the mixture probabilities
-#' @param beta length-one numeric vector for the parameter of the
-#' geometric prior for nu.0 (nu.0 is the shape parameter of the
-#' Inverse Gamma sampling distribution for the component-specific
-#' variances. Together, nu.0 and sigma2.0 model inter-component
-#' heterogeneity in variances.).  beta is a probability and must be
-#' in the interval [0,1].
-#' @param a length-one numeric vector of the shape parameter for the
-#' Gamma prior used for sigma2.0 (sigma2.0 is the shape parameter of
-#' the Inverse Gamma sampling distribution for the component-specific
-#' variances).
-#' @param b a length-one numeric vector of the rate parameter for the
-#' Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
-#' the Inverse Gamma sampling distribution for the component-specific
-#' variances)
 #' @return An object of class HyperparametersBatch
-#' @examples
-#' HyperparametersBatch(k=3)
-#'
 #' @export
+#' @rdname Deprecated-functions
 HyperparametersBatch <- function(k=3L,
                                  mu.0=0,
                                  tau2.0=100,
@@ -973,9 +791,6 @@ HyperparametersBatch <- function(k=3L,
       b=b)
 }
 
-#' Create an object of class 'HyperparametersMarginal' for the
-#' marginal mixture model
-#'
 #' @param k  length-one integer vector specifying number of components
 #' (typically 1 <= k <= 4)
 #' @param mu.0  length-one numeric vector of the mean for the normal
@@ -1005,10 +820,8 @@ HyperparametersBatch <- function(k=3L,
 #' variances)
 #'
 #' @return An object of class HyperparametersMarginal
-#' @examples
-#' HyperparametersMarginal(k=3)
-#'
 #' @export
+#' @rdname Deprecated-functions
 HyperparametersMarginal <- function(k=0L,
                                     mu.0=0,
                                     tau2.0=100,
@@ -1033,23 +846,14 @@ HyperparametersMarginal <- function(k=0L,
       b=b)
 }
 
-#' Constructor for list of batch models
-#'
-#' An object of class BatchModel is constructed for each k, creating a list of
-#' BatchModels.
-#'
+
 #' @param data numeric vector of average log R ratios
-#' @param batch vector of batch labels
 #' @param mcmc.params a \code{McmcParams} object
-#' @param k numeric vector indicating the number of mixture components for each model
 #' @param ... additional arguments to \code{HyperparametersBatch}
 #' @return a list. Each element of the list is a \code{BatchModel}
-#' @seealso \code{\link{BatchModel}}.  For single-batch data, use \code{\link{MarginalModelList}}.
-#' @examples
-#' mlist <- BatchModelList(data=y(BatchModelExample), k=1:4, batch=batch(BatchModelExample))
-#' mcmcParams(mlist) <- McmcParams(iter=1, burnin=1, nStarts=0)
-#' mlist2 <- posteriorSimulation(mlist)
+#' @seealso \code{\link{BatchModel}}.  For single-batch data, use 
 #' @export
+#' @rdname Deprecated-functions
 BatchModelList <- function(data=numeric(),
                            k=numeric(),
                            batch,
@@ -1066,16 +870,9 @@ BatchModelList <- function(data=numeric(),
   model.list
 }
 
-#' Create an object for running hierarchical MCMC simulations.
-#' @examples
-#'      model <- BatchModel(rnorm(10), k=1, batch=rep(1:2, each=5))
-#' @param data the data for the simulation.
-#' @param k An integer value specifying the number of latent classes.
-#' @param batch a vector of the different batch numbers (must be sorted)
-#' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
-#' @param mcmc.params An object of class 'McmcParams'
 #' @return An object of class `BatchModel`
 #' @export
+#' @rdname Deprecated-functions
 BatchModel <- function(data=numeric(),
                        k=3,
                        batch,
@@ -1143,8 +940,7 @@ BatchModel <- function(data=numeric(),
   obj
 }
 
-#' @rdname posteriorSimulation-method
-#' @aliases posteriorSimulation,MixtureModel-method
+#' @rdname Deprecated-functions
 setMethod("posteriorSimulation", c("MixtureModel", "integer"),
           function(object, k) {
             ##.Deprecated("Method is deprecated for signature 'MixtureModel, integer'.  Use MarginalModelList or BatchModelList prior to posteriorSimulation")
@@ -1163,8 +959,7 @@ setMethod("posteriorSimulation", c("MixtureModel", "integer"),
     }
 )
 
-#' @rdname posteriorSimulation-method
-#' @aliases posteriorSimulation,MixtureModel-method
+#' @rdname Deprecated-functions
 setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
           function(object, k) {
             stop("Specifying k not allowed.  See MultiBatchModelList or SingleBatchModelList for creating a list object.")
@@ -1250,13 +1045,9 @@ setMethod("densitiesCluster", "MarginalModel", function(object){
 })
 
 
-#' Constructor for DensityModel class
-#'
 #' Instantiates an instance of 'DensityModel' (or 'DensityBatchModel')
 #' from a MarginalModel or BatchModel object. See the corresponding
 #' class for additional details and examples.
-#' @examples
-#'      dm <- DensityModel(MarginalModelExample)
 #' @seealso \code{\link{DensityModel-class}} \code{\link{kmeans}}
 #' @param object see \code{showMethods(DensityModel)}
 #' @param merge Logical.  Whether to use kmeans clustering to cluster
@@ -1264,6 +1055,7 @@ setMethod("densitiesCluster", "MarginalModel", function(object){
 #' density as the centers for the \code{kmeans} function.
 #' @return An object of class 'DensityModel'
 #' @export
+#' @rdname Deprecated-functions
 DensityModel <- function(object, merge=FALSE){
   .Deprecated("see ggMixture")
   if(!missing(object)){
@@ -1287,6 +1079,7 @@ DensityModel <- function(object, merge=FALSE){
     quantiles <- numeric()
     data <- numeric()
   }
+  isMarginalModel <- function(x) NULL
   if(isMarginalModel(object)){
     obj <- new("DensityModel", component=component, overall=overall, modes=modes,
                clusters=clusters, data=data, quantiles=quantiles)
@@ -1301,17 +1094,17 @@ DensityModel <- function(object, merge=FALSE){
 
 setMethod("component", "DensityModel", function(object) object@component)
 
-#' @rdname batch-method
+#' @rdname Deprecated-functions
 #' @aliases batch,DensityModel-method
 setMethod("batch", "DensityModel", function(object) object@batch)
 
 setMethod("overall", "DensityModel", function(object) object@overall)
 
-#' @rdname modes-method
+#' @rdname Deprecated-functions
 #' @aliases modes,DensityModel-method
 setMethod("modes", "DensityModel", function(object) object@modes)
 
-#' @rdname k-method
+#' @rdname Deprecated-functions
 #' @aliases k,DensityModel-method
 setMethod("k", "DensityModel", function(object) length(component(object)))
 
@@ -1419,17 +1212,17 @@ findModes <- function(quantiles, x){ ##quantiles, density
   modes
 }
 
-#' @rdname y-method
+#' @rdname Deprecated-functions
 #' @aliases y,DensityModel-method
 setMethod("y", "DensityModel", function(object) object@data)
 
-#' @rdname plot
+#' @rdname Deprecated-functions
 #' @aliases plot,DensityModel,numeric-method
 setMethod("plot", "DensityModel", function(x, y, ...){
   .plotMarginal(x, x@data, ...)
 })
 
-#' @rdname plot
+#' @rdname Deprecated-functions
 #' @aliases plot,MarginalModel,ANY-method
 setMethod("plot", "MarginalModel", function(x, y, ...){
   object <- DensityModel(x)
@@ -1437,7 +1230,7 @@ setMethod("plot", "MarginalModel", function(x, y, ...){
   return(object)
 })
 
-#' @rdname plot
+#' @rdname Deprecated-functions
 #' @aliases plot,BatchModel,ANY-method
 setMethod("plot", "BatchModel", function(x, y, show.batch=TRUE, ...){
   object <- DensityModel(x)
@@ -1445,7 +1238,7 @@ setMethod("plot", "BatchModel", function(x, y, show.batch=TRUE, ...){
   return(object)
 })
 
-#' @rdname plot
+#' @rdname Deprecated-functions
 #' @aliases plot,BatchModel,ANY-method
 setMethod("plot", "DensityBatchModel", function(x, show.batch=TRUE, ...){
   .plotBatch(x, x@data, show.batch, ...)
@@ -1551,48 +1344,44 @@ setMethod("densities", "SingleBatchPooled", function(object){
        clusters=clusters, quantiles=quantiles, data=data)
 })
 
-#' @rdname clusters-method
-#' @aliases clusters,DensityModel-method
-#' @return k-means clustering of the component means using the modes as centers.
 setMethod("clusters", "DensityModel", function(object) object@clusters)
 setMethod("quantiles", "DensityModel", function(object) object@quantiles)
 
 
-#' @rdname ggplot-functions
+#' @rdname Deprecated-functions
 setMethod("ggMultiBatch", "MultiBatchModel", function(model, bins){
   .Deprecated("See ggMixture")
   .gg_multibatch(model, bins)
 })
 
-#' @rdname ggplot-functions
+#' @rdname Deprecated-functions
 setMethod("ggMultiBatch", "MultiBatchPooled", function(model, bins){
   .Deprecated("See ggMixture")
   .gg_multibatch_pooled(model, bins)
 })
 
-
+#' @rdname Deprecated-functions
 #' @aliases ggSingleBatch,MarginalModel-method
-#' @rdname ggplot-functions
 setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
   .Deprecated("See ggMixture")
   .gg_singlebatch(model, bins)
 })
 
+#' @rdname Deprecated-functions
 #' @aliases ggSingleBatch,SingleBatchModel-method
-#' @rdname ggplot-functions
 setMethod("ggSingleBatch", "SingleBatchModel", function(model, bins){
   .Deprecated("See ggMixture")
   .gg_singlebatch(model, bins)
 })
 
-#' @rdname ggplot-functions
+#' @rdname Deprecated-functions
 setMethod("ggMultiBatch", "MultiBatchCopyNumber", function(model, bins){
   .Deprecated("See ggMixture")
   .gg_multibatch_copynumber(model, bins)
 })
 
+#' @rdname Deprecated-functions
 #' @aliases ggSingleBatch,SingleBatchCopyNumber-method
-#' @rdname ggplot-functions
 setMethod("ggSingleBatch", "SingleBatchCopyNumber", function(model, bins){
   .Deprecated("See ggMixture")
   .gg_singlebatch_copynumber(model, bins)
@@ -1617,10 +1406,7 @@ setMethod("showMeans", "BatchModel", function(object){
 })
 
 
-#' Create tile labels for each observation
-#'
-#' A wrapper for function downSampleEachBatch. Batches are automatically merged as needed.
-#' 
+
 #' @param batch.file the name of a file contaning RDS data to be read in.
 #' @param plate a vector containing the labels  from which batch each observation came from.
 #' @param y in memory data
@@ -1628,6 +1414,7 @@ setMethod("showMeans", "BatchModel", function(object){
 #' @param THR threshold above which to merge batches in Kolmogorov-Smirnov test.
 #' @return Tile labels for each observation
 #' @export
+#' @rdname Deprecated-functions
 downsample <- function(batch.file, plate, y, ntiles=250, THR=0.1){
   .Deprecated(downsample)
   if(file.exists(batch.file)){
@@ -1654,47 +1441,25 @@ downsample <- function(batch.file, plate, y, ntiles=250, THR=0.1){
 
 
 
-#' Create tile labels for each observation
-#'
-#' @param y vector containing data
 #' @param nt the number of observations per batch
-#' @param batch a vector containing the labels from which batch each observation came from.
 #' @return Tile labels for each observation
 #' @seealso \code{\link[dplyr]{ntile}}
 #' @export
-#' @examples
-#' y <- runif(100)
-#' batch <- sample(letters[1:3], 100, replace=TRUE)
-#' ds <- downSampleEachBatch(y, 10, batch)
-#'
-#' model <- MultiBatchModelExample
-#' ds <- downSampleEachBatch(y(model), 100, batch(model))
-#' model.ds <- MultiBatchModel(ds$y, batch=ds$batch, k=3)
-#' model.ds <- posteriorSimulation(model.ds)
-#' ## map the posterior probabilities of the downsampled data back to the
-#' ## original observations
-#' probs <- probz(model.ds)
-#' rownames(probs) <- names(y(model.ds))
-#' probs.ds <- probs[ds$label, ]
-#'
-#' ## compare downsampled results to that of fitting the fulll data
-#' model <- posteriorSimulation(model)
-#' probs.full <- probz(model)
-#' probs.full <- round(probs.full, 1)
-#' reduced <- round(probs.ds, 1)
-#' not.equal <- rowSums(full != reduced) > 0
+#' @rdname Deprecated-functions
 downSampleEachBatch <- function(y, nt, batch){
   .Deprecated("see tileMedians")
   ## NULL out these two variables to avoid NOTE about
   ## no visible binding for global variable
   yy <- y
   x <- obs.index <- NULL
+  logratio <- NULL
   ##
   ## split observations by batch
   ##
   yb <- split(y, batch)
   indices <- split(seq_along(y), batch)
   S <- vector("list", length(yb))
+
   for (i in 1:length(yb)) {
     x <- yb[[i]]
     batch.id <- names(yb)[i]
@@ -1726,3 +1491,336 @@ downSampleEachBatch <- function(y, nt, batch){
   tiles <- do.call(bind_rows, S)
   tiles
 }
+
+
+#' Create an object for running hierarchical MCMC simulations.
+#' @param batch a vector of the different batch numbers (must be sorted)
+#' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @return An object of class `MultiBatchModel`
+#' @export
+#' @rdname Deprecated-functions
+MultiBatchModel <- function(data=numeric(),
+                            k=3,
+                            batch,
+                            hypp,
+                            mcmc.params){
+  .Deprecated("See MultiBatchModel2")
+  if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
+  if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
+  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=k)
+  if(missing(k) & !missing(hypp)){
+    k <- k(hypp)
+  }
+  mcmc.chains <- McmcChains()
+  bf <- factor(batch)
+  batch <- as.integer(bf)
+  ub <- unique(batch)
+  ##ix <- order(batch)
+  ix <- seq_along(batch)
+  nbatch <- setNames(as.integer(table(batch)), levels(bf))
+  B <- length(ub)
+  if(B==1 && length(data) > 0){
+    if(missing(hypp)) hypp <- HyperparametersMarginal(k=k)
+    zz <- as.integer(factor(numeric(k)))
+    zfreq <- as.integer(table(zz))
+    obj <- SingleBatchModel(data, k, hypp, mcmc.params)
+    return(obj)
+  }
+  if(k == 1) {
+    if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=1)
+    obj <- UnivariateBatchModel(data, k, batch, hypp, mcmc.params)
+    return(obj)
+  }
+  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=k)
+  zz <- integer(length(data))
+  zfreq <- as.integer(table(zz))
+  if(length(data) != length(batch)) {
+    stop("batch vector must be the same length as data")
+  }
+  obj <- new("MultiBatchModel",
+             k=as.integer(k),
+             hyperparams=hypp,
+             theta=matrix(NA, B, k),
+             sigma2=matrix(NA, B, k),
+             mu=numeric(k),
+             tau2=numeric(k),
+             nu.0=numeric(1),
+             sigma2.0=numeric(1),
+             pi=numeric(k),
+             data=data[ix],
+             data.mean=matrix(NA, B, k),
+             data.prec=matrix(NA, B, k),
+             z=zz,
+             zfreq=zfreq,
+             probz=matrix(0, length(data), k),
+             logprior=numeric(1),
+             loglik=numeric(1),
+             mcmc.chains=mcmc.chains,
+             mcmc.params=mcmc.params,
+             batch=batch[ix],
+             batchElements=nbatch,
+             label_switch=FALSE,
+             .internal.constraint=5e-4,
+             .internal.counter=0L)
+  obj <- startingValues(obj)
+  obj
+}
+
+setMethod("computePrior", "MarginalModel", function(object){
+  .Deprecated("See SingleBatchModel")
+  compute_logprior(object)
+})
+
+setMethod("computePrior", "BatchModel", function(object){
+  compute_logprior_batch(object)
+})
+
+#' @rdname Deprecated-functions
+#' @aliases posteriorSimulation,list-method
+setMethod("posteriorSimulation", "list",
+          function(object) {
+            .Deprecated("See gibbs")
+            params <- psParams()
+            results <- vector("list", length(object))
+            for(i in seq_along(results)){
+              results[[i]] <- .posteriorSimulation(object[[i]], params)
+            }
+            ncomp <- sapply(results, k)
+            if(is(results[[1]], "SingleBatchModel")){
+              label <- "SB"
+            } else label <- "MB"
+            names(results) <- paste0(label, ncomp)
+            ##isnull <- sapply(results, is.null)
+            ##results <- results[!isnull]
+            results
+          })
+
+#' @param x a \code{DensityModel}-derived object, or a
+#' \code{MixtureModel}-derived object.
+#' numeric vector of the one-dimensional summaries for a given copy
+#' number polymorphism. If \code{x} is a \code{MixtureModel}, \code{y}
+#' is ignored.
+#' @param show.batch a logical. If true, batch specific densities
+#' will be plotted.
+#' @return A plot showing the density estimate
+#' @export
+#' @rdname Deprecated-functions
+setGeneric("plot")
+
+#' DensityModel constructor and methods are Deprecated
+#'
+#' @export
+#' @docType methods
+#' @rdname Deprecated-functions
+setGeneric("clusters", function(object) standardGeneric("clusters"))
+
+#' @return A single proportion for a \code{MarginalModel} or a vector of proportions, one for each batch for a \code{BatchModel}
+#' @export
+#' @rdname Deprecated-functions
+setGeneric("labelSwitching", function(object, merge=TRUE) standardGeneric("labelSwitching"))
+
+.posteriorSimulation <- function(post, params=psParams()){
+  .Deprecated("see .posteriorSimulation2")
+  if(nStarts(post) > 1){
+    post <- multipleStarts2(post)
+  }
+  if(burnin(post) > 0 ){
+    post <- runBurnin(post)
+  }
+  if(!isOrdered(post)) label_switch(post) <- TRUE
+  post <- sortComponentLabels(post)
+  if( iter(post) < 1 ) return(post)
+  post <- runMcmc(post)
+  modes(post) <- computeModes(post)
+  if(isOrdered(post)){
+    label_switch(post) <- FALSE
+    return(post)
+  }
+  ## not ordered: try additional MCMC simulations
+  label_switch(post) <- TRUE
+  post <- sortComponentLabels(post)
+  ## reset counter for posterior probabilities
+  post@probz[] <- 0
+  post <- runMcmc(post)
+  modes(post) <- computeModes(post)
+  ##mcmcParams(post) <- mp.orig
+  if(isOrdered(post)){
+    label_switch(post) <- FALSE
+    return(post)
+  }
+  label_switch(post) <- TRUE
+  if(params[["warnings"]]) {
+    ##
+    ## at this point, we've tried to run the twice after burnin and we still
+    ## have mixing. Most likely, we are fitting a model with k too big
+    warning("label switching: model k=", k(post))
+  }
+  post <- sortComponentLabels(post)
+  post
+}
+
+
+
+#' @rdname Deprecated-functions
+#' @aliases labelSwitching,MixtureModel-method
+#' @export
+setMethod("labelSwitching", "MixtureModel", 
+    function(object, merge=TRUE) {
+        # put together a map indicating which component a component
+        # is merged into, if merging happens
+        if (merge) {
+            k.orig <- k(object)
+            merged <- DensityModel(object, merge=TRUE)
+            k.merged <- k(merged)
+            comp_map <- clusters(merged)
+            message("Merged from ", k.orig,
+                    " components to ", k.merged,
+                    " components")
+        } else {
+            # if merge==FALSE then this is an identity map
+            comp_map <- clusters(object)
+        }
+
+        # a vector showing the batch of each observation
+        # note that for a MarginalModel, all observations have batch=1
+        batches <- unique(batch(object))
+
+        # get the number of components
+        components <- k(object)
+
+        # empty vector for storing proportion of relabeling for 
+        # each batch
+        prop_relabeled <- numeric(length(batches))
+
+        # grab the thetas for components/batch at each MCMC iteration
+        thetas_all <- theta(chains(object))
+
+        for (batch in batches) {
+            # get indices for the given batch
+            ind <- (batch - 1) * components + 1:components
+
+            # get thetas at each iteration corresponding to the batch
+            thetas_batch <- thetas_all[, ind]
+
+            # calculate the proportion of relabeling for a given batch
+            prop_relabeled[batch] <- 1 - relabeling(thetas_batch, 
+                                                    comp_map)
+        }
+
+        return(prop_relabeled)
+    }
+    )
+
+MultiBatchModelList <- function(data=numeric(),
+                           k=numeric(),
+                           batch,
+                           mcmc.params=McmcParams(),
+                           ...){
+  model.list <- vector("list", length(k))
+  for(i in seq_along(k)){
+    hypp <- HyperparametersMultiBatch(k=k[i], ...)
+    model.list[[i]] <- MultiBatchModel(data=data, k=k[i], batch=batch,
+                                  mcmc.params=mcmc.params,
+                                  hypp=hypp)
+  }
+  model.list
+}
+
+#' @param drop Not used.
+#' @return An object of class 'BatchModel'
+#' @aliases [,BatchModel-method [,BatchModel,ANY-method [,BatchModel,ANY,ANY-method [,BatchModel,ANY,ANY,ANY-method
+#' @param i integer
+#' @param j integer
+#' @docType methods
+#' @rdname Deprecated-functions
+setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
+  if(!missing(i)){
+    y(x) <- y(x)[i]
+    z(x) <- z(x)[i]
+    batch(x) <- batch(x)[i]
+  }
+  x
+})
+
+#' @export
+#' @rdname Deprecated-functions
+SingleBatchModel <- function(data=numeric(), k=3, hypp, mcmc.params){
+  .Deprecated("SingleBatchModel2")
+  if(missing(hypp)) hypp <- Hyperparameters(k=3)
+  batch <- rep(1L, length(data))
+  if(missing(k)){
+    k <- k(hypp)
+  } else{
+    k(hypp) <- k
+  }
+  if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
+  if(missing(hypp)) hypp <- HyperparametersSingleBatch(k=k)
+  nbatch <- setNames(as.integer(table(batch)), levels(batch))
+  zz <- sample(seq_len(k), length(data), replace=TRUE)
+  zfreq <- as.integer(table(zz))
+  object <- new("SingleBatchModel",
+                k=as.integer(k),
+                hyperparams=hypp,
+                theta=numeric(k),
+                sigma2=numeric(k),
+                mu=numeric(1),
+                tau2=numeric(1),
+                nu.0=1L,
+                sigma2.0=1L,
+                pi=rep(1/k, k),
+                data=data,
+                data.mean=numeric(k),
+                data.prec=numeric(k),
+                z=zz,
+                zfreq=zfreq,
+                probz=matrix(0, length(data), k),
+                logprior=numeric(1),
+                loglik=numeric(1),
+                mcmc.chains=McmcChains(),
+                batch=batch,
+                batchElements=nbatch,
+                modes=list(),
+                mcmc.params=mcmc.params,
+                label_switch=FALSE,
+                marginal_lik=as.numeric(NA),
+                .internal.constraint=5e-4,
+                .internal.counter=0L)
+  object <- startingValues(object)
+}
+
+
+newMarginalModel <- function(object){
+  .Deprecated("newSingleBatchModel")
+  mp <- mcmcParams(object)
+  object2 <- SingleBatchModel(y(object), k=k(object), mcmc.params=mp,
+                           hypp=hyperParams(object))
+  theta(object2) <- theta(object)
+  sigma2(object2) <- sigma2(object)
+  p(object2) <- p(object)
+  z(object2) <- z(object)
+  nu.0(object2) <- nu.0(object)
+  mu(object2) <- mu(object)
+  tau2(object2) <- tau2(object)
+  zFreq(object2) <- zFreq(object)
+  probz(object2) <- probz(object)
+  sigma2.0(object2) <- sigma2.0(object)
+  dataMean(object2) <- dataMean(object)
+  dataPrec(object2) <- dataPrec(object)
+  log_lik(object2) <- log_lik(object)
+  logPrior(object2) <- logPrior(object)
+  modes(object2) <- modes(object)
+  object2
+}
+
+#' @export
+#' @rdname Deprecated-functions
+multiBatchDensities <- function(model){
+  .Deprecated("ggMixture")
+  dnorm_poly_multibatch(model)
+}
+
+#' @rdname collapseBatch-method
+#' @aliases collapseBatch,BatchModel-method
+setMethod("collapseBatch", "BatchModel", function(object){
+  collapseBatch(y(object), as.character(batch(object)))
+})

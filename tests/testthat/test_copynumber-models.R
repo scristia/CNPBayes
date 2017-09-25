@@ -134,7 +134,7 @@ test_that("Mapping components to copy number (single batch)", {
                         theta=c(0, 0.25), sds=c(0.2, 0.2))
   mp <- McmcParams(iter = 500, burnin = 0, nStarts = 0)
   mcmcParams(truth) <- mp
-  expect_warning(model <- posteriorSimulation(truth))
+  model <- posteriorSimulation(truth)
 
   cn.model <- SingleBatchCopyNumber(model)
   map <- mapComponents(cn.model, params)
@@ -175,7 +175,7 @@ test_that("Mapping components to copy number (single batch)", {
                         theta=c(-0.3, 0, 1), sds=c(0.2, 0.2, 0.2))
   mcmcParams(truth) <- McmcParams(iter=200, burnin=0)
   model <- SingleBatchModel2(mp=mp, dat=y(truth), hp=Hyperparameters(k=3))
-  expect_warning(model <- .posteriorSimulation2(model))
+  model <- .posteriorSimulation2(model)
   cn.model <- SingleBatchCopyNumber(model)
   ## label switching will occur because components are not well separated
   ## expect_warning(model <- posteriorSimulation(truth),

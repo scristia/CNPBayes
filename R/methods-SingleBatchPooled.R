@@ -7,6 +7,7 @@ NULL
                               mp=McmcParams(iter=1000, burnin=1000,
                                             thin=10, nStarts=4)){
   obj <- .SingleBatchModel2(dat, hp, mp)
+  if(nu.0(obj) > 100) nu.0(obj) <- 100
   obj@sigma2 <- mean(sigma2(obj))
   ch <- chains(obj)
   ch@sigma2 <- matrix(NA, iter(obj), 1)
@@ -18,6 +19,9 @@ NULL
 ## the mcmc. However, if the first update of z results in some components not
 ## being observed, then z will not be updated and will stay at zero. This
 ## creates NaNs for the thetas and several other parameters
+
+#' @export
+#' @rdname SingleBatchModel2
 SingleBatchPooled <- function(dat=numeric(),
                               hp=Hyperparameters(),
                               mp=McmcParams(iter=1000, burnin=1000,
@@ -55,6 +59,7 @@ setMethod("updateZ", "SingleBatchPooled", function(object){
 
 combine_singlebatch_pooled <- function(model.list, batches){
   ch.list <- map(model.list, chains)
+  . <- NULL
   fun <- function(ch) ch@pi
   prob <- map(ch.list, fun) %>% do.call(rbind, .)
   th <- map(ch.list, theta) %>% do.call(rbind, .)

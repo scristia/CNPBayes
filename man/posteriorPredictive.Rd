@@ -7,14 +7,14 @@
 posteriorPredictive(model)
 }
 \arguments{
-\item{model}{a MarginalModel or MultiBatchModel}
+\item{model}{a SingleBatchModel or MultiBatchModel}
 }
 \description{
 Simulating from the posterior predictive distribution can be helpful for assessing the adequacy of the mixture model.
 }
 \examples{
 
- model <- MarginalModelExample
+ model <- SingleBatchModelExample
  mp <- McmcParams(iter=200, burnin=50)
  mcmcParams(model) <- mp
  model <- posteriorSimulation(model)
@@ -22,7 +22,7 @@ Simulating from the posterior predictive distribution can be helpful for assessi
  if(FALSE) qqplot(pd, y(model))
 
 \dontrun{
-    bmodel <- BatchModelExample
+    bmodel <- MultiBatchModelExample
     mp <- McmcParams(iter=500, burnin=150, nStarts=20)
     mcmcParams(bmodel) <- mp
     bmodel <- posteriorSimulation(bmodel)

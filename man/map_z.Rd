@@ -16,5 +16,5 @@ map estimate of latent variable assignment for each observation
 Calculate the maximum a posteriori estimate of latent variable assignment.
 }
 \examples{
-     map_z(MarginalModelExample)
+     map_z(SingleBatchModelExample)
 }

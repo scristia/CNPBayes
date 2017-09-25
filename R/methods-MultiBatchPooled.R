@@ -76,6 +76,7 @@ setMethod("updateZ", "MultiBatchPooled", function(object){
 
 combine_multibatch_pooled <- function(model.list, batches){
   ch.list <- map(model.list, chains)
+  . <- NULL
   th <- map(ch.list, theta) %>% do.call(rbind, .)
   s2 <- map(ch.list, sigma2) %>% do.call(rbind, .)
   ll <- map(ch.list, log_lik) %>% unlist
@@ -304,6 +305,8 @@ setMethod("sortComponentLabels", "MultiBatchPooled", function(model){
 })
 
 
+#' @aliases sigma,MultiBatchCopyNumberPooled-method
+#' @rdname sigma2-method
 setMethod("sigma", "MultiBatchCopyNumberPooled", function(object){
   s2 <- object@sigma2
   names(s2) <- uniqueBatch(object)

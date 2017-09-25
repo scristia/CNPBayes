@@ -38,19 +38,16 @@ Suggests:
     BiocStyle,
     rmarkdown,
     BiocCheck,
-    MASS,
-    dplyr,
-    tidyr
+    MASS
 Collate: 
     'help.R'
     'AllGenerics.R'
     'AllClasses.R'
+    'Deprecated-classes.R'
     'RcppExports.R'
     'coerce-methods.R'
     'copynumber-models.R'
     'data.R'
-    'methods-MixtureModel.R'
-    'plot-functions.R'
     'deprecated_functions.R'
     'diagnostics.R'
     'functions.R'
@@ -58,12 +55,14 @@ Collate:
     'methods-Hyperparameters.R'
     'methods-McmcChains.R'
     'methods-McmcParams.R'
+    'methods-MixtureModel.R'
     'methods-MultiBatchModel.R'
     'methods-MultiBatchPooled.R'
     'methods-SingleBatchModel.R'
     'methods-SingleBatchPooled.R'
     'methods-SummarizedExperiment.R'
     'model_initialization.R'
+    'plot-functions.R'
     'posteriorSimulation-methods.R'
     'relabeling.R'
     'simulate_data.R'

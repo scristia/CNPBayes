@@ -17,5 +17,5 @@ numberObs(model)
 Number of observations
 }
 \examples{
-numberObs(MarginalModelExample)
+numberObs(SingleBatchModelExample)
 }

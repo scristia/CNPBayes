@@ -32,11 +32,11 @@ Replace the hyperparameters for a \code{MixtureModel}-derived object
 }
 \examples{
 \dontrun{
-    hyperParams(MarginalModelExample)
+    hyperParams(SingleBatchModelExample)
 }
 hypp <- Hyperparameters(type="marginal",
-                        k=k(MarginalModelExample),
+                        k=k(SingleBatchModelExample),
                         alpha=c(9, 9, 10))
-hyperParams(MarginalModelExample) <- hypp
+hyperParams(SingleBatchModelExample) <- hypp
 
 }

@@ -23,5 +23,5 @@ eta.0 of a 'MixtureModel'
 Retrieve the rate parameter for the tau2 distribution.
 }
 \examples{
-     eta.0(MarginalModelExample)
+     eta.0(SingleBatchModelExample)
 }

@@ -5,7 +5,7 @@ NULL
 #'
 #' @param model a MixtureModel-derived object
 #' @examples
-#' numberObs(MarginalModelExample)
+#' numberObs(SingleBatchModelExample)
 #' @export
 #' @rdname numberObs-method
 setGeneric("numberObs", function(model) standardGeneric("numberObs"))
@@ -26,7 +26,7 @@ setGeneric("k", function(object) standardGeneric("k"))
 #' posteriorSimulation (if one was performed). Draws from prior to guess
 #' new starting values.
 #' @examples
-#' k(MarginalModelExample) <- 2
+#' k(SingleBatchModelExample) <- 2
 #' @param value An integer for the new number of components.
 #' @export
 #' @docType methods
@@ -42,7 +42,7 @@ setGeneric("p<-", function(object, value) standardGeneric("p<-"))
 #' Retrieve overall mean
 #'
 #' @examples
-#'      mu(MarginalModelExample)
+#'      mu(SingleBatchModelExample)
 #' @param object see \code{showMethods(mu)}
 #' @return A vector containing 'mu'
 #' @export
@@ -67,17 +67,18 @@ setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
 #' for plotting the chain of \code{tau2} values.
 #'
 #' @examples
-#' k(BatchModelExample)
-#' tau2(BatchModelExample)
-#' plot.ts(tau2(chains(BatchModelExample)))
+#' k(MultiBatchModelExample)
+#' tau2(MultiBatchModelExample)
+#' plot.ts(tau2(chains(MultiBatchModelExample)))
 #'
 #' @param object see \code{showMethods(tau2)}
 #' @return A vector of variances
 #' @export
 #' @docType methods
 #' @rdname tau2-method
-#' @seealso \code{Hyperparameters}, see \code{\link{ggSingleBatchChains}} for plotting
+#' @seealso \code{Hyperparameters}
 setGeneric("tau2", function(object) standardGeneric("tau2"))
+
 setGeneric("tau2<-", function(object, value) standardGeneric("tau2<-"))
 setGeneric("nu.0<-", function(object, value) standardGeneric("nu.0<-"))
 setGeneric("sigma2.0<-", function(object, value) standardGeneric("sigma2.0<-"))
@@ -94,10 +95,10 @@ setGeneric("chains<-", function(object, value) standardGeneric("chains<-"))
 #' is called in conjunction with an accessor for one of these
 #' parameters.
 #' @examples
-#' theta.chain <- theta(chains(MarginalModelExample))
+#' theta.chain <- theta(chains(SingleBatchModelExample))
 #' dim(theta.chain)
 #' plot.ts(theta.chain, plot.type="single",
-#'         col=seq_len(k(MarginalModelExample)))
+#'         col=seq_len(k(SingleBatchModelExample)))
 #' @param object \code{showMethods(chains)}
 #' @return The simulated chains.
 #' @export
@@ -109,7 +110,7 @@ setGeneric("chains", function(object) standardGeneric("chains"))
 #'
 #' @examples
 #' \dontrun{
-#'     hyperParams(MarginalModelExample)
+#'     hyperParams(SingleBatchModelExample)
 #' }
 #' @param object see \code{showMethods(hyperParams)}
 #' @return The Hyperparameters of a MixtureModel
@@ -122,9 +123,9 @@ setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 #'
 #' @examples
 #' hypp <- Hyperparameters(type="marginal",
-#'                         k=k(MarginalModelExample),
+#'                         k=k(SingleBatchModelExample),
 #'                         alpha=c(9, 9, 10))
-#' hyperParams(MarginalModelExample) <- hypp
+#' hyperParams(SingleBatchModelExample) <- hypp
 #'
 #' @param value an object of class 'Hyperparameters'
 #' @export
@@ -136,32 +137,14 @@ setGeneric("McmcChains", function(object) standardGeneric("McmcChains"))
 
 setGeneric("hist")
 
-#' Deprecated plot method for DensityModel class
-#'
-#' Plot estimates of the posterior density for each component and the
-#' overall, marginal density.  For batch models, one can additionally
-#' plot batch-specific density estimates.
-#'
-#' @param x a \code{DensityModel}-derived object, or a
-#' \code{MixtureModel}-derived object.
-#' @param y If \code{x} is a \code{DensityModel}, \code{y} is a
-#' numeric vector of the one-dimensional summaries for a given copy
-#' number polymorphism. If \code{x} is a \code{MixtureModel}, \code{y}
-#' is ignored.
-#' @param show.batch a logical. If true, batch specific densities
-#' will be plotted.
-#' @param ... Additional arguments passed to \code{hist}.
-#' @return A plot showing the density estimate
-#' ##plot(MarginalModelExample)
-#' @export
-setGeneric("plot")
+
 
 
 #' Retrieve batches from object.
 #'
 #' The batches are represented as a vector of integers.
 #' @examples
-#'      batch(BatchModelExample)
+#'      batch(MultiBatchModelExample)
 #' @param object see \code{showMethods(batch)}
 #' @return The batch of each data element.
 #' @export
@@ -186,7 +169,10 @@ setGeneric("alpha<-", function(object, value) standardGeneric("alpha<-"))
 #' Calculate BIC of a model
 #'
 #' @examples
-#'      bic(BatchModelExample)
+#' mb <- MultiBatchModelExample
+#' mcmcParams(mb) <- McmcParams(iter=100, burnin=50)
+#' mb <- posteriorSimulation(mb)
+#' bic(mb)
 #' @param object see \code{showMethods(bic)}
 #' @return The BIC of the model.
 #' @docType methods
@@ -209,15 +195,15 @@ setGeneric("bic", function(object) standardGeneric("bic"))
 #' object, and for plotting the chain of \code{theta} values.
 #' @examples
 #' ## MarginalModel
-#' k(MarginalModelExample)
-#' theta(MarginalModelExample)
-#' plot.ts(theta(chains(MarginalModelExample)))
+#' k(SingleBatchModelExample)
+#' theta(SingleBatchModelExample)
+#' plot.ts(theta(chains(SingleBatchModelExample)))
 #' ## BatchModel
-#' k(BatchModelExample)
-#' length(unique(batch(BatchModelExample)))
-#' theta(BatchModelExample)
+#' k(MultiBatchModelExample)
+#' length(unique(batch(MultiBatchModelExample)))
+#' theta(MultiBatchModelExample)
 #' ## Plot means for batches in one component
-#' plot.ts(theta(chains(BatchModelExample))[, 1:3])
+#' plot.ts(theta(chains(MultiBatchModelExample))[, 1:3])
 #' @param object see \code{showMethods(theta)}
 #' @return A vector of length number of components or a matrix of size 
 #' number of batches x number of components
@@ -230,7 +216,7 @@ setGeneric("theta", function(object) standardGeneric("theta"))
 #'
 #' For a MarginalModel, this function returns a vector of variances. For a BatchModel, returns a matrix of size number of batches by number of components.
 #' @examples
-#'      sigma2(MarginalModelExample)
+#'      sigma2(SingleBatchModelExample)
 #' @param object see \code{showMethods(sigma2)}
 #' @return A vector of length number of components or a matrix of size 
 #' number of batches x number of components
@@ -242,7 +228,7 @@ setGeneric("sigma2", function(object) standardGeneric("sigma2"))
 #' Retrieve the probability of latent variable membership by observation.
 #'
 #' @examples
-#'      probz(MarginalModelExample)
+#'      probz(SingleBatchModelExample)
 #' @param object see \code{showMethods(probz)}
 #' @return A matrix of size number of observations x number of components
 #' @export
@@ -255,7 +241,7 @@ setGeneric("probz<-", function(object, value) standardGeneric("probz<-"))
 #' Retrieve the shape parameter for the sigma.2 distribution.
 #'
 #' @examples
-#'      nu.0(MarginalModelExample)
+#'      nu.0(SingleBatchModelExample)
 #' @param object see \code{showMethods(nu.0)}
 #' @return An integer
 #' @export
@@ -266,7 +252,7 @@ setGeneric("nu.0", function(object) standardGeneric("nu.0"))
 #' Retrieve the rate parameter for the sigma.2 distribution.
 #'
 #' @examples
-#'      sigma2.0(MarginalModelExample)
+#'      sigma2.0(SingleBatchModelExample)
 #' @param object see \code{showMethods(sigma2.0)}
 #' @return A length 1 numeric
 #' @export
@@ -277,7 +263,7 @@ setGeneric("sigma2.0", function(object) standardGeneric("sigma2.0"))
 #' Retrieve data.
 #'
 #' @examples
-#'      y(MarginalModelExample)
+#'      y(SingleBatchModelExample)
 #' @param object see \code{showMethods(y)}
 #' @return A vector containing the data
 #' @export
@@ -304,7 +290,7 @@ setGeneric("oned", function(object) standardGeneric("oned"))
 #'
 #' Retrieves the simulated latent variable assignments of each observation at each MCMC simulation.
 #' @examples
-#'      z(MarginalModelExample)
+#'      z(SingleBatchModelExample)
 #' @param object see \code{showMethods(z)}
 #' @return A vector the length of the data
 #' @export
@@ -320,7 +306,7 @@ setGeneric("computeModes", function(object) standardGeneric("computeModes"))
 #'
 #' The iteration which maximizes log likelihood and log prior is found. The estimates for each parameter at this iteration are retrieved.
 #' @examples
-#'      modes(MarginalModelExample)
+#'      modes(SingleBatchModelExample)
 #' @param object a \code{MixtureModel}-derived class
 #' @return A list of the modes of each parameter
 #' @export
@@ -350,7 +336,7 @@ setGeneric("tau2.0", function(object) standardGeneric("tau2.0"))
 #' Retrieve the rate parameter for the tau2 distribution.
 #'
 #' @examples
-#'      eta.0(MarginalModelExample)
+#'      eta.0(SingleBatchModelExample)
 #' @param object see \code{showMethods(eta.0)}
 #' @return eta.0 of a 'MixtureModel'
 #' @export
@@ -362,7 +348,7 @@ setGeneric("eta.0<-", function(object,value) standardGeneric("eta.0<-"))
 #' Retrieve the shape parameter for the tau2 distribution.
 #'
 #' @examples
-#'      m2.0(MarginalModelExample)
+#'      m2.0(SingleBatchModelExample)
 #' @param object see \code{showMethods(m2.0)}
 #' @return m2.0 for a model
 #' @export
@@ -404,10 +390,11 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' is performed recursively on the batch variables defined for a given
 #' CNP until no batches can be combined.
 #' @examples
-#' bt <- collapseBatch(y(BatchModelExample), batch(BatchModelExample))
-#' newBatchModel <- BatchModel(y(BatchModelExample), k(BatchModelExample),
-#'                             bt, hyperParams(BatchModelExample),
-#'                             mcmcParams(BatchModelExample))
+#' bt <- collapseBatch(y(MultiBatchModelExample), batch(MultiBatchModelExample))
+#' batches <- as.integer(factor(bt))
+#' model <- MultiBatchModel2(dat=y(MultiBatchModelExample),
+#'                           hp=hpList(k=k(MultiBatchModelExample))[["MB"]],
+#'                           batches=batches, mp=mcmcParams(MultiBatchModelExample))
 #' @param object see \code{showMethods(collapseBatch)}
 #' @param plate a vector labelling from which batch each observation came from.
 #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
@@ -431,7 +418,7 @@ setGeneric("tablez", function(object) standardGeneric("tablez"))
 #'
 #' This function retrieves the number of chains used for an MCMC simulation.
 #' @examples
-#' number_of_chains <- nStarts(MarginalModelExample)
+#' number_of_chains <- nStarts(SingleBatchModelExample)
 #' @param object see \code{showMethods(nStarts)}
 #' @return An integer of the number of different starts.
 #' @export
@@ -456,7 +443,7 @@ setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 #'
 #' @examples
 #' number_of_chains <- 10
-#' nStarts(MarginalModelExample) <- number_of_chains
+#' nStarts(SingleBatchModelExample) <- number_of_chains
 #' @param value new number of chains
 #' @export
 #' @docType methods
@@ -469,9 +456,9 @@ setGeneric("alpha", function(object) standardGeneric("alpha"))
 #'
 #' @examples
 #' ## retrieve log likelihood at each MCMC iteration
-#' log_lik(chains(MarginalModelExample))
+#' log_lik(chains(SingleBatchModelExample))
 #' ## retrieve log likelihood at last MCMC iteration
-#' log_lik(MarginalModelExample)
+#' log_lik(SingleBatchModelExample)
 #' @param object see showMethods(log_lik)
 #' @return The log likelihood
 #' @export
@@ -487,8 +474,8 @@ setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 #'
 #' This function retrieves the number of burnin simulations to be discarded.
 #' @examples
-#' burnin(MarginalModelExample)
-#' mp <- mcmcParams(MarginalModelExample)
+#' burnin(SingleBatchModelExample)
+#' mp <- mcmcParams(SingleBatchModelExample)
 #' burnin(mp)
 #' @param object see \code{showMethods(burnin)}
 #' @return The number of burnin simulations.
@@ -520,7 +507,7 @@ setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<
 #'
 #' This function retrieves the number of iterations of an MCMC simulation.
 #' @examples
-#'      iter(MarginalModelExample)
+#'      iter(SingleBatchModelExample)
 #' @param object see \code{showMethods(iter)}
 #' @return The number of MCMC iterations
 #' @export
@@ -533,7 +520,7 @@ setGeneric("iter", function(object) standardGeneric("iter"))
 #' This function gets or sets the number of thinning intervals used for an MCMC
 #' simulation.
 #' @examples
-#'      thin(MarginalModelExample)
+#'      thin(SingleBatchModelExample)
 #' @param object see showMethods(thin)
 #' @return An integer of the number of thinning intervals
 #' @export
@@ -542,13 +529,13 @@ setGeneric("iter", function(object) standardGeneric("iter"))
 setGeneric("thin", function(object) standardGeneric("thin"))
 
 #' @examples
-#'      thin(MarginalModelExample) <- 10L
+#'      thin(SingleBatchModelExample) <- 10L
 #' @export
 #' @docType methods
 #' @rdname thin-method
 setGeneric("thin<-", function(object, value) standardGeneric("thin<-"))
 
-#' Run the MCMC simulation.
+#' Run MCMC simulation.
 #'
 #' nStarts chains are run. b burnin iterations are run and then discarded.
 #' Next, s iterations are run in each train. The user can also specify
@@ -559,30 +546,30 @@ setGeneric("thin<-", function(object, value) standardGeneric("thin<-"))
 #' set.seed(123)
 #' ## specify small number of iterations so that the example runs quickly
 #' mp <- McmcParams(iter=2, burnin=0, nStarts=3)
-#' mcmcParams(MarginalModelExample) <- mp
-#' posteriorSimulation(MarginalModelExample)
+#' sb <- SingleBatchModelExample
+#' mcmcParams(sb) <- mp
+#' posteriorSimulation(sb)
 #'
 #' # Run additional iterations, but set nStart = 0 so that the last value of the
 #' # chain is the first value of the next chain
-#' mcmcParams(MarginalModelExample) <- McmcParams(iter=5, nStarts=0, burnin=0)
-#' posteriorSimulation(MarginalModelExample)
+#' mcmcParams(sb) <- McmcParams(iter=5, nStarts=0, burnin=0)
+#' posteriorSimulation(sb)
 #'
 #' # Fit batch models of different sizes (k=1 and 2)
-#' mcmcParams(BatchModelExample) <- mp
-#' yy <- sample(y(BatchModelExample), 300)
+#' mb <- MultiBatchModelExample
+#' mcmcParams(mb) <- mp
+#' yy <- sample(y(mb), 300)
 #' batches <- rep(1:3, length.out=length(yy))
-#' mlist <- BatchModelList(yy, batch=batches, k=1:2, mcmc.params=mp)
-#' mlist <- posteriorSimulation(mlist)
-#' ## continue running 10 additional iterations by setting nStarts=0. The last
-#' #value of the chains will be used as the first value of the next chain
-#' mcmcParams(mlist) <- McmcParams(iter=3, burnin=0, nStarts=0)
-#' mlist <- posteriorSimulation(mlist)
+#' mp <- McmcParams(iter=1000, burnin=500, thin=1, nStarts=4)
+#' \dontrun{
+#'   mlist <- gibbs(model="MB", k_range=c(1, 2), dat=yy, batches=batches)
+#' }
 #' @param object see showMethods(posteriorSimulation)
 #' @param k The number of a priori components. This is optional and if not
 #' specified, the stored k model components are used. This parameters is
 #' useful for running multiple models of varying components.
 #' @return An object of class 'MarginalModel' or 'BatchModel'
-#' @seealso \code{\link{ggMultiBatchChains}} and \code{\link{ggSingleBatchChains}} for diagnosing convergence.  See \code{\link{ggMultiBatch}} and \code{\link{ggSingleBatch}} for plotting the model-based densities.
+#' @seealso  \code{\link{ggChains}} for diagnosing convergence.  See \code{\link{ggMixture}} for plotting the model-based densities.
 #' @export
 #' @docType methods
 #' @rdname posteriorSimulation-method
@@ -606,7 +593,7 @@ setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"
 #' Calculates a frequency table of latent variable assigments by observation.
 #'
 #' @examples
-#'      zFreq(MarginalModelExample)
+#'      zFreq(SingleBatchModelExample)
 #' @param object see \code{showMethods(zfreq)}
 #' @return An integer vector of length the number of components
 #' @export
@@ -619,7 +606,7 @@ setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 #'
 #' View number of iterations, burnin, etc.
 #' @examples
-#'      mcmcParams(MarginalModelExample)
+#'      mcmcParams(SingleBatchModelExample)
 #' @param object see \code{showMethods(mcmcParams)}
 #' @return An object of class 'McmcParams'
 #' @export
@@ -640,7 +627,7 @@ setGeneric("mcmcParams<-", function(object, force=FALSE, value) standardGeneric(
 #' Calculate log likelihood of prior for model
 #'
 #' @examples
-#'      logPrior(MarginalModelExample)
+#'      logPrior(SingleBatchModelExample)
 #' @param object see \code{showMethods(logPrior)}
 #' @return log likelihood of the prior.
 #' @export
@@ -667,24 +654,14 @@ setGeneric("overall", function(object) standardGeneric("overall"))
 setGeneric("densities", function(object) standardGeneric("densities"))
 setGeneric("densitiesCluster", function(object) standardGeneric("densitiesCluster"))
 
-#' Accessor for extracting the kmeans clusters from a DensityModel
-#' instance
-#'
-#' DensityModel constructor and methods are Deprecated
-#'
-#' @param object an instance of class 'DensityModel'
-#' @export
-#' @docType methods
-#' @rdname clusters-method
-setGeneric("clusters", function(object) standardGeneric("clusters"))
 setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 
 #' Compute the marginal likelihood of a converged model.
-#' 
+#'
 #' @examples
 #' ## In practice, run a much longer burnin and increase the number of
 #' ## iterations to save after burnin
-#'    mm <- MarginalModelExample
+#'    mm <- SingleBatchModelExample
 #'    mcmcParams(mm) <- McmcParams(iter=50, burnin=0, nStarts=0)
 #'    mm <- posteriorSimulation(mm)
 #'    marginalLikelihood(mm)
@@ -695,7 +672,7 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #' @seealso \code{\link{mlParams}}
 #'
 #' Note: currently thinning of the reduced MCMC chains is not allowed.
-#' 
+#'
 #' @return A vector of the marginal likelihood of the model(s)
 #' @export
 #' @docType methods
@@ -721,28 +698,15 @@ setGeneric("marginalLikelihood",
 #' @export
 setGeneric("chromosome", function(object, ...) standardGeneric("chromosome"))
 
-#' Deprecated function for estimating relabeling instances
-#'
-#' When fitting an object of class \code{MixtureModel}, label switching can occur i.e. the mean
-#' of component one can be less than the mean of component two at one iteration of the
-#' MCMC sampler and at the next instance, the order is switched. Label switching should be
-#' kept at a minimum. This function returns the proportion of MCMC sample iterations where
-#' label switching has occurred.
-#' @param object An object of class \code{MarginalModel} or \code{BatchModel}
-#' @param merge A logical indicating whether the components should be merged before checking for label switching
-#' @return A single proportion for a \code{MarginalModel} or a vector of proportions, one for each batch for a \code{BatchModel}
-#' @export
-#' @rdname labelSwitching-method
-setGeneric("labelSwitching", function(object, merge=TRUE) standardGeneric("labelSwitching"))
+
 
 #' Accessor for determing whether label switching occurred during MCMC
 #'
 #'
-#' @param a MixtureModel-derived class
+#' @param object MixtureModel-derived class
 #' @export
 #' @examples
-#' label_switch(MarginalModelExample)
-#'
+#' label_switch(SingleBatchModelExample)
 setGeneric("label_switch", function(object) standardGeneric("label_switch"))
 
 
@@ -777,7 +741,6 @@ setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
 #' @seealso \code{\link{gibbs}}
 #'
 #' @param model A SB, MB, SBP, or MBP model
-#' @return A \code{gg} object
 #' @rdname ggplot-functions
 #' @return A \code{gg} object
 #' @export
@@ -802,13 +765,6 @@ setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 #' @rdname ggplot-functions
 setGeneric("ggMixture", function(model, bins) standardGeneric("ggMixture"))
 
-#' ggplot wrapper for plotting the data at a single CNP and the model-based densities
-#'
-#' @param model a \code{BatchModel} or  \code{MarginalModel} object
-#' @param bins length-one integer vector indicating the number of bins for the histograms (passed to \code{geom_histogram})
-#' @examples
-#' ggMultiBatch(MultiBatchModelExample)
-#' ggSingleBatch(SingleBatchModelExample)
 #' @export
 #' @return a \code{ggplot} object
 #' @rdname ggplot-functions
@@ -818,10 +774,8 @@ setGeneric("ggSingleBatch", function(model, bins) standardGeneric("ggSingleBatch
 #' @rdname ggplot-functions
 setGeneric("ggMultiBatch", function(model, bins) standardGeneric("ggMultiBatch"))
 
-#' Restore model to original dimension
-#'
-#' As the name suggests, the function downSampleEach batch can be used to down sample the observations in each batch. The function upSample restores the model object to the original dimension.
-#'
+
+#' @param model a SB, MB, SBP, or MBP model
 #' @examples
 #'
 #' @export

@@ -194,12 +194,10 @@ setValidity("Hyperparameters", function(object){
 #'      hypp <- Hyperparameters("marginal", k=2)
 #' @param type specifies 'marginal' or 'batch'
 #' @param k number of components
-#' @param ... optional parameters.  See details
 #' @return An object of class HyperparametersMarginal or HyperparametersBatch
 #'
 #' @details
-#' Additional hyperparameters can be passed to the
-#' HyperparametersMarginal and HyperparametersBatch models.
+#' Additional hyperparameters can be passed to the HyperparametersMarginal and HyperparametersBatch models.
 #'
 #' @export
 #' @rdname Hyperparameters
@@ -250,19 +248,19 @@ setMethod("show", "Hyperparameters", function(object){
   cat("   b      :", b(object), "\n")
 })
 
-hyperparam_list <- function(){
-  hp <- HyperparametersBatch(mu=-0.75,
-                             tau2.0=0.4,
-                             eta.0=32,
-                             m2.0=0.5)
-  hp.sb <- Hyperparameters(tau2.0=0.4,
-                           mu.0=-0.75,
-                           eta.0=32,
-                           m2.0=0.5)
-  hp.list <- list(single_batch=hp.sb,
-                  multi_batch=hp)
-  hp.list
-}
+## hyperparam_list <- function(){
+##   hp <- HyperparametersBatch(mu=-0.75,
+##                              tau2.0=0.4,
+##                              eta.0=32,
+##                              m2.0=0.5)
+##   hp.sb <- Hyperparameters(tau2.0=0.4,
+##                            mu.0=-0.75,
+##                            eta.0=32,
+##                            m2.0=0.5)
+##   hp.list <- list(single_batch=hp.sb,
+##                   multi_batch=hp)
+##   hp.list
+## }
 
 #' Create a list of hyperparameter objects for each of the four mixture model implmentations
 #'

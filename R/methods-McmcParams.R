@@ -47,24 +47,6 @@ setMethod("show", "McmcParams", function(object){
   cat("   n starts  :", nStarts(object), "\n")
 })
 
-
-#' extract iter, thin, and burnin for a specified instance of McmcParams
-#'
-#' Allows a user to pass a vector for burnin, thin, and iter.
-#' @aliases [,McmcParams-method [,McmcParams,ANY-method
-#' @return An object of class 'McmcParams'
-#' @docType methods
-#' @rdname extract-methods
-setMethod("[", "McmcParams", function(x, i, j, ..., drop=FALSE){
-  if(length(iter(x))==1) return(x)
-  if(!missing(i)){
-    x@iter <- iter(x)[i]
-    x@burnin <- burnin(x)[i]
-    x@thin <- thin(x)[i]
-  }
-  x
-})
-
 setValidity("McmcParams", function(object){
   msg <- TRUE
   if(length(thin(object)) != length(burnin(object)) || length(thin(object)) != length(iter(object))){
@@ -92,7 +74,6 @@ setReplaceMethod("nStarts", "McmcParams", function(object, value){
 setMethod("paramUpdates", "McmcParams", function(x){
   x@param_updates
 })
-
 
 .param_updates <- function(x){
   x <- setNames(rep(1L, 8),

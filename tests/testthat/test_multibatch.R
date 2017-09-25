@@ -110,7 +110,7 @@ test_that("initial values", {
 })
 
 
-test_that("test_batchEasy", {
+test_that("easy", {
   set.seed(123)
   k <- 3
   nbatch <- 3
@@ -125,9 +125,10 @@ test_that("test_batchEasy", {
   ##expect_identical(yy[order(batch(truth))], yy)
   mcmcp <- McmcParams(iter = 50, burnin = 0)
   set.seed(123)
-  model <- MultiBatchModel(y(truth), batch = batch(truth), k = 3,
-                      mcmc.params = mcmcp)
-  model <- CNPBayes:::startAtTrueValues(model, truth)
+  model <- MultiBatchModel2(dat=y(truth), batches = batch(truth),
+                            hp=hpList(k = 3)[["MB"]],
+                            mp = mcmcp)
+  model <- startAtTrueValues(model, truth)
   expect_identical(batch(truth), batch(model))
   expect_identical(y(truth), y(model))
   expect_identical(theta(truth), theta(model))
@@ -155,14 +156,16 @@ test_that("test_batchEasy", {
   set.seed(1)
   ##mcmcp <- McmcParams(iter = 300, burnin = 300, nStarts = 5)
   mcmcp <- McmcParams(iter = 20, burnin = 50, nStarts = 50)
-  model <- MultiBatchModel(y(truth), batch = batch(truth), k = 3,
-                      mcmc.params = mcmcp)
+  model <- MultiBatchModel2(dat=y(truth),
+                            batches = batch(truth),
+                            hp=hpList(k=3)[["MB"]],
+                            mp=mcmcp)
   model <- posteriorSimulation(model)
   expect_equal(theta(model), theta(truth),
                scale=0.01, tolerance=1)
   if (FALSE) {
-      BatchModelExample <- model
-      save(BatchModelExample, file = "data/BatchModelExample.RData")
+    MultiBatchModelExample <- model
+    save(MultiBatchModelExample, file = "data/MultiBatchModelExample.RData")
   }
 })
 
@@ -187,7 +190,7 @@ hardTruth <- function(p1, s, N=1000){
   truth
 }
 
-test_that("test_stay_near_truth", {
+test_that("stay_near_truth", {
   set.seed(123)
   library(SummarizedExperiment)
   ## embed function in test for now
@@ -200,16 +203,15 @@ test_that("test_stay_near_truth", {
   ## - these unit tests verify that the model stays in a region of high
   ## - posterior prob.
   mcmcp <- McmcParams(iter = 100, burnin = 0, nStarts=0)
-  modelk <- MultiBatchModel(data = y(truth), batch = batch(truth),
-                       k = 3, mcmc.params = mcmcp,
-                       HyperparametersMultiBatch(k = 3,
-                                            m2.0 = 1/60, eta.0 = 1800))
+  modelk <- MultiBatchModel2(dat = y(truth), batches = batch(truth),
+                             hp=hpList(k = 3)[["MB"]],
+                             mp = mcmcp)
   modelk <- startAtTrueValues(modelk, truth)
   mmodel <- posteriorSimulation(modelk)
-  pmns <- CNPBayes:::thetaMean(mmodel)
+  pmns <- thetaMean(mmodel)
   ##ps <- CNPBayes:::sigmaMean(mmodel)
   s <- sigma(mmodel)
-  pmix <- CNPBayes:::pMean(mmodel)
+  pmix <- pMean(mmodel)
   expect_equal(theta(truth), pmns, tolerance=0.04)
   expect_equal(p(truth), pmix, tolerance=0.04)
   ## TODO: This example could be extended to focus on what to do when a batch
@@ -217,7 +219,7 @@ test_that("test_stay_near_truth", {
   ## deletion
 })
 
-test_that("test_kbatch", {
+test_that("kbatch", {
     set.seed(123)
     k <- 3
     means <- matrix(c(rnorm(5, -1, 0.1), rnorm(5, 0, 0.1), rnorm(5,
@@ -233,7 +235,9 @@ test_that("test_kbatch", {
     truth <- simulateBatchData(N = N, batch = batch, theta = means,
         sds = sds, p = p)
     mp <- McmcParams(iter = 100, burnin = 50, nStarts = 10)
-    kmod <- MultiBatchModel(y(truth), batch(truth), k = 3, mcmc.params = mp)
+    kmod <- MultiBatchModel2(dat=y(truth), batches=batch(truth),
+                             hp=hpList(k = 3)[["MB"]],
+                             mp = mp)
     kmod <- posteriorSimulation(kmod)
 
     expected <- max.col(probz(kmod))
@@ -244,8 +248,10 @@ test_that("test_kbatch", {
     index <- sort(unique(c(sample(seq_len(N), 500), which(batch(kmod) %in% 4:5))))
     ## subsample
     mp <- McmcParams(iter = 100, burnin = 100, nStarts = 20)
-    kmod2 <- MultiBatchModel(y(kmod)[index], batch=batch(kmod)[index],
-                        k=3, mcmc.params=mp)
+    kmod2 <- MultiBatchModel2(dat=y(kmod)[index],
+                              batches=batch(kmod)[index],
+                              hp=hpList(k=3)[["MB"]],
+                              mp=mp)
     kmod2 <- posteriorSimulation(kmod2)
     yy <- setNames(y(truth), seq_along(y(truth)))
     df <- imputeFromSampledData(kmod2, yy, index)
@@ -278,60 +284,5 @@ test_that("test_kbatch", {
 })
 
 test_that("test_unequal_batch_data", {
-    expect_error(MultiBatchModel(data = 1:10, batch = 1:9))
-})
-
-test_that("different starts", {
-  set.seed(25)
-  bmodel <- MultiBatchModelExample
-  bmodel.list <- replicate(10,
-                           MultiBatchModel(y(bmodel),
-                                           k=3,
-                                           batch=batch(bmodel)))
-  model <- selectByLogLik(bmodel.list)
-  logliks <- unique(sapply(bmodel.list, log_lik))
-  expect_identical(length(logliks), length(bmodel.list))
-  expect_equal(log_lik(model), -286.84, tolerance=0.05, scale=1)
-
-  mmodel <- SingleBatchModelExample
-
-  mmodel.list <- replicate(10,
-                           SingleBatchModel(y(mmodel),
-                                            k=3))
-  logliks <- unique(sapply(mmodel.list, log_lik))
-  expect_identical(length(logliks), length(mmodel.list))
-  model <- selectByLogLik(mmodel.list)
-  expect_equal(log_lik(model), max(logliks, na.rm=TRUE))
-})
-
-.test_that("model_select", {
-  extdata <- system.file("extdata", package="CNPBayes")
-  r <- readRDS(file.path(extdata, "lrr_roi_2.rds"))
-  r.list <- lapply(r, colMedians, na.rm=TRUE)
-  r.list <- r.list[elementNROWS(r.list) > 20]
-  r <- unlist(r.list)
-  plates <- rep(names(r.list), elementNROWS(r.list))
-  batches <- collapseBatch(r, plates, 0.01)
-
-  mp <- McmcParams(nStarts=10, burnin=500, iter=1000, thin=10)
-  sb.list <- SingleBatchModelList(data=r, mcmc.params=mp, k=2:4)
-  mb.list <- MultiBatchModelList(data=r, k=2:4,
-                            batch=batches,
-                            mcmc.params=mp)
-
-
-  sb.list <- posteriorSimulation(sb.list)
-  mb.list <- posteriorSimulation(mb.list)
-
-  sb.list <- sb.list[!sapply(sb.list, label_switch)]
-  mb.list <- mb.list[!sapply(mb.list, label_switch)]
-
-  ml <- marginalLikelihood(sb.list[[2]])
-  expect_true(!is.na(ml))
-
-  params <- mlParams(ignore.small.pstar=TRUE)
-  ml.lik <- c(marginalLikelihood(sb.list, params),
-              marginalLikelihood(mb.list, params))
-  best.model <- names(ml.lik)[which.max(ml.lik)]
-  expect_true(substr(best.model, 1, 3) == "SB3")
+    expect_error(MultiBatchModel2(dat = 1:10, batches = 1:9))
 })

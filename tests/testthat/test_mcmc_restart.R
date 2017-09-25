@@ -61,16 +61,16 @@ test_that("test_mcmc_restart", {
     ## checks consistency of chain with slot for theta
     ##
     mcmcp <- McmcParams(nStarts=0, iter=1)
-    modelk1 <- MultiBatchModel(data = y(truth),
-                          k = 3,
-                          mcmc.params = mcmcp,
-                          batch = batch(truth))
+    modelk1 <- MultiBatchModel2(dat = y(truth),
+                                hp=hpList(k=3)[["MB"]],
+                                mp = mcmcp,
+                                batches = batch(truth))
     modelk1 <- sortComponentLabels(modelk1)
     th1 <- as.numeric(theta(modelk1))
     ##
     ## 1 iteration and 0 starts
     ##
     modelk <- posteriorSimulation(modelk1)
-    th2 <- CNPBayes:::thetac(modelk)[1, ]
+    th2 <- thetac(modelk)[1, ]
     expect_identical(th2, th1)
 })

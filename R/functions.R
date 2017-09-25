@@ -112,25 +112,31 @@ defineCnpRegions <- function(grl, thr=0.02){
 #'
 #' all_cnvs <- suppressWarnings(c(cnv1, cnv2, cnv3, cnv4))
 #' grl <- split(all_cnvs, all_cnvs$id)
-#' cnps <- consensusCNP(grl)
+#' \dontrun{
+#'   cnps <- consensusCNP(grl)
+#'   ##
+#'   ## 2nd CNP is filtered because of its size
+#'   ##
+#'   truth <- GRanges("chr1", IRanges(10000100L, 10100100L))
+#'   seqinfo(truth) <- seqinfo(grl)
+#'   identical(cnps, truth)
+#' }
 #'
-#' ##
-#' ## 2nd CNP is filtered because of its size
-#' ##
-#' truth <- GRanges("chr1", IRanges(10000100L, 10100100L))
-#' seqinfo(truth) <- seqinfo(grl)
-#' identical(cnps, truth)
 #'
 #' ##
 #' ## Both CNVs identified
 #' ##
-#' cnps <- consensusCNP(grl, max.width=500e3)
+#' \dontrun{
+#'   cnps <- consensusCNP(grl, max.width=500e3)
+#' }
 #' truth <- GRanges(c("chr1", "chr5"),
 #'                  IRanges(c(10000100L, 101000999L),
 #'                          c(10100100L, 101400999L)))
 #' seqlevels(truth, pruning.mode="coarse") <- seqlevels(grl)
 #' seqinfo(truth) <- seqinfo(grl)
-#' identical(cnps, truth)
+#' \dontrun{
+#'   identical(cnps, truth)
+#' }
 #'
 #' @param grl  A \code{GRangesList} of all CNVs in a study -- each
 #' element is the collection of CNVs for one individual.
@@ -279,7 +285,7 @@ permnK <- function(k, maxperm){
 #' @param nt the number of observations per batch
 #' @param batch a vector containing the labels from which batch each observation came from.
 #' @return A tibble with a tile assigned to each log R ratio
-#' @seealso \code{\link[dplyr]{ntile}} 
+#' @seealso \code{\link[dplyr]{ntile}}
 #' @export
 #' @examples
 #'   mb <- MultiBatchModelExample
@@ -295,7 +301,7 @@ permnK <- function(k, maxperm){
 #' @rdname tile-functions
 tileMedians <- function(y, nt, batch){
   yy <- y
-  x <- obs.index <- NULL
+  logratio <- x <- obs.index <- NULL
   ##
   ## split observations by batch
   ##
@@ -342,6 +348,7 @@ tileMedians <- function(y, nt, batch){
 #' @rdname tile-functions
 #' @export
 tileSummaries <- function(tiles){
+  logratio <- NULL
   tile.summaries <- tiles %>% group_by(tile) %>%
     summarize(avgLRR=mean(logratio),
               batch=unique(batch))
@@ -447,7 +454,7 @@ mclustMeans <- function(y, batch){
 #'
 #' @examples
 #'
-#'  model <- MarginalModelExample
+#'  model <- SingleBatchModelExample
 #'  mp <- McmcParams(iter=200, burnin=50)
 #'  mcmcParams(model) <- mp
 #'  model <- posteriorSimulation(model)
@@ -455,14 +462,14 @@ mclustMeans <- function(y, batch){
 #'  if(FALSE) qqplot(pd, y(model))
 #'
 #' \dontrun{
-#'     bmodel <- BatchModelExample
+#'     bmodel <- MultiBatchModelExample
 #'     mp <- McmcParams(iter=500, burnin=150, nStarts=20)
 #'     mcmcParams(bmodel) <- mp
 #'     bmodel <- posteriorSimulation(bmodel)
 #'     batchy <- posteriorPredictive(bmodel)
 #' }
-#' 
-#' @param model a MarginalModel or MultiBatchModel
+#'
+#' @param model a SingleBatchModel or MultiBatchModel
 #' @export
 posteriorPredictive <- function(model){
   if(is(model, "SingleBatchModel")){
@@ -517,21 +524,6 @@ posteriorPredictive <- function(model){
     Y[i, ] <- y
   }
   as.numeric(Y)
-}
-
-reload <- function(){
-  wd <- getwd()
-  svpacks(); load_all("CNPBayes")
-  setwd(wd)
-}
-
-reload2 <- function(){
-  wd <- getwd()
-  svpacks()
-  load_all("CNPBayes")
-  document("CNPBayes")
-  load_all("CNPBayes")
-  setwd(wd)
 }
 
 useModes <- function(object){

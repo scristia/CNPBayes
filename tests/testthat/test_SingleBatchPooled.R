@@ -8,7 +8,7 @@ test_that("sigma2_pooled", {
   mp <- McmcParams(iter = 10, burnin = 10)
   hp <- Hyperparameters(k=3)
   model <- SingleBatchPooled(y(truth), hp, mp)
-  model <- .posteriorSimulation2(model)
+  expect_warning(model <- .posteriorSimulation2(model))
 
   set.seed(1223)
   (s2.cpp <- sigma2_pooled(model))

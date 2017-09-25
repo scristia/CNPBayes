@@ -59,45 +59,6 @@ posteriorSimulationPooled <- function(object, iter=1000,
 }
 
 
-.posteriorSimulation <- function(post, params=psParams()){
-  .Deprecated("see .posteriorSimulation2")
-  if(nStarts(post) > 1){
-    post <- multipleStarts2(post)
-  }
-  if(burnin(post) > 0 ){
-    post <- runBurnin(post)
-  }
-  if(!isOrdered(post)) label_switch(post) <- TRUE
-  post <- sortComponentLabels(post)
-  if( iter(post) < 1 ) return(post)
-  post <- runMcmc(post)
-  modes(post) <- computeModes(post)
-  if(isOrdered(post)){
-    label_switch(post) <- FALSE
-    return(post)
-  }
-  ## not ordered: try additional MCMC simulations
-  label_switch(post) <- TRUE
-  post <- sortComponentLabels(post)
-  ## reset counter for posterior probabilities
-  post@probz[] <- 0
-  post <- runMcmc(post)
-  modes(post) <- computeModes(post)
-  ##mcmcParams(post) <- mp.orig
-  if(isOrdered(post)){
-    label_switch(post) <- FALSE
-    return(post)
-  }
-  label_switch(post) <- TRUE
-  if(params[["warnings"]]) {
-    ##
-    ## at this point, we've tried to run the twice after burnin and we still
-    ## have mixing. Most likely, we are fitting a model with k too big
-    warning("label switching: model k=", k(post))
-  }
-  post <- sortComponentLabels(post)
-  post
-}
 
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,MixtureModel-method

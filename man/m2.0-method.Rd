@@ -23,5 +23,5 @@ m2.0 for a model
 Retrieve the shape parameter for the tau2 distribution.
 }
 \examples{
-     m2.0(MarginalModelExample)
+     m2.0(SingleBatchModelExample)
 }

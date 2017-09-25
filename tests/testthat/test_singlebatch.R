@@ -7,13 +7,16 @@ test_that("test_marginal_empty_component", {
     truth <- simulateData(N = 10, p = rep(1/3, 3), theta = c(-1,
         0, 1), sds = rep(0.1, 3))
     mp <- McmcParams(iter = 5, burnin = 5, nStarts = 1)
-    model <- SingleBatchModel(data = y(truth), k = 3, mcmc.params = mp)
-    expect_false(any(is.na(CNPBayes:::computeMeans(model))))
+    model <- SingleBatchModel2(dat = y(truth),
+                               hp=hpList(k = 3)[["SB"]],
+                               mp = mp)
+    expect_false(any(is.na(computeMeans(model))))
 })
 
 
 test_that("test_marginal_few_data", {
-  expect_error(model <- SingleBatchModel(data = 0:1, k = 3))
+  expect_error(model <- SingleBatchModel2(dat = 0:1,
+                                          hp=hpList(k = 3)[["SB"]]))
 })
 
 test_that("hard", {
@@ -31,7 +34,7 @@ test_that("hard", {
       ##
       mcmcp <- McmcParams(iter = 500, burnin = 200, thin = 0,
                           nStarts = 20)
-      model <- SingleBatchModel(y(truth), k = 3)
+      model <- SingleBatchModel2(dat=y(truth), hp=hpList(k = 3)[["SB"]])
       model <- posteriorSimulation(model)
       i <- order(theta(model))
       expect_identical(i, 1:3)
@@ -44,12 +47,15 @@ test_that("hard", {
 
 test_that("moderate", {
     set.seed(100)
-    truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0), sds = c(0.3,
-        0.15, 0.15), p = c(0.05, 0.1, 0.8))
+    truth <- simulateData(N = 1000,
+                          theta = c(-2, -0.4, 0),
+                          sds = c(0.3, 0.15, 0.15),
+                          p = c(0.05, 0.1, 0.8))
     ## verify that if we start at the true value, we remain in a region of
     ## high posterior probability after an arbitrary number of mcmc updates
-    mcmcp <- McmcParams(iter = 250, burnin = 250, thin = 2, nStarts=0)
-    model <- SingleBatchModel(y(truth), k = 3, mcmc.params = mcmcp)
+    mcmcp <- McmcParams(iter = 250, burnin = 250, thin = 1, nStarts=1)
+    model <- SingleBatchModel2(dat=y(truth), hp=hpList(k = 3)[["SB"]],
+                               mp = mcmcp)
     model <- startAtTrueValues(model, truth)
     model <- posteriorSimulation(model)
     expect_equal(theta(truth), theta(model), tolerance=0.15)
@@ -60,8 +66,9 @@ test_that("moderate", {
 
 test_that("easy", {
     set.seed(1)
-    truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1,
-        0, 1), sds = rep(0.1, 3))
+    truth <- simulateData(N = 1500, p = rep(1/3, 3),
+                          theta = c(-1, 0, 1),
+                          sds = rep(0.1, 3))
     mp <- McmcParams(iter = 100, burnin = 100)
     model <- SingleBatchModel2(dat = y(truth),
                                hp=hpList(k=3)[["SB"]],
@@ -74,20 +81,85 @@ test_that("easy", {
     expect_equal(theta(model), theta(truth), tolerance=0.03)
     expect_equal(sigma(model), sigma(truth), tolerance=0.11)
     expect_equal(p(model), p(truth), tolerance=0.05)
-    i <- CNPBayes:::argMax(model)
+    i <- argMax(model)
     expect_true(i == which.max(logPrior(chains(model)) + log_lik(chains(model))))
-    expect_identical(sort(CNPBayes:::thetac(model)[i, ]), modes(model)[["theta"]])
+    expect_identical(sort(thetac(model)[i, ]), modes(model)[["theta"]])
     expect_identical(sort(sigmac(model)[i, ]),
                      sort(sqrt(modes(model)[["sigma2"]])))
 })
 
-test_that("Select K easy", {
+
+test_that("cnProbability", {
     set.seed(1)
-    means <- c(-1, 0, 1)
-    sds <- c(0.1, 0.2, 0.2)
-    truth <- simulateData(N = 250, p = rep(1/3, 3), theta = means,
-                          sds = sds)
-    mp <- McmcParams(iter=1000, burnin=200, nStarts=4, thin=1)
-    mlist <- gibbs("SB", k_range=c(2, 3), mp=mp, dat=y(truth))
-    expect_identical(names(mlist)[1], "SB3")
+    truth <- simulateData(N = 2500, p = rep(1/3, 3),
+                          theta = c(-1, 0, 1), sds = rep(0.1, 3))
+    mp <- McmcParams(iter = 200, burnin = 100, nStarts = 1)
+    model <- SingleBatchModel2(dat = y(truth),
+                              hp=hpList(k = 3)[["SB"]], mp = mp)
+    model <- posteriorSimulation(model)
+    map_model <- mapModel(model)
+    expect_identical(z(map_model), zChain(model)[argMax(model), 
+        ])
+    expect_identical(theta(map_model), thetac(model)[argMax(model), 
+        ])
+    probs <- mapCnProbability(model)
+    pz <- probz(model)
+    expect_equal(head(pz), head(probs), tolerance=0.01)
+})
+
+context("Check computeMeans method")
+
+test_that("computeMeans", {
+  set.seed(2000)
+  truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0),
+                        sds = c(0.3, 0.15, 0.15),
+                        p = c(0.005, 1/10, 1 - 0.005 - 1/10))
+  mp <- McmcParams(iter = 10, burnin = 10)
+  model <- SingleBatchModel2(dat=y(truth), hp=hpList(k = 3)[["SB"]],
+                             mp=mp)
+  model <- posteriorSimulation(model)
+  mns <- sapply(split(y(model), z(model)), mean)
+  mns <- as.numeric(mns)
+
+  mns2 <- compute_means(model)
+  expect_equal(mns, mns2)
+})
+
+test_that("relabel", {
+    set.seed(1)
+    truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1, 
+        0, 1), sds = rep(0.1, 3))
+    mp <- McmcParams(iter = 500, burnin = 500)
+    model <- SingleBatchModel2(dat = y(truth), hp=hpList(k = 3)[["SB"]],
+                               mp = mp)
+    model <- posteriorSimulation(model)
+    zindex <- c(3, 2, 1)
+    model2 <- relabel(model, zindex)
+    expect_identical(as.integer(tablez(model2)[zindex]), 
+        as.integer(tablez(model)))
+    expect_identical(dataMean(model2)[zindex], dataMean(model))
+    expect_identical(theta(model2), theta(model))
+    expect_identical(mu(model2), mu(model))
+    expect_identical(p(model2), p(model))
+    expect_identical(sigma(model2), sigma(model))
+    expect_identical(nu.0(model2), nu.0(model))
+    if (FALSE) {
+        burnin(model2) <- 0
+        model2 <- posteriorSimulation(model2)
+        head(thetac(model2))
+        plot.ts(thetac(model2), plot.type = "single", col = 1:3)
+        set.seed(1)
+        truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1, 
+            0, 1), sds = rep(0.5, 3))
+        mp <- McmcParams(iter = 500, burnin = 500)
+        model <- SingleBatchModel(data = y(truth), k = 3, mcmc.params = mp)
+        model <- posteriorSimulation(model)
+        zindex <- c(3, 2, 1)
+        model2 <- relabel(model, zindex)
+        burnin(model2) <- 0
+        model2 <- posteriorSimulation(model2)
+        par(mfrow = c(1, 2))
+        plot.ts(thetac(model), col = 1:3, plot.type = "single")
+        plot.ts(thetac(model2), col = 1:3, plot.type = "single")
+    }
 })

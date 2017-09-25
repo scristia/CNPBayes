@@ -34,5 +34,5 @@ A vector containing 'mu'
 Retrieve overall mean
 }
 \examples{
-     mu(MarginalModelExample)
+     mu(SingleBatchModelExample)
 }

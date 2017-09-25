@@ -19,6 +19,7 @@
 \alias{probCopyNumber,SingleBatchCopyNumber-method}
 \alias{probCopyNumber,MultiBatchCopyNumber-method}
 \alias{probCopyNumber,MultiBatchCopyNumberPooled-method}
+\alias{mapComponents}
 \alias{SingleBatchCopyNumber}
 \alias{MultiBatchCopyNumber}
 \alias{MultiBatchCopyNumberPooled}
@@ -54,6 +55,8 @@ probCopyNumber(model)
 
 \S4method{probCopyNumber}{MultiBatchCopyNumberPooled}(model)
 
+mapComponents(model, params = mapParams())
+
 SingleBatchCopyNumber(model)
 
 MultiBatchCopyNumber(model)
@@ -75,18 +78,12 @@ mapCopyNumber(model, params = mapParams())
 
 \item{value}{a numeric vector mapping component indices to copy number state indices}
 
-\item{params}{a list of parameters for mapping component indices to copy number}
-
-\item{model}{a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance}
+\item{params}{a list of mapping parameters}
 }
 \value{
-a \code{SingleBatchCopyNumber} instance
-
 a \code{MultiBatchCopyNumber} instance
 
 a \code{MultiBatchCopyNumber} instance
-
-a factor vector of length k
 }
 \description{
 Constructs a CopyNumberModel from SB, SBP, MB, or MBP models
@@ -95,19 +92,22 @@ Mapping of mixture component indices to copy number states
 
 In contrast to posterior probabilities for mixture components, this function
 returns posterior probabilities for distinct copy number states.
-
-Used for mapping mixture components to distict copy number states
-
-Map mixture components to copy number states
+a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
 }
 \examples{
 sb <- SingleBatchModelExample
 cn.model <- CopyNumberModel(sb)
-cn.model <- SingleBatchCopyNumber(MarginalModelExample)
-map <- mapComponents(cn.model)
-mapping(cn.model) <- map
-SingleBatchCopyNumber(SingleBatchModelExample)
-cn.model <- SingleBatchCopyNumber(MarginalModelExample)
-mapping(cn.model) <- mapComponents(cn.model)
-mapCopyNumber(cn.model)
+cn.model <- CopyNumberModel(SingleBatchModelExample)
+## manually remap first two components to the same copy number state
+mapping(cn.model) <- c(1, 1, 2)
+\dontrun{
+ ggMixture(cn.model)
+}
+## Batch model
+bmodel <- MultiBatchModelExample
+cn.model <- CopyNumberModel(bmodel)
+mapping(cn.model)
+\dontrun{
+  ggMixture(cn.model)
+}
 }

@@ -9,15 +9,13 @@ MultiBatchModel2(dat = numeric(), hp = HyperparametersMultiBatch(),
   batches = integer())
 }
 \arguments{
-\item{data}{the data for the simulation.}
+\item{dat}{the data for the simulation.}
 
-\item{k}{An integer value specifying the number of latent classes.}
+\item{hp}{An object of class `Hyperparameters` used to specify the hyperparameters of the model.}
 
-\item{batch}{a vector of the different batch numbers (must be sorted)}
+\item{mp}{An object of class 'McmcParams'}
 
-\item{hypp}{An object of class `Hyperparameters` used to specify the hyperparameters of the model.}
-
-\item{mcmc.params}{An object of class 'McmcParams'}
+\item{batches}{an integer-vector of the different batches}
 }
 \value{
 An object of class `MultiBatchModel`
@@ -26,5 +24,25 @@ An object of class `MultiBatchModel`
 Initializes a MultiBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
 }
 \examples{
-     model <- MultiBatchModel2(rnorm(10), batch=rep(1:2, each=5))
+  model <- MultiBatchModel2(rnorm(10), batch=rep(1:2, each=5))
+  set.seed(100)
+  nbatch <- 3
+  k <- 3
+  means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+      0, 0.05), nbatch, k, byrow = FALSE)
+  sds <- matrix(0.15, nbatch, k)
+  sds[, 1] <- 0.3
+  N <- 1000
+  truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+                                                length.out = N),
+                             p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+                             theta = means,
+                             sds = sds)
+
+    truth <- simulateBatchData(N = 2500,
+                               batch = rep(letters[1:3], length.out = 2500),
+                               theta = means, sds = sds,
+                               p = c(1/5, 1/3, 1 - 1/3 - 1/5))
+    MultiBatchModel2(dat=y(truth), batches=batch(truth),
+                     hp=hpList(k=3)[["MB"]])
 }

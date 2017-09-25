@@ -12,6 +12,8 @@ gibbs(model = c("SB", "MB", "SBP", "MBP"), dat, mp, hp.list, batches,
 
 \item{dat}{numeric vector of the summary copy number data for each sample at a single CNP (e.g., the median log R ratio for each sample)}
 
+\item{mp}{an object of class \code{McmcParams}}
+
 \item{hp.list}{a list of hyperparameters for each of the different models.  If missing, this list will be generated automatically with default hyperparameters that work well for copy number data}
 
 \item{batches}{an integer vector of the same length as \code{dat} indicating the batch in which the sample was processed}

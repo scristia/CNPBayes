@@ -16,4 +16,4 @@ test_that("tileMedians", {
   ggMixture(mb)
   mb2 <- upSample(mb, tiled.medians)
   expect_identical(length(y(mb2)), nrow(tiled.medians))
-}
+})

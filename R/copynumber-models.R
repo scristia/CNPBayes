@@ -6,9 +6,12 @@ NULL
 #' @param object a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
 #' @export
 #' @examples
-#' cn.model <- SingleBatchCopyNumber(MarginalModelExample)
-#' map <- mapComponents(cn.model)
-#' mapping(cn.model) <- map
+#' cn.model <- CopyNumberModel(SingleBatchModelExample)
+#' ## manually remap first two components to the same copy number state
+#' mapping(cn.model) <- c(1, 1, 2)
+#' \dontrun{
+#'  ggMixture(cn.model)
+#' }
 #' @rdname CopyNumber-methods
 setGeneric("mapping", function(object) standardGeneric("mapping"))
 
@@ -77,7 +80,7 @@ setMethod("numberStates", "MultiBatchCopyNumberPooled", function(model){
 #'
 #' In contrast to posterior probabilities for mixture components, this function
 #' returns posterior probabilities for distinct copy number states.
-#' @param model a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
+#' a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
 #' @rdname CopyNumber-methods
 #' @export
 setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
@@ -174,7 +177,7 @@ setMethod("copyNumber", "MultiBatchCopyNumber", function(object){
 #' @param threshold numeric value in [0, 0.5]. For a given observation (sample),
 #'   mixture component probabilities > threshold and less than 1-threshold are
 #'   combined.
-#' 
+#'
 #' @param proportion.subjects numeric value in [0, 1]. Two components are
 #'   combined if the fraction of subjects with component probabilities in the
 #'   range [threshold, 1-threshold] exceeds this value.
@@ -193,11 +196,9 @@ setMethod("copyNumber", "MultiBatchCopyNumber", function(object){
 #'   the value specified by this parameter, (ii) there are 3 or more states, and
 #'   (iii) the first component has a mean less than \code{max_homozygous[2]}, we
 #'   infer that the first component is a homozygous deletion.
-#' @export
-#' @examples
-#' mapParams()
 #' @seealso \code{\link{mapComponents}}
-mapParams <- function(threshold=0.1, proportion.subjects=0.5,
+mapParams <- function(threshold=0.1,
+                      proportion.subjects=0.5,
                       outlier.variance.ratio=5,
                       max.homozygous=c(-1.5, -0.5), ## cutoff for 2 state and 3 state models
                       min.foldchange=1.5){
@@ -241,23 +242,17 @@ isPooled <- function(model){
 }
 
 
-#' Map mixture components to distinct copy number states
-#'
 #' @param params a list of mapping parameters
 #' @examples
-#' mm <- SingleBatchModelExample
-#' cn.model <- SingleBatchCopyNumber(mm)
-#' mapping(cn.model) <- mapComponents(cn.model)
-#' mapping(cn.model)
-#' \dontrun{
-#'  ggMixture(cn.model)
-#' }
 #' ## Batch model
 #' bmodel <- MultiBatchModelExample
-#' bmodel <- MultiBatchCopyNumber(bmodel)
-#' mapping(bmodel) <- mapComponents(bmodel)
-#' mapping(bmodel)
+#' cn.model <- CopyNumberModel(bmodel)
+#' mapping(cn.model)
+#' \dontrun{
+#'   ggMixture(cn.model)
+#' }
 #' @export
+#' @rdname CopyNumber-methods
 mapComponents <- function(model, params=mapParams()){
   p <- probz(model)
   K <- mapping(model)
@@ -302,13 +297,6 @@ mapComponents <- function(model, params=mapParams()){
   K
 }
 
-#' Constructor for copy number models (single-batch)
-#'
-#' Used for mapping mixture components to distict copy number states
-#'
-#' @return a \code{SingleBatchCopyNumber} instance
-#' @examples
-#' SingleBatchCopyNumber(SingleBatchModelExample)
 #' @export
 #' @rdname CopyNumber-methods
 SingleBatchCopyNumber <- function(model){
@@ -362,16 +350,6 @@ setMethod("CopyNumberModel", "MultiBatchPooled", function(model){
   model
 })
 
-#' Map mixture components to copy number states
-#'
-#' @examples
-#' cn.model <- SingleBatchCopyNumber(MarginalModelExample)
-#' mapping(cn.model) <- mapComponents(cn.model)
-#' mapCopyNumber(cn.model)
-#' @param params  a list of parameters for mapping component indices to copy number
-#'
-#' @return a factor vector of length k
-#'
 #' @export
 #' @rdname CopyNumber-methods
 mapCopyNumber <- function(model,

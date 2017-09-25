@@ -23,8 +23,8 @@
 #' @import ggplot2
 #' @importFrom magrittr set_colnames "%>%"
 #' @importFrom purrr map map2 map_lgl map_dbl map_chr
-#' @importFrom tidyr gather
-#' @importFrom dplyr mutate bind_rows group_by summarize arrange
+#' @importFrom tidyr gather spread
+#' @importFrom dplyr mutate bind_rows group_by summarize arrange filter n
 #' @importFrom tibble as.tibble
 #' @useDynLib CNPBayes
 NULL

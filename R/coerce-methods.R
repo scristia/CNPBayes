@@ -1,3 +1,6 @@
+#' @include Deprecated-classes.R
+NULL
+
 setAs("HyperparametersBatch", "HyperparametersMultiBatch", function(from, to){
   new("HyperparametersMultiBatch",
       k=k(from),
