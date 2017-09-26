@@ -173,6 +173,33 @@ hardTruth <- function(p1, s, N=1000){
   ggSingleBatch(model)
 })
 
+.test_that("SB3 better than SBP3", {
+  set.seed(2000)
+  truth <- simulateData(N = 1000, theta = c(-2, -0.45, 0),
+                        sds = c(0.3, 0.1, 0.1),
+                        p = c(0.005, 1/10, 1 - 0.005 - 1/10))
+  mp <- McmcParams(iter = 1000, burnin = 500, thin=2, nStarts=4)
+  models <- gibbs(model=c("SB", "SBP"), k_range=c(3, 3),
+                  dat=y(truth),
+                  mp=mp)
+  sapply(models, marginal_lik)
+  expect_identical(names(models), c("SB3", "SBP3"))
+})
+
+
+.test_that("SBP3 better than SB3", {
+  set.seed(2000)
+  truth <- simulateData(N = 1000, theta = c(-2, -0.45, 0),
+                        sds = c(0.1, 0.1, 0.1),
+                        p = c(0.005, 1/10, 1 - 0.005 - 1/10))
+  mp <- McmcParams(iter = 1000, burnin = 500, thin=2, nStarts=4)
+  models <- gibbs(model=c("SB", "SBP"), k_range=c(3, 3),
+                  dat=y(truth),
+                  mp=mp)
+  sapply(models, marginal_lik)
+  expect_identical(names(models), c("SBP3", "SB3"))
+})
+
 
 .test_that("pooled", {
     set.seed(100)

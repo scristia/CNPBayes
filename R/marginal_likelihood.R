@@ -428,8 +428,7 @@ effectiveSizeWarning <- function(model){
     ## and the correction factor is not needed
     correction.factor <- 0
   } else correction.factor <- log(factorial(k(model)))
-
-  # calculate p(x|model)
+  ## calculate p(x|model)
   m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
     correction.factor
   names(m.y) <- paste0("SBP", k(model))

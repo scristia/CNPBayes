@@ -422,9 +422,9 @@ dnorm_singlebatch <- function(qtiles, p, mean, sd){
   L <- sapply(df.list, nrow)
   df$component <- factor(rep(seq_along(mean), L))
   df.overall <- data.frame(y=overall, x=dat$x)
-  df.overall$component <- "marginal"
+  df.overall$component <- "SB"
   df <- rbind(df, df.overall)
-  df$component <- factor(df$component, levels=c("marginal", seq_along(mean)))
+  df$component <- factor(df$component, levels=c("SB", seq_along(mean)))
   if(length(mean) == 1){
     df <- df[df$component != "overall", ]
     df$component <- factor(df$component)
@@ -479,22 +479,21 @@ dnorm_poly <- function(model){
   ##cn <- mapping(model)[z(model)]
   ##comp <- as.character(comp)
   comp[index] <- cn
-  comp <- factor(comp, levels=c("marginal", levs))
+  comp <- factor(comp, levels=c("SB", levs))
   comp
 }
 
 .gg_singlebatch_copynumber <- function(model, bins){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
-  df.observed <- data.frame(y=observed(model))
+  df.observed <- tibble(y=observed(model))
   ## see stat_function
   ##  ggplot(df, aes(x, d, group=name)) +
   if(missing(bins))
     bins <- nrow(df.observed)/2
-  dat <- dnorm_poly(model)
-  dat$component <- .relabel_component(dat, model)
-  if(FALSE)
-    with(dat, table(component, component2))
+  dat <- dnorm_poly(model) %>%
+    as.tibble
+  dat$component <- .relabel_component(dat, model) 
   component <- x <- y <- ..density.. <- NULL
   ggplot(dat, aes(x, y, group=component)) +
     geom_histogram(data=df.observed, aes(y, ..density..),
@@ -504,6 +503,7 @@ dnorm_poly <- function(model){
     xlab("quantiles") + ylab("density") +
     scale_color_manual(values=colors) +
     scale_fill_manual(values=colors) +
+    scale_y_sqrt() +
     guides(fill=guide_legend(""), color=guide_legend(""))
 }
 
@@ -685,8 +685,8 @@ batchDensities <- function(x, batches, thetas, sds, P, batchPr){
                  alpha=0.4) +
     xlab("quantiles") + ylab("density") +
     scale_color_manual(values=colors) +
-      scale_fill_manual(values=colors) +
-      scale_y_sqrt() +
+    scale_fill_manual(values=colors) +
+    scale_y_sqrt() +
     guides(fill=guide_legend(""), color=guide_legend("")) +
     facet_wrap(~batch, nrow=nb)
 }

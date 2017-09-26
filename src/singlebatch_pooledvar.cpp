@@ -89,7 +89,7 @@ Rcpp::NumericVector stageTwoLogLik_pooled(Rcpp::S4 xmod) {
   likprec = dgamma(sigma2_tilde, 0.5*nu0[0], 1.0/(0.5 * nu0[0] * s20[0])) ;
   NumericVector LL(K) ;
   for(int k=0; k<K; ++k){
-    LL[k] = log(liknorm[k] * likprec[0]) ;
+    LL[K] = log(liknorm[k] * likprec[0]) ;
   }
   double tmp = 0.0 ;
   for(int k = 0; k < K; k++) {

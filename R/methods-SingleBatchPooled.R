@@ -1,6 +1,10 @@
 #' @include methods-SingleBatchModel.R
 NULL
 
+setMethod("computeLoglik", "SingleBatchPooled", function(object){
+  loglik_pooled(object)
+})
+
 ## ad-hoc constructor
 .SingleBatchPooled <- function(dat=numeric(),
                               hp=Hyperparameters(),
@@ -14,6 +18,30 @@ NULL
   obj@mcmc.chains <- ch
   as(obj, "SingleBatchPooled")
 }
+
+.computeModesSBP <- function(object){
+  i <- argMax(object)
+  if(length(i) == 0) i <- iter(object)
+  mc <- chains(object)
+  thetamax <- theta(mc)[i, ]
+  sigma2max <- sigma2(mc)[i, ]
+  pmax <- p(mc)[i, ]
+  modes <- list(theta=thetamax,
+                sigma2=sigma2max,
+                mixprob=pmax,
+                mu=mu(mc)[i],
+                tau2=tau2(mc)[i],
+                nu0=nu.0(mc)[i],
+                sigma2.0=sigma2.0(mc)[i],
+                zfreq=zFreq(mc)[i, ],
+                loglik=log_lik(mc)[i],
+                logprior=logPrior(mc)[i])
+  modes
+}
+
+setMethod("computeModes", "SingleBatchPooled", function(object){
+  .computeModesSBP(object)
+})
 
 ## We initialize the z's to be all zeros, then z is updated as the first step of
 ## the mcmc. However, if the first update of z results in some components not
@@ -95,6 +123,7 @@ combine_singlebatch_pooled <- function(model.list, batches){
   pm.mu <- mean(.mu)
   pm.tau2 <- mean(.tau2)
   pm.s20 <- mean(s2.0)
+  pm.ll <- mean(ll)
   pz <- map(model.list, probz) %>% Reduce("+", .)
   pz <- pz/length(model.list)
   ## the accessor will divide by number of iterations - 1

@@ -3,23 +3,7 @@
 \docType{methods}
 \name{CopyNumberModel}
 \alias{CopyNumberModel}
-\alias{mapping}
 \alias{mapping<-}
-\alias{mapping,SingleBatchCopyNumber-method}
-\alias{mapping,MultiBatchCopyNumber-method}
-\alias{mapping,MultiBatchCopyNumberPooled-method}
-\alias{mapping,MultiBatchCopyNumber-method}
-\alias{mapping<-,SingleBatchCopyNumber,numeric-method}
-\alias{mapping,SingleBatchCopyNumber,numeric-method}
-\alias{mapping<-,MultiBatchCopyNumber,numeric-method}
-\alias{mapping,MultiBatchCopyNumber,numeric-method}
-\alias{mapping<-,MultiBatchCopyNumberPooled,numeric-method}
-\alias{mapping,MultiBatchCopyNumberPooled,numeric-method}
-\alias{probCopyNumber}
-\alias{probCopyNumber,SingleBatchCopyNumber-method}
-\alias{probCopyNumber,MultiBatchCopyNumber-method}
-\alias{probCopyNumber,MultiBatchCopyNumberPooled-method}
-\alias{mapComponents}
 \alias{SingleBatchCopyNumber}
 \alias{MultiBatchCopyNumber}
 \alias{MultiBatchCopyNumberPooled}
@@ -29,33 +13,9 @@
 \alias{mapCopyNumber}
 \title{Constructs a CopyNumberModel from SB, SBP, MB, or MBP models}
 \usage{
-CopyNumberModel(model)
-
-mapping(object)
+CopyNumberModel(model, params = mapParams())
 
 mapping(object) <- value
-
-\S4method{mapping}{SingleBatchCopyNumber}(object)
-
-\S4method{mapping}{MultiBatchCopyNumber}(object)
-
-\S4method{mapping}{MultiBatchCopyNumberPooled}(object)
-
-\S4method{mapping}{SingleBatchCopyNumber,numeric}(object) <- value
-
-\S4method{mapping}{MultiBatchCopyNumber,numeric}(object) <- value
-
-\S4method{mapping}{MultiBatchCopyNumberPooled,numeric}(object) <- value
-
-probCopyNumber(model)
-
-\S4method{probCopyNumber}{SingleBatchCopyNumber}(model)
-
-\S4method{probCopyNumber}{MultiBatchCopyNumber}(model)
-
-\S4method{probCopyNumber}{MultiBatchCopyNumberPooled}(model)
-
-mapComponents(model, params = mapParams())
 
 SingleBatchCopyNumber(model)
 
@@ -63,22 +23,18 @@ MultiBatchCopyNumber(model)
 
 MultiBatchCopyNumberPooled(model)
 
-\S4method{CopyNumberModel}{SingleBatchModel}(model)
+\S4method{CopyNumberModel}{SingleBatchModel}(model, params = mapParams())
 
-\S4method{CopyNumberModel}{MultiBatchModel}(model)
+\S4method{CopyNumberModel}{MultiBatchModel}(model, params = mapParams())
 
-\S4method{CopyNumberModel}{MultiBatchPooled}(model)
+\S4method{CopyNumberModel}{MultiBatchPooled}(model, params = mapParams())
 
 mapCopyNumber(model, params = mapParams())
 }
 \arguments{
 \item{model}{a SB, SBP, MB, or MBP model}
 
-\item{object}{a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance}
-
-\item{value}{a numeric vector mapping component indices to copy number state indices}
-
-\item{params}{a list of mapping parameters}
+\item{params}{a list of parameters used for mapping mixture components to copy number states.}
 }
 \value{
 a \code{MultiBatchCopyNumber} instance
@@ -86,28 +42,20 @@ a \code{MultiBatchCopyNumber} instance
 a \code{MultiBatchCopyNumber} instance
 }
 \description{
-Constructs a CopyNumberModel from SB, SBP, MB, or MBP models
-
-Mapping of mixture component indices to copy number states
-
-In contrast to posterior probabilities for mixture components, this function
-returns posterior probabilities for distinct copy number states.
-a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
+The mixture components do not necessarily reflect distinct copy number
+states, possibly due to skewed (non-Gaussian) log R ratios. While easy to fit
+skewed data with a finite mixture of Gaussians, additional steps are needed
+to assess whether the components correspond to distinct copy number states.
+An automated approach for mapping mixture components to copy number states is
+provided by the \code{mapComponents} function. The mapping can also be done
+manually -- see \code{mapping<-}. This accessor \code{copyNumber} returns the
+copy number states -- i.e., the result after mapping mixture components to
+copy number states.
 }
 \examples{
 sb <- SingleBatchModelExample
-cn.model <- CopyNumberModel(sb)
-cn.model <- CopyNumberModel(SingleBatchModelExample)
-## manually remap first two components to the same copy number state
-mapping(cn.model) <- c(1, 1, 2)
-\dontrun{
- ggMixture(cn.model)
+cn.model <- CopyNumberModel(sb, mapParams())
 }
-## Batch model
-bmodel <- MultiBatchModelExample
-cn.model <- CopyNumberModel(bmodel)
-mapping(cn.model)
-\dontrun{
-  ggMixture(cn.model)
-}
+\seealso{
+\code{\link{mapComponents}} \code{\link{copyNumber}}
 }

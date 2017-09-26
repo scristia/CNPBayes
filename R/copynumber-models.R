@@ -1,45 +1,27 @@
 #' @include AllClasses.R
 NULL
 
-#' Mapping of mixture component indices to copy number states
-#'
-#' @param object a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
-#' @export
-#' @examples
-#' cn.model <- CopyNumberModel(SingleBatchModelExample)
-#' ## manually remap first two components to the same copy number state
-#' mapping(cn.model) <- c(1, 1, 2)
-#' \dontrun{
-#'  ggMixture(cn.model)
-#' }
-#' @rdname CopyNumber-methods
-setGeneric("mapping", function(object) standardGeneric("mapping"))
-
-#' @export
-#' @rdname CopyNumber-methods
-setGeneric("mapping<-", function(object, value) standardGeneric("mapping<-"))
-
 #' @aliases mapping,SingleBatchCopyNumber-method
-#' @rdname CopyNumber-methods
+#' @rdname mapping
 setMethod("mapping", "SingleBatchCopyNumber", function(object){
   object@mapping
 })
 
 #' @aliases mapping,MultiBatchCopyNumber-method
-#' @rdname CopyNumber-methods
+#' @rdname mapping
 setMethod("mapping", "MultiBatchCopyNumber", function(object){
   object@mapping
 })
 
 #' @aliases mapping,MultiBatchCopyNumber-method
-#' @rdname CopyNumber-methods
+#' @rdname mapping
 setMethod("mapping", "MultiBatchCopyNumberPooled", function(object){
   object@mapping
 })
 
 #' @param value a numeric vector mapping component indices to copy number state indices
 #' @aliases mapping,SingleBatchCopyNumber,numeric-method
-#' @rdname CopyNumber-methods
+#' @rdname mapping
 setReplaceMethod("mapping", c("SingleBatchCopyNumber", "numeric"),
                  function(object, value){
                    object@mapping <- value
@@ -47,7 +29,7 @@ setReplaceMethod("mapping", c("SingleBatchCopyNumber", "numeric"),
                  })
 
 #' @aliases mapping,MultiBatchCopyNumber,numeric-method
-#' @rdname CopyNumber-methods
+#' @rdname mapping
 setReplaceMethod("mapping", c("MultiBatchCopyNumber", "numeric"),
                  function(object, value){
                    object@mapping <- value
@@ -55,14 +37,12 @@ setReplaceMethod("mapping", c("MultiBatchCopyNumber", "numeric"),
                  })
 
 #' @aliases mapping,MultiBatchCopyNumberPooled,numeric-method
-#' @rdname CopyNumber-methods
+#' @rdname mapping
 setReplaceMethod("mapping", c("MultiBatchCopyNumberPooled", "numeric"),
                  function(object, value){
                    object@mapping <- value
                    object
                  })
-
-setGeneric("numberStates", function(model) standardGeneric("numberStates"))
 
 setMethod("numberStates", "SingleBatchCopyNumber", function(model){
   length(unique(mapping(model)))
@@ -75,15 +55,6 @@ setMethod("numberStates", "MultiBatchCopyNumber", function(model){
 setMethod("numberStates", "MultiBatchCopyNumberPooled", function(model){
   length(unique(mapping(model)))
 })
-
-#' Posterior probabilities for copy number states
-#'
-#' In contrast to posterior probabilities for mixture components, this function
-#' returns posterior probabilities for distinct copy number states.
-#' a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
-#' @rdname CopyNumber-methods
-#' @export
-setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 
 manyToOneMapping <- function(model){
   comp <- seq_len(k(model))
@@ -121,25 +92,22 @@ manyToOneMapping <- function(model){
 }
 
 #' @aliases probCopyNumber,SingleBatchCopyNumber-method
-#' @rdname CopyNumber-methods
+#' @rdname probCopyNumber
 setMethod("probCopyNumber", "SingleBatchCopyNumber", function(model){
   .prob_copynumber(model)
 })
 
 #' @aliases probCopyNumber,MultiBatchCopyNumber-method
-#' @rdname CopyNumber-methods
+#' @rdname probCopyNumber
 setMethod("probCopyNumber", "MultiBatchCopyNumber", function(model){
   .prob_copynumber(model)
 })
 
 #' @aliases probCopyNumber,MultiBatchCopyNumberPooled-method
-#' @rdname CopyNumber-methods
+#' @rdname probCopyNumber
 setMethod("probCopyNumber", "MultiBatchCopyNumberPooled", function(model){
   .prob_copynumber(model)
 })
-
-setGeneric("copyNumber", function(object) standardGeneric("copyNumber"))
-
 
 .remap <- function(z, map){
   for(i in seq_along(map)){
@@ -163,10 +131,14 @@ setGeneric("copyNumber", function(object) standardGeneric("copyNumber"))
   zz
 }
 
+#' @aliases copyNumber,SingleBatchCopyNumber-method
+#' @rdname copyNumber
 setMethod("copyNumber", "SingleBatchCopyNumber", function(object){
   .relabel_z(object)
 })
 
+#' @aliases copyNumber,MultiBatchCopyNumber-method
+#' @rdname copyNumber
 setMethod("copyNumber", "MultiBatchCopyNumber", function(object){
   .relabel_z(object)
 })
@@ -197,6 +169,9 @@ setMethod("copyNumber", "MultiBatchCopyNumber", function(object){
 #'   (iii) the first component has a mean less than \code{max_homozygous[2]}, we
 #'   infer that the first component is a homozygous deletion.
 #' @seealso \code{\link{mapComponents}}
+#' @examples
+#' mapParams()
+#' @export
 mapParams <- function(threshold=0.1,
                       proportion.subjects=0.5,
                       outlier.variance.ratio=5,
@@ -242,7 +217,12 @@ isPooled <- function(model){
 }
 
 
+#' Map mixture components to distinct copy number states
+#'
+#' Given two mixture components j and j + 1, let N denote the number of subjects with posterior probability of belonging to either component j or j+1 is very high (e.g., > 0.99).  Let M denote the number of subjects that map to only one of these two components with high probability (M < N).  If  M/N is very small, then the mixture components j and j+1 are well separated in terms of the membership probabilities.  If M/N is high (say > 0.5), then these components are not well separated and the mixture components are mapped to the same copy number state.
+#'
 #' @param params a list of mapping parameters
+#' @param model a SB, MB, SBP, or MBP model
 #' @examples
 #' ## Batch model
 #' bmodel <- MultiBatchModelExample
@@ -251,10 +231,11 @@ isPooled <- function(model){
 #' \dontrun{
 #'   ggMixture(cn.model)
 #' }
+#' @seealso \code{\link{CopyNumber-methods}} \code{\link{mapParams}}
 #' @export
-#' @rdname CopyNumber-methods
 mapComponents <- function(model, params=mapParams()){
   p <- probz(model)
+  p <- p/rowSums(p)
   K <- mapping(model)
   threshold <- params[["threshold"]]
   ##
@@ -263,12 +244,15 @@ mapComponents <- function(model, params=mapParams()){
   select <- rowSums(p > 0.99) == 0
   p <- p[select, , drop=FALSE]
   if(nrow(p) == 0) return(K)
-  threshold <- params[["threshold"]]
-  frac.uncertain <- colMeans(p >= threshold & p <= (1-threshold))
+  zz <- map_z(model)[select]
+  Ns <- table(factor(zz, levels=K))
+  n.uncertain <- colSums(p >= threshold & p <= (1-threshold))
+  n.uncertain <- n.uncertain
+  frac.uncertain <- n.uncertain/(Ns + 1)
+  ##frac.uncertain <- colMeans(p >= threshold & p <= (1-threshold))
   ##
   ## what fraction of subjects have low posterior probabilities
   ##
-  ##frac.uncertain <- n.uncertain/as.numeric(table(z(model)))
   cutoff <- params[["proportion.subjects"]]
   if(all(frac.uncertain < cutoff)){
     return(K)
@@ -277,11 +261,16 @@ mapComponents <- function(model, params=mapParams()){
   if(!isSB(model) && !isPooled(model)){
     vars <- colMeans(vars)
   }
-  var.ratio <- vars/median(vars)
+  is_pooled <- length(vars) == 1
+  not_pooled <- !is_pooled
   index <- which(frac.uncertain >= cutoff)
-  var.ratio <- var.ratio[index]
-  outlier.component <- index[var.ratio > params[["outlier.variance.ratio"]]]
-  if(length(outlier.component) > 1) stop("multiple outlier components")
+  if(not_pooled){
+    ## only relevant for non-pooled models
+    var.ratio <- vars/median(vars)
+    var.ratio <- var.ratio[index]
+    outlier.component <- index[var.ratio > params[["outlier.variance.ratio"]]]
+    if(length(outlier.component) > 1) stop("multiple outlier components")
+  } else var.ratio <- 1
   ## assume that components are ordered and successive indices should be merged
   index <- .indices_to_merge(model, index)
   for(i in index){
@@ -290,9 +279,11 @@ mapComponents <- function(model, params=mapParams()){
     index <- index[-i]
     if(length(index) == 0) break()
   }
-  if(length(outlier.component) > 0){
-    ## this prevents collapsing the outlier component with other states
-    K[outlier.component] <- outlier.component
+  if(not_pooled){
+    if(length(outlier.component) > 0){
+      ## this prevents collapsing the outlier component with other states
+      K[outlier.component] <- outlier.component
+    }
   }
   K
 }
@@ -302,7 +293,6 @@ mapComponents <- function(model, params=mapParams()){
 SingleBatchCopyNumber <- function(model){
   sb.model <- as(model, "SingleBatchCopyNumber")
   mapping(sb.model) <- seq_len(k(model))
-  mapping(sb.model) <- mapComponents(sb.model)
   sb.model
 }
 
@@ -312,7 +302,6 @@ SingleBatchCopyNumber <- function(model){
 MultiBatchCopyNumber <- function(model){
   mb.model <- as(model, "MultiBatchCopyNumber")
   mapping(mb.model) <- seq_len(k(model))
-  mapping(mb.model) <- mapComponents(mb.model)
   mb.model
 }
 
@@ -322,31 +311,31 @@ MultiBatchCopyNumber <- function(model){
 MultiBatchCopyNumberPooled <- function(model){
   mb.model <- as(model, "MultiBatchCopyNumberPooled")
   mapping(mb.model) <- seq_len(k(model))
-  mapping(mb.model) <- mapComponents(mb.model)
   mb.model
 }
 
 #' @rdname CopyNumber-methods
 #' @aliases CopyNumberModel,SingleBatchModel-method
-setMethod("CopyNumberModel", "SingleBatchModel", function(model){
+setMethod("CopyNumberModel", "SingleBatchModel",
+          function(model, params=mapParams()){
   model.sb <- SingleBatchCopyNumber(model)
-  mapping(model.sb) <- mapComponents(model.sb)
+  mapping(model.sb) <- mapComponents(model.sb, params)
   model.sb
 })
 
 #' @rdname CopyNumber-methods
 #' @aliases CopyNumberModel,MultiBatchModel-method
-setMethod("CopyNumberModel", "MultiBatchModel", function(model){
+setMethod("CopyNumberModel", "MultiBatchModel", function(model, params=mapParams()){
   model <- MultiBatchCopyNumber(model)
-  mapping(model) <- mapComponents(model)
+  mapping(model) <- mapComponents(model, params)
   model
 })
 
 #' @rdname CopyNumber-methods
 #' @aliases CopyNumberModel,MultiBatchPooled-method
-setMethod("CopyNumberModel", "MultiBatchPooled", function(model){
+setMethod("CopyNumberModel", "MultiBatchPooled", function(model, params=mapParams()){
   model <- MultiBatchCopyNumberPooled(model)
-  mapping(model) <- mapComponents(model)
+  mapping(model) <- mapComponents(model, params)
   model
 })
 

@@ -219,7 +219,7 @@ setMethod("relabel", "SingleBatchModel", function(object, zindex){
   object
 })
 
-.computeModesMarginal <- function(object){
+.computeModesSingleBatch <- function(object){
   i <- argMax(object)
   if(length(i) == 0) i <- iter(object)
   mc <- chains(object)
@@ -240,7 +240,7 @@ setMethod("relabel", "SingleBatchModel", function(object, zindex){
 }
 
 setMethod("computeModes", "SingleBatchModel", function(object){
-  .computeModesMarginal(object)
+  .computeModesSingleBatch(object)
 })
 
 setMethod("showMeans", "SingleBatchModel", function(object){

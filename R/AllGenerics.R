@@ -785,10 +785,74 @@ setGeneric("upSample", function(model, tiles) standardGeneric("upSample"))
 
 #' Constructs a CopyNumberModel from SB, SBP, MB, or MBP models
 #'
+#' The mixture components do not necessarily reflect distinct copy number
+#' states, possibly due to skewed (non-Gaussian) log R ratios. While easy to fit
+#' skewed data with a finite mixture of Gaussians, additional steps are needed
+#' to assess whether the components correspond to distinct copy number states.
+#' An automated approach for mapping mixture components to copy number states is
+#' provided by the \code{mapComponents} function. The mapping can also be done
+#' manually -- see \code{mapping<-}. This accessor \code{copyNumber} returns the
+#' copy number states -- i.e., the result after mapping mixture components to
+#' copy number states.
+#'
 #' @param model a SB, SBP, MB, or MBP model
+#' @param params a list of parameters used for mapping mixture components to copy number states.
+#' @seealso \code{\link{mapComponents}} \code{\link{copyNumber}}
 #' @export
 #' @examples
 #' sb <- SingleBatchModelExample
-#' cn.model <- CopyNumberModel(sb)
+#' cn.model <- CopyNumberModel(sb, mapParams())
+#' @rdname CopyNumber-methods 
+setGeneric("CopyNumberModel", function(model, params=mapParams()) standardGeneric("CopyNumberModel"))
+
+#' Map mixture components to copy number states
+#'
+#' 
+#' @export
+#' @examples
+#' cn.model <- CopyNumberModel(SingleBatchModelExample)
+#' ## manually remap first two components to the same copy number state
+#' mapping(cn.model) <- c(1, 1, 2)
+#' \dontrun{
+#'  ggMixture(cn.model)
+#' }
+#' @seealso \code{\link{CopyNumber-methods}}
+setGeneric("mapping", function(object) standardGeneric("mapping"))
+
+#' @export
 #' @rdname CopyNumber-methods
-setGeneric("CopyNumberModel", function(model) standardGeneric("CopyNumberModel"))
+setGeneric("mapping<-", function(object, value) standardGeneric("mapping<-"))
+
+setGeneric("numberStates", function(model) standardGeneric("numberStates"))
+
+#' Posterior probabilities for copy number states
+#'
+#' In contrast to posterior probabilities for mixture components, this function
+#' returns posterior probabilities for distinct copy number states.
+#' a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
+#' @rdname probCopyNumber
+#' @seealso \code{\link{CopyNumber-methods}}
+#' @export
+setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
+
+#' Extract copy number estimates from a `CopyNumberModel`
+#'
+#'
+#' @param object a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} object
+#' @examples
+#' sb <- SingleBatchModelExample
+#' cn.model <- CopyNumberModel(sb)
+#' copyNumber(cn.model)
+#'
+#' ## here is an identity mapping
+#' mapping(cn.model) <- 1:3
+#' identical(copyNumber(cn.model), z(cn.model))
+#' table(copyNumber(cn.model))
+#'
+#' ## here, we map the first two mixture components to one copy number state
+#' mapping(cn.model) <- c(1, 1, 2)
+#' table(copyNumber(cn.model))
+#' @seealso \code{\link{mapComponents}} \code{\link{CopyNumber-methods}}
+#' @export
+#' @rdname copyNumber
+setGeneric("copyNumber", function(object) standardGeneric("copyNumber"))
