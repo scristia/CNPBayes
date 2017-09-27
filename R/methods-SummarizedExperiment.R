@@ -41,14 +41,29 @@ setMethod("collapseBatch", "numeric", function(object, plate, THR=0.1){
   cond2 <- TRUE
   while(N > 1 && cond2){
     B <- plate
-    plate <- .collapseBatch(object, plate, THR=THR)
+    plate <- .combinePlates(object, plate, THR=THR)
     cond2 <- !identical(B, plate)
     N <- choose(length(unique(plate)), 2)
   }
   makeUnique(plate)
 })
 
-.collapseBatch <- function(yy, B, THR=0.1){
+
+#' @rdname combinePlates-method
+#' @aliases combinePlates,numeric-method
+setMethod("combinePlates", "numeric", function(object, plate, THR=0.1){
+  N <- choose(length(unique(plate)), 2)
+  cond2 <- TRUE
+  while(N > 1 && cond2){
+    B <- plate
+    plate <- .combinePlates(object, plate, THR=THR)
+    cond2 <- !identical(B, plate)
+    N <- choose(length(unique(plate)), 2)
+  }
+  makeUnique(plate)
+})
+
+.combinePlates <- function(yy, B, THR=0.1){
   uB <- unique(B)
   ## One plate can pair with many other plates.
   for(j in seq_along(uB)){

@@ -21,3 +21,20 @@ test_that("ggfun", {
   tmp <- ggMixture(bmod, bins=200)
   expect_is(tmp, "ggplot")
 })
+
+
+test_that("multibatch plots", {
+  means <- cbind(rnorm(9, -3, 0.5),
+                 rnorm(9, -0.5, 0.3),
+                 rnorm(9, 0, 0.3))
+  means <- round(means, 1)
+  sds <- matrix(0.15, nrow(means), ncol(means))
+  sds[, 1] <- 0.3
+  N <- 2000
+  truth <- simulateBatchData(N = N,
+                             batch = rep(letters[1:9], length.out = N),
+                             p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+                             theta = means,
+                             sds = sds)
+  ggMixture(truth)
+})

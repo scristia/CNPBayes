@@ -473,11 +473,11 @@ mclustMeans <- function(y, batch){
 #' @export
 posteriorPredictive <- function(model){
   if(is(model, "SingleBatchModel")){
-    y <- .posterior_predictive_sb(model)
-    return(y)
+    tab <- .posterior_predictive_sb(model)
+    return(tab)
   }
-  y <- .posterior_predictive_mb(model)
-  y
+  tab <- .posterior_predictive_mb(model)
+  tab
 }
 
 .posterior_predictive_sb <- function(model){
@@ -488,15 +488,19 @@ posteriorPredictive <- function(model){
   alpha <- p(ch)
   thetas <- theta(ch)
   sigmas <- sigma(ch)
-  Y <- matrix(NA, nrow(alpha), ncol(alpha))
+  mcmc.iter <- iter(model)
+  Y <- matrix(NA, mcmc.iter, ncol(alpha))
   K <- seq_len(k(model))
   N <- length(K)
+  tab.list <- vector("list", mcmc.iter)
   for(i in 1:nrow(alpha)){
     zz <- sample(K, N, prob=alpha[i, ], replace=TRUE)
     y <- rnorm(ncol(thetas), thetas[i, ], sigmas[i, ])
-    Y[i, ] <- y
+    tab.list[[i]] <- tibble(y=y, component=zz)
+    ##Y[i, ] <- y
   }
-  as.numeric(Y)
+  tab <- do.call(bind_rows, tab.list)
+  tab
 }
 
 .posterior_predictive_mb <- function(model){
@@ -510,20 +514,27 @@ posteriorPredictive <- function(model){
   nn <- K * nb
   Y <- matrix(NA, nrow(alpha), nn)
   ylist <- list()
-  labels <- seq_len(K)
-  for(i in 1:nrow(alpha)){
+  components <- seq_len(K)
+  mcmc.iter <- iter(model)
+  tab.list <- vector("list", mcmc.iter)
+  batches <- rep(unique(batch(model)), each=K)
+  for(i in seq_len(mcmc.iter)){
     ## same p assumed for each batch
     a <- alpha[i, ]
-    zz <- sample(labels, nn, prob=a, replace=TRUE)
     mu <- matrix(thetas[i, ], nb, K)
     s <- matrix(sigmas[i, ], nb, K)
-    for(b in 1:nb){
+    ## for each batch, sample K observations with mixture probabilities alpha
+    zz <- sample(components, K, prob=a, replace=TRUE)
+    for(b in seq_len(nb)){
       ylist[[b]] <- rnorm(K, (mu[b, ])[zz], (s[b, ])[zz])
     }
     y <- unlist(ylist)
-    Y[i, ] <- y
+    tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
+    ##Y[i, ] <- y
   }
-  as.numeric(Y)
+  tab <- do.call(bind_rows, tab.list)
+  tab$batch <- factor(tab$batch)
+  tab
 }
 
 useModes <- function(object){

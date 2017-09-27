@@ -609,12 +609,47 @@ batchDensities <- function(x, batches, thetas, sds, P, batchPr){
   ##df <- multiBatchDensities(model)
   dat <- dnorm_poly_multibatch(model)
   nb <- nBatch(model)
-  df.observed <- data.frame(y=observed(model),
-                            batch=paste0("batch: ", batch(model)))
+  df.observed <- tibble(y=observed(model),
+                        batch=paste0("batch: ", batch(model)))
   if(missing(bins))
     bins <- nrow(df.observed)/2
   component <- y <- ..density.. <- x <- y <- NULL
+  dat <- as.tibble(dat)
+
+  if(FALSE){
+    mcmcParams(model) <- McmcParams(iter=1000, burnin=1000, thin=1)
+    model <- posteriorSimulation(model)
+    pred <- posteriorPredictive(model)
+    pred <- tibble(predictive=pred)
+    pred2 <- tibble(predictive=sample(pred$predictive,
+                                      size=nrow(df.observed),
+                                      replace=TRUE))
+    ##
+    ## geom_density looks nice
+    ## - can we just rescale the y in geom_polygon.
+    ## - how to know what the ylim will be in geom_density
+    ##
+    p <- ggplot(df.observed, aes(y, ..count..)) +
+      geom_density(fill="gray50") +
+      facet_wrap(~batch, nrow=nb) +
+      geom_density(data=pred2, aes(predictive, ..count..),
+                   alpha=0.4, inherit.aes=FALSE)
+    y.range <- ggplot_build(p)$layout$panel_ranges[[1]]$y.range
+    dat$yy <- scales::rescale(dat$y, to=y.range)
+
+    p + geom_polygon(data=dat, aes(x, yy, fill=component,
+                                   color=component), alpha=0.4) +
+    xlab("quantiles") + ylab("density") +
+    scale_color_manual(values=colors) +
+    scale_fill_manual(values=colors)
+  }
+
+  ##
+  ## Replace histogram with geom_polygon.  Need x and y
+  ##  -
   ggplot(dat, aes(x, y, group=component)) +
+    ##geom_density() +
+    ##facet_wrap(~batch, nrow=nb) +
     geom_histogram(data=df.observed, aes(y, ..density..),
                    bins=bins,
                    inherit.aes=FALSE) +
@@ -625,6 +660,48 @@ batchDensities <- function(x, batches, thetas, sds, P, batchPr){
     scale_y_sqrt() +
     guides(fill=guide_legend(""), color=guide_legend("")) +
     facet_wrap(~batch, nrow=nb)
+}
+
+mb_predictive <- function(model, predict, adjust=1/3){
+  batches <- factor(batch(model), labels=paste("batch", unique(batch(model))))
+  dat <- tibble(y=y(model),
+                batch=batches,
+                predictive="empirical")
+  predict$batch <- factor(predict$batch, labels=paste("batch", unique(batch(model))))
+  colnames(predict)[3] <- "predictive"
+  predict$predictive <- "posterior\npredictive"
+  dat2 <- rbind(dat, predict) %>%
+    mutate(predictive=factor(predictive,
+                             levels=c("empirical", "posterior\npredictive")))
+  fig <- ggplot(dat2, aes(y, fill=predictive)) +
+    geom_density(alpha=0.4, adjust=adjust) +
+    facet_wrap(~batch, ncol=1) +
+    guides(fill=guide_legend(title="")) +
+    theme(panel.background=element_rect(fill="white"))
+  fig
+}
+
+sb_predictive <- function(model, predict, adjust=1/3){
+  dat <- tibble(y=y(model), predictive="empirical")
+  colnames(predict)[2] <- "predictive"
+  predict$predictive <- "posterior\npredictive"
+  dat2 <- rbind(dat, predict) %>%
+    mutate(predictive=factor(predictive,
+                             levels=c("empirical", "posterior\npredictive")))
+  fig <- ggplot(dat2, aes(y, fill=predictive)) +
+    geom_density(alpha=0.4, adjust=adjust) +
+    guides(fill=guide_legend(title="")) +
+    theme(panel.background=element_rect(fill="white"))
+  fig
+}
+
+ggPredictive <- function(model, predict, adjust=1/3){
+  if(!isSB(model)){
+    fig <- mb_predictive(model, predict, adjust)
+  } else {
+    fig <- sb_predictive(model, predict, adjust)
+  }
+  fig
 }
 
 .gg_multibatch_pooled <- function(model, bins){

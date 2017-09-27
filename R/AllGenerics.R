@@ -404,6 +404,48 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' @rdname collapseBatch-method
 setGeneric("collapseBatch", function(object, plate, THR=0.1) standardGeneric("collapseBatch"))
 
+
+
+#' Combine chemistry plates into batches
+#'
+#' In high-throughput assays, low-level summaries of copy number at
+#' copy number polymorphic loci (e.g., the mean log R ratio for each
+#' sample, or a principal-component derived summary) often differ
+#' between groups of samples due to technical sources of variation
+#' such as reagents, technician, or laboratory.  Technical (as opposed
+#' to biological) differences between groups of samples are referred
+#' to as batch effects.  A useful surrogate for batch is the chemistry
+#' plate on which the samples were hybridized. In large studies, a
+#' Bayesian hierarchical mixture model with plate-specific means and
+#' variances is computationally prohibitive.  However, chemistry
+#' plates processed at similar times may be qualitatively similar in
+#' terms of the distribution of the copy number summary statistic.
+#' Further, we have observed that some copy number polymorphic loci
+#' exhibit very little evidence of a batch effect, while other loci
+#' are more prone to technical variation.  We suggest combining plates
+#' that are qualitatively similar in terms of the Kolmogorov-Smirnov
+#' two-sample test of the distribution and to implement this test
+#' independently for each candidate copy number polymophism identified
+#' in a study.  The \code{combinePlates} function is a wrapper to the
+#' \code{ks.test} implemented in the \code{stats} package that
+#' compares all pairwise combinations of plates.  The \code{ks.test}
+#' is performed recursively on the batch variables defined for a given
+#' CNP until no batches can be combined.
+#' @examples
+#' bt <- combinePlates(y(MultiBatchModelExample), batch(MultiBatchModelExample))
+#' batches <- as.integer(factor(bt))
+#' model <- MultiBatchModel2(dat=y(MultiBatchModelExample),
+#'                           hp=hpList(k=k(MultiBatchModelExample))[["MB"]],
+#'                           batches=batches, mp=mcmcParams(MultiBatchModelExample))
+#' @param object see \code{showMethods(combinePlates)}
+#' @param plate a vector labelling from which batch each observation came from.
+#' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
+#' @return The new batch value.
+#' @export
+#' @docType methods
+#' @rdname combinePlates-method
+setGeneric("combinePlates", function(object, plate, THR=0.1) standardGeneric("combinePlates"))
+
 setGeneric("thetac", function(object) standardGeneric("thetac"))
 
 setGeneric("thetaMean", function(object) standardGeneric("thetaMean"))
