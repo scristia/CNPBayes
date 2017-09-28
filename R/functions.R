@@ -495,7 +495,7 @@ posteriorPredictive <- function(model){
   tab.list <- vector("list", mcmc.iter)
   for(i in 1:nrow(alpha)){
     zz <- sample(K, N, prob=alpha[i, ], replace=TRUE)
-    y <- rnorm(ncol(thetas), thetas[i, ], sigmas[i, ])
+    y <- rnorm(ncol(thetas), (thetas[i, ])[zz], (sigmas[i, ])[zz])
     tab.list[[i]] <- tibble(y=y, component=zz)
     ##Y[i, ] <- y
   }
