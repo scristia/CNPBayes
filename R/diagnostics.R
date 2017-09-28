@@ -715,6 +715,7 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                   k_range=c(1, 4),
                   max_burnin=32e3,
                   top=2){
+  max_burnin <- max(max_burnin, burnin(mp)) + 1
   if(("MB" %in% model || "MBP" %in% model) && missing(batches)){
     stop("batches is missing.  Must specify batches for MB and MBP models")
   }

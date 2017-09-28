@@ -668,6 +668,25 @@ sb_predictive <- function(model, predict, adjust=1/3){
   fig
 }
 
+#' Compare the posterior predictive distribution to the empirical data
+#'
+#' @param model a SB, MB, SBP, or MBP model
+#' @param predict a \code{tibble} of the posterior predictive values, batch (only for MB and MBP models), and mixture component assignments
+#' @param adjust a length-one numeric vector passed to \code{geom_density} -- controls the smoothness of the kernal density
+#' @examples
+#'   bmodel <- MultiBatchModelExample
+#'   mp <- McmcParams(iter=500, burnin=150, nStarts=4)
+#'   mcmcParams(bmodel) <- mp
+#'   \dontrun{
+#'      ## this is preferred to posteriorSimulation, but takes longer
+#'      bmodel <- gibbs(model="MB", dat=y(bmodel), mp=mp, hp.list=hpList()[["MB"]],
+#'                      batches=batch(bmodel))
+#'   }
+#'   bmodel <- posteriorSimulation(bmodel)
+#'   tab <- posteriorPredictive(bmodel)
+#'   ggPredictive(bmodel, tab)
+#' @export
+#' @return a `gg` object
 ggPredictive <- function(model, predict, adjust=1/3){
   if(!isSB(model)){
     fig <- mb_predictive(model, predict, adjust)

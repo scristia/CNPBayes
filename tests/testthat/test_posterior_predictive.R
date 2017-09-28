@@ -14,7 +14,7 @@ test_that("posteriorPredictive", {
   }
 
   bmodel <- MultiBatchModelExample
-  mp <- McmcParams(iter=500, burnin=150, nStarts=20)
+  mp <- McmcParams(iter=500, burnin=150)
   mcmcParams(bmodel) <- mp
   bmodel <- posteriorSimulation(bmodel)
   tab <- posteriorPredictive(bmodel)

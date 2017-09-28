@@ -21,22 +21,19 @@ This vignette provides a concise workfklow for fitting mixture models in large a
 ```{r lib} 
 suppressPackageStartupMessages(library(CNPBayes))
 suppressPackageStartupMessages(library(SummarizedExperiment))
+library(ggplot2)
 ```
 
 # Workflow
 
-## Delineate CNPs for each ancestry group
-
-
-Our starting point for the evaluation of copy number at polymorphic loci is a collection of copy number variant intervals for a large number of samples provided as a `GRangesList` and summary statistics of the median log R ratio for each sample in a CNP provided as a `SummarizedExperiment`.  The `CNPBayes` package provides an example of a  `SnpArrayExperiment` and  a `GRangesList` object for this purpose.  Specifically, the `GRangesList` object contains a collection of copy number deletions and duplications identified from a hidden Markov model fit independently to each sample in a study.   The `SummarizedExperiment` object contains log R ratios and, optionally, B Allele frequencies, obtained from a SNP array.
+Our starting point is a `SummarizedExperiment` containing log R ratios from a SNP array and a `GRangesList` containing deletions and duplications identified from a hidden Markov model.
 
 ```{r find_cnps}
 se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
 grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
 ```
 
-
-Using this data, we identify CNP loci and summarize within sample and locus using the median. We advise against using the first principal component as a summary statistic in large studies. See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`.
+Using this data, we identify the genomic coordinates of the CNP locus and use the median to summarize the log R ratios for each sample. We advise against using the first principal component as a summary statistic in large studies as this may capture batch effects. See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`.
 
 ```{r summary, message=FALSE}
 cnv.region <- consensusCNP(grl, max.width=5e6)
@@ -44,30 +41,50 @@ i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
 med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
 ```
 
-We recommend using the `collapseBatch` function to identify groups of samples  that belong to the same batch. However, as there are only 35 samples in this toy example, we assume that these samples were all processed in the same batch. In the following code chunk, we initialize an MCMC parameters object that contain parameters governing the number of burnin iterations, the number of iterations following burnin, and the number of independently initialized models (*nStarts*).
+At loci where copy number variants are common, the distribution of the median log R ratios computed above can be approximated by a finite mixture of normal distributions.  This package provides several implementations of a Bayesian hierarchical normal mixture model, where the implementations differ by whether the component means and variances are batch-specific (multi-batch 'MB' model) or a single batch ('SB' model).  In addition, we allow the variance estimates to be pooled across all components within the multi-batch ('MBP') and single-batch ('SBP') models.  For large studies involving SNP microarrays, the `combinePlates` function can be useful to identify groups of plates processed in the same batch. As there are only 35 samples in this toy example, we assume that these samples were all processed in the same batch and we will only consider the SB and SBP models. The following code chunk initializes an MCMC parameters object that contain parameters governing the number of burnin iterations, the number of iterations following burnin, how often two save simulated values from the chain (*thin*), and the number of independently initialized models (*nStarts*).
 
 ```{r model_construction}
-mp <- McmcParams(nStarts=5, burnin=100, iter=1000)
+mp <- McmcParams(nStarts=5, burnin=500, iter=1000, thin=1)
 ```
 
-The workhorse function in this package is `gibbs`.  This function allows the user to specify one or all of the four possible mixture model types and for each type fit models with mixture components specified by the argument `k_range`. Below, we run 4 chains for 1000 iterations (100 iterations burnin) for only the k=3 SB model. (In practice, we would fit multiple models and specify a range for k -- e.g, `k_range=c(1, 5)`).  As described in the [convergence vignette](Convergence.Rmd), an attempt is made by `gibbs` to adapt the thinning and burnin parameters to attain convergence.  The models evaluated by `gibbs` are returned in a list where all chains have been combined and the models are sorted by decreasing value of the marginal likelihood.  In order to properly assess convergence, this function requires that one run at least 2 independent chains. Below, we specify a `max_burnin` to a small number (400) to speed up computation. A much longer burnin may be required for convergence.
+The workhorse function in this package is `gibbs`.  This function allows the user to specify one or all of the four possible mixture model types and for each type fit models with mixture components specified by the argument `k_range`. Below, we run 4 chains for 1000 iterations (100 iterations burnin) for only the k=3 SB model. (In practice, we would fit multiple models and specify a range for k.  For example, `k_range=c(1, 5)`).  As described in the [convergence vignette](Convergence.Rmd), an attempt is made by `gibbs` to adapt the thinning and burnin parameters if there are signs that the chains have not converged.  The models evaluated by `gibbs` are returned in a list where all chains have been combined and the models are sorted by decreasing value of the marginal likelihood.  In order to properly assess convergence, this function requires that one run at least 2 independent chains. Below, we specify a `max_burnin` to a small number (400) to speed up computation. A much longer burnin may be required for convergence.
 
 ```{r gibbs}
-model.list <- gibbs(model="SB", dat=med.summary, k_range=c(2, 4), mp=mp,
-                    max_burnin=400)
+model.list <- gibbs(model="SB", dat=med.summary, k_range=c(2, 3), mp=mp,
+                    max_burnin=400, top=2)
 ```
 
-In the following code chunk, we inspect the chains for convergence and overlay the posterior summary of the mixture model on a histogram of the data.
+Next, we inspect the chains for convergence and overlay the posterior summary of the mixture model on a histogram of the data.
 
 ```{r ggfunctions}
 model <- model.list[[1]]
+model
 chains <- ggChains(model)
 chains[[1]]
 chains[[2]]
 ```
 
-For details about model construction and mapping mixture components to copy number states, see [Bayesian mixture models for copy number estimation](Implementation.pdf). 
+The posterior predictive distribution can also be used to assess the adequacy of the model.  Here, the approximation could be improved by increasing burnin, the number of iterations following burnin, and / or by increasing the thinning parameter.
 
+```{r posteriorPredictive}
+tab <- posteriorPredictive(model)
+tab
+ggPredictive(model, tab) + xlab("median LRR")
+```
+
+Due to skewness of the log R ratios and other technical factors that may effect the distribution of these statistics, the mixture components may not necessarily correspond to distinct copy number states. That is, there is no guarantee of a one-to-one mapping between mixture components and copy number.   The function `CopyNumberModel` attemps to map copy number states to the mixture components by assess the extent of overlap of the mixtures -- the rationale being that two mixture components with substantial overlap are fitting the skewness of the data rather for a single copy number state.  Given additional data, one may also manually provide this mapping through the `mapping<-` function.
+
+```{r cn_model}
+cn.model <- CopyNumberModel(model)
+ggMixture(cn.model)
+```
+
+For additional details regarding model construction and mapping mixture components to copy number states, see [Bayesian mixture models for copy number estimation](Implementation.pdf).   Having mapped copy number states to the mixture components, we can obtain the posterior probabilities for the copy number states:
+
+```{r probCopyNumber}
+probs <- probCopyNumber(cn.model)
+head(probs)
+```
 
 ## Big data
 
@@ -97,12 +114,13 @@ To map posterior probabilities back to the original observations, we use the fun
 model2 <- upSample(model, tiled.medians)
 ```
 
-As described in the [implementation vignetted](Implementation.Rmd), the mapping of mixture components to copy number states may not be one-to-one.  Here, we convert the mixture model to a copy number model that retains a one-to-one mapping and compute the posterior probabilities for the copy number states.
+Again, we convert the mixture model to a copy number model.  Here, there is a one-to-one mapping between mixture components and copy number.  
 
 ```{r copy-number-model}
 cn.model <- CopyNumberModel(model2)
 mapping(cn.model)
 round(head(probz(cn.model)), 2)
+round(head(probCopyNumber(cn.model)), 2)
 ```
 
 See the [convergence vignette](Convergence.Rmd) for assessing convergence and visually inspecting the MCMC chains for each parameter in the mixture model.
