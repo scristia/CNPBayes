@@ -615,35 +615,6 @@ batchDensities <- function(x, batches, thetas, sds, P, batchPr){
     bins <- nrow(df.observed)/2
   component <- y <- ..density.. <- x <- y <- NULL
   dat <- as.tibble(dat)
-
-  if(FALSE){
-    mcmcParams(model) <- McmcParams(iter=1000, burnin=1000, thin=1)
-    model <- posteriorSimulation(model)
-    pred <- posteriorPredictive(model)
-    pred <- tibble(predictive=pred)
-    pred2 <- tibble(predictive=sample(pred$predictive,
-                                      size=nrow(df.observed),
-                                      replace=TRUE))
-    ##
-    ## geom_density looks nice
-    ## - can we just rescale the y in geom_polygon.
-    ## - how to know what the ylim will be in geom_density
-    ##
-    p <- ggplot(df.observed, aes(y, ..count..)) +
-      geom_density(fill="gray50") +
-      facet_wrap(~batch, nrow=nb) +
-      geom_density(data=pred2, aes(predictive, ..count..),
-                   alpha=0.4, inherit.aes=FALSE)
-    y.range <- ggplot_build(p)$layout$panel_ranges[[1]]$y.range
-    dat$yy <- scales::rescale(dat$y, to=y.range)
-
-    p + geom_polygon(data=dat, aes(x, yy, fill=component,
-                                   color=component), alpha=0.4) +
-    xlab("quantiles") + ylab("density") +
-    scale_color_manual(values=colors) +
-    scale_fill_manual(values=colors)
-  }
-
   ##
   ## Replace histogram with geom_polygon.  Need x and y
   ##  -
@@ -670,6 +641,7 @@ mb_predictive <- function(model, predict, adjust=1/3){
   predict$batch <- factor(predict$batch, labels=paste("batch", unique(batch(model))))
   colnames(predict)[3] <- "predictive"
   predict$predictive <- "posterior\npredictive"
+  predictive <- NULL
   dat2 <- rbind(dat, predict) %>%
     mutate(predictive=factor(predictive,
                              levels=c("empirical", "posterior\npredictive")))
@@ -685,6 +657,7 @@ sb_predictive <- function(model, predict, adjust=1/3){
   dat <- tibble(y=y(model), predictive="empirical")
   colnames(predict)[2] <- "predictive"
   predict$predictive <- "posterior\npredictive"
+  predictive <- NULL
   dat2 <- rbind(dat, predict) %>%
     mutate(predictive=factor(predictive,
                              levels=c("empirical", "posterior\npredictive")))

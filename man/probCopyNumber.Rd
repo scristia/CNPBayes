@@ -16,11 +16,14 @@ probCopyNumber(model)
 
 \S4method{probCopyNumber}{MultiBatchCopyNumberPooled}(model)
 }
+\arguments{
+\item{model}{a SB, SBP, MB, or MBP model}
+}
 \description{
 In contrast to posterior probabilities for mixture components, this function
 returns posterior probabilities for distinct copy number states.
 a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
 }
 \seealso{
-\code{\link{CopyNumber-methods}}
+\code{\link{CopyNumberModel}}
 }

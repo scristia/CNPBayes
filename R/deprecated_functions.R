@@ -93,7 +93,7 @@ setMethod("relabel", "BatchModel", function(object, zindex){
 })
 
 setMethod("computeModes", "MarginalModel", function(object){
-  .computeModesMarginal(object)
+  .computeModesSingleBatch(object)
 })
 
 

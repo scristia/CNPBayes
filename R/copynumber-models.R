@@ -19,7 +19,6 @@ setMethod("mapping", "MultiBatchCopyNumberPooled", function(object){
   object@mapping
 })
 
-#' @param value a numeric vector mapping component indices to copy number state indices
 #' @aliases mapping,SingleBatchCopyNumber,numeric-method
 #' @rdname mapping
 setReplaceMethod("mapping", c("SingleBatchCopyNumber", "numeric"),
@@ -231,7 +230,7 @@ isPooled <- function(model){
 #' \dontrun{
 #'   ggMixture(cn.model)
 #' }
-#' @seealso \code{\link{CopyNumber-methods}} \code{\link{mapParams}}
+#' @seealso \code{\link{CopyNumberModel}} \code{\link{mapParams}}
 #' @export
 mapComponents <- function(model, params=mapParams()){
   p <- probz(model)
@@ -246,10 +245,10 @@ mapComponents <- function(model, params=mapParams()){
   if(nrow(p) == 0) return(K)
   zz <- map_z(model)[select]
   Ns <- table(factor(zz, levels=K))
-  n.uncertain <- colSums(p >= threshold & p <= (1-threshold))
-  n.uncertain <- n.uncertain
-  frac.uncertain <- n.uncertain/(Ns + 1)
-  ##frac.uncertain <- colMeans(p >= threshold & p <= (1-threshold))
+  ##n.uncertain <- colSums(p >= threshold & p <= (1-threshold))
+  ##n.uncertain <- n.uncertain
+  ##frac.uncertain <- n.uncertain/(Ns + 1)
+  frac.uncertain <- colMeans(p >= threshold & p <= (1-threshold))
   ##
   ## what fraction of subjects have low posterior probabilities
   ##

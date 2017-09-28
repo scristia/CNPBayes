@@ -3,7 +3,6 @@
 \docType{methods}
 \name{CopyNumberModel}
 \alias{CopyNumberModel}
-\alias{mapping<-}
 \alias{SingleBatchCopyNumber}
 \alias{MultiBatchCopyNumber}
 \alias{MultiBatchCopyNumberPooled}
@@ -14,8 +13,6 @@
 \title{Constructs a CopyNumberModel from SB, SBP, MB, or MBP models}
 \usage{
 CopyNumberModel(model, params = mapParams())
-
-mapping(object) <- value
 
 SingleBatchCopyNumber(model)
 

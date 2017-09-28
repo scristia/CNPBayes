@@ -34,5 +34,5 @@ mapping(cn.model) <- c(1, 1, 2)
 table(copyNumber(cn.model))
 }
 \seealso{
-\code{\link{mapComponents}} \code{\link{CopyNumber-methods}}
+\code{\link{mapComponents}} \code{\link{CopyNumberModel}}
 }

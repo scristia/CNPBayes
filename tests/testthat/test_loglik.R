@@ -26,7 +26,7 @@ test_that("test_loglik", {
     ##                             batch = rep(letters[1:3],
     ##                                         length.out = length(y(truth))), k = 3)
     mcmcParams(model) <- mp
-    model <- posteriorSimulation(model)
+    expect_warning(model <- posteriorSimulation(model))
     ll1 <- log_lik(model)
     ll2 <- computeLoglik(model)
     expect_equal(ll2, ll1, tolerance=0.05)

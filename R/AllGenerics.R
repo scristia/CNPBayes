@@ -849,7 +849,7 @@ setGeneric("CopyNumberModel", function(model, params=mapParams()) standardGeneri
 
 #' Map mixture components to copy number states
 #'
-#' 
+#'
 #' @export
 #' @examples
 #' cn.model <- CopyNumberModel(SingleBatchModelExample)
@@ -858,11 +858,14 @@ setGeneric("CopyNumberModel", function(model, params=mapParams()) standardGeneri
 #' \dontrun{
 #'  ggMixture(cn.model)
 #' }
-#' @seealso \code{\link{CopyNumber-methods}}
+#' @param object a SB, SBP, MB, or MBP model
+#' @seealso \code{\link{CopyNumberModel}}
+#' @rdname mapping
 setGeneric("mapping", function(object) standardGeneric("mapping"))
 
+#' @param value a k-length numeric vector with values in {1, 2, ..., k}, where k is the number of mixture components
 #' @export
-#' @rdname CopyNumber-methods
+#' @rdname mapping
 setGeneric("mapping<-", function(object, value) standardGeneric("mapping<-"))
 
 setGeneric("numberStates", function(model) standardGeneric("numberStates"))
@@ -872,8 +875,9 @@ setGeneric("numberStates", function(model) standardGeneric("numberStates"))
 #' In contrast to posterior probabilities for mixture components, this function
 #' returns posterior probabilities for distinct copy number states.
 #' a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
+#' @param model a SB, SBP, MB, or MBP model
 #' @rdname probCopyNumber
-#' @seealso \code{\link{CopyNumber-methods}}
+#' @seealso \code{\link{CopyNumberModel}}
 #' @export
 setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 
@@ -894,7 +898,7 @@ setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 #' ## here, we map the first two mixture components to one copy number state
 #' mapping(cn.model) <- c(1, 1, 2)
 #' table(copyNumber(cn.model))
-#' @seealso \code{\link{mapComponents}} \code{\link{CopyNumber-methods}}
+#' @seealso \code{\link{mapComponents}} \code{\link{CopyNumberModel}}
 #' @export
 #' @rdname copyNumber
 setGeneric("copyNumber", function(object) standardGeneric("copyNumber"))

@@ -3,6 +3,7 @@
 \docType{methods}
 \name{mapping}
 \alias{mapping}
+\alias{mapping<-}
 \alias{mapping,SingleBatchCopyNumber-method}
 \alias{mapping,MultiBatchCopyNumber-method}
 \alias{mapping,MultiBatchCopyNumberPooled-method}
@@ -17,6 +18,8 @@
 \usage{
 mapping(object)
 
+mapping(object) <- value
+
 \S4method{mapping}{SingleBatchCopyNumber}(object)
 
 \S4method{mapping}{MultiBatchCopyNumber}(object)
@@ -30,7 +33,9 @@ mapping(object)
 \S4method{mapping}{MultiBatchCopyNumberPooled,numeric}(object) <- value
 }
 \arguments{
-\item{value}{a numeric vector mapping component indices to copy number state indices}
+\item{object}{a SB, SBP, MB, or MBP model}
+
+\item{value}{a k-length numeric vector with values in {1, 2, ..., k}, where k is the number of mixture components}
 }
 \description{
 Map mixture components to copy number states
@@ -44,5 +49,5 @@ mapping(cn.model) <- c(1, 1, 2)
 }
 }
 \seealso{
-\code{\link{CopyNumber-methods}}
+\code{\link{CopyNumberModel}}
 }

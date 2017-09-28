@@ -36,5 +36,6 @@ test_that("multibatch plots", {
                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
                              theta = means,
                              sds = sds)
-  ggMixture(truth)
+  fig <- ggMixture(truth)
+  expect_is(fig, "gg")
 })

@@ -53,7 +53,7 @@ test_that("moderate", {
                           p = c(0.05, 0.1, 0.8))
     ## verify that if we start at the true value, we remain in a region of
     ## high posterior probability after an arbitrary number of mcmc updates
-    mcmcp <- McmcParams(iter = 250, burnin = 250, thin = 1, nStarts=1)
+    mcmcp <- McmcParams(iter = 1000, burnin = 250, thin = 1, nStarts=1)
     model <- SingleBatchModel2(dat=y(truth), hp=hpList(k = 3)[["SB"]],
                                mp = mcmcp)
     model <- startAtTrueValues(model, truth)
@@ -98,8 +98,7 @@ test_that("cnProbability", {
                               hp=hpList(k = 3)[["SB"]], mp = mp)
     model <- posteriorSimulation(model)
     map_model <- mapModel(model)
-    expect_identical(z(map_model), zChain(model)[argMax(model), 
-        ])
+    expect_identical(z(map_model), zChain(model)[argMax(model),])
     expect_identical(theta(map_model), thetac(model)[argMax(model), 
         ])
     probs <- mapCnProbability(model)
@@ -162,4 +161,18 @@ test_that("relabel", {
         plot.ts(thetac(model), col = 1:3, plot.type = "single")
         plot.ts(thetac(model2), col = 1:3, plot.type = "single")
     }
+})
+
+test_that("targeted seq", {
+  set.seed(123)
+  mp <- McmcParams(iter=500, burnin=1000, nStarts=4)
+  extfile <- file.path(system.file("extdata", package="CNPBayes"),
+                       "targeted_seq.txt")
+  dat <- read.delim(extfile)[[1]]
+  dat <- sample(dat, 500)
+  mlist <- gibbs(model="SB", mp=mp, dat=dat, k_range=c(2, 3))
+  ##
+  ## Select k=3
+  ##
+  expect_identical(names(mlist)[1], "SB3")
 })

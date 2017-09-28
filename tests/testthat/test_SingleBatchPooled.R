@@ -8,7 +8,7 @@ test_that("sigma2_pooled", {
   mp <- McmcParams(iter = 10, burnin = 10)
   hp <- Hyperparameters(k=3)
   model <- SingleBatchPooled(y(truth), hp, mp)
-  expect_warning(model <- .posteriorSimulation2(model))
+  model <- .posteriorSimulation2(model)
 
   set.seed(1223)
   (s2.cpp <- sigma2_pooled(model))
@@ -128,7 +128,7 @@ test_that("SingleBatchPooled", {
   truth <- simulateData(N = 45, theta = c(-2, 0),
                         sds = c(0.1, 0.1),
                         p = c(1/3, 2/3))
-  mp <- McmcParams(iter = 1000, burnin = 200, nStarts=4)
+  mp <- McmcParams(iter = 1000, burnin = 1000, nStarts=4)
   hp <- Hyperparameters(k=5,
                         mu=-0.75,
                         tau2.0=0.4,

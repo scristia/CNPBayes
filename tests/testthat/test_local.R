@@ -22,19 +22,7 @@ hardTruth <- function(p1, s, N=1000){
 
 .test_that <- function(nm, expr) NULL
 
-.test_that("targeted seq", {
-  set.seed(123)
-  mp <- McmcParams(iter=500, burnin=1000, nStarts=4)
-  extfile <- file.path(system.file("extdata", package="CNPBayes"),
-                       "targeted_seq.txt")
-  dat <- read.delim(extfile)[[1]]
-  dat <- sample(dat, 500)
-  mlist <- gibbs_K(mp=mp, dat=dat, k_range=c(2, 3))
-  ##
-  ## Select k=3
-  ##
-  expect_identical(names(mlist)[1], "SB3")
-})
+
 
 .test_that("batch overfit galaxy", {
   set.seed(1)
@@ -51,8 +39,12 @@ hardTruth <- function(p1, s, N=1000){
                                   tau2.0=0.4,
                                   eta.0=200, ## 32 default
                                   m2.0=100) ## 0.5 default
-  model.list <- gibbs_batch_K(hp=hp, mp=mp, k_range=c(1, 3), dat=galaxies3,
-                              batches=rep(1:2, each=length(galaxies)))
+  model.list <- gibbs(model="MB", hp.list=list(MB=hp), mp=mp,
+                      k_range=c(1, 3),
+                      dat=galaxies3,
+                      batches=rep(1:2, each=length(galaxies)))
+  ##model.list <- gibbs_batch_K(hp=hp, mp=mp, k_range=c(1, 3), dat=galaxies3,
+  ##batches=rep(1:2, each=length(galaxies)))
   expect_identical(names(model.list)[1], "MB3")
 })
 
@@ -84,16 +76,13 @@ hardTruth <- function(p1, s, N=1000){
   model <- MultiBatchPooled(dat=y(truth), mp=mp, hp=hp,
                             batches=batch(truth))
   ## fit model with k=4
-  expect_warning(model <- gibbs_multibatch_pooled(hp,
-                                                  mp=McmcParams(iter=10, burnin=5, nStart=4),
-                                                  y(truth),
-                                                  batches=batch(truth)))
-
+  expect_warning(model <- gibbs(model="MBP", mp=McmcParams(iter=10, burnin=5, nStart=4),
+                                dat=y(truth),
+                                batches=batch(truth)))
+ 
   mp <- McmcParams(iter=1000, nStarts=4, burnin=100)
-  mlist <- gibbsMultiBatchPooled(hp=hp,
-                                 mp=mp,
-                                 dat=y(truth),
-                                 batches=batch(truth))
+  mlist <- gibbs("MBP", hp.list=list(MBP=hp), mp=mp,
+                  dat=y(truth), batches=batch(truth))
   model <- mlist[[1]]
   expect_identical(k(model), 3L)
 })

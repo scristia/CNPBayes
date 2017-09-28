@@ -24,5 +24,5 @@ mapping(cn.model)
 }
 }
 \seealso{
-\code{\link{CopyNumber-methods}} \code{\link{mapParams}}
+\code{\link{CopyNumberModel}} \code{\link{mapParams}}
 }

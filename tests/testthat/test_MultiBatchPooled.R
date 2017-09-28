@@ -126,7 +126,7 @@ test_that("Marginal likelihood for MultiBatchPooled", {
   params <- mlParams(ignore.small.pstar=TRUE)
   pmat <- .blockUpdatesMultiBatchPooled(model3, params)
   ml <- .ml_multibatch_pooled(model3, params)
-  expect_equal(as.numeric(ml), -76.9, tolerance=0.05)
+  expect_equal(as.numeric(ml), -57, tolerance=0.05)
   marginal_lik(model3) <- ml
 })
 
