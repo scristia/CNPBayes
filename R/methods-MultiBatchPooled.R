@@ -114,6 +114,7 @@ combine_multibatch_pooled <- function(model.list, batches){
   pm.s20 <- mean(s2.0)
   pz <- map(model.list, probz) %>% Reduce("+", .)
   pz <- pz/length(model.list)
+  pz <- pz * (iter(mp) - 1)
   zz <- max.col(pz)
   yy <- y(model.list[[1]])
   y_mns <- as.numeric(tapply(yy, zz, mean))

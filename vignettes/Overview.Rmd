@@ -97,11 +97,10 @@ tile.summaries <- tileSummaries(tiled.medians)
 tile.summaries
 ```
 
-Next, we fit the model to the mean summarized bins in the usual way. We specify the true model in this toy example to speed up computation.
+Next, we fit the model to the mean summarized bins in the usual way. We specify the true k=3 model in this toy example to speed up computation.
 
 
 ```{r fit_downsample}
-## too long
 model <- gibbs(model="MB", k_range=c(3, 3),
                dat=tile.summaries$avgLRR,
                batches=tile.summaries$batch,
@@ -114,7 +113,7 @@ To map posterior probabilities back to the original observations, we use the fun
 model2 <- upSample(model, tiled.medians)
 ```
 
-Again, we convert the mixture model to a copy number model.  Here, there is a one-to-one mapping between mixture components and copy number.  
+Again, we convert the mixture model to a copy number model.  As there is a one-to-one mapping between mixture components and copy number, the posterior probabilities for the mixture components (`probz`) is the same as the posterior probabilties of the copy number states (`probCopyNumber`).
 
 ```{r copy-number-model}
 cn.model <- CopyNumberModel(model2)
