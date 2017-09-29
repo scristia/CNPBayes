@@ -94,6 +94,31 @@ setMethod("McmcChains", "MultiBatchModel", function(object){
   .initializeMcmcBatch(object)
 })
 
+chains_mb <- function(object){
+  mcmc.params <- mcmcParams(object)
+  nr <- iter(mcmc.params)[1]
+  ns <- length(y(object))
+  K <- k(object)
+  B <- nBatch(object)
+  mati <- matrix(as.integer(NA), nr, K)
+  new("McmcChains",
+      theta=matrix(NA, nr, K*B),
+      sigma2=matrix(NA, nr, B),
+      pi=matrix(NA, nr, K),
+      mu=matrix(NA, nr, K),
+      tau2=matrix(NA, nr, K),
+      nu.0=numeric(nr),
+      sigma2.0=numeric(nr),
+      logprior=numeric(nr),
+      loglik=numeric(nr),
+      zfreq=mati,
+      z=matrix(NA, nr, ns))
+}
+
+setMethod("McmcChains", "MultiBatchPooled", function(object){
+  chains_mb(object)
+})
+
 #' @rdname mu-method
 #' @aliases mu,McmcChains-method
 setMethod("mu", "McmcChains", function(object) object@mu)

@@ -472,12 +472,23 @@ mclustMeans <- function(y, batch){
 #' @param model a SingleBatchModel or MultiBatchModel
 #' @export
 posteriorPredictive <- function(model){
-  if(is(model, "SingleBatchModel")){
+  if(class(model)=="SingleBatchModel"){
     tab <- .posterior_predictive_sb(model)
     return(tab)
   }
-  tab <- .posterior_predictive_mb(model)
-  tab
+  if(class(model)=="MultiBatchModel"){
+    tab <- .posterior_predictive_mb(model)
+    return(tab)
+  }
+  if(class(model) == "SingleBatchPooled"){
+    tab <- .posterior_predictive_sbp(model)
+    return(tab)
+  }
+  if(class(model) == "MultiBatchPooled"){
+    tab <- .posterior_predictive_mbp(model)
+    return(tab)
+  }
+  stop("Model must be one of SB, SBP, MB, and MBP")
 }
 
 .posterior_predictive_sb <- function(model){
@@ -496,6 +507,29 @@ posteriorPredictive <- function(model){
   for(i in 1:nrow(alpha)){
     zz <- sample(K, N, prob=alpha[i, ], replace=TRUE)
     y <- rnorm(ncol(thetas), (thetas[i, ])[zz], (sigmas[i, ])[zz])
+    tab.list[[i]] <- tibble(y=y, component=zz)
+    ##Y[i, ] <- y
+  }
+  tab <- do.call(bind_rows, tab.list)
+  tab
+}
+
+.posterior_predictive_sbp <- function(model){
+  mp <- McmcParams(iter=500, burnin=50)
+  mcmcParams(model) <- mp
+  model <- posteriorSimulation(model)
+  ch <- chains(model)
+  alpha <- p(ch)
+  thetas <- theta(ch)
+  sigmas <- sigma(ch)
+  mcmc.iter <- iter(model)
+  Y <- matrix(NA, mcmc.iter, ncol(alpha))
+  K <- seq_len(k(model))
+  N <- length(K)
+  tab.list <- vector("list", mcmc.iter)
+  for(i in 1:nrow(alpha)){
+    zz <- sample(K, N, prob=alpha[i, ], replace=TRUE)
+    y <- rnorm(ncol(thetas), (thetas[i, ])[zz], (sigmas[i, ]))
     tab.list[[i]] <- tibble(y=y, component=zz)
     ##Y[i, ] <- y
   }
@@ -527,6 +561,42 @@ posteriorPredictive <- function(model){
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
       ylist[[b]] <- rnorm(K, (mu[b, ])[zz], (s[b, ])[zz])
+    }
+    y <- unlist(ylist)
+    tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
+    ##Y[i, ] <- y
+  }
+  tab <- do.call(bind_rows, tab.list)
+  tab$batch <- factor(tab$batch)
+  tab
+}
+
+
+.posterior_predictive_mbp <- function(model){
+  ch <- chains(model)
+  alpha <- p(ch)
+  thetas <- theta(ch)
+  sigmas <- sigma(ch)
+  tab <- table(batch(model))
+  nb <- nrow(theta(model))
+  K <- k(model)
+  nn <- K * nb
+  Y <- matrix(NA, nrow(alpha), nn)
+  ylist <- list()
+  components <- seq_len(K)
+  mcmc.iter <- iter(model)
+  tab.list <- vector("list", mcmc.iter)
+  batches <- rep(unique(batch(model)), each=K)
+  for(i in seq_len(mcmc.iter)){
+    ## same p assumed for each batch
+    a <- alpha[i, ]
+    mu <- matrix(thetas[i, ], nb, K)
+    s <- sigmas[i, ]
+    ## for each batch, sample K observations with mixture probabilities alpha
+    zz <- sample(components, K, prob=a, replace=TRUE)
+    for(b in seq_len(nb)){
+      ## sigma is batch-specific but indpendent of z
+      ylist[[b]] <- rnorm(K, (mu[b, ])[zz], s[b])
     }
     y <- unlist(ylist)
     tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))

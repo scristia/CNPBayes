@@ -255,18 +255,14 @@ combineModels <- function(model.list){
 }
 
 selectModels <- function(model.list){
-  ## cluster models in two groups by mean of the log likelihood
-  ## discard models that cluster in a group of low log likelihoods
-  ch.list <- map(model.list, chains)
-  ll <- map(ch.list, log_lik) %>%
-    map_dbl(mean)
+  ll <- sapply(model.list, log_lik)
   cl <- tryCatch(kmeans(ll, centers=2)$cluster, error=function(e) NULL)
   if(is.null(cl)){
     return(rep(TRUE, length(model.list)))
   }
   mean.ll <- sort(map_dbl(split(ll, cl), mean))
   keep <- cl == names(mean.ll)[2]
-  if(sum(keep) < 3){
+  if(sum(keep) < 2){
     ## keep all models
     keep <- rep(TRUE, length(model.list))
   }

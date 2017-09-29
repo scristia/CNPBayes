@@ -227,6 +227,7 @@ setMethod("alpha", "Hyperparameters", function(object) object@alpha)
 
 ## beta is a base function
 betas <- function(object) object@beta
+
 a <- function(object) object@a
 b <- function(object) object@b
 
