@@ -120,7 +120,13 @@ test_that("sigma2_pooled", {
   .posteriorSimulation2(sb)
 })
 
-test_that("SingleBatchPooled", {
+
+##
+## Too long for unit test
+##
+.test_that <- function(nm, expr) NULL
+
+.test_that("SingleBatchPooled", {
   library(purrr)
   sb <- SingleBatchPooled()
   expect_true(validObject(sb))
@@ -135,9 +141,6 @@ test_that("SingleBatchPooled", {
                         eta.0=32,
                         m2.0=0.5)
   model <- gibbs_singlebatch_pooled(hp, mp, dat=y(truth))
-  ##k(hp) <- 2L
-  ##model <- gibbs_singlebatch_pooled(hp, mp, dat=y(truth))
-  ##trace(gibbsSinglebatchPooled, browser)
   model.list <- gibbsSingleBatchPooled(hp, mp, dat=y(truth))
   expect_identical(k(model.list[[1]]), 2L)
   expect_identical(names(model.list)[1], "SBP2")
@@ -155,9 +158,10 @@ test_that("Valid starts", {
                         tau2.0=0.4,
                         eta.0=32,
                         m2.0=0.5)
+  expect_error(sb <- SingleBatchPooled(dat=y(truth), mp=mp, hp=hp))
+  mp <- McmcParams(iter=2, burnin=100)
   sb <- SingleBatchPooled(dat=y(truth), mp=mp, hp=hp)
   expect_identical(log_lik(sb), loglik_pooled(sb))
-
   sb.list <- replicate(10, SingleBatchPooled(dat=y(truth),
                                              mp=mp, hp=hp))
   expect_true(!any(is.na(map_dbl(sb.list, log_lik))))

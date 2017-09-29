@@ -218,7 +218,7 @@ Rcpp::NumericVector nu0_pooled(Rcpp::S4 xmod) {
   // sample nu0 from an unnormalized probability distribution
   //
   int MAX = 1000 ;
-  NumericVector x(MAX) ;  // 100 is the maximum allowed value for nu_0
+  NumericVector x(MAX) ;  // 1000 is the maximum allowed value for nu_0
   NumericVector lpnu0(MAX);
   double prec = 0.0 ;
   double lprec = 0.0 ;

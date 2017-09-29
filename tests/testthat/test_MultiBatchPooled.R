@@ -178,13 +178,25 @@ test_that("MultiBatchPooled model selection", {
   if(FALSE){
     mlist <- gibbsMultiBatchPooled(hp=hp,
                                    mp=mp,
+                                   k_range=c(3, 3),
                                    dat=y(truth),
                                    batches=batch(truth))
     model <- mlist[[1]]
+    ggMixture(model)
+    tab <- posteriorPredictive(model)
+    ggPredictive(model, tab)
     expect_identical(k(model), 3L)
   }
   if(FALSE){
-    ggMultiBatch(model)
+    mlist <- gibbs("MBP",
+                   hp.list=list(MBP=hp),
+                   mp=mp,
+                   k_range=c(3, 3),
+                   dat=y(truth),
+                   batches=batch(truth))
+    model <- mlist[[1]]
+    ggPredictive(model)
+    ggMixture(model)
     figs <- ggChains(model)
     figs$theta
     figs$sigma

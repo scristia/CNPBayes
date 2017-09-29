@@ -1,6 +1,6 @@
 context("Posterior predictive distribution")
 
-test_that("posteriorPredictive", {
+test_that("SB", {
   library(dplyr)
   library(ggplot2)
   set.seed(149)
@@ -8,11 +8,15 @@ test_that("posteriorPredictive", {
   mp <- McmcParams(iter=500, burnin=50)
   mcmcParams(model) <- mp
   model <- posteriorSimulation(model)
-  tab <- posteriorPredictive(model)
+  tab <- posteriorPredictive(model) %>%
+    mutate(y=round(y, 2))
+  expect_equal(tab[1, ], tibble(y=0.96, component=3L))
   if(FALSE){
     ggPredictive(model, tab)
   }
+})
 
+test_that("MB", {
   bmodel <- MultiBatchModelExample
   mp <- McmcParams(iter=500, burnin=150)
   mcmcParams(bmodel) <- mp
@@ -23,47 +27,41 @@ test_that("posteriorPredictive", {
   if(FALSE){
     ggPredictive(bmodel, tab)
   }
+})
 
-  if(FALSE){
-    set.seed(123)
-    ## example from vignette
-    se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
-    grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
-    cnv.region <- consensusCNP(grl, max.width=5e6)
-    i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
-    med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
-    mp <- McmcParams(nStarts=5, burnin=1000, iter=1000, thin=2)
-    model.list <- gibbs(model="SB", dat=med.summary, k_range=c(2, 3), mp=mp,
-                        max_burnin=20000, top=2)
-    model <- model.list[[1]]
-    tab <- posteriorPredictive(model)
-    ggPredictive(model, tab) + xlab("median LRR")
+test_that("SBP", {
+  set.seed(134)
+  mp <- McmcParams(iter=1000, burnin=500, nStarts=4, thin=1)
+  sb <- SingleBatchModelExample
+  hp <- hpList(k=3)[["SBP"]]
+  sbp <- SingleBatchPooled(dat=sample(y(sb)),
+                           hp=hp,
+                           mp=mp)
+  expect_equal(sigma(sbp), 0.1, tolerance=0.05)
+  sbp2 <- posteriorSimulation(sbp)
+  tab <- posteriorPredictive(sbp2)
+  if(FALSE) ggPredictive(sbp2, tab)
+})
 
-    predict <- tab
-    dat <- tibble(y=y(model), predictive="empirical")
-    colnames(predict)[2] <- "predictive"
+.test_that <- function(nm, expr) NULL
 
-    predict$predictive <- "posterior\npredictive"
-    predictive <- NULL
-    dat2 <- rbind(dat, predict) %>%
-      mutate(predictive=factor(predictive,
-                               levels=c("empirical", "posterior\npredictive")))
-    fig <- ggplot(dat2, aes(y, fill=predictive)) +
-      geom_density(alpha=0.4, adjust=adjust) +
-      guides(fill=guide_legend(title="")) +
-      theme(panel.background=element_rect(fill="white"))
-    fig
+test_that("MBP", {
+  set.seed(9)
+  mp <- McmcParams(iter=1000, burnin=250, nStarts=4, thin=2)
+  mb <- MultiBatchModelExample
+  mbp.tmp <- as(mb, "MultiBatchPooled")
+  expect_identical(length(sigma(mbp.tmp)), 3L)
+  ch <- sigma2(chains(mbp.tmp))
+  expect_identical(dim(ch), c(iter(mb), 3L))
 
-
-    tmp <- filter(dat2, predictive!="empirical")
-    table(tmp$y < - 0.2)
-    ggplot(tmp,
-                  aes(y, ..count.., fill=predictive)) +
-      geom_density(alpha=0.4, adjust=adjust) +
-      guides(fill=guide_legend(title="")) +
-      theme(panel.background=element_rect(fill="white")) +
-      xlim(c(-0.6, 0.5))
-
-
-  }
+  hp <- hpList(k=3)[["MBP"]]
+  mbp <- MultiBatchPooled(dat=y(mb),
+                          hp=hp,
+                          mp=mp,
+                          batches=batch(mb))
+  ch <- sigma2(chains(mbp))
+  expect_identical(dim(ch), c(iter(mbp), 3L))
+  mbp <- posteriorSimulation(mbp)
+  tab <- posteriorPredictive(mbp)
+  if(FALSE) ggPredictive(mbp, tab)
 })

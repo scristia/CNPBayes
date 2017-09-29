@@ -4,7 +4,7 @@ test_that("test_qInverseTau2", {
     mn <- 100
     sd <- 10
     shape.rate <- CNPBayes:::.parameterizeGammaByMeanSd(mn = mn,
-        sd = sd)
+                                                        sd = sd)
     a <- as.numeric(shape.rate[[1]])
     b <- as.numeric(shape.rate[[2]])
     expect_equal(mn^2/sd^2, a)
