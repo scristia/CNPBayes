@@ -99,7 +99,7 @@ head(probs)
 
 ## Big data
 
-If thousands of samples are available, we generally do not need to fit the model to all samples in order to adequately estimate the mixture distribution. Below, we indicate a workflow for downsampling. First, we bin the data in the `MultiBatchModelExample`, requiring only 200 observations per batch.  Data in small batches (less than 200 samples) are not binned.  Next, we use the `tileSummaries` function to compute the average log R ratio for each bin.
+If thousands of samples are available, we generally do not need to fit the model to all samples in order to adequately estimate the mixture distribution. Below, we indicate a workflow for downsampling. First, we bin the data in the `MultiBatchModelExample`, requiring only 200 observations per batch.  Data in small batches (less than 200 samples) are not binned.  The `tileSummaries` function  computes the average log R ratio for each bin.
 
 ```{r downsample}
 mb <- MultiBatchModelExample
@@ -108,7 +108,7 @@ tile.summaries <- tileSummaries(tiled.medians)
 tile.summaries
 ```
 
-Next, we fit the model to the mean summarized bins in the usual way. We specify the true k=3 model in this toy example to speed up computation.
+We fit the model to the mean summarized bins in the usual way. To speed up computation, we specify the true k=3 model in this toy example.
 
 
 ```{r fit_downsample}
@@ -122,9 +122,10 @@ To map posterior probabilities back to the original observations, we use the fun
 
 ```{r upSample}
 model2 <- upSample(model, tiled.medians)
+model2
 ```
 
-Again, we convert the mixture model to a copy number model.  As there is a one-to-one mapping between mixture components and copy number, the posterior probabilities for the mixture components (`probz`) is the same as the posterior probabilties of the copy number states (`probCopyNumber`).
+The object `model2` can be converted to a copy number model using the same approach as described previously (i.e., `CopyNumberModel(model2)`).  As there is a one-to-one mapping between mixture components and copy number, the posterior probabilities for the mixture components (`probz`) is the same as the posterior probabilties of the copy number states (`probCopyNumber`).
 
 ```{r copy-number-model}
 cn.model <- CopyNumberModel(model2)
