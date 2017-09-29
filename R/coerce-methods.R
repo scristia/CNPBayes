@@ -138,3 +138,83 @@ setAs("MultiBatchPooled", "MultiBatchCopyNumberPooled", function(from, to){
       .internal.counter=from@.internal.counter,
       mapping=numeric(k(from)))
 })
+
+setAs("SingleBatchModel", "SingleBatchPooled", function(from, to){
+  ##hypp <- as(hyperParams(from), "Hyperparameters")
+  hypp <- hyperParams(from)
+  ##
+  ## chains slot for sigma should be different
+  ##
+  ch <- chains(from)
+  ch@sigma2 <- matrix(NA, iter(from), 1)
+  if(length(y(from)) > 0){
+    w <- table(z(from))
+    sigma_pooled <- sum(w*sigma(from))/sum(w)
+  } else sigma_pooled <- numeric(1)
+  new("SingleBatchPooled",
+      k=k(from),
+      hyperparams=hypp,
+      theta=theta(from),
+      batch=batch(from),
+      sigma2=sigma_pooled^2,
+      nu.0=nu.0(from),
+      sigma2.0=sigma2.0(from),
+      pi=p(from),
+      mu=mu(from),
+      tau2=tau2(from),
+      data=y(from),
+      data.mean=from@data.mean,
+      data.prec=from@data.prec,
+      z=z(from),
+      zfreq=zFreq(from),
+      probz=probz(from),
+      logprior=logPrior(from),
+      loglik=log_lik(from),
+      mcmc.chains=ch,
+      mcmc.params=mcmcParams(from),
+      label_switch=label_switch(from),
+      marginal_lik=marginal_lik(from),
+      .internal.constraint=from@.internal.constraint,
+      .internal.counter=from@.internal.counter)
+})
+
+
+setAs("MultiBatchModel", "MultiBatchPooled", function(from, to){
+  hp <- hyperParams(from)
+  ##
+  ## chains slot for sigma should be different
+  ##
+  ch <- chains(from)
+  nb <- length(unique(batch(from)))
+  ch@sigma2 <- matrix(NA, iter(from), nb)
+  if(length(y(from)) > 0){
+    sigma_pooled <- rowMeans(sigma(from))
+    ##w <- table(z(from))
+    ##sigma_pooled <- sum(w*sigma(from))/sum(w)
+  } else sigma_pooled <- numeric(nb)
+  new("MultiBatchPooled",
+      k=k(from),
+      hyperparams=hp,
+      theta=theta(from),
+      batch=batch(from),
+      sigma2=sigma_pooled^2,
+      nu.0=nu.0(from),
+      sigma2.0=sigma2.0(from),
+      pi=p(from),
+      mu=mu(from),
+      tau2=tau2(from),
+      data=y(from),
+      data.mean=from@data.mean,
+      data.prec=from@data.prec,
+      z=z(from),
+      zfreq=zFreq(from),
+      probz=probz(from),
+      logprior=logPrior(from),
+      loglik=log_lik(from),
+      mcmc.chains=ch,
+      mcmc.params=mcmcParams(from),
+      label_switch=label_switch(from),
+      marginal_lik=marginal_lik(from),
+      .internal.constraint=from@.internal.constraint,
+      .internal.counter=from@.internal.counter)
+})
