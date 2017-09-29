@@ -16,7 +16,7 @@ CNPBayes models multi-modal densities via a hierarchical Bayesian Gaussian mixtu
 
 For an EM-implementation of Gaussian mixture models for CNPs, see the Bioconductor package CNVtools [@Barnes2008]. A Bayesian extension of this model by some of the same authors was developed to automate the analysis of the Welcome Trust Case Control Consortium (WTCCC) genotype data [@cardin] and implemented in the R package CNVCALL (http://niallcardin.com/CNVCALL).
 
-This vignette provides a concise workfklow for fitting mixture models in large array-based genome-wide association studies. Other vignettes in this package provide details on the [implementation](Implementation.Rmd) and functions for evaluating [convergence](Convergence.Rmd).
+This vignette provides a concise workflow for fitting mixture models in large array-based genome-wide association studies. Other vignettes in this package provide details on the [implementation](Implementation.Rmd) and functions for evaluating [convergence](Convergence.Rmd).
 
 ```{r lib} 
 suppressPackageStartupMessages(library(CNPBayes))
@@ -25,6 +25,8 @@ library(ggplot2)
 ```
 
 # Workflow
+
+## Summarizing data at CNPs
 
 Our starting point is a `SummarizedExperiment` containing log R ratios from a SNP array and a `GRangesList` containing deletions and duplications identified from a hidden Markov model.
 
@@ -41,20 +43,27 @@ i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
 med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
 ```
 
-At loci where copy number variants are common, the distribution of the median log R ratios computed above can be approximated by a finite mixture of normal distributions.  This package provides several implementations of a Bayesian hierarchical normal mixture model, where the implementations differ by whether the component means and variances are batch-specific (multi-batch 'MB' model) or a single batch ('SB' model).  In addition, we allow the variance estimates to be pooled across all components within the multi-batch ('MBP') and single-batch ('SBP') models.  For large studies involving SNP microarrays, the `combinePlates` function can be useful to identify groups of plates processed in the same batch. As there are only 35 samples in this toy example, we assume that these samples were all processed in the same batch and we will only consider the SB and SBP models. The following code chunk initializes an MCMC parameters object that contain parameters governing the number of burnin iterations, the number of iterations following burnin, how often two save simulated values from the chain (*thin*), and the number of independently initialized models (*nStarts*).
+At loci where copy number variants are common, the distribution of the median log R ratios computed above can be approximated by a finite mixture of normal distributions. 
+
+## The `gibbs` function
+
+
+This package provides several implementations of a Bayesian hierarchical normal mixture model, where the implementations differ by whether the component means and variances are batch-specific (multi-batch 'MB' model) or a single batch ('SB' model).  In addition, we allow the variance estimates to be pooled across all components within the multi-batch ('MBP') and single-batch ('SBP') models.  For large studies involving SNP microarrays, the `combinePlates` function can be useful to identify groups of plates processed in the same batch. As there are only 35 samples in this toy example, we assume that these samples were all processed in the same batch and we will only consider the SB and SBP models. The following code chunk initializes an MCMC parameters object that contain parameters governing the number of burnin iterations, the number of iterations following burnin, how often two save simulated values from the chain (*thin*), and the number of independently initialized models (*nStarts*).
 
 ```{r model_construction}
 mp <- McmcParams(nStarts=5, burnin=500, iter=1000, thin=1)
 ```
 
-The workhorse function in this package is `gibbs`.  This function allows the user to specify one or all of the four possible mixture model types and for each type fit models with mixture components specified by the argument `k_range`. Below, we run 4 chains for 1000 iterations (100 iterations burnin) for only the k=3 SB model. (In practice, we would fit multiple models and specify a range for k.  For example, `k_range=c(1, 5)`).  As described in the [convergence vignette](Convergence.Rmd), an attempt is made by `gibbs` to adapt the thinning and burnin parameters if there are signs that the chains have not converged.  The models evaluated by `gibbs` are returned in a list where all chains have been combined and the models are sorted by decreasing value of the marginal likelihood.  In order to properly assess convergence, this function requires that one run at least 2 independent chains. Below, we specify a `max_burnin` to a small number (400) to speed up computation. A much longer burnin may be required for convergence.
+The workhorse function in this package is `gibbs`.  This function allows the user to specify one or all of the four possible mixture model types (SB, MB, SBP, MBP) and for each type fit models with mixture components specified by the argument `k_range`. Below, we run 4 chains for 1000 iterations (100 iterations burnin) for only the k=3 SB model. (In practice, we would fit multiple models and specify a range for k.  For example, `k_range=c(1, 5)`).  As described in the [convergence vignette](Convergence.Rmd), an attempt is made by `gibbs` to adapt the thinning and burnin parameters if there are indications that the chains have not converged.  The models evaluated by `gibbs` are returned in a list where all chains have been combined and the models are sorted by decreasing value of the marginal likelihood.  In order to properly assess convergence, this function requires that one run at least 2 independent chains. Below, we specify a `max_burnin` to a small number (400) to speed up computation. A much longer burnin may be required for convergence.
 
 ```{r gibbs}
 model.list <- gibbs(model="SB", dat=med.summary, k_range=c(2, 3), mp=mp,
                     max_burnin=400, top=2)
 ```
 
-Next, we inspect the chains for convergence and overlay the posterior summary of the mixture model on a histogram of the data.
+## Evaluating convergence and goodness of fit
+
+In the following codechunk, we visually inspect the chains for convergence.
 
 ```{r ggfunctions}
 model <- model.list[[1]]
@@ -64,7 +73,7 @@ chains[[1]]
 chains[[2]]
 ```
 
-The posterior predictive distribution can also be used to assess the adequacy of the model.  Here, the approximation could be improved by increasing burnin, the number of iterations following burnin, and / or by increasing the thinning parameter.
+The posterior predictive distribution is also useful for assessing the adequacy of a model.  Here, the approximation could be improved by increasing burnin, the number of iterations following burnin, and / or by increasing the thinning parameter.
 
 ```{r posteriorPredictive}
 tab <- posteriorPredictive(model)
@@ -72,7 +81,9 @@ tab
 ggPredictive(model, tab) + xlab("median LRR")
 ```
 
-Due to skewness of the log R ratios and other technical factors that may effect the distribution of these statistics, the mixture components may not necessarily correspond to distinct copy number states. That is, there is no guarantee of a one-to-one mapping between mixture components and copy number.   The function `CopyNumberModel` attemps to map copy number states to the mixture components by assess the extent of overlap of the mixtures -- the rationale being that two mixture components with substantial overlap are fitting the skewness of the data rather for a single copy number state.  Given additional data, one may also manually provide this mapping through the `mapping<-` function.
+## Mapping mixture components to copy number states
+
+While the MB and MBP implementations explicitly model batch effects, occasionally the log R ratios are skewed (non-Gaussian) for technical reasons other than batch effects. Unfortunately, there is no guarantee of a one-to-one mapping between mixture components and copy number.   The function `CopyNumberModel` attemps to map copy number states to the mixture components by assessing the extent of overlap of the mixtures -- the rationale being that two mixture components with substantial overlap are fitting the skewness of the data as opposed to multiple copy number states.  Given additional information, one may also manually provide this mapping through the `mapping<-` function.
 
 ```{r cn_model}
 cn.model <- CopyNumberModel(model)
