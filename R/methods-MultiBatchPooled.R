@@ -6,14 +6,31 @@ MultiBatchPooled <- function(dat=numeric(),
                              mp=McmcParams(iter=1000, burnin=1000,
                                            thin=10, nStarts=4),
                              batches=integer()){
-  obj <- MultiBatchModel2(dat, hp, mp, batches)
+  if(length(dat) == 0){
+    mb <- MultiBatchModel2(dat, hp, mp, batches)
+    mbp <- as(mb, "MultiBatchPooled")
+    return(mbp)
+  }
+  iter <- 0
+  validZ <- FALSE
+  mp.tmp <- McmcParams(iter=0, burnin=burnin(mp), thin=1, nStarts=1)
+  while(!validZ){
+    ##
+    ## Burnin with MB model
+    ##
+    mb <- MultiBatchModel2(dat, hp, mp.tmp, batches)
+    mb <- runBurnin(mb)
+    tabz <- table(z(mb))
+    if(length(tabz) == k(hp)) validZ <- TRUE
+    iter <- iter + 1
+    if(iter > 50) stop("Trouble initializing valid model. Try increasing the burnin")
+  }
   ## average variances across components
-  obj@sigma2 <- rowMeans(sigma2(obj))
-  ch <- chains(obj)
-  nb <- length(unique(batches))
-  ch@sigma2 <- matrix(NA, iter(obj), nb)
-  obj@mcmc.chains <- ch
-  as(obj, "MultiBatchPooled")
+  mbp <- as(mb, "MultiBatchPooled")
+  mbp <- sortComponentLabels(mbp)
+  mcmcParams(mbp) <- mp
+  log_lik(mbp) <- loglik_multibatch_pvar(mbp)
+  mbp
 }
 
 #' @rdname sigma2-method
