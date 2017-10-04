@@ -39,7 +39,7 @@ a list of such models.}
 A vector of the marginal likelihood of the model(s)
 }
 \description{
-Compute the marginal likelihood of a converged model.
+The recommended function for fitting mixture models and evaluating convergence is through the `gibbs` function. This function will return a list of models ordered by the marginal likelihood. The marginal likelihood is computed using the Chib's estimator (JASA, Volume 90 (435), 1995).
 }
 \examples{
 ## In practice, run a much longer burnin and increase the number of
@@ -50,7 +50,7 @@ Compute the marginal likelihood of a converged model.
    marginalLikelihood(mm)
 }
 \seealso{
-\code{\link{mlParams}}
+See \code{\link{mlParams}} for parameters related to computing the log marginal likelihood via Chib's estimator. See \code{\link{gibbs}} for fitting multiple mixture models and returning a list sorted by the marginal likelihood.  See \code{\link{marginal_lik}} for the accessor.
 
 Note: currently thinning of the reduced MCMC chains is not allowed.
 }

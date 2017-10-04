@@ -324,7 +324,8 @@ mlParams <- function(root=1/10,
     correction.factor <- 0
   } else correction.factor <- log(factorial(k(model)))
 
-  ## calculate p(x|model)
+  ## calculate log p(x|model)
+  browser()
   m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
     correction.factor
   names(m.y) <- paste0("SB", k(model))

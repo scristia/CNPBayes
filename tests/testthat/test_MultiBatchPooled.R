@@ -8,6 +8,11 @@ test_that("MultiBatchPooled", {
   expect_is(model, "MultiBatchPooled")
   expect_equivalent(sigma(model), numeric())
 
+  model <- MultiBatchPooledExample
+  model <- posteriorSimulation(model)
+  model2 <- as(model, "MultiBatchCopyNumberPooled")
+  model3 <- useModes(model2)
+
   set.seed(100)
   nbatch <- 3
   k <- 3

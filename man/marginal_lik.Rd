@@ -4,7 +4,7 @@
 \name{marginal_lik}
 \alias{marginal_lik}
 \alias{marginal_lik,MixtureModel-method}
-\title{Accessor for marginal likelihood}
+\title{Accessor for the log marginal likelihood of a SB, SBP, MB, or MBP model}
 \usage{
 marginal_lik(object)
 
@@ -14,12 +14,12 @@ marginal_lik(object)
 \item{object}{a SB, SBP, MB, or MBP model}
 }
 \description{
-Accessor for marginal likelihood
+The marginal likelihood is computed by Chib's estimator (JASA, Volume 90 (435), 1995).
 }
 \examples{
 sb <- SingleBatchModelExample
 marginal_lik(sb)
 }
 \seealso{
-\code{\link{marginalLikelihood}}
+See \code{\link{marginalLikelihood}} for computing the marginal likelihood of a mixture model.
 }

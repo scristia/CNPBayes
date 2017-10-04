@@ -5,6 +5,7 @@
 \alias{copyNumber}
 \alias{copyNumber,SingleBatchCopyNumber-method}
 \alias{copyNumber,MultiBatchCopyNumber-method}
+\alias{copyNumber,MultiBatchCopyNumberPooled-method}
 \title{Extract copy number estimates from a `CopyNumberModel`}
 \usage{
 copyNumber(object)
@@ -12,6 +13,8 @@ copyNumber(object)
 \S4method{copyNumber}{SingleBatchCopyNumber}(object)
 
 \S4method{copyNumber}{MultiBatchCopyNumber}(object)
+
+\S4method{copyNumber}{MultiBatchCopyNumberPooled}(object)
 }
 \arguments{
 \item{object}{a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} object}

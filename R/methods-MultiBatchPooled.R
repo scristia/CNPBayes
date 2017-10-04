@@ -34,7 +34,7 @@ MultiBatchPooled <- function(dat=numeric(),
 }
 
 #' @rdname sigma2-method
-#' @aliases sigma2,MultiBatchModel-method
+#' @aliases sigma2,MultiBatchPooled-method
 setMethod("sigma2", "MultiBatchPooled", function(object) {
   s2 <- object@sigma2
   ##s2 <- matrix(s2, nBatch(object), k(object))
@@ -42,7 +42,22 @@ setMethod("sigma2", "MultiBatchPooled", function(object) {
   s2
 })
 
+#' @rdname sigma2-method
+#' @aliases sigma2,MultiBatchCopyNumberPooled-method
+setMethod("sigma2", "MultiBatchCopyNumberPooled", function(object) {
+  s2 <- object@sigma2
+  names(s2) <- uniqueBatch(object)
+  s2
+})
+
 setReplaceMethod("sigma2", "MultiBatchPooled", function(object, value){
+  names(value) <- uniqueBatch(object)
+  object@sigma2 <- value
+  object
+})
+
+
+setReplaceMethod("sigma2", "MultiBatchCopyNumberPooled", function(object, value){
   names(value) <- uniqueBatch(object)
   object@sigma2 <- value
   object
@@ -88,6 +103,10 @@ setMethod("computeLoglik", "MultiBatchPooled", function(object){
 })
 
 setMethod("updateZ", "MultiBatchPooled", function(object){
+  z_multibatch_pvar(object)
+})
+
+setMethod("updateZ", "MultiBatchCopyNumberPooled", function(object){
   z_multibatch_pvar(object)
 })
 
@@ -328,5 +347,5 @@ setMethod("sortComponentLabels", "MultiBatchPooled", function(model){
 setMethod("sigma", "MultiBatchCopyNumberPooled", function(object){
   s2 <- object@sigma2
   names(s2) <- uniqueBatch(object)
-  s2
+  sqrt(s2)
 })

@@ -575,13 +575,13 @@ dnorm_poly_multibatch_pooled <- function(model){
   L <- sapply(df.list, nrow)
   ##df$component <- factor(rep(seq_along(means), L))
   df$batch <- factor(df$batch)
-  df.overall <- data.frame(y=overall, x=dat$x,
-                           component=dat$component,
-                           batch="overall")
+  df.overall <- tibble(y=overall, x=dat$x,
+                       component=dat$component,
+                       batch="overall")
   df <- rbind(df, df.overall)
   df$batch <- factor(df$batch,
                      levels=c("overall", paste0("batch: ", batch.labels)))
-  df
+  as.tibble(df)
 }
 
 batchDensities <- function(x, batches, thetas, sds, P, batchPr){
@@ -633,7 +633,7 @@ batchDensities <- function(x, batches, thetas, sds, P, batchPr){
     facet_wrap(~batch, nrow=nb)
 }
 
-mb_predictive <- function(model, predict, adjust=1/3){
+mb_pred_data <- function(model, predict){
   batches <- factor(batch(model), labels=paste("batch", unique(batch(model))))
   dat <- tibble(y=y(model),
                 batch=batches,
@@ -645,7 +645,13 @@ mb_predictive <- function(model, predict, adjust=1/3){
   dat2 <- rbind(dat, predict) %>%
     mutate(predictive=factor(predictive,
                              levels=c("empirical", "posterior\npredictive")))
-  fig <- ggplot(dat2, aes(y, fill=predictive)) +
+  dat2
+}
+
+mb_predictive <- function(model, predict, adjust=1/3){
+  dat <- mb_pred_data(model, predict)
+  predictive <- NULL
+  fig <- ggplot(dat, aes(y, fill=predictive)) +
     geom_density(alpha=0.4, adjust=adjust) +
     facet_wrap(~batch, ncol=1) +
     guides(fill=guide_legend(title="")) +
@@ -653,7 +659,7 @@ mb_predictive <- function(model, predict, adjust=1/3){
   fig
 }
 
-sb_predictive <- function(model, predict, adjust=1/3){
+sb_pred_data <- function(model, predict){
   dat <- tibble(y=y(model), predictive="empirical")
   colnames(predict)[2] <- "predictive"
   predict$predictive <- "posterior\npredictive"
@@ -661,7 +667,13 @@ sb_predictive <- function(model, predict, adjust=1/3){
   dat2 <- rbind(dat, predict) %>%
     mutate(predictive=factor(predictive,
                              levels=c("empirical", "posterior\npredictive")))
-  fig <- ggplot(dat2, aes(y, fill=predictive)) +
+  dat2
+}
+
+sb_predictive <- function(model, predict, adjust=1/3){
+  dat2 <- sb_pred_data(model, predict)
+  predictive <- NULL
+  fig <- ggplot(dat2, aes(y, fill=predictive, color=predictive)) +
     geom_density(alpha=0.4, adjust=adjust) +
     guides(fill=guide_legend(title="")) +
     theme(panel.background=element_rect(fill="white"))
@@ -696,29 +708,48 @@ ggPredictive <- function(model, predict, adjust=1/3){
   fig
 }
 
-.gg_multibatch_pooled <- function(model, bins){
+multibatch_figure <- function(theoretical, empirical, model){
+  nb <- nBatch(model)
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
-  ##df <- multiBatchDensities(model)
-  dat <- dnorm_poly_multibatch_pooled(model)
-  nb <- nBatch(model)
-  df.observed <- data.frame(y=observed(model),
-                            batch=paste0("batch: ", batch(model)))
-  if(missing(bins))
-    bins <- nrow(df.observed)/2
-  component <- y <- ..density.. <- x <- y <- NULL
-  ggplot(dat, aes(x, y, group=component)) +
-    geom_histogram(data=df.observed, aes(y, ..density..),
-                   bins=bins,
-                   inherit.aes=FALSE) +
-    geom_polygon(aes(fill=component, color=component), alpha=0.4) +
-    xlab("quantiles") + ylab("density") +
-    scale_color_manual(values=colors) +
-    scale_fill_manual(values=colors) +
-    scale_y_sqrt() +
+  scale_col <-  scale_color_manual(values=colors)
+  scale_fill <- scale_fill_manual(values=colors)
+  scale_y <- scale_y_sqrt()
+  lrr <- NULL
+  ghist <- geom_histogram(data=empirical, aes(lrr, ..count..), binwidth=0.01, inherit.aes=FALSE)
+  gobj <- ggplot() + ghist + facet_wrap(~batch)
+  gb <- ggplot_build(gobj)
+  ylimit <- gb$layout$panel_ranges[[1]][["y.range"]]
+  theoretical.sum <- group_by(theoretical, batch, component) %>%
+    summarize(maxy=max(y))
+  theoretical$y <- scales::rescale(theoretical$y, c(0, ylimit[2]))
+  component <- x <- y <- NULL
+  gpolygon <-  geom_polygon(aes(x, y, fill=component, color=component), alpha=0.4)
+  ggplot(theoretical) +
+    ghist +
+    gpolygon +
+    scale_col +
+    scale_fill +
+    xlab("quantiles") + ylab("count") +
     guides(fill=guide_legend(""), color=guide_legend("")) +
-    facet_wrap(~batch, nrow=nb)
+    facet_wrap(~batch, nrow=nb, as.table=TRUE, scales="free_y")
 }
+
+.gg_multibatch_pooled <- function(model, bins){
+  theoretical <- dnorm_poly_multibatch_pooled(model) %>%
+    as.tibble
+  empirical <- tibble(lrr=observed(model),
+                      batch=paste0("batch: ", batch(model)),
+                      z=map_z(model)) 
+  empirical2 <- empirical %>%
+    mutate(batch="overall")
+  empirical3 <- bind_rows(empirical, empirical2) %>%
+    mutate(batch=factor(batch, levels=c(unique(empirical$batch), "overall")))
+  fig <- multibatch_figure(theoretical, empirical3, model)
+  fig
+}
+
+
 
 .gg_multibatch_copynumber <- function(model, bins){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
@@ -726,38 +757,43 @@ ggPredictive <- function(model, predict, adjust=1/3){
 
   ##df <- multiBatchDensities(model)
   if(class(model) == "MultiBatchCopyNumber"){
-    dat <- dnorm_poly_multibatch(model)
+    theoretical <- dnorm_poly_multibatch(model)
   } else {
-    dat <- dnorm_poly_multibatch_pooled(model)
+    theoretical <- dnorm_poly_multibatch_pooled(model)
   }
-  dat2 <- dat
-  index <- dat$component %in% seq_len(k(model))
-  comp <- dat$component
-  comp2 <- comp[index]
-  comp2 <- as.integer(as.character(comp2))
-  cn <- .remap(comp2, mapping(model))
-  comp[index] <- cn
-  comp <- factor(comp)
-  dat$component <- comp
+  theoretical$cn <- .remap(theoretical$component, mapping(model))
+
+  empirical <- tibble(lrr=observed(model),
+                      batch=paste0("batch: ", batch(model)),
+                      z=map_z(model))
+  empirical$cn <- .remap(empirical$z, mapping(model))
+  empirical2 <- empirical %>%
+    mutate(batch="overall")
+  empirical3 <- bind_rows(empirical, empirical2) %>%
+    mutate(batch=factor(batch, levels=c(unique(empirical$batch),
+                                        "overall")))
+
+  scale_col <-  scale_color_manual(values=colors)
+  scale_fill <- scale_fill_manual(values=colors)
+  scale_y <- scale_y_sqrt()
+  count <- lrr <- NULL
+  ghist <- geom_histogram(data=empirical3, aes(lrr, ..count..), binwidth=0.01, inherit.aes=FALSE)
+  gobj <- ggplot() + ghist + facet_wrap(~batch)
+  gb <- ggplot_build(gobj)
+  ylimit <- gb$layout$panel_ranges[[1]][["y.range"]]
+
+  theoretical$y <- scales::rescale(theoretical$y, c(0, ylimit[2]))
+  x <- y <- cn <- NULL
+  gpolygon <-  geom_polygon(aes(x, y, fill=cn, color=cn), alpha=0.4)
   nb <- nBatch(model)
-  df.observed <- data.frame(y=observed(model),
-                            batch=paste0("batch: ", batch(model)))
-  if(missing(bins))
-    bins <- nrow(df.observed)/2
-  component <- ..density.. <- x <- y <- NULL
-  ## how to make the density and polygon on same y-scale
-  ggplot(dat, aes(x, y, group=component)) +
-    geom_histogram(data=df.observed, aes(y, ..density..),
-                   ##bins=bins,
-                   inherit.aes=FALSE, binwidth=0.05) +
-    geom_polygon(aes(fill=component, color=component),
-                 alpha=0.4) +
-    xlab("quantiles") + ylab("density") +
-    scale_color_manual(values=colors) +
-    scale_fill_manual(values=colors) +
-    scale_y_sqrt() +
+  ggplot(theoretical) +
+    ghist +
+    gpolygon +
+    scale_col +
+    scale_fill +
+    xlab("quantiles") + ylab("count") +
     guides(fill=guide_legend(""), color=guide_legend("")) +
-    facet_wrap(~batch, nrow=nb)
+    facet_wrap(~batch, nrow=nb, as.table=TRUE, scales="free_y")
 }
 
 #' @export
@@ -778,6 +814,7 @@ setMethod("ggMixture", "MultiBatchCopyNumberPooled", function(model, bins){
 #' @rdname ggplot-functions
 #' @aliases ggMixture,SingleBatchModel-method
 setMethod("ggMixture", "SingleBatchModel", function(model, bins){
+  model <- useModes(model)
   .gg_singlebatch(model, bins)
 })
 

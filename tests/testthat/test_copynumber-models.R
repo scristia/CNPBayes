@@ -120,9 +120,9 @@ test_that("Mapping components to copy number (single batch)", {
   sb <- SingleBatchModelExample
   cn.model <- SingleBatchCopyNumber(sb)
   params <- mapParams()
-  map <- mapComponents(cn.model, params)
-  expect_identical(map, 1:3)
-  mapping(cn.model) <- map
+  cn.model <- mapComponents(cn.model, params)
+  expect_identical(mapping(cn.model), 1:3)
+  mapping(cn.model) <- mapping(cn.model)
 
   map2 <- mapCopyNumber(cn.model, params)
   expect_identical(map2, factor(seq_len(k(cn.model))))
@@ -137,9 +137,8 @@ test_that("Mapping components to copy number (single batch)", {
   model <- posteriorSimulation(truth)
 
   cn.model <- SingleBatchCopyNumber(model)
-  map <- mapComponents(cn.model, params)
-  expect_identical(map, c(1L, 1L))
-  mapping(cn.model) <- map
+  cn.model <- mapComponents(cn.model, params)
+  expect_identical(mapping(cn.model), c(1L, 1L))
   if(FALSE)
     ggSingleBatch(cn.model)
 
@@ -163,8 +162,8 @@ test_that("Mapping components to copy number (single batch)", {
   expect_warning(model <- .posteriorSimulation2(model))
   cn.model <- SingleBatchCopyNumber(model)
 
-  mapping <- mapComponents(cn.model, params)
-  expect_identical(mapping, c(1L, 1L, 1L))
+  cn.model <- mapComponents(cn.model, params)
+  expect_identical(mapping(cn.model), c(1L, 1L, 1L))
   mapping(cn.model) <- mapping
 })
 
@@ -184,9 +183,8 @@ test_that("merge two components", {
   ## expect_warning(model <- posteriorSimulation(truth),
   ##                "label switching: model k=3")
   cn.model <- SingleBatchCopyNumber(model)
-  cnmap <- mapComponents(cn.model, params=mapParams())
-  mapping(cn.model) <- cnmap
-  expect_identical(cnmap, c(1L, 1L, 3L))
+  cn.model <- mapComponents(cn.model, params=mapParams())
+  expect_identical(mapping(cn.model), c(1L, 1L, 3L))
   cnmap2 <- mapCopyNumber(cn.model)
   expect_identical(cnmap2, factor(c(2, 2, 3)))
 })
@@ -195,8 +193,8 @@ test_that("Mapping components to copy number (multiple batches)", {
   sb <- MultiBatchModelExample
   cn.model <- MultiBatchCopyNumber(sb)
   params <- mapParams()
-  map <- mapComponents(cn.model, params)
-  expect_identical(map, 1:3)
+  cn.model <- mapComponents(cn.model, params)
+  expect_identical(mapping(cn.model), 1:3)
 
   ##
   ## Assume best fit model is MultiBatch with 3 components. In truth, components
@@ -227,9 +225,8 @@ test_that("Mapping components to copy number (multiple batches)", {
 
   cn.model <- MultiBatchCopyNumber(model)
   ## trace(CNPBayes:::mapComponents, browser)
-  map <- mapComponents(cn.model)
-  expect_identical(map, c(1L, 2L, 2L))
-  mapping(cn.model) <- map
+  cn.model <- mapComponents(cn.model)
+  expect_identical(mapping(cn.model), c(1L, 2L, 2L))
   ## mapCopyNumber not yet defined for MultiBatch models
   ##cn <- mapCopyNumber(cn.model)
   if(FALSE)

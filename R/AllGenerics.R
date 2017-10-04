@@ -700,6 +700,9 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 
 #' Compute the marginal likelihood of a converged model.
 #'
+#' The recommended function for fitting mixture models and evaluating convergence is through the `gibbs` function. This function will return a list of models ordered by the marginal likelihood. The marginal likelihood is computed using the Chib's estimator (JASA, Volume 90 (435), 1995).
+#'
+#'
 #' @examples
 #' ## In practice, run a much longer burnin and increase the number of
 #' ## iterations to save after burnin
@@ -711,7 +714,8 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #'        \code{MarginalModel}'s. Can also be an object of \code{BatchModel} or
 #'        a list of such models.
 #' @param params A list containing parameters for marginalLikelihood computation. See \code{mlParams} for details.
-#' @seealso \code{\link{mlParams}}
+#'
+#' @seealso See \code{\link{mlParams}} for parameters related to computing the log marginal likelihood via Chib's estimator. See \code{\link{gibbs}} for fitting multiple mixture models and returning a list sorted by the marginal likelihood.  See \code{\link{marginal_lik}} for the accessor.
 #'
 #' Note: currently thinning of the reduced MCMC chains is not allowed.
 #'
@@ -754,9 +758,11 @@ setGeneric("label_switch", function(object) standardGeneric("label_switch"))
 
 setGeneric("label_switch<-", function(object, value) standardGeneric("label_switch<-"))
 
-#' Accessor for marginal likelihood
+#' Accessor for the log marginal likelihood of a SB, SBP, MB, or MBP model
 #'
-#' @seealso \code{\link{marginalLikelihood}}
+#' The marginal likelihood is computed by Chib's estimator (JASA, Volume 90 (435), 1995).
+#'
+#' @seealso See \code{\link{marginalLikelihood}} for computing the marginal likelihood of a mixture model.
 #' @param object a SB, SBP, MB, or MBP model
 #' @export
 #' @examples
@@ -902,3 +908,5 @@ setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 #' @export
 #' @rdname copyNumber
 setGeneric("copyNumber", function(object) standardGeneric("copyNumber"))
+
+setGeneric("mergeComponents", function(model, j) standardGeneric("mergeComponents"))

@@ -117,7 +117,7 @@ setMethod("probCopyNumber", "MultiBatchCopyNumberPooled", function(model){
 
 .relabel_z <- function(object){
   if(!manyToOneMapping(object)) return(z(object))
-  zz <- z(object)
+  zz <- map_z(object)
   map <- mapping(object)
   if(numberStates(object) == 1){
     zz[zz != map[1]] <- map[1]
@@ -139,6 +139,12 @@ setMethod("copyNumber", "SingleBatchCopyNumber", function(object){
 #' @aliases copyNumber,MultiBatchCopyNumber-method
 #' @rdname copyNumber
 setMethod("copyNumber", "MultiBatchCopyNumber", function(object){
+  .relabel_z(object)
+})
+
+#' @aliases copyNumber,MultiBatchCopyNumberPooled-method
+#' @rdname copyNumber
+setMethod("copyNumber", "MultiBatchCopyNumberPooled", function(object){
   .relabel_z(object)
 })
 
@@ -212,13 +218,121 @@ isOutlier <- function(model, params=mapParams()){
 }
 
 isPooled <- function(model){
-  class(model) %in% c("SingleBatchPooled", "MultiBatchPooled")
+  class(model) %in% c("SingleBatchPooled", "MultiBatchPooled",
+                      "SingleBatchCopyNumberPooled",
+                      "MultiBatchCopyNumberPooled")
 }
+
+.merge_components <- function(model, j){
+  dens <- dnorm_poly(model) %>% filter(component!="SB") %>%
+    as.tibble %>%
+    arrange(component, x) %>%
+    filter(component %in% c(j, j+1))
+  stats <- dens %>%
+    group_by(component) %>%
+    summarize(n=n(),
+              max.y=max(y),
+              x.at.maxy=x[y==max(y)][1])
+  ##
+  ## where does difference in component 1 density and component 2 density change sign
+  ##
+  ##d1 <- filter(dens, cnstate==state1 & !duplicated(x))
+  d1 <- filter(dens, component == j & !duplicated(x))
+  d2 <- filter(dens, component == j+1) %>%
+    filter(!duplicated(x))
+  keep <- d1$y <= stats$max.y[1] &
+    d1$x >= stats$x.at.maxy[1] &
+    d2$y <= stats$max.y[2] &
+    d2$x <= stats$x.at.maxy[2]
+  d1 <- d1[keep, ]
+  d2 <- d2[keep, ]
+  ## number of quantiles where difference in density is negative and number of
+  ## quantiles where difference in density is positive
+  probs <- tibble(component.left=d1$y, component.right=d2$y) %>%
+    mutate(sign=sign(component.left - component.right)) %>%
+    group_by(sign) %>%
+    summarize(n=n())
+  needs.merge <- ifelse(any(probs$n <= 6) || nrow(probs) < 2, TRUE, FALSE)
+  ##
+  ## sometimes we have multiple hemizygous deletion components that should be merged
+  ##  -- allow a greater separation between components that still merges
+  if(!needs.merge){
+    is.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
+    needs.merge <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
+                          && is.hemizygous, TRUE, FALSE)
+  }
+  needs.merge
+}
+
+.merge_mb <- function(model, j){
+  x <- NULL
+  if(class(model) == "MultiBatchCopyNumberPooled"){
+    dens <- dnorm_poly_multibatch_pooled(model) %>% filter(component!="overall") %>%
+      arrange(component, x) %>%
+      filter(component %in% c(j, j+1))
+  } else {
+    dens <- dnorm_poly_multibatch(model) %>% filter(component!="overall") %>%
+      arrange(component, x) %>%
+      filter(component %in% c(j, j+1))
+  }
+  stats <- dens %>%
+    group_by(batch, component) %>%
+    summarize(n=n(),
+              max.y=max(y),
+              x.at.maxy=x[y==max(y)][1]) %>%
+    filter(batch != "overall")
+
+  ubatch <- levels(dens$batch)
+  ubatch <- ubatch[ubatch != "overall"]
+  merge.var <- rep(NA, length(ubatch))
+  component.left <- component.right <- NULL
+  for(i in seq_along(ubatch)){
+    d1 <- filter(dens, component == j & batch==ubatch[i]) %>%
+      filter(y > 0)
+    d2 <- filter(dens, component == (j+1) & batch==ubatch[i]) %>%
+      filter(y > 0)
+    stats2 <- filter(stats, batch == ubatch[i])
+    keep <- d1$y <= stats2$max.y[1] &
+      d1$x >= stats2$x.at.maxy[1] &
+      d2$y <= stats2$max.y[2] &
+      d2$x <= stats2$x.at.maxy[2]
+    d1 <- d1[keep, ]
+    d2 <- d2[keep, ]
+    ## number of quantiles where difference in density is negative and number of
+    ## quantiles where difference in density is positive
+    probs <- tibble(component.left=d1$y, component.right=d2$y) %>%
+      mutate(sign=sign(component.left - component.right)) %>%
+      group_by(sign) %>%
+      summarize(n=n())
+    merge.var[i] <- ifelse(any(probs$n <= 6) || nrow(probs) < 2, TRUE, FALSE)
+    if(!merge.var[i]){
+      is.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
+      merge.var[i] <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
+                             && is.hemizygous, TRUE, FALSE)
+    }
+  }
+  ## weight by size of batch
+  needs.merge <- sum(merge.var * batchElements(model)) / length(y(model)) > 0.5
+  needs.merge
+}
+
+
+setMethod("mergeComponents", "SingleBatchCopyNumber", function(model, j){
+  .merge_components(model, j)
+})
+
+setMethod("mergeComponents", "MultiBatchCopyNumberPooled", function(model, j){
+  .merge_mb(model, j)
+})
+
+setMethod("mergeComponents", "MultiBatchCopyNumber", function(model, j){
+  .merge_mb(model, j)
+})
 
 
 #' Map mixture components to distinct copy number states
 #'
-#' Given two mixture components j and j + 1, let N denote the number of subjects with posterior probability of belonging to either component j or j+1 is very high (e.g., > 0.99).  Let M denote the number of subjects that map to only one of these two components with high probability (M < N).  If  M/N is very small, then the mixture components j and j+1 are well separated in terms of the membership probabilities.  If M/N is high (say > 0.5), then these components are not well separated and the mixture components are mapped to the same copy number state.
+#'
 #'
 #' @param params a list of mapping parameters
 #' @param model a SB, MB, SBP, or MBP model
@@ -233,59 +347,81 @@ isPooled <- function(model){
 #' @seealso \code{\link{CopyNumberModel}} \code{\link{mapParams}}
 #' @export
 mapComponents <- function(model, params=mapParams()){
-  p <- probz(model)
-  p <- p/rowSums(p)
-  K <- mapping(model)
-  threshold <- params[["threshold"]]
-  ##
-  ## the denominator should not include observations classified with probability near 1 to
-  ##
-  select <- rowSums(p > 0.99) == 0
-  p <- p[select, , drop=FALSE]
-  if(nrow(p) == 0) return(K)
-  zz <- map_z(model)[select]
-  Ns <- table(factor(zz, levels=K))
-  ##n.uncertain <- colSums(p >= threshold & p <= (1-threshold))
-  ##n.uncertain <- n.uncertain
-  ##frac.uncertain <- n.uncertain/(Ns + 1)
-  frac.uncertain <- colMeans(p >= threshold & p <= (1-threshold))
-  ##
-  ## what fraction of subjects have low posterior probabilities
-  ##
-  cutoff <- params[["proportion.subjects"]]
-  if(all(frac.uncertain < cutoff)){
-    return(K)
+  if(length(modes(model)) > 0){
+    model <- useModes(model)
   }
-  vars <- sigma2(model)
-  if(!isSB(model) && !isPooled(model)){
-    vars <- colMeans(vars)
-  }
-  is_pooled <- length(vars) == 1
-  not_pooled <- !is_pooled
-  index <- which(frac.uncertain >= cutoff)
-  if(not_pooled){
-    ## only relevant for non-pooled models
-    var.ratio <- vars/median(vars)
-    var.ratio <- var.ratio[index]
-    outlier.component <- index[var.ratio > params[["outlier.variance.ratio"]]]
-    if(length(outlier.component) > 1) stop("multiple outlier components")
-  } else var.ratio <- 1
-  ## assume that components are ordered and successive indices should be merged
-  index <- .indices_to_merge(model, index)
-  for(i in index){
-    index2 <- head(index, 2)
-    K[index] <- min(K[index])
-    index <- index[-i]
-    if(length(index) == 0) break()
-  }
-  if(not_pooled){
-    if(length(outlier.component) > 0){
-      ## this prevents collapsing the outlier component with other states
-      K[outlier.component] <- outlier.component
+  K <- seq_len(k(model) - 1)
+  cn.states <- seq_len(k(model))
+  counter <- 1
+  for(j in K){
+    is.merge <- mergeComponents(model, j)
+    if(!is.merge){
+      ## only increment counter when model does not change
+      counter <- counter + 1
+      next()
     }
+    ## model changes
+    cn.states[j+1] <- counter
+    cn.states[ seq_along(cn.states) > (j + 1)] <- cn.states[ seq_along(cn.states) > (j + 1)] - 1
+    mapping(model) <- cn.states
   }
-  K
+  model
 }
+
+
+##  p <- probz(model)
+##  p <- p/rowSums(p)
+##  K <- mapping(model)
+##  threshold <- params[["threshold"]]
+##  ##
+##  ## the denominator should not include observations classified with probability near 1 to
+##  ##
+##  select <- rowSums(p > 0.99) == 0
+##  p <- p[select, , drop=FALSE]
+##  if(nrow(p) == 0) return(K)
+##  zz <- map_z(model)[select]
+##  Ns <- table(factor(zz, levels=K))
+##  ##n.uncertain <- colSums(p >= threshold & p <= (1-threshold))
+##  ##n.uncertain <- n.uncertain
+##  ##frac.uncertain <- n.uncertain/(Ns + 1)
+##  frac.uncertain <- colMeans(p >= threshold & p <= (1-threshold))
+##  ##
+##  ## what fraction of subjects have low posterior probabilities
+##  ##
+##  cutoff <- params[["proportion.subjects"]]
+##  if(all(frac.uncertain < cutoff)){
+##    return(K)
+##  }
+##  vars <- sigma2(model)
+##  if(!isSB(model) && !isPooled(model)){
+##    vars <- colMeans(vars)
+##  }
+##  is_pooled <- length(vars) == 1
+##  not_pooled <- !is_pooled
+##  index <- which(frac.uncertain >= cutoff)
+##  if(not_pooled){
+##    ## only relevant for non-pooled models
+##    var.ratio <- vars/median(vars)
+##    var.ratio <- var.ratio[index]
+##    outlier.component <- index[var.ratio > params[["outlier.variance.ratio"]]]
+##    if(length(outlier.component) > 1) stop("multiple outlier components")
+##  } else var.ratio <- 1
+##  ## assume that components are ordered and successive indices should be merged
+##  index <- .indices_to_merge(model, index)
+##  for(i in index){
+##    index2 <- head(index, 2)
+##    K[index] <- min(K[index])
+##    index <- index[-i]
+##    if(length(index) == 0) break()
+##  }
+##  if(not_pooled){
+##    if(length(outlier.component) > 0){
+##      ## this prevents collapsing the outlier component with other states
+##      K[outlier.component] <- outlier.component
+##    }
+##  }
+##  K
+##}
 
 #' @export
 #' @rdname CopyNumber-methods
@@ -317,25 +453,25 @@ MultiBatchCopyNumberPooled <- function(model){
 #' @aliases CopyNumberModel,SingleBatchModel-method
 setMethod("CopyNumberModel", "SingleBatchModel",
           function(model, params=mapParams()){
-  model.sb <- SingleBatchCopyNumber(model)
-  mapping(model.sb) <- mapComponents(model.sb, params)
-  model.sb
+            model.sb <- SingleBatchCopyNumber(model)
+            model.sb <- mapComponents(model.sb, params)
+            model.sb
 })
 
 #' @rdname CopyNumber-methods
 #' @aliases CopyNumberModel,MultiBatchModel-method
 setMethod("CopyNumberModel", "MultiBatchModel", function(model, params=mapParams()){
   model <- MultiBatchCopyNumber(model)
-  mapping(model) <- mapComponents(model, params)
-  model
+  model.cn <- mapComponents(model, params)
+  model.cn
 })
 
 #' @rdname CopyNumber-methods
 #' @aliases CopyNumberModel,MultiBatchPooled-method
 setMethod("CopyNumberModel", "MultiBatchPooled", function(model, params=mapParams()){
   model <- MultiBatchCopyNumberPooled(model)
-  mapping(model) <- mapComponents(model, params)
-  model
+  model.cn <- mapComponents(model, params)
+  model.cn
 })
 
 #' @export

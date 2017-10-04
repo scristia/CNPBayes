@@ -100,6 +100,7 @@ setAs("SingleBatchPooled", "SingleBatchCopyNumber", function(from, to){
       mcmc.params=mcmcParams(from),
       label_switch=label_switch(from),
       marginal_lik=marginal_lik(from),
+      modes=modes(from),
       .internal.constraint=from@.internal.constraint,
       .internal.counter=from@.internal.counter,
       mapping=numeric(k(from)))
@@ -136,8 +137,11 @@ setAs("MultiBatchPooled", "MultiBatchCopyNumberPooled", function(from, to){
       marginal_lik=marginal_lik(from),
       .internal.constraint=from@.internal.constraint,
       .internal.counter=from@.internal.counter,
-      mapping=numeric(k(from)))
+      mapping=numeric(k(from)),
+      modes=modes(from))
 })
+
+
 
 setAs("SingleBatchModel", "SingleBatchPooled", function(from, to){
   ##hypp <- as(hyperParams(from), "Hyperparameters")

@@ -12,7 +12,7 @@ mapComponents(model, params = mapParams())
 \item{params}{a list of mapping parameters}
 }
 \description{
-Given two mixture components j and j + 1, let N denote the number of subjects with posterior probability of belonging to either component j or j+1 is very high (e.g., > 0.99).  Let M denote the number of subjects that map to only one of these two components with high probability (M < N).  If  M/N is very small, then the mixture components j and j+1 are well separated in terms of the membership probabilities.  If M/N is high (say > 0.5), then these components are not well separated and the mixture components are mapped to the same copy number state.
+Map mixture components to distinct copy number states
 }
 \examples{
 ## Batch model

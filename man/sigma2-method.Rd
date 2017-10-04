@@ -9,7 +9,7 @@
 \alias{sigma2,missing-method}
 \alias{sigma2,MultiBatchModel-method}
 \alias{sigma2,MultiBatchPooled-method}
-\alias{sigma2,MultiBatchModel-method}
+\alias{sigma2,MultiBatchCopyNumberPooled-method}
 \alias{sigma,MultiBatchCopyNumberPooled-method}
 \alias{sigma2,SingleBatchModel-method}
 \title{Retrieve the variances of each component and batch distribution}
@@ -21,6 +21,8 @@ sigma2(object)
 \S4method{sigma2}{MultiBatchModel}(object)
 
 \S4method{sigma2}{MultiBatchPooled}(object)
+
+\S4method{sigma2}{MultiBatchCopyNumberPooled}(object)
 
 \S4method{sigma}{MultiBatchCopyNumberPooled}(object)
 
