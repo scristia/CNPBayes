@@ -650,9 +650,9 @@ gibbs_pooled <- function(hp.list,
 #'
 #' Model types:
 #' SB (SingleBatchModel):  hierarchical model with mixture component-specific means and variances;
-#' MB (MultiBatchModel): hierarchical model with mixture component- and batch-specific means and variances; 
+#' MB (MultiBatchModel): hierarchical model with mixture component- and batch-specific means and variances;
 #' SBP (SingleBatchPooled):  similar to SB model but with a pooled
-#estimate of the variance across all mixture components; 
+#estimate of the variance across all mixture components;
 #' MBP (MultiBatchPooled):  similar to MB model but with a pooled estimate of the variance (across mixture components) for each batch.
 #'
 #' @param model a character vector indicating which models to fit (any combination of 'SB', 'MB', 'SBP', and 'MBP')
@@ -677,7 +677,7 @@ gibbs_pooled <- function(hp.list,
 #Gibbs sampler is restarted. This process is repeated until the
 #effective sample size is greater than 500 and the Gelman Rubin
 #convergence diagnostic is less than 1.2.
-#' 
+#'
 #' The number of mixture models fit depends on \code{k_range} and
 #\code{model}. For example, if \code{model=c("SBP", "MBP")} and
 #\code{k_range=c(1, 4)}, the number of mixture models evaluated will be

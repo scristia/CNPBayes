@@ -326,9 +326,9 @@ tileMedians <- function(y, nt, batch){
       arrange(-spread)
     ## Split tiles with large spread into multiple tiles
     tiles.keep <- tiles2 %>%
-      filter(spread < 0.05)
+      filter(spread < 0.01)
     tiles.drop <- tiles2 %>%
-      filter(spread >= 0.05)
+      filter(spread >= 0.01)
     newtiles <- tiles %>% filter(tile %in% tiles.drop$tile)
     newtiles$tile <- seq_len(nrow(newtiles)) + max(tiles$tile)
     tiles3 <- filter(tiles, tile %in% tiles.keep$tile) %>%
