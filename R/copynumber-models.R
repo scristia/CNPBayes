@@ -117,7 +117,8 @@ setMethod("probCopyNumber", "MultiBatchCopyNumberPooled", function(model){
 
 .relabel_z <- function(object){
   if(!manyToOneMapping(object)) return(z(object))
-  zz <- map_z(object)
+  ##zz <- map_z(object)
+  zz <- z(object)
   map <- mapping(object)
   if(numberStates(object) == 1){
     zz[zz != map[1]] <- map[1]
@@ -273,7 +274,7 @@ isPooled <- function(model){
   } else {
     dens <- dnorm_poly_multibatch(model) %>% filter(component!="overall") %>%
       arrange(component, x) %>%
-      filter(component %in% c(j, j+1))
+      filter(component %in% c(j, j+1)) 
   }
   stats <- dens %>%
     group_by(batch, component) %>%

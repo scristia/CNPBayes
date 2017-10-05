@@ -701,7 +701,12 @@ Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
-  model.slot("loglik") = compute_loglik_batch(xmod) ;
+  NumericVector lls2(1);
+  NumericVector ll(1);
+  lls2 = stageTwoLogLikBatch(xmod);
+  ll = compute_loglik_batch(xmod);
+  ll = ll + lls2;
+  model.slot("loglik") = ll;
   model.slot("logprior") = compute_logprior_batch(xmod) ;
   return xmod ;
   // return vars ;
@@ -741,7 +746,8 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericVector n0(1) ;//nu0
   IntegerVector z(N) ;
   NumericVector s20(1) ; //sigma2_0
-  //  NumericVector mns(1) ;   
+  NumericVector lls2(1) ;  // stage 2 log lik
+  //  NumericVector mns(1) ;
   // NumericVector precs(1) ;
   NumericVector ll(1) ;
   NumericVector lp(1) ;
@@ -780,6 +786,20 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
 
   // start at 1 instead of zero. Initial values are as above
   for(int s = 1; s < S; ++s){
+    if(up[7] > 0){
+      z = update_z_batch(xmod) ;
+      model.slot("z") = z ;
+      tmp = tableZ(K, z) ;
+      model.slot("probz") = update_probz_batch(xmod) ;
+      model.slot("zfreq") = tmp ;
+      // mean and prec only change if z is updated
+      model.slot("data.mean") = compute_means_batch(xmod) ;
+      model.slot("data.prec") = compute_prec_batch(xmod) ;
+    } else {
+      tmp = model.slot("zfreq") ;
+    }
+    Z(s, _) = z ;
+    zfreq(s, _) = tmp ;
     if(up[0] > 0) {
       th = as<Rcpp::NumericVector>(update_theta_batch(xmod));
       model.slot("theta") = th ;
@@ -808,42 +828,30 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       m = model.slot("mu") ;
     }
     mu(s, _) = m ;
-    if(up[4] > 0){    
+    if(up[4] > 0){
       t2 = update_tau2_batch(xmod) ;
       model.slot("tau2") = t2 ;
     } else {
       t2 = model.slot("tau2") ;
     }
     tau2(s, _) = t2 ;
-    if(up[5] > 0){        
+    if(up[5] > 0){
       n0 = update_nu0_batch(xmod) ;
       model.slot("nu.0") = n0 ;
     } else {
       n0 = model.slot("nu.0") ;
     }
     nu0[s] = n0[0] ;
-    if(up[6] > 0){        
+    if(up[6] > 0){
       s20 = update_sigma20_batch(xmod) ;
       model.slot("sigma2.0") = s20 ;
     } else {
       s20 = model.slot("sigma2.0") ;
     }
     sigma2_0[s] = s20[0] ;
-    if(up[7] > 0){
-      z = update_z_batch(xmod) ;
-      model.slot("z") = z ;
-      tmp = tableZ(K, z) ;
-      model.slot("probz") = update_probz_batch(xmod) ;    
-      model.slot("zfreq") = tmp ;
-      // mean and prec only change if z is updated
-      model.slot("data.mean") = compute_means_batch(xmod) ;
-      model.slot("data.prec") = compute_prec_batch(xmod) ;      
-    } else {
-      tmp = model.slot("zfreq") ;
-    }
-    Z(s, _) = z ;
-    zfreq(s, _) = tmp ;    
     ll = compute_loglik_batch(xmod) ;
+    lls2 = stageTwoLogLikBatch(xmod) ;
+    ll = ll + lls2 ;
     loglik_[s] = ll[0] ;
     model.slot("loglik") = ll ;
     lp = compute_logprior_batch(xmod) ;
@@ -851,24 +859,24 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     model.slot("logprior") = lp ;
     // Thinning
     for(int t = 0; t < T; ++t){
+      if(up[7] > 0){
+        model.slot("z") = update_z_batch(xmod) ;
+        model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+      }
       if(up[0] > 0)
         model.slot("theta") = update_theta_batch(xmod) ;
-      if(up[1] > 0)      
+      if(up[1] > 0)
         model.slot("sigma2") = update_sigma2_batch(xmod) ;
       if(up[2] > 0)
         model.slot("pi") = update_p_batch(xmod) ;
-      if(up[3] > 0)      
+      if(up[3] > 0)
         model.slot("mu") = update_mu_batch(xmod) ;
-      if(up[4] > 0)      
+      if(up[4] > 0)
         model.slot("tau2") = update_tau2_batch(xmod) ;
       if(up[5] > 0)
         model.slot("nu.0") = update_nu0_batch(xmod) ;
      if(up[6] > 0)
         model.slot("sigma2.0") = update_sigma20_batch(xmod) ;
-      if(up[7] > 0){
-        model.slot("z") = update_z_batch(xmod) ;
-        model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-      }
       model.slot("data.mean") = compute_means_batch(xmod) ;
       model.slot("data.prec") = compute_prec_batch(xmod) ;
     }
@@ -1071,7 +1079,7 @@ Rcpp::NumericVector p_sigma2_batch(Rcpp::S4 xmod) {
   //
   for(int k=0; k < K; ++k){
     prec(_, k) = 1.0/sigma2star(_, k) ;
-  }  
+  }
   for(int s=0; s < S; ++s){
     s20 = s20chain[s] ;
     nu0 = nu0chain[s] ;
@@ -1087,4 +1095,3 @@ Rcpp::NumericVector p_sigma2_batch(Rcpp::S4 xmod) {
   }
   return p_prec ;
 }
-

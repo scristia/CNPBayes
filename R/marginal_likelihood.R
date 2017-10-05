@@ -270,7 +270,7 @@ blockUpdates <- function(reduced_gibbs, root) {
 #' @seealso \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
 #' @export
 mlParams <- function(root=1/10,
-                     reject.threshold=exp(-1),
+                     reject.threshold=exp(-10),
                      prop.threshold=0.5,
                      prop.effective.size=0.05,
                      ignore.effective.size=FALSE,
@@ -304,7 +304,7 @@ mlParams <- function(root=1/10,
   ## calculate p(x|theta)
   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
   model2 <- useModes(model)
-  stage2.loglik <- stageTwoLogLik(model2)
+  ##stage2.loglik <- stageTwoLogLik(model2)
 
   ## calculate log p(theta)
   logPrior <- modes(model)[["logprior"]]
@@ -325,7 +325,7 @@ mlParams <- function(root=1/10,
   } else correction.factor <- log(factorial(k(model)))
 
   ## calculate log p(x|model)
-  m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
+  m.y <- logLik + logPrior - sum(pstar) +
     correction.factor
   names(m.y) <- paste0("SB", k(model))
   m.y
@@ -414,7 +414,6 @@ effectiveSizeWarning <- function(model){
   # calculate p(x|theta)
   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
   model2 <- useModes(model)
-  stage2.loglik <- stageTwoLogLik_pooled(model2)
 
   # calculate log p(theta)
   logPrior <- modes(model)[["logprior"]]
@@ -429,7 +428,7 @@ effectiveSizeWarning <- function(model){
     correction.factor <- 0
   } else correction.factor <- log(factorial(k(model)))
   ## calculate p(x|model)
-  m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
+  m.y <- logLik + logPrior - sum(pstar) +
     correction.factor
   names(m.y) <- paste0("SBP", k(model))
   m.y
@@ -455,7 +454,6 @@ effectiveSizeWarning <- function(model){
   ## calculate p(x|theta)
   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
   model2 <- useModes(model)
-  stage2.loglik <- stageTwoLogLikBatch(model2)
 
   ## calculate log p(theta)
   logPrior <- modes(model)[["logprior"]]
@@ -469,7 +467,7 @@ effectiveSizeWarning <- function(model){
     correction.factor <- 0
   } else correction.factor <- log(factorial(k(model)))
   ## calculate p(x|model)
-  m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
+  m.y <- logLik + logPrior - sum(pstar) +
     correction.factor
   names(m.y) <- paste0("MB", k(model))
   m.y
@@ -493,7 +491,7 @@ effectiveSizeWarning <- function(model){
   ## calculate p(x|theta)
   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
   model2 <- useModes(model)
-  stage2.loglik <- stageTwoLogLik_pooled(model2)
+  ##stage2.loglik <- stageTwoLogLik_pooled(model2)
 
   ## calculate log p(theta)
   logPrior <- modes(model)[["logprior"]]
@@ -507,7 +505,7 @@ effectiveSizeWarning <- function(model){
     correction.factor <- 0
   } else correction.factor <- log(factorial(k(model)))
   ## calculate p(x|model)
-  m.y <- logLik + stage2.loglik + logPrior - sum(pstar) +
+  m.y <- logLik + logPrior - sum(pstar) +
     correction.factor
   names(m.y) <- paste0("MBP", k(model))
   m.y

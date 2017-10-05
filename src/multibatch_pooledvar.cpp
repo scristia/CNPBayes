@@ -422,7 +422,12 @@ Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
-  model.slot("loglik") = loglik_multibatch_pvar(xmod) ;
+  NumericVector ll(1);
+  NumericVector lls2(1);
+  ll = loglik_multibatch_pvar(xmod);
+  lls2 = stagetwo_multibatch_pvar(xmod);
+  ll = ll + lls2;
+  model.slot("loglik") = ll ;
   model.slot("logprior") = compute_logprior_batch(xmod) ;
   return xmod ;
   // return vars ;
@@ -465,6 +470,7 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   //  NumericVector mns(1) ;
   // NumericVector precs(1) ;
   NumericVector ll(1) ;
+  NumericVector lls2(1) ;
   NumericVector lp(1) ;
   IntegerVector tmp(K) ;
   IntegerVector zf(K) ;
@@ -565,6 +571,8 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     }
     sigma2_0[s] = s20[0] ;
     ll = loglik_multibatch_pvar(xmod) ;
+    lls2 = stagetwo_multibatch_pvar(xmod) ;
+    ll = ll + lls2 ;
     loglik_[s] = ll[0] ;
     model.slot("loglik") = ll ;
     //lp = logprior_multibatch_pvar(xmod) ;

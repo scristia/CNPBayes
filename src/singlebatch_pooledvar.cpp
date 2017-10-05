@@ -88,9 +88,10 @@ Rcpp::NumericVector stageTwoLogLik_pooled(Rcpp::S4 xmod) {
   liknorm = dnorm(theta, mu[0], tau) ;
   likprec = dgamma(sigma2_tilde, 0.5*nu0[0], 1.0/(0.5 * nu0[0] * s20[0])) ;
   NumericVector LL(K) ;
-  for(int k=0; k<K; ++k){
-    LL[K] = log(liknorm[k] * likprec[0]) ;
-  }
+  LL = log(liknorm * likprec[0]);
+  //  for(int k=0; k<K; ++k){
+  //  LL[K] = log(liknorm[k] * likprec[0]) ;
+  //}
   double tmp = 0.0 ;
   for(int k = 0; k < K; k++) {
     tmp += LL[k] ;
@@ -360,7 +361,8 @@ Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
   NumericVector ll = loglik_pooled(xmod) ;
-  NumericVector lls2 = stageTwoLogLik(xmod) ;
+  //NumericVector lls2 = stageTwoLogLik(xmod) ;
+  NumericVector lls2 = stageTwoLogLik_pooled(xmod) ;
   model.slot("loglik") = ll + lls2 ;
   model.slot("logprior") = compute_logprior(xmod) ;
   return xmod ;
@@ -510,8 +512,8 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     }
     sigma2_0[s] = s20[0] ;
     ll = loglik_pooled(xmod) ;
-    lls2 = stageTwoLogLik(xmod) ;
-    // ll = ll + lls2 ;
+    lls2 = stageTwoLogLik_pooled(xmod) ;
+    ll = ll + lls2 ;
     loglik_[s] = ll[0] ;
     model.slot("loglik") = ll ;
     lp = compute_logprior(xmod) ;

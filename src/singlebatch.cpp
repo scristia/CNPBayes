@@ -579,13 +579,13 @@ Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericVector ll = loglik(xmod) ;
   NumericVector lls2 = stageTwoLogLik(xmod) ;
   model.slot("loglik") = ll + lls2 ;
-  model.slot("logprior") = compute_logprior(xmod) ;    
+  model.slot("logprior") = compute_logprior(xmod) ;
   return xmod ;
 }
 
 
 // Function has gotten pretty long. Might be useful to have a separate
-// function whose sole job is to move the chains.  
+// function whose sole job is to move the chains.
 //
 // [[Rcpp::export]]
 Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
@@ -717,7 +717,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("z") = z ;
       tmp = tableZ(K, z) ;
       model.slot("zfreq") = tmp ;
-      model.slot("probz") = compute_probz(xmod) ;          
+      model.slot("probz") = compute_probz(xmod) ;
     } else {
       z = model.slot("z") ;
       tmp = model.slot("zfreq") ;
@@ -728,7 +728,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     model.slot("data.prec") = compute_prec(xmod) ;
     ll = loglik(xmod) ;
     lls2 = stageTwoLogLik(xmod) ;
-    // ll = ll + lls2 ;
+    ll = ll + lls2 ;
     loglik_[s] = ll[0] ;
     model.slot("loglik") = ll ;
     lp = compute_logprior(xmod) ;
@@ -738,11 +738,11 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     for(int t = 0; t < T; ++t){
       if(up[0] > 0)
         model.slot("theta") = update_theta(xmod) ;
-      if(up[1] > 0)      
+      if(up[1] > 0)
         model.slot("sigma2") = update_sigma2(xmod) ;
       if(up[2] > 0)
         model.slot("pi") = update_p(xmod) ;
-      if(up[3] > 0)      
+      if(up[3] > 0)
         model.slot("mu") = update_mu(xmod) ;
       if(up[4] > 0)      
         model.slot("tau2") = update_tau2(xmod) ;

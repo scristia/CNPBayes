@@ -370,7 +370,7 @@ compute_marginal_lik <- function(model, params){
   ##
   if(missing(params)){
     params <- mlParams(root=1/2,
-                       reject.threshold=exp(-1),
+                       reject.threshold=exp(-100),
                        prop.threshold=0.5,
                        prop.effective.size=0)
   }
