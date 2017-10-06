@@ -258,9 +258,12 @@ isPooled <- function(model){
   ## sometimes we have multiple hemizygous deletion components that should be merged
   ##  -- allow a greater separation between components that still merges
   if(!needs.merge){
-    is.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
+    both.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
     needs.merge <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
-                          && is.hemizygous, TRUE, FALSE)
+                          && both.hemizygous, TRUE, FALSE)
+
+    both.homozygous <- all( stats$x.at.maxy < -0.9 )
+    if(both.homozygous) needs.merge <- TRUE
   }
   needs.merge
 }

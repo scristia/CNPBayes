@@ -19,7 +19,7 @@ test_that("test_loglik", {
                                     eta.0=32,
                                     m2.0=0.5)
     mp <- McmcParams(iter=250, burnin=500, nStarts=10)
-    model <- MultiBatchModel2(y(truth), hp, mp, 
+    model <- MultiBatchModel2(y(truth), hp, mp,
                               batches=rep(1:3,
                                           length.out = length(y(truth))))
     ##    model <- MultiBatchModel(data = y(truth),
