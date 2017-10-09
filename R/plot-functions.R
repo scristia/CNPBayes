@@ -716,13 +716,14 @@ multibatch_figure <- function(theoretical, empirical, model){
   scale_fill <- scale_fill_manual(values=colors)
   scale_y <- scale_y_sqrt()
   lrr <- NULL
+  ..count.. <- NULL
   ghist <- geom_histogram(data=empirical, aes(lrr, ..count..), binwidth=0.01, inherit.aes=FALSE)
   gobj <- ggplot() + ghist + facet_wrap(~batch)
   gb <- ggplot_build(gobj)
   ylimit <- gb$layout$panel_ranges[[1]][["y.range"]]
   theoretical.sum <- group_by(theoretical, batch, component) %>%
     summarize(maxy=max(y))
-  theoretical$y <- scales::rescale(theoretical$y, c(0, ylimit[2]))
+  theoretical$y <- rescale(theoretical$y, c(0, ylimit[2]))
   component <- x <- y <- NULL
   gpolygon <-  geom_polygon(aes(x, y, fill=component, color=component), alpha=0.4)
   ggplot(theoretical) +
@@ -776,7 +777,7 @@ multibatch_figure <- function(theoretical, empirical, model){
   scale_col <-  scale_color_manual(values=colors)
   scale_fill <- scale_fill_manual(values=colors)
   scale_y <- scale_y_sqrt()
-  count <- lrr <- NULL
+  ..count.. <- lrr <- NULL
   ghist <- geom_histogram(data=empirical3, aes(lrr, ..count..), binwidth=0.01, inherit.aes=FALSE)
   gobj <- ggplot() + ghist + facet_wrap(~batch)
   gb <- ggplot_build(gobj)

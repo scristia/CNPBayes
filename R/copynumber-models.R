@@ -225,6 +225,7 @@ isPooled <- function(model){
 }
 
 .merge_components <- function(model, j){
+  x <- component.left <- component.right <- NULL
   dens <- dnorm_poly(model) %>% filter(component!="SB") %>%
     as.tibble %>%
     arrange(component, x) %>%

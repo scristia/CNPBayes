@@ -7,6 +7,7 @@
 #' @importFrom GenomeInfoDb seqinfo seqlevels<- seqlevels seqinfo<- seqnames
 #' @import IRanges
 #' @importFrom utils capture.output
+#' @importFrom scales rescale
 #' @import GenomicRanges
 #' @importFrom Rcpp evalCpp
 #' @import S4Vectors
