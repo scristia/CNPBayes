@@ -279,13 +279,25 @@ gelman_rubin <- function(mcmc_list, hp){
   r <- tryCatch(gelman.diag(mcmc_list, autoburnin=FALSE), error=function(e) NULL)
   if(is.null(r)){
     ## gelman rubin can fail if p is not positive definite
-    pcolumn <- match(paste0("p", k(hp)), colnames(mcmc_list[[1]]))
+    ## check also for any parameters that were not updated
+    no_updates <- apply(mcmc_list[[1]], 2, var) == 0
+    pcolumn <- c(which(paste0("p", k(hp)) == colnames(mcmc_list[[1]])),
+                 which(no_updates))
+    if(length(pcolumn) == 0) stop("Gelman Rubin not available. Check chain for anomolies")
     f <- function(x, pcolumn){
       x[, -pcolumn]
     }
     mcmc_list <- map(mcmc_list, f, pcolumn) %>%
       as.mcmc.list
     r <- gelman.diag(mcmc_list, autoburnin=FALSE)
+    if(FALSE){
+      mc <- do.call(rbind, mcmc_list) %>%
+        as.tibble
+      mc$iter <- rep(seq_len(nrow(mcmc_list[[1]])), length(mcmc_list))
+      dat <- gather(mc, key="parameter", value="chain", -iter)
+      ggplot(dat, aes(iter, chain)) + geom_line() +
+        facet_wrap(~parameter, scales="free_y")
+    }
   }
   r
 }

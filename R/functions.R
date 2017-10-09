@@ -300,6 +300,7 @@ permnK <- function(k, maxperm){
 #'   ggMixture(mb2)
 #' @rdname tile-functions
 tileMedians <- function(y, nt, batch){
+  if(any(is.na(y))) stop("NAs found in y-vector")
   yy <- y
   logratio <- x <- obs.index <- NULL
   ##
@@ -309,7 +310,7 @@ tileMedians <- function(y, nt, batch){
   indices <- split(seq_along(y), batch)
   S <- vector("list", length(yb))
   MAX_TILE <- 0
-  for (i in 1:length(yb)) {
+  for (i in seq_along(yb)) {
     x <- yb[[i]]
     batch.id <- names(yb)[i]
     obs.index <- indices[[i]]
@@ -348,7 +349,7 @@ tileMedians <- function(y, nt, batch){
 #' @rdname tile-functions
 #' @export
 tileSummaries <- function(tiles){
-  logratio <- NULL
+  batch <- tile <- logratio <- NULL
   tile.summaries <- tiles %>% group_by(tile) %>%
     summarize(avgLRR=mean(logratio),
               batch=unique(batch))

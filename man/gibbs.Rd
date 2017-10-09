@@ -32,7 +32,7 @@ A list of models of length \code{top} sorted by decreasing
 \description{
 Model types:
 SB (SingleBatchModel):  hierarchical model with mixture component-specific means and variances;
-MB (MultiBatchModel): hierarchical model with mixture component- and batch-specific means and variances; 
+MB (MultiBatchModel): hierarchical model with mixture component- and batch-specific means and variances;
 SBP (SingleBatchPooled):  similar to SB model but with a pooled
 MBP (MultiBatchPooled):  similar to MB model but with a pooled estimate of the variance (across mixture components) for each batch.
 }

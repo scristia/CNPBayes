@@ -12,6 +12,10 @@ context("Down sampling")
                    nStarts=4, thin=10)
   batches <- collapseBatch(dat, names(dat), THR=0.05) %>%
     factor %>% as.integer
+
+  tiles <- tileMedians(dat, 250, batch=batches)
+  tile.sum <- tileSummaries(tiles)
+
   hp.list <- hpList(k=5)
   set.seed(123)
   sb <- SingleBatchPooled(dat=dat, hp=hp.list[["SBP"]], mp=mp)

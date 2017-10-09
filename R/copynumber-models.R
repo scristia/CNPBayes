@@ -295,6 +295,7 @@ isPooled <- function(model){
       filter(y > 0)
     d2 <- filter(dens, component == (j+1) & batch==ubatch[i]) %>%
       filter(y > 0)
+    d1 <- filter(d1, x >= min(d2$x))
     stats2 <- filter(stats, batch == ubatch[i])
     keep <- d1$y <= stats2$max.y[1] &
       d1$x >= stats2$x.at.maxy[1] &
