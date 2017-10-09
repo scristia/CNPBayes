@@ -31,7 +31,8 @@ Imports:
     purrr,
     tidyr,
     dplyr,
-    tibble
+    tibble,
+    scales
 Suggests:
     testthat,
     knitr,
