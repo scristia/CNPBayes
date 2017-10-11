@@ -216,6 +216,14 @@ gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches){
     nswap <- sum(label_swapping)
     if(nswap > 0){
       mp@thin <- as.integer(thin(mp) * 2)
+      if(thin(mp) > 100){
+        mlist <- mcmcList(mod.list)
+        neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
+        if(is.null(neff)) neff <- 0
+        r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
+        if(is.null(r)) r <- list(mpsrf=10)
+        break()
+      }
       message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
       mod.list2 <- replicate(nswap,
                              MultiBatchPooled(dat=dat,
