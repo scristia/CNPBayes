@@ -301,6 +301,10 @@ p_s20_reduced_pooled <- function(xmod) {
     .Call('_CNPBayes_p_s20_reduced_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
+theta_pooled <- function(xmod) {
+    .Call('_CNPBayes_theta_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
 loglik_pooled <- function(xmod) {
     .Call('_CNPBayes_loglik_pooled', PACKAGE = 'CNPBayes', xmod)
 }

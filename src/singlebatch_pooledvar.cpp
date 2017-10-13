@@ -6,6 +6,7 @@
 using namespace Rcpp ;
 
 // update theta for pooled variance model
+// [[Rcpp::export]]
 Rcpp::NumericVector theta_pooled(Rcpp::S4 xmod) {
     RNGScope scope ;
     Rcpp::S4 model(xmod) ;
@@ -27,18 +28,77 @@ Rcpp::NumericVector theta_pooled(Rcpp::S4 xmod) {
     double mu_n = 0.0;
     double w1 = 0.0;
     double w2 = 0.0;
+    NumericVector x = model.slot("data") ;
+    int n = x.size() ;
     NumericVector thetas(K);
 
+    bool heavy=true ;
+    NumericVector u(n);
+
+    if( heavy ){
+      u = rchisq(n, 10) ;
+    }
+    NumericVector sumu = sum(u);
+    // return u;
+    if( heavy ){
+      sigma2_tilde[0] = sigma_tilde[0] / sumu[0] * 10.0 ;
+    }
     for(int k = 0; k < K; ++k) {
-        post_prec = tau2_tilde + sigma2_tilde[0] * nn[k];
-        if (post_prec == R_PosInf) {
-            throw std::runtime_error("Bad simulation. Run again with different start.");
-        }
-        tau_n = sqrt(1/post_prec);
-        w1 = tau2_tilde/post_prec;
-        w2 = nn[k]*sigma2_tilde[0]/post_prec;
-        mu_n = w1*mu + w2*data_mean[k];
-        thetas[k] = as<double>(rnorm(1, mu_n, tau_n));
+      post_prec = tau2_tilde + sigma2_tilde[0] * nn[k];
+      if (post_prec == R_PosInf) {
+        throw std::runtime_error("Bad simulation. Run again with different start.");
+      }
+      tau_n = sqrt(1/post_prec);
+      w1 = tau2_tilde/post_prec;
+      w2 = nn[k]*sigma2_tilde[0]/post_prec;
+      mu_n = w1*mu + w2*data_mean[k];
+      thetas[k] = as<double>(rnorm(1, mu_n, tau_n));
+    }
+    return thetas;
+}
+
+
+// [[Rcpp::export]]
+Rcpp::NumericVector theta_heavy(Rcpp::S4 xmod) {
+    RNGScope scope ;
+    Rcpp::S4 model(xmod) ;
+    NumericVector theta = model.slot("theta") ;
+    double tau2 = model.slot("tau2") ;
+    double tau2_tilde = 1/tau2 ;
+    NumericVector sigma2 = model.slot("sigma2") ;
+    NumericVector data_mean = model.slot("data.mean") ;
+    NumericVector sigma2_tilde = 1.0/sigma2 ;
+    IntegerVector z = model.slot("z");
+    int K = getK(model.slot("hyperparams"));
+    double mu = model.slot("mu");
+    //
+    // Initialize nn, vector of component-wise sample size
+    //
+    IntegerVector nn = tableZ(K, z) ;
+    double post_prec = 1.0;
+    double tau_n = 0.0;
+    double mu_n = 0.0;
+    double w1 = 0.0;
+    double w2 = 0.0;
+    NumericVector x = model.slot("data") ;
+    int n = x.size() ;
+    NumericVector thetas(K);
+    NumericVector u(n);
+
+    u = rchisq(n, 10) ;
+    NumericVector sumu = sum(u);
+    // return u;
+    sigma2_tilde[0] = sigma_tilde[0] / sumu[0] * 10.0 ;
+    for(int k = 0; k < K; ++k) {
+      post_prec = tau2_tilde + sigma2_tilde[0] * nn[k];
+      if (post_prec == R_PosInf) {
+        throw std::runtime_error("Bad simulation. Run again with different start.");
+      }
+      tau_n = sqrt(1/post_prec);
+      w1 = tau2_tilde/post_prec;
+      w2 = nn[k]*sigma2_tilde[0]/post_prec;
+      mu_n = w1*mu + w2*data_mean[k];
+      thetas[k] = as<double>(rnorm(1, mu_n, tau_n));
     }
     return thetas;
 }

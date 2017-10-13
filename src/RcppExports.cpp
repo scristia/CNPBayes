@@ -836,6 +836,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// theta_pooled
+Rcpp::NumericVector theta_pooled(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_theta_pooled(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(theta_pooled(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // loglik_pooled
 Rcpp::NumericVector loglik_pooled(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_loglik_pooled(SEXP xmodSEXP) {
@@ -1402,6 +1413,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_p_nu0_reduced_pooled", (DL_FUNC) &_CNPBayes_p_nu0_reduced_pooled, 1},
     {"_CNPBayes_reduced_s20_pooled", (DL_FUNC) &_CNPBayes_reduced_s20_pooled, 1},
     {"_CNPBayes_p_s20_reduced_pooled", (DL_FUNC) &_CNPBayes_p_s20_reduced_pooled, 1},
+    {"_CNPBayes_theta_pooled", (DL_FUNC) &_CNPBayes_theta_pooled, 1},
     {"_CNPBayes_loglik_pooled", (DL_FUNC) &_CNPBayes_loglik_pooled, 1},
     {"_CNPBayes_stageTwoLogLik_pooled", (DL_FUNC) &_CNPBayes_stageTwoLogLik_pooled, 1},
     {"_CNPBayes_multinomialPr_pooled", (DL_FUNC) &_CNPBayes_multinomialPr_pooled, 1},
