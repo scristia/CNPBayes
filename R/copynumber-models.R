@@ -134,7 +134,20 @@ setMethod("probCopyNumber", "MultiBatchCopyNumberPooled", function(model){
 #' @aliases copyNumber,SingleBatchCopyNumber-method
 #' @rdname copyNumber
 setMethod("copyNumber", "SingleBatchCopyNumber", function(object){
-  .relabel_z(object)
+  cn <- .relabel_z(object)
+  ## only necessary for models with unequal variances
+  tab <- tibble(y=y(object), cn=cn)
+  cn.range <- tab %>%
+    group_by(cn) %>%
+    summarize(miny=min(y),
+              maxy=max(y))
+  K <- max(cn)
+  k <- 1
+  while(k < K){
+    cn[ tab$y < cn.range$maxy[k] & cn == k+1 ] <- k
+    k <- k+1
+  }
+  cn
 })
 
 #' @aliases copyNumber,MultiBatchCopyNumber-method
