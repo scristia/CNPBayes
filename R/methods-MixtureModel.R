@@ -818,6 +818,8 @@ setMethod("marginal_lik", "MixtureModel", function(object){
   object@marginal_lik
 })
 
+#' @aliases marginal_lik<-,MixtureModel,numeric-method
+#' @rdname marginal_lik
 setReplaceMethod("marginal_lik", c("MixtureModel", "numeric"),
                  function(object, value){
                    object@marginal_lik <- value

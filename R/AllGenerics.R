@@ -771,6 +771,8 @@ setGeneric("label_switch<-", function(object, value) standardGeneric("label_swit
 #' marginal_lik(sb)
 setGeneric("marginal_lik", function(object) standardGeneric("marginal_lik"))
 
+#' @export
+#' @rdname marginal_lik
 setGeneric("marginal_lik<-", function(object, value) standardGeneric("marginal_lik<-"))
 
 setGeneric("updateZ", function(object) standardGeneric("updateZ"))

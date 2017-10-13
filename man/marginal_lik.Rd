@@ -3,12 +3,18 @@
 \docType{methods}
 \name{marginal_lik}
 \alias{marginal_lik}
+\alias{marginal_lik<-}
 \alias{marginal_lik,MixtureModel-method}
+\alias{marginal_lik<-,MixtureModel,numeric-method}
 \title{Accessor for the log marginal likelihood of a SB, SBP, MB, or MBP model}
 \usage{
 marginal_lik(object)
 
+marginal_lik(object) <- value
+
 \S4method{marginal_lik}{MixtureModel}(object)
+
+\S4method{marginal_lik}{MixtureModel,numeric}(object) <- value
 }
 \arguments{
 \item{object}{a SB, SBP, MB, or MBP model}
