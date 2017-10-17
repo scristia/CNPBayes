@@ -134,36 +134,38 @@ setMethod("probCopyNumber", "MultiBatchCopyNumberPooled", function(model){
 #' @aliases copyNumber,SingleBatchCopyNumber-method
 #' @rdname copyNumber
 setMethod("copyNumber", "SingleBatchCopyNumber", function(object){
-  cn <- .relabel_z(object)
-  ## only necessary for models with unequal variances
   tab <- tibble(y=y(object), cn=cn, z=z(object), theta=round(theta(object)[z(object)], 3))
-
   thetas <- matrix(theta(object), nrow=length(y(object)),
-               ncol=length(theta(object)), byrow=TRUE)
-  nearest_mode <- abs(y(object)-thetas) %>% as.tibble %>%
+                   ncol=length(theta(object)), byrow=TRUE)
+  ## Define z* (a candidate for a new z) to be the nearest mode
+  z.candidate <- abs(y(object)-thetas) %>% as.tibble %>%
     apply(1, which.min)
-  tab <- tibble(y=y(object), cn=cn, z=z(object),
-                theta=round(theta(object)[z(object)], 3),
-                nearest_mode=nearest_mode)
-
-  %>%
-    apply(1, which.min)
-
-  tab <- tibble(y=y(object), d1=y(object)-theta(object))
-  cn.range <- tab %>%
-    ##group_by(cn) %>%
-    group_by(z) %>%
-    summarize(miny=min(y),
-              maxy=max(y),
-              theta=unique(theta),
-              cn=unique(cn),
-              nearest_mode=) 
-  K <- max(cn)
-  k <- 1
-  while(k < K){
-    cn[ tab$y < cn.range$maxy[k] & cn == k+1 ] <- k
-    k <- k+1
-  }
+  tab <- tibble(y=y(object),
+                theta=theta(object)[z(object)],
+                theta.star=theta(object)[z.candidate])
+  condition1 <- with(tab,
+                     theta <= y & y <= theta.star)
+  condition2 <- with(tab,
+                     theta.star <= y & y <= theta)
+  zstar <- ifelse(condition1 | condition2, z(object), z.candidate)
+  object@z <- zstar
+  cn <- .relabel_z(object)
+##  ## only necessary for models with unequal variances
+##  ##tab %>% filter(z != zstar)
+##  cn.range <- tab %>%
+##    ##group_by(cn) %>%
+##    group_by(z) %>%
+##    summarize(miny=min(y),
+##              maxy=max(y),
+##              theta=unique(theta),
+##              cn=unique(cn),
+##              nearest_mode=) 
+##  K <- max(cn)
+##  k <- 1
+##  while(k < K){
+##    cn[ tab$y < cn.range$maxy[k] & cn == k+1 ] <- k
+##    k <- k+1
+##  }
   cn
 })
 
