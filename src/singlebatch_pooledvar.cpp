@@ -247,6 +247,39 @@ Rcpp::NumericMatrix multinomialPr_pooled(Rcpp::S4 xmod) {
   return probs ;
 }
 
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix multinomialPr_heavy(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  NumericVector theta = model.slot("theta") ;
+  NumericVector sigma2 = model.slot("sigma2") ;
+  NumericVector sigma = sqrt(sigma2) ;
+  NumericVector p = model.slot("pi") ;
+  NumericVector x = model.slot("data") ;
+  int n = x.size() ;
+  NumericMatrix lik(n, K) ;
+  NumericMatrix probs(n, K) ;
+  NumericVector tmp(n) ;
+  NumericVector total(n) ;
+  for(int k = 0; k < K; k++) {
+    // FIX THIS LINE
+    tmp = p[k]*dnorm(x, theta[k], sigma[0]) ;
+    for(int i = 0; i < n; i++){
+      lik(i, k) = tmp[i] ;
+    }
+    total += tmp ;
+  }
+  for(int k = 0; k < K; k++){
+    for(int i = 0; i < n; i++){
+      probs(i, k) = lik(i,k) / total[i] ;
+    }
+  }
+  return probs ;
+}
+
 // Be smarter about assigning samples to a component with zero or one
 // observations
 // [[Rcpp::export]]
