@@ -5,6 +5,58 @@
 
 using namespace Rcpp ;
 
+// MOVE THIS
+// [[Rcpp::export]]
+Rcpp::NumericVector compute_heavy_means(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  NumericVector x = model.slot("data") ;
+  int n = x.size() ;
+  IntegerVector z = model.slot("z") ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  // IntegerVector nn = model.slot("zfreq") ;
+  IntegerVector nn = tableZ(K, z) ;
+  NumericVector means( K ) ;
+  NumericVector u = model.slot("u") ;
+  x = x * u ;
+  for(int i = 0; i < n; i++){
+    for(int k = 0; k < K; k++){
+      if(z[i] == k+1){
+        means[k] += x[i] ;
+      }
+    }
+  }
+  for(int k = 0; k < K; k++){
+    means[k] /= nn[k] ;
+  }
+  return means ;
+}
+
+
+// MOVE THIS
+// [[Rcpp::export]]
+Rcpp::NumericVector compute_u_means(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  NumericVector x = model.slot("data") ;
+  int n = x.size() ;
+  IntegerVector z = model.slot("z") ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  // IntegerVector nn = model.slot("zfreq") ;
+  NumericVector sums( K ) ;
+  NumericVector u = model.slot("u") ;
+  for(int i = 0; i < n; i++){
+    for(int k = 0; k < K; k++){
+      if(z[i] == k+1){
+        sums[k] += u[i] ;
+      }
+    }
+  }
+  return sums ;
+}
+
 // update theta for pooled variance model
 // [[Rcpp::export]]
 Rcpp::NumericVector theta_pooled(Rcpp::S4 xmod) {
@@ -32,17 +84,6 @@ Rcpp::NumericVector theta_pooled(Rcpp::S4 xmod) {
     int n = x.size() ;
     NumericVector thetas(K);
 
-    bool heavy=true ;
-    NumericVector u(n);
-
-    if( heavy ){
-      u = rchisq(n, 10) ;
-    }
-    NumericVector sumu = sum(u);
-    // return u;
-    if( heavy ){
-      sigma2_tilde[0] = sigma_tilde[0] / sumu[0] * 10.0 ;
-    }
     for(int k = 0; k < K; ++k) {
       post_prec = tau2_tilde + sigma2_tilde[0] * nn[k];
       if (post_prec == R_PosInf) {
@@ -66,7 +107,7 @@ Rcpp::NumericVector theta_heavy(Rcpp::S4 xmod) {
     double tau2 = model.slot("tau2") ;
     double tau2_tilde = 1/tau2 ;
     NumericVector sigma2 = model.slot("sigma2") ;
-    NumericVector data_mean = model.slot("data.mean") ;
+    //NumericVector data_mean = model.slot("data.mean") ;
     NumericVector sigma2_tilde = 1.0/sigma2 ;
     IntegerVector z = model.slot("z");
     int K = getK(model.slot("hyperparams"));
@@ -83,12 +124,12 @@ Rcpp::NumericVector theta_heavy(Rcpp::S4 xmod) {
     NumericVector x = model.slot("data") ;
     int n = x.size() ;
     NumericVector thetas(K);
-    NumericVector u(n);
+    NumericVector u = model.slot("u") ;
+    NumericVector data_mean =  compute_heavy_means(xmod) ;
 
-    u = rchisq(n, 10) ;
-    NumericVector sumu = sum(u);
+    // NumericVector sumu = sum(u);
     // return u;
-    sigma2_tilde[0] = sigma_tilde[0] / sumu[0] * 10.0 ;
+    //sigma2_tilde[0] = sigma_tilde[0] / sumu[0] * 10.0 ;
     for(int k = 0; k < K; ++k) {
       post_prec = tau2_tilde + sigma2_tilde[0] * nn[k];
       if (post_prec == R_PosInf) {

@@ -301,8 +301,20 @@ p_s20_reduced_pooled <- function(xmod) {
     .Call('_CNPBayes_p_s20_reduced_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
+compute_heavy_means <- function(xmod) {
+    .Call('_CNPBayes_compute_heavy_means', PACKAGE = 'CNPBayes', xmod)
+}
+
+compute_u_means <- function(xmod) {
+    .Call('_CNPBayes_compute_u_means', PACKAGE = 'CNPBayes', xmod)
+}
+
 theta_pooled <- function(xmod) {
     .Call('_CNPBayes_theta_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+theta_heavy <- function(xmod) {
+    .Call('_CNPBayes_theta_heavy', PACKAGE = 'CNPBayes', xmod)
 }
 
 loglik_pooled <- function(xmod) {
