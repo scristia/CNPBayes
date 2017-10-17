@@ -836,6 +836,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// compute_heavy_sums
+Rcpp::NumericVector compute_heavy_sums(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_compute_heavy_sums(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_heavy_sums(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // compute_heavy_means
 Rcpp::NumericVector compute_heavy_means(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_compute_heavy_means(SEXP xmodSEXP) {
@@ -847,14 +858,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// compute_u_means
-Rcpp::NumericVector compute_u_means(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_compute_u_means(SEXP xmodSEXP) {
+// compute_u_sums
+Rcpp::NumericVector compute_u_sums(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_compute_u_sums(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_u_means(xmod));
+    rcpp_result_gen = Rcpp::wrap(compute_u_sums(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -954,6 +965,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(sigma2_pooled(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sigma2_heavy
+Rcpp::NumericVector sigma2_heavy(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_sigma2_heavy(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(sigma2_heavy(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1446,8 +1468,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_p_nu0_reduced_pooled", (DL_FUNC) &_CNPBayes_p_nu0_reduced_pooled, 1},
     {"_CNPBayes_reduced_s20_pooled", (DL_FUNC) &_CNPBayes_reduced_s20_pooled, 1},
     {"_CNPBayes_p_s20_reduced_pooled", (DL_FUNC) &_CNPBayes_p_s20_reduced_pooled, 1},
+    {"_CNPBayes_compute_heavy_sums", (DL_FUNC) &_CNPBayes_compute_heavy_sums, 1},
     {"_CNPBayes_compute_heavy_means", (DL_FUNC) &_CNPBayes_compute_heavy_means, 1},
-    {"_CNPBayes_compute_u_means", (DL_FUNC) &_CNPBayes_compute_u_means, 1},
+    {"_CNPBayes_compute_u_sums", (DL_FUNC) &_CNPBayes_compute_u_sums, 1},
     {"_CNPBayes_theta_pooled", (DL_FUNC) &_CNPBayes_theta_pooled, 1},
     {"_CNPBayes_theta_heavy", (DL_FUNC) &_CNPBayes_theta_heavy, 1},
     {"_CNPBayes_loglik_pooled", (DL_FUNC) &_CNPBayes_loglik_pooled, 1},
@@ -1457,6 +1480,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_nu0_pooled", (DL_FUNC) &_CNPBayes_nu0_pooled, 1},
     {"_CNPBayes_sigma2_0_pooled", (DL_FUNC) &_CNPBayes_sigma2_0_pooled, 1},
     {"_CNPBayes_sigma2_pooled", (DL_FUNC) &_CNPBayes_sigma2_pooled, 1},
+    {"_CNPBayes_sigma2_heavy", (DL_FUNC) &_CNPBayes_sigma2_heavy, 1},
     {"_CNPBayes_burnin_singlebatch_pooled", (DL_FUNC) &_CNPBayes_burnin_singlebatch_pooled, 2},
     {"_CNPBayes_mcmc_singlebatch_pooled", (DL_FUNC) &_CNPBayes_mcmc_singlebatch_pooled, 2},
     {"_CNPBayes_marginal_theta", (DL_FUNC) &_CNPBayes_marginal_theta, 1},

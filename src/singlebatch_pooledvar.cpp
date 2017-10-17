@@ -7,7 +7,7 @@ using namespace Rcpp ;
 
 // MOVE THIS
 // [[Rcpp::export]]
-Rcpp::NumericVector compute_heavy_means(Rcpp::S4 xmod) {
+Rcpp::NumericVector compute_heavy_sums(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   NumericVector x = model.slot("data") ;
@@ -16,19 +16,32 @@ Rcpp::NumericVector compute_heavy_means(Rcpp::S4 xmod) {
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   // IntegerVector nn = model.slot("zfreq") ;
-  IntegerVector nn = tableZ(K, z) ;
-  NumericVector means( K ) ;
+  
+  NumericVector sums( K ) ;
   NumericVector u = model.slot("u") ;
   x = x * u ;
   for(int i = 0; i < n; i++){
     for(int k = 0; k < K; k++){
       if(z[i] == k+1){
-        means[k] += x[i] ;
+        sums[k] += x[i] ;
       }
     }
   }
+  return sums ;
+}
+
+// MOVE THIS
+// [[Rcpp::export]]
+Rcpp::NumericVector compute_heavy_means(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  IntegerVector z = model.slot("z") ;
+  int K = getK(hypp) ;
+  IntegerVector nn = tableZ(K, z) ;
+  NumericVector means = compute_heavy_sums(xmod) ;
   for(int k = 0; k < K; k++){
-    means[k] /= nn[k] ;
+    means[k] = means[k] / nn[k] ;
   }
   return means ;
 }
@@ -36,7 +49,7 @@ Rcpp::NumericVector compute_heavy_means(Rcpp::S4 xmod) {
 
 // MOVE THIS
 // [[Rcpp::export]]
-Rcpp::NumericVector compute_u_means(Rcpp::S4 xmod) {
+Rcpp::NumericVector compute_u_sums(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   NumericVector x = model.slot("data") ;
@@ -115,7 +128,7 @@ Rcpp::NumericVector theta_heavy(Rcpp::S4 xmod) {
     //
     // Initialize nn, vector of component-wise sample size
     //
-    IntegerVector nn = tableZ(K, z) ;
+    IntegerVector counts = tableZ(K, z) ;
     double post_prec = 1.0;
     double tau_n = 0.0;
     double mu_n = 0.0;
@@ -126,7 +139,9 @@ Rcpp::NumericVector theta_heavy(Rcpp::S4 xmod) {
     NumericVector thetas(K);
     NumericVector u = model.slot("u") ;
     NumericVector data_mean =  compute_heavy_means(xmod) ;
-
+    NumericVector sumu = compute_u_sums(xmod) ;
+    NumericVector nn(K) ;
+    nn = as<NumericVector>(counts)  * sumu ;
     // NumericVector sumu = sum(u);
     // return u;
     //sigma2_tilde[0] = sigma_tilde[0] / sumu[0] * 10.0 ;
@@ -277,26 +292,6 @@ Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
     return zz ;
   }
   //
-  // Reassign two samples with highest probability of belonging to missing component
-  //
-//  int j = 0;
-//  //return zz ;
-//  for(int k = 0; k < K; ++k){
-//    if( freq[k] >= 2 ) continue ;
-//    NumericVector u2 = cumP(_, k) ;
-//    double tmp = sum(u2) ;
-//    u2 = u2 / tmp ;
-//    NumericVector cumprob = cumsum( u2 );
-//    NumericVector u3 = runif( 2 ) ;
-//    // IntegerVector index(2) ;
-//    for(int i = 0; i < n; i++){
-//      if(u3[j] > cumprob[i]) continue ;
-//      zz[i] = k + 1 ;
-//      j += 1 ;
-//      if(j > 1) break ;
-//    }
-//  }
-  //
   // Don't update z if there are states with zero frequency
   //
   int counter = model.slot(".internal.counter");
@@ -409,6 +404,45 @@ Rcpp::NumericVector sigma2_pooled(Rcpp::S4 xmod) {
         while (k <= K) {
             if ( z[i] == k + 1 ) {
               ss[0] += pow(x[i] - theta[k], 2.0);
+              break;
+            }
+            k++;
+        }
+    }
+    Rcpp::NumericVector sigma2_new(1);
+    double sigma2_n = 1.0 / (0.5*(nu_0 * sigma2_0 + ss[0])) ;
+    sigma2_new[0] = 1.0 / Rcpp::as<double>(rgamma(1, nu_n[0], sigma2_n)) ;
+    return sigma2_new ;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericVector sigma2_heavy(Rcpp::S4 xmod) {
+    Rcpp::RNGScope scope;
+    // get model
+    Rcpp::S4 model(xmod);
+
+    // get parameter estimates
+    Rcpp::NumericVector theta = model.slot("theta");
+    Rcpp::IntegerVector z = model.slot("z");
+    double nu_0 = model.slot("nu.0");
+    double sigma2_0 = model.slot("sigma2.0");
+
+    // get data and size attributes
+    Rcpp::NumericVector x = model.slot("data");
+    Rcpp::S4 hypp(model.slot("hyperparams"));
+    int K = theta.size();
+    int n = x.size();
+    NumericVector u = model.slot("u") ;
+
+    Rcpp::NumericVector nu_n(1) ;
+    nu_n[0] = 0.5*(nu_0 + n);
+    Rcpp::NumericVector ss(1);
+    ss[0] = 0.0 ;
+    for(int i = 0; i < n; i++){
+        int k = 0;
+        while (k <= K) {
+            if ( z[i] == k + 1 ) {
+              ss[0] += u[i] * pow(x[i] - theta[k], 2.0);
               break;
             }
             k++;

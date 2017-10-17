@@ -301,12 +301,16 @@ p_s20_reduced_pooled <- function(xmod) {
     .Call('_CNPBayes_p_s20_reduced_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
+compute_heavy_sums <- function(xmod) {
+    .Call('_CNPBayes_compute_heavy_sums', PACKAGE = 'CNPBayes', xmod)
+}
+
 compute_heavy_means <- function(xmod) {
     .Call('_CNPBayes_compute_heavy_means', PACKAGE = 'CNPBayes', xmod)
 }
 
-compute_u_means <- function(xmod) {
-    .Call('_CNPBayes_compute_u_means', PACKAGE = 'CNPBayes', xmod)
+compute_u_sums <- function(xmod) {
+    .Call('_CNPBayes_compute_u_sums', PACKAGE = 'CNPBayes', xmod)
 }
 
 theta_pooled <- function(xmod) {
@@ -343,6 +347,10 @@ sigma2_0_pooled <- function(xmod) {
 
 sigma2_pooled <- function(xmod) {
     .Call('_CNPBayes_sigma2_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+sigma2_heavy <- function(xmod) {
+    .Call('_CNPBayes_sigma2_heavy', PACKAGE = 'CNPBayes', xmod)
 }
 
 burnin_singlebatch_pooled <- function(object, mcmcp) {
