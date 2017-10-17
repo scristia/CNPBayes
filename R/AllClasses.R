@@ -244,7 +244,16 @@ setClass("MultiBatchModel", contains="MixtureModel")
 setClass("SingleBatchModel", contains="MixtureModel")
 
 
+
 setClass("SingleBatchPooled", contains="SingleBatchModel")
+
+## SB ## single batch
+## SBP ## single batch pooled
+## SBt ## single batch, t-
+## SBPt ##
+setClass("SBPt", contains="SingleBatchPooled",
+         representation(u="numeric"))
+
 
 setClass("MultiBatchPooled", contains="MultiBatchModel")
 
