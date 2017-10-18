@@ -264,9 +264,12 @@ Rcpp::NumericMatrix multinomialPr_heavy(Rcpp::S4 xmod) {
   NumericMatrix probs(n, K) ;
   NumericVector tmp(n) ;
   NumericVector total(n) ;
+  //
+  // For testing -- should pass df from model as user-defined parameter.
+  double df = 10;
+
   for(int k = 0; k < K; k++) {
-    // FIX THIS LINE
-    tmp = p[k]*dnorm(x, theta[k], sigma[0]) ;
+    tmp = p[k]*dlocScale_t(x, df, theta[k], sigma[0]) ;
     for(int i = 0; i < n; i++){
       lik(i, k) = tmp[i] ;
     }

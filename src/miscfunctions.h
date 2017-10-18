@@ -18,6 +18,9 @@ double exp_rs(double a, double b);
 double rnorm_trunc (double mu, double sigma, double lower, double upper);
 
 // Simulate from scale-location t-distribution
+Rcpp::NumericVector dlocScale_t(Rcpp::NumericVector x, double df,
+        double mu, double sigma);
+
 // Rob
 Rcpp::IntegerVector tableZ(int K, Rcpp::IntegerVector z) ;
 #endif
