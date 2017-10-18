@@ -134,7 +134,9 @@ setMethod("probCopyNumber", "MultiBatchCopyNumberPooled", function(model){
 #' @aliases copyNumber,SingleBatchCopyNumber-method
 #' @rdname copyNumber
 setMethod("copyNumber", "SingleBatchCopyNumber", function(object){
-  tab <- tibble(y=y(object), cn=cn, z=z(object), theta=round(theta(object)[z(object)], 3))
+  cn <- .relabel_z(object)
+  tab <- tibble(y=y(object), cn=cn, z=z(object),
+                theta=round(theta(object)[z(object)], 3))
   thetas <- matrix(theta(object), nrow=length(y(object)),
                    ncol=length(theta(object)), byrow=TRUE)
   ## Define z* (a candidate for a new z) to be the nearest mode
