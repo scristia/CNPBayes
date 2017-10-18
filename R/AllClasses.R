@@ -252,7 +252,8 @@ setClass("SingleBatchPooled", contains="SingleBatchModel")
 ## SBt ## single batch, t-
 ## SBPt ##
 setClass("SBPt", contains="SingleBatchPooled",
-         representation(u="numeric"))
+         representation(u="numeric",
+                        df="numeric"))
 
 
 setClass("MultiBatchPooled", contains="MultiBatchModel")

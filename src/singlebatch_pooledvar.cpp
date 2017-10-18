@@ -138,8 +138,11 @@ Rcpp::NumericVector theta_heavy(Rcpp::S4 xmod) {
     int n = x.size() ;
     NumericVector thetas(K);
     NumericVector u = model.slot("u") ;
+    double df = model.slot("df") ;
     NumericVector data_mean =  compute_heavy_means(xmod) ;
+    data_mean =  data_mean/df ;
     NumericVector sumu = compute_u_sums(xmod) ;
+    sumu = sumu/df ;
     NumericVector nn(K) ;
     nn = as<NumericVector>(counts)  * sumu ;
     // NumericVector sumu = sum(u);
@@ -264,9 +267,7 @@ Rcpp::NumericMatrix multinomialPr_heavy(Rcpp::S4 xmod) {
   NumericMatrix probs(n, K) ;
   NumericVector tmp(n) ;
   NumericVector total(n) ;
-  //
-  // For testing -- should pass df from model as user-defined parameter.
-  double df = 10;
+  double df = model.slot("df") ;
 
   for(int k = 0; k < K; k++) {
     tmp = p[k]*dlocScale_t(x, df, theta[k], sigma[0]) ;
@@ -469,6 +470,7 @@ Rcpp::NumericVector sigma2_heavy(Rcpp::S4 xmod) {
     int K = theta.size();
     int n = x.size();
     NumericVector u = model.slot("u") ;
+    double df = model.slot("df") ;
 
     Rcpp::NumericVector nu_n(1) ;
     nu_n[0] = 0.5*(nu_0 + n);
@@ -485,7 +487,7 @@ Rcpp::NumericVector sigma2_heavy(Rcpp::S4 xmod) {
         }
     }
     Rcpp::NumericVector sigma2_new(1);
-    double sigma2_n = 1.0 / (0.5*(nu_0 * sigma2_0 + ss[0])) ;
+    double sigma2_n = 1.0 / (0.5*(nu_0 * sigma2_0 + ss[0]/df)) ;
     sigma2_new[0] = 1.0 / Rcpp::as<double>(rgamma(1, nu_n[0], sigma2_n)) ;
     return sigma2_new ;
 }
