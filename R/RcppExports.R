@@ -5,6 +5,10 @@ rMultinom <- function(probs, m) {
     .Call('_CNPBayes_rMultinom', PACKAGE = 'CNPBayes', probs, m)
 }
 
+dlocScale_t <- function(x, df, mu, sigma) {
+    .Call('_CNPBayes_dlocScale_t', PACKAGE = 'CNPBayes', x, df, mu, sigma)
+}
+
 tableZ <- function(K, z) {
     .Call('_CNPBayes_tableZ', PACKAGE = 'CNPBayes', K, z)
 }
@@ -331,6 +335,10 @@ stageTwoLogLik_pooled <- function(xmod) {
 
 multinomialPr_pooled <- function(xmod) {
     .Call('_CNPBayes_multinomialPr_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+multinomialPr_heavy <- function(xmod) {
+    .Call('_CNPBayes_multinomialPr_heavy', PACKAGE = 'CNPBayes', xmod)
 }
 
 z_pooled <- function(xmod) {

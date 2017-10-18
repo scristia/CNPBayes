@@ -17,6 +17,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// dlocScale_t
+NumericVector dlocScale_t(NumericVector x, double df, double mu, double sigma);
+RcppExport SEXP _CNPBayes_dlocScale_t(SEXP xSEXP, SEXP dfSEXP, SEXP muSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type df(dfSEXP);
+    Rcpp::traits::input_parameter< double >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(dlocScale_t(x, df, mu, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
 // tableZ
 IntegerVector tableZ(int K, IntegerVector z);
 RcppExport SEXP _CNPBayes_tableZ(SEXP KSEXP, SEXP zSEXP) {
@@ -924,6 +938,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// multinomialPr_heavy
+Rcpp::NumericMatrix multinomialPr_heavy(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_multinomialPr_heavy(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(multinomialPr_heavy(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // z_pooled
 Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_z_pooled(SEXP xmodSEXP) {
@@ -1394,6 +1419,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_rMultinom", (DL_FUNC) &_CNPBayes_rMultinom, 2},
+    {"_CNPBayes_dlocScale_t", (DL_FUNC) &_CNPBayes_dlocScale_t, 4},
     {"_CNPBayes_tableZ", (DL_FUNC) &_CNPBayes_tableZ, 2},
     {"_CNPBayes_theta_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_theta_multibatch_pvar_red, 1},
     {"_CNPBayes_sigma_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_sigma_multibatch_pvar_red, 1},
@@ -1476,6 +1502,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_loglik_pooled", (DL_FUNC) &_CNPBayes_loglik_pooled, 1},
     {"_CNPBayes_stageTwoLogLik_pooled", (DL_FUNC) &_CNPBayes_stageTwoLogLik_pooled, 1},
     {"_CNPBayes_multinomialPr_pooled", (DL_FUNC) &_CNPBayes_multinomialPr_pooled, 1},
+    {"_CNPBayes_multinomialPr_heavy", (DL_FUNC) &_CNPBayes_multinomialPr_heavy, 1},
     {"_CNPBayes_z_pooled", (DL_FUNC) &_CNPBayes_z_pooled, 1},
     {"_CNPBayes_nu0_pooled", (DL_FUNC) &_CNPBayes_nu0_pooled, 1},
     {"_CNPBayes_sigma2_0_pooled", (DL_FUNC) &_CNPBayes_sigma2_0_pooled, 1},

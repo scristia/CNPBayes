@@ -228,6 +228,13 @@ int change;
 }
 
 // [[Rcpp::export]]
+NumericVector dlocScale_t(NumericVector x, double df, double mu, double sigma) {
+    double coef = gamma((df + 1.0)/2.0)/(sigma*sqrt(df*PI)*gamma(df/2.0));
+    NumericVector d = coef*pow(1 + pow(x - mu, 2.0)/(df * sigma), -(df+2)/2);
+    return d;
+}
+
+// [[Rcpp::export]]
 IntegerVector tableZ(int K, IntegerVector z){
   IntegerVector nn(K) ;
   for(int k = 0; k < K; k++){
