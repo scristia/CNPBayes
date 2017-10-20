@@ -153,6 +153,7 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot label_switch length-one logical indicating problems with label switching
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
+#' @exportClass
 setClass("MixtureModel", representation("VIRTUAL",
                                         k = "integer",
                                         hyperparams="Hyperparameters",
@@ -209,6 +210,7 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
+#' @exportClass
 setClass("MultiBatchModel", contains="MixtureModel")
 
 
@@ -241,23 +243,29 @@ setClass("MultiBatchModel", contains="MixtureModel")
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
+#' @exportClass
 setClass("SingleBatchModel", contains="MixtureModel")
 
 
+#' @exportClass
 setClass("SingleBatchPooled", contains="SingleBatchModel")
 
+#' @exportClass
 setClass("MultiBatchPooled", contains="MultiBatchModel")
 
 setClass("UnivariateBatchModel", contains="MultiBatchModel")
 
+#' @exportClass
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
          representation(mapping="numeric"))
 
 # setClass("MultiBatchCopyNumber", contains="BatchModel",
 #          representation(mapping="numeric"))
 
+#' @exportClass
 setClass("MultiBatchCopyNumber", contains="MultiBatchModel",
          representation(mapping="numeric"))
 
+#' @exportClass
 setClass("MultiBatchCopyNumberPooled", contains="MultiBatchModel",
          representation(mapping="numeric"))
