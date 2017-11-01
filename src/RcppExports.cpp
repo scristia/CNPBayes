@@ -851,13 +851,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // compute_heavy_sums
-Rcpp::NumericVector compute_heavy_sums(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_compute_heavy_sums(SEXP xmodSEXP) {
+Rcpp::NumericVector compute_heavy_sums(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_compute_heavy_sums(SEXP objectSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_heavy_sums(xmod));
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_heavy_sums(object));
     return rcpp_result_gen;
 END_RCPP
 }

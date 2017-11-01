@@ -60,6 +60,7 @@ Collate:
     'methods-MultiBatchModel.R'
     'methods-MultiBatchPooled.R'
     'methods-SingleBatchModel.R'
+    'methods-SBPt.R'
     'methods-SingleBatchPooled.R'
     'methods-SummarizedExperiment.R'
     'model_initialization.R'

@@ -7,8 +7,9 @@ using namespace Rcpp ;
 
 // MOVE THIS
 // [[Rcpp::export]]
-Rcpp::NumericVector compute_heavy_sums(Rcpp::S4 xmod) {
+Rcpp::NumericVector compute_heavy_sums(Rcpp::S4 object) {
   RNGScope scope ;
+  Rcpp::S4 xmod = clone(object) ;
   Rcpp::S4 model(xmod) ;
   NumericVector x = model.slot("data") ;
   int n = x.size() ;
