@@ -305,8 +305,8 @@ p_s20_reduced_pooled <- function(xmod) {
     .Call('_CNPBayes_p_s20_reduced_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
-compute_heavy_sums <- function(xmod) {
-    .Call('_CNPBayes_compute_heavy_sums', PACKAGE = 'CNPBayes', xmod)
+compute_heavy_sums <- function(object) {
+    .Call('_CNPBayes_compute_heavy_sums', PACKAGE = 'CNPBayes', object)
 }
 
 compute_heavy_means <- function(xmod) {

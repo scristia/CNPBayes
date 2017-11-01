@@ -913,3 +913,7 @@ setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 setGeneric("copyNumber", function(object) standardGeneric("copyNumber"))
 
 setGeneric("mergeComponents", function(model, j) standardGeneric("mergeComponents"))
+
+setGeneric("df", function(object) standardGeneric("df"))
+setGeneric("df<-", function(object, value) standardGeneric("df<-"))
+setGeneric("u", function(object) standardGeneric("u"))
