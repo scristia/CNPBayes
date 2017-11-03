@@ -1,7 +1,6 @@
 #include "miscfunctions.h" // for rdirichlet, tableZ, ...
 #include "singlebatch.h"
 #include "singlebatch_pooledvar.h"
-#include "update.h"
 #include <Rcpp.h>
 
 using namespace Rcpp;

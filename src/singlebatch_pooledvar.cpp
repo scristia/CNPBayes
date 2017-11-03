@@ -1,75 +1,9 @@
-#include "update.h" // getK
-#include "singlebatch.h" // getK
 #include "miscfunctions.h" // for rdirichlet, tableZ, ...
+#include "singlebatch.h" // getK
 #include <Rmath.h>
 
 using namespace Rcpp ;
 
-// MOVE THIS
-// [[Rcpp::export]]
-Rcpp::NumericVector compute_heavy_sums(Rcpp::S4 object) {
-  RNGScope scope ;
-  Rcpp::S4 xmod = clone(object) ;
-  Rcpp::S4 model(xmod) ;
-  NumericVector x = model.slot("data") ;
-  int n = x.size() ;
-  IntegerVector z = model.slot("z") ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  // IntegerVector nn = model.slot("zfreq") ;
-  
-  NumericVector sums( K ) ;
-  NumericVector u = model.slot("u") ;
-  x = x * u ;
-  for(int i = 0; i < n; i++){
-    for(int k = 0; k < K; k++){
-      if(z[i] == k+1){
-        sums[k] += x[i] ;
-      }
-    }
-  }
-  return sums ;
-}
-
-// MOVE THIS
-// [[Rcpp::export]]
-Rcpp::NumericVector compute_heavy_means(Rcpp::S4 xmod) {
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  IntegerVector z = model.slot("z") ;
-  int K = getK(hypp) ;
-  IntegerVector nn = tableZ(K, z) ;
-  NumericVector means = compute_heavy_sums(xmod) ;
-  for(int k = 0; k < K; k++){
-    means[k] = means[k] / nn[k] ;
-  }
-  return means ;
-}
-
-
-// MOVE THIS
-// [[Rcpp::export]]
-Rcpp::NumericVector compute_u_sums(Rcpp::S4 xmod) {
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  NumericVector x = model.slot("data") ;
-  int n = x.size() ;
-  IntegerVector z = model.slot("z") ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  // IntegerVector nn = model.slot("zfreq") ;
-  NumericVector sums( K ) ;
-  NumericVector u = model.slot("u") ;
-  for(int i = 0; i < n; i++){
-    for(int k = 0; k < K; k++){
-      if(z[i] == k+1){
-        sums[k] += u[i] ;
-      }
-    }
-  }
-  return sums ;
-}
 
 // update theta for pooled variance model
 // [[Rcpp::export]]

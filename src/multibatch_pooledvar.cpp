@@ -1,4 +1,3 @@
-#include "update.h" // for rdirichlet
 #include "miscfunctions.h" // for rdirichlet
 #include "multibatch.h" // getK
 #include <Rmath.h>
