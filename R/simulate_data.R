@@ -76,9 +76,10 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
 #'                       theta=c(-1, 0, 1),
 #'                       sds=rep(0.1, 3))
 #' @export
-simulateData <- function(N, p, theta, sds){
+simulateData <- function(N, p, theta, sds, df=10){
   zz <- simulateZ(N, p)
-  y <- rnorm(N, theta[zz], sds[zz])
+  y <- rnorm(N, theta[zz], sds[zz]/sqrt(rchisq(N, df)/df))
+#   y <- rnorm(N, theta[zz], sds[zz])
   ##object <- SingleBatchModel(data=y, k=length(theta))
   object <- SingleBatchModel2(dat=y, hp=hpList(k=length(theta))[["SB"]])
   z(object) <- as.integer(factor(zz, levels=unique(sort(zz))))

@@ -296,7 +296,8 @@ Rcpp::IntegerVector z_pooled(Rcpp::S4 xmod) {
   NumericVector x = model.slot("data") ;
   int n = x.size() ;
   NumericMatrix p(n, K);
-  p = multinomialPr_pooled(xmod) ;
+  // p = multinomialPr_pooled(xmod) ;
+  p = multinomialPr_heavy(xmod) ;
   NumericMatrix cumP(n, K);
   for(int i=0; i < n; i++){
     for(int k = 0; k < K; k++){
@@ -519,8 +520,10 @@ Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     model.slot("data.prec") = compute_prec(xmod) ;
     if(up[0] > 0)
       model.slot("theta") = theta_pooled(xmod) ;
+    //  model.slot("theta") = theta_pooled(xmod) ;
     if(up[1] > 0)
-      model.slot("sigma2") = sigma2_pooled(xmod) ;
+      model.slot("sigma2") = sigma2_heavy(xmod) ;
+    // model.slot("sigma2") = sigma2_pooled(xmod) ;
     if(up[2] > 0)
       model.slot("pi") = update_p(xmod) ;
     if(up[3] > 0)
@@ -702,9 +705,9 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("data.mean") = compute_means(xmod) ;
       model.slot("data.prec") = compute_prec(xmod) ;
       if(up[0] > 0)
-        model.slot("theta") = theta_pooled(xmod) ;
+        model.slot("theta") = theta_heavy(xmod) ;
       if(up[1] > 0)
-        model.slot("sigma2") = sigma2_pooled(xmod) ;
+        model.slot("sigma2") = sigma2_heavy(xmod) ;
       if(up[2] > 0)
         model.slot("pi") = update_p(xmod) ;
       if(up[3] > 0)
