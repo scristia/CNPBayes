@@ -273,8 +273,16 @@ full_theta_pooled <- function(xmod) {
     .Call('_CNPBayes_full_theta_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
+full_theta_pooled_heavy <- function(xmod) {
+    .Call('_CNPBayes_full_theta_pooled_heavy', PACKAGE = 'CNPBayes', xmod)
+}
+
 reduced_sigma_pooled <- function(xmod) {
     .Call('_CNPBayes_reduced_sigma_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_sigma_pooled_heavy <- function(xmod) {
+    .Call('_CNPBayes_reduced_sigma_pooled_heavy', PACKAGE = 'CNPBayes', xmod)
 }
 
 p_sigma_reduced_pooled <- function(xmod) {
