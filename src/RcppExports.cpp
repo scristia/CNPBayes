@@ -16,6 +16,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getDf
+double getDf(Rcpp::S4 hyperparams);
+RcppExport SEXP _CNPBayes_getDf(SEXP hyperparamsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type hyperparams(hyperparamsSEXP);
+    rcpp_result_gen = Rcpp::wrap(getDf(hyperparams));
+    return rcpp_result_gen;
+END_RCPP
+}
 // tableZ
 Rcpp::IntegerVector tableZ(int K, Rcpp::IntegerVector z);
 RcppExport SEXP _CNPBayes_tableZ(SEXP KSEXP, SEXP zSEXP) {
@@ -762,17 +773,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// full_theta_pooled_heavy
-Rcpp::NumericVector full_theta_pooled_heavy(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_full_theta_pooled_heavy(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(full_theta_pooled_heavy(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
 // reduced_sigma_pooled
 Rcpp::S4 reduced_sigma_pooled(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_reduced_sigma_pooled(SEXP xmodSEXP) {
@@ -781,17 +781,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(reduced_sigma_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_sigma_pooled_heavy
-Rcpp::S4 reduced_sigma_pooled_heavy(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_sigma_pooled_heavy(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_sigma_pooled_heavy(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1441,6 +1430,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_getK", (DL_FUNC) &_CNPBayes_getK, 1},
+    {"_CNPBayes_getDf", (DL_FUNC) &_CNPBayes_getDf, 1},
     {"_CNPBayes_tableZ", (DL_FUNC) &_CNPBayes_tableZ, 2},
     {"_CNPBayes_rMultinom", (DL_FUNC) &_CNPBayes_rMultinom, 2},
     {"_CNPBayes_dlocScale_t", (DL_FUNC) &_CNPBayes_dlocScale_t, 4},
@@ -1508,9 +1498,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_reduced_z_theta_fixed", (DL_FUNC) &_CNPBayes_reduced_z_theta_fixed, 1},
     {"_CNPBayes_p_sigma2_batch", (DL_FUNC) &_CNPBayes_p_sigma2_batch, 1},
     {"_CNPBayes_full_theta_pooled", (DL_FUNC) &_CNPBayes_full_theta_pooled, 1},
-    {"_CNPBayes_full_theta_pooled_heavy", (DL_FUNC) &_CNPBayes_full_theta_pooled_heavy, 1},
     {"_CNPBayes_reduced_sigma_pooled", (DL_FUNC) &_CNPBayes_reduced_sigma_pooled, 1},
-    {"_CNPBayes_reduced_sigma_pooled_heavy", (DL_FUNC) &_CNPBayes_reduced_sigma_pooled_heavy, 1},
     {"_CNPBayes_p_sigma_reduced_pooled", (DL_FUNC) &_CNPBayes_p_sigma_reduced_pooled, 1},
     {"_CNPBayes_reduced_pi_pooled", (DL_FUNC) &_CNPBayes_reduced_pi_pooled, 1},
     {"_CNPBayes_p_pmix_reduced_pooled", (DL_FUNC) &_CNPBayes_p_pmix_reduced_pooled, 1},

@@ -12,6 +12,12 @@ int getK(Rcpp::S4 hyperparams) {
 }
 
 // [[Rcpp::export]]
+double getDf(Rcpp::S4 hyperparams) {
+  double df = hyperparams.slot("dfr");
+  return df;
+}
+
+// [[Rcpp::export]]
 Rcpp::IntegerVector tableZ(int K, Rcpp::IntegerVector z){
   Rcpp::IntegerVector nn(K) ;
   for(int k = 0; k < K; k++){

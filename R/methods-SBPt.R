@@ -62,8 +62,7 @@ setMethod("computeLoglik", "SBPt", function(object){
                 label_switch=FALSE,
                 marginal_lik=as.numeric(NA),
                 .internal.constraint=5e-4,
-                .internal.counter=0L,
-                df=8L)
+                .internal.counter=0L)
   chains(object) <- McmcChains(object)
   object
 }
@@ -127,6 +126,7 @@ SBPt <- function(dat=numeric(),
     if(iter > 50) stop("Trouble initializing valid model. Try increasing the burnin")
   }
   sbp <- as(sb, "SBPt")
+  dfr(sbp) <- hp@dfr
   mcmcParams(sbp) <- mp
   sbp <- sortComponentLabels(sbp)
   log_lik(sbp) <- loglik_pooled(sbp)
@@ -141,17 +141,14 @@ setValidity("SingleBatchPooled", function(object){
   TRUE
 })
 
-#' @rdname df-method
-#' @aliases df,SBPt-method
-setMethod("df", "SBPt", function(object) object@df )
 setMethod("u", "SBPt", function(object) object@u )
 
-setReplaceMethod("df", "SBPt", function(object, value) {
-                     object@df <- value
+#' @rdname dfr-method
+#' @aliases dfr,SBPt-method
+setMethod("dfr", "SBPt", function(object) object@hyperparams@dfr )
+
+setReplaceMethod("dfr", "SBPt", function(object, value) {
+                     object@hyperparams@dfr <- value
                      object@u <- rchisq(length(y(object)), value)
                      object
 })
-# 
-# setMethod("simChiSq", "SBPt", function(object) {
-#               object@u <- rchisq(length(y(object), df(object)))
-# })

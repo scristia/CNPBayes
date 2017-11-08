@@ -914,6 +914,8 @@ setGeneric("copyNumber", function(object) standardGeneric("copyNumber"))
 
 setGeneric("mergeComponents", function(model, j) standardGeneric("mergeComponents"))
 
-setGeneric("df", function(object) standardGeneric("df"))
-setGeneric("df<-", function(object, value) standardGeneric("df<-"))
+### t-distribution stuff
+setGeneric("dfr", function(object) standardGeneric("dfr"))
+setGeneric("dfr<-", function(object, value) standardGeneric("dfr<-"))
 setGeneric("u", function(object) standardGeneric("u"))
+

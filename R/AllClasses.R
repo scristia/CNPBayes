@@ -23,7 +23,8 @@ setClass("Hyperparameters", representation(k="integer",
                                            alpha="numeric",
                                            beta="numeric",
                                            a="numeric",
-                                           b="numeric"))
+                                           b="numeric",
+                                           dfr="numeric"))
 
 #' An object to specify the hyperparameters of a marginal model.
 #'
@@ -254,8 +255,7 @@ setClass("SingleBatchPooled", contains="SingleBatchModel")
 ## SBt ## single batch, t-
 ## SBPt ##
 setClass("SBPt", contains="SingleBatchPooled",
-         representation(u="numeric",
-                        df="numeric"))
+         representation(u="numeric"))
 
 
 setClass("MultiBatchPooled", contains="MultiBatchModel")

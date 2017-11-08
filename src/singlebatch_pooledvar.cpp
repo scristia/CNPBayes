@@ -73,7 +73,7 @@ Rcpp::NumericVector theta_heavy(Rcpp::S4 xmod) {
     int n = x.size() ;
     NumericVector thetas(K);
     NumericVector u = model.slot("u") ;
-    double df = model.slot("df") ;
+    double df = getDf(model.slot("hyperparams")) ;
     NumericVector data_mean =  compute_heavy_means(xmod) ;
     data_mean =  data_mean/df ;
     NumericVector sumu = compute_u_sums(xmod) ;
@@ -108,6 +108,7 @@ Rcpp::NumericVector loglik_pooled(Rcpp::S4 xmod) {
   NumericVector sigma2 = model.slot("sigma2") ;
   NumericVector sigma = sqrt(sigma2) ;
   int n = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
   //double lik;
   NumericVector loglik(1) ;
   loglik[0] = 0.0 ;
@@ -115,7 +116,8 @@ Rcpp::NumericVector loglik_pooled(Rcpp::S4 xmod) {
   NumericVector lik(n);
   // Below is equivalent to rowSums(lik) in .loglikMarginal
   for(int k = 0; k < K; k++) {
-    lik += p[k]*dnorm(x, theta[k], sigma[0]);
+    //lik += p[k]*dnorm(x, theta[k], sigma[0]);
+    lik += p[k]*dlocScale_t(x, df, theta[k], sigma[0]);
   }
   for(int i = 0; i < n; i++){
     loglik[0] += log(lik[i]);
@@ -202,7 +204,7 @@ Rcpp::NumericMatrix multinomialPr_heavy(Rcpp::S4 xmod) {
   NumericMatrix probs(n, K) ;
   NumericVector tmp(n) ;
   NumericVector total(n) ;
-  double df = model.slot("df") ;
+  double df = getDf(hypp) ;
 
   for(int k = 0; k < K; k++) {
     tmp = p[k]*dlocScale_t(x, df, theta[k], sigma[0]) ;
@@ -406,7 +408,7 @@ Rcpp::NumericVector sigma2_heavy(Rcpp::S4 xmod) {
     int K = theta.size();
     int n = x.size();
     NumericVector u = model.slot("u") ;
-    double df = model.slot("df") ;
+    double df = getDf(model.slot("hyperparams")) ;
 
     Rcpp::NumericVector nu_n(1) ;
     nu_n[0] = 0.5*(nu_0 + n);
@@ -497,6 +499,8 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   int S = params.slot("iter") ;
   if( S < 1 ) return xmod ;
   NumericVector x = model.slot("data") ;
+  double df = getDf(model.slot("hyperparams")) ;
+  NumericVector u = model.slot("u") ;
   int N = x.size() ;
   NumericMatrix theta = chain.slot("theta") ;
   NumericMatrix sigma2 = chain.slot("sigma2") ;
@@ -653,6 +657,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       if(up[6] > 0)
         model.slot("sigma2.0") = sigma2_0_pooled(xmod) ;
     }
+    model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   //
   // assign chains back to object

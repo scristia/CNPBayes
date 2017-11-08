@@ -10,6 +10,7 @@ Rcpp::NumericVector getData(Rcpp::S4 model);
 
 // Access hyperparameters
 int getK(Rcpp::S4 hyperparams);
+double getDf(Rcpp::S4 hyperparams);
 Rcpp::NumericVector getMu(Rcpp::S4 hyperparams);
 Rcpp::NumericVector getTau2(Rcpp::S4 hyperparams);
 Rcpp::IntegerVector getAlpha(Rcpp::S4 hyperparams);

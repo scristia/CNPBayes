@@ -29,19 +29,23 @@ test_that("sigma2_heavy", {
                         sds = c(0.3/sqrt(10), 0.15/sqrt(10), 0.15/sqrt(10)),
                         p = c(0.005, 1/10, 1 - 0.005 - 1/10),
                         df=10)
-  truth <- simulateData(N = 1000, theta = c(-2, -0.2, 0),
-                        sds = c(0.3, 0.15, 0.15),
-                        p = c(0.005, 1/10, 1 - 0.005 - 1/10),
-                        df=100)
+#   truth <- simulateData(N = 1000, theta = c(-2, -0.2, 0),
+#                         sds = c(0.3, 0.15, 0.15),
+#                         p = c(0.005, 1/10, 1 - 0.005 - 1/10),
+#                         df=100)
 #   truth <- simulateData(N = 1000, theta = 0, sds = 0.15, p = 1, df=100)
   mp <- McmcParams(iter = 10, burnin = 10)
-  mp <- McmcParams(iter = 1000, burnin = 100)
-  hp <- Hyperparameters(k=3)
+  mp <- McmcParams(iter = 5000, burnin = 500)
+  hp <- Hyperparameters(k=3, dfr=10)
   model <- SBPt(y(truth), hp, mp)
-  df(model) <- 10
   model <- .posteriorSimulation2(model)
+x <- seq(-2.5, 2, length.out=1000)
 hist(y(truth), breaks=200, freq=FALSE)
-lines(seq(-0.4, 0.8, length.out=1000), dlocScale_t(seq(-0.4, 0.8, length.out=1000), 10, 0, 0.05))
+thetas <- apply(theta(chains(model)), 2, mean)
+thetas <- theta(model2)
+lines(x, p(model)[1]*dlocScale_t(x, dfr(model), thetas[1], sqrt(sigma2(model))))
+lines(x, p(model)[2]*dlocScale_t(x, dfr(model), thetas[2], sqrt(sigma2(model))))
+lines(x, p(model)[3]*dlocScale_t(x, dfr(model), thetas[3], sqrt(sigma2(model))))
   set.seed(1223)
   (s2.cpp <- sigma2_heavy(model))
 #   (s2.cpp <- sigma2_pooled(model))

@@ -105,7 +105,8 @@ HyperparametersMultiBatch <- function(k=3L,
                                  alpha,
                                  beta=0.1, ## mean is 1/10
                                  a=1.8,
-                                 b=6){
+                                 b=6,
+                                 dfr=100){
   if(missing(alpha)) alpha <- rep(1, k)
   new("HyperparametersMultiBatch",
       k=as.integer(k),
@@ -116,7 +117,8 @@ HyperparametersMultiBatch <- function(k=3L,
       alpha=alpha,
       beta=beta,
       a=a,
-      b=b)
+      b=b,
+      dfr=dfr)
 }
 
 
@@ -164,7 +166,8 @@ HyperparametersSingleBatch <- function(k=0L,
                                     alpha,
                                     beta=0.1, ## mean is 1/10
                                     a=1.8,
-                                    b=6){
+                                    b=6,
+                                    dfr=100){
   if(missing(alpha)) alpha <- rep(1, k)
   ##if(missing(tau2)) tau2 <- rep(1, k)
   new("HyperparametersSingleBatch",
@@ -176,7 +179,8 @@ HyperparametersSingleBatch <- function(k=0L,
       alpha=alpha,
       beta=beta,
       a=a,
-      b=b)
+      b=b,
+      dfr=dfr)
 }
 
 setValidity("Hyperparameters", function(object){
@@ -235,6 +239,14 @@ setReplaceMethod("alpha", "Hyperparameters", function(object, value){
   object@alpha <- value
   object
 })
+
+#' @rdname dfr-method
+#' @aliases dfr,SBPt-method
+setMethod("dfr", "Hyperparameters", function(object) object@dfr )
+
+# setReplaceMethod("dfr", "Hyperparameters", function(object, value) {
+#                      object@dfr <- value
+# })
 
 setMethod("show", "Hyperparameters", function(object){
   cat("An object of class 'Hyperparameters'\n")
