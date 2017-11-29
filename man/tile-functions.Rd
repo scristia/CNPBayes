@@ -6,7 +6,6 @@
 \alias{upSample}
 \alias{tileMedians}
 \alias{tileSummaries}
-\alias{upSample,MultiBatchModel-method}
 \alias{upSample,MixtureModel-method}
 \title{Create tile labels for each observation}
 \usage{
@@ -15,8 +14,6 @@ upSample(model, tiles)
 tileMedians(y, nt, batch)
 
 tileSummaries(tiles)
-
-\S4method{upSample}{MultiBatchModel}(model, tiles)
 
 \S4method{upSample}{MixtureModel}(model, tiles)
 }
