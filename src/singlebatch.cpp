@@ -12,6 +12,58 @@ Rcpp::IntegerVector ordertheta_(Rcpp::NumericVector x) {
   return match(x, sorted) ;
 }
 
+// create accessor functions for s4 slots
+// Update theta in marginal model
+// [[Rcpp::export]]
+Rcpp::NumericVector update_theta(Rcpp::S4 xmod) {
+    RNGScope scope ;
+    Rcpp::S4 model(xmod) ;
+    NumericVector theta = model.slot("theta") ;
+    double tau2 = model.slot("tau2") ;
+    double tau2_tilde = 1/tau2 ;
+    NumericVector sigma2 = model.slot("sigma2") ;
+    //NumericVector data_mean = model.slot("data.mean") ;
+    NumericVector sigma2_tilde = 1.0/sigma2 ;
+    IntegerVector z = model.slot("z");
+    int K = getK(model.slot("hyperparams"));
+    double mu_prior = model.slot("mu");
+
+    //
+    // Initialize nn, vector of component-wise sample size
+    //
+    // IntegerVector nn = tableZ(K, z) ;
+    IntegerVector counts = tableZ(K, z) ;
+    NumericVector u = model.slot("u") ;
+    double df = getDf(model.slot("hyperparams")) ;
+    NumericVector data_mean =  compute_heavy_means(xmod) ;
+    data_mean =  data_mean/df ;
+    NumericVector sumu = compute_u_sums(xmod) ;
+    sumu = sumu/df ;
+    NumericVector nn(K) ;
+    nn = as<NumericVector>(counts)  * sumu ;
+
+    double post_prec;
+    double tau_n;
+    double mu_n;
+    double w1;
+    double w2;
+    NumericVector thetas(K);
+
+    for(int k = 0; k < K; ++k) {
+        post_prec = tau2_tilde + sigma2_tilde[k] * nn[k];
+        if (post_prec == R_PosInf) {
+            throw std::runtime_error("Bad simulation. Run again with different start.");
+        }
+        tau_n = sqrt(1/post_prec);
+        w1 = tau2_tilde/post_prec;
+        w2 = nn[k]*sigma2_tilde[k]/post_prec;
+        mu_n = w1*mu_prior + w2*data_mean[k];
+        thetas[k] = as<double>(rnorm(1, mu_n, tau_n));
+    }
+    return thetas;
+}
+
+
 // [[Rcpp::export]]
 Rcpp::NumericVector loglik(Rcpp::S4 xmod) {
   RNGScope scope ;
@@ -23,13 +75,14 @@ Rcpp::NumericVector loglik(Rcpp::S4 xmod) {
   NumericVector sigma2 = model.slot("sigma2") ;
   NumericVector sigma = sqrt(sigma2) ;
   int n = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
   //double lik;
   NumericVector loglik(1) ;
   NumericVector y(1);
   NumericVector lik(n);
   // Below is equivalent to rowSums(lik) in .loglikMarginal
   for(int k = 0; k < K; k++) {
-    lik += p[k]*dnorm(x, theta[k], sigma[k]);
+    lik += p[k]*dlocScale_t(x, df, theta[k], sigma[k]);
   }
   for(int i = 0; i < n; i++){
     loglik[0] += log(lik[i]);
@@ -271,8 +324,10 @@ Rcpp::NumericMatrix update_multinomialPr(Rcpp::S4 xmod) {
   NumericMatrix probs(n, K) ;
   NumericVector tmp(n) ;
   NumericVector total(n) ;
+  double df = getDf(hypp) ;
+
   for(int k = 0; k < K; k++) {
-    tmp = p[k]*dnorm(x, theta[k], sigma[k]) ;
+    tmp = p[k]*dlocScale_t(x, df, theta[k], sigma[0]) ;
     for(int i = 0; i < n; i++){
       lik(i, k) = tmp[i] ;
     }
@@ -464,6 +519,8 @@ Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod) {
     Rcpp::S4 hypp(model.slot("hyperparams"));
     int K = theta.size();
     int n = x.size();
+    NumericVector u = model.slot("u") ;
+    double df = getDf(model.slot("hyperparams")) ;
 
     Rcpp::NumericVector nu_n(K);
     Rcpp::IntegerVector nn = model.slot("zfreq");
@@ -479,7 +536,7 @@ Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod) {
 
         while (k <= K) {
             if ( z[i] == k + 1 ) {
-                ss[k] += pow(x[i] - theta[k], 2.0);
+                ss[k] += u[i] * pow(x[i] - theta[k], 2.0);
                 break;
             }
 
@@ -491,7 +548,7 @@ Rcpp::NumericVector update_sigma2(Rcpp::S4 xmod) {
     NumericVector sigma2_new(K);
 
     for (int k = 0; k < K; k++) {
-        sigma2_n = 1.0 / nu_n[k] * (nu_0 * sigma2_0 + ss[k]);
+        sigma2_n = 1.0 / nu_n[k] * (nu_0 * sigma2_0 + ss[k]/df);
         sigma2_new[k] = 1.0 / Rcpp::as<double>(Rcpp::rgamma(1, 0.5 * nu_n[k], 1.0 / (0.5 * nu_n[k] * sigma2_n)));
     }
 

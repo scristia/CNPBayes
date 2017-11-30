@@ -1248,6 +1248,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// update_theta
+Rcpp::NumericVector update_theta(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_theta(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_theta(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // loglik
 Rcpp::NumericVector loglik(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_loglik(SEXP xmodSEXP) {
@@ -1541,6 +1552,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_p_nu0_reduced", (DL_FUNC) &_CNPBayes_p_nu0_reduced, 1},
     {"_CNPBayes_reduced_s20", (DL_FUNC) &_CNPBayes_reduced_s20, 1},
     {"_CNPBayes_p_s20_reduced", (DL_FUNC) &_CNPBayes_p_s20_reduced, 1},
+    {"_CNPBayes_update_theta", (DL_FUNC) &_CNPBayes_update_theta, 1},
     {"_CNPBayes_loglik", (DL_FUNC) &_CNPBayes_loglik, 1},
     {"_CNPBayes_log_ddirichlet_", (DL_FUNC) &_CNPBayes_log_ddirichlet_, 2},
     {"_CNPBayes_stageTwoLogLik", (DL_FUNC) &_CNPBayes_stageTwoLogLik, 1},

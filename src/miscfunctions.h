@@ -2,7 +2,6 @@
 #define _miscfunctions_H
 #include <Rcpp.h>
 
-Rcpp::NumericVector update_theta(Rcpp::S4 xmod);
 
 // Access model values
 Rcpp::IntegerVector getZ(Rcpp::S4 model);

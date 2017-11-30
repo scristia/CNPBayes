@@ -449,6 +449,10 @@ p_s20_reduced <- function(xmod) {
     .Call('_CNPBayes_p_s20_reduced', PACKAGE = 'CNPBayes', xmod)
 }
 
+update_theta <- function(xmod) {
+    .Call('_CNPBayes_update_theta', PACKAGE = 'CNPBayes', xmod)
+}
+
 loglik <- function(xmod) {
     .Call('_CNPBayes_loglik', PACKAGE = 'CNPBayes', xmod)
 }

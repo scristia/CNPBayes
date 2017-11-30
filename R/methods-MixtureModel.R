@@ -857,3 +857,15 @@ setMethod("upSample", "MixtureModel", function(model, tiles){
   z(model2) <- z(model)[key]
   model2
 })
+
+setMethod("u", "MixtureModel", function(object) object@u )
+
+#' @rdname dfr-method
+#' @aliases dfr,SBPt-method
+setMethod("dfr", "MixtureModel", function(object) object@hyperparams@dfr )
+
+setReplaceMethod("dfr", "MixtureModel", function(object, value) {
+                     object@hyperparams@dfr <- value
+                     object@u <- rchisq(length(y(object)), value)
+                     object
+})

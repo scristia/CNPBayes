@@ -15,6 +15,7 @@ NULL
              nu.0=numeric(1),
              sigma2.0=numeric(1),
              pi=numeric(K),
+             u=numeric(0),
              data=numeric(0),
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
@@ -39,47 +40,49 @@ NULL
 .SingleBatchModel2 <- function(dat=numeric(), hp=Hyperparameters(),
                               mp=McmcParams(iter=1000, burnin=1000,
                                             thin=10, nStarts=4)){
-  if(length(dat) == 0){
-    return(.empty_singlebatch_model(hp, mp))
-  }
-  K <- k(hp)
-  ##mu <- rnorm(1, mu.0(hp), sqrt(tau2.0(hp)))
-  mu <- rnorm(1, median(dat), sd(dat)) 
-  tau2 <- 1/rgamma(1, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
-  p <- rdirichlet(1, alpha(hp))[1, ]
-  theta <- sort(rnorm(k(hp), mu, sqrt(tau2)))
-  nu.0 <- 3.5
-  sigma2.0 <- 0.25
-  sigma2 <- 1/rgamma(k(hp), 0.5 * nu.0, 0.5 * nu.0 * sigma2.0)
-  object <- new("SingleBatchModel",
-                k=as.integer(K),
-                hyperparams=hp,
-                theta=theta,
-                sigma2=sigma2,
-                mu=mu,
-                tau2=tau2,
-                nu.0=nu.0,
-                sigma2.0=sigma2.0,
-                pi=p,
-                data=dat,
-                data.mean=numeric(K),
-                data.prec=numeric(K),
-                z=integer(length(dat)),
-                zfreq=integer(K),
-                probz=matrix(0, length(dat), K),
-                logprior=numeric(1),
-                loglik=numeric(1),
-                mcmc.chains=McmcChains(),
-                batch=rep(1L, length(dat)),
-                batchElements=1L,
-                modes=list(),
-                mcmc.params=mp,
-                label_switch=FALSE,
-                marginal_lik=as.numeric(NA),
-                .internal.constraint=5e-4,
-                .internal.counter=0L)
-  chains(object) <- McmcChains(object)
-  object
+    if(length(dat) == 0){
+        return(.empty_singlebatch_model(hp, mp))
+    }
+    K <- k(hp)
+    ##mu <- rnorm(1, mu.0(hp), sqrt(tau2.0(hp)))
+    mu <- rnorm(1, median(dat), sd(dat)) 
+    tau2 <- 1/rgamma(1, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
+    p <- rdirichlet(1, alpha(hp))[1, ]
+    theta <- sort(rnorm(k(hp), mu, sqrt(tau2)))
+    nu.0 <- 3.5
+    sigma2.0 <- 0.25
+    sigma2 <- 1/rgamma(k(hp), 0.5 * nu.0, 0.5 * nu.0 * sigma2.0)
+    u <- rchisq(length(dat), hp@dfr)
+    object <- new("SingleBatchModel",
+                  k=as.integer(K),
+                  hyperparams=hp,
+                  theta=theta,
+                  sigma2=sigma2,
+                  mu=mu,
+                  tau2=tau2,
+                  nu.0=nu.0,
+                  sigma2.0=sigma2.0,
+                  pi=p,
+                  data=dat,
+                  u=u,
+                  data.mean=numeric(K),
+                  data.prec=numeric(K),
+                  z=integer(length(dat)),
+                  zfreq=integer(K),
+                  probz=matrix(0, length(dat), K),
+                  logprior=numeric(1),
+                  loglik=numeric(1),
+                  mcmc.chains=McmcChains(),
+                  batch=rep(1L, length(dat)),
+                  batchElements=1L,
+                  modes=list(),
+                  mcmc.params=mp,
+                  label_switch=FALSE,
+                  marginal_lik=as.numeric(NA),
+                  .internal.constraint=5e-4,
+                  .internal.counter=0L)
+    chains(object) <- McmcChains(object)
+    object
 }
 
 #' Constructors for SB and SBP models
@@ -190,6 +193,7 @@ newSingleBatchModel <- function(object){
   sigma2(object2) <- sigma2(object)
   p(object2) <- p(object)
   z(object2) <- z(object)
+  u(object2) <- u(object)
   nu.0(object2) <- nu.0(object)
   mu(object2) <- mu(object)
   tau2(object2) <- tau2(object)

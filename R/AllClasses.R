@@ -145,6 +145,7 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot z latent variables
 #' @slot zfreq table of latent variables
 #' @slot probz n x k matrix of probabilities
+#' @slot u chi-square draws for controlling t-distribution
 #' @slot logprior log likelihood of prior: log(p(sigma2.0)p(nu.0)p(mu))
 #' @slot loglik log likelihood: \eqn{\sum p_k \Phi(\theta_k, \sigma_k)}
 #' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
@@ -171,6 +172,7 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         z="integer",
                                         zfreq="integer",
                                         probz="matrix",
+                                        u="numeric",
                                         logprior="numeric",
                                         loglik="numeric",
                                         mcmc.chains="McmcChains",
@@ -229,6 +231,7 @@ setClass("MultiBatchModel", contains="MixtureModel")
 #' @slot pi mixture probabilities which are assumed to be the same for all batches
 #' @slot mu overall mean
 #' @slot tau2 overall variance
+#' @slot u latent chi square variable for t-distribution
 #' @slot data the data for the simulation.
 #' @slot data.mean the empirical means of the components
 #' @slot data.prec the empirical precisions
@@ -253,9 +256,7 @@ setClass("SingleBatchPooled", contains="SingleBatchModel")
 ## SB ## single batch
 ## SBP ## single batch pooled
 ## SBt ## single batch, t-
-## SBPt ##
-setClass("SBPt", contains="SingleBatchPooled",
-         representation(u="numeric"))
+setClass("SBPt", contains="SingleBatchPooled")
 
 
 setClass("MultiBatchPooled", contains="MultiBatchModel")

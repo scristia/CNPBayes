@@ -240,14 +240,6 @@ setReplaceMethod("alpha", "Hyperparameters", function(object, value){
   object
 })
 
-#' @rdname dfr-method
-#' @aliases dfr,SBPt-method
-setMethod("dfr", "Hyperparameters", function(object) object@dfr )
-
-# setReplaceMethod("dfr", "Hyperparameters", function(object, value) {
-#                      object@dfr <- value
-# })
-
 setMethod("show", "Hyperparameters", function(object){
   cat("An object of class 'Hyperparameters'\n")
   cat("   k      :", k(object), "\n")
