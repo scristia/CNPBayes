@@ -855,5 +855,6 @@ setMethod("upSample", "MixtureModel", function(model, tiles){
   probs2 <- probs[key, , drop=FALSE]
   probz(model2) <- probs2 * (iter(model) - 1)
   z(model2) <- z(model)[key]
+  batch(model2) <- tiles$batch
   model2
-})
+ })
