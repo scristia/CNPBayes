@@ -327,7 +327,8 @@ Rcpp::NumericMatrix update_multinomialPr(Rcpp::S4 xmod) {
   double df = getDf(hypp) ;
 
   for(int k = 0; k < K; k++) {
-    tmp = p[k]*dlocScale_t(x, df, theta[k], sigma[0]) ;
+    // tmp = p[k]*dlocScale_t(x, df, theta[k], sigma[0]) ;
+    tmp = p[k]*dlocScale_t(x, df, theta[k], sigma[k]) ;
     for(int i = 0; i < n; i++){
       lik(i, k) = tmp[i] ;
     }

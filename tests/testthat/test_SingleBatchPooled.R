@@ -26,7 +26,7 @@ test_that("sigma2_pooled", {
 test_that("sigma2_heavy", {
   set.seed(2000)
   truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0),
-                        sds = c(0.3/sqrt(10), 0.15/sqrt(10), 0.15/sqrt(10)),
+                        sds = c(0.3, 0.15, 0.15),
                         p = c(0.005, 1/10, 1 - 0.005 - 1/10),
                         df=10)
 #   truth <- simulateData(N = 1000, theta = c(-2, -0.2, 0),
@@ -36,7 +36,7 @@ test_that("sigma2_heavy", {
 #   truth <- simulateData(N = 1000, theta = 0, sds = 0.15, p = 1, df=100)
   mp <- McmcParams(iter = 10, burnin = 10)
   mp <- McmcParams(iter = 5000, burnin = 500)
-  hp <- Hyperparameters(k=3, dfr=10)
+  hp <- Hyperparameters(k=3, dfr=100)
   model <- SBPt(y(truth), hp, mp)
   model <- .posteriorSimulation2(model)
 x <- seq(-2.5, 2, length.out=1000)

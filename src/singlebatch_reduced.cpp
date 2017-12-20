@@ -45,14 +45,25 @@ Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
   double mu_n;
   double w1;
   double w2;
+  double prod ;
+
+  NumericVector u = model.slot("u") ;
+  double df = getDf(model.slot("hyperparams")) ;
+
+  NumericVector sumu ;
+  IntegerVector counts;
 
   for(int s=0; s < S; ++s){
     zz = Z(s, _) ;
     model.slot("z") = zz ;
-    nn = tableZ(K, zz) ;
-    data_mean = compute_means(model) ;
+    counts = tableZ(K, zz) ;
+    NumericVector data_mean =  compute_heavy_means(xmod) ;
+    data_mean =  data_mean/df ;
+    NumericVector sumu = compute_u_sums(xmod) ;
+    sumu = sumu/df ;
+    nn = as<NumericVector>(counts) * sumu ;
     tau2_tilde = 1/tau2c[s] ;
-    sigma2_tilde = 1.0/sigma2(s, _) ;
+    sigma2_tilde = 1.0/sigma2(s, 0) ;
     //tmp = dnorm(thetastar, muc[s], tauc[s]) ;
     double prod = 1.0;
     for(int k = 0; k < K; ++k) {
@@ -569,6 +580,9 @@ Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod) {
     Rcpp::NumericVector sigma2_n(1);
     Rcpp::NumericVector sigma2_new(K) ;    
 
+    // t-distribution variables
+    NumericVector u = model.slot("u") ;
+    double df = getDf(model.slot("hyperparams")) ;
     //
     // Run reduced Gibbs    -- theta is fixed at modal ordinate
     //
@@ -587,7 +601,7 @@ Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod) {
 
             while(k <= K) {
                 if( zz[i] == k + 1 ){
-                    ss[k] += pow(x[i] - thetastar[k], 2.0);
+                    ss[k] += u[i] * pow(x[i] - thetastar[k], 2.0);
                     break;
                 }
                 k++;
@@ -596,9 +610,10 @@ Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod) {
         
         double total = 1.0;
 
+        // verify this
         for (int k = 0; k < K; ++k) {
             nu_n = nu0 + (double)(nn[k]);
-            sigma2_n = 1.0 / nu_n[0] * (nu0 * s20 + ss[k]);
+            sigma2_n = 1.0 / nu_n[0] * (nu0 * s20 + ss[k]/df);
             tmp = dgamma(prec, 0.5 * nu_n[0], 2.0 / (nu_n[0] * sigma2_n[0]));
             total *= tmp[k];
         }

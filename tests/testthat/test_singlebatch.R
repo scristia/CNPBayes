@@ -25,6 +25,11 @@ test_that("hard", {
                           theta = c(-2, -0.4, 0),
                           sds = c(0.3, 0.15, 0.15),
                           p = c(0.005, 1/10, 1 - 0.005 - 1/10))
+#     truth <- simulateData(N = 1000,
+#                           theta = c(-2, -0.4, 0),
+#                           sds = c(0.3, 0.15, 0.15),
+#                           p = c(0.005, 1/10, 1 - 0.005 - 1/10),
+#                           df=100)
     expect_is(truth, "SingleBatchModel")
     if(FALSE){
       ## mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 10,
@@ -50,20 +55,36 @@ test_that("moderate", {
     truth <- simulateData(N = 1000,
                           theta = c(-2, -0.4, 0),
                           sds = c(0.3, 0.15, 0.15),
-                          p = c(0.05, 0.1, 0.8))
+                          p = c(0.05, 0.15, 0.8),
+                          df=10)
+#     truth <- simulateData(N = 1000,
+#                           theta = c(-2, -0.4, 0),
+#                           sds = c(0.3/sqrt(10), 0.15/sqrt(10), 0.15/sqrt(10)),
+#                           p = c(0.05, 0.1, 0.8),
+#                           df=10)
     ## verify that if we start at the true value, we remain in a region of
     ## high posterior probability after an arbitrary number of mcmc updates
     mcmcp <- McmcParams(iter = 1000, burnin = 300,
-                        thin = 1, nStarts=1)
+                        thin = 5, nStarts=10)
     model <- SingleBatchModel2(dat=y(truth),
                                hp=hpList(k = 3)[["SB"]],
                                mp = mcmcp)
+    dfr(model) <- 10
     model <- startAtTrueValues(model, truth)
     model <- posteriorSimulation(model)
     expect_equal(theta(truth), theta(model), tolerance=0.2)
     expect_equal(sigma(truth), sigma(model), tolerance=0.15)
     expect_equal(p(truth), colMeans(pic(model)), tolerance=0.2)
   })
+hist(truth)
+x <- seq(-3, 2, length.out=1000)
+thetas <- theta(model)
+s2s <- sigma2(model)
+ps <- p(model)
+f <- ps[1]*dlocScale_t(x, 10, thetas[1], sqrt(s2s[1])) +
+     ps[2]*dlocScale_t(x, 10, thetas[2], sqrt(s2s[2])) +
+     ps[3]*dlocScale_t(x, 10, thetas[3], sqrt(s2s[3]))
+lines(x, f, lwd=2, col="Tomato2")
 
 
 test_that("easy", {
