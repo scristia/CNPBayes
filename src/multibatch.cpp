@@ -539,6 +539,30 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
     double tau_n = 0.0 ;
     double post_prec = 0.0 ;
 
+    NumericVector u = model.slot("u") ;
+    double df = getDf(model.slot("hyperparams")) ;
+    NumericMatrix sumu(B, K) ;
+    NumericMatrix sums(B, K) ;
+
+    // find heavy means by batch
+    NumericVector data_mean =  compute_heavy_means(xmod) ;
+    data_mean =  data_mean/df ;
+//    NumericVector sumu = compute_u_sums(xmod) ;
+    sumu = sumu/df ;
+    NumericVector nn(K) ;
+    //nn = as<NumericVector>(counts)  * sumu ;
+
+//    xx = x * u ;
+//    for(int i = 0; i < n; i++){
+//        for(int b = 0; b < B; ++b) {
+//            for(int k = 0; k < K; k++){
+//                if(z[i] == k+1){
+//                    sums[b, k] += xx[i] ;
+//                }
+//            }
+//        }
+//    }
+//
     for (int b = 0; b < B; ++b) {
         for(int k = 0; k < K; ++k){
             post_prec = 1.0/tau2[k] + n_hb(b, k)*1.0/sigma2(b, k) ;

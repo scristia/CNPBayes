@@ -76,15 +76,15 @@ test_that("moderate", {
     expect_equal(sigma(truth), sigma(model), tolerance=0.15)
     expect_equal(p(truth), colMeans(pic(model)), tolerance=0.2)
   })
-hist(truth)
-x <- seq(-3, 2, length.out=1000)
-thetas <- theta(model)
-s2s <- sigma2(model)
-ps <- p(model)
-f <- ps[1]*dlocScale_t(x, 10, thetas[1], sqrt(s2s[1])) +
-     ps[2]*dlocScale_t(x, 10, thetas[2], sqrt(s2s[2])) +
-     ps[3]*dlocScale_t(x, 10, thetas[3], sqrt(s2s[3]))
-lines(x, f, lwd=2, col="Tomato2")
+# hist(truth)
+# x <- seq(-3, 2, length.out=1000)
+# thetas <- theta(model)
+# s2s <- sigma2(model)
+# ps <- p(model)
+# f <- ps[1]*dlocScale_t(x, 10, thetas[1], sqrt(s2s[1])) +
+#      ps[2]*dlocScale_t(x, 10, thetas[2], sqrt(s2s[2])) +
+#      ps[3]*dlocScale_t(x, 10, thetas[3], sqrt(s2s[3]))
+# lines(x, f, lwd=2, col="Tomato2")
 
 
 test_that("easy", {
