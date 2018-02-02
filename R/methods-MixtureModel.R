@@ -841,4 +841,4 @@ setMethod("upSample", "MixtureModel", function(model, tiles){
   z(model2) <- z(model)[key]
   batch(model2) <- tiles$batch
   model2
-})
+ })
