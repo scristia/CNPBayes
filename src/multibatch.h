@@ -1,8 +1,8 @@
 #ifndef _multibatch_H
 #define _multibatch_H
 
-Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x);
-Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod);
+//Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x);
+//Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod);
 Rcpp::NumericVector compute_loglik_batch(Rcpp::S4 xmod);
 
 Rcpp::NumericVector update_mu_batch(Rcpp::S4 xmod);

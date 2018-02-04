@@ -9,8 +9,16 @@ getDf <- function(hyperparams) {
     .Call('_CNPBayes_getDf', PACKAGE = 'CNPBayes', hyperparams)
 }
 
+uniqueBatch <- function(x) {
+    .Call('_CNPBayes_uniqueBatch', PACKAGE = 'CNPBayes', x)
+}
+
 tableZ <- function(K, z) {
     .Call('_CNPBayes_tableZ', PACKAGE = 'CNPBayes', K, z)
+}
+
+tableBatchZ <- function(xmod) {
+    .Call('_CNPBayes_tableBatchZ', PACKAGE = 'CNPBayes', xmod)
 }
 
 rMultinom <- function(probs, m) {
@@ -31,6 +39,14 @@ compute_heavy_sums <- function(object) {
 
 compute_heavy_means <- function(xmod) {
     .Call('_CNPBayes_compute_heavy_means', PACKAGE = 'CNPBayes', xmod)
+}
+
+compute_u_sums_batch <- function(xmod) {
+    .Call('_CNPBayes_compute_u_sums_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+compute_heavy_means_batch <- function(xmod) {
+    .Call('_CNPBayes_compute_heavy_means_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 theta_multibatch_pvar_red <- function(xmod) {
@@ -183,14 +199,6 @@ reduced_s20_batch <- function(xmod) {
 
 p_s20_reduced_batch <- function(xmod) {
     .Call('_CNPBayes_p_s20_reduced_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
-uniqueBatch <- function(x) {
-    .Call('_CNPBayes_uniqueBatch', PACKAGE = 'CNPBayes', x)
-}
-
-tableBatchZ <- function(xmod) {
-    .Call('_CNPBayes_tableBatchZ', PACKAGE = 'CNPBayes', xmod)
 }
 
 compute_loglik_batch <- function(xmod) {

@@ -4,31 +4,6 @@
 
 using namespace Rcpp ;
 
-// [[Rcpp::export]]
-Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x) {
-  IntegerVector tmp = unique(x) ;
-  IntegerVector b = clone(tmp) ;
-  std::sort(b.begin(), b.end()) ;
-  return b ;
-}
-
-// [[Rcpp::export]]
-Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod){
-  RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  int K = getK(model.slot("hyperparams")) ;
-  IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
-  int B = ub.size() ;
-  IntegerVector z = model.slot("z") ;
-  NumericMatrix nn(B, K) ;
-  for(int j = 0; j < B; ++j){
-    for(int k = 0; k < K; k++){
-      nn(j, k) = sum((z == (k+1)) & (batch == ub[j]));
-    }
-  }
-  return nn ;
-}
 
 // [[Rcpp::export]]
 Rcpp::NumericVector compute_loglik_batch(Rcpp::S4 xmod){
@@ -542,8 +517,9 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
     NumericVector u = model.slot("u") ;
     double df = getDf(model.slot("hyperparams")) ;
     NumericMatrix sumu(B, K) ;
-    NumericMatrix sums(B, K) ;
+    // NumericMatrix sums(B, K) ;
 
+    NumericMatrix sums = compute_heavy_sums_batch(xmod) ;
     // find heavy means by batch
     NumericVector data_mean =  compute_heavy_means(xmod) ;
     data_mean =  data_mean/df ;
@@ -552,17 +528,6 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
     NumericVector nn(K) ;
     //nn = as<NumericVector>(counts)  * sumu ;
 
-//    xx = x * u ;
-//    for(int i = 0; i < n; i++){
-//        for(int b = 0; b < B; ++b) {
-//            for(int k = 0; k < K; k++){
-//                if(z[i] == k+1){
-//                    sums[b, k] += xx[i] ;
-//                }
-//            }
-//        }
-//    }
-//
     for (int b = 0; b < B; ++b) {
         for(int k = 0; k < K; ++k){
             post_prec = 1.0/tau2[k] + n_hb(b, k)*1.0/sigma2(b, k) ;

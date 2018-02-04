@@ -27,6 +27,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// uniqueBatch
+Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x);
+RcppExport SEXP _CNPBayes_uniqueBatch(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(uniqueBatch(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 // tableZ
 Rcpp::IntegerVector tableZ(int K, Rcpp::IntegerVector z);
 RcppExport SEXP _CNPBayes_tableZ(SEXP KSEXP, SEXP zSEXP) {
@@ -36,6 +47,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type K(KSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type z(zSEXP);
     rcpp_result_gen = Rcpp::wrap(tableZ(K, z));
+    return rcpp_result_gen;
+END_RCPP
+}
+// tableBatchZ
+Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_tableBatchZ(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(tableBatchZ(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -95,6 +117,28 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(compute_heavy_means(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compute_u_sums_batch
+Rcpp::NumericVector compute_u_sums_batch(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_compute_u_sums_batch(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_u_sums_batch(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compute_heavy_means_batch
+Rcpp::NumericVector compute_heavy_means_batch(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_compute_heavy_means_batch(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_heavy_means_batch(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -515,28 +559,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(p_s20_reduced_batch(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// uniqueBatch
-Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x);
-RcppExport SEXP _CNPBayes_uniqueBatch(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(uniqueBatch(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// tableBatchZ
-Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_tableBatchZ(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(tableBatchZ(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1442,12 +1464,16 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_getK", (DL_FUNC) &_CNPBayes_getK, 1},
     {"_CNPBayes_getDf", (DL_FUNC) &_CNPBayes_getDf, 1},
+    {"_CNPBayes_uniqueBatch", (DL_FUNC) &_CNPBayes_uniqueBatch, 1},
     {"_CNPBayes_tableZ", (DL_FUNC) &_CNPBayes_tableZ, 2},
+    {"_CNPBayes_tableBatchZ", (DL_FUNC) &_CNPBayes_tableBatchZ, 1},
     {"_CNPBayes_rMultinom", (DL_FUNC) &_CNPBayes_rMultinom, 2},
     {"_CNPBayes_dlocScale_t", (DL_FUNC) &_CNPBayes_dlocScale_t, 4},
     {"_CNPBayes_compute_u_sums", (DL_FUNC) &_CNPBayes_compute_u_sums, 1},
     {"_CNPBayes_compute_heavy_sums", (DL_FUNC) &_CNPBayes_compute_heavy_sums, 1},
     {"_CNPBayes_compute_heavy_means", (DL_FUNC) &_CNPBayes_compute_heavy_means, 1},
+    {"_CNPBayes_compute_u_sums_batch", (DL_FUNC) &_CNPBayes_compute_u_sums_batch, 1},
+    {"_CNPBayes_compute_heavy_means_batch", (DL_FUNC) &_CNPBayes_compute_heavy_means_batch, 1},
     {"_CNPBayes_theta_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_theta_multibatch_pvar_red, 1},
     {"_CNPBayes_sigma_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_sigma_multibatch_pvar_red, 1},
     {"_CNPBayes_psigma_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_psigma_multibatch_pvar_red, 1},
@@ -1486,8 +1512,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_p_nu0_reduced_batch", (DL_FUNC) &_CNPBayes_p_nu0_reduced_batch, 1},
     {"_CNPBayes_reduced_s20_batch", (DL_FUNC) &_CNPBayes_reduced_s20_batch, 1},
     {"_CNPBayes_p_s20_reduced_batch", (DL_FUNC) &_CNPBayes_p_s20_reduced_batch, 1},
-    {"_CNPBayes_uniqueBatch", (DL_FUNC) &_CNPBayes_uniqueBatch, 1},
-    {"_CNPBayes_tableBatchZ", (DL_FUNC) &_CNPBayes_tableBatchZ, 1},
     {"_CNPBayes_compute_loglik_batch", (DL_FUNC) &_CNPBayes_compute_loglik_batch, 1},
     {"_CNPBayes_update_mu_batch", (DL_FUNC) &_CNPBayes_update_mu_batch, 1},
     {"_CNPBayes_update_tau2_batch", (DL_FUNC) &_CNPBayes_update_tau2_batch, 1},

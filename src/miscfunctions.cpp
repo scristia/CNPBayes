@@ -19,10 +19,36 @@ double getDf(Rcpp::S4 hyperparams) {
 }
 
 // [[Rcpp::export]]
+Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x) {
+  IntegerVector tmp = unique(x) ;
+  IntegerVector b = clone(tmp) ;
+  std::sort(b.begin(), b.end()) ;
+  return b ;
+}
+
+// [[Rcpp::export]]
 Rcpp::IntegerVector tableZ(int K, Rcpp::IntegerVector z){
   Rcpp::IntegerVector nn(K) ;
   for(int k = 0; k < K; k++){
     nn[k] = sum(z == (k+1)) ;
+  }
+  return nn ;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod){
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  int K = getK(model.slot("hyperparams")) ;
+  IntegerVector batch = model.slot("batch") ;
+  IntegerVector ub = uniqueBatch(batch) ;
+  int B = ub.size() ;
+  IntegerVector z = model.slot("z") ;
+  NumericMatrix nn(B, K) ;
+  for(int j = 0; j < B; ++j){
+    for(int k = 0; k < K; k++){
+      nn(j, k) = sum((z == (k+1)) & (batch == ub[j]));
+    }
   }
   return nn ;
 }
@@ -140,8 +166,7 @@ double trunc_norm(double mean, double sd) {
 
 // Distribution function for skew normal
 Rcpp::NumericVector dsn(NumericVector r, double xi, double omega, double alpha) {
-    NumericVector z, logN, logS, logPDF;
-    z = (r - xi)/omega;
+    NumericVector z, logN, logS, logPDF; z = (r - xi)/omega;
     logN = -log(sqrt(2.0 * PI)) - log(omega) - pow(z, 2) / 2.0;
     logS = log(pnorm(alpha * z));
     logPDF = logN + logS - R::pnorm(0.0, 0.0, 1.0, 1, 1);
@@ -361,45 +386,85 @@ Rcpp::NumericVector compute_heavy_means(Rcpp::S4 xmod) {
   return means ;
 }
 
+
+
+// [[Rcpp::export]]
+Rcpp::NumericVector compute_u_sums_batch(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  IntegerVector z = model.slot("z") ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  NumericVector u = model.slot("u") ;
+  int n = u.size() ;
+
+  IntegerVector batch = model.slot("batch") ;
+  IntegerVector ub = uniqueBatch(batch) ;
+  int B = ub.size() ;
+  NumericMatrix sums(B, K) ;
+  for(int i = 0; i < n; i++){
+      for(int b = B; b < B; b++) {
+          for(int k = 0; k < K; k++){
+              if(z[i] == k+1){
+                  sums(b, k) += u[i] ;
+              }
+          }
+      }
+  }
+  return sums ;
+}
+
 // [[Rcpp::export]] Rcpp::NumericVector
-//compute_heavy_sums_batch(Rcpp::S4 object) {
-//  RNGScope scope ;
-//  Rcpp::S4 xmod = clone(object) ;
-//  Rcpp::S4 model(xmod) ;
-//  NumericVector x = model.slot("data") ;
-//  int n = x.size() ;
-//  IntegerVector z = model.slot("z") ;
-//  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-//  int K = getK(hypp) ;
-//  // IntegerVector nn = model.slot("zfreq") ;
-//  NumericMatrix n_hb = tableBatchZ(xmod) ;
-//  int B = n_hb.nrow() ;
-//  
-//  NumericVector sums( K ) ;
-//  NumericVector u = model.slot("u") ;
-//  x = x * u ;
-//  for(int i = 0; i < n; i++){
-//    for(int k = 0; k < K; k++){
-//      if(z[i] == k+1){
-//        sums[k] += x[i] ;
-//      }
-//    }
-//  }
-//  return sums ;
-//}
-//
-//// [[Rcpp::export]]
-//Rcpp::NumericVector compute_heavy_means_batch(Rcpp::S4 xmod) {
-//  RNGScope scope ;
-//  Rcpp::S4 model(xmod) ;
-//  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-//  IntegerVector z = model.slot("z") ;
-//  int K = getK(hypp) ;
-//  IntegerVector nn = tableZ(K, z) ;
-//  NumericVector means = compute_heavy_sums(xmod) ;
-//  for(int k = 0; k < K; k++){
-//    means[k] = means[k] / nn[k] ;
-//  }
-//  return means ;
-//}
+Rcpp::NumericMatrix compute_heavy_sums_batch(Rcpp::S4 object) {
+  RNGScope scope ;
+  Rcpp::S4 xmod = clone(object) ;
+  Rcpp::S4 model(xmod) ;
+  NumericVector x = model.slot("data") ;
+
+  int n = x.size() ;
+  IntegerVector z = model.slot("z") ;
+  NumericVector u = model.slot("u") ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+
+  IntegerVector batch = model.slot("batch") ;
+  IntegerVector ub = uniqueBatch(batch) ;
+  int B = ub.size() ;
+  // IntegerVector nn = model.slot("zfreq") ;
+  NumericMatrix sums(B, K) ;
+  
+  x = x * u ;
+  for(int i = 0; i < n; i++){
+      for(int b = B; b < B; b++) {
+          for(int k = 0; k < K; k++){
+              if(z[i] == k+1){
+                  sums(b, k) += x[i] ;
+              }
+          }
+      }
+  }
+  return sums ;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericVector compute_heavy_means_batch(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  IntegerVector z = model.slot("z") ;
+  int K = getK(hypp) ;
+
+  IntegerVector batch = model.slot("batch") ;
+  IntegerVector ub = uniqueBatch(batch) ;
+  int B = ub.size() ;
+  NumericMatrix nn = tableBatchZ(xmod) ;
+  NumericMatrix means = compute_heavy_sums_batch(xmod) ;
+  for(int b = B; b < B; b++) {
+      for(int k = 0; k < K; k++){
+          means(b, k) = means(b, k) / nn(b, k) ;
+      }
+  }
+  return means ;
+}
+
 #endif

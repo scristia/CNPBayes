@@ -35,11 +35,15 @@ Rcpp::NumericVector dlocScale_t(Rcpp::NumericVector x, double df,
         double mu, double sigma);
 
 // Rob
+Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x) ;
 Rcpp::IntegerVector tableZ(int K, Rcpp::IntegerVector z) ;
+Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod);
 
 Rcpp::NumericVector compute_u_sums(Rcpp::S4 xmod) ;
 Rcpp::NumericVector compute_heavy_sums(Rcpp::S4 object) ;
-Rcpp::NumericVector compute_heavy_sums(Rcpp::S4 object) ;
 Rcpp::NumericVector compute_heavy_means(Rcpp::S4 xmod) ;
+Rcpp::NumericMatrix compute_u_sums_batch(Rcpp::S4 xmod) ;
+Rcpp::NumericMatrix compute_heavy_sums_batch(Rcpp::S4 object) ;
+Rcpp::NumericMatrix compute_heavy_means_batch(Rcpp::S4 xmod) ;
 Rcpp::NumericVector dlocScale_t(Rcpp::NumericVector x, double df, double mu, double sigma);
 #endif
