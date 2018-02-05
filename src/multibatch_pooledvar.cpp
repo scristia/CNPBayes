@@ -24,6 +24,7 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
   NumericMatrix P(B, K) ;
   //NumericMatrix sigma(B, K) ;
   NumericVector sigma(B);
+  double df = getDf(model.slot("hyperparams")) ;
   // component probabilities for each batch
   for(int b = 0; b < B; ++b){
     int rowsum = 0 ;
@@ -45,7 +46,7 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
-      tmp = P(b, k) * dnorm(x, theta(b, k), sigma[b]) * this_batch ;
+      tmp = P(b, k) * dlocScale_t(x, df, theta(b, k), sigma[b]) * this_batch ;
       dens = dens + tmp ;
     }
     lik(_, k) = dens ;
@@ -176,12 +177,13 @@ Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod) {
   NumericVector this_batch(N) ;
   NumericVector tmp(N) ;
   NumericVector rowtotal(N) ;
+  double df = getDf(hypp) ;
   for(int k = 0; k < K; ++k){
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
       //tmp = p[k] * dnorm(x, theta(b, k), sqrt(sigma2(b, k))) * this_batch ;
-      tmp = p[k] * dnorm(x, theta(b, k), sqrt(sigma2[b])) * this_batch ;
+      tmp = p[k] * dlocScale_t(x, df, theta(b, k), sqrt(sigma2[b])) * this_batch ;
       dens += tmp ;
     }
     lik(_, k) = dens ;
@@ -325,6 +327,8 @@ Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
     int n = x.size();
     int K = theta.ncol();
     int B = theta.nrow();
+    NumericVector u = model.slot("u") ;
+    double df = getDf(model.slot("hyperparams")) ;
 
     // get batch info
     Rcpp::NumericMatrix tabz = tableBatchZ(xmod);
@@ -341,7 +345,7 @@ Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
         for (int k = 0; k < K; ++k){
           if (z[i] == k+1){
             //ss(b, k) += pow(x[i] - theta(b, k), 2);
-            ss[b] += pow(x[i] - theta(b, k), 2);
+            ss[b] += u[i] * pow(x[i] - theta(b, k), 2);
           }
         }
       }
@@ -361,7 +365,7 @@ Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
         //nu_n = nu_0 + tabz(b, k);
       nu_n = nu_0 + sum(tabz(b, _));
         //sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k));
-      sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss[b]);
+      sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss[b]/df);
       shape = 0.5 * nu_n;
       rate = shape * sigma2_nh;
         //sigma2_tilde(b, k) = Rcpp::as<double>(rgamma(1, shape, 1.0/rate));
