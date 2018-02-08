@@ -599,7 +599,7 @@ argMax <- function(object){
 
 setMethod("isSB", "MarginalModel", function(object) TRUE)
 setMethod("isSB", "SingleBatchModel", function(object) TRUE)
-setMethod("isSB", "BatchModel", function(object) FALSE)
+
 setMethod("isSB", "MultiBatchModel", function(object) FALSE)
 
 startAtTrueValues <- function(model, truth){
