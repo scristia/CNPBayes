@@ -246,21 +246,6 @@ setMethod("[", "MultiBatchModel", function(x, i, j, ..., drop=FALSE){
 })
 
 #' @rdname bic-method
-#' @aliases bic,BatchModel-method
-setMethod("bic", "BatchModel", function(object){
-  object <- useModes(object)
-  ## K: number of free parameters to be estimated
-  ##   - component and batch-specific parameters:  theta, sigma2  ( k(model) * nBatch(model))
-  ##   - mixing probabilities: (k-1)*nBatch
-  ##   - component-specific parameters: mu, tau2                 2 x k(model)
-  ##   - length-one parameters: sigma2.0, nu.0                   +2
-  K <- 2*k(object)*nBatch(object) + (k(object)-1) + 2*k(object) + 2
-  n <- length(y(object))
-  bicstat <- -2*(log_lik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
-  bicstat
-})
-
-#' @rdname bic-method
 #' @aliases bic,MultiBatchModel-method
 setMethod("bic", "MultiBatchModel", function(object){
   object <- useModes(object)
