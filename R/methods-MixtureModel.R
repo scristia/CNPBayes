@@ -597,7 +597,6 @@ argMax <- function(object){
   which(p == maxp)
 }
 
-setMethod("isSB", "MarginalModel", function(object) TRUE)
 setMethod("isSB", "SingleBatchModel", function(object) TRUE)
 
 setMethod("isSB", "MultiBatchModel", function(object) FALSE)
