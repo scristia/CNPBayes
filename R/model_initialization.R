@@ -1,13 +1,7 @@
 #' @include AllClasses.R
 NULL
 
-setMethod("initializeTheta", "BatchModel", function(object){
-  th <- matrix(NA, nBatch(object), k(object))
-  for(j in seq_len(k(object))){
-    th[, j] <- rnorm(nBatch(object), mu(object)[j], tau(object)[j])
-  }
-  th
-})
+
 
 setMethod("initializeTheta", "MultiBatchModel", function(object){
   th <- matrix(NA, nBatch(object), k(object))
@@ -26,9 +20,6 @@ setMethod("initializeTheta", "MultiBatchModel", function(object){
   s2
 }
 
-setMethod("initializeSigma2", "BatchModel", function(object){
-  .sigma2_batch(object)
-})
 
 setMethod("initializeSigma2", "MultiBatchModel", function(object){
   .sigma2_batch(object)
@@ -477,11 +468,7 @@ tau2HyperparamsBatch <- function(thetas){
 }
 
 
-setMethod("startingValues", "BatchModel", function(object){
-  ##.init_batchmodel(object)
-  if(length(y(object)) == 0) return(object)
-  .init_batchmodel2(object)
-})
+
 
 setMethod("startingValues", "MultiBatchModel", function(object){
   ##.init_batchmodel(object)
