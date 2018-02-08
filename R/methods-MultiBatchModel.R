@@ -271,11 +271,6 @@ setMethod("collapseBatch", "MultiBatchModel", function(object){
 batchLik <- function(x, p, mean, sd)  p*dnorm(x, mean, sd)
 
 
-setMethod("computeMeans", "BatchModel", function(object){
-  compute_means_batch(object)
-
-})
-
 setMethod("computeMeans", "MultiBatchModel", function(object){
   compute_means_batch(object)
 
