@@ -142,25 +142,6 @@ tau2Hyperparams <- function(thetas){
   object
 }
 
-setMethod("startingValues", "MarginalModel", function(object){
-  ##object <- .init_sb1(object)
-  counter <- 0; model <- NULL
-  while(counter < 3 && is.null(model)){
-    ## when k is too large, kmeans for finding cluster centers will not work
-    ## -- try a couple of times before quitting
-    model <- tryCatch(.init_sb2(object), error=function(e) NULL)
-    counter <- counter + 1
-  }
-  K <- k(object)
-  while(is.null(model) & K > 1){
-    K <- K - 1
-    k(object) <- K
-    model <- tryCatch(.init_sb2(object), error=function(e) NULL)
-  }
-  if(is.null(model)) stop("No good initial values identified")
-  model
-})
-
 setMethod("startingValues", "SingleBatchModel", function(object){
   ##object <- .init_sb1(object)
   counter <- 0; model <- NULL
