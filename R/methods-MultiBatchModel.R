@@ -315,9 +315,6 @@ setMethod("computeModes", "MultiBatchModel", function(object){
 
 componentVariances <- function(y, z)  v <- sapply(split(y, z), var)
 
-setMethod("computeVars", "BatchModel", function(object){
-  compute_vars_batch(object)
-})
 
 setMethod("computeVars", "MultiBatchModel", function(object){
   compute_vars_batch(object)
