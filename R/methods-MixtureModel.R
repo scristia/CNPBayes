@@ -185,9 +185,6 @@ setMethod("batch", "MixtureModel", function(object) object@batch)
 #' @aliases z,MixtureModel-method
 setMethod("z", "MixtureModel", function(object) object@z)
 
-setMethod("computePrec", "MarginalModel", function(object){
-  compute_prec(object)
-})
 
 setMethod("computePrior", "SingleBatchModel", function(object){
   compute_logprior(object)
