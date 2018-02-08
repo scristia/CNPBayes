@@ -320,9 +320,6 @@ setMethod("computeVars", "MultiBatchModel", function(object){
   compute_vars_batch(object)
 })
 
-#' @rdname mu-method
-#' @aliases mu,BatchModel-method
-setMethod("mu", "BatchModel", function(object) object@mu)
 
 #' @rdname mu-method
 #' @aliases mu,MultiBatchModel-method
