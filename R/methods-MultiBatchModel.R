@@ -325,10 +325,6 @@ setMethod("computeVars", "MultiBatchModel", function(object){
 #' @aliases mu,MultiBatchModel-method
 setMethod("mu", "MultiBatchModel", function(object) object@mu)
 
-setReplaceMethod("mu", "BatchModel", function(object, value){
-  object@mu <- value
-  object
-})
 
 setReplaceMethod("mu", "MultiBatchModel", function(object, value){
   object@mu <- value
