@@ -276,9 +276,6 @@ setMethod("computeMeans", "MultiBatchModel", function(object){
 
 })
 
-setMethod("computePrec", "BatchModel", function(object){
-  compute_prec_batch(object)
-})
 
 setMethod("computePrec", "MultiBatchModel", function(object){
   compute_prec_batch(object)
