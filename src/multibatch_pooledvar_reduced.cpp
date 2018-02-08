@@ -44,6 +44,9 @@ Rcpp::NumericVector theta_multibatch_pvar_red(Rcpp::S4 xmod) {
     Rcpp::NumericVector tau2_tilde(K);
     Rcpp::NumericVector sigma2_tilde(K);
 
+    Rcpp::NumericVector u = model.slot("u") ;
+    double df = getDf(model.slot("hyperparams")) ;
+
     // this should be updated for each iteration
     Rcpp::NumericMatrix data_mean(B, K);
     Rcpp::IntegerVector nn(K);

@@ -41,9 +41,13 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     Rcpp::NumericVector tau2_tilde(K);
     Rcpp::NumericVector sigma2_tilde(K);
 
+    Rcpp::NumericVector u = model.slot("u") ;
+    double df = getDf(model.slot("hyperparams")) ;
+
     // this should be updated for each iteration
     Rcpp::NumericMatrix data_mean(B, K);
-    Rcpp::IntegerVector nn(K);
+    Rcpp::NumericMatrix nn(B, K);
+    Rcpp::NumericMatrix sumu(B, K);
     double post_prec;
     double tau_n;
     double mu_n;
@@ -58,8 +62,11 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
         tauc = sqrt(tau2c(s, Rcpp::_));
         zz = Z(s, Rcpp::_);
         model.slot("z") = zz;
-        nn = tableZ(K, zz);
-        data_mean = compute_means_batch(model);
+        nn = tableBatchZ(model);
+        data_mean = compute_heavy_means_batch(model);
+        data_mean = data_mean/df;
+        sumu = compute_u_sums_batch(xmod) ;
+        sumu = sumu/df ;
         tau2_tilde = 1.0 / tau2c(s, Rcpp::_);
         invs2 = 1.0 / sigma2(s, Rcpp::_);    // this is a vector of length B*K
         sigma2_tilde = Rcpp::as<Rcpp::NumericVector>(toMatrix(invs2, B, K));
@@ -67,7 +74,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
 
         for (int k = 0; k < K; ++k) {
             for (int b = 0; b < B; ++b) {
-                post_prec = tau2_tilde[k] + sigma2_tilde(b, k) * nn[k];
+                post_prec = tau2_tilde[k] + sigma2_tilde(b, k) * nn(b,k) * sumu(b,k);
                 tau_n = sqrt(1/post_prec);
                 w1 = tau2_tilde[k]/post_prec;
                 w2 = nn[k] * sigma2_tilde(b, k)/post_prec;
@@ -549,6 +556,8 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
     int S = params.slot("iter");
     int K = thetastar.ncol();
     int B = thetastar.nrow();
+    Rcpp::NumericVector u = model.slot("u") ;
+    double df = getDf(model.slot("hyperparams")) ;
 
     Rcpp::NumericMatrix prec(B, K);
     Rcpp::NumericVector p_prec(S);
@@ -592,7 +601,7 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
 
                 for (int k = 0; k < K; ++k) {
                     if (zz[i] == k + 1) {
-                        ss(b, k) += pow(x[i] - thetastar(b, k), 2);
+                        ss(b, k) += u[i] * pow(x[i] - thetastar(b, k), 2);
                     }
                 }
             }
@@ -608,7 +617,7 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
 
                 // calculate nu_n and sigma2_n
                 nu_n = nu0 + nn(b, k);
-                sigma2_n = 1.0 / nu_n * (nu0 * s20 + ss(b, k));
+                sigma2_n = 1.0 / nu_n * (nu0 * s20 + ss(b, k)/df);
 
                 // calculate shape and rate
                 shape = 0.5 * nu_n;

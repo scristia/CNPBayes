@@ -527,12 +527,12 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
     data_mean =  data_mean/df ;
 //    NumericVector sumu = compute_u_sums(xmod) ;
     sumu = sumu/df ;
-    NumericVector nn(K) ;
+    //NumericVector nn(K) ;
     //nn = as<NumericVector>(counts)  * sumu ;
 
     for (int b = 0; b < B; ++b) {
         for(int k = 0; k < K; ++k){
-            post_prec = 1.0/tau2[k] + n_hb(b, k)*1.0/sigma2(b, k) ;
+            post_prec = 1.0/tau2[k] + n_hb(b, k) * sumu(b, k)*1.0/sigma2(b, k) ;
             if (post_prec == R_PosInf) {
                 throw std::runtime_error("Bad simulation. Run again with different start.");
             }
