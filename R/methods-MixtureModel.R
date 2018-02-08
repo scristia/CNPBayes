@@ -856,6 +856,8 @@ setMethod("upSample", "MixtureModel", function(model, tiles){
 
 setMethod("u", "MixtureModel", function(object) object@u )
 
+#' Accessor for degrees of freedom
+#' 
 #' @rdname dfr-method
 #' @aliases dfr,SBPt-method
 setMethod("dfr", "MixtureModel", function(object) object@hyperparams@dfr )
