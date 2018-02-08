@@ -267,9 +267,6 @@ setClass("UnivariateBatchModel", contains="MultiBatchModel")
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
          representation(mapping="numeric"))
 
-# setClass("MultiBatchCopyNumber", contains="BatchModel",
-#          representation(mapping="numeric"))
-
 #' @exportClass
 setClass("MultiBatchCopyNumber", contains="MultiBatchModel",
          representation(mapping="numeric"))
