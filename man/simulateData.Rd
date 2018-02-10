@@ -4,7 +4,7 @@
 \alias{simulateData}
 \title{Create simulated data for testing.}
 \usage{
-simulateData(N, p, theta, sds)
+simulateData(N, p, theta, sds, df = 10)
 }
 \arguments{
 \item{N}{number of observations}

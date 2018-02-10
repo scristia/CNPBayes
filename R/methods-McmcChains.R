@@ -86,9 +86,6 @@ setMethod("McmcChains", "SingleBatchPooled", function(object){
       z=matrix(NA, nr, ns))
 }
 
-setMethod("McmcChains", "BatchModel", function(object){
-  .initializeMcmcBatch(object)
-})
 
 setMethod("McmcChains", "MultiBatchModel", function(object){
   .initializeMcmcBatch(object)

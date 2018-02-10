@@ -1,48 +1,48 @@
-#' @include Deprecated-classes.R
+#' @include Defunct-classes.R
 NULL
 
 #' @rdname mu-method
 #' @aliases mu,MarginalModel-method
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setMethod("mu", "MarginalModel", function(object){
-  .Deprecated("see SingleBatchModel")
+  .Defunct("see SingleBatchModel")
   object@mu
 })
 
 #' @aliases tau2,MarginalModel-method
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setMethod("tau2", "MarginalModel", function(object) object@tau2)
 
 setMethod("show", "MarginalModel", function(object) callNextMethod())
 
 setMethod("computeMeans", "MarginalModel", function(object){
-  .Deprecated("See SingleBatchModel")
+  .Defunct("See SingleBatchModel")
   compute_means(object)
 })
 
 setMethod("computeVars", "MarginalModel", function(object){
-  .Deprecated("See SingleBatchModel")
+  .Defunct("See SingleBatchModel")
   compute_vars(object)
 })
 
 setReplaceMethod("tau2", "MarginalModel", function(object, value){
-  .Deprecated("See SingleBatchModel")
+  .Defunct("See SingleBatchModel")
   object@tau2 <- value
   object
 })
 
 setReplaceMethod("mu", "MarginalModel", function(object, value){
-  .Deprecated("See SingleBatchModel")
+  .Defunct("See SingleBatchModel")
   object@mu <- value
   object
 })
 
 
 #' @aliases bic,MarginalModel-method
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setMethod("bic", "MarginalModel", function(object){
-  .Deprecated("SingleBatchModel")
+  .Defunct("SingleBatchModel")
   object <- useModes(object)
   ## K: number of free parameters to be estimated
   ##   - component-specific parameters:  theta, sigma2   (3 x k(model))
@@ -53,11 +53,11 @@ setMethod("bic", "MarginalModel", function(object){
   -2*(log_lik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases theta,MarginalModel-method
 setMethod("theta", "MarginalModel", function(object) object@theta)
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases sigma2,MarginalModel-method
 setMethod("sigma2", "MarginalModel", function(object) object@sigma2)
 
@@ -137,7 +137,7 @@ setMethod("showSigmas", "BatchModel", function(object){
   sigmas
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases sigma2,BatchModel-method
 setMethod("sigma2", "BatchModel", function(object) {
   s2 <- object@sigma2
@@ -160,7 +160,7 @@ setMethod("sigmaMean", "BatchModel", function(object) {
   mns
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases tau2,BatchModel-method
 setMethod("tau2", "BatchModel", function(object) object@tau2)
 
@@ -169,7 +169,7 @@ setReplaceMethod("tau2", "BatchModel", function(object, value){
   object
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases theta,BatchModel-method
 setMethod("theta", "BatchModel", function(object) {
   b <- object@theta
@@ -211,14 +211,14 @@ setMethod("tablez", "BatchModel", function(object){
 
 #' @param params list of parameters for computing marginal likelihood
 #' @param model MarginalModel
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases marginalLikelihood,MarginalModel-method marginalLikelihood,MarginalModel,ANY-method
 setMethod("marginalLikelihood", "MarginalModel",
           function(model, params=mlParams()) {
             .ml_singlebatch(model, params)
           })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases marginalLikelihood,BatchModel-method marginalLikelihood,BatchModel,ANY-method
 setMethod("marginalLikelihood", "BatchModel",
           function(model, params=mlParams()){
@@ -255,13 +255,13 @@ setMethod("isOrdered", "BatchModel", function(object){
 
 
 #' @param bins length-one numeric vector specifying number of bins for plotting
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setMethod("ggMultiBatch", "BatchModel", function(model, bins){
   .gg_multibatch(model, bins)
 })
 
 setMethod("densitiesCluster", "BatchModel", function(object){
-  .Deprecated("See MultiBatchModel")
+  .Defunct("See MultiBatchModel")
   dens <- densities(object)
   modes <- dens[["modes"]]
   if(length(modes(object)) > 0){
@@ -355,7 +355,7 @@ setMethod("densitiesCluster", "MultiBatchModel", function(object){
 doKmeans <- function(thetas, modes) length(thetas) > length(modes) && length(modes) > 1
 
 setMethod("densitiesCluster", "MarginalModel", function(object){
-  .Deprecated("See SingleBatchModel")
+  .Defunct("See SingleBatchModel")
   dens <- densities(object)
   modes <- dens[["modes"]]
   if(length(modes(object)) > 0){
@@ -421,9 +421,9 @@ setMethod("densitiesCluster", "SingleBatchModel", function(object){
 #' @seealso See \code{\link{ggSingleBatch}} and \code{\link{ggMultiBatch}} for visualization
 #' @return An object of class 'DensityModel'
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 DensityModel <- function(object, merge=FALSE){
- .Deprecated()
+ .Defunct()
   if(!missing(object)){
     if(!merge){
       dens <- densities(object)
@@ -460,17 +460,17 @@ DensityModel <- function(object, merge=FALSE){
 
 setMethod("component", "DensityModel", function(object) object@component)
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases batch,DensityModel-method
 setMethod("batch", "DensityModel", function(object) object@batch)
 
 setMethod("overall", "DensityModel", function(object) object@overall)
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases modes,DensityModel-method
 setMethod("modes", "DensityModel", function(object) object@modes)
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases k,DensityModel-method
 setMethod("k", "DensityModel", function(object) length(component(object)))
 
@@ -491,7 +491,7 @@ setMethod("show", "DensityBatchModel", function(object){
 
 
 .plotMarginal <- function(x, y, ...){
-  .Deprecated("See ggSingleBatch and ggMultiBatch")
+  .Defunct("See ggSingleBatch and ggMultiBatch")
   object <- x
   args <- list(...)
   if(!"breaks" %in% names(args)){
@@ -564,17 +564,17 @@ findModes <- function(quantiles, x){ ##quantiles, density
   modes
 }
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases y,DensityModel-method
 setMethod("y", "DensityModel", function(object) object@data)
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases plot,DensityModel,numeric-method
 setMethod("plot", "DensityModel", function(x, y, ...){
   .plotMarginal(x, x@data, ...)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases plot,MarginalModel,ANY-method
 setMethod("plot", "MarginalModel", function(x, y, ...){
   object <- DensityModel(x)
@@ -582,7 +582,7 @@ setMethod("plot", "MarginalModel", function(x, y, ...){
   return(object)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases plot,BatchModel,ANY-method
 setMethod("plot", "BatchModel", function(x, y, show.batch=TRUE, ...){
   object <- DensityModel(x)
@@ -590,7 +590,7 @@ setMethod("plot", "BatchModel", function(x, y, show.batch=TRUE, ...){
   return(object)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases plot,BatchModel,ANY-method
 setMethod("plot", "DensityBatchModel", function(x, show.batch=TRUE, ...){
   .plotBatch(x, x@data, show.batch, ...)
@@ -756,7 +756,7 @@ setMethod("densities", "SingleBatchPooled", function(object){
 setGeneric("clusters", function(object) standardGeneric("clusters"))
 
 setMethod("clusters", "DensityModel", function(object) {
-  .Deprecated()
+  .Defunct()
   object@clusters
 })
 
@@ -767,7 +767,7 @@ setMethod("clusters", "DensityModel", function(object) {
 
 #' @return An object of class HyperparametersBatch
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 HyperparametersBatch <- function(k=3L,
                                  mu.0=0,
                                  tau2.0=100,
@@ -777,7 +777,7 @@ HyperparametersBatch <- function(k=3L,
                                  beta=0.1, ## mean is 1/10
                                  a=1.8,
                                  b=6){
-  .Deprecated("See HyperparametersMultiBatch")
+  .Defunct("See HyperparametersMultiBatch")
   if(missing(alpha)) alpha <- rep(1, k)
   new("HyperparametersBatch",
       k=as.integer(k),
@@ -821,7 +821,7 @@ HyperparametersBatch <- function(k=3L,
 #'
 #' @return An object of class HyperparametersMarginal
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 HyperparametersMarginal <- function(k=0L,
                                     mu.0=0,
                                     tau2.0=100,
@@ -831,7 +831,7 @@ HyperparametersMarginal <- function(k=0L,
                                     beta=0.1, ## mean is 1/10
                                     a=1.8,
                                     b=6){
-  .Deprecated()
+  .Defunct()
   if(missing(alpha)) alpha <- rep(1, k)
   ##if(missing(tau2)) tau2 <- rep(1, k)
   new("HyperparametersMarginal",
@@ -853,13 +853,13 @@ HyperparametersMarginal <- function(k=0L,
 #' @return a list. Each element of the list is a \code{BatchModel}
 #' @seealso \code{\link{BatchModel}}.  For single-batch data, use 
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 BatchModelList <- function(data=numeric(),
                            k=numeric(),
                            batch,
                            mcmc.params=McmcParams(),
                            ...){
-  .Deprecated("See MultiBatchModelList")
+  .Defunct("See MultiBatchModelList")
   model.list <- vector("list", length(k))
   for(i in seq_along(k)){
     hypp <- HyperparametersBatch(k=k[i], ...)
@@ -872,13 +872,13 @@ BatchModelList <- function(data=numeric(),
 
 #' @return An object of class `BatchModel`
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 BatchModel <- function(data=numeric(),
                        k=3,
                        batch,
                        hypp,
                        mcmc.params){
-  .Deprecated("See MultiBatchModel2")
+  .Defunct("See MultiBatchModel2")
   if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
   if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
   if(missing(hypp)) hypp <- HyperparametersBatch(k=k)
@@ -940,10 +940,10 @@ BatchModel <- function(data=numeric(),
   obj
 }
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setMethod("posteriorSimulation", c("MixtureModel", "integer"),
           function(object, k) {
-            ##.Deprecated("Method is deprecated for signature 'MixtureModel, integer'.  Use MarginalModelList or BatchModelList prior to posteriorSimulation")
+            ##.Defunct("Method is deprecated for signature 'MixtureModel, integer'.  Use MarginalModelList or BatchModelList prior to posteriorSimulation")
             stop("Specifying k not allowed.  See MutliBatchModelList or SingleBatchModelList for creating a list object.")
         if (length(k) > 1) {
           mlist <- vector("list", length(k))
@@ -959,7 +959,7 @@ setMethod("posteriorSimulation", c("MixtureModel", "integer"),
     }
 )
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setMethod("posteriorSimulation", c("MixtureModel", "numeric"),
           function(object, k) {
             stop("Specifying k not allowed.  See MultiBatchModelList or SingleBatchModelList for creating a list object.")
@@ -1055,9 +1055,9 @@ setMethod("densitiesCluster", "MarginalModel", function(object){
 #' density as the centers for the \code{kmeans} function.
 #' @return An object of class 'DensityModel'
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 DensityModel <- function(object, merge=FALSE){
-  .Deprecated("see ggMixture")
+  .Defunct("see ggMixture")
   if(!missing(object)){
     if(!merge){
       dens <- densities(object)
@@ -1094,17 +1094,17 @@ DensityModel <- function(object, merge=FALSE){
 
 setMethod("component", "DensityModel", function(object) object@component)
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases batch,DensityModel-method
 setMethod("batch", "DensityModel", function(object) object@batch)
 
 setMethod("overall", "DensityModel", function(object) object@overall)
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases modes,DensityModel-method
 setMethod("modes", "DensityModel", function(object) object@modes)
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases k,DensityModel-method
 setMethod("k", "DensityModel", function(object) length(component(object)))
 
@@ -1212,17 +1212,17 @@ findModes <- function(quantiles, x){ ##quantiles, density
   modes
 }
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases y,DensityModel-method
 setMethod("y", "DensityModel", function(object) object@data)
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases plot,DensityModel,numeric-method
 setMethod("plot", "DensityModel", function(x, y, ...){
   .plotMarginal(x, x@data, ...)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases plot,MarginalModel,ANY-method
 setMethod("plot", "MarginalModel", function(x, y, ...){
   object <- DensityModel(x)
@@ -1230,7 +1230,7 @@ setMethod("plot", "MarginalModel", function(x, y, ...){
   return(object)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases plot,BatchModel,ANY-method
 setMethod("plot", "BatchModel", function(x, y, show.batch=TRUE, ...){
   object <- DensityModel(x)
@@ -1238,7 +1238,7 @@ setMethod("plot", "BatchModel", function(x, y, show.batch=TRUE, ...){
   return(object)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases plot,BatchModel,ANY-method
 setMethod("plot", "DensityBatchModel", function(x, show.batch=TRUE, ...){
   .plotBatch(x, x@data, show.batch, ...)
@@ -1348,42 +1348,42 @@ setMethod("clusters", "DensityModel", function(object) object@clusters)
 setMethod("quantiles", "DensityModel", function(object) object@quantiles)
 
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setMethod("ggMultiBatch", "MultiBatchModel", function(model, bins){
-  .Deprecated("See ggMixture")
+  .Defunct("See ggMixture")
   .gg_multibatch(model, bins)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setMethod("ggMultiBatch", "MultiBatchPooled", function(model, bins){
-  .Deprecated("See ggMixture")
+  .Defunct("See ggMixture")
   .gg_multibatch_pooled(model, bins)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases ggSingleBatch,MarginalModel-method
 setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
-  .Deprecated("See ggMixture")
+  .Defunct("See ggMixture")
   .gg_singlebatch(model, bins)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases ggSingleBatch,SingleBatchModel-method
 setMethod("ggSingleBatch", "SingleBatchModel", function(model, bins){
-  .Deprecated("See ggMixture")
+  .Defunct("See ggMixture")
   .gg_singlebatch(model, bins)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setMethod("ggMultiBatch", "MultiBatchCopyNumber", function(model, bins){
-  .Deprecated("See ggMixture")
+  .Defunct("See ggMixture")
   .gg_multibatch_copynumber(model, bins)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases ggSingleBatch,SingleBatchCopyNumber-method
 setMethod("ggSingleBatch", "SingleBatchCopyNumber", function(model, bins){
-  .Deprecated("See ggMixture")
+  .Defunct("See ggMixture")
   .gg_singlebatch_copynumber(model, bins)
 })
 
@@ -1414,9 +1414,9 @@ setMethod("showMeans", "BatchModel", function(object){
 #' @param THR threshold above which to merge batches in Kolmogorov-Smirnov test.
 #' @return Tile labels for each observation
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 downsample <- function(batch.file, plate, y, ntiles=250, THR=0.1){
-  .Deprecated(downsample)
+  .Defunct(downsample)
   if(file.exists(batch.file)){
     batches <- readRDS(batch.file)
   } else {
@@ -1445,9 +1445,9 @@ downsample <- function(batch.file, plate, y, ntiles=250, THR=0.1){
 #' @return Tile labels for each observation
 #' @seealso \code{\link[dplyr]{ntile}}
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 downSampleEachBatch <- function(y, nt, batch){
-  .Deprecated("see tileMedians")
+  .Defunct("see tileMedians")
   ## NULL out these two variables to avoid NOTE about
   ## no visible binding for global variable
   yy <- y
@@ -1498,13 +1498,13 @@ downSampleEachBatch <- function(y, nt, batch){
 #' @param hypp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @return An object of class `MultiBatchModel`
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 MultiBatchModel <- function(data=numeric(),
                             k=3,
                             batch,
                             hypp,
                             mcmc.params){
-  .Deprecated("See MultiBatchModel2")
+  .Defunct("See MultiBatchModel2")
   if(missing(batch)) batch <- as.integer(factor(rep("a", length(data))))
   if(missing(mcmc.params)) mcmc.params <- McmcParams(iter=1000, burnin=100)
   if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=k)
@@ -1567,7 +1567,7 @@ MultiBatchModel <- function(data=numeric(),
 }
 
 setMethod("computePrior", "MarginalModel", function(object){
-  .Deprecated("See SingleBatchModel")
+  .Defunct("See SingleBatchModel")
   compute_logprior(object)
 })
 
@@ -1575,11 +1575,11 @@ setMethod("computePrior", "BatchModel", function(object){
   compute_logprior_batch(object)
 })
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases posteriorSimulation,list-method
 setMethod("posteriorSimulation", "list",
           function(object) {
-            .Deprecated("See gibbs")
+            .Defunct("See gibbs")
             params <- psParams()
             results <- vector("list", length(object))
             for(i in seq_along(results)){
@@ -1604,23 +1604,23 @@ setMethod("posteriorSimulation", "list",
 #' will be plotted.
 #' @return A plot showing the density estimate
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setGeneric("plot")
 
-#' DensityModel constructor and methods are Deprecated
+#' DensityModel constructor and methods are Defunct
 #'
 #' @export
 #' @docType methods
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setGeneric("clusters", function(object) standardGeneric("clusters"))
 
 #' @return A single proportion for a \code{MarginalModel} or a vector of proportions, one for each batch for a \code{BatchModel}
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setGeneric("labelSwitching", function(object, merge=TRUE) standardGeneric("labelSwitching"))
 
 .posteriorSimulation <- function(post, params=psParams()){
-  .Deprecated("see .posteriorSimulation2")
+  .Defunct("see .posteriorSimulation2")
   if(nStarts(post) > 1){
     post <- multipleStarts2(post)
   }
@@ -1661,7 +1661,7 @@ setGeneric("labelSwitching", function(object, merge=TRUE) standardGeneric("label
 
 
 
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 #' @aliases labelSwitching,MixtureModel-method
 #' @export
 setMethod("labelSwitching", "MixtureModel", 
@@ -1732,7 +1732,7 @@ MultiBatchModelList <- function(data=numeric(),
 #' @param i integer
 #' @param j integer
 #' @docType methods
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     y(x) <- y(x)[i]
@@ -1743,9 +1743,9 @@ setMethod("[", "BatchModel", function(x, i, j, ..., drop=FALSE){
 })
 
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 SingleBatchModel <- function(data=numeric(), k=3, hypp, mcmc.params){
-  .Deprecated("SingleBatchModel2")
+  .Defunct("SingleBatchModel2")
   if(missing(hypp)) hypp <- Hyperparameters(k=3)
   batch <- rep(1L, length(data))
   if(missing(k)){
@@ -1790,7 +1790,7 @@ SingleBatchModel <- function(data=numeric(), k=3, hypp, mcmc.params){
 
 
 newMarginalModel <- function(object){
-  .Deprecated("newSingleBatchModel")
+  .Defunct("newSingleBatchModel")
   mp <- mcmcParams(object)
   object2 <- SingleBatchModel(y(object), k=k(object), mcmc.params=mp,
                            hypp=hyperParams(object))
@@ -1813,9 +1813,9 @@ newMarginalModel <- function(object){
 }
 
 #' @export
-#' @rdname Deprecated-functions
+#' @rdname Defunct-functions
 multiBatchDensities <- function(model){
-  .Deprecated("ggMixture")
+  .Defunct("ggMixture")
   dnorm_poly_multibatch(model)
 }
 

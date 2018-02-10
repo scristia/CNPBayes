@@ -195,35 +195,6 @@ UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
 }
 
 ##
-## This is the problem with calling new("BatchModel", ) with placeholders for values
-## setValidity("BatchModel", function(object){
-##   msg <- TRUE
-##   ztab <- table(batch(object), z(object))
-## ##  if(any(ztab < 1)){
-## ##    msg <- "All components in each batch must have 1 or more observations"
-## ##    return(msg)
-## ##  }
-## ##  if(ncol(ztab) != nrow(ztab)){
-## ##    msg <- "All batches much have at least one observation from each component"
-## ##    return(msg)
-## ##  }
-##   ## A valid batch model should have data ordered by batch
-## ##  deltas <- diff(batch(object))
-## ##  if(!all(deltas > 0)){
-## ##    msg <- "Constructor for BatchModel should return data and batch assignment in batch-order"
-## ##    return(msg)
-##   ##  }
-## ##  if(length(y(object)) > 0){
-## ##    pz <- probz(object)
-## ##    maxprob <- max(pz)
-## ##    if(maxprob > 1 ){
-## ##      msg <- "Posterior probabilities exceed 1"
-## ##      return(msg)
-## ##    }
-## ##  }
-##   msg
-## })
-
 
 #' extract data, latent variable, and batch for given observation
 #' @name extract
@@ -243,21 +214,6 @@ setMethod("[", "MultiBatchModel", function(x, i, j, ..., drop=FALSE){
     batch(x) <- batch(x)[i]
   }
   x
-})
-
-#' @rdname bic-method
-#' @aliases bic,BatchModel-method
-setMethod("bic", "BatchModel", function(object){
-  object <- useModes(object)
-  ## K: number of free parameters to be estimated
-  ##   - component and batch-specific parameters:  theta, sigma2  ( k(model) * nBatch(model))
-  ##   - mixing probabilities: (k-1)*nBatch
-  ##   - component-specific parameters: mu, tau2                 2 x k(model)
-  ##   - length-one parameters: sigma2.0, nu.0                   +2
-  K <- 2*k(object)*nBatch(object) + (k(object)-1) + 2*k(object) + 2
-  n <- length(y(object))
-  bicstat <- -2*(log_lik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
-  bicstat
 })
 
 #' @rdname bic-method
@@ -286,19 +242,11 @@ setMethod("collapseBatch", "MultiBatchModel", function(object){
 batchLik <- function(x, p, mean, sd)  p*dnorm(x, mean, sd)
 
 
-setMethod("computeMeans", "BatchModel", function(object){
-  compute_means_batch(object)
-
-})
-
 setMethod("computeMeans", "MultiBatchModel", function(object){
   compute_means_batch(object)
 
 })
 
-setMethod("computePrec", "BatchModel", function(object){
-  compute_prec_batch(object)
-})
 
 setMethod("computePrec", "MultiBatchModel", function(object){
   compute_prec_batch(object)
@@ -338,26 +286,16 @@ setMethod("computeModes", "MultiBatchModel", function(object){
 
 componentVariances <- function(y, z)  v <- sapply(split(y, z), var)
 
-setMethod("computeVars", "BatchModel", function(object){
-  compute_vars_batch(object)
-})
 
 setMethod("computeVars", "MultiBatchModel", function(object){
   compute_vars_batch(object)
 })
 
-#' @rdname mu-method
-#' @aliases mu,BatchModel-method
-setMethod("mu", "BatchModel", function(object) object@mu)
 
 #' @rdname mu-method
 #' @aliases mu,MultiBatchModel-method
 setMethod("mu", "MultiBatchModel", function(object) object@mu)
 
-setReplaceMethod("mu", "BatchModel", function(object, value){
-  object@mu <- value
-  object
-})
 
 setReplaceMethod("mu", "MultiBatchModel", function(object, value){
   object@mu <- value
