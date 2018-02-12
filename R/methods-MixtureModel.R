@@ -185,9 +185,6 @@ setMethod("batch", "MixtureModel", function(object) object@batch)
 #' @aliases z,MixtureModel-method
 setMethod("z", "MixtureModel", function(object) object@z)
 
-setMethod("computePrec", "MarginalModel", function(object){
-  compute_prec(object)
-})
 
 setMethod("computePrior", "SingleBatchModel", function(object){
   compute_logprior(object)
@@ -597,9 +594,8 @@ argMax <- function(object){
   which(p == maxp)
 }
 
-setMethod("isSB", "MarginalModel", function(object) TRUE)
 setMethod("isSB", "SingleBatchModel", function(object) TRUE)
-setMethod("isSB", "BatchModel", function(object) FALSE)
+
 setMethod("isSB", "MultiBatchModel", function(object) FALSE)
 
 startAtTrueValues <- function(model, truth){
@@ -860,6 +856,8 @@ setMethod("upSample", "MixtureModel", function(model, tiles){
 
 setMethod("u", "MixtureModel", function(object) object@u )
 
+#' Accessor for degrees of freedom
+#' 
 #' @rdname dfr-method
 #' @aliases dfr,SBPt-method
 setMethod("dfr", "MixtureModel", function(object) object@hyperparams@dfr )

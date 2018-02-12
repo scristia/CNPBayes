@@ -28,6 +28,8 @@ Run marginal MCMC simulation
 
 \item{\code{tau2}}{overall variance}
 
+\item{\code{u}}{latent chi square variable for t-distribution}
+
 \item{\code{data}}{the data for the simulation.}
 
 \item{\code{data.mean}}{the empirical means of the components}

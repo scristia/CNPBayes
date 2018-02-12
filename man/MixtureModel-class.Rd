@@ -40,6 +40,8 @@ BatchModel and MarginalModel both inherit from this class.
 
 \item{\code{probz}}{n x k matrix of probabilities}
 
+\item{\code{u}}{chi-square draws for controlling t-distribution}
+
 \item{\code{logprior}}{log likelihood of prior: log(p(sigma2.0)p(nu.0)p(mu))}
 
 \item{\code{loglik}}{log likelihood: \eqn{\sum p_k \Phi(\theta_k, \sigma_k)}}

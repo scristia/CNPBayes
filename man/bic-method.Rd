@@ -4,14 +4,11 @@
 \docType{methods}
 \name{bic}
 \alias{bic}
-\alias{bic,BatchModel-method}
 \alias{bic,MultiBatchModel-method}
 \alias{bic,SingleBatchModel-method}
 \title{Calculate BIC of a model}
 \usage{
 bic(object)
-
-\S4method{bic}{BatchModel}(object)
 
 \S4method{bic}{MultiBatchModel}(object)
 
