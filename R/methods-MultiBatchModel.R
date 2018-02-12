@@ -97,6 +97,7 @@ MultiBatchModel2 <- function(dat=numeric(),
   sigma2.0 <- 0.25
   sigma2s <- 1/rgamma(k(hp) * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
     matrix(B, k(hp))
+  u <- rchisq(length(dat), hp@dfr)
   obj <- new("MultiBatchModel",
              k=as.integer(K),
              hyperparams=hp,
@@ -108,6 +109,7 @@ MultiBatchModel2 <- function(dat=numeric(),
              sigma2.0=sigma2.0,
              pi=p,
              data=dat,
+             u=u,
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
              z=integer(N),
