@@ -22,14 +22,15 @@ test_that("overfit model", {
                         tau2.0=0.4,
                         eta.0=200, ## default 32
                         m2.0=100)  ## default 0.5
-  model <- gibbs_K(hp=hp, mp=mp, dat=galaxies2, k_range=c(1, 3))
-  ##    taut2hat = var(theta(model))
-  ## qInverseTau2(mn=0.01, sd=0.001)
   if(FALSE){
+    model <- gibbs_K(hp=hp, mp=mp, dat=galaxies2, k_range=c(1, 3))
+    ##    taut2hat = var(theta(model))
+    ## qInverseTau2(mn=0.01, sd=0.001)
     ggChains(model[[1]])
     ggSingleBatch(model[[1]])
+    expect_identical(names(model)[1], "SB3")
   }
-  expect_identical(names(model)[1], "SB3")
+
 })
 
 .test_that <- function(name, expr) NULL
