@@ -389,7 +389,7 @@ Rcpp::NumericVector compute_heavy_means(Rcpp::S4 xmod) {
 
 
 // [[Rcpp::export]]
-Rcpp::NumericVector compute_u_sums_batch(Rcpp::S4 xmod) {
+Rcpp::NumericMatrix compute_u_sums_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   IntegerVector z = model.slot("z") ;
@@ -447,7 +447,7 @@ Rcpp::NumericMatrix compute_heavy_sums_batch(Rcpp::S4 object) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector compute_heavy_means_batch(Rcpp::S4 xmod) {
+Rcpp::NumericMatrix compute_heavy_means_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;

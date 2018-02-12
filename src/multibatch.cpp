@@ -517,29 +517,33 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
     double post_prec = 0.0 ;
 
     NumericVector u = model.slot("u") ;
-    double df = getDf(model.slot("hyperparams")) ;
-    NumericMatrix sumu(B, K) ;
-    // NumericMatrix sums(B, K) ;
+    double df = getDf(hypp) ;
+    //NumericMatrix sumu(B, K) ;
 
-    NumericMatrix sums = compute_heavy_sums_batch(xmod) ;
     // find heavy means by batch
-    NumericVector data_mean =  compute_heavy_means(xmod) ;
-    data_mean =  data_mean/df ;
-//    NumericVector sumu = compute_u_sums(xmod) ;
-    sumu = sumu/df ;
+    NumericMatrix data_mean =  compute_heavy_means_batch(xmod) ;
+    NumericMatrix sumu = compute_u_sums_batch(xmod) ;
+    //data_mean =  data_mean/df ;
+    //sumu = sumu / df;
     //NumericVector nn(K) ;
     //nn = as<NumericVector>(counts)  * sumu ;
+    double heavyn = 0.0;
+    double heavy_mean = 0.0;
 
     for (int b = 0; b < B; ++b) {
         for(int k = 0; k < K; ++k){
-            post_prec = 1.0/tau2[k] + n_hb(b, k) * sumu(b, k)*1.0/sigma2(b, k) ;
+            heavyn = n_hb(b, k) * sumu(b, k) / df;
+            heavy_mean = data_mean(b, k) / df;
+            //post_prec = 1.0/tau2[k] + n_hb(b, k) * sumu(b, k)*1.0/sigma2(b, k) ;
+            post_prec = 1.0/tau2[k] + heavyn*1.0/sigma2(b, k) ;
             if (post_prec == R_PosInf) {
                 throw std::runtime_error("Bad simulation. Run again with different start.");
             }
             tau_n = sqrt(1.0/post_prec) ;
             w1 = (1.0/tau2[k])/post_prec ;
             w2 = (n_hb(b, k) * 1.0/sigma2(b, k))/post_prec ;
-            mu_n = w1*mu[k] + w2*ybar(b, k) ;
+           // mu_n = w1*mu[k] + w2*data_mean(b, k) ;
+            mu_n = w1*mu[k] + w2*heavy_mean ;
             theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
         }
     }
@@ -582,7 +586,8 @@ Rcpp::NumericMatrix update_sigma2_batch(Rcpp::S4 xmod){
 
             for (int k = 0; k < K; ++k){
                 if (z[i] == k+1){
-                    ss(b, k) += u[i] * pow(x[i] - theta(b, k), 2);
+                    //ss(b, k) += u[i] * pow(x[i] - theta(b, k), 2);
+                    ss(b, k) += pow(x[i] - theta(b, k), 2);
                 }
             }
         }
@@ -599,7 +604,8 @@ Rcpp::NumericMatrix update_sigma2_batch(Rcpp::S4 xmod){
     for (int b = 0; b < B; ++b) {
         for (int k = 0; k < K; ++k) {
             nu_n = nu_0 + tabz(b, k);
-            sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k)/df);
+            //sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k)/df);
+            sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k));
             shape = 0.5 * nu_n;
             rate = shape * sigma2_nh;
             sigma2_tilde(b, k) = Rcpp::as<double>(rgamma(1, shape, 1.0/rate));

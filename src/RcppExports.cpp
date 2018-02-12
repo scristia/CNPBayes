@@ -121,7 +121,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // compute_u_sums_batch
-Rcpp::NumericVector compute_u_sums_batch(Rcpp::S4 xmod);
+Rcpp::NumericMatrix compute_u_sums_batch(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_compute_u_sums_batch(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -132,7 +132,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // compute_heavy_means_batch
-Rcpp::NumericVector compute_heavy_means_batch(Rcpp::S4 xmod);
+Rcpp::NumericMatrix compute_heavy_means_batch(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_compute_heavy_means_batch(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
