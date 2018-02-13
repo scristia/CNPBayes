@@ -205,6 +205,7 @@ setAs("MultiBatchModel", "MultiBatchPooled", function(from, to){
       mu=mu(from),
       tau2=tau2(from),
       data=y(from),
+      u=u(from),
       data.mean=from@data.mean,
       data.prec=from@data.prec,
       z=z(from),
