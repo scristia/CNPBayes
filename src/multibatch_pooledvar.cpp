@@ -319,7 +319,7 @@ Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod){
             }
             tau_n = sqrt(1.0/post_prec) ;
             w1 = (1.0/tau2[k])/post_prec ;
-            w2 = (n_hb(b, k) * 1.0/sigma2[b]/post_prec ;
+            w2 = (n_hb(b, k) * 1.0/sigma2[b])/post_prec ;
            // mu_n = w1*mu[k] + w2*data_mean(b, k) ;
             mu_n = w1*mu[k] + w2*heavy_mean ;
             theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
