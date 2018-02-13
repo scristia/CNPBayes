@@ -599,7 +599,6 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
                 if (batch[i] != ub[b]) {
                     continue;
                 }
-
                 for (int k = 0; k < K; ++k) {
                     if (zz[i] == k + 1) {
                         ss(b, k) += u[i] * pow(x[i] - thetastar(b, k), 2);
