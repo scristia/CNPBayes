@@ -530,7 +530,6 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
     //sumu = sumu / df;
     //NumericVector nn(K) ;
     //nn = as<NumericVector>(counts)  * sumu ;
-        Rcpp::Rcout << "data mean" << std::endl << data_mean << std::endl;
     double heavyn = 0.0;
     double heavy_mean = 0.0;
 

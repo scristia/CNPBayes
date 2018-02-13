@@ -154,8 +154,8 @@ test_that("easy", {
       hist(theta, breaks = 100, xlim = c(-2, 1.5))
   }
   set.seed(1)
-  ##mcmcp <- McmcParams(iter = 300, burnin = 300, nStarts = 5)
-  mcmcp <- McmcParams(iter = 20, burnin = 50, nStarts = 50)
+  mcmcp <- McmcParams(iter = 300, burnin = 300, nStarts = 5)
+#   mcmcp <- McmcParams(iter = 20, burnin = 50, nStarts = 50)
 #   mcmcp <- McmcParams(iter = 2, burnin = 0, nStarts = 1)
   model <- MultiBatchModel2(dat=y(truth),
                             batches = batch(truth),
