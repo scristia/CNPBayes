@@ -131,6 +131,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// compute_heavy_sums_batch
+Rcpp::NumericMatrix compute_heavy_sums_batch(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_compute_heavy_sums_batch(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_heavy_sums_batch(object));
+    return rcpp_result_gen;
+END_RCPP
+}
 // compute_heavy_means_batch
 Rcpp::NumericMatrix compute_heavy_means_batch(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_compute_heavy_means_batch(SEXP xmodSEXP) {
@@ -1473,6 +1484,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_compute_heavy_sums", (DL_FUNC) &_CNPBayes_compute_heavy_sums, 1},
     {"_CNPBayes_compute_heavy_means", (DL_FUNC) &_CNPBayes_compute_heavy_means, 1},
     {"_CNPBayes_compute_u_sums_batch", (DL_FUNC) &_CNPBayes_compute_u_sums_batch, 1},
+    {"_CNPBayes_compute_heavy_sums_batch", (DL_FUNC) &_CNPBayes_compute_heavy_sums_batch, 1},
     {"_CNPBayes_compute_heavy_means_batch", (DL_FUNC) &_CNPBayes_compute_heavy_means_batch, 1},
     {"_CNPBayes_theta_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_theta_multibatch_pvar_red, 1},
     {"_CNPBayes_sigma_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_sigma_multibatch_pvar_red, 1},
