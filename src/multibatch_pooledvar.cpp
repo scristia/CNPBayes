@@ -281,6 +281,7 @@ Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod){
     NumericVector x = model.slot("data") ;
     // NumericMatrix theta = model.slot("theta") ;
     NumericVector tau2 = model.slot("tau2") ;
+    //NumericMatrix sigma2 = model.slot("sigma2") ;
     NumericVector sigma2 = model.slot("sigma2") ;
     NumericMatrix n_hb = tableBatchZ(xmod) ;
     NumericVector mu = model.slot("mu") ;
@@ -293,20 +294,72 @@ Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod){
     double tau_n = 0.0 ;
     double post_prec = 0.0 ;
 
+    NumericVector u = model.slot("u") ;
+    double df = getDf(hypp) ;
+    //NumericMatrix sumu(B, K) ;
+
+    // find heavy means by batch
+    //NumericMatrix data_mean =  compute_heavy_means_batch(xmod) ;
+    NumericMatrix data_mean =  compute_heavy_sums_batch(xmod) ;
+    NumericMatrix sumu = compute_u_sums_batch(xmod) ;
+    //data_mean =  data_mean/df ;
+    //sumu = sumu / df;
+    //NumericVector nn(K) ;
+    //nn = as<NumericVector>(counts)  * sumu ;
+    double heavyn = 0.0;
+    double heavy_mean = 0.0;
+
     for (int b = 0; b < B; ++b) {
         for(int k = 0; k < K; ++k){
-            post_prec = 1.0/tau2[k] + n_hb(b, k)*1.0/sigma2[b] ;
+            heavyn = n_hb(b, k) * sumu(b, k) / df;
+            heavy_mean = data_mean(b, k) / df;
+            post_prec = 1.0/tau2[k] + heavyn*1.0/sigma2[b] ;
             if (post_prec == R_PosInf) {
                 throw std::runtime_error("Bad simulation. Run again with different start.");
             }
             tau_n = sqrt(1.0/post_prec) ;
             w1 = (1.0/tau2[k])/post_prec ;
             w2 = (n_hb(b, k) * 1.0/sigma2[b])/post_prec ;
-            mu_n = w1*mu[k] + w2*ybar(b, k) ;
+           // mu_n = w1*mu[k] + w2*data_mean(b, k) ;
+            mu_n = w1*mu[k] + w2*heavy_mean ;
             theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
         }
     }
     return theta_new ;
+//
+//    RNGScope scope ;
+//    Rcpp::S4 model(xmod) ;
+//    Rcpp::S4 hypp(model.slot("hyperparams")) ;
+//    int K = getK(hypp) ;
+//    NumericVector x = model.slot("data") ;
+//    // NumericMatrix theta = model.slot("theta") ;
+//    NumericVector tau2 = model.slot("tau2") ;
+//    NumericVector sigma2 = model.slot("sigma2") ;
+//    NumericMatrix n_hb = tableBatchZ(xmod) ;
+//    NumericVector mu = model.slot("mu") ;
+//    int B = n_hb.nrow() ;
+//    NumericMatrix ybar = model.slot("data.mean") ;
+//    NumericMatrix theta_new(B, K) ;
+//    double w1 = 0.0 ;
+//    double w2 = 0.0 ;
+//    double mu_n = 0.0 ;
+//    double tau_n = 0.0 ;
+//    double post_prec = 0.0 ;
+//
+//    for (int b = 0; b < B; ++b) {
+//        for(int k = 0; k < K; ++k){
+//            post_prec = 1.0/tau2[k] + n_hb(b, k)*1.0/sigma2[b] ;
+//            if (post_prec == R_PosInf) {
+//                throw std::runtime_error("Bad simulation. Run again with different start.");
+//            }
+//            tau_n = sqrt(1.0/post_prec) ;
+//            w1 = (1.0/tau2[k])/post_prec ;
+//            w2 = (n_hb(b, k) * 1.0/sigma2[b])/post_prec ;
+//            mu_n = w1*mu[k] + w2*ybar(b, k) ;
+//            theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
+//        }
+//    }
+//    return theta_new ;
 }
 
 // [[Rcpp::export]]

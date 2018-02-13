@@ -63,7 +63,8 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
         zz = Z(s, Rcpp::_);
         model.slot("z") = zz;
         nn = tableBatchZ(model);
-        data_mean = compute_heavy_means_batch(model);
+        //data_mean = compute_heavy_means_batch(model);
+        data_mean = compute_heavy_sums_batch(model);
         data_mean = data_mean/df;
         sumu = compute_u_sums_batch(xmod) ;
         sumu = sumu/df ;
@@ -598,7 +599,6 @@ Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod) {
                 if (batch[i] != ub[b]) {
                     continue;
                 }
-
                 for (int k = 0; k < K; ++k) {
                     if (zz[i] == k + 1) {
                         ss(b, k) += u[i] * pow(x[i] - thetastar(b, k), 2);
