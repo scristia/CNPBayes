@@ -119,8 +119,8 @@ test_that("easy", {
   sds <- matrix(0.1, nbatch, k)
   N <- 1500
   truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
-      length.out = N), theta = means, sds = sds, p = c(1/5,
-      1/3, 1 - 1/3 - 1/5))
+                                                length.out = N), theta = means, sds = sds, p = c(1/5,
+                                                1/3, 1 - 1/3 - 1/5))
   ##yy <- y(truth)
   ##expect_identical(yy[order(batch(truth))], yy)
   mcmcp <- McmcParams(iter = 50, burnin = 0)
@@ -156,10 +156,14 @@ test_that("easy", {
   set.seed(1)
   ##mcmcp <- McmcParams(iter = 300, burnin = 300, nStarts = 5)
   mcmcp <- McmcParams(iter = 20, burnin = 50, nStarts = 50)
+#   mcmcp <- McmcParams(iter = 2, burnin = 0, nStarts = 1)
   model <- MultiBatchModel2(dat=y(truth),
                             batches = batch(truth),
                             hp=hpList(k=3)[["MB"]],
                             mp=mcmcp)
+#   model <- SingleBatchModel2(dat=y(truth),
+#                              hp=hpList(k=3)[["SB"]],
+#                              mp=mcmcp)
   model <- posteriorSimulation(model)
   expect_equal(theta(model), theta(truth),
                scale=0.01, tolerance=1)

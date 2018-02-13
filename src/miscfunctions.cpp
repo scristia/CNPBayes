@@ -403,18 +403,19 @@ Rcpp::NumericMatrix compute_u_sums_batch(Rcpp::S4 xmod) {
   int B = ub.size() ;
   NumericMatrix sums(B, K) ;
   for(int i = 0; i < n; i++){
-      for(int b = B; b < B; b++) {
+      for(int b = 0; b < B; b++) {
           for(int k = 0; k < K; k++){
-              if(z[i] == k+1){
+              if(z[i] == k+1 & batch[i] == b+1){
                   sums(b, k) += u[i] ;
               }
           }
       }
   }
+  //Rcpp::Rcout << "u sums:" << std::endl << sums << std::endl;
   return sums ;
 }
 
-// [[Rcpp::export]] Rcpp::NumericVector
+// [[Rcpp::export]]
 Rcpp::NumericMatrix compute_heavy_sums_batch(Rcpp::S4 object) {
   RNGScope scope ;
   Rcpp::S4 xmod = clone(object) ;
@@ -435,14 +436,15 @@ Rcpp::NumericMatrix compute_heavy_sums_batch(Rcpp::S4 object) {
   
   x = x * u ;
   for(int i = 0; i < n; i++){
-      for(int b = B; b < B; b++) {
+      for(int b = 0; b < B; b++) {
           for(int k = 0; k < K; k++){
-              if(z[i] == k+1){
+              if(z[i] == k+1 & batch[i] == b+1){
                   sums(b, k) += x[i] ;
               }
           }
       }
   }
+  //Rcpp::Rcout << "heavy sums:" << std::endl << sums << std::endl;
   return sums ;
 }
 
@@ -459,11 +461,12 @@ Rcpp::NumericMatrix compute_heavy_means_batch(Rcpp::S4 xmod) {
   int B = ub.size() ;
   NumericMatrix nn = tableBatchZ(xmod) ;
   NumericMatrix means = compute_heavy_sums_batch(xmod) ;
-  for(int b = B; b < B; b++) {
+  for(int b = 0; b < B; b++) {
       for(int k = 0; k < K; k++){
           means(b, k) = means(b, k) / nn(b, k) ;
       }
   }
+  //Rcpp::Rcout << "means:" << std::endl << means << std::endl;
   return means ;
 }
 

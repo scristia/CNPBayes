@@ -268,7 +268,9 @@ Rcpp::NumericMatrix update_multinomialPr_batch(Rcpp::S4 xmod) {
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
-      tmp = p[k] * dlocScale_t(x, df, theta(b, k), sqrt(sigma2(b, k))) * this_batch ;
+      double sigma = sqrt(sigma2(b, k));
+      //tmp = p[k] * dlocScale_t(x, df, theta(b, k), sqrt(sigma2(b, k))) * this_batch ;
+      tmp = p[k] * dlocScale_t(x, df, theta(b, k), sigma) * this_batch ;
       // if(is_true(any(tmp < 1e-10))) tmp[tmp < 1e-10] = 1e-10 ;
       dens += tmp ;
     }
@@ -521,12 +523,14 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
     //NumericMatrix sumu(B, K) ;
 
     // find heavy means by batch
-    NumericMatrix data_mean =  compute_heavy_means_batch(xmod) ;
+    //NumericMatrix data_mean =  compute_heavy_means_batch(xmod) ;
+    NumericMatrix data_mean =  compute_heavy_sums_batch(xmod) ;
     NumericMatrix sumu = compute_u_sums_batch(xmod) ;
     //data_mean =  data_mean/df ;
     //sumu = sumu / df;
     //NumericVector nn(K) ;
     //nn = as<NumericVector>(counts)  * sumu ;
+        Rcpp::Rcout << "data mean" << std::endl << data_mean << std::endl;
     double heavyn = 0.0;
     double heavy_mean = 0.0;
 
@@ -534,6 +538,8 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
         for(int k = 0; k < K; ++k){
             heavyn = n_hb(b, k) * sumu(b, k) / df;
             heavy_mean = data_mean(b, k) / df;
+
+            Rcpp::Rcout << "heavy mean" << std::endl << heavy_mean << std::endl;
             //post_prec = 1.0/tau2[k] + n_hb(b, k) * sumu(b, k)*1.0/sigma2(b, k) ;
             post_prec = 1.0/tau2[k] + heavyn*1.0/sigma2(b, k) ;
             if (post_prec == R_PosInf) {
@@ -585,8 +591,9 @@ Rcpp::NumericMatrix update_sigma2_batch(Rcpp::S4 xmod){
             }
 
             for (int k = 0; k < K; ++k){
-                if (z[i] == k+1){
+                if(z[i] == k+1 & batch[i] == b+1){
                     ss(b, k) += u[i] * pow(x[i] - theta(b, k), 2);
+                    //ss(b, k) += pow(x[i] - theta(b, k), 2);
                 }
             }
         }
@@ -604,6 +611,7 @@ Rcpp::NumericMatrix update_sigma2_batch(Rcpp::S4 xmod){
         for (int k = 0; k < K; ++k) {
             nu_n = nu_0 + tabz(b, k);
             sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k)/df);
+           // sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k));
             shape = 0.5 * nu_n;
             rate = shape * sigma2_nh;
             sigma2_tilde(b, k) = Rcpp::as<double>(rgamma(1, shape, 1.0/rate));

@@ -45,6 +45,10 @@ compute_u_sums_batch <- function(xmod) {
     .Call('_CNPBayes_compute_u_sums_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
+compute_heavy_sums_batch <- function(object) {
+    .Call('_CNPBayes_compute_heavy_sums_batch', PACKAGE = 'CNPBayes', object)
+}
+
 compute_heavy_means_batch <- function(xmod) {
     .Call('_CNPBayes_compute_heavy_means_batch', PACKAGE = 'CNPBayes', xmod)
 }
