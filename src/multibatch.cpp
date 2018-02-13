@@ -538,7 +538,6 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
             heavyn = n_hb(b, k) * sumu(b, k) / df;
             heavy_mean = data_mean(b, k) / df;
 
-            //Rcpp::Rcout << "heavy mean" << std::endl << heavy_mean << std::endl;
             //post_prec = 1.0/tau2[k] + n_hb(b, k) * sumu(b, k)*1.0/sigma2(b, k) ;
             post_prec = 1.0/tau2[k] + heavyn*1.0/sigma2(b, k) ;
             if (post_prec == R_PosInf) {
