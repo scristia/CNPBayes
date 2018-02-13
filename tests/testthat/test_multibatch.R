@@ -239,11 +239,11 @@ test_that("kbatch", {
   truth <- simulateBatchData(N = N, batch = batch, theta = means,
       sds = sds, p = p)
   mp <- McmcParams(iter = 100, burnin = 50, nStarts = 10)
-  kmod <- MultiBatchModel2(dat=y(truth), batches=batch(truth),
+  kmod <- MultiBatchModel2(dat=y(truth),
+                           batches=batch(truth),
                            hp=hpList(k = 3)[["MB"]],
                            mp = mp)
   kmod <- posteriorSimulation(kmod)
-
   expected <- max.col(probz(kmod))
   cn <- map_z(kmod)
   expect_identical(cn, expected)
