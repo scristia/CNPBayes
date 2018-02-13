@@ -36,6 +36,7 @@ Rcpp::NumericVector update_theta(Rcpp::S4 xmod) {
     NumericVector u = model.slot("u") ;
     double df = getDf(model.slot("hyperparams")) ;
     NumericVector data_mean =  compute_heavy_means(xmod) ;
+    //NumericVector data_mean =  compute_heavy_sums(xmod) ;
     data_mean =  data_mean/df ;
     NumericVector sumu = compute_u_sums(xmod) ;
     sumu = sumu/df ;

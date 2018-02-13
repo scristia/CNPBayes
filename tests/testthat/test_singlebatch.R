@@ -39,7 +39,9 @@ test_that("hard", {
       ##
       mcmcp <- McmcParams(iter = 500, burnin = 200, thin = 0,
                           nStarts = 20)
-      model <- SingleBatchModel2(dat=y(truth), hp=hpList(k = 3)[["SB"]])
+    model <- SingleBatchModel2(dat=y(truth), hp=hpList(k = 3)[["SB"]])
+#       model <- MultiBatchModel2(dat=y(truth), hp=hpList(k = 3)[["MB"]], batches=rep(1L, length(y(truth))))
+      dfr(model)=100
       model <- posteriorSimulation(model)
       i <- order(theta(model))
       expect_identical(i, 1:3)
@@ -56,7 +58,7 @@ test_that("moderate", {
                           theta = c(-2, -0.4, 0),
                           sds = c(0.3, 0.15, 0.15),
                           p = c(0.05, 0.15, 0.8),
-                          df=10)
+                          df=100)
 #     truth <- simulateData(N = 1000,
 #                           theta = c(-2, -0.4, 0),
 #                           sds = c(0.3/sqrt(10), 0.15/sqrt(10), 0.15/sqrt(10)),
@@ -66,10 +68,14 @@ test_that("moderate", {
     ## high posterior probability after an arbitrary number of mcmc updates
     mcmcp <- McmcParams(iter = 1000, burnin = 300,
                         thin = 5, nStarts=10)
-    model <- SingleBatchModel2(dat=y(truth),
-                               hp=hpList(k = 3)[["SB"]],
-                               mp = mcmcp)
-    dfr(model) <- 10
+#     model <- SingleBatchModel2(dat=y(truth),
+#                                hp=hpList(k = 3)[["SB"]],
+#                                mp = mcmcp)
+#     model <- MultiBatchModel2(dat=y(truth),
+#                               hp=hpList(k = 3)[["MB"]],
+#                               mp = mcmcp,
+#                               batches=as.integer(rep(1, length(y(truth)))))
+    dfr(model) <- 100
     model <- startAtTrueValues(model, truth)
     model <- posteriorSimulation(model)
     expect_equal(theta(truth), theta(model), tolerance=0.2)
