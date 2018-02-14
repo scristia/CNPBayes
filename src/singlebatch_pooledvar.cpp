@@ -416,7 +416,7 @@ Rcpp::NumericVector sigma2_heavy(Rcpp::S4 xmod) {
     ss[0] = 0.0 ;
     for(int i = 0; i < n; i++){
         int k = 0;
-        while (k <= K) {
+        while (k < K) {
             if ( z[i] == k + 1 ) {
               ss[0] += u[i] * pow(x[i] - theta[k], 2.0);
               break;
