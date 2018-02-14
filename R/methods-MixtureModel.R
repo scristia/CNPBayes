@@ -839,7 +839,9 @@ setMethod("upSample", "MultiBatchModel", function(model, tiles){
   model2
 })
 
-upSample2 <- function(orig.data, model, up_sample=TRUE){
+upSample2 <- function(orig.data,
+                      model, ## the downsampled model
+                      up_sample=TRUE){
   dst <- dlocScale_t
   model2 <- useModes(model)
   ## if we do not upSample, we should be able to recover the original probabilities
