@@ -300,6 +300,7 @@ permnK <- function(k, maxperm){
 #'   ggMixture(mb2)
 #' @rdname tile-functions
 tileMedians <- function(y, nt, batch){
+  .Deprecated("See downSample")
   if(any(is.na(y))) stop("NAs found in y-vector")
   yy <- y
   logratio <- x <- obs.index <- NULL
@@ -624,4 +625,86 @@ useModes <- function(object){
   ##
   z(m2) <- updateZ(m2)
   m2
+}
+
+#' Down sample the observations in a mixture
+#'
+#' For large datasets (several thousand subjects), the computational burden for fitting Bayesian mixture models can be high.  Downsampling can reduce the computational burden with little effect on inference.  This function draws a random sample with replacement.  Batches with few observations are combined with larger batches that have a similar median log R ratio.
+#'
+#' @param y vector containing data
+#' @param batch a vector containing the labels from which batch each observation came from.
+#' @return A tibble 
+#' @export
+#' @examples
+#'   mb <- MultiBatchModelExample
+#'   ds <- downSample(y(mb), 200, batch(mb))
+#'   mp <- McmcParams(iter=50, burnin=100)
+#'   mb <- MultiBatchModel2(dat=tile.summaries$avgLRR,
+#'                          batches=ds$batch, mp=mp)
+#'   mb <- posteriorSimulation(mb)
+#'   ggMixture(mb)
+#'   mb2 <- upSample(mb, tiled.medians)
+#'   ggMixture(mb2)
+#' @rdname downSample
+downSample <- function(y, batches,
+                       size=1000,
+                       min.batchsize=75){
+  size <- min(size, length(y))
+  ##dat <- tiles$logratio
+  ix <- sample(seq_len(length(y)), size, replace=TRUE)
+  dat.sub <- y[ix]
+  ## tricky part:
+  ##
+  ## - if we down sample, there may not be enough observations to estimate the
+  ##   mixture densities for batches with few samples
+  ##
+  tab <- tibble(medians=dat.sub,
+                batch.var=batches[ix]) %>%
+    mutate(batch.var=as.character(batch.var))
+  ##
+  ## combine batches with too few observations based on the location (not scale)
+  ##
+  batch.sum <- tab %>%
+    group_by(batch.var) %>%
+    summarize(mean=mean(medians),
+              n=n())
+  small.batch <- batch.sum %>%
+    filter(n < min.batchsize) %>%
+    mutate(largebatch="")
+  large.batch <- batch.sum %>%
+    filter(n >= min.batchsize) %>%
+    mutate(smallbatch="")
+  for(i in seq_len(nrow(small.batch))){
+    j <- order(abs(small.batch$mean[i] - large.batch$mean))[1]
+    small.batch$largebatch[i] <- large.batch$batch.var[j]
+    if(nchar(large.batch$smallbatch[j]) > 0){
+      large.batch$smallbatch[j] <- paste0(large.batch$smallbatch[j], ",",
+                                          small.batch$batch.var[i])
+    } else{
+      large.batch$smallbatch[j] <- small.batch$batch.var[i]
+    }
+  }
+  colnames(large.batch)[4] <- colnames(small.batch)[4] <- "other"
+  batch.sum2 <- bind_rows(large.batch,
+                          small.batch) %>%
+    mutate(batch_new=paste0(batch.var, ",", other)) %>%
+    select(-other)
+  batch.sum2$batch_new <- batch.sum2$batch_new %>%
+    strsplit(., ",") %>%
+    map(as.numeric) %>%
+    map(unique) %>%
+    map(sort) %>%
+    map_chr(paste, collapse=",")
+  ## need to do it once more
+  small.batch <- filter(batch.sum2, n < min.batchsize)
+  large.batch <- filter(batch.sum2, n >= min.batchsize)
+  for(i in seq_len(nrow(small.batch))){
+    j <- order(abs(small.batch$mean[i] - large.batch$mean))[1]
+    small.batch$batch_new[i] <- large.batch$batch_new[j]
+  }
+  batch.sum3 <- bind_rows(large.batch, small.batch)
+  tab2 <- left_join(tab, batch.sum3, by="batch.var") %>%
+    select(-c(mean, n))
+  colnames(tab2)[2:3] <- c("batch_orig", "batch")
+  tab2
 }
