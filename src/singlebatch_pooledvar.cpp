@@ -376,7 +376,7 @@ Rcpp::NumericVector sigma2_pooled(Rcpp::S4 xmod) {
     ss[0] = 0.0 ;
     for(int i = 0; i < n; i++){
         int k = 0;
-        while (k <= K) {
+        while (k < K) {
             if ( z[i] == k + 1 ) {
               ss[0] += pow(x[i] - theta[k], 2.0);
               break;
@@ -455,8 +455,8 @@ Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     model.slot("data.mean") = compute_means(xmod) ;
     model.slot("data.prec") = compute_prec(xmod) ;
     if(up[0] > 0)
-      model.slot("theta") = theta_pooled(xmod) ;
-    //  model.slot("theta") = theta_pooled(xmod) ;
+      model.slot("theta") = theta_heavy(xmod) ;
+      //model.slot("theta") = theta_pooled(xmod) ;
     if(up[1] > 0)
       model.slot("sigma2") = sigma2_heavy(xmod) ;
     // model.slot("sigma2") = sigma2_pooled(xmod) ;
@@ -575,7 +575,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     model.slot("data.prec") = compute_prec(xmod) ;
     if(up[0] > 0) {
       try {
-          th = theta_pooled(xmod) ;
+          th = theta_heavy(xmod) ;
       } catch(std::runtime_error &ex) {
           forward_exception_to_r(ex);
       } catch(...) {
@@ -587,7 +587,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     }
     theta(s, _) = th ;
     if(up[1] > 0){
-      s2 = sigma2_pooled(xmod) ;
+      s2 = sigma2_heavy(xmod) ;
       model.slot("sigma2") = s2 ;
     } else { s2= model.slot("sigma2") ; }
     sigma2(s, 0) = s2[0] ;
