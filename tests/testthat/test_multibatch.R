@@ -171,7 +171,19 @@ test_that("easy", {
     MultiBatchModelExample <- model
     save(MultiBatchModelExample, file = "data/MultiBatchModelExample.RData")
   }
+  ##
+  ## test upSample2 without upsampleing
+  ##
+  ##  - z-probabilities obtained from the theoretical distribution should be close to the actual posterior probabilties
+  ##
+  tab <- tibble(medians=y(model), batch_index=batch(model))
+  model.up <- upSample2(orig.data=tab, model, up_sample=FALSE)
+  pz.up <- p
+  pz <- probz(model)
+  expect_equal(pz, pz.up, tolerance=0.01, scale=1)
 })
+
+
 
 
 hardTruth <- function(p1, s, N=1000){
