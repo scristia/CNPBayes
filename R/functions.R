@@ -688,35 +688,43 @@ downSample <- function(y, batches,
   large.batch <- batch.sum %>%
     filter(n >= min.batchsize) %>%
     mutate(smallbatch="")
-  for(i in seq_len(nrow(small.batch))){
-    j <- order(abs(small.batch$mean[i] - large.batch$mean))[1]
-    small.batch$largebatch[i] <- large.batch$batch.var[j]
-    if(nchar(large.batch$smallbatch[j]) > 0){
-      large.batch$smallbatch[j] <- paste0(large.batch$smallbatch[j], ",",
-                                          small.batch$batch.var[i])
-    } else{
-      large.batch$smallbatch[j] <- small.batch$batch.var[i]
+  if(nrow(large.batch) == 0){
+    batch.sum3 <- small.batch %>%
+      select(-largebatch) %>%
+      mutate(batch_new=1L)
+  } else {
+    for(i in seq_len(nrow(small.batch))){
+      j <- order(abs(small.batch$mean[i] - large.batch$mean))[1]
+      small.batch$largebatch[i] <- large.batch$batch.var[j]
+      if(nchar(large.batch$smallbatch[j]) > 0){
+        large.batch$smallbatch[j] <- paste0(large.batch$smallbatch[j], ",",
+                                            small.batch$batch.var[i])
+      } else{
+        large.batch$smallbatch[j] <- small.batch$batch.var[i]
+      }
     }
+    colnames(large.batch)[4] <- colnames(small.batch)[4] <- "other"
+    batch.sum2 <- bind_rows(large.batch,
+                            small.batch) %>%
+      mutate(batch_new=paste0(batch.var, ",", other)) %>%
+      select(-other)
+    if(is.character(batch.sum2$batch_new)){
+      batch.sum2$batch_new <- batch.sum2$batch_new %>%
+        strsplit(., ",") %>%
+        map(as.numeric) %>%
+        map(unique) %>%
+        map(sort) %>%
+        map_chr(paste, collapse=",")
+    }
+    ## need to do it once more
+    small.batch <- filter(batch.sum2, n < min.batchsize)
+    large.batch <- filter(batch.sum2, n >= min.batchsize)
+    for(i in seq_len(nrow(small.batch))){
+      j <- order(abs(small.batch$mean[i] - large.batch$mean))[1]
+      small.batch$batch_new[i] <- large.batch$batch_new[j]
+    }
+    batch.sum3 <- bind_rows(large.batch, small.batch)
   }
-  colnames(large.batch)[4] <- colnames(small.batch)[4] <- "other"
-  batch.sum2 <- bind_rows(large.batch,
-                          small.batch) %>%
-    mutate(batch_new=paste0(batch.var, ",", other)) %>%
-    select(-other)
-  batch.sum2$batch_new <- batch.sum2$batch_new %>%
-    strsplit(., ",") %>%
-    map(as.numeric) %>%
-    map(unique) %>%
-    map(sort) %>%
-    map_chr(paste, collapse=",")
-  ## need to do it once more
-  small.batch <- filter(batch.sum2, n < min.batchsize)
-  large.batch <- filter(batch.sum2, n >= min.batchsize)
-  for(i in seq_len(nrow(small.batch))){
-    j <- order(abs(small.batch$mean[i] - large.batch$mean))[1]
-    small.batch$batch_new[i] <- large.batch$batch_new[j]
-  }
-  batch.sum3 <- bind_rows(large.batch, small.batch)
   tab2 <- left_join(tab, batch.sum3, by="batch.var") %>%
     select(-c(mean, n))
   colnames(tab2)[2:3] <- c("batch_orig", "batch")
