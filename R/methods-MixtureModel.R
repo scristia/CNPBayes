@@ -839,6 +839,70 @@ setMethod("upSample", "MultiBatchModel", function(model, tiles){
   model2
 })
 
+upSample2 <- function(orig.data, model, up_sample=TRUE){
+  dst <- dlocScale_t
+  model2 <- useModes(model)
+  ## if we do not upSample, we should be able to recover the original probabilities
+  if(up_sample){
+    y(model2) <- orig.data$medians
+    batch(model2) <- orig.data$batch_index
+  }
+  thetas <- theta(model2)
+  sigmas <- sigma(model2)
+  p.comp <- p(model2)
+  df <- dfr(model2)
+  pooled <- class(model) %in% c("SingleBatchPooled", "MultiBatchPooled")
+  K <- seq_len(k(model2))
+  B <- unique(orig.data$batch_index)
+  pz <- matrix(NA, length(y(model2)), max(K))
+  for(b in B){
+    j <- which(batch(model2) == b)
+    m <- thetas[b, ]
+    if(pooled){
+      ss <- sigmas[b]
+    } else {
+      ss <- sigmas[b, ]
+    }
+    yy <- y(model2)[j]
+    for(k in K){
+      if(pooled){
+        temp <- p.comp[k] * dst(yy, df=df, mu=m[k], sigma=ss)
+      } else {
+        temp <- p.comp[k] * dst(yy, df=df, mu=m[k], sigma=ss[k])
+      }
+      pz[j, k] <- temp
+    }
+  }
+  pz2 <- pz/rowSums(pz)
+  ## the probz slot expects a frequency
+  freq <- pz2 * (iter(model) - 1)
+  freq2 <- matrix(as.integer(freq), nrow=nrow(freq), ncol=ncol(freq))
+  probz(model2) <- freq2
+  ##
+  ## compare predicted probabilities to empirical probabilites
+  ##
+  if(FALSE){
+    empirical <- probz(model)
+    qqplot(empirical, pz2)
+  }
+  ##
+  ## simulate z according to probabilities
+  ##
+  ##update_z
+  ## Need to fill out probability matrix for the up-sampled model
+  ##tile.sum <- tileSummaries(tiles)
+  ##stopifnot(all.equal(y(model), tile.sum$avgLRR))
+  ##key <- match(tiles$tile, tile.sum$tile)
+  ##model2 <- model
+  ##y(model2) <- tiles$logratio
+  ##probs <- probz(model)
+  ##probs2 <- probs[key, , drop=FALSE]
+  ##probz(model2) <- probs2 * (iter(model) - 1)
+  ##z(model2) <- z(model)[key]
+  ##batch(model2) <- tiles$batch
+  model2
+}
+
 #' @rdname tile-functions
 #' @aliases upSample,MixtureModel-method
 setMethod("upSample", "MixtureModel", function(model, tiles){
