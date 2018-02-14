@@ -506,9 +506,11 @@ posteriorPredictive <- function(model){
   K <- seq_len(k(model))
   N <- length(K)
   tab.list <- vector("list", mcmc.iter)
+  df <- dfr(hyperParams(model))
   for(i in 1:nrow(alpha)){
     zz <- sample(K, N, prob=alpha[i, ], replace=TRUE)
-    y <- rnorm(ncol(thetas), (thetas[i, ])[zz], (sigmas[i, ])[zz])
+    ##y <- rnorm(ncol(thetas), (thetas[i, ])[zz], (sigmas[i, ])[zz])
+    y <- rst(ncol(thetas), df=df, mean=(thetas[i, ])[zz], sigma=(sigmas[i, ])[zz])
     tab.list[[i]] <- tibble(y=y, component=zz)
     ##Y[i, ] <- y
   }
@@ -528,10 +530,12 @@ posteriorPredictive <- function(model){
   Y <- matrix(NA, mcmc.iter, ncol(alpha))
   K <- seq_len(k(model))
   N <- length(K)
+  df <- dfr(hyperParams(model))
   tab.list <- vector("list", mcmc.iter)
   for(i in 1:nrow(alpha)){
     zz <- sample(K, N, prob=alpha[i, ], replace=TRUE)
-    y <- rnorm(ncol(thetas), (thetas[i, ])[zz], (sigmas[i, ]))
+    ##y <- rnorm(ncol(thetas), (thetas[i, ])[zz], (sigmas[i, ]))
+    y <- rst(ncol(thetas), df=df, mean=(thetas[i, ])[zz], sigma=(sigmas[i, ]))
     tab.list[[i]] <- tibble(y=y, component=zz)
     ##Y[i, ] <- y
   }
@@ -553,6 +557,7 @@ posteriorPredictive <- function(model){
   components <- seq_len(K)
   mcmc.iter <- iter(model)
   tab.list <- vector("list", mcmc.iter)
+  df <- dfr(hyperParams(model))
   batches <- rep(unique(batch(model)), each=K)
   for(i in seq_len(mcmc.iter)){
     ## same p assumed for each batch
@@ -562,7 +567,8 @@ posteriorPredictive <- function(model){
     ## for each batch, sample K observations with mixture probabilities alpha
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
-      ylist[[b]] <- rnorm(K, (mu[b, ])[zz], (s[b, ])[zz])
+      ##ylist[[b]] <- rnorm(K, (mu[b, ])[zz], (s[b, ])[zz])
+      ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=(s[b, ])[zz])
     }
     y <- unlist(ylist)
     tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
@@ -598,7 +604,8 @@ posteriorPredictive <- function(model){
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
       ## sigma is batch-specific but indpendent of z
-      ylist[[b]] <- rnorm(K, (mu[b, ])[zz], s[b])
+      ##ylist[[b]] <- rnorm(K, (mu[b, ])[zz], s[b])
+      ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=s[b])
     }
     y <- unlist(ylist)
     tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
@@ -754,3 +761,17 @@ downSample <- function(y, batches,
 ##  return(dens)
 ##}
 
+rst <- function (n, df = 100, mu = 0, sigma = 1){
+  mu <- rep(mu, len = n)
+  sigma <- rep(sigma, len = n)
+  df <- rep(df, len = n)
+  if (any(sigma <= 0))
+    stop("The sigma parameter must be positive.")
+  if (any(nu <= 0))
+    stop("The nu parameter must be positive.")
+  n <- ceiling(n)
+  y <- rnorm(n)
+  z <- rchisq(n, df)
+  x <- mu + sigma * y * sqrt(df/z)
+  return(x)
+}
