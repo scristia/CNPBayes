@@ -706,5 +706,6 @@ downSample <- function(y, batches,
   tab2 <- left_join(tab, batch.sum3, by="batch.var") %>%
     select(-c(mean, n))
   colnames(tab2)[2:3] <- c("batch_orig", "batch")
+  tab2$batch_index <- as.integer(factor(tab2$batch, levels=unique(tab2$batch)))
   tab2
 }
