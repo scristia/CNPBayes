@@ -878,28 +878,19 @@ upSample2 <- function(orig.data, model, up_sample=TRUE){
   freq <- pz2 * (iter(model) - 1)
   freq2 <- matrix(as.integer(freq), nrow=nrow(freq), ncol=ncol(freq))
   probz(model2) <- freq2
-  ##
-  ## compare predicted probabilities to empirical probabilites
-  ##
-  if(FALSE){
-    empirical <- probz(model)
-    qqplot(empirical, pz2)
+  ## update z's
+  if(class(model2)=="MultiBatchPooled"){
+    z(model2) <- z_multibatch_pvar(model2)
   }
-  ##
-  ## simulate z according to probabilities
-  ##
-  ##update_z
-  ## Need to fill out probability matrix for the up-sampled model
-  ##tile.sum <- tileSummaries(tiles)
-  ##stopifnot(all.equal(y(model), tile.sum$avgLRR))
-  ##key <- match(tiles$tile, tile.sum$tile)
-  ##model2 <- model
-  ##y(model2) <- tiles$logratio
-  ##probs <- probz(model)
-  ##probs2 <- probs[key, , drop=FALSE]
-  ##probz(model2) <- probs2 * (iter(model) - 1)
-  ##z(model2) <- z(model)[key]
-  ##batch(model2) <- tiles$batch
+  if(class(model2)=="MultiBatchModel"){
+    z(model2) <- update_z_batch(model2)
+  }
+  if(class(model2)=="SingleBatchModel"){
+    z(model2) <- update_z(model2)
+  }
+  if(class(model2)=="SingleBatchPooled"){
+    z(model2) <- z_pooled(model2)
+  }
   model2
 }
 
