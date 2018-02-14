@@ -632,19 +632,33 @@ useModes <- function(object){
 #' For large datasets (several thousand subjects), the computational burden for fitting Bayesian mixture models can be high.  Downsampling can reduce the computational burden with little effect on inference.  This function draws a random sample with replacement.  Batches with few observations are combined with larger batches that have a similar median log R ratio.
 #'
 #' @param y vector containing data
-#' @param batch a vector containing the labels from which batch each observation came from.
-#' @return A tibble 
+#' @param batches an integer vector of batch indices
+#' @param size the number of observations to sample with replacement
+#' @param min.batchsize the smallest number of observations allowed in a batch.  Batches smaller than this size will be combined with other batches
+#' @return A tibble of the downsampled data (medians), the original batches, and the updated batches after downsampling 
 #' @export
 #' @examples
-#'   mb <- MultiBatchModelExample
-#'   ds <- downSample(y(mb), 200, batch(mb))
-#'   mp <- McmcParams(iter=50, burnin=100)
-#'   mb <- MultiBatchModel2(dat=tile.summaries$avgLRR,
-#'                          batches=ds$batch, mp=mp)
-#'   mb <- posteriorSimulation(mb)
-#'   ggMixture(mb)
-#'   mb2 <- upSample(mb, tiled.medians)
-#'   ggMixture(mb2)
+#' ## TODO: this is more complicated than it needs to be
+#' mb <- MultiBatchModelExample
+#' full.data <- tibble(medians=y(mb),
+#'                     batch_orig=as.character(batch(mb)))
+#' ds <- downSample(y(mb), batch(mb), 200)
+#' ## map the original batches to the batches after down-sampling
+#' mapping <- full.data %>%
+#'   left_join(select(ds, -medians), by="batch_orig") %>%
+#'   group_by(batch_orig) %>%
+#'   summarize(batch=unique(batch)) %>%
+#'   mutate(batch_index=as.integer(factor(batch, levels=unique(batch))))
+#' mp <- McmcParams(iter=50, burnin=100)
+#' mb2 <- MultiBatchModel2(dat=ds$medians,
+#'                         batches=ds$batch_index, mp=mp)
+#' mb2 <- posteriorSimulation(mb2)
+#' ggMixture(mb2)
+#' full.dat2 <- full.data %>%
+#'   left_join(plate.mapping, by="batch_orig")
+#' ## compute probabilities for the full dataset
+#' mb.up <- upSample2(full.dat2, mb2)
+#' ggMixture(mb2)
 #' @rdname downSample
 downSample <- function(y, batches,
                        size=1000,
