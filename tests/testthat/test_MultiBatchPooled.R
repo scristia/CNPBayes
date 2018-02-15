@@ -7,10 +7,12 @@ test_that("MultiBatchPooled", {
   model <- MultiBatchPooled()
   expect_is(model, "MultiBatchPooled")
   expect_equivalent(sigma(model), numeric())
-
+  mp <- McmcParams(iter=50, burnin=5)
   model <- MultiBatchPooledExample
+  mcmcParams(model) <- mp
   model <- posteriorSimulation(model)
   model2 <- as(model, "MultiBatchCopyNumberPooled")
+  expect_true(validObject(model2))
   model3 <- useModes(model2)
 
   set.seed(100)
@@ -35,8 +37,10 @@ test_that("MultiBatchPooled", {
                                   eta.0=32,
                                   m2.0=0.5)
   model <- MultiBatchPooled(dat=y(truth),
-                            hp=hp, 
-                            batches=batch(truth))
+                            hp=hp,
+                            batches=batch(truth),
+                            mp=mp)
+  expect_true(validObject(model))
   if(FALSE){
     MultiBatchPooledExample <- model
     save(MultiBatchPooledExample, file="data/MultiBatchPooledExample.rda")
@@ -162,7 +166,7 @@ test_that("MultiBatchPooled model selection", {
                                   m2.0=0.5)
   batches <- batch(truth)
   set.seed(941)
-  options(warn=2, error=utils::recover)
+  ##options(warn=2, error=utils::recover)
   model <- MultiBatchPooled(dat=y(truth), mp=mp, hp=hp,
                             batches=batch(truth))
   ## fit model with k=4
