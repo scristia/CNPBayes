@@ -12,3 +12,7 @@ dfr(object)
 \description{
 Accessor for degrees of freedom
 }
+\examples{
+hp <- Hyperparams()
+dfr(hp)
+}
