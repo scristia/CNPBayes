@@ -17,6 +17,7 @@ NULL
              pi=numeric(K),
              u=numeric(0),
              data=numeric(0),
+             u=numeric(0),
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
              z=integer(0),
