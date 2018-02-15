@@ -59,18 +59,13 @@ test_that("moderate", {
                           sds = c(0.3, 0.15, 0.15),
                           p = c(0.05, 0.15, 0.8),
                           df=100)
-#     truth <- simulateData(N = 1000,
-#                           theta = c(-2, -0.4, 0),
-#                           sds = c(0.3/sqrt(10), 0.15/sqrt(10), 0.15/sqrt(10)),
-#                           p = c(0.05, 0.1, 0.8),
-#                           df=10)
     ## verify that if we start at the true value, we remain in a region of
     ## high posterior probability after an arbitrary number of mcmc updates
     mcmcp <- McmcParams(iter = 1000, burnin = 300,
                         thin = 5, nStarts=10)
-#     model <- SingleBatchModel2(dat=y(truth),
-#                                hp=hpList(k = 3)[["SB"]],
-#                                mp = mcmcp)
+    model <- SingleBatchModel2(dat=y(truth),
+                               hp=hpList(k = 3)[["SB"]],
+                               mp = mcmcp)
 #     model <- MultiBatchModel2(dat=y(truth),
 #                               hp=hpList(k = 3)[["MB"]],
 #                               mp = mcmcp,
