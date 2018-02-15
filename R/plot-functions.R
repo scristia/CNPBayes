@@ -688,6 +688,24 @@ modelName <- function(model){
   dat
 }
 
+#' Create a tibble of posterior predictive distributions for a list of models
+#'
+#' @param models list of models
+#' @examples
+#'   sb <- SingleBatchModelExample
+#'   mcmcParams(sb) <- McmcParams(iter=500, burnin=50)
+#'   sb <- posteriorSimulation(sb)
+#'   models <- list(MultiBatchModelExample, sb)
+#'   tab <- predictiveDataTable(models)
+#'   \dontrun{
+#'     library(ggplot2)
+#'     ggplot(tab, aes(y, fill=predictive)) +
+#'       geom_density(alpha=0.4, adjust=1/2) +
+#'       facet_grid(model~batch) +
+#'       guides(fill=guide_legend(title="")) +
+#'       theme(panel.background=element_rect(fill="white"))
+#'   }
+#' @export
 predictiveDataTable <- function(models){
   tab.list <- vector("list", length(models))
   for(i in seq_along(models)){
