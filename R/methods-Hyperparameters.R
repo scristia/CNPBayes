@@ -287,3 +287,5 @@ hpList <- function(...){
        SBP=sbp,
        MBP=mbp)
 }
+
+setMethod("dfr", "Hyperparameters", function(object) object@dfr)
