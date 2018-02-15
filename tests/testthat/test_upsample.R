@@ -3,6 +3,7 @@ context("Down sampling and up sampling")
 .test_that <- function(nm, expr) NULL
 
 .test_that("upSample2", {
+  library(tidyverse)
   set.seed(123)
   k <- 3
   nbatch <- 3
@@ -63,5 +64,23 @@ context("Down sampling and up sampling")
   ## Estimate probabilities for each individual in the full data
   ##
   model.full <- upSample2(full.data2, model)
+  expect_true(validObject(model.full))
+  ##
+  ## Convert to a CopyNumberModel
+  ##
+  model.cn <- CopyNumberModel(model.full)
+  expect_true(validObject(model.cn))
 
+  ##
+  ## An easy way to test whether up-sampling is working, is to not actually
+  ## up-sample -- compute the probabilities for the partial data from the
+  ## theoretical distributions and compare these probabilties to the posterior
+  ## mean of the z's
+  ## -- this example is too easy.  Need a more challenging example 
+  ##
+  model.no.upsampling <- upSample2(partial.data, model, up_sample=FALSE)
+  theoretical.p <- probz(model.no.upsampling) %>%
+    "/"(rowSums(.))
+  model.probs <- probz(model)
+  expect_true(all.equal(model.probs, theoretical.p))
 })
