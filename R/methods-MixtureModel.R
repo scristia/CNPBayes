@@ -856,6 +856,10 @@ upSample2 <- function(orig.data,
   }
   thetas <- theta(model2)
   sigmas <- sigma(model2)
+  if(!is.matrix(thetas)) {
+    thetas <- matrix(thetas, nrow=1)
+    sigmas <- matrix(sigmas, nrow=1)
+  }
   p.comp <- p(model2)
   df <- dfr(model2)
   pooled <- class(model) %in% c("SingleBatchPooled", "MultiBatchPooled")
