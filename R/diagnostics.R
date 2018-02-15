@@ -311,6 +311,17 @@ gelman_rubin <- function(mcmc_list, hp){
 ##  x
 ##}
 
+harmonizeU <- function(model.list){
+  uu <- u(model.list[[1]])
+  for(i in seq_along(model.list)){
+    if(i == 1) next()
+    m <- model.list[[i]]
+    m@u <- uu
+    model.list[[i]] <- m
+  }
+  model.list
+}
+
 .gibbs <- function(hp, mp, dat, max_burnin=32000){
   nchains <- nStarts(mp)
   if(nchains==1) stop("Must initialize at least 2 chains with nStarts ")
