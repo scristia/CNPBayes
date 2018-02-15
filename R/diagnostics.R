@@ -316,8 +316,9 @@ gelman_rubin <- function(mcmc_list, hp){
   if(iter(mp) < 500){
     stop("Require at least 500 Monte Carlo simulations")
   }
+  if(burnin(mp) > max_burnin) stop("Specified burnin is greater than max_burnin")
   counter <- 0
-  while(burnin(mp) < max_burnin & counter < 5){
+  while(burnin(mp) <= max_burnin & counter < 5){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mod.list <- replicate(nchains, SingleBatchModel2(dat=dat,
                                                      hp=hp,
@@ -335,25 +336,6 @@ gelman_rubin <- function(mcmc_list, hp){
       if(is.null(neff))  neff <- 0
       r <- gelman_rubin(mlist, hp)
       next()
-      ## try one more time
-      ##      mp@thin <- as.integer(thin(mp) * 2)
-      ##      mod.list2 <- replicate(nswap,
-      ##                             SingleBatchModel2(dat=dat,
-      ##                                              mp=mp,
-      ##                                              hp=hp))
-      ##      mod.list2 <- suppressWarnings(map(mod.list2, posteriorSimulation))
-      ##      mod.list[ label_swapping ] <- mod.list2
-      ##      label_swapping <- map_lgl(mod.list, label_switch)
-      ##      if(any(label_swapping)){
-      ##        message("  Label switching detected")
-      ##        mlist <- mcmcList(mod.list)
-      ##        neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-      ##        if(is.null(neff)) neff <- 0
-      ##        r <- gelman_rubin(mlist, hp)
-      ##        burnin(mp) <- as.integer(burnin(mp) * 2)
-      ##        mp@thin <- as.integer(thin(mp) * 2)
-      ##        break()
-      ##      }
     }
     mod.list <- mod.list[ selectModels(mod.list) ]
     mlist <- mcmcList(mod.list)
