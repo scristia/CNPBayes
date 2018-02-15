@@ -595,6 +595,7 @@ posteriorPredictive <- function(model){
   mcmc.iter <- iter(model)
   tab.list <- vector("list", mcmc.iter)
   batches <- rep(unique(batch(model)), each=K)
+  df <- dfr(hyperParams(model))
   for(i in seq_len(mcmc.iter)){
     ## same p assumed for each batch
     a <- alpha[i, ]
@@ -761,17 +762,17 @@ downSample <- function(y, batches,
 ##  return(dens)
 ##}
 
-rst <- function (n, df = 100, mu = 0, sigma = 1){
-  mu <- rep(mu, len = n)
+rst <- function (n, df = 100, mean = 0, sigma = 1){
+  mean <- rep(mean, len = n)
   sigma <- rep(sigma, len = n)
   df <- rep(df, len = n)
   if (any(sigma <= 0))
     stop("The sigma parameter must be positive.")
-  if (any(nu <= 0))
-    stop("The nu parameter must be positive.")
+  if (any(df <= 0))
+    stop("The df parameter must be positive.")
   n <- ceiling(n)
   y <- rnorm(n)
   z <- rchisq(n, df)
-  x <- mu + sigma * y * sqrt(df/z)
+  x <- mean + sigma * y * sqrt(df/z)
   return(x)
 }
