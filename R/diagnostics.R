@@ -461,7 +461,8 @@ gibbs_K <- function(hp=Hyperparameters(),
                     k_range=c(1, 4),
                     dat,
                     max_burnin=32000,
-                    reduce_size=TRUE){
+                    reduce_size=TRUE,
+                    min_effsize=500){
   K <- seq(k_range[1], k_range[2])
   hp.list <- map(K, updateK, hp)
   model.list <- map(hp.list,
