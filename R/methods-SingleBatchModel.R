@@ -121,6 +121,9 @@ SingleBatchModel2 <- function(dat=numeric(),
   sb
 }
 
+#' @export
+SB <- SingleBatchModel2
+
 
 getK <- function(object){
   hypp <- hyperParams(object)

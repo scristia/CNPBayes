@@ -129,6 +129,8 @@ MultiBatchModel2 <- function(dat=numeric(),
   obj
 }
 
+#' @export
+MB <- MultiBatchModel2
 
 ensureAllComponentsObserved <- function(obj){
   zz <- table(batch(obj), z(obj))

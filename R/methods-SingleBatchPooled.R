@@ -134,6 +134,9 @@ SingleBatchPooled <- function(dat=numeric(),
   sbp
 }
 
+#' @export
+SBP <- SingleBatchPooled
+
 setValidity("SingleBatchPooled", function(object){
   s2 <- sigma2(object)
   if(length(s2) != 1){

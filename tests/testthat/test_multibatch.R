@@ -129,6 +129,11 @@ test_that("easy", {
   model <- MultiBatchModel2(dat=y(truth), batches = batch(truth),
                             hp=hpList(k = 3)[["MB"]],
                             mp = mcmcp)
+  u1 <- u(model)
+  model <- posteriorSimulation(model)
+  u2 <- u(model)
+  expect_true(!identical(u1, u2))
+
   model <- startAtTrueValues(model, truth)
   expect_identical(batch(truth), batch(model))
   expect_identical(y(truth), y(model))

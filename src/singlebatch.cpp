@@ -606,6 +606,9 @@ Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   Rcpp::S4 params(mcmcp) ;
   IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;
+  NumericVector x = model.slot("data") ;
+  int N = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
   // Rprintf("the value of S[%i] \n", S);
   if( S < 1 ){
     return xmod ;
@@ -631,6 +634,7 @@ Rcpp::S4 mcmc_marginal_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("nu.0") = update_nu0(xmod) ;
     if(up[6] > 0)
       model.slot("sigma2.0") = update_sigma2_0(xmod) ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
@@ -660,6 +664,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   if( S < 1 ) return xmod ;
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
   NumericMatrix theta = chain.slot("theta") ;
   NumericMatrix sigma2 = chain.slot("sigma2") ;
   NumericMatrix pmix = chain.slot("pi") ;
@@ -792,6 +797,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     lp = compute_logprior(xmod) ;
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
     // Thinning
     for(int t = 0; t < T; ++t){
       if(up[0] > 0)
@@ -811,7 +817,8 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       if(up[7] > 0){
         model.slot("z") = update_z(xmod) ;
         model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-      } 
+      }
+      model.slot("u") = Rcpp::rchisq(N, df) ;
       model.slot("data.mean") = compute_means(xmod) ;
       model.slot("data.prec") = compute_prec(xmod) ;
     }
@@ -843,4 +850,4 @@ Rcpp::S4 posterior_predictive_singleb(Rcpp::S4 model) {
   Rcpp::S4 xmod = clone(model) ;
   return xmod;
 }
-i
+

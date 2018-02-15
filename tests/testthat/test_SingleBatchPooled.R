@@ -10,6 +10,11 @@ test_that("sigma2_pooled", {
   model <- SingleBatchPooled(y(truth), hp, mp)
   model <- .posteriorSimulation2(model)
 
+  u1 <- u(model)
+  model <- posteriorSimulation(model)
+  u2 <- u(model)
+  expect_true(!identical(u1, u2))
+
   set.seed(1223)
   (s2.cpp <- sigma2_pooled(model))
 

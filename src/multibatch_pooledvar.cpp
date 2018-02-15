@@ -440,6 +440,9 @@ Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   Rcpp::S4 params(mcmcp) ;
   IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;
+  NumericVector x = model.slot("data") ;
+  int N = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
   if( S < 1 ){
     return xmod ;
   }
@@ -475,6 +478,7 @@ Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     if(up[2] > 0)
       //model.slot("pi") = p_multibatch_pvar(xmod) ;
       model.slot("pi") = update_p_batch(xmod) ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
@@ -504,6 +508,7 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   if( S < 1 ) return xmod ;
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
   NumericMatrix theta = chain.slot("theta") ;
   NumericMatrix sigma2 = chain.slot("sigma2") ;
   NumericMatrix pmix = chain.slot("pi") ;
@@ -635,6 +640,7 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     lp = compute_logprior_batch(xmod) ;
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
     // Thinning
     for(int t = 0; t < T; ++t){
       if(up[7] > 0){
@@ -657,6 +663,7 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
         model.slot("nu.0") = nu0_multibatch_pvar(xmod) ;
      if(up[6] > 0)
         model.slot("sigma2.0") = sigma20_multibatch_pvar(xmod) ;
+     model.slot("u") = Rcpp::rchisq(N, df) ;
     }
   }
   //

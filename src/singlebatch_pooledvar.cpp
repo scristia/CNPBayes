@@ -29,7 +29,7 @@ Rcpp::NumericVector theta_pooled(Rcpp::S4 xmod) {
     double w1 = 0.0;
     double w2 = 0.0;
     NumericVector x = model.slot("data") ;
-    int n = x.size() ;
+    //int n = x.size() ;
     NumericVector thetas(K);
 
     for(int k = 0; k < K; ++k) {
@@ -70,7 +70,7 @@ Rcpp::NumericVector theta_heavy(Rcpp::S4 xmod) {
     double w1 = 0.0;
     double w2 = 0.0;
     NumericVector x = model.slot("data") ;
-    int n = x.size() ;
+    // int n = x.size() ;
     NumericVector thetas(K);
     NumericVector u = model.slot("u") ;
     double df = getDf(model.slot("hyperparams")) ;
@@ -638,6 +638,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     lp = compute_logprior(xmod) ;
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
     // Thinning
     for(int t = 0; t < T; ++t){
       if(up[7] > 0){
@@ -662,7 +663,6 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
         model.slot("sigma2.0") = sigma2_0_pooled(xmod) ;
       model.slot("u") = Rcpp::rchisq(N, df) ;
     }
-    model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   //
   // assign chains back to object

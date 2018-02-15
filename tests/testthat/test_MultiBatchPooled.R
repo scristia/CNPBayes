@@ -40,6 +40,12 @@ test_that("MultiBatchPooled", {
                             hp=hp,
                             batches=batch(truth),
                             mp=mp)
+
+  u1 <- u(model)
+  model <- posteriorSimulation(model)
+  u2 <- u(model)
+  expect_true(!identical(u1, u2))
+
   expect_true(validObject(model))
   if(FALSE){
     MultiBatchPooledExample <- model

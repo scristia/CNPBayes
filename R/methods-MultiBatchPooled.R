@@ -33,6 +33,9 @@ MultiBatchPooled <- function(dat=numeric(),
   mbp
 }
 
+#' @export
+MBP <- MultiBatchPooled
+
 #' @rdname sigma2-method
 #' @aliases sigma2,MultiBatchPooled-method
 setMethod("sigma2", "MultiBatchPooled", function(object) {
