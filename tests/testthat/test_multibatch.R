@@ -155,15 +155,10 @@ test_that("easy", {
   }
   set.seed(1)
   mcmcp <- McmcParams(iter = 300, burnin = 300, nStarts = 5)
-#   mcmcp <- McmcParams(iter = 20, burnin = 50, nStarts = 50)
-#   mcmcp <- McmcParams(iter = 2, burnin = 0, nStarts = 1)
   model <- MultiBatchModel2(dat=y(truth),
                             batches = batch(truth),
                             hp=hpList(k=3)[["MB"]],
                             mp=mcmcp)
-#   model <- SingleBatchModel2(dat=y(truth),
-#                              hp=hpList(k=3)[["SB"]],
-#                              mp=mcmcp)
   model <- posteriorSimulation(model)
   expect_equal(theta(model), theta(truth),
                scale=0.01, tolerance=1)
@@ -178,7 +173,7 @@ test_that("easy", {
   ##
   tab <- tibble(medians=y(model), batch_index=batch(model))
   model.up <- upSample2(orig.data=tab, model, up_sample=FALSE)
-  pz.up <- p
+  pz.up <- probz(model.up)
   pz <- probz(model)
   expect_equal(pz, pz.up, tolerance=0.01, scale=1)
 })
