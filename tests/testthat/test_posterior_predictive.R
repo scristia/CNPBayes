@@ -4,8 +4,11 @@ test_that("SB", {
   library(dplyr)
   library(ggplot2)
   set.seed(149)
+  tmp <- rst(1000, mean=0, sigma=1)
+  expect_equal(mean(tmp), 0, scale=1, tolerance=0.05)
+  expect_equal(sd(tmp), 1, scale=1, tolerance=0.05)
   model <- SingleBatchModelExample
-  mp <- McmcParams(iter=10, burnin=1)
+  mp <- McmcParams(iter=50, burnin=10)
   mcmcParams(model) <- mp
   model <- posteriorSimulation(model)
   tab <- posteriorPredictive(model)

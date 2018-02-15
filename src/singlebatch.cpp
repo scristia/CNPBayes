@@ -834,3 +834,12 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   return xmod ;
 }
 
+// Function has gotten pretty long. Might be useful to have a separate
+// function whose sole job is to move the chains.
+//
+// [[Rcpp::export]]
+Rcpp::S4 posterior_predictive_singleb(Rcpp::S4 model) {
+  RNGScope scope ;
+  Rcpp::S4 xmod = clone(model) ;
+  return xmod;
+}

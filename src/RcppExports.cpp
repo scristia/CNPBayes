@@ -1485,6 +1485,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// posterior_predictive_singleb
+Rcpp::S4 posterior_predictive_singleb(Rcpp::S4 model);
+RcppExport SEXP _CNPBayes_posterior_predictive_singleb(SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(posterior_predictive_singleb(model));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_getK", (DL_FUNC) &_CNPBayes_getK, 1},
@@ -1620,6 +1631,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_update_sigma2", (DL_FUNC) &_CNPBayes_update_sigma2, 1},
     {"_CNPBayes_mcmc_marginal_burnin", (DL_FUNC) &_CNPBayes_mcmc_marginal_burnin, 2},
     {"_CNPBayes_mcmc_marginal", (DL_FUNC) &_CNPBayes_mcmc_marginal, 2},
+    {"_CNPBayes_posterior_predictive_singleb", (DL_FUNC) &_CNPBayes_posterior_predictive_singleb, 1},
     {NULL, NULL, 0}
 };
 

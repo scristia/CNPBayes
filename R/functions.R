@@ -494,9 +494,6 @@ posteriorPredictive <- function(model){
 }
 
 .posterior_predictive_sb <- function(model){
-  mp <- McmcParams(iter=500, burnin=50)
-  mcmcParams(model) <- mp
-  model <- posteriorSimulation(model)
   ch <- chains(model)
   alpha <- p(ch)
   thetas <- theta(ch)
@@ -519,9 +516,6 @@ posteriorPredictive <- function(model){
 }
 
 .posterior_predictive_sbp <- function(model){
-  mp <- McmcParams(iter=500, burnin=50)
-  mcmcParams(model) <- mp
-  model <- posteriorSimulation(model)
   ch <- chains(model)
   alpha <- p(ch)
   thetas <- theta(ch)
@@ -763,16 +757,16 @@ downSample <- function(y, batches,
 ##}
 
 rst <- function (n, df = 100, mean = 0, sigma = 1){
-  mean <- rep(mean, len = n)
-  sigma <- rep(sigma, len = n)
-  df <- rep(df, len = n)
+  ##mean <- rep(mean, n)
+  ##sigma <- rep(sigma, n)
+  ##df <- rep(df, n)
   if (any(sigma <= 0))
     stop("The sigma parameter must be positive.")
   if (any(df <= 0))
     stop("The df parameter must be positive.")
   n <- ceiling(n)
   y <- rnorm(n)
-  z <- rchisq(n, df)
+  z <- rchisq(n, df=df)
   x <- mean + sigma * y * sqrt(df/z)
   return(x)
 }

@@ -533,3 +533,7 @@ mcmc_marginal <- function(object, mcmcp) {
     .Call('_CNPBayes_mcmc_marginal', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
+posterior_predictive_singleb <- function(model) {
+    .Call('_CNPBayes_posterior_predictive_singleb', PACKAGE = 'CNPBayes', model)
+}
+

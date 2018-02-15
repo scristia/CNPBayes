@@ -7,3 +7,7 @@ test_that("rst", {
   tmp2 <- rlocScale_t(1, mu=0, sigma=1, df=100)
   expect_identical(tmp1, tmp2)
 })
+
+test_that("posterior predictive", {
+  
+})
