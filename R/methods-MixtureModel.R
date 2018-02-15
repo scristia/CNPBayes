@@ -852,6 +852,7 @@ upSample2 <- function(orig.data,
   if(up_sample){
     y(model2) <- orig.data$medians
     batch(model2) <- orig.data$batch_index
+    model2@u <- rchisq(length(y(model2)), df=dfr(model))
   }
   thetas <- theta(model2)
   sigmas <- sigma(model2)
