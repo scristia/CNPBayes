@@ -29,6 +29,10 @@ dlocScale_t <- function(x, df, mu, sigma) {
     .Call('_CNPBayes_dlocScale_t', PACKAGE = 'CNPBayes', x, df, mu, sigma)
 }
 
+rlocScale_t <- function(n, df, mu, sigma) {
+    .Call('_CNPBayes_rlocScale_t', PACKAGE = 'CNPBayes', n, df, mu, sigma)
+}
+
 compute_u_sums <- function(xmod) {
     .Call('_CNPBayes_compute_u_sums', PACKAGE = 'CNPBayes', xmod)
 }

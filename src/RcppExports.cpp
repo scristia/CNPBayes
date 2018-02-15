@@ -87,6 +87,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rlocScale_t
+Rcpp::NumericVector rlocScale_t(NumericVector n, double df, double mu, double sigma);
+RcppExport SEXP _CNPBayes_rlocScale_t(SEXP nSEXP, SEXP dfSEXP, SEXP muSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type df(dfSEXP);
+    Rcpp::traits::input_parameter< double >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(rlocScale_t(n, df, mu, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
 // compute_u_sums
 Rcpp::NumericVector compute_u_sums(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_compute_u_sums(SEXP xmodSEXP) {
@@ -1480,6 +1494,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_tableBatchZ", (DL_FUNC) &_CNPBayes_tableBatchZ, 1},
     {"_CNPBayes_rMultinom", (DL_FUNC) &_CNPBayes_rMultinom, 2},
     {"_CNPBayes_dlocScale_t", (DL_FUNC) &_CNPBayes_dlocScale_t, 4},
+    {"_CNPBayes_rlocScale_t", (DL_FUNC) &_CNPBayes_rlocScale_t, 4},
     {"_CNPBayes_compute_u_sums", (DL_FUNC) &_CNPBayes_compute_u_sums, 1},
     {"_CNPBayes_compute_heavy_sums", (DL_FUNC) &_CNPBayes_compute_heavy_sums, 1},
     {"_CNPBayes_compute_heavy_means", (DL_FUNC) &_CNPBayes_compute_heavy_means, 1},

@@ -322,6 +322,26 @@ Rcpp::NumericVector dlocScale_t(NumericVector x, double df, double mu, double si
     return d;
 }
 
+// [[Rcpp::export]]
+Rcpp::NumericVector rlocScale_t(NumericVector n, double df, double mu, double sigma) {
+  NumericVector means(n[0]) ;
+  NumericVector sigmas(n[0]) ;
+  for(int i = 0; i < n[0]; ++i){
+    means[i] = mu;
+    sigmas[i] = sigma;
+  }
+  NumericVector y(n[0]) ;
+  NumericVector z(n[0]) ;
+  NumericVector x(n[0]) ;
+  y = rnorm(n[0]) ;
+  z = rchisq(n[0], df) ;
+  x = means + sigmas * y * sqrt(df/z) ;
+  //double coef = tgamma((df + 1.0)/2.0)/(sigma*sqrt(df*PI)*tgamma(df/2.0));
+  //NumericVector d = coef*pow(1 + pow((x - mu)/sigma, 2.0)/df, -(df+1.0)/2.0);
+  //return d;
+  return x;
+}
+
 
 // [[Rcpp::export]]
 Rcpp::NumericVector compute_u_sums(Rcpp::S4 xmod) {
