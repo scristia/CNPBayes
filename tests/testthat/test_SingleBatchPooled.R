@@ -35,26 +35,27 @@ test_that("sigma2_heavy", {
 #                         df=100)
 #   truth <- simulateData(N = 1000, theta = 0, sds = 0.15, p = 1, df=100)
   mp <- McmcParams(iter = 10, burnin = 10)
-  mp <- McmcParams(iter = 5000, burnin = 500)
+  ##mp <- McmcParams(iter = 5000, burnin = 500)
   hp <- Hyperparameters(k=3, dfr=100)
   model <- SBPt(y(truth), hp, mp)
   model <- .posteriorSimulation2(model)
-x <- seq(-2.5, 2, length.out=1000)
-hist(y(truth), breaks=200, freq=FALSE)
-thetas <- apply(theta(chains(model)), 2, mean)
-thetas <- theta(model2)
-lines(x, p(model)[1]*dlocScale_t(x, dfr(model), thetas[1], sqrt(sigma2(model))))
-lines(x, p(model)[2]*dlocScale_t(x, dfr(model), thetas[2], sqrt(sigma2(model))))
-lines(x, p(model)[3]*dlocScale_t(x, dfr(model), thetas[3], sqrt(sigma2(model))))
+  if(FALSE){
+    x <- seq(-2.5, 2, length.out=1000)
+    hist(y(truth), breaks=200, freq=FALSE)
+    thetas <- apply(theta(chains(model)), 2, mean)
+    thetas <- theta(model2)
+    lines(x, p(model)[1]*dlocScale_t(x, dfr(model), thetas[1], sqrt(sigma2(model))))
+    lines(x, p(model)[2]*dlocScale_t(x, dfr(model), thetas[2], sqrt(sigma2(model))))
+    lines(x, p(model)[3]*dlocScale_t(x, dfr(model), thetas[3], sqrt(sigma2(model))))
+    set.seed(1223)
+  }
   set.seed(1223)
   (s2.cpp <- sigma2_heavy(model))
-#   (s2.cpp <- sigma2_pooled(model))
-
+  ##   (s2.cpp <- sigma2_pooled(model))
   squared <- (y(model)-theta(model)[z(model)])^2
   ss <- sum(squared)
   nu.n <- 0.5*(nu.0(model) + length(y(model)))
   s2.n <- 0.5*(nu.0(model)*sigma2.0(model) + ss)
-  set.seed(1223)
   prec.R <- rgamma(1, nu.n, rate=s2.n)
   (s2.R <- 1/prec.R)
   expect_equal(s2.R, s2.cpp)
@@ -62,7 +63,6 @@ lines(x, p(model)[3]*dlocScale_t(x, dfr(model), thetas[3], sqrt(sigma2(model))))
 
 
 .test_that <- function(nm, expr) NULL
-
 
 ## no longer updating z in the way tested below
 .test_that("missing component", {
