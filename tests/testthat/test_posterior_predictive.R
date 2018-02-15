@@ -68,3 +68,20 @@ test_that("MBP", {
   expect_is(tab, "tbl_df")
   if(FALSE) ggPredictive(mbp, tab)
 })
+
+# Plot the posterior predictive distribution for a list of models
+
+.test_that("model lists", {
+  library(ggplot2)
+  sb <- SingleBatchModelExample
+  mcmcParams(sb) <- McmcParams(iter=500, burnin=50)
+  sb <- posteriorSimulation(sb)
+  models <- list(MultiBatchModelExample, sb)
+  tab <- predictiveDataTable(models)
+  ggplot(tab, aes(y, fill=predictive)) +
+    geom_density(alpha=0.4, adjust=1/2) +
+    facet_grid(model~batch) +
+    guides(fill=guide_legend(title="")) +
+    theme(panel.background=element_rect(fill="white"))
+  fig
+})

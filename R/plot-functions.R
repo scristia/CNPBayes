@@ -645,6 +645,7 @@ mb_pred_data <- function(model, predict){
   dat2 <- rbind(dat, predict) %>%
     mutate(predictive=factor(predictive,
                              levels=c("empirical", "posterior\npredictive")))
+  dat2 <- dat2[, c("y", "predictive", "batch")]
   dat2
 }
 
@@ -659,10 +660,53 @@ mb_predictive <- function(model, predict, adjust=1/3){
   fig
 }
 
+#' Abbreviated model name
+#'
+#' @param model a SingleBatchModel, MultiBatchModel, etc.
+#' @examples
+#' modelName(SingleBatchModelExample)
+#' @export
+modelName <- function(model){
+  model.name <- class(model) %>%
+    gsub("SingleBatchPooled", "SBP", .) %>%
+    gsub("SingleBatchModel", "SB", .) %>%
+    gsub("MultiBatchModel", "MB", .) %>%
+    gsub("MultiBatchPooled", "MBP", .)
+  model.name <- paste0(model.name, k(model))
+  model.name
+}
+
+.predictiveDataTable <- function(model, predict){
+  model.name <- modelName(model)
+  if(class(model) %in% c("SingleBatchModel", "SingleBatchPooled")){
+    dat <- sb_pred_data(model, predict)
+    dat$model <- model.name
+  } else {
+    dat <- mb_pred_data(model, predict)
+    dat$model <- model.name
+  }
+  dat
+}
+
+predictiveDataTable <- function(models){
+  tab.list <- vector("list", length(models))
+  for(i in seq_along(models)){
+    pred <- posteriorPredictive(models[[i]])
+    tab.list[[i]] <- .predictiveDataTable(models[[i]], pred)
+  }
+  tab <- do.call(rbind, tab.list)
+  ## assume models were ordered by marginal likelihood
+  mod.names <- sapply(models, modelName)
+  tab$model <- factor(tab$model, levels=mod.names)
+  tab
+}
+
 sb_pred_data <- function(model, predict){
   dat <- tibble(y=y(model), predictive="empirical")
   colnames(predict)[2] <- "predictive"
   predict$predictive <- "posterior\npredictive"
+  predict$batch <- factor("batch 1")
+  dat$batch <- factor("batch 1")
   predictive <- NULL
   dat2 <- rbind(dat, predict) %>%
     mutate(predictive=factor(predictive,
