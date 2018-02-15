@@ -1,5 +1,7 @@
 context("Pooled variance")
 
+.test_that <- function(nm, expr) NULL
+
 test_that("sigma2_pooled", {
   set.seed(2000)
   truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0),
@@ -28,7 +30,7 @@ test_that("sigma2_pooled", {
   expect_equal(s2.R, s2.cpp)
 })
 
-test_that("sigma2_heavy", {
+.test_that("sigma2_heavy", {
   set.seed(2000)
   truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0),
                         sds = c(0.3, 0.15, 0.15),
@@ -66,8 +68,6 @@ test_that("sigma2_heavy", {
   expect_equal(s2.R, s2.cpp)
 })
 
-
-.test_that <- function(nm, expr) NULL
 
 ## no longer updating z in the way tested below
 .test_that("missing component", {
