@@ -27,5 +27,7 @@ This class inherits from the Hyperparameters class. This class is for hyperparam
 \item{\code{a}}{shape for sigma2.0}
 
 \item{\code{b}}{rate for sigma2.0}
+
+\item{\code{dfr}}{positive number for t-distribution degrees of freedom}
 }}
 

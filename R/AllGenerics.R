@@ -915,7 +915,16 @@ setGeneric("copyNumber", function(object) standardGeneric("copyNumber"))
 setGeneric("mergeComponents", function(model, j) standardGeneric("mergeComponents"))
 
 ### t-distribution stuff
+
+#' Accessor for degrees of freedom
+#'
+#' @param object a Hyperparameters or Hyperparameters-derived class
+#' @export
+#' @examples
+#' hp <- Hyperparams()
+#' dfr(hp)
 setGeneric("dfr", function(object) standardGeneric("dfr"))
+
 setGeneric("dfr<-", function(object, value) standardGeneric("dfr<-"))
 setGeneric("u", function(object) standardGeneric("u"))
 
