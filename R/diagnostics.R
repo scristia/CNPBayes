@@ -322,12 +322,12 @@ harmonizeU <- function(model.list){
   model.list
 }
 
-.gibbs <- function(hp, mp, dat, max_burnin=32000){
+.gibbs <- function(hp, mp, dat, max_burnin=32000, min_effsize=500){
   nchains <- nStarts(mp)
   if(nchains==1) stop("Must initialize at least 2 chains with nStarts ")
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
-  if(iter(mp) < 500){
-    stop("Require at least 500 Monte Carlo simulations")
+  if(iter(mp) < min_effsize){
+    stop(paste("Require at least", min_effsize, "Monte Carlo simulations"))
   }
   if(burnin(mp) > max_burnin) stop("Specified burnin is greater than max_burnin")
   counter <- 0
@@ -362,7 +362,7 @@ harmonizeU <- function(model.list){
     message("     r: ", round(r$mpsrf, 2))
     message("     eff size (minimum): ", round(min(neff), 1))
     message("     eff size (median): ", round(median(neff), 1))
-    if(all(neff > 500) && r$mpsrf < 1.2) break()
+    if(all(neff > min_effsize) && r$mpsrf < 1.2) break()
     burnin(mp) <- as.integer(burnin(mp) * 2)
     mp@thin <- as.integer(thin(mp) * 2)
     counter <- 0
@@ -469,7 +469,8 @@ gibbs_K <- function(hp=Hyperparameters(),
                     .gibbs,
                     mp=mp,
                     dat=dat,
-                    max_burnin=max_burnin)
+                    max_burnin=max_burnin,
+                    min_effsize=min_effsize)
   names(model.list) <- paste0("SB", map_dbl(model.list, k))
   ## sort by marginal likelihood
   ix <- order(map_dbl(model.list, marginal_lik), decreasing=TRUE)
