@@ -102,7 +102,10 @@ test_that("easy", {
     model <- SingleBatchModel2(dat = y(truth),
                                hp=hpList(k=3)[["SB"]],
                                mp = mp)
+    u1 <- u(model)
     model <- posteriorSimulation(model)
+    u2 <- u(model)
+    expect_true(!identical(u1, u2))
     if (FALSE) {
         SingleBatchModelExample <- model
         save(SingleBatchModelExample, file = "data/SingleBatchModelExample.RData")

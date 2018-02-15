@@ -843,3 +843,4 @@ Rcpp::S4 posterior_predictive_singleb(Rcpp::S4 model) {
   Rcpp::S4 xmod = clone(model) ;
   return xmod;
 }
+i

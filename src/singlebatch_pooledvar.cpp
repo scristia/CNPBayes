@@ -444,6 +444,9 @@ Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   Rcpp::S4 params(mcmcp) ;
   IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;
+  double df = getDf(model.slot("hyperparams")) ;
+  NumericVector x = model.slot("data") ;
+  int N = x.size() ;
   if( S < 1 ){
     return xmod ;
   }
@@ -470,6 +473,7 @@ Rcpp::S4 burnin_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("nu.0") = nu0_pooled(xmod) ;
     if(up[6] > 0)
       model.slot("sigma2.0") = sigma2_0_pooled(xmod) ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
@@ -656,6 +660,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
         model.slot("nu.0") = nu0_pooled(xmod) ;
       if(up[6] > 0)
         model.slot("sigma2.0") = sigma2_0_pooled(xmod) ;
+      model.slot("u") = Rcpp::rchisq(N, df) ;
     }
     model.slot("u") = Rcpp::rchisq(N, df) ;
   }

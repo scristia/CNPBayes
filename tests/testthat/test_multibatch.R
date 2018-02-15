@@ -119,8 +119,9 @@ test_that("easy", {
   sds <- matrix(0.1, nbatch, k)
   N <- 1500
   truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
-                                                length.out = N), theta = means, sds = sds, p = c(1/5,
-                                                1/3, 1 - 1/3 - 1/5))
+                                                length.out = N),
+                             theta = means, sds = sds,
+                             p = c(1/5, 1/3, 1 - 1/3 - 1/5))
   ##yy <- y(truth)
   ##expect_identical(yy[order(batch(truth))], yy)
   mcmcp <- McmcParams(iter = 50, burnin = 0)
