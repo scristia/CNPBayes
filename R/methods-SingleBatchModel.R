@@ -15,7 +15,6 @@ NULL
              nu.0=numeric(1),
              sigma2.0=numeric(1),
              pi=numeric(K),
-             u=numeric(0),
              data=numeric(0),
              u=numeric(0),
              data.mean=matrix(NA, B, K),
