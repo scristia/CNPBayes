@@ -357,7 +357,7 @@ Rcpp::NumericVector compute_heavy_sums(Rcpp::S4 object) {
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   // IntegerVector nn = model.slot("zfreq") ;
-  
+
   NumericVector sums( K ) ;
   NumericVector u = model.slot("u") ;
   x = x * u ;
