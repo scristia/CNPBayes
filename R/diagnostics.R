@@ -336,10 +336,11 @@ harmonizeU <- function(model.list){
     mod.list <- replicate(nchains, SingleBatchModel2(dat=dat,
                                                      hp=hp,
                                                      mp=mp))
+    mod.list <- harmonizeU(mod.list)
     mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
     label_swapping <- map_lgl(mod.list, label_switch)
     noswap <- sum(!label_swapping)
-    if(noswap < 3){
+    if(noswap < 2){
       burnin(mp) <- as.integer(burnin(mp) * 2)
       mp@thin <- as.integer(thin(mp) * 2)
       ## only increment counter for label switching
@@ -348,6 +349,9 @@ harmonizeU <- function(model.list){
       neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
       if(is.null(neff))  neff <- 0
       r <- gelman_rubin(mlist, hp)
+      message("     r: ", round(r$mpsrf, 2))
+      message("     eff size (minimum): ", round(min(neff), 1))
+      message("     eff size (median): ", round(median(neff), 1))
       next()
     }
     mod.list <- mod.list[ selectModels(mod.list) ]
