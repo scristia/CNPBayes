@@ -46,7 +46,7 @@ test_that("SBP", {
 
 test_that("MBP", {
   set.seed(9)
-  mp <- McmcParams(iter=50, burnin=10, nStarts=1, thin=1)
+  mp <- McmcParams(iter=10, burnin=5, nStarts=1, thin=1)
   mb <- MultiBatchModelExample
   mbp.tmp <- as(mb, "MultiBatchPooled")
   expect_identical(length(sigma(mbp.tmp)), 3L)
