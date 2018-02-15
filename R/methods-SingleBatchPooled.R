@@ -36,6 +36,7 @@ setMethod("computeLoglik", "SingleBatchPooled", function(object){
   nu.0 <- rgeom(1, betas(hp))
   sigma2.0 <- rgamma(1, 0.5*a(hp), 0.5*a(hp)*b(hp))
   sigma2 <- 1/rgamma(1, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0)
+  u <- rchisq(length(dat), hp@dfr)
   object <- new("SingleBatchPooled",
                 k=as.integer(K),
                 hyperparams=hp,
@@ -47,6 +48,7 @@ setMethod("computeLoglik", "SingleBatchPooled", function(object){
                 sigma2.0=sigma2.0,
                 pi=p,
                 data=dat,
+                u=dat,
                 data.mean=numeric(K),
                 data.prec=numeric(K),
                 z=integer(length(dat)),
@@ -210,6 +212,7 @@ combine_singlebatch_pooled <- function(model.list, batches){
                sigma2.0=pm.s20,
                pi=pm.p,
                data=y(model.list[[1]]),
+               u=u(model.list[[1]]),
                data.mean=y_mns,
                data.prec=y_prec,
                z=zz,
