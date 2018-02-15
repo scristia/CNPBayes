@@ -196,7 +196,7 @@ newSingleBatchModel <- function(object){
   sigma2(object2) <- sigma2(object)
   p(object2) <- p(object)
   z(object2) <- z(object)
-  u(object2) <- u(object)
+  object2@u <- u(object)
   nu.0(object2) <- nu.0(object)
   mu(object2) <- mu(object)
   tau2(object2) <- tau2(object)
