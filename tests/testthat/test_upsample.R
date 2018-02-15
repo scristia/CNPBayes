@@ -2,7 +2,7 @@ context("Down sampling and up sampling")
 
 .test_that <- function(nm, expr) NULL
 
-.test_that("upSample2", {
+test_that("upSample2", {
   library(tidyverse)
   set.seed(123)
   k <- 3
@@ -83,4 +83,27 @@ context("Down sampling and up sampling")
     "/"(rowSums(.))
   model.probs <- probz(model)
   expect_true(all.equal(model.probs, theoretical.p))
+
+
+  ## use targeted seq data for a little more challenging
+  set.seed(123)
+  mp <- McmcParams(iter=500, burnin=500, nStarts=1)
+  extfile <- file.path(system.file("extdata", package="CNPBayes"),
+                       "targeted_seq.txt")
+  dat <- read.delim(extfile)[[1]]
+  pdat <- tibble(medians=sample(dat, 500),
+                 batch_orig="1",
+                 batch="1",
+                 batch_index=1L)
+  model <- SB(dat=pdat$medians,
+              mp=mp,
+              hp=hp)
+  model <- posteriorSimulation(model)
+  model.no.up <- upSample2(pdat, model, up_sample=FALSE)
+  theoretical.p <- probz(model.no.up) %>%
+    "/"(rowSums(.))
+  model.probs <- probz(model)
+  expect_equal(as.numeric(theoretical.p),
+               as.numeric(model.probs),
+               scale=1, tolerance=0.02)
 })
