@@ -336,7 +336,7 @@ harmonizeU <- function(model.list){
     mod.list <- replicate(nchains, SingleBatchModel2(dat=dat,
                                                      hp=hp,
                                                      mp=mp))
-    mod.list <- harmonizeU(mod.list)
+    ##mod.list <- harmonizeU(mod.list)
     mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
     label_swapping <- map_lgl(mod.list, label_switch)
     noswap <- sum(!label_swapping)
