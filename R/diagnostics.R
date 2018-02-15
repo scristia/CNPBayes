@@ -368,7 +368,7 @@ harmonizeU <- function(model.list){
     counter <- 0
   }
   model <- combineModels(mod.list)
-  meets_conditions <- all(neff > 500) && r$mpsrf < 2 && !label_switch(model)
+  meets_conditions <- all(neff > min_effsize) && r$mpsrf < 2 && !label_switch(model)
   if(meets_conditions){
     model <- compute_marginal_lik(model)
   }
@@ -396,10 +396,10 @@ compute_marginal_lik <- function(model, params){
   model
 }
 
-gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches){
+gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500){
   nchains <- nStarts(mp)
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
-  if(iter(mp) < 500){
+  if(iter(mp) < min_effsize){
     stop("Require at least 500 Monte Carlo simulations")
   }
   while(burnin(mp) < max_burnin && thin(mp) < 100){
@@ -439,12 +439,12 @@ gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches){
     message("     r: ", round(r$mpsrf, 2))
     message("     eff size (minimum): ", round(min(neff), 1))
     message("     eff size (median): ", round(median(neff), 1))
-    if(all(neff > 500) && r$mpsrf < 1.2) break()
+    if(all(neff > min_effsize) && r$mpsrf < 1.2) break()
     burnin(mp) <- as.integer(burnin(mp) * 2)
     mp@thin <- as.integer(thin(mp) * 2)
   }
   model <- combine_batch(mod.list, batches)
-  meets_conditions <- all(neff > 500) && r$mpsrf < 2 && !label_switch(model)
+  meets_conditions <- all(neff > min_effsize) && r$mpsrf < 2 && !label_switch(model)
   if(meets_conditions){
     model <- compute_marginal_lik(model)
   }
