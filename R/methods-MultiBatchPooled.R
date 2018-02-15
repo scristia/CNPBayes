@@ -175,6 +175,7 @@ combine_multibatch_pooled <- function(model.list, batches){
                sigma2.0=pm.s20,
                pi=pm.p,
                data=y(model.list[[1]]),
+               u=u(model.list[[1]]),
                data.mean=y_mns,
                data.prec=y_prec,
                z=zz,
