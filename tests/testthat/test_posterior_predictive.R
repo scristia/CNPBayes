@@ -40,7 +40,7 @@ test_that("SBP", {
                            hp=hp,
                            mp=mp)
   sbp2 <- posteriorSimulation(sbp)
-  expect_warning(tab <- posteriorPredictive(sbp2))
+  tab <- posteriorPredictive(sbp2)
   expect_is(tab, "tbl_df")
   if(FALSE) ggPredictive(sbp2, tab)
 })
