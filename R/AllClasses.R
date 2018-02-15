@@ -14,6 +14,7 @@ setClassUnion("numericOrMatrix", c("numeric", "matrix"))
 #' @slot beta parameter for nu.0 distribution
 #' @slot a shape for sigma2.0
 #' @slot b rate for sigma2.0
+#' @slot dfr positive number for t-distribution degrees of freedom
 #' @aliases k,Hyperparameters-method
 setClass("Hyperparameters", representation(k="integer",
                                            mu.0="numeric",
@@ -26,19 +27,6 @@ setClass("Hyperparameters", representation(k="integer",
                                            b="numeric",
                                            dfr="numeric"))
 
-#' An object to specify the hyperparameters of a marginal model.
-#'
-#' This class inherits from the Hyperparameters class. This class is for hyperparameters which are marginal over the batches.
-#' @slot k Number of components
-#' @slot mu.0 Prior mean for mu.
-#' @slot tau2.0 prior variance on mu
-#' @slot eta.0 rate paramater for tau2
-#' @slot m2.0 shape parameter for tau2
-#' @slot alpha mixture probabilities
-#' @slot beta parameter for nu.0 distribution
-#' @slot a shape for sigma2.0
-#' @slot b rate for sigma2.0
-setClass("HyperparametersMarginal", contains="Hyperparameters")
 
 #' An object to specify the hyperparameters of a marginal model.
 #'
@@ -52,6 +40,7 @@ setClass("HyperparametersMarginal", contains="Hyperparameters")
 #' @slot beta parameter for nu.0 distribution
 #' @slot a shape for sigma2.0
 #' @slot b rate for sigma2.0
+#' @slot dfr positive number for t-distribution degrees of freedom
 setClass("HyperparametersSingleBatch", contains="Hyperparameters")
 
 #' An object to specify the hyperparameters of a batch effect model.
@@ -66,20 +55,7 @@ setClass("HyperparametersSingleBatch", contains="Hyperparameters")
 #' @slot beta parameter for nu.0 distribution
 #' @slot a shape for sigma2.0
 #' @slot b rate for sigma2.0
-setClass("HyperparametersBatch",  contains="Hyperparameters")
-
-#' An object to specify the hyperparameters of a batch effect model.
-#'
-#' This class inherits from the Hyperparameters class. This class is for hyperparameters which are hierachical over the batches.
-#' @slot k Number of components
-#' @slot mu.0 Prior mean for mu.
-#' @slot tau2.0 prior variance on mu
-#' @slot eta.0 rate paramater for tau2
-#' @slot m2.0 shape parameter for tau2
-#' @slot alpha mixture probabilities
-#' @slot beta parameter for nu.0 distribution
-#' @slot a shape for sigma2.0
-#' @slot b rate for sigma2.0
+#' @slot dfr positive number for t-distribution degrees of freedom
 setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 
 #' An object to hold estimated paraeters.
