@@ -30,6 +30,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     int K = thetastar.ncol();
     Rcpp::NumericVector p_theta(S);
     Rcpp::NumericMatrix muc = chains.slot("mu");
+    Rcpp::NumericVector mu = model.slot("mu");
     Rcpp::NumericMatrix tau2c = chains.slot("tau2");
     Rcpp::NumericMatrix sigma2 = chains.slot("sigma2");
     int B = thetastar.nrow();
@@ -37,7 +38,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
 
     Rcpp::IntegerMatrix Z = chains.slot("z");
     Rcpp::IntegerVector zz;
-
+    Rcpp::NumericVector tau2 = model.slot("tau2") ;
     Rcpp::NumericVector tau2_tilde(K);
     Rcpp::NumericVector sigma2_tilde(K);
 
@@ -46,7 +47,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
 
     // this should be updated for each iteration
     Rcpp::NumericMatrix data_mean(B, K);
-    Rcpp::NumericMatrix nn(B, K);
+    Rcpp::NumericMatrix n_hb(B, K);
     Rcpp::NumericMatrix sumu(B, K);
     double post_prec;
     double tau_n;
@@ -57,35 +58,59 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     Rcpp::NumericMatrix iSigma2(B, K);
     Rcpp::NumericVector invs2;
     Rcpp::NumericVector theta(1);
-
     for (int s=0; s < S; ++s) {
         tauc = sqrt(tau2c(s, Rcpp::_));
+        // extract z from the chain
         zz = Z(s, Rcpp::_);
+        // add z to the current slot in the model
         model.slot("z") = zz;
-        nn = tableBatchZ(model);
-        //data_mean = compute_heavy_means_batch(model);
+        // make a B x k matrix of the counts
+        n_hb = tableBatchZ(model);
         data_mean = compute_heavy_sums_batch(model);
-        data_mean = data_mean/df;
-        sumu = compute_u_sums_batch(xmod) ;
-        sumu = sumu/df ;
-        tau2_tilde = 1.0 / tau2c(s, Rcpp::_);
+        sumu = compute_u_sums_batch(model) ;
+
+        mu = muc(s, Rcpp::_);
+        tau2 = tau2c(s, Rcpp::_);
+        tau2_tilde = 1.0 / tau2;
         invs2 = 1.0 / sigma2(s, Rcpp::_);    // this is a vector of length B*K
         sigma2_tilde = Rcpp::as<Rcpp::NumericVector>(toMatrix(invs2, B, K));
         double prod = 1.0;
+        double heavyn = 0.0;
+        double heavy_mean = 0.0;
 
-        for (int k = 0; k < K; ++k) {
-            for (int b = 0; b < B; ++b) {
-                post_prec = tau2_tilde[k] + sigma2_tilde(b, k) * nn(b,k) * sumu(b,k);
-                tau_n = sqrt(1/post_prec);
-                w1 = tau2_tilde[k]/post_prec;
-                w2 = nn[k] * sigma2_tilde(b, k)/post_prec;
-                mu_n = w1*muc(s, k) + w2*data_mean(b, k);
-                theta = thetastar(b, k);
-                tmp = dnorm(theta, mu_n, tau_n);
-                prod *= tmp[0];
+        for (int b = 0; b < B; ++b) {
+          for(int k = 0; k < K; ++k){
+            heavyn = n_hb(b, k) * sumu(b, k) / df;
+            heavy_mean = data_mean(b, k) / df;
+
+            post_prec = 1.0/tau2[k] + heavyn*1.0 * sigma2_tilde(b, k) ;
+            if (post_prec == R_PosInf) {
+              throw std::runtime_error("Bad simulation. Run again with different start.");
             }
+            tau_n = sqrt(1.0/post_prec) ;
+            w1 = (1.0/tau2[k])/post_prec ;
+            w2 = (n_hb(b, k) * sigma2_tilde(b, k))/post_prec ;
+            // mu_n = w1*mu[k] + w2*data_mean(b, k) ;
+            mu_n = w1*mu[k] + w2*heavy_mean ;
+            //theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
+            theta[0] = thetastar(b, k);
+            tmp = dnorm(theta, mu_n, tau_n);
+            prod *= tmp[0];
+          }
         }
-
+//
+//        for (int k = 0; k < K; ++k) {
+//            for (int b = 0; b < B; ++b) {
+//                post_prec = tau2_tilde[k] + sigma2_tilde(b, k) * nn(b,k) * sumu(b,k);
+//                tau_n = sqrt(1/post_prec);
+//                w1 = tau2_tilde[k]/post_prec;
+//                w2 = nn[k] * sigma2_tilde(b, k)/post_prec;
+//                mu_n = w1*muc(s, k) + w2*data_mean(b, k);
+//                theta = thetastar(b, k);
+//                tmp = dnorm(theta, mu_n, tau_n);
+//                prod *= tmp[0];
+//            }
+//        }
         p_theta[s] = prod;
     }
 
