@@ -82,7 +82,8 @@ setClass("McmcChains", representation(theta="matrix",
                                       logprior="numeric",
                                       loglik="numeric",
                                       zfreq="matrix",
-                                      z="matrix"))
+                                      z="matrix",
+                                      u="matrix"))
 
 #' An object to specify MCMC options for a later simulation
 #'

@@ -63,11 +63,16 @@ test_that("initial values", {
                                            mp=mp, hp=hp,
                                            batches=batch(truth)))
   mod.list2 <- map(mod.list, posteriorSimulation)
-  model <- combine_batch(mod.list2)
+  model <- combine_batch(mod.list2, batches=batch(mod.list2[[1]]))
   mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 4, thin=5)
   set.seed(4894)
   model <- gibbs_batch(dat=y(truth), mp=mp, hp=hp,
                        batches=batch(truth))
+  trace(r_theta_multibatch, browser)
+  r_theta_multibatch(model)
+  compute_marginal_lik(model)
+  .ml_batchmodel(model)
+
   marginal_lik(model)
 
   k(hp) <- 4
@@ -126,9 +131,9 @@ test_that("easy", {
   ##expect_identical(yy[order(batch(truth))], yy)
   mcmcp <- McmcParams(iter = 50, burnin = 0)
   set.seed(123)
-  model <- MultiBatchModel2(dat=y(truth), batches = batch(truth),
-                            hp=hpList(k = 3)[["MB"]],
-                            mp = mcmcp)
+  model <- MB(dat=y(truth), batches = batch(truth),
+              hp=hpList(k = 3)[["MB"]],
+              mp = mcmcp)
   u1 <- u(model)
   model <- posteriorSimulation(model)
   u2 <- u(model)

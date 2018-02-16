@@ -670,6 +670,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericMatrix pmix = chain.slot("pi") ;
   NumericMatrix zfreq = chain.slot("zfreq") ;
   IntegerMatrix Z = chain.slot("z") ;
+  IntegerMatrix U = chain.slot("u") ;
   NumericVector mu = chain.slot("mu") ;  
   NumericVector tau2 = chain.slot("tau2") ;
   NumericVector nu0 = chain.slot("nu.0") ;
@@ -705,6 +706,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   s20 = model.slot("sigma2.0") ;
   zf = model.slot("zfreq") ;
   z = model.slot("z") ;
+  u = model.slot("u") ;
   ll = model.slot("loglik") ;
   lp = model.slot("logprior") ;
   // Record initial values in chains
@@ -720,6 +722,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   pmix(0, _) = p ;
   zfreq(0, _) = zf ;
   Z(0, _) = z ;
+  U(0, _) = u ;
   // start at 1 instead of zero. Initial values are as above
   for(int s = 1; s < S; ++s){
     if(up[0] > 0) {
@@ -798,6 +801,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
+    U(s, _) = model.slot("u");
     // Thinning
     for(int t = 0; t < T; ++t){
       if(up[0] > 0)
@@ -808,7 +812,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
         model.slot("pi") = update_p(xmod) ;
       if(up[3] > 0)
         model.slot("mu") = update_mu(xmod) ;
-      if(up[4] > 0)      
+      if(up[4] > 0)
         model.slot("tau2") = update_tau2(xmod) ;
       if(up[5] > 0)
         model.slot("nu.0") = update_nu0(xmod) ;
@@ -837,6 +841,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   chain.slot("loglik") = loglik_ ;
   chain.slot("logprior") = logprior_ ;
   chain.slot("z") = Z ;
+  chain.slot("u") = U ;
   model.slot("mcmc.chains") = chain ;
   return xmod ;
 }

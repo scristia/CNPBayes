@@ -117,6 +117,7 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   warnings <- params$warnings
 
   model.reduced <- model
+  browser()
   ptheta.star <- marginal_theta_batch(model)
   if(paramUpdates(model)[["theta"]]==0) {
     ignore.small.pstar <- TRUE
@@ -554,3 +555,55 @@ setMethod("marginalLikelihood", "list",
           function(model, params=mlParams(warnings=FALSE)){
             .ml_list(model, params)
           })
+
+
+## A copy of marginal_theta_batch for debugging
+r_theta_multibatch <- function(model){
+  model2 <- useModes(model)
+  thetastar <- theta(model2)
+  tau2c <- tau2(chains(model))
+  muc <- mu(chains(model))
+  Z <- z(chains(model))
+  model.tmp <- model
+  sigma2c <- sigma2(chains(model))
+  B <- nrow(theta(model))
+  K <- k(model)
+  df <- dfr(model)
+  S <- nrow(theta(chains(model)))
+  p_theta <- rep(NA, S)
+  ## we need to save the u-chains
+  for(s in seq_len(S)){
+    tauc <- sqrt(tau2c[s, ])
+    zz <- Z[s, ]
+    z(model.tmp) <- zz
+    ## make a B x k matrix of the counts
+    n_hb <- tableBatchZ(model);
+    data_mean <- compute_heavy_sums_batch(model);
+    sumu <- compute_u_sums_batch(model) ;
+    mu <- muc[s, ]
+    tau2 <- tau2c[s, ]
+    tau2_tilde = 1.0 / tau2;
+    sigma2 <- matrix(sigma2c[s, ], B, K)
+    ##invs2 = 1.0 / sigma2(s, Rcpp::_);    // this is a vector of length B*K
+    invs2 <- 1.0/sigma2
+    ##sigma2_tilde = Rcpp::as<Rcpp::NumericVector>(toMatrix(invs2, B, K));
+    sigma2_tilde <- matrix(invs2, B, K)
+    prod <- 1
+    heavyn <- 0
+    heavy_mean <- 0
+    for (b in seq_len(B)) {
+      for(k in seq_len(K)){
+        heavyn <- n_hb[b, k] * sumu[b, k] / df;
+        heavy_mean = data_mean[b, k] / df;
+        post_prec <- 1.0/tau2[k] + heavyn*1.0/sigma2[b, k] ;
+        tau_n <- sqrt(1.0/post_prec) ;
+        w1 = (1.0/tau2[k])/post_prec ;
+        w2 = (n_hb[b, k] * 1.0/sigma2[b, k])/post_prec ;
+        mu_n = w1*mu[k] + w2*heavy_mean ;
+        tmp = dnorm(thetastar[b, k], mu_n, tau_n);
+        prod <- prod * tmp;
+      }
+    }
+    p_theta[s] = prod;
+  }
+}
