@@ -33,7 +33,7 @@ hardTruth <- function(p1, s, N=1000){
   galaxies[78] <- 26960
   galaxies2 <- (galaxies-median(galaxies))/1000
   galaxies3 <- c(galaxies2, galaxies2 + 10)
-  mp <- McmcParams(burnin=200, nStarts=5, iter=1000)
+  mp <- McmcParams(burnin=500, nStarts=4, iter=1000)
   hp <- HyperparametersMultiBatch(k=3,
                                   mu=-0.75,
                                   tau2.0=0.4,
@@ -43,10 +43,72 @@ hardTruth <- function(p1, s, N=1000){
                       k_range=c(1, 3),
                       dat=galaxies3,
                       batches=rep(1:2, each=length(galaxies)))
+  mlist <- mcmcList(model.list)
+  neff <- coda::effectiveSize(mlist)
+  r <- gelman_rubin(mlist, hp)
+  model <- model.list[[1]]
   ##model.list <- gibbs_batch_K(hp=hp, mp=mp, k_range=c(1, 3), dat=galaxies3,
   ##batches=rep(1:2, each=length(galaxies)))
   expect_identical(names(model.list)[1], "MB3")
 })
+
+## model2 <- useModes(model)
+## thetastar <- theta(model2)
+## tau2c <- tau2(chains(model))
+## muc <- mu(chains(model))
+## Z <- z(chains(model))
+## model.tmp <- model
+## sigma2c <- sigma2(chains(model))
+## B <- nrow(theta(model))
+## K <- k(model)
+## df <- dfr(model)
+## for(s in 1:2000){
+##   tauc <- sqrt(tau2c[s, ])
+##   zz <- Z[s, ]
+##   z(model.tmp) <- zz
+##   // make a B x k matrix of the counts
+##   n_hb <- tableBatchZ(model.tmp);
+##   data_mean <- compute_heavy_sums_batch(model.tmp);
+##   sumu <- compute_u_sums_batch(model.tmp) ;
+##   mu <- muc[s, ]
+##   tau2 <- tau2c[s, ]
+##   tau2_tilde = 1.0 / tau2;
+##   sigma2 <- matrix(sigma2c[s, ], B, K)
+##   ##invs2 = 1.0 / sigma2(s, Rcpp::_);    // this is a vector of length B*K
+##   invs2 <- 1.0/sigma2
+##   ##sigma2_tilde = Rcpp::as<Rcpp::NumericVector>(toMatrix(invs2, B, K));
+##   sigma2_tilde <- matrix(invs2, B, K)
+##   prod <- 1
+##   heavyn <- 0
+##   heavy_mean <- 0
+##   for (b in seq_len(B)) {
+##     for(k in seq_len(K)){
+##       heavyn <- n_hb[b, k] * sumu[b, k] / df;
+##       heavy_mean = data_mean[b, k] / df;
+##       post_prec <- 1.0/tau2[k] + heavyn*1.0/sigma2[b, k] ;
+##       tau_n <- sqrt(1.0/post_prec) ;
+##       w1 = (1.0/tau2[k])/post_prec ;
+##       w2 = (n_hb[b, k] * 1.0/sigma2[b, k])/post_prec ;
+##       mu_n = w1*mu[k] + w2*heavy_mean ;
+##       tmp = dnorm(thetastar[b, k], mu_n, tau_n);
+##       prod <- prod * tmp;
+##     }
+##   }
+## //
+## //        for (int k = 0; k < K; ++k) {
+## //            for (int b = 0; b < B; ++b) {
+## //                post_prec = tau2_tilde[k] + sigma2_tilde(b, k) * nn(b,k) * sumu(b,k);
+## //                tau_n = sqrt(1/post_prec);
+## //                w1 = tau2_tilde[k]/post_prec;
+## //                w2 = nn[k] * sigma2_tilde(b, k)/post_prec;
+## //                mu_n = w1*muc(s, k) + w2*data_mean(b, k);
+## //                theta = thetastar(b, k);
+## //                tmp = dnorm(theta, mu_n, tau_n);
+## //                prod *= tmp[0];
+## //            }
+## //        }
+##         p_theta[s] = prod;
+##     }
 
 
 .test_that("MultiBatchPooled", {
@@ -73,13 +135,14 @@ hardTruth <- function(p1, s, N=1000){
   batches <- batch(truth)
   set.seed(941)
   options(warn=2, error=utils::recover)
-  model <- MultiBatchPooled(dat=y(truth), mp=mp, hp=hp,
-                            batches=batch(truth))
+  model <- MBP(dat=y(truth), mp=mp, hp=hp,
+               batches=batch(truth))
   ## fit model with k=4
-  expect_warning(model <- gibbs(model="MBP", mp=McmcParams(iter=10, burnin=5, nStart=4),
+  expect_warning(model <- gibbs(model="MBP",
+                                mp=McmcParams(iter=10, burnin=5, nStart=4),
                                 dat=y(truth),
                                 batches=batch(truth)))
- 
+
   mp <- McmcParams(iter=1000, nStarts=4, burnin=100)
   mlist <- gibbs("MBP", hp.list=list(MBP=hp), mp=mp,
                   dat=y(truth), batches=batch(truth))
