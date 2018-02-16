@@ -476,21 +476,19 @@ mclustMeans <- function(y, batch){
 posteriorPredictive <- function(model){
   if(class(model)=="SingleBatchModel"){
     tab <- .posterior_predictive_sb(model)
-    return(tab)
   }
   if(class(model)=="MultiBatchModel"){
     tab <- .posterior_predictive_mb(model)
-    return(tab)
   }
   if(class(model) == "SingleBatchPooled"){
     tab <- .posterior_predictive_sbp(model)
-    return(tab)
   }
   if(class(model) == "MultiBatchPooled"){
     tab <- .posterior_predictive_mbp(model)
-    return(tab)
   }
-  stop("Model must be one of SB, SBP, MB, and MBP")
+  tab <- tab[, c("y", "component", "batch")]
+  tab$model <- modelName(model)
+  return(tab)
 }
 
 .posterior_predictive_sb <- function(model){
@@ -512,6 +510,7 @@ posteriorPredictive <- function(model){
     ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
+  tab$batch <- "1"
   tab
 }
 
@@ -534,6 +533,7 @@ posteriorPredictive <- function(model){
     ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
+  tab$batch <- "1"
   tab
 }
 
@@ -569,7 +569,7 @@ posteriorPredictive <- function(model){
     ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
-  tab$batch <- factor(tab$batch)
+  tab$batch <- as.character(tab$batch)
   tab
 }
 
@@ -607,7 +607,7 @@ posteriorPredictive <- function(model){
     ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
-  tab$batch <- factor(tab$batch)
+  tab$batch <- as.character(tab$batch)
   tab
 }
 
