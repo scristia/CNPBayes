@@ -660,22 +660,6 @@ mb_predictive <- function(model, predict, adjust=1/3){
   fig
 }
 
-#' Abbreviated model name
-#'
-#' @param model a SingleBatchModel, MultiBatchModel, etc.
-#' @examples
-#' modelName(SingleBatchModelExample)
-#' @export
-modelName <- function(model){
-  model.name <- class(model) %>%
-    gsub("SingleBatchPooled", "SBP", .) %>%
-    gsub("SingleBatchModel", "SB", .) %>%
-    gsub("MultiBatchModel", "MB", .) %>%
-    gsub("MultiBatchPooled", "MBP", .)
-  model.name <- paste0(model.name, k(model))
-  model.name
-}
-
 .predictiveDataTable <- function(model, predict){
   model.name <- modelName(model)
   if(class(model) %in% c("SingleBatchModel", "SingleBatchPooled")){
@@ -721,6 +705,8 @@ predictiveDataTable <- function(models){
 
 sb_pred_data <- function(model, predict){
   dat <- tibble(y=y(model), predictive="empirical")
+  ##browser()
+  ##predict.bak=predict
   colnames(predict)[2] <- "predictive"
   predict$predictive <- "posterior\npredictive"
   predict$batch <- factor("batch 1")
@@ -929,3 +915,5 @@ setMethod("ggChains", "SingleBatchPooled", function(model){
 setMethod("ggChains", "SingleBatchModel", function(model){
   ggSingleBatchChains(model)
 })
+
+
