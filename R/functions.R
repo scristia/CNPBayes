@@ -746,3 +746,19 @@ rst <- function (n, df = 100, mean = 0, sigma = 1){
   x <- mean + sigma * y * sqrt(df/z)
   return(x)
 }
+
+#' Abbreviated model name
+#'
+#' @param model a SingleBatchModel, MultiBatchModel, etc.
+#' @examples
+#' modelName(SingleBatchModelExample)
+#' @export
+modelName <- function(model){
+  model.name <- class(model) %>%
+    gsub("SingleBatchPooled", "SBP", .) %>%
+    gsub("SingleBatchModel", "SB", .) %>%
+    gsub("MultiBatchModel", "MB", .) %>%
+    gsub("MultiBatchPooled", "MBP", .)
+  model.name <- paste0(model.name, k(model))
+  model.name
+}
