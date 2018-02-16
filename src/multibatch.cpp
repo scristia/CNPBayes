@@ -739,6 +739,7 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericMatrix pmix = chain.slot("pi") ;
   NumericMatrix zfreq = chain.slot("zfreq") ;
   IntegerMatrix Z = chain.slot("z") ;
+  NumericMatrix U = chain.slot("u") ;
   NumericMatrix mu = chain.slot("mu") ;  
   NumericMatrix tau2 = chain.slot("tau2") ;
   NumericVector nu0 = chain.slot("nu.0") ;
@@ -752,6 +753,7 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericVector t2(K) ;//tau2
   NumericVector n0(1) ;//nu0
   IntegerVector z(N) ;
+  NumericVector u(N) ;
   NumericVector s20(1) ; //sigma2_0
   NumericVector lls2(1) ;  // stage 2 log lik
   //  NumericVector mns(1) ;
@@ -770,6 +772,7 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   s20 = model.slot("sigma2.0") ;
   zf = model.slot("zfreq") ;
   z = model.slot("z") ;
+  u = model.slot("u") ;
   ll = model.slot("loglik") ;
   lp = model.slot("logprior") ;
   // Record initial values in chains
@@ -784,6 +787,7 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   pmix(0, _) = p ;
   zfreq(0, _) = zf ;
   Z(0, _) = z ;
+  U(0, _) = u ;
 
   // Is accessing a slot in an object expensive?
 
@@ -864,7 +868,9 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     lp = compute_logprior_batch(xmod) ;
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
-    model.slot("u") = Rcpp::rchisq(N, df) ;
+    u = Rcpp::rchisq(N, df) ;
+    model.slot("u") = u;
+    U(s, _) = u;
     // Thinning
     for(int t = 0; t < T; ++t){
       if(up[7] > 0){
@@ -904,6 +910,7 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   chain.slot("z") = Z ;
   chain.slot("loglik") = loglik_ ;
   chain.slot("logprior") = logprior_ ;
+  chain.slot("u") = U ;
   model.slot("mcmc.chains") = chain ;
   return xmod ;
 }

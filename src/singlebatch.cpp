@@ -670,7 +670,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericMatrix pmix = chain.slot("pi") ;
   NumericMatrix zfreq = chain.slot("zfreq") ;
   IntegerMatrix Z = chain.slot("z") ;
-  IntegerMatrix U = chain.slot("u") ;
+  NumericMatrix U = chain.slot("u") ;
   NumericVector mu = chain.slot("mu") ;  
   NumericVector tau2 = chain.slot("tau2") ;
   NumericVector nu0 = chain.slot("nu.0") ;
@@ -687,6 +687,7 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericVector t2(1) ;//tau2
   NumericVector n0(1) ;//nu0
   IntegerVector z(N) ;
+  NumericVector u(N) ;
   NumericVector s20(1) ; //sigma2_0
   NumericVector mns(1) ;   
   NumericVector precs(1) ;
@@ -800,8 +801,9 @@ Rcpp::S4 mcmc_marginal(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     lp = compute_logprior(xmod) ;
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
-    model.slot("u") = Rcpp::rchisq(N, df) ;
-    U(s, _) = model.slot("u");
+    u = Rcpp::rchisq(N, df) ;
+    model.slot("u") = u ;
+    U(s, _) = u;
     // Thinning
     for(int t = 0; t < T; ++t){
       if(up[0] > 0)
