@@ -32,7 +32,9 @@ Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
   NumericVector tmp(K) ;
 
   IntegerMatrix Z = chains.slot("z") ;
+  NumericMatrix U = chains.slot("u") ;
   IntegerVector zz ;
+  NumericVector uu ;
 
   double tau2_tilde ;
   NumericVector sigma2_tilde(K) ;
@@ -55,7 +57,9 @@ Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
 
   for(int s=0; s < S; ++s){
     zz = Z(s, _) ;
+    uu = U(s, _) ;
     model.slot("z") = zz ;
+    model.slot("u") = uu ;
     counts = tableZ(K, zz) ;
     NumericVector data_mean =  compute_heavy_means(xmod) ;
     data_mean =  data_mean/df ;
@@ -78,54 +82,6 @@ Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
     p_theta[s] = prod ;
   }
   return p_theta ;
-}
-
-// [[Rcpp::export]]
-Rcpp::NumericVector p_theta_zpermuted(Rcpp::S4 xmod) {
-  RNGScope scope ;
-  Rcpp::S4 model_(xmod) ;
-  Rcpp::S4 model = clone(model_) ;
-  Rcpp::S4 mcmcp = model.slot("mcmc.params") ;
-  //Rcpp::S4 params(mcmcp) ;
-  int S = mcmcp.slot("iter") ;
-  List modes = model.slot("modes") ;
-  NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
-  NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
-  NumericVector sigma2star=clone(sigma2_) ;
-  NumericVector thetastar=clone(theta_) ;
-  int K = thetastar.size() ;
-  NumericVector logp_theta(S) ;
-  Rcpp::S4 chains(model.slot("mcmc.chains")) ;
-  double mu ;
-  NumericVector tau(1) ;
-  NumericVector tmp(K) ;
-  IntegerMatrix Z = chains.slot("z") ;
-  int N = Z.ncol() ;
-  IntegerVector h (N) ;
-  NumericVector tau2(1) ;
-  for(int s=0; s < S; ++s){
-    h = Z(s, _ ) ;
-    model.slot("z") = h ;
-    model.slot("data.mean") = compute_means(model) ;
-    model.slot("data.prec") = compute_prec(model) ;
-    model.slot("theta") = update_theta(model) ;
-    model.slot("sigma2") = update_sigma2(model) ;
-    model.slot("pi") = update_p(model) ;
-    model.slot("mu") = update_mu(model) ;
-    model.slot("tau2") = update_tau2(model) ;
-    model.slot("nu.0") = update_nu0(model) ;
-    model.slot("sigma2.0") = update_sigma2_0(model) ;
-    mu = model.slot("mu") ;
-    tau2 = model.slot("tau2") ;
-    tau = sqrt(tau2) ;
-    tmp = dnorm(thetastar, mu, tau[0]) ;
-    double prod = 0.0;
-    for(int k = 0; k < K; ++k) {
-      prod += log(tmp[k]) ;
-    }
-    logp_theta[s] = prod ;
-  }
-  return logp_theta ;
 }
 
 Rcpp::NumericVector marginal_sigma2(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
