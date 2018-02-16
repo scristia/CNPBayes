@@ -397,26 +397,6 @@ marginal_theta <- function(xmod) {
     .Call('_CNPBayes_marginal_theta', PACKAGE = 'CNPBayes', xmod)
 }
 
-p_theta_zpermuted <- function(xmod) {
-    .Call('_CNPBayes_p_theta_zpermuted', PACKAGE = 'CNPBayes', xmod)
-}
-
-simulate_z_reduced1 <- function(object) {
-    .Call('_CNPBayes_simulate_z_reduced1', PACKAGE = 'CNPBayes', object)
-}
-
-simulate_z_reduced2 <- function(object) {
-    .Call('_CNPBayes_simulate_z_reduced2', PACKAGE = 'CNPBayes', object)
-}
-
-permutedz_reduced1 <- function(xmod) {
-    .Call('_CNPBayes_permutedz_reduced1', PACKAGE = 'CNPBayes', xmod)
-}
-
-permutedz_reduced2 <- function(xmod) {
-    .Call('_CNPBayes_permutedz_reduced2', PACKAGE = 'CNPBayes', xmod)
-}
-
 p_pmix_reduced <- function(xmod) {
     .Call('_CNPBayes_p_pmix_reduced', PACKAGE = 'CNPBayes', xmod)
 }

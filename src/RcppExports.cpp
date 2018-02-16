@@ -1108,61 +1108,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// p_theta_zpermuted
-Rcpp::NumericVector p_theta_zpermuted(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_theta_zpermuted(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_theta_zpermuted(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// simulate_z_reduced1
-Rcpp::S4 simulate_z_reduced1(Rcpp::S4 object);
-RcppExport SEXP _CNPBayes_simulate_z_reduced1(SEXP objectSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_z_reduced1(object));
-    return rcpp_result_gen;
-END_RCPP
-}
-// simulate_z_reduced2
-Rcpp::S4 simulate_z_reduced2(Rcpp::S4 object);
-RcppExport SEXP _CNPBayes_simulate_z_reduced2(SEXP objectSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_z_reduced2(object));
-    return rcpp_result_gen;
-END_RCPP
-}
-// permutedz_reduced1
-Rcpp::S4 permutedz_reduced1(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_permutedz_reduced1(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(permutedz_reduced1(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// permutedz_reduced2
-Rcpp::S4 permutedz_reduced2(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_permutedz_reduced2(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(permutedz_reduced2(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
 // p_pmix_reduced
 Rcpp::NumericVector p_pmix_reduced(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_p_pmix_reduced(SEXP xmodSEXP) {
@@ -1597,11 +1542,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_burnin_singlebatch_pooled", (DL_FUNC) &_CNPBayes_burnin_singlebatch_pooled, 2},
     {"_CNPBayes_mcmc_singlebatch_pooled", (DL_FUNC) &_CNPBayes_mcmc_singlebatch_pooled, 2},
     {"_CNPBayes_marginal_theta", (DL_FUNC) &_CNPBayes_marginal_theta, 1},
-    {"_CNPBayes_p_theta_zpermuted", (DL_FUNC) &_CNPBayes_p_theta_zpermuted, 1},
-    {"_CNPBayes_simulate_z_reduced1", (DL_FUNC) &_CNPBayes_simulate_z_reduced1, 1},
-    {"_CNPBayes_simulate_z_reduced2", (DL_FUNC) &_CNPBayes_simulate_z_reduced2, 1},
-    {"_CNPBayes_permutedz_reduced1", (DL_FUNC) &_CNPBayes_permutedz_reduced1, 1},
-    {"_CNPBayes_permutedz_reduced2", (DL_FUNC) &_CNPBayes_permutedz_reduced2, 1},
     {"_CNPBayes_p_pmix_reduced", (DL_FUNC) &_CNPBayes_p_pmix_reduced, 1},
     {"_CNPBayes_reduced_sigma", (DL_FUNC) &_CNPBayes_reduced_sigma, 1},
     {"_CNPBayes_p_sigma_reduced", (DL_FUNC) &_CNPBayes_p_sigma_reduced, 1},
