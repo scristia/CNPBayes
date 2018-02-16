@@ -734,32 +734,8 @@ downSample <- function(y, batches,
   tab2
 }
 
-# Cite LaplacesDemon
-##dst <- function (x, mu = 0, sigma = 1, df = 10, log = FALSE){
-##  x <- as.vector(x)
-##  mu <- as.vector(mu)
-##  sigma <- as.vector(sigma)
-##  df <- as.vector(df)
-##  if (any(sigma <= 0)) 
-##      stop("The sigma parameter must be positive.")
-##  else if (any(df <= 0)) 
-##      stop("The df parameter must be positive.")
-##  NN <- max(length(x), length(mu), length(sigma), length(df))
-##  x <- rep(x, len = NN)
-##  mu <- rep(mu, len = NN)
-##  sigma <- rep(sigma, len = NN)
-##  df <- rep(df, len = NN)
-##  const <- lgamma((df + 1)/2) - lgamma(df/2) - log(sqrt(pi * df) * sigma)
-##  dens <- const + log((1 + (1/df) * ((x - mu)/sigma)^2)^(-(df + 1)/2))
-##  if (log == FALSE) 
-##    dens <- exp(dens)
-##  return(dens)
-##}
 
 rst <- function (n, df = 100, mean = 0, sigma = 1){
-  ##mean <- rep(mean, n)
-  ##sigma <- rep(sigma, n)
-  ##df <- rep(df, n)
   if (any(sigma <= 0))
     stop("The sigma parameter must be positive.")
   if (any(df <= 0))
