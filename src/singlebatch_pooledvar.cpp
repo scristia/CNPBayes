@@ -504,13 +504,14 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   if( S < 1 ) return xmod ;
   NumericVector x = model.slot("data") ;
   double df = getDf(model.slot("hyperparams")) ;
-  NumericVector u = model.slot("u") ;
+  //NumericVector u = model.slot("u") ;
   int N = x.size() ;
   NumericMatrix theta = chain.slot("theta") ;
   NumericMatrix sigma2 = chain.slot("sigma2") ;
   NumericMatrix pmix = chain.slot("pi") ;
   NumericMatrix zfreq = chain.slot("zfreq") ;
   IntegerMatrix Z = chain.slot("z") ;
+  NumericMatrix U = chain.slot("u") ;
   NumericVector mu = chain.slot("mu") ;
   NumericVector tau2 = chain.slot("tau2") ;
   NumericVector nu0 = chain.slot("nu.0") ;
@@ -527,6 +528,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericVector t2(1) ;//tau2
   NumericVector n0(1) ;//nu0
   IntegerVector z(N) ;
+  NumericVector u(N) ;
   NumericVector s20(1) ; //sigma2_0
   NumericVector mns(1) ;
   NumericVector precs(1) ;
@@ -546,6 +548,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   s20 = model.slot("sigma2.0") ;
   zf = model.slot("zfreq") ;
   z = model.slot("z") ;
+  u = model.slot("u") ;
   ll = model.slot("loglik") ;
   lp = model.slot("logprior") ;
   // Record initial values in chains
@@ -561,6 +564,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   pmix(0, _) = p ;
   zfreq(0, _) = zf ;
   Z(0, _) = z ;
+  U(0, _) = u ;
   // start at 1 instead of zero. Initial values are as above
   for(int s = 1; s < S; ++s){
     if(up[7] > 0){
@@ -638,7 +642,9 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     lp = compute_logprior(xmod) ;
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
-    model.slot("u") = Rcpp::rchisq(N, df) ;
+    u = Rcpp::rchisq(N, df) ;
+    model.slot("u") = u;
+    U(s, _) = u ;
     // Thinning
     for(int t = 0; t < T; ++t){
       if(up[7] > 0){
@@ -678,6 +684,7 @@ Rcpp::S4 mcmc_singlebatch_pooled(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   chain.slot("loglik") = loglik_ ;
   chain.slot("logprior") = logprior_ ;
   chain.slot("z") = Z ;
+  chain.slot("u") = U ;
   model.slot("mcmc.chains") = chain ;
   return xmod ;
 }
