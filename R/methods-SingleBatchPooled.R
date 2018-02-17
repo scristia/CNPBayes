@@ -162,6 +162,7 @@ combine_singlebatch_pooled <- function(model.list, batches){
   s2.0 <- map(ch.list, sigma2.0) %>% unlist
   logp <- map(ch.list, logPrior) %>% unlist
   zz <- map(ch.list, z) %>% do.call(rbind, .)
+  uu <- map(ch.list, u) %>% do.call(rbind, .)
   .mu <- map(ch.list, mu) %>% unlist
   .tau2 <- map(ch.list, tau2) %>% unlist
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
@@ -176,7 +177,8 @@ combine_singlebatch_pooled <- function(model.list, batches){
             zfreq=zfreq,
             logprior=logp,
             loglik=ll,
-            z=zz)
+            z=zz,
+            u=uu)
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   iter(mp) <- nrow(th)
