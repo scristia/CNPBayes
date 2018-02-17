@@ -124,7 +124,6 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   warnings <- params$warnings
 
   model.reduced <- model
-  browser()
   ptheta.star <- marginal_theta_batch(model)
   if(paramUpdates(model)[["theta"]]==0) {
     ignore.small.pstar <- TRUE
@@ -139,11 +138,11 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
     }
   }
   model.psigma2 <- reduced_sigma_batch(model.reduced)
-  identical(modes(model.psigma2), modes(model))
+  stopifnot(identical(modes(model.psigma2), modes(model)))
   psigma.star <- p_sigma_reduced_batch(model.psigma2)
 
   model.pistar <- reduced_pi_batch(model.reduced)
-  identical(modes(model.pistar), modes(model))
+  ##identical(modes(model.pistar), modes(model))
   p.pi.star <- p_pmix_reduced_batch(model.pistar)
 
   ##
@@ -154,11 +153,11 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   p.mustar <- p_mu_reduced_batch(model.mustar)
 
   model.taustar <- reduced_tau_batch(model.reduced)
-  identical(modes(model.taustar), modes(model))
+  ##identical(modes(model.taustar), modes(model))
   p.taustar <- p_tau_reduced_batch(model.mustar)
 
   model.nu0star <- reduced_nu0_batch(model.reduced)
-  identical(modes(model.nu0star), modes(model))
+  ##identical(modes(model.nu0star), modes(model))
   p.nu0star <- p_nu0_reduced_batch(model.nu0star)
 
   model.s20star <- reduced_s20_batch(model.reduced)
