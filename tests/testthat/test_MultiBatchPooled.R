@@ -2,9 +2,9 @@ context("MultiBatch pooled variances")
 
 ## constructor
 test_that("MultiBatchPooled", {
-  model <- MultiBatchModel2()
+  model <- MB()
   expect_is(model, "MultiBatchModel")
-  model <- MultiBatchPooled()
+  model <- MBP()
   expect_is(model, "MultiBatchPooled")
   expect_equivalent(sigma(model), numeric())
   mp <- McmcParams(iter=50, burnin=5)
@@ -14,7 +14,6 @@ test_that("MultiBatchPooled", {
   model2 <- as(model, "MultiBatchCopyNumberPooled")
   expect_true(validObject(model2))
   model3 <- useModes(model2)
-
   set.seed(100)
   nbatch <- 3
   k <- 3
@@ -36,11 +35,10 @@ test_that("MultiBatchPooled", {
                                   tau2.0=0.4,
                                   eta.0=32,
                                   m2.0=0.5)
-  model <- MultiBatchPooled(dat=y(truth),
-                            hp=hp,
-                            batches=batch(truth),
-                            mp=mp)
-
+  model <- MBP(dat=y(truth),
+               hp=hp,
+               batches=batch(truth),
+               mp=mp)
   u1 <- u(model)
   model <- posteriorSimulation(model)
   u2 <- u(model)

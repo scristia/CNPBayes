@@ -13,9 +13,9 @@ test_that("initial values", {
   set.seed(2)
   j <- 3
   hypp <- HyperparametersMultiBatch(k=4)
-  model <- MultiBatchModel2(dat=dat$y,
-                            batches=as.integer(factor(dat$batch)),
-                            hp=hypp)
+  model <- MB(dat=dat$y,
+              batches=as.integer(factor(dat$batch)),
+              hp=hypp)
   expect_identical(ncol(sigma(model)), 4L)
   expect_true(!is.na(log_lik(model)))
 })
