@@ -606,23 +606,22 @@ useModes <- function(object){
 #' full.data <- tibble(medians=y(mb),
 #'                     batch_orig=as.character(batch(mb))) %>%
 #'   left_join(mapping, by="batch_orig")
-#' ds <- downSample(full.data, 200)
+#' partial.data <- downSample(full.data, 200)
 #' ## map the original batches to the batches after down-sampling
-#' mapping <- full.data %>%
-#'   left_join(select(ds, -medians), by="batch_orig") %>%
-#'   group_by(batch_orig) %>%
-#'   summarize(batch=unique(batch)) %>%
-#'   mutate(batch_index=as.integer(factor(batch, levels=unique(batch))))
+#' mapping <- partial.data %>%
+#'   select(c(plate, batch_index)) %>%
+#'   group_by(plate) %>%
+#'   summarize(batch_index=unique(batch_index))
 #' mp <- McmcParams(iter=50, burnin=100)
 #' mb2 <- MultiBatchModel2(dat=ds$medians,
 #'                         batches=ds$batch_index, mp=mp)
 #' mb2 <- posteriorSimulation(mb2)
-#' ggMixture(mb2)
+#' if(FALSE) ggMixture(mb2)
 #' full.dat2 <- full.data %>%
-#'   left_join(plate.mapping, by="batch_orig")
+#'   left_join(mapping, by="plate")
 #' ## compute probabilities for the full dataset
 #' mb.up <- upSample2(full.dat2, mb2)
-#' ggMixture(mb2)
+#' if(FALSE) ggMixture(mb2)
 #' @rdname downSample
 downSample <- function(dat,
                        size=1000,

@@ -30,22 +30,17 @@ test_that("upSample2", {
 
   ## Below, we down-sample to 500 observations
   ## Required:  batch_orig, batch_index
-  partial.data <- downSample(full.data$medians,
-                             batches=full.data$batch_orig,
-                             size=500)
+  partial.data <- downSample(full.data, size=500)
   expect_true(all(c("batch_orig", "batch_index") %in% colnames(partial.data)))
 
   ##
   ## Required:  a mapping from plate to batch
   ##
   summarize <- dplyr::summarize
-  plate.mapping <- full.data %>%
-    select(-medians) %>%
-    left_join(select(partial.data, -medians), by="batch_orig") %>%
-    group_by(plate.index) %>%
-    summarize(plate=unique(plate),
-              batch=unique(batch)) %>%
-    mutate(batch_index=as.integer(factor(batch, levels=unique(batch))))
+  plate.mapping <- partial.data %>%
+    select(c(plate, batch_index)) %>%
+    group_by(plate) %>%
+    summarize(batch_index=unique(batch_index))
 
   ## Fit a model as per usual to the down-sampled data
   mp <- McmcParams(iter=200, burnin=10, )
