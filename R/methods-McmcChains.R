@@ -165,6 +165,7 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@loglik <- x@loglik[i]
     x@zfreq <- x@zfreq[i, , drop=FALSE]
     x@z <- x@z[i, , drop=FALSE]
+    x@u <- x@u[i, , drop=FALSE]
   }
   x
 })
