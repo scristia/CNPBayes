@@ -179,7 +179,7 @@ test_that("merge two components", {
   mcmcParams(truth) <- McmcParams(iter=200, burnin=0)
   mp <- mcmcParams(truth)
   model <- SingleBatchModel2(mp=mp, dat=y(truth), hp=Hyperparameters(k=3))
-  model <- .posteriorSimulation2(model)
+  expect_warning(model <- .posteriorSimulation2(model))
   cn.model <- SingleBatchCopyNumber(model)
   ## label switching will occur because components are not well separated
   ## expect_warning(model <- posteriorSimulation(truth),

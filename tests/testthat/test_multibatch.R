@@ -292,7 +292,6 @@ test_that("kbatch", {
       prz <- probz(fit$models[[4]])
       cn <- map_z(fit$models[[4]])
       plot(r, cn, pch = 20, cex = 0.3)
-      trace(cnProbability, browser)
       prz <- cnProbability(prz, 4)
       plot(jitter(prz, amount = 0.05), jitter(cn, amount = 0.05),
            pch = 20, cex = 0.3)
@@ -301,7 +300,6 @@ test_that("kbatch", {
       r <- y(fit$models[[4]])
       plot(r, pz, pch = ".")
       expect_true(k(orderModels(fit))[1] == 3)
-
   }
 })
 

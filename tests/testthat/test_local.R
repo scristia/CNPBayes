@@ -22,6 +22,31 @@ hardTruth <- function(p1, s, N=1000){
 
 .test_that <- function(nm, expr) NULL
 
+.test_that("galaxy", {
+  set.seed(1)
+  ## load data
+  library(MASS)
+  data(galaxies)
+  ## correct 78th observation
+  galaxies[78] <- 26960
+  galaxies2 <- (galaxies-median(galaxies))/1000
+  mp <- McmcParams(burnin=1000, nStarts=4, iter=1000)
+  hp <- HyperparametersMultiBatch(k=3,
+                                  mu=-0.75,
+                                  tau2.0=0.4,
+                                  eta.0=200, ## 32 default
+                                  m2.0=100) ## 0.5 default
+  model.list <- gibbs(model="MB", hp.list=list(MB=hp), mp=mp,
+                      k_range=c(2, 3),
+                      dat=galaxies2,
+                      batches=sample(1:2, size=length(galaxies), replace=TRUE),
+                      max_burnin=2000)
+  expect_identical(names(model.list)[1], "MB3")
+  published.mlik <- -226.791
+  m.y <- unname(ml)
+  expect_equal(m.y, published.mlik, tolerance=3, scale=1)
+})
+
 
 
 .test_that("batch overfit galaxy", {
@@ -33,14 +58,14 @@ hardTruth <- function(p1, s, N=1000){
   galaxies[78] <- 26960
   galaxies2 <- (galaxies-median(galaxies))/1000
   galaxies3 <- c(galaxies2, galaxies2 + 10)
-  mp <- McmcParams(burnin=500, nStarts=4, iter=1000)
+  mp <- McmcParams(burnin=1000, nStarts=4, iter=1000)
   hp <- HyperparametersMultiBatch(k=3,
                                   mu=-0.75,
                                   tau2.0=0.4,
                                   eta.0=200, ## 32 default
                                   m2.0=100) ## 0.5 default
   model.list <- gibbs(model="MB", hp.list=list(MB=hp), mp=mp,
-                      k_range=c(1, 3),
+                      k_range=c(2, 3),
                       dat=galaxies3,
                       batches=rep(1:2, each=length(galaxies)))
   mlist <- mcmcList(model.list)
