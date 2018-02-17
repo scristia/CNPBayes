@@ -20,12 +20,17 @@ test_that("SB", {
 
 test_that("MB", {
   bmodel <- MultiBatchModelExample
+  ##  ch <- chains(bmodel)
+  ##  ch <- updateObject(ch)
+  ##  ch@u <- matrix(NA, iter(bmodel), k(bmodel))
+  ##  chains(bmodel) <- ch
+  ##  MultiBatchModelExample <- bmodel
   mp <- McmcParams(iter=10, burnin=5)
   mcmcParams(bmodel) <- mp
   bmodel <- posteriorSimulation(bmodel)
   tab <- posteriorPredictive(bmodel)
   expect_is(tab, "tbl_df")
-  expect_identical(colnames(tab), c("y", "batch", "component"))
+  expect_identical(colnames(tab), c("y", "component", "batch", "model"))
   if(FALSE){
     ggPredictive(bmodel, tab)
   }
