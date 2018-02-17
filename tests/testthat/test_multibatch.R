@@ -42,24 +42,24 @@ test_that("initial values", {
                              eta.0=32,
                              m2.0=0.5)
   ##trace(MultiBatchModel, browser)
-  expect_true(validObject(MultiBatchModel2()))
+  expect_true(validObject(MB()))
   mp <- McmcParams(iter = 1000,
                    burnin = 1000,
                    nStarts = 4,
                    thin=10)
-  model <- MultiBatchModel2(hp=hp, mp=mp, dat=y(truth),
+  model <- MB(hp=hp, mp=mp, dat=y(truth),
                            batches=batch(truth))
   expect_true(validObject(model))
 
   library(purrr)
   mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 1, thin=1)
-  m <- MultiBatchModel2(dat=y(truth),
+  m <- MB(dat=y(truth),
                         mp=mp, hp=hp,
                         batches=batch(truth))
   m2 <- posteriorSimulation(m)
   gelman_rubin(mcmcList(list(m2)), hp)
 
-  mod.list <- replicate(4, MultiBatchModel2(dat=y(truth),
+  mod.list <- replicate(4, MB(dat=y(truth),
                                            mp=mp, hp=hp,
                                            batches=batch(truth)))
   mod.list2 <- map(mod.list, posteriorSimulation)
@@ -81,9 +81,9 @@ test_that("initial values", {
   expect_true(is.na(marginal_lik(m4)))
 
   k(hp) <- 1
-  mod <- MultiBatchModel2(dat=y(truth), batches=batch(truth), hp=hp, mp=mp)
+  mod <- MB(dat=y(truth), batches=batch(truth), hp=hp, mp=mp)
   k(hp) <- 2
-  mod <- MultiBatchModel2(dat=y(truth), batches=batch(truth), hp=hp, mp=mp)
+  mod <- MB(dat=y(truth), batches=batch(truth), hp=hp, mp=mp)
   mod.list <- gibbs_batch_K(dat=y(truth),
                             mp=mp, hp=hp,
                             k_range=c(1, 4),
@@ -166,7 +166,7 @@ test_that("easy", {
   }
   set.seed(1)
   mcmcp <- McmcParams(iter = 300, burnin = 300, nStarts = 5)
-  model <- MultiBatchModel2(dat=y(truth),
+  model <- MB(dat=y(truth),
                             batches = batch(truth),
                             hp=hpList(k=3)[["MB"]],
                             mp=mcmcp)
@@ -225,7 +225,7 @@ test_that("stay_near_truth", {
   ## - these unit tests verify that the model stays in a region of high
   ## - posterior prob.
   mcmcp <- McmcParams(iter = 100, burnin = 0, nStarts=0)
-  modelk <- MultiBatchModel2(dat = y(truth), batches = batch(truth),
+  modelk <- MB(dat = y(truth), batches = batch(truth),
                              hp=hpList(k = 3)[["MB"]],
                              mp = mcmcp)
   modelk <- startAtTrueValues(modelk, truth)
@@ -257,10 +257,10 @@ test_that("kbatch", {
   truth <- simulateBatchData(N = N, batch = batch, theta = means,
       sds = sds, p = p)
   mp <- McmcParams(iter = 100, burnin = 50, nStarts = 10)
-  kmod <- MultiBatchModel2(dat=y(truth),
-                           batches=batch(truth),
-                           hp=hpList(k = 3)[["MB"]],
-                           mp = mp)
+  kmod <- MB(dat=y(truth),
+             batches=batch(truth),
+             hp=hpList(k = 3)[["MB"]],
+             mp = mp)
   kmod <- posteriorSimulation(kmod)
   expected <- max.col(probz(kmod))
   cn <- map_z(kmod)
@@ -269,15 +269,15 @@ test_that("kbatch", {
   set.seed(1000)
   index <- sort(unique(c(sample(seq_len(N), 500), which(batch(kmod) %in% 4:5))))
   mp <- McmcParams(iter = 100, burnin = 100, nStarts = 20)
-  kmod2 <- MultiBatchModel2(dat=y(kmod)[index],
-                            batches=batch(kmod)[index],
-                            hp=hpList(k=3)[["MB"]],
-                            mp=mp)
+  kmod2 <- MB(dat=y(kmod)[index],
+              batches=batch(kmod)[index],
+              hp=hpList(k=3)[["MB"]],
+              mp=mp)
   kmod2 <- posteriorSimulation(kmod2)
-  yy <- setNames(y(truth), seq_along(y(truth)))
-  df <- imputeFromSampledData(kmod2, yy, index)
-  cn2 <- df$cn
-  expect_true(mean(cn != cn2) < 0.01)
+  ##yy <- setNames(y(truth), seq_along(y(truth)))
+  ##df <- imputeFromSampledData(kmod2, yy, index)
+  ##cn2 <- df$cn
+  ##expect_true(mean(cn != cn2) < 0.01)
   cn2 <- map_z(kmod2)
   pz <- probz(kmod2)
   pz <- mapCnProbability(kmod2)
@@ -306,5 +306,5 @@ test_that("kbatch", {
 })
 
 test_that("test_unequal_batch_data", {
-    expect_error(MultiBatchModel2(dat = 1:10, batches = 1:9))
+    expect_error(MB(dat = 1:10, batches = 1:9))
 })

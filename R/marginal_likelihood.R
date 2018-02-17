@@ -14,7 +14,7 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   ## Let theta1 = theta
   ## and theta2 = [sigma2, tau2, mu, nu.0]  (all parameters except theta)
   ##
-  ## p(theta* | y) = sum_g^G p(theta* | y, theta2^(g), z^(g)) 
+  ## p(theta* | y) = sum_g^G p(theta* | y, theta2^(g), z^(g))
   ptheta.star <- marginal_theta(model)
   ##
   ## ptheta.star
