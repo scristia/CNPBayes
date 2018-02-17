@@ -223,46 +223,6 @@ annotateRegions <- function(regions, transcripts){
 }
 
 
-imputeFromSampledData <-  function(model, data, index){
-  if(is.null(names(data))) stop("data must be a named vector")
-  pz2 <- probz(model)
-  cn <- map_z(model)
-  ##pz2 <- mapCnProbability(pz, k(model))
-  ##r2 <- quantile(data, probs=seq(0, 1, by=0.01))
-  df <- data.frame(r=data,
-                   cn=rep(NA, length(data)),
-                   ##p=rep(NA, length(data)),
-                   row.names=names(data))
-  ##df$p[index] <- pz2
-  df$cn[index] <- cn
-  tmp <- ntile(df$r, 1000)
-  df$quantiles <- ntile(df$r, 1000)
-
-  missing_quantiles <- df$quantiles[is.na(df$cn)]
-  complete_quantiles <- df$quantiles[!is.na(df$cn)]
-  missing_quantiles <- missing_quantiles[!missing_quantiles %in% complete_quantiles]
-  names(missing_quantiles) <- missing_quantiles
-  missing_quantiles2 <- unique(missing_quantiles)
-  nearest_quantiles <- sapply(missing_quantiles2, function(x, complete){
-    complete[which.min(abs(complete-x))]
-  }, complete=complete_quantiles)
-  names(nearest_quantiles) <- missing_quantiles2
-  ## same length as original data.frame
-  nearest_quantiles2 <- nearest_quantiles[as.character(df$quantiles)]
-  nearest_quantiles2[is.na(nearest_quantiles2)] <- df$quantiles[ is.na(nearest_quantiles2) ]
-  df$quantiles2 <- nearest_quantiles2
-  ##df[df$quantiles != df$quantiles2, ]
-  df.complete <- df[!is.na(df$cn), ]
-  df.incomplete <- df[is.na(df$cn), ]
-  ## now any missing cn/prob can be 'imputed'
-  cn <- setNames(df.complete$cn, df.complete$quantiles2)
-  df.incomplete$cn <- cn[as.character(df.incomplete$quantiles2)]
-  ##p <- setNames(df.complete$p, df.complete$quantiles2)
-  ##df.incomplete$p <- p[as.character(df.incomplete$quantiles2)]
-  df2 <- rbind(df.incomplete, df.complete)
-  df2 <- df2[rownames(df), ]
-  df2
-}
 
 permnK <- function(k, maxperm){
   if(k < 2) return(matrix(1,1,1))
