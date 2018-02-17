@@ -84,54 +84,6 @@ Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
   return p_theta ;
 }
 
-Rcpp::NumericVector marginal_sigma2(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
-  RNGScope scope ;
-  Rcpp::S4 model_(xmod) ;
-  Rcpp::S4 model = clone(model_) ;  
-  Rcpp::S4 params(mcmcp) ;
-  int S = params.slot("iter") ;
-  // Assume current values are the modes (in R, useModes(object) ensures this)
-  List modes = model.slot("modes") ;
-  NumericVector sigma2_ = as<NumericVector>(modes["sigma2"]) ;
-  NumericVector theta_ = as<NumericVector>(modes["theta"]) ;
-  //NumericVector sigma2_ = model.slot("sigma2") ;
-  NumericVector sigma2star = clone(sigma2_) ;
-  NumericVector thetastar = clone(theta_) ;
-  // evaluate precision at modal value of sigma2
-  NumericVector prec = pow(sigma2star, -1.0) ;
-  int K = prec.size() ;
-  NumericVector logp_prec(S) ;
-  //
-  // Run reduced Gibbs  -- theta is fixed at modal ordinate
-  //
-  Rcpp::S4 chains(model.slot("mcmc.chains")) ;
-  NumericVector tmp(K) ;
-  NumericVector nu0 = chains.slot("nu.0") ;
-  NumericVector s20 = chains.slot("sigma2.0") ;
-  for(int s=0; s < S; ++s){
-    model.slot("z") = update_z(model) ;
-    model.slot("data.mean") = compute_means(model) ;
-    model.slot("data.prec") = compute_prec(model) ;
-    //model.slot("theta") = update_theta(model) ;  Do not update theta!
-    model.slot("sigma2") = update_sigma2(model) ;
-    model.slot("pi") = update_p(model) ;
-    model.slot("mu") = update_mu(model) ;
-    model.slot("tau2") = update_tau2(model) ;
-    model.slot("nu.0") = update_nu0(model) ;
-    model.slot("sigma2.0") = update_sigma2_0(model) ;
-    nu0 = model.slot("nu.0") ;
-    s20 = model.slot("sigma2.0") ;
-    tmp = dgamma(prec, 0.5*nu0[0], 2.0 / (nu0[0]*s20[0])) ;
-    double total = 0.0 ;
-    for(int k = 0; k < K; ++k){
-      total += log(tmp[k]) ;
-    }
-    logp_prec[s] = total ;
-  }
-  return logp_prec ;
-}
-
-
 // [[Rcpp::export]]
 Rcpp::NumericVector p_pmix_reduced(Rcpp::S4 xmod) {
   RNGScope scope ;
@@ -142,9 +94,9 @@ Rcpp::NumericVector p_pmix_reduced(Rcpp::S4 xmod) {
   List modes = model.slot("modes") ;
   //
   //
-  NumericVector x = model.slot("data") ;    
+  NumericVector x = model.slot("data") ;
   int K = hypp.slot("k") ;
-  int S = mcmcp.slot("iter") ;  
+  int S = mcmcp.slot("iter") ;
   int N = x.size() ;
   //
   NumericVector p_=as<NumericVector>(modes["mixprob"]) ;
@@ -159,7 +111,7 @@ Rcpp::NumericVector p_pmix_reduced(Rcpp::S4 xmod) {
   NumericVector alpha_n(K) ;
   NumericVector tmp(1) ;
   for(int s=0; s < S; ++s){
-    h = Z(s, _ ) ;    
+    h = Z(s, _ ) ;
     for(int k = 0 ; k < K; ++k){
       alpha_n[k] = sum(h == k+1) + alpha[k] ;
     }
@@ -204,19 +156,18 @@ Rcpp::S4 reduced_sigma(Rcpp::S4 xmod) {
   NumericVector tauchain = chains.slot("tau2") ;
   NumericMatrix pichain = chains.slot("pi") ;
   NumericMatrix sigmachain = chains.slot("sigma2") ;
-  
+
   NumericVector sigma2 = model.slot("sigma2") ;
   NumericVector pi = model.slot("pi") ;
   NumericVector tau = model.slot("tau2") ;
   NumericVector mu = model.slot("mu") ;
 
-  
   IntegerVector h(N) ;
   model.slot("theta") = thetastar ;
   IntegerVector zz ;
   //
   // Run reduced Gibbs  -- theta is fixed at modal ordinate
-  //  
+  //
   for(int s=0; s < S; ++s){
     zz = update_z(model) ;
     model.slot("z") = zz ;
@@ -261,7 +212,7 @@ Rcpp::S4 reduced_sigma(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod) {
     RNGScope scope;
-    
+
     // get model and accessories
     Rcpp::S4 model_(xmod);
     Rcpp::S4 model = clone(model_);

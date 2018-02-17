@@ -11,6 +11,10 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   ignore.small.pstar <- params$ignore.small.pstar
   warnings <- params$warnings
   model.reduced <- model
+  ## Let theta1 = theta
+  ## and theta2 = [sigma2, tau2, mu, nu.0]  (all parameters except theta)
+  ##
+  ## p(theta* | y) = sum_g^G p(theta* | y, theta2^(g), z^(g)) 
   ptheta.star <- marginal_theta(model)
   ##
   ## ptheta.star
@@ -26,6 +30,9 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
       return(NA)
     }
   }
+  ##
+  ## p(sigma2* | y, theta1*) = sum_g=1^G p(sigma2* | y, theta1*, z^(g), theta2^(g))
+  ##
   model.psigma2 <- reduced_sigma(model.reduced)
   psigma.star <- p_sigma_reduced(model.psigma2)
 
