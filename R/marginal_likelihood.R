@@ -8,7 +8,6 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
 }
 
 .blockUpdates <- function(model, params){
-  browser()
   ignore.small.pstar <- params$ignore.small.pstar
   warnings <- params$warnings
   model.reduced <- model
@@ -477,7 +476,11 @@ effectiveSizeWarning <- function(model){
   ## calculate p(x|model)
   m.y <- logLik + logPrior - sum(pstar) +
     correction.factor
-  names(m.y) <- paste0("MB", k(model))
+  if(length(unique(batch(model))) == 1){
+    names(m.y) <- paste0("SB", k(model))
+  } else {
+    names(m.y) <- paste0("MB", k(model))
+  }
   m.y
 }
 
@@ -515,7 +518,11 @@ effectiveSizeWarning <- function(model){
   ## calculate p(x|model)
   m.y <- logLik + logPrior - sum(pstar) +
     correction.factor
-  names(m.y) <- paste0("MBP", k(model))
+  if(length(unique(batch(model))) == 1){
+    names(m.y) <- paste0("SBP", k(model))
+  } else {
+    names(m.y) <- paste0("MBP", k(model))
+  }
   m.y
 }
 
@@ -666,3 +673,4 @@ r_marginal_theta <- function(model){
     }
     p_theta[s] = prod ;
   }
+}
