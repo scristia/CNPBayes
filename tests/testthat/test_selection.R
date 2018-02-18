@@ -18,12 +18,17 @@ context("Marginal likelihood calibration")
                          mp=mp, hp=hpList(k=3)[["SB"]],
                          k_range=c(3, 3), dat=galaxies/1000,
                          max_burnin=10000))
+    ##
+    ## The priors are somewhat influential here. Changed argMax function to
+    ## return argmax(loglik) as opposed to argmax(loglik + log prior).
+    ##
     model <- gibbs("SB",
                    mp=mp,
                    hpList(k=3),
                    k_range=c(3, 3),
                    dat=galaxies/1000,
-                   max_burnin=burnin(mp))[[1]]
+                   max_burnin=32000)[[1]]
+    tmp <- marginalLikelihood(model)
     ggMixture(model)
     ggChains(model)[[1]]
     ml <- marginal_lik(model)
@@ -31,6 +36,30 @@ context("Marginal likelihood calibration")
     published.mlik <- -226.791
     m.y <- unname(ml)
     expect_equal(m.y, published.mlik, tolerance=3, scale=1)
+
+
+    ##
+    ## We should obtain a similar marginal likelihood for the multibatch model
+    ## with batch set to 1
+    ##
+    sb <- gibbs("SB",
+                 mp=mp,
+                 hpList(k=3),
+                 k_range=c(3, 3),
+                 dat=galaxies/1000,
+                 batches=rep(1L, length(galaxies)),
+                 max_burnin=10000)[[1]]
+    sb.y <- marginal_lik(sb)
+    expect_equal(unname(mb.y), published.mlik, tolerance=6, scale=1)
+
+    mp <- McmcParams(thin=2, iter=1000, burnin=10000, nStarts=5)
+    sb <- gibbs("SB",
+                mp=mp,
+                hpList(k=3),
+                k_range=c(3, 3),
+                dat=galaxies/1000,
+                batches=rep(1L, length(galaxies)),
+                max_burnin=1000)[[1]]
 })
 
 
