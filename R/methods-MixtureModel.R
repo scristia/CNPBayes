@@ -584,8 +584,9 @@ setReplaceMethod("log_lik", "MixtureModel", function(object, value){
 argMax <- function(object){
   ll <- log_lik(chains(object))
   if(length(ll) == 1) return(1)
-  lp <- logPrior(chains(object))
-  p <- ll+lp
+  ##lp <- logPrior(chains(object))
+  ##p <- ll+lp
+  p <- ll
   p <- p[is.finite(p)]
   if(length(p) == 0){
     return(1)
