@@ -37,6 +37,7 @@ test_that("upSample2", {
   ## Required:  a mapping from plate to batch
   ##
   summarize <- dplyr::summarize
+  select <- dplyr::select
   plate.mapping <- partial.data %>%
     select(c(plate, batch_index)) %>%
     group_by(plate) %>%
@@ -77,7 +78,7 @@ test_that("upSample2", {
   theoretical.p <- probz(model.no.upsampling) %>%
     "/"(rowSums(.))
   model.probs <- probz(model)
-  expect_true(all.equal(model.probs, theoretical.p))
+  expect_equal(model.probs, theoretical.p, scale=1, tolerance=0.05)
 
 
   ## use targeted seq data for a little more challenging

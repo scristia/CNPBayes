@@ -642,6 +642,7 @@ downSample <- function(dat,
   ##
   ## combine batches with too few observations based on the location (not scale)
   ##
+  select <- dplyr::select
   batch.sum <- dat.sub %>%
     group_by(batch_orig) %>%
     summarize(mean=mean(medians),
