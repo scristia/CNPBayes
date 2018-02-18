@@ -740,11 +740,17 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
   }
   if("SB" %in% model){
     message("Fitting SB models")
-    sb <- gibbs_K(hp.list[["SB"]],
-                  k_range=k_range,
-                  mp=mp,
-                  dat=dat,
-                  max_burnin=max_burnin)
+    sb <- gibbs_batch_K(hp.list[["MB"]],
+                        k_range=k_range,
+                        mp=mp,
+                        dat=dat,
+                        batches=rep(1L, length(dat)),
+                        max_burnin=max_burnin)
+    ##    sb <- gibbs_K(hp.list[["SB"]],
+    ##                  k_range=k_range,
+    ##                  mp=mp,
+    ##                  dat=dat,
+    ##                  max_burnin=max_burnin)
   } else sb <- NULL
   if("MB" %in% model){
     message("Fitting MB models")
@@ -757,11 +763,17 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
   } else mb <- NULL
   if("SBP" %in% model){
     message("Fitting SBP models")
-    sbp <- gibbsSingleBatchPooled(hp.list[["SBP"]],
-                                  k_range=k_range,
-                                  mp=mp,
-                                  dat=dat,
-                                  max_burnin=max_burnin)
+    sbp <- gibbsMultiBatchPooled(hp.list[["MBP"]],
+                                 k_range=k_range,
+                                 mp=mp,
+                                 dat=dat,
+                                 batches=rep(1L, length(dat)),
+                                 max_burnin=max_burnin)
+    ##    sbp <- gibbsSingleBatchPooled(hp.list[["SBP"]],
+    ##                                  k_range=k_range,
+    ##                                  mp=mp,
+    ##                                  dat=dat,
+    ##                                  max_burnin=max_burnin)
   } else sbp <- NULL
   if("MBP" %in% model){
     message("Fitting MBP models")
