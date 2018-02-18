@@ -721,6 +721,10 @@ modelName <- function(model){
     gsub("SingleBatchModel", "SB", .) %>%
     gsub("MultiBatchModel", "MB", .) %>%
     gsub("MultiBatchPooled", "MBP", .)
+  L <- length(unique(batch(model)))
+  if(L == 1){
+    model.name <- gsub("MB", "SB", model.name)
+  }
   model.name <- paste0(model.name, k(model))
   model.name
 }
