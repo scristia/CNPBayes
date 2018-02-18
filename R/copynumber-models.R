@@ -152,22 +152,6 @@ setMethod("copyNumber", "SingleBatchCopyNumber", function(object){
   zstar <- ifelse(condition1 | condition2, z(object), z.candidate)
   object@z <- zstar
   cn <- .relabel_z(object)
-##  ## only necessary for models with unequal variances
-##  ##tab %>% filter(z != zstar)
-##  cn.range <- tab %>%
-##    ##group_by(cn) %>%
-##    group_by(z) %>%
-##    summarize(miny=min(y),
-##              maxy=max(y),
-##              theta=unique(theta),
-##              cn=unique(cn),
-##              nearest_mode=) 
-##  K <- max(cn)
-##  k <- 1
-##  while(k < K){
-##    cn[ tab$y < cn.range$maxy[k] & cn == k+1 ] <- k
-##    k <- k+1
-##  }
   cn
 })
 
@@ -292,16 +276,16 @@ isPooled <- function(model){
   ##
   ## sometimes we have multiple hemizygous deletion components that should be merged
   ##  -- allow a greater separation between components that still merges
-  if(!needs.merge){
-    ## only allow separable modes to be merged if the right-most component is
-    ## not merged with the diploid component
-    both.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
-    needs.merge <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
-                          && both.hemizygous, TRUE, FALSE)
-
-    both.homozygous <- all( stats$x.at.maxy < -0.9 )
-    if(both.homozygous) needs.merge <- TRUE
-  }
+  ##if(!needs.merge){
+  ##  ## only allow separable modes to be merged if the right-most component is
+  ##  ## not merged with the diploid component
+  ##  both.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
+  ##  needs.merge <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
+  ##                        && both.hemizygous, TRUE, FALSE)
+  ##
+  ##  both.homozygous <- all( stats$x.at.maxy < -0.9 )
+  ##  if(both.homozygous) needs.merge <- TRUE
+  ##}
   needs.merge
 }
 
@@ -347,11 +331,11 @@ isPooled <- function(model){
       group_by(sign) %>%
       summarize(n=n())
     merge.var[i] <- ifelse(any(probs$n <= 6) || nrow(probs) < 2, TRUE, FALSE)
-    if(!merge.var[i]){
-      is.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
-      merge.var[i] <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
-                             && is.hemizygous, TRUE, FALSE)
-    }
+##    if(!merge.var[i]){
+##      is.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
+##      merge.var[i] <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
+##                             && is.hemizygous, TRUE, FALSE)
+##    }
   }
   ## weight by size of batch
   needs.merge <- sum(merge.var * batchElements(model)) / length(y(model)) > 0.5
