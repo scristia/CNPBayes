@@ -8,6 +8,7 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
 }
 
 .blockUpdates <- function(model, params){
+  browser()
   ignore.small.pstar <- params$ignore.small.pstar
   warnings <- params$warnings
   model.reduced <- model
@@ -613,3 +614,55 @@ r_theta_multibatch <- function(model){
     p_theta[s] = prod;
   }
 }
+
+
+r_marginal_theta <- function(model){
+  model2 <- useModes(model)
+  thetastar <- theta(model2)
+  S <- nrow(theta(chains(model)))
+  Z <- z(chains(model))
+  U <- u(chains(model))
+  K <- k(model)
+  df <- dfr(model)
+  tau2c <- tau2(chains(model))
+  sigma2 <- sigma2(chains(model))
+  muc <- mu(chains(model))
+  for(s in seq_len(S)){
+    zz <- Z[s, ]
+    ##zz = Z(s, _) ;
+    ##uu = U(s, _) ;
+    uu <- U[s, ]
+    z(model) <- zz
+    model@u <- uu
+    ##model.slot("z") = zz ;
+    ##model.slot("u") = uu ;
+    counts <- tableZ(K, zz) ;
+    ##NumericVector data_mean =  compute_heavy_means(xmod) ;
+    data_mean <- compute_heavy_means(model)/df
+    ##data_mean =  data_mean/df ;
+    ##NumericVector sumu = compute_u_sums(xmod) ;
+    sumu <- compute_u_sums(model)/df
+    ##sumu = sumu/df ;
+    ##nn = as<NumericVector>(counts) * sumu ;
+    nn <- counts*sumu
+    tau2_tilde = 1/tau2c[s]
+    ##CHECK: length-k vector?
+    s2 <- sigma2[s, ]
+    ##sigma2_tilde = 1.0/sigma2[s, ] ;
+    ##CHECK: length-k vector?
+    sigma2_tilde <- 1.0/s2
+    ##tmp = dnorm(thetastar, muc[s], tauc[s]) ;
+    ##double prod = 1.0;
+    prod <- 1.0
+    ##for(int k = 0; k < K; ++k) {
+    for(k in seq_len(K)){
+      post_prec <- tau2_tilde + sigma2_tilde[k] * nn[k];
+      tau_n = sqrt(1/post_prec);
+      w1 = tau2_tilde/post_prec;
+      w2 = nn[k]*sigma2_tilde[k]/post_prec;
+      mu_n = w1*muc[s] + w2*data_mean[k];
+      tmp = dnorm(thetastar[k], mu_n, tau_n, log=TRUE) ;
+      prod = prod * tmp[k] ;
+    }
+    p_theta[s] = prod ;
+  }
