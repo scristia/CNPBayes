@@ -4,12 +4,10 @@
 \alias{downSample}
 \title{Down sample the observations in a mixture}
 \usage{
-downSample(y, batches, size = 1000, min.batchsize = 75)
+downSample(dat, size = 1000, min.batchsize = 75)
 }
 \arguments{
-\item{y}{vector containing data}
-
-\item{batches}{an integer vector of batch indices}
+\item{dat}{data.frame with required columns medians, batches, and plate}
 
 \item{size}{the number of observations to sample with replacement}
 
@@ -24,23 +22,25 @@ For large datasets (several thousand subjects), the computational burden for fit
 \examples{
 ## TODO: this is more complicated than it needs to be
 mb <- MultiBatchModelExample
+mapping <- tibble(plate=letters[1:10],
+                  batch_orig=sample(c("1", "2", "3"), 10, replace=TRUE))
 full.data <- tibble(medians=y(mb),
-                    batch_orig=as.character(batch(mb)))
-ds <- downSample(y(mb), batch(mb), 200)
+                    batch_orig=as.character(batch(mb))) \%>\%
+  left_join(mapping, by="batch_orig")
+partial.data <- downSample(full.data, 200)
 ## map the original batches to the batches after down-sampling
-mapping <- full.data \%>\%
-  left_join(select(ds, -medians), by="batch_orig") \%>\%
-  group_by(batch_orig) \%>\%
-  summarize(batch=unique(batch)) \%>\%
-  mutate(batch_index=as.integer(factor(batch, levels=unique(batch))))
+mapping <- partial.data \%>\%
+  select(c(plate, batch_index)) \%>\%
+  group_by(plate) \%>\%
+  summarize(batch_index=unique(batch_index))
 mp <- McmcParams(iter=50, burnin=100)
 mb2 <- MultiBatchModel2(dat=ds$medians,
                         batches=ds$batch_index, mp=mp)
 mb2 <- posteriorSimulation(mb2)
-ggMixture(mb2)
+if(FALSE) ggMixture(mb2)
 full.dat2 <- full.data \%>\%
-  left_join(plate.mapping, by="batch_orig")
+  left_join(mapping, by="plate")
 ## compute probabilities for the full dataset
 mb.up <- upSample2(full.dat2, mb2)
-ggMixture(mb2)
+if(FALSE) ggMixture(mb2)
 }
