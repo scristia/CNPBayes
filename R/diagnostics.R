@@ -790,7 +790,7 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
   ml <- map_dbl(models, marginal_lik)
   ix <- head(order(ml, decreasing=TRUE), top)
   models <- models[ix]
-  names(models) <- sapply(names(models), modelName)
+  names(models) <- sapply(models, modelName)
   models
 }
 
