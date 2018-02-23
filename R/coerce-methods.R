@@ -91,7 +91,7 @@ setAs("SingleBatchPooled", "SingleBatchCopyNumber", function(from, to){
       data.prec=from@data.prec,
       z=z(from),
       zfreq=zFreq(from),
-      probz=probz(from),
+      probz=from@probz,
       logprior=logPrior(from),
       loglik=log_lik(from),
       mcmc.chains=chains(from),
@@ -101,7 +101,7 @@ setAs("SingleBatchPooled", "SingleBatchCopyNumber", function(from, to){
       modes=modes(from),
       .internal.constraint=from@.internal.constraint,
       .internal.counter=from@.internal.counter,
-      mapping=numeric(k(from)))
+      mapping=as.character(seq_len(k(from))))
 })
 
 setAs("MultiBatchPooled", "MultiBatchCopyNumberPooled", function(from, to){
@@ -127,7 +127,7 @@ setAs("MultiBatchPooled", "MultiBatchCopyNumberPooled", function(from, to){
       data.prec=from@data.prec,
       z=z(from),
       zfreq=zFreq(from),
-      probz=probz(from),
+      probz=from@probz,
       logprior=logPrior(from),
       loglik=log_lik(from),
       mcmc.chains=chains(from),
@@ -136,7 +136,7 @@ setAs("MultiBatchPooled", "MultiBatchCopyNumberPooled", function(from, to){
       marginal_lik=marginal_lik(from),
       .internal.constraint=from@.internal.constraint,
       .internal.counter=from@.internal.counter,
-      mapping=numeric(k(from)),
+      mapping=as.character(seq_len(k(from))),
       modes=modes(from))
 })
 
@@ -171,7 +171,7 @@ setAs("SingleBatchModel", "SingleBatchPooled", function(from, to){
       data.prec=from@data.prec,
       z=z(from),
       zfreq=zFreq(from),
-      probz=probz(from),
+      probz=from@probz,
       logprior=logPrior(from),
       loglik=log_lik(from),
       mcmc.chains=ch,
@@ -213,7 +213,7 @@ setAs("MultiBatchModel", "MultiBatchPooled", function(from, to){
       data.prec=from@data.prec,
       z=z(from),
       zfreq=zFreq(from),
-      probz=probz(from),
+      probz=from@probz,
       logprior=logPrior(from),
       loglik=log_lik(from),
       mcmc.chains=ch,

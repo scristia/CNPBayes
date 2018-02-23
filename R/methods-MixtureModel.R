@@ -845,6 +845,7 @@ dst <- dlocScale_t
 
 
 
+#' @export
 upSample2 <- function(orig.data,
                       model, ## the downsampled model
                       up_sample=TRUE){
@@ -868,7 +869,7 @@ upSample2 <- function(orig.data,
   pooled <- class(model) %in% c("SingleBatchPooled", "MultiBatchPooled")
   K <- seq_len(k(model2))
   ##B <- unique(orig.data$batch_index)
-  B <- length(unique(batch(model)))
+  B <- unique(batch(model2))
   pz <- matrix(NA, length(y(model2)), max(K))
   for(b in B){
     j <- which(batch(model2) == b)
