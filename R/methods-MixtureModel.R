@@ -852,7 +852,9 @@ upSample2 <- function(orig.data,
   ## if we do not upSample, we should be able to recover the original probabilities
   if(up_sample){
     y(model2) <- orig.data$medians
-    batch(model2) <- orig.data$batch_index
+    if(length(unique(batch(model))) > 1) {
+      batch(model2) <- orig.data$batch_index
+    } else batch(model2) <- rep(1L, nrow(orig.data))
     model2@u <- rchisq(length(y(model2)), df=dfr(model))
   }
   thetas <- theta(model2)
@@ -865,7 +867,8 @@ upSample2 <- function(orig.data,
   df <- dfr(model2)
   pooled <- class(model) %in% c("SingleBatchPooled", "MultiBatchPooled")
   K <- seq_len(k(model2))
-  B <- unique(orig.data$batch_index)
+  ##B <- unique(orig.data$batch_index)
+  B <- length(unique(batch(model)))
   pz <- matrix(NA, length(y(model2)), max(K))
   for(b in B){
     j <- which(batch(model2) == b)
@@ -903,7 +906,7 @@ upSample2 <- function(orig.data,
   if(class(model2)=="SingleBatchPooled"){
     z(model2) <- z_pooled(model2)
   }
-  model2
+   model2
 }
 
 #' @rdname tile-functions
