@@ -242,12 +242,12 @@ setClass("UnivariateBatchModel", contains="MultiBatchModel")
 
 #' @export
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
-         representation(mapping="numeric"))
+         representation(mapping="character"))
 
 #' @export
 setClass("MultiBatchCopyNumber", contains="MultiBatchModel",
-         representation(mapping="numeric"))
+         representation(mapping="character"))
 
 #' @export
 setClass("MultiBatchCopyNumberPooled", contains="MultiBatchModel",
-         representation(mapping="numeric"))
+         representation(mapping="character"))

@@ -481,7 +481,7 @@ setMethod("CopyNumberModel", "SingleBatchModel",
           function(model, params=mapParams()){
             model.sb <- SingleBatchCopyNumber(model)
             ##model.sb <- mapComponents(model.sb, params)
-            model.sb
+            model
 })
 
 #' @rdname CopyNumber-methods
@@ -489,7 +489,7 @@ setMethod("CopyNumberModel", "SingleBatchModel",
 setMethod("CopyNumberModel", "MultiBatchModel", function(model, params=mapParams()){
   model <- MultiBatchCopyNumber(model)
   ##model.cn <- mapComponents(model, params)
-  model.cn
+  model
 })
 
 #' @rdname CopyNumber-methods
@@ -497,7 +497,7 @@ setMethod("CopyNumberModel", "MultiBatchModel", function(model, params=mapParams
 setMethod("CopyNumberModel", "MultiBatchPooled", function(model, params=mapParams()){
   model <- MultiBatchCopyNumberPooled(model)
   ##model.cn <- mapComponents(model, params)
-  model.cn
+  model
 })
 
 #' @export
