@@ -717,6 +717,7 @@ rst <- function (n, df = 100, mean = 0, sigma = 1){
 #' @export
 modelName <- function(model){
   model.name <- class(model) %>%
+    gsub("CopyNumber", "", .) %>%
     gsub("SingleBatchPooled", "SBP", .) %>%
     gsub("SingleBatchModel", "SB", .) %>%
     gsub("MultiBatchModel", "MB", .) %>%
