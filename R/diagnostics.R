@@ -92,7 +92,7 @@ combine_batch <- function(model.list, batches){
   s2.0 <- map(ch.list, sigma2.0) %>% unlist
   logp <- map(ch.list, logPrior) %>% unlist
   zz <- map(ch.list, z) %>% do.call(rbind, .)
-  uu <- map(ch.list, u) %>% do.call(rbind, .)
+  uu <- map(ch.list, u) %>% unlist
   .mu <- map(ch.list, mu) %>% do.call(rbind, .)
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
@@ -108,7 +108,7 @@ combine_batch <- function(model.list, batches){
             logprior=logp,
             loglik=ll,
             z=zz,
-            u=uu)
+            u_seed=uu)
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   iter(mp) <- nrow(th)
@@ -183,7 +183,8 @@ combineModels <- function(model.list){
   s2.0 <- map(ch.list, sigma2.0) %>% unlist
   logp <- map(ch.list, logPrior) %>% unlist
   zz <- map(ch.list, z) %>% do.call(rbind, .)
-  uu <- map(ch.list, u) %>% do.call(rbind, .)
+  ##uu <- map(ch.list, u) %>% do.call(rbind, .)
+  uu <- map(ch.list, u) %>% unlist
   .mu <- map(ch.list, mu) %>% unlist
   .tau2 <- map(ch.list, tau2) %>% unlist
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
@@ -199,7 +200,7 @@ combineModels <- function(model.list){
             logprior=logp,
             loglik=ll,
             z=zz,
-            u=uu)
+            u_seed=uu)
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   iter(mp) <- nrow(th)

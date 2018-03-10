@@ -622,14 +622,15 @@ r_theta_multibatch <- function(model){
   }
 }
 
-
+## R version of marginal_theta
 r_marginal_theta <- function(model){
   model2 <- useModes(model)
   thetastar <- theta(model2)
   S <- nrow(theta(chains(model)))
   Z <- z(chains(model))
-  U <- u(chains(model))
+  ##U <- u(chains(model))
   K <- k(model)
+  N <- length(y(model))
   df <- dfr(model)
   tau2c <- tau2(chains(model))
   sigma2 <- sigma2(chains(model))
@@ -638,7 +639,8 @@ r_marginal_theta <- function(model){
     zz <- Z[s, ]
     ##zz = Z(s, _) ;
     ##uu = U(s, _) ;
-    uu <- U[s, ]
+    uu <-  rchisq(N, df) ;
+    ##uu <- U[s, ]
     z(model) <- zz
     model@u <- uu
     ##model.slot("z") = zz ;
