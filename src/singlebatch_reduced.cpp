@@ -32,7 +32,7 @@ Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
   NumericVector tmp(K) ;
 
   IntegerMatrix Z = chains.slot("z") ;
-  NumericMatrix U = chains.slot("u") ;
+  // NumericMatrix U = chains.slot("u") ;
   IntegerVector zz ;
   NumericVector uu ;
 
@@ -51,13 +51,16 @@ Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod) {
 
   NumericVector u = model.slot("u") ;
   double df = getDf(model.slot("hyperparams")) ;
+  NumericVector yy = model.slot("data") ;
+  int N = yy.size() ;
 
   NumericVector sumu ;
   IntegerVector counts;
 
   for(int s=0; s < S; ++s){
     zz = Z(s, _) ;
-    uu = U(s, _) ;
+    uu=Rcpp::rchisq(N, df) ;
+    //uu = U(s, _) ;
     model.slot("z") = zz ;
     model.slot("u") = uu ;
     counts = tableZ(K, zz) ;

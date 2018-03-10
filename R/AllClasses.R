@@ -72,6 +72,7 @@ setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 #' @slot loglik log likelihood.
 #' @slot zfreq table of z.
 #' @slot z latent variables
+#' @slot u_seed vector of seeds used to simulate u-vector
 setClass("McmcChains", representation(theta="matrix",
                                       sigma2="matrix",
                                       pi="matrix",
@@ -83,7 +84,7 @@ setClass("McmcChains", representation(theta="matrix",
                                       loglik="numeric",
                                       zfreq="matrix",
                                       z="matrix",
-                                      u="matrix"))
+                                      u_seed="numeric"))
 
 #' An object to specify MCMC options for a later simulation
 #'
