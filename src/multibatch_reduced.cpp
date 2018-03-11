@@ -391,59 +391,6 @@ Rcpp::S4 permutedz_reduced1_batch(Rcpp::S4 xmod) {
 
 
 // [[Rcpp::export]]
-Rcpp::S4 permutedz_reduced2_batch(Rcpp::S4 xmod) {
-    Rcpp::RNGScope scope;
-
-    Rcpp::S4 model_(xmod);
-    Rcpp::S4 model = clone(model_);
-    Rcpp::S4 params=model.slot("mcmc.params");
-    Rcpp::S4 chains=model.slot("mcmc.chains");
-    Rcpp::List modes = model.slot("modes");
-    Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
-    Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
-    Rcpp::NumericMatrix sigma2star = clone(sigma2_);
-    Rcpp::NumericMatrix thetastar = clone(theta_);
-
-    //
-    // We need to keep the Z|y,theta* chain
-    //
-    Rcpp::IntegerMatrix Z = chains.slot("z");
-    Rcpp::NumericVector nu0chain = chains.slot("nu.0");
-    Rcpp::NumericVector s20chain = chains.slot("sigma2.0");
-    model.slot("theta") = thetastar;
-    model.slot("sigma2") = sigma2star;
-    int S = params.slot("iter");
-
-    //
-    // Run reduced Gibbs:
-    //   -- theta is fixed at modal ordinate
-    //   -- sigma2 is fixed at modal ordinate
-    //
-    for (int s = 0; s < S; ++s) {
-        //model.slot("z") = update_z(xmod) ;
-        model.slot("z") = Z(s, Rcpp::_);
-        model.slot("data.mean") = compute_means_batch(model);
-        model.slot("data.prec") = compute_prec_batch(model);
-        // model.slot("theta") = update_theta(model) ; Do not update theta !
-        // model.slot("sigma2") = update_sigma2(model) ;
-        model.slot("pi") = update_p_batch(model);
-        model.slot("mu") = update_mu_batch(model);
-        model.slot("tau2") = update_tau2_batch(model);
-        model.slot("nu.0") = update_nu0_batch(model);
-        model.slot("sigma2.0") = update_sigma20_batch(model);
-        nu0chain[s] = model.slot("nu.0");
-        s20chain[s] = model.slot("sigma2.0");
-    }
-
-    chains.slot("nu.0") = nu0chain;
-    chains.slot("sigma2.0") = s20chain;
-    model.slot("mcmc.chains") = chains;
-
-    return model;
-}
-
-
-// [[Rcpp::export]]
 Rcpp::NumericVector p_pmix_reduced_batch(Rcpp::S4 xmod) {
     Rcpp::RNGScope scope;
 
@@ -625,9 +572,9 @@ Rcpp::S4 reduced_sigma_batch(Rcpp::S4 xmod) {
     //
     for(int s=0; s < S; ++s){
         model.slot("z") = update_z_batch(model);
-        Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
-        model.slot("data.mean") = compute_means_batch(model);
-        model.slot("data.prec") = compute_prec_batch(model);
+        //Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
+        //model.slot("data.mean") = compute_means_batch(model);
+        //model.slot("data.prec") = compute_prec_batch(model);
         //model.slot("theta") = update_theta(model) ; Do not update theta !
         model.slot("sigma2") = update_sigma2_batch(model);
         model.slot("pi") = update_p_batch(model);
@@ -635,17 +582,17 @@ Rcpp::S4 reduced_sigma_batch(Rcpp::S4 xmod) {
         model.slot("tau2") = update_tau2_batch(model);
         model.slot("nu.0") = update_nu0_batch(model);
         model.slot("sigma2.0") = update_sigma20_batch(model);
-        nu0chain[s] = model.slot("nu.0");
-        s20chain[s] = model.slot("sigma2.0");
+        //nu0chain[s] = model.slot("nu.0");
+        //s20chain[s] = model.slot("sigma2.0");
         // update the following chains for debugging small sigma2.0 values
-        sigma2 = model.slot("sigma2");
-        sigmachain(s, Rcpp::_) = sigma2;
-        pi = model.slot("pi");
-        pichain(s, Rcpp::_) = pi;
-        tau = model.slot("tau2");
-        tauchain[s] = tau[0];
-        mu = model.slot("mu");
-        muchain[s] = mu[0];
+        //sigma2 = model.slot("sigma2");
+        //sigmachain(s, Rcpp::_) = sigma2;
+        //pi = model.slot("pi");
+        //pichain(s, Rcpp::_) = pi;
+        //tau = model.slot("tau2");
+        //tauchain[s] = tau[0];
+        //mu = model.slot("mu");
+        //muchain[s] = mu[0];
     }
 
     chains.slot("z") = Z;
