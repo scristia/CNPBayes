@@ -482,7 +482,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // reduced_nu0_batch
-Rcpp::S4 reduced_nu0_batch(Rcpp::S4 xmod);
+Rcpp::NumericVector reduced_nu0_batch(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_reduced_nu0_batch(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
