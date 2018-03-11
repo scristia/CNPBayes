@@ -128,6 +128,8 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   if(paramUpdates(model)[["theta"]]==0) {
     ignore.small.pstar <- TRUE
   }
+  ##tmp <- cbind(p.theta=ptheta.star, theta=thetac(model)) %>%
+  ##as.tibble
   if(!ignore.small.pstar){
     failed <- failSmallPstar(ptheta.star, params)
     if (failed) {
@@ -635,11 +637,12 @@ r_marginal_theta <- function(model){
   tau2c <- tau2(chains(model))
   sigma2 <- sigma2(chains(model))
   muc <- mu(chains(model))
+  p_theta <- rep(NA, S)
   for(s in seq_len(S)){
     zz <- Z[s, ]
     ##zz = Z(s, _) ;
     ##uu = U(s, _) ;
-    uu <-  rchisq(N, df) ;
+    ##uu <-  rchisq(N, df) ;
     ##uu <- U[s, ]
     z(model) <- zz
     model@u <- uu
@@ -650,10 +653,12 @@ r_marginal_theta <- function(model){
     data_mean <- compute_heavy_means(model)/df
     ##data_mean =  data_mean/df ;
     ##NumericVector sumu = compute_u_sums(xmod) ;
-    sumu <- compute_u_sums(model)/df
+    ##sumu <- compute_u_sums(model)/df
     ##sumu = sumu/df ;
     ##nn = as<NumericVector>(counts) * sumu ;
-    nn <- counts*sumu
+    nn <- counts
+    ##nn <- counts*sumu
+    nn <- sumu
     tau2_tilde = 1/tau2c[s]
     ##CHECK: length-k vector?
     s2 <- sigma2[s, ]
@@ -670,9 +675,136 @@ r_marginal_theta <- function(model){
       w1 = tau2_tilde/post_prec;
       w2 = nn[k]*sigma2_tilde[k]/post_prec;
       mu_n = w1*muc[s] + w2*data_mean[k];
-      tmp = dnorm(thetastar[k], mu_n, tau_n, log=TRUE) ;
-      prod = prod * tmp[k] ;
+      tmp = dnorm(thetastar[k], mu_n, tau_n) ;
+      prod = prod * tmp[1] ;
     }
     p_theta[s] = prod ;
   }
+}
+
+p_theta_batch <- function(model){
+  double prod = 1.0;
+  double heavyn = 0.0;
+  double heavy_mean = 0.0;
+  for (int b = 0; b < B; ++b) {
+    for(int k = 0; k < K; ++k){
+      heavyn = n_hb(b, k) * sumu(b, k) / df;
+      heavy_mean = data_mean(b, k) / df;
+      post_prec = 1.0/tau2[k] + heavyn*1.0 * sigma2_tilde(b, k) ;
+      if (post_prec == R_PosInf) {
+        throw std::runtime_error("Bad simulation. Run again with different start.");
+      }
+      tau_n = sqrt(1.0/post_prec) ;
+      w1 = (1.0/tau2[k])/post_prec ;
+      w2 = (n_hb(b, k) * sigma2_tilde(b, k))/post_prec ;
+      // mu_n = w1*mu[k] + w2*data_mean(b, k) ;
+      mu_n = w1*mu[k] + w2*heavy_mean ;
+      //theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
+      theta[0] = thetastar(b, k);
+      tmp = dnorm(theta, mu_n, tau_n);
+      prod *= tmp[0];
+    }
+  }
+  prod
+}
+
+p_theta_batch2 <- function(model, thetastar){
+  prod <- 1.0
+  B <- length(unique(batch(model)))
+  K <- k(model)
+  n_hb <- tableBatchZ(model)
+  data_mean = compute_heavy_sums_batch(model);
+  sumu = compute_u_sums_batch(model) ;
+  df <- dfr(model)
+  ##invs2 <- 1.0 / sigma2(s, Rcpp::_);    // this is a vector of length B*K
+  invs2 <- 1.0/sigma2(model)
+  ##sigma2_tilde <- toMatrix(invs2, B, K);
+  sigma2_tilde <- invs2
+  for (b in seq_len(B)){
+    for(k in seq_len(K)){
+      heavyn <- n_hb[b, k] * sumu[b, k] / df;
+      heavy_mean <- data_mean[b, k] / df;
+      post_prec <- 1.0/tau2[k] + heavyn*1.0 * sigma2_tilde[b, k] ;
+      tau_n <- sqrt(1.0/post_prec) ;
+      w1 <- (1.0/tau2[k])/post_prec ;
+      w2 <- (n_hb[b, k] * sigma2_tilde[b, k])/post_prec ;
+      mu_n <- w1*mu[k] + w2*heavy_mean ;
+      theta <- thetastar[b, k];
+      tmp <- dnorm(theta, mu_n, tau_n);
+      prod <- prod*tmp[0];
+    }
+  }
+  prod
+}
+
+r_marginal_theta_batch <- function(model){
+  thetastar <- modes(model)[["theta"]];
+  xmod <- model
+  S <- iter(model)
+  p_theta <- rep(NA, S)
+  for(i in seq_len(S)){
+    ##model.slot("z") = update_z_batch(xmod) ;
+    z(model) <- update_z_batch(xmod) ;
+    ##model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    zFreq(model) <- tableZ(K, z(model)) 
+    ##model.slot("data.mean") = compute_means_batch(xmod) ;
+    dataMean(model) <- compute_means_batch(xmod) ;
+    ##model.slot("data.prec") = compute_prec_batch(xmod) ;
+    ##dataPrec(model) <- compute_prec_batch(xmod) ;
+    ##model.slot("theta") = update_theta_batch(xmod) ;
+    theta(model) <- update_theta_batch(xmod) ;
+    model.slot("sigma2") = update_sigma2_batch(xmod) ;
+    model.slot("mu") = update_mu_batch(xmod) ;
+    model.slot("tau2") = update_tau2_batch(xmod) ;
+    model.slot("sigma2.0") = update_sigma20_batch(xmod) ;
+    model.slot("nu.0") = update_nu0_batch(xmod) ;
+    model.slot("pi") = update_p_batch(xmod) ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
+    p_theta[i] <- p_theta_batch(model, thetastar)
+  }
+  p_theta
+
+  for(s in seq_len(S)){
+    tauc <- sqrt(tau2c[s, ])
+    ##tauc = sqrt(tau2c(s, Rcpp::_));
+    ##// extract z from the chain
+    ##zz = Z(s, Rcpp::_);
+    zz <- Z[s, ]
+    ##// add z to the current slot in the model
+    model@z <- zz
+    ## make a B x k matrix of the counts
+    n_hb = tableBatchZ(model);
+    data_mean <- compute_means_batch(model)
+    ##data_mean = compute_heavy_sums_batch(model);
+    ##sumu = compute_u_sums_batch(model) ;
+    mu = muc(s, Rcpp::_);
+    tau2 = tau2c(s, Rcpp::_);
+    tau2_tilde = 1.0 / tau2;
+    invs2 = 1.0 / sigma2(s, Rcpp::_);    // this is a vector of length B*K
+    sigma2_tilde = Rcpp::as<Rcpp::NumericVector>(toMatrix(invs2, B, K));
+    double prod = 1.0;
+    double heavyn = 0.0;
+    double heavy_mean = 0.0;
+    for (int b = 0; b < B; ++b) {
+      for(int k = 0; k < K; ++k){
+        heavyn = n_hb(b, k) * sumu(b, k) / df;
+        heavy_mean = data_mean(b, k) / df;
+        post_prec = 1.0/tau2[k] + heavyn*1.0 * sigma2_tilde(b, k) ;
+        if (post_prec == R_PosInf) {
+          throw std::runtime_error("Bad simulation. Run again with different start.");
+        }
+        tau_n = sqrt(1.0/post_prec) ;
+        w1 = (1.0/tau2[k])/post_prec ;
+        w2 = (n_hb(b, k) * sigma2_tilde(b, k))/post_prec ;
+        // mu_n = w1*mu[k] + w2*data_mean(b, k) ;
+        mu_n = w1*mu[k] + w2*heavy_mean ;
+        //theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
+        theta[0] = thetastar(b, k);
+        tmp = dnorm(theta, mu_n, tau_n);
+        prod *= tmp[0];
+      }
+    }
+    p_theta[s] = prod;
+  }
+  return p_theta;
 }
