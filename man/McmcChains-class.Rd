@@ -31,5 +31,7 @@ An object of this class holds estimates of each parameter at each iteration of t
 \item{\code{zfreq}}{table of z.}
 
 \item{\code{z}}{latent variables}
+
+\item{\code{u_seed}}{vector of seeds used to simulate u-vector}
 }}
 
