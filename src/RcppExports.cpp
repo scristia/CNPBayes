@@ -481,6 +481,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_prob_nu0
+double log_prob_nu0(Rcpp::S4 xmod, int nu0star);
+RcppExport SEXP _CNPBayes_log_prob_nu0(SEXP xmodSEXP, SEXP nu0starSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< int >::type nu0star(nu0starSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_prob_nu0(xmod, nu0star));
+    return rcpp_result_gen;
+END_RCPP
+}
 // reduced_nu0_batch
 Rcpp::NumericVector reduced_nu0_batch(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_reduced_nu0_batch(SEXP xmodSEXP) {
@@ -489,17 +501,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(reduced_nu0_batch(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_nu0_reduced_batch
-Rcpp::NumericVector p_nu0_reduced_batch(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_nu0_reduced_batch(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_nu0_reduced_batch(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1423,8 +1424,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_reduced_mu_batch", (DL_FUNC) &_CNPBayes_reduced_mu_batch, 1},
     {"_CNPBayes_log_prob_tau2", (DL_FUNC) &_CNPBayes_log_prob_tau2, 2},
     {"_CNPBayes_reduced_tau_batch", (DL_FUNC) &_CNPBayes_reduced_tau_batch, 1},
+    {"_CNPBayes_log_prob_nu0", (DL_FUNC) &_CNPBayes_log_prob_nu0, 2},
     {"_CNPBayes_reduced_nu0_batch", (DL_FUNC) &_CNPBayes_reduced_nu0_batch, 1},
-    {"_CNPBayes_p_nu0_reduced_batch", (DL_FUNC) &_CNPBayes_p_nu0_reduced_batch, 1},
     {"_CNPBayes_reduced_s20_batch", (DL_FUNC) &_CNPBayes_reduced_s20_batch, 1},
     {"_CNPBayes_p_s20_reduced_batch", (DL_FUNC) &_CNPBayes_p_s20_reduced_batch, 1},
     {"_CNPBayes_compute_loglik_batch", (DL_FUNC) &_CNPBayes_compute_loglik_batch, 1},

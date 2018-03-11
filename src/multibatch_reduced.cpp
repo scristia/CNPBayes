@@ -464,6 +464,52 @@ Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
+double log_prob_nu0(Rcpp::S4 xmod, int nu0star) {
+  Rcpp::RNGScope scope;
+  // get model and accessories
+  Rcpp::S4 model(xmod);
+  Rcpp::S4 mcmcp = model.slot("mcmc.params");
+  Rcpp::S4 hypp = model.slot("hyperparams");
+  Rcpp::List modes = model.slot("modes");
+  // get modal ordinates
+  Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
+  Rcpp::NumericMatrix sigma2star = clone(sigma2_);
+  // hyperparameters
+  int K = hypp.slot("k");
+  double betas = hypp.slot("beta");
+  int B = sigma2star.nrow() ;
+  Rcpp::NumericVector s20=model.slot("sigma2.0") ;
+  //
+  // compute p(nu0*, ) from *normalized* probabilities
+  //
+  Rcpp::NumericVector d(100) ;  // 100 is the maximum allowed value for nu_0
+  Rcpp::NumericVector lpnu0(100);
+  double prec = 0.0;
+  double lprec = 0.0;
+  d = Rcpp::seq_len(100);
+  for (int b = 0; b < B; ++b) {
+    for (int k = 0; k < K; ++k) {
+      prec += 1.0 / sigma2star(b, k);
+      lprec += log(1.0 / sigma2star(b, k));
+    }
+  }
+  Rcpp::NumericVector y1(100);
+  Rcpp::NumericVector y2(100);
+  Rcpp::NumericVector y3(100);
+  y1 = B * K * (0.5 * d * log(s20[0] * 0.5 * d) - lgamma(d * 0.5));
+  y2 = (0.5 * d - 1.0) * lprec;
+  y3 = d * (betas + 0.5 * s20[0] * prec);
+  lpnu0 = y1 + y2 - y3;
+  Rcpp::NumericVector prob(100);
+  prob = exp(lpnu0); // - maxprob);
+  prob = prob / sum(prob);  // this is now normalized
+  //p_nu0[s] = prob[nu0star];
+  double log_p = log(prob[nu0star]) ;
+  //return p_nu0;
+  return log_p ;
+}
+
+// [[Rcpp::export]]
 Rcpp::NumericVector reduced_nu0_batch(Rcpp::S4 xmod) {
   Rcpp::RNGScope scope;
   Rcpp::S4 model_(xmod);
@@ -500,67 +546,7 @@ Rcpp::NumericVector reduced_nu0_batch(Rcpp::S4 xmod) {
   return logp;
 }
 
-// [[Rcpp::export]]
-Rcpp::NumericVector p_nu0_reduced_batch(Rcpp::S4 xmod) {
-    Rcpp::RNGScope scope;
 
-    // get model and accessories
-    Rcpp::S4 model(xmod);
-    Rcpp::S4 mcmcp = model.slot("mcmc.params");
-    Rcpp::S4 chains = model.slot("mcmc.chains");
-    Rcpp::S4 hypp = model.slot("hyperparams");
-    Rcpp::List modes = model.slot("modes");
-
-    // get modal ordinates
-    Rcpp::IntegerVector nu0_ = Rcpp::as<Rcpp::IntegerVector>(modes["nu0"]);
-    Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
-    Rcpp::NumericMatrix sigma2star = clone(sigma2_);
-    int nu0star = clone(nu0_)[0];
-
-    // hyperparameters
-    int K = hypp.slot("k");
-    double betas = hypp.slot("beta");
-    int B = sigma2star.nrow() ;  
-
-    int S = mcmcp.slot("iter") ;    
-    Rcpp::NumericVector p_nu0(S);
-    Rcpp::NumericVector s20chain = chains.slot("sigma2.0");
-
-    //
-    // compute p(nu0*, ) from *normalized* probabilities
-    //
-    Rcpp::NumericVector d(100) ;  // 100 is the maximum allowed value for nu_0
-    Rcpp::NumericVector lpnu0(100);
-    double prec = 0.0;
-    double lprec = 0.0;
-    d = Rcpp::seq_len(100);
-
-    for (int b = 0; b < B; ++b) {
-        for (int k = 0; k < K; ++k) {
-            prec += 1.0 / sigma2star(b, k);
-            lprec += log(1.0 / sigma2star(b, k));
-        }
-    }
-
-    Rcpp::NumericVector y1(100);
-    Rcpp::NumericVector y2(100);
-    Rcpp::NumericVector y3(100);
-
-    for (int s = 0; s < S; ++s) {
-        y1 = B * K * (0.5 * d * log(s20chain[s] * 0.5 * d) - lgamma(d * 0.5));
-        y2 = (0.5 * d - 1.0) * lprec;
-        y3 = d * (betas + 0.5 * s20chain[s] * prec);
-
-        lpnu0 = y1 + y2 - y3;
-
-        Rcpp::NumericVector prob(100);
-        prob = exp(lpnu0); // - maxprob);
-        prob = prob / sum(prob);  // this is now normalized
-        p_nu0[s] = prob[nu0star];
-    }
-
-    return p_nu0;
-}
 
 // [[Rcpp::export]]
 Rcpp::S4 reduced_s20_batch(Rcpp::S4 xmod) {
