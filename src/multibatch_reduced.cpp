@@ -387,6 +387,46 @@ Rcpp::NumericVector reduced_mu_batch(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
+double log_prob_tau2(Rcpp::S4 xmod, Rcpp::NumericVector tau2star) {
+  Rcpp::RNGScope scope;
+  // get model and accessories
+  Rcpp::S4 model(xmod);
+  Rcpp::S4 mcmcp = model.slot("mcmc.params");
+  Rcpp::S4 hypp = model.slot("hyperparams");
+  Rcpp::List modes = model.slot("modes");
+  // get modal ordinates
+  Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
+  Rcpp::NumericVector mu_ = Rcpp::as<Rcpp::NumericVector>(modes["mu"]);
+  Rcpp::NumericVector mustar = clone(mu_);
+  Rcpp::NumericMatrix thetastar = clone(theta_);
+
+  // hyperparameters
+  int K = hypp.slot("k");
+  double m2_0 = hypp.slot("m2.0");
+  double eta_0 = hypp.slot("eta.0");
+  // batch and component parameters
+  Rcpp::IntegerVector batch = model.slot("batch");
+  Rcpp::IntegerVector ub = uniqueBatch(batch);
+  int B = ub.size();
+  // updated parameters
+  double eta_B = eta_0 + B;
+  Rcpp::NumericVector s2_k(K);
+  Rcpp::NumericVector m2_k(K);
+  double total = 0.0;
+  for (int k = 0; k < K; ++k) {
+    for (int b = 0; b < B; ++b) {
+      s2_k[k] += pow(thetastar(b, k) - mustar[k], 2) ;
+    }
+    m2_k[k] = 1.0 / eta_B * (eta_0 * m2_0 + s2_k[k]);
+    Rcpp::NumericVector tau2star_typed(1);
+    tau2star_typed[0] = 1.0 / tau2star[k];
+    total += Rcpp::dgamma(tau2star_typed, 0.5 * eta_B,
+                          1.0 / (0.5 * eta_B * m2_k[k]), true)[0];
+  }
+  return total ;
+}
+
+// [[Rcpp::export]]
 Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod) {
   Rcpp::RNGScope scope;
   Rcpp::S4 model_(xmod);
@@ -418,66 +458,13 @@ Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod) {
     model.slot("sigma2.0") = update_sigma20_batch(model) ;
     model.slot("nu.0") = update_nu0_batch(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
-    //logp[s]=log_prob_tau2(model, tau2star) ;
+    logp[s]=log_prob_tau2(model, tau2star) ;
   }
   return logp;
 }
 
 
-// [[Rcpp::export]]
-Rcpp::NumericVector p_tau_reduced_batch(Rcpp::S4 xmod) {
-    Rcpp::RNGScope scope;
 
-    // get model and accessories
-    Rcpp::S4 model(xmod);
-    Rcpp::S4 mcmcp = model.slot("mcmc.params");
-    Rcpp::S4 chains = model.slot("mcmc.chains");
-    Rcpp::S4 hypp = model.slot("hyperparams");
-    Rcpp::List modes = model.slot("modes");
-
-    // get modal ordinates
-    Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
-    Rcpp::NumericVector mu_ = Rcpp::as<Rcpp::NumericVector>(modes["mu"]);
-    Rcpp::NumericVector tau2_ = Rcpp::as<Rcpp::NumericVector>(modes["tau2"]);
-    Rcpp::NumericVector mustar = clone(mu_);
-    Rcpp::NumericVector tau2star = clone(tau2_);
-    Rcpp::NumericMatrix thetastar = clone(theta_);
-
-    // hyperparameters
-    int K = hypp.slot("k");
-    double m2_0 = hypp.slot("m2.0");
-    double eta_0 = hypp.slot("eta.0");
-
-    // batch and component parameters
-    Rcpp::IntegerVector batch = model.slot("batch");
-    Rcpp::IntegerVector ub = uniqueBatch(batch);
-    int B = ub.size();
-
-    // updated parameters
-    double eta_B = eta_0 + B;
-    Rcpp::NumericVector s2_k(K);
-    Rcpp::NumericVector m2_k(K);
-
-    double total = 1.0;
-    Rcpp::NumericVector p_tau(1);
-
-    for (int k = 0; k < K; ++k) {
-        for (int b = 0; b < B; ++b) {
-            s2_k[k] += pow(thetastar(b, k) - mustar[k], 2) ;
-        }
-
-        m2_k[k] = 1.0 / eta_B * (eta_0 * m2_0 + s2_k[k]);
-        Rcpp::NumericVector tau2star_typed(1);
-        tau2star_typed[0] = 1.0 / tau2star[k];
-
-        total *= Rcpp::dgamma(tau2star_typed, 0.5 * eta_B,
-                              1.0 / (0.5 * eta_B * m2_k[k]))[0];
-    }
-
-    p_tau[0] = total;
-
-    return p_tau;
-}
 
 // [[Rcpp::export]]
 Rcpp::S4 reduced_nu0_batch(Rcpp::S4 xmod) {

@@ -161,12 +161,12 @@ reduced_mu_batch <- function(xmod) {
     .Call('_CNPBayes_reduced_mu_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-reduced_tau_batch <- function(xmod) {
-    .Call('_CNPBayes_reduced_tau_batch', PACKAGE = 'CNPBayes', xmod)
+log_prob_tau2 <- function(xmod, tau2star) {
+    .Call('_CNPBayes_log_prob_tau2', PACKAGE = 'CNPBayes', xmod, tau2star)
 }
 
-p_tau_reduced_batch <- function(xmod) {
-    .Call('_CNPBayes_p_tau_reduced_batch', PACKAGE = 'CNPBayes', xmod)
+reduced_tau_batch <- function(xmod) {
+    .Call('_CNPBayes_reduced_tau_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 reduced_nu0_batch <- function(xmod) {

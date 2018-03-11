@@ -458,6 +458,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_prob_tau2
+double log_prob_tau2(Rcpp::S4 xmod, Rcpp::NumericVector tau2star);
+RcppExport SEXP _CNPBayes_log_prob_tau2(SEXP xmodSEXP, SEXP tau2starSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type tau2star(tau2starSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_prob_tau2(xmod, tau2star));
+    return rcpp_result_gen;
+END_RCPP
+}
 // reduced_tau_batch
 Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_reduced_tau_batch(SEXP xmodSEXP) {
@@ -466,17 +478,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(reduced_tau_batch(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_tau_reduced_batch
-Rcpp::NumericVector p_tau_reduced_batch(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_tau_reduced_batch(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_tau_reduced_batch(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1420,8 +1421,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_reduced_pi_batch", (DL_FUNC) &_CNPBayes_reduced_pi_batch, 1},
     {"_CNPBayes_log_prob_mu", (DL_FUNC) &_CNPBayes_log_prob_mu, 2},
     {"_CNPBayes_reduced_mu_batch", (DL_FUNC) &_CNPBayes_reduced_mu_batch, 1},
+    {"_CNPBayes_log_prob_tau2", (DL_FUNC) &_CNPBayes_log_prob_tau2, 2},
     {"_CNPBayes_reduced_tau_batch", (DL_FUNC) &_CNPBayes_reduced_tau_batch, 1},
-    {"_CNPBayes_p_tau_reduced_batch", (DL_FUNC) &_CNPBayes_p_tau_reduced_batch, 1},
     {"_CNPBayes_reduced_nu0_batch", (DL_FUNC) &_CNPBayes_reduced_nu0_batch, 1},
     {"_CNPBayes_p_nu0_reduced_batch", (DL_FUNC) &_CNPBayes_p_nu0_reduced_batch, 1},
     {"_CNPBayes_reduced_s20_batch", (DL_FUNC) &_CNPBayes_reduced_s20_batch, 1},
