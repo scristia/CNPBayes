@@ -124,14 +124,14 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   warnings <- params$warnings
 
   model.reduced <- model
-  log_ptheta.star <- marginal_theta_batch(model)
+  log_ptheta <- marginal_theta_batch(model)
   if(paramUpdates(model)[["theta"]]==0) {
     ignore.small.pstar <- TRUE
   }
   ##tmp <- cbind(p.theta=ptheta.star, theta=thetac(model)) %>%
   ##as.tibble
   if(!ignore.small.pstar){
-    failed <- failSmallPstar(log_ptheta.star, params)
+    failed <- failSmallPstar(log_ptheta, params)
     if (failed) {
       msg <- paste("The model for k=", k(model), " may be overfit.",
                    "This can lead to an incorrect marginal likelihood")
@@ -140,7 +140,7 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
     }
   }
   ##model.psigma2 <- reduced_sigma_batch(model.reduced)
-  log_psigma.star <- reduced_sigma_batch(model.reduced)
+  log_psigma <- reduced_sigma_batch(model.reduced)
   stopifnot(identical(modes(model.reduced), modes(model)))
 
   ##psigma.star <- p_sigma_reduced_batch(model.psigma2)
@@ -151,14 +151,14 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   ##
   ## Block updates for stage 2 parameters
   ##
-  log_pmu.star <- reduced_mu_batch(model.reduced)
+  log_pmu <- reduced_mu_batch(model.reduced)
   ##model.mustar <- reduced_mu_batch(model.reduced)
   stopifnot(identical(modes(model.reduced), modes(model)))
   ##p.mustar <- p_mu_reduced_batch(model.mustar)
 
-  model.taustar <- reduced_tau_batch(model.reduced)
-  ##identical(modes(model.taustar), modes(model))
-  p.taustar <- p_tau_reduced_batch(model.mustar)
+  log_ptau2 <- reduced_tau_batch(model.reduced)
+  identical(modes(model.reduced), modes(model))
+  ##p.taustar <- p_tau_reduced_batch(model.mustar)
 
   model.nu0star <- reduced_nu0_batch(model.reduced)
   ##identical(modes(model.nu0star), modes(model))
@@ -167,10 +167,11 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   model.s20star <- reduced_s20_batch(model.reduced)
   p.s20star <- p_s20_reduced_batch(model.s20star)
 
-  reduced_gibbs <- cbind(log_ptheta.star,
-                         log_psigma.star,
-                         log_pmu.star,
+  reduced_gibbs <- cbind(log_ptheta,
+                         log_psigma,
+                         log_pmu,
                          log_pmix,
+                         log_ptau2,
                          p.taustar,
                          p.nu0star,
                          p.s20star)

@@ -463,9 +463,6 @@ Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod) {
   return logp;
 }
 
-
-
-
 // [[Rcpp::export]]
 Rcpp::S4 reduced_nu0_batch(Rcpp::S4 xmod) {
     Rcpp::RNGScope scope;
