@@ -115,60 +115,6 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     return p_theta;
 }
 
-// [[Rcpp::export]]
-Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod) {
-    Rcpp::RNGScope scope;
-    Rcpp::S4 model_(xmod);
-    Rcpp::S4 model = clone(model_);
-    Rcpp::S4 mcmcp = model.slot("mcmc.params");
-    int S = mcmcp.slot("iter");
-    Rcpp::List modes = model.slot("modes");
-    Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
-    Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
-    Rcpp::NumericMatrix sigma2star=clone(sigma2_);
-    Rcpp::NumericMatrix thetastar=clone(theta_);
-    int K = thetastar.ncol();
-    int B = thetastar.nrow();
-    Rcpp::NumericVector logp_theta(S);
-    Rcpp::S4 chains(model.slot("mcmc.chains"));
-    Rcpp::NumericVector mu(K);
-    Rcpp::NumericVector tau(K);
-    Rcpp::NumericVector tmp(1);
-    Rcpp::IntegerMatrix Z = chains.slot("z");
-    Rcpp::NumericVector tau2(1);
-
-    for (int s = 0; s < S; ++s) {
-        // update parameters
-        model.slot("z") = Z(s, Rcpp::_ );
-        model.slot("data.mean") = compute_means_batch(model);
-        model.slot("data.prec") = compute_prec_batch(model);
-        model.slot("theta") = update_theta_batch(model);
-        model.slot("sigma2") = update_sigma2_batch(model);
-        model.slot("pi") = update_p_batch(model);
-        model.slot("mu") = update_mu_batch(model);
-        model.slot("tau2") = update_tau2_batch(model);
-        model.slot("nu.0") = update_nu0_batch(model);
-        model.slot("sigma2.0") = update_sigma20_batch(model);
-        mu = model.slot("mu");
-        tau2 = model.slot("tau2");
-        tau = sqrt(tau2);
-
-        // calculate probability
-        double prod = 0.0;
-
-        for (int k = 0; k < K; ++k) {
-            for (int b = 0; b < B; ++b) {
-                Rcpp::NumericVector theta = thetastar(b, k);
-                tmp = dnorm(theta, mu[k], tau[0]);
-                prod += log(tmp[0]);
-            }
-        }
-
-        logp_theta[s] = prod;
-    }
-
-    return logp_theta;
-}
 
 Rcpp::NumericVector marginal_sigma2_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
     Rcpp::RNGScope scope;
