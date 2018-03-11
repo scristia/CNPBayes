@@ -546,6 +546,40 @@ Rcpp::NumericVector reduced_nu0_batch(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
+double log_prob_sigma2_0(Rcpp::S4 xmod, Rcpp::NumericVector s20star) {
+  Rcpp::RNGScope scope;
+  // get model and accessories
+  Rcpp::S4 model(xmod);
+  Rcpp::S4 mcmcp = model.slot("mcmc.params");
+  Rcpp::S4 chains = model.slot("mcmc.chains");
+  Rcpp::S4 hypp = model.slot("hyperparams");
+  Rcpp::List modes = model.slot("modes");
+  Rcpp::IntegerVector batch = model.slot("batch");
+  Rcpp::IntegerVector ub = uniqueBatch(batch);
+  int B = ub.size();
+  // get ordinal modes.
+  Rcpp::IntegerVector nu0_ = Rcpp::as<Rcpp::IntegerVector>(modes["nu0"]);
+  Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
+  Rcpp::NumericMatrix sigma2star = clone(sigma2_);
+  double nu0star = clone(nu0_)[0];
+  // get hyperparameters
+  int K = hypp.slot("k");
+  double a = hypp.slot("a");
+  double b = hypp.slot("b");
+  // calculate a_k, b_k
+  double prec = 0.0;
+  for (int b = 0; b < B; ++b) {
+    for (int k = 0; k < K; ++k) {
+      prec += 1.0 / sigma2star(b, k);
+    }
+  }
+  double a_k = a + 0.5 * K * B * nu0star;
+  double b_k = b + 0.5 * nu0star * prec;
+  Rcpp::NumericVector logp_s20 = dgamma(s20star, a_k, 1.0 / b_k, true);
+  return logp_s20[0] ;
+}
+
+// [[Rcpp::export]]
 Rcpp::NumericVector reduced_s20_batch(Rcpp::S4 xmod) {
   Rcpp::RNGScope scope;
   Rcpp::S4 model_(xmod);
@@ -577,52 +611,7 @@ Rcpp::NumericVector reduced_s20_batch(Rcpp::S4 xmod) {
     //model.slot("nu.0") = update_nu0_batch(model) ;
     model.slot("sigma2.0") = update_sigma20_batch(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
-    //logp[s]=log_prob_sigma2_0(model, s20star) ;
+    logp[s]=log_prob_sigma2_0(model, s20star) ;
   }
   return logp;
-}
-
-// [[Rcpp::export]]
-Rcpp::NumericVector p_s20_reduced_batch(Rcpp::S4 xmod) {
-    Rcpp::RNGScope scope;
-
-    // get model and accessories
-    Rcpp::S4 model(xmod);
-    Rcpp::S4 mcmcp = model.slot("mcmc.params");
-    Rcpp::S4 chains = model.slot("mcmc.chains");
-    Rcpp::S4 hypp = model.slot("hyperparams");
-    Rcpp::List modes = model.slot("modes");
-
-    Rcpp::IntegerVector batch = model.slot("batch");
-    Rcpp::IntegerVector ub = uniqueBatch(batch);
-    int B = ub.size();
-
-    // get ordinal modes.
-    Rcpp::IntegerVector nu0_ = Rcpp::as<Rcpp::IntegerVector>(modes["nu0"]);
-    Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
-    Rcpp::NumericVector s20_ = Rcpp::as<Rcpp::NumericVector>(modes["sigma2.0"]);
-    Rcpp::NumericMatrix sigma2star = clone(sigma2_);
-    Rcpp::NumericVector s20star = clone(s20_);
-    double nu0star = clone(nu0_)[0];
-
-    // get hyperparameters
-    int K = hypp.slot("k");
-    double a = hypp.slot("a");
-    double b = hypp.slot("b");
-
-    // calculate a_k, b_k
-    double prec = 0.0;
-
-    for (int b = 0; b < B; ++b) {
-        for (int k = 0; k < K; ++k) {
-            prec += 1.0 / sigma2star(b, k);
-        }
-    }
-
-    double a_k = a + 0.5 * K * B * nu0star;
-    double b_k = b + 0.5 * nu0star * prec;
-
-    Rcpp::NumericVector p_s20 = dgamma(s20star, a_k, 1.0 / b_k);
-
-    return p_s20;
 }

@@ -177,12 +177,12 @@ reduced_nu0_batch <- function(xmod) {
     .Call('_CNPBayes_reduced_nu0_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-reduced_s20_batch <- function(xmod) {
-    .Call('_CNPBayes_reduced_s20_batch', PACKAGE = 'CNPBayes', xmod)
+log_prob_sigma2_0 <- function(xmod, s20star) {
+    .Call('_CNPBayes_log_prob_sigma2_0', PACKAGE = 'CNPBayes', xmod, s20star)
 }
 
-p_s20_reduced_batch <- function(xmod) {
-    .Call('_CNPBayes_p_s20_reduced_batch', PACKAGE = 'CNPBayes', xmod)
+reduced_s20_batch <- function(xmod) {
+    .Call('_CNPBayes_reduced_s20_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 compute_loglik_batch <- function(xmod) {
