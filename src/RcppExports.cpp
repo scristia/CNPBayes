@@ -412,6 +412,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// p_sigma_reduced_batch
+Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_p_sigma_reduced_batch(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(p_sigma_reduced_batch(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // log_prob_pmix
 double log_prob_pmix(Rcpp::S4 xmod, Rcpp::NumericVector pstar);
 RcppExport SEXP _CNPBayes_log_prob_pmix(SEXP xmodSEXP, SEXP pstarSEXP) {
@@ -432,28 +443,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(reduced_pi_batch(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_sigma_reduced_batch
-Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_sigma_reduced_batch(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_sigma_reduced_batch(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_sigma_batch
-Rcpp::S4 reduced_sigma_batch(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_sigma_batch(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_sigma_batch(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1437,10 +1426,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_mcmc_multibatch_pvar", (DL_FUNC) &_CNPBayes_mcmc_multibatch_pvar, 2},
     {"_CNPBayes_prob_theta", (DL_FUNC) &_CNPBayes_prob_theta, 2},
     {"_CNPBayes_marginal_theta_batch", (DL_FUNC) &_CNPBayes_marginal_theta_batch, 1},
+    {"_CNPBayes_p_sigma_reduced_batch", (DL_FUNC) &_CNPBayes_p_sigma_reduced_batch, 1},
     {"_CNPBayes_log_prob_pmix", (DL_FUNC) &_CNPBayes_log_prob_pmix, 2},
     {"_CNPBayes_reduced_pi_batch", (DL_FUNC) &_CNPBayes_reduced_pi_batch, 1},
-    {"_CNPBayes_p_sigma_reduced_batch", (DL_FUNC) &_CNPBayes_p_sigma_reduced_batch, 1},
-    {"_CNPBayes_reduced_sigma_batch", (DL_FUNC) &_CNPBayes_reduced_sigma_batch, 1},
     {"_CNPBayes_reduced_mu_batch", (DL_FUNC) &_CNPBayes_reduced_mu_batch, 1},
     {"_CNPBayes_p_mu_reduced_batch", (DL_FUNC) &_CNPBayes_p_mu_reduced_batch, 1},
     {"_CNPBayes_reduced_tau_batch", (DL_FUNC) &_CNPBayes_reduced_tau_batch, 1},
