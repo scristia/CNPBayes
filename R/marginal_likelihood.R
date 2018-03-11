@@ -144,9 +144,9 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   stopifnot(identical(modes(model.psigma2), modes(model)))
 
   ##psigma.star <- p_sigma_reduced_batch(model.psigma2)
-  model.pistar <- reduced_pi_batch(model.reduced)
+  log_pmix <- reduced_pi_batch(model.reduced)
   ##identical(modes(model.pistar), modes(model))
-  p.pi.star <- p_pmix_reduced_batch(model.pistar)
+  ##p.pi.star <- p_pmix_reduced_batch(model.pistar)
 
   ##
   ## Block updates for stage 2 parameters
@@ -169,7 +169,7 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   reduced_gibbs <- cbind(log_ptheta.star,
                          log_psigma.star,
                          p.mustar,
-                         p.pi.star,
+                         log_pmix,
                          p.taustar,
                          p.nu0star,
                          p.s20star)
