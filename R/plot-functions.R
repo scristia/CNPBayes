@@ -334,9 +334,12 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
 
 .ggMultiBatchChains <- function(model){
   melt.ch <- gatherChains(model)
-  dat.batch <- melt.ch$batch
-  dat.comp <- melt.ch$comp
-  dat.single <- melt.ch$single
+  dat.batch <- melt.ch$batch %>%
+    mutate(iter=as.integer(iter))
+  dat.comp <- melt.ch$comp %>%
+    as.tibble
+  dat.single <- melt.ch$single %>%
+    as.tibble
   iter <- value <- batch <- param <- comp <- NULL
   p.batch <- ggplot(dat.batch, aes(iter, value, group=batch)) +
     geom_point(size=0.3, aes(color=batch)) +
