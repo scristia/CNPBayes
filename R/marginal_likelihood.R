@@ -141,7 +141,7 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   }
   ##model.psigma2 <- reduced_sigma_batch(model.reduced)
   log_psigma.star <- reduced_sigma_batch(model.reduced)
-  stopifnot(identical(modes(model.psigma2), modes(model)))
+  stopifnot(identical(modes(model.reduced), modes(model)))
 
   ##psigma.star <- p_sigma_reduced_batch(model.psigma2)
   log_pmix <- reduced_pi_batch(model.reduced)
@@ -151,9 +151,10 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   ##
   ## Block updates for stage 2 parameters
   ##
-  model.mustar <- reduced_mu_batch(model.reduced)
-  stopifnot(identical(modes(model.mustar), modes(model)))
-  p.mustar <- p_mu_reduced_batch(model.mustar)
+  log_pmu.star <- reduced_mu_batch(model.reduced)
+  ##model.mustar <- reduced_mu_batch(model.reduced)
+  stopifnot(identical(modes(model.reduced), modes(model)))
+  ##p.mustar <- p_mu_reduced_batch(model.mustar)
 
   model.taustar <- reduced_tau_batch(model.reduced)
   ##identical(modes(model.taustar), modes(model))
@@ -168,7 +169,7 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
 
   reduced_gibbs <- cbind(log_ptheta.star,
                          log_psigma.star,
-                         p.mustar,
+                         log_pmu.star,
                          log_pmix,
                          p.taustar,
                          p.nu0star,

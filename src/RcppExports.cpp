@@ -459,7 +459,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // reduced_tau_batch
-Rcpp::S4 reduced_tau_batch(Rcpp::S4 xmod);
+Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_reduced_tau_batch(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
