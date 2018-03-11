@@ -145,10 +145,6 @@ marginal_theta_batch <- function(xmod) {
     .Call('_CNPBayes_marginal_theta_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-p_sigma_reduced_batch <- function(xmod) {
-    .Call('_CNPBayes_p_sigma_reduced_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
 log_prob_pmix <- function(xmod, pstar) {
     .Call('_CNPBayes_log_prob_pmix', PACKAGE = 'CNPBayes', xmod, pstar)
 }
@@ -157,12 +153,12 @@ reduced_pi_batch <- function(xmod) {
     .Call('_CNPBayes_reduced_pi_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-reduced_mu_batch <- function(xmod) {
-    .Call('_CNPBayes_reduced_mu_batch', PACKAGE = 'CNPBayes', xmod)
+log_prob_mu <- function(xmod, mustar) {
+    .Call('_CNPBayes_log_prob_mu', PACKAGE = 'CNPBayes', xmod, mustar)
 }
 
-p_mu_reduced_batch <- function(xmod) {
-    .Call('_CNPBayes_p_mu_reduced_batch', PACKAGE = 'CNPBayes', xmod)
+reduced_mu_batch <- function(xmod) {
+    .Call('_CNPBayes_reduced_mu_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 reduced_tau_batch <- function(xmod) {
