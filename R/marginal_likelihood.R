@@ -124,14 +124,14 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   warnings <- params$warnings
 
   model.reduced <- model
-  ptheta.star <- marginal_theta_batch(model)
+  log_ptheta.star <- marginal_theta_batch(model)
   if(paramUpdates(model)[["theta"]]==0) {
     ignore.small.pstar <- TRUE
   }
   ##tmp <- cbind(p.theta=ptheta.star, theta=thetac(model)) %>%
   ##as.tibble
   if(!ignore.small.pstar){
-    failed <- failSmallPstar(ptheta.star, params)
+    failed <- failSmallPstar(log_ptheta.star, params)
     if (failed) {
       msg <- paste("The model for k=", k(model), " may be overfit.",
                    "This can lead to an incorrect marginal likelihood")
@@ -139,10 +139,11 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
       return(matrix(NA))
     }
   }
-  model.psigma2 <- reduced_sigma_batch(model.reduced)
+  ##model.psigma2 <- reduced_sigma_batch(model.reduced)
+  log_psigma.star <- reduced_sigma_batch(model.reduced)
   stopifnot(identical(modes(model.psigma2), modes(model)))
-  psigma.star <- p_sigma_reduced_batch(model.psigma2)
 
+  ##psigma.star <- p_sigma_reduced_batch(model.psigma2)
   model.pistar <- reduced_pi_batch(model.reduced)
   ##identical(modes(model.pistar), modes(model))
   p.pi.star <- p_pmix_reduced_batch(model.pistar)
@@ -165,8 +166,13 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   model.s20star <- reduced_s20_batch(model.reduced)
   p.s20star <- p_s20_reduced_batch(model.s20star)
 
-  reduced_gibbs <- cbind(ptheta.star, psigma.star, p.mustar, p.pi.star,
-                         p.taustar, p.nu0star, p.s20star)
+  reduced_gibbs <- cbind(log_ptheta.star,
+                         log_psigma.star,
+                         p.mustar,
+                         p.pi.star,
+                         p.taustar,
+                         p.nu0star,
+                         p.s20star)
 
   colnames(reduced_gibbs) <- c("theta", "sigma", "pi", "mu",
                                "tau", "nu0", "s20")
