@@ -160,9 +160,9 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   identical(modes(model.reduced), modes(model))
   ##p.taustar <- p_tau_reduced_batch(model.mustar)
 
-  model.nu0star <- reduced_nu0_batch(model.reduced)
-  ##identical(modes(model.nu0star), modes(model))
-  p.nu0star <- p_nu0_reduced_batch(model.nu0star)
+  log_pnu0 <- reduced_nu0_batch(model.reduced)
+  identical(modes(model.reduced), modes(model))
+  ##p.nu0star <- p_nu0_reduced_batch(model.nu0star)
 
   model.s20star <- reduced_s20_batch(model.reduced)
   p.s20star <- p_s20_reduced_batch(model.s20star)
@@ -172,8 +172,7 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
                          log_pmu,
                          log_pmix,
                          log_ptau2,
-                         p.taustar,
-                         p.nu0star,
+                         log_pnu0,
                          p.s20star)
 
   colnames(reduced_gibbs) <- c("theta", "sigma", "pi", "mu",

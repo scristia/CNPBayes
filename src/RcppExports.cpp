@@ -505,7 +505,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // reduced_s20_batch
-Rcpp::S4 reduced_s20_batch(Rcpp::S4 xmod);
+Rcpp::NumericVector reduced_s20_batch(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_reduced_s20_batch(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
