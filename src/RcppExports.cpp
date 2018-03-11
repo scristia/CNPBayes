@@ -389,6 +389,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// prob_theta
+double prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar);
+RcppExport SEXP _CNPBayes_prob_theta(SEXP xmodSEXP, SEXP thetastarSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type thetastar(thetastarSEXP);
+    rcpp_result_gen = Rcpp::wrap(prob_theta(xmod, thetastar));
+    return rcpp_result_gen;
+END_RCPP
+}
 // marginal_theta_batch
 Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_marginal_theta_batch(SEXP xmodSEXP) {
@@ -1477,6 +1489,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_sigma2_multibatch_pvar", (DL_FUNC) &_CNPBayes_sigma2_multibatch_pvar, 1},
     {"_CNPBayes_burnin_multibatch_pvar", (DL_FUNC) &_CNPBayes_burnin_multibatch_pvar, 2},
     {"_CNPBayes_mcmc_multibatch_pvar", (DL_FUNC) &_CNPBayes_mcmc_multibatch_pvar, 2},
+    {"_CNPBayes_prob_theta", (DL_FUNC) &_CNPBayes_prob_theta, 2},
     {"_CNPBayes_marginal_theta_batch", (DL_FUNC) &_CNPBayes_marginal_theta_batch, 1},
     {"_CNPBayes_p_theta_zpermuted_batch", (DL_FUNC) &_CNPBayes_p_theta_zpermuted_batch, 1},
     {"_CNPBayes_simulate_z_reduced1_batch", (DL_FUNC) &_CNPBayes_simulate_z_reduced1_batch, 1},
