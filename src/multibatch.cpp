@@ -519,21 +519,21 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
   NumericVector u = model.slot("u") ;
   double df = getDf(hypp) ;
   // find heavy means by batch
-  NumericMatrix data_mean =  compute_heavy_sums_batch(xmod) ;
+  NumericMatrix data_sum =  compute_heavy_sums_batch(xmod) ;
   NumericMatrix sumu = compute_u_sums_batch(xmod) ;
   double heavyn = 0.0;
   double heavy_mean = 0.0;
   for (int b = 0; b < B; ++b) {
     for(int k = 0; k < K; ++k){
-      heavyn = n_hb(b, k) * sumu(b, k) / df;
-      heavy_mean = data_mean(b, k) / df;
+      heavyn = sumu(b, k) / df;
       post_prec = 1.0/tau2[k] + heavyn*1.0/sigma2(b, k) ;
       if (post_prec == R_PosInf) {
         throw std::runtime_error("Bad simulation. Run again with different start.");
       }
       tau_n = sqrt(1.0/post_prec) ;
       w1 = (1.0/tau2[k])/post_prec ;
-      w2 = (n_hb(b, k) * 1.0/sigma2(b, k))/post_prec ;
+      w2 = (heavyn * 1.0/sigma2(b, k))/post_prec ;
+      heavy_mean = data_sum(b, k) / heavyn / df;
       mu_n = w1*mu[k] + w2*heavy_mean ;
       theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
     }
