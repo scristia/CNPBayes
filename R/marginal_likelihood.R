@@ -7,61 +7,6 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   small.theta.red >= prop.threshold
 }
 
-.blockUpdates <- function(model, params){
-  ignore.small.pstar <- params$ignore.small.pstar
-  warnings <- params$warnings
-  model.reduced <- model
-  ## Let theta1 = theta
-  ## and theta2 = [sigma2, tau2, mu, nu.0]  (all parameters except theta)
-  ##
-  ## p(theta* | y) = sum_g^G p(theta* | y, theta2^(g), z^(g))
-  ptheta.star <- marginal_theta(model)
-  ##
-  ## ptheta.star
-  ##
-  if(paramUpdates(model)[["theta"]]==0) {
-    ignore.small.pstar <- TRUE
-  }
-  if(!ignore.small.pstar){
-    failed <- failSmallPstar(ptheta.star, params)
-    if (failed) {
-      msg <- paste("Small values for p(theta* | ...) in the reduced Gibbs.")
-      if(warnings) warning(msg)
-      return(NA)
-    }
-  }
-  ##
-  ## p(sigma2* | y, theta1*) = sum_g=1^G p(sigma2* | y, theta1*, z^(g), theta2^(g))
-  ##
-  model.psigma2 <- reduced_sigma(model.reduced)
-  psigma.star <- p_sigma_reduced(model.psigma2)
-
-  model.pistar <- reduced_pi(model.reduced)
-  p.pi.star <- p_pmix_reduced(model.pistar)
-
-  ##
-  ## Block updates for stage 2 parameters
-  ##
-  model.mustar <- reduced_mu(model.reduced)
-  p.mustar <- p_mu_reduced(model.mustar)
-
-  model.taustar <- reduced_tau(model.reduced)
-  p.taustar <- p_tau_reduced(model.mustar)
-
-  model.nu0star <- reduced_nu0(model.reduced)
-  p.nu0star <- p_nu0_reduced(model.nu0star)
-
-  model.s20star <- reduced_s20(model.reduced)
-  p.s20star <- p_s20_reduced(model.s20star)
-
-  reduced_gibbs <- cbind(ptheta.star, psigma.star, p.mustar, p.pi.star,
-                         p.taustar, p.nu0star, p.s20star)
-
-  colnames(reduced_gibbs) <- c("theta", "sigma", "pi", "mu",
-                               "tau", "nu0", "s20")
-  reduced_gibbs
-}
-
 .blockUpdatesPooledVar <- function(model, params){
   reject.threshold <- params$reject.threshold
   prop.threshold <- params$prop.threshold
