@@ -11,9 +11,17 @@ test_that("targeted_seq data", {
                        "targeted_seq.txt")
   dat <- read.delim(extfile)[[1]]
   dat <- sample(dat, 500)
-  mlist <- gibbs_K(mp=mp, dat=dat, k_range=c(2, 3),
+  expect_warning(
+    ## warning about effective sample size
+    mlist <- gibbs("SB",
+                   mp=mp, dat=dat, k_range=c(2, 3),
                    max_burnin=50,
-                   min_effsize=25)
+                   min_effsize=25,
+                   batches=rep(1L, length(dat)))
+  )
+  ##  mlist <- gibbs_K(mp=mp, dat=dat, k_range=c(2, 3),
+  ##                   max_burnin=50,
+  ##                   min_effsize=25)
   ##
   ## Select k=3
   ##

@@ -404,9 +404,10 @@ compute_marginal_lik <- function(model, params){
 gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500){
   nchains <- nStarts(mp)
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
-  if(iter(mp) < min_effsize){
-    stop("Require at least 500 Monte Carlo simulations")
-  }
+  if(iter(mp) < 500){
+    warning("Require at least 500 Monte Carlo simulations")
+    MIN_EFF <- ceiling(iter(mp) * 0.5)
+  } else MIN_EFF <- min_effsize
   while(burnin(mp) < max_burnin && thin(mp) < 100){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mod.list <- replicate(nchains, MultiBatchModel2(dat=dat,
@@ -491,7 +492,8 @@ gibbs_batch_K <- function(hp,
                           dat,
                           batches,
                           max_burnin=32000,
-                          reduce_size=TRUE){
+                          reduce_size=TRUE,
+                          min_effsize=500){
   K <- seq(k_range[1], k_range[2])
   hp.list <- map(K, updateK, hp)
   model.list <- map(hp.list,
@@ -499,7 +501,8 @@ gibbs_batch_K <- function(hp,
                     mp=mp,
                     dat=dat,
                     batches=batches,
-                    max_burnin=max_burnin)
+                    max_burnin=max_burnin,
+                    min_effsize=min_effsize)
   names(model.list) <- paste0("MB", map_dbl(model.list, k))
   ## sort by marginal likelihood
   ##
@@ -731,7 +734,8 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                   k_range=c(1, 4),
                   max_burnin=32e3,
                   top=2,
-                  df=100){
+                  df=100,
+                  min_effsize=500){
   max_burnin <- max(max_burnin, burnin(mp)) + 1
   if(("MB" %in% model || "MBP" %in% model) && missing(batches)){
     stop("batches is missing.  Must specify batches for MB and MBP models")
@@ -747,7 +751,8 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                         mp=mp,
                         dat=dat,
                         batches=rep(1L, length(dat)),
-                        max_burnin=max_burnin)
+                        max_burnin=max_burnin,
+                        min_effsize=min_effsize)
     ##    sb <- gibbs_K(hp.list[["SB"]],
     ##                  k_range=k_range,
     ##                  mp=mp,
@@ -761,7 +766,8 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                         mp=mp,
                         dat=dat,
                         batches=batches,
-                        max_burnin=max_burnin)
+                        max_burnin=max_burnin,
+                        min_effsize=min_effsize)
   } else mb <- NULL
   if("SBP" %in% model){
     message("Fitting SBP models")
@@ -770,7 +776,8 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                                  mp=mp,
                                  dat=dat,
                                  batches=rep(1L, length(dat)),
-                                 max_burnin=max_burnin)
+                                 max_burnin=max_burnin,
+                                 min_effsize=min_effsize)
     ##    sbp <- gibbsSingleBatchPooled(hp.list[["SBP"]],
     ##                                  k_range=k_range,
     ##                                  mp=mp,
@@ -784,7 +791,8 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                                  mp=mp,
                                  dat=dat,
                                  batches=batches,
-                                 max_burnin=max_burnin)
+                                 max_burnin=max_burnin,
+                                 min_effsize=min_effsize)
   } else mbp <- NULL
   models <- c(sb, mb, sbp, mbp)
   ## order models by marginal likelihood

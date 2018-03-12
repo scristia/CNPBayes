@@ -205,13 +205,13 @@ combine_multibatch_pooled <- function(model.list, batches){
 }
 
 
-gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches){
+gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500){
   nchains <- nStarts(mp)
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
   if(iter(mp) < 500){
     warning("Require at least 500 Monte Carlo simulations")
     MIN_EFF <- ceiling(iter(mp) * 0.5)
-  } else MIN_EFF <- 500
+  } else MIN_EFF <- min_effsize
   while(burnin(mp) < max_burnin && thin(mp) < 100){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mod.list <- replicate(nchains, MultiBatchPooled(dat=dat,
@@ -277,7 +277,8 @@ gibbsMultiBatchPooled <- function(hp,
                                   dat,
                                   batches,
                                   max_burnin=32000,
-                                  reduce_size=TRUE){
+                                  reduce_size=TRUE,
+                                  min_effsize=500){
   K <- seq(k_range[1], k_range[2])
   hp.list <- map(K, updateK, hp)
   model.list <- map(hp.list,
@@ -285,7 +286,8 @@ gibbsMultiBatchPooled <- function(hp,
                     mp=mp,
                     dat=dat,
                     batches=batches,
-                    max_burnin=max_burnin)
+                    max_burnin=max_burnin,
+                    min_effsize=min_effsize)
   names(model.list) <- paste0("MBP", map_dbl(model.list, k))
   ## sort by marginal likelihood
   ##
