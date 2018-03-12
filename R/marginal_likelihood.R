@@ -263,7 +263,7 @@ effectiveSizeWarning <- function(model){
         "See ?coda::effectiveSize")
 }
 
-k.ml_batchmodel <- function(model, params=mlParams()){
+.ml_batchmodel <- function(model, params=mlParams()){
   ## calculate effective size of thetas and check against threshold
   warnings <- params$warnings
   if (failEffectiveSize(model, params)) {
@@ -633,6 +633,38 @@ probSigma2 <- function(model, sigma2star){
       ##hist(tmp2, breaks=250)
       ##abline(v=prec[1])
       total <- total+tmp;
+    }
+  }
+  total
+}
+
+probTheta <- function(model){
+  thetastar <- modes(model)[["theta"]]
+  zz <- z(model)
+  K <- k(model)
+  nn = tableZ(K, zz);
+  tau2 <- tau2(model)
+  tauc = sqrt(tau2);
+  data_sum = compute_heavy_sums_batch(model);
+  sumu = compute_u_sums_batch(model) ;
+  sigma2 <- sigma2(model)
+  ##data_mean = compute_means_batch(model);
+  tau2_tilde = 1.0 / tau2;
+  invs2 = 1.0 / sigma2;    ##this is a vector of length B
+  sigma2_tilde = matrix(invs2, nrow=1)
+  total = 0.0;
+  for (k in seq_len(K)) {
+    for (b in seq_len(nrow(thetastar))) {
+      heavyn = sumu[b, k] / df;
+      post_prec = tau2_tilde[k] + heavyn*1.0 * sigma2_tilde[b] ;
+      tau_n = sqrt(1/post_prec);
+      w1 = tau2_tilde[k]/post_prec;
+      w2 = heavyn * sigma2_tilde[b, k]/post_prec;
+      heavy_mean = data_sum[b, k] / heavyn / df;
+      mu_n = w1*mu[k] + w2*heavy_mean;
+      theta = thetastar[b, k];
+      tmp = dnorm(theta, mu_n, tau_n, log=TRUE);
+      total = total + tmp;
     }
   }
   total

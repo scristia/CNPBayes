@@ -66,7 +66,7 @@ double log_prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar) {
       }
       tau_n = sqrt(1.0/post_prec) ;
       w1 = (tau2_tilde[k])/post_prec ;
-      w2 = (n_hb(b, k) * sigma2_tilde(b, k))/post_prec ;
+      w2 = (heavyn * sigma2_tilde(b, k))/post_prec ;
       w1 = w1/(w1 + w2);
       w2 = 1-w1; 
       heavy_mean = data_sum(b, k) / heavyn / df;
