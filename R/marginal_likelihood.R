@@ -127,7 +127,7 @@ reduced <- function(model, params=mlParams()){
   ignore.small.pstar <- params$ignore.small.pstar
   warnings <- params$warnings
   model.reduced <- model
-  logprobs <- tibble(theta=marginal_theta_batch(model))
+  logprobs <- tibble(theta=marginal_theta_batch(model.reduced))
   if(paramUpdates(model)[["theta"]]==0) {
     ignore.small.pstar <- TRUE
   }
@@ -142,12 +142,10 @@ reduced <- function(model, params=mlParams()){
   }
   logprobs$sigma <- reduced_sigma_batch(model.reduced)
   stopifnot(identical(modes(model.reduced), modes(model)))
-
   ##psigma.star <- p_sigma_reduced_batch(model.psigma2)
   logprobs$pi <- reduced_pi_batch(model.reduced)
   ##identical(modes(model.pistar), modes(model))
   ##p.pi.star <- p_pmix_reduced_batch(model.pistar)
-
   ##
   ## Block updates for stage 2 parameters
   ##

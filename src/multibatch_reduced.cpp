@@ -93,11 +93,10 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     Rcpp::NumericMatrix thetastar=clone(theta_);
     Rcpp::NumericVector logp(S);
     int K = thetastar.ncol();
-    Rcpp::IntegerVector z=model.slot("z") ;
     double df = getDf(model.slot("hyperparams")) ;
     for (int s=0; s < S; ++s) {
       model.slot("z") = update_z_batch(model) ;
-      model.slot("zfreq") = tableZ(K, z) ;
+      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       model.slot("theta") = update_theta_batch(model) ;
       model.slot("sigma2") = update_sigma2_batch(model) ;
       model.slot("mu") = update_mu_batch(model) ;
@@ -235,14 +234,14 @@ Rcpp::NumericVector reduced_pi_batch(Rcpp::S4 xmod) {
   Rcpp::S4 model = clone(model_);
   Rcpp::S4 params=model.slot("mcmc.params");
   int S = params.slot("iter");
-  Rcpp::NumericVector y = params.slot("data");
+  Rcpp::NumericVector y = model.slot("data");
   int N=y.size();
   Rcpp::List modes = model.slot("modes");
   Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
   Rcpp::NumericMatrix thetastar=clone(theta_);
   Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
   Rcpp::NumericMatrix sigma2star = clone(sigma2_);
-  Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericMatrix>(modes["mixprob"]);
+  Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
   Rcpp::NumericVector pstar = clone(p_);
   int K = thetastar.ncol();
   double df = getDf(model.slot("hyperparams")) ;
@@ -346,14 +345,14 @@ Rcpp::NumericVector reduced_mu_batch(Rcpp::S4 xmod) {
   Rcpp::S4 model = clone(model_);
   Rcpp::S4 params=model.slot("mcmc.params");
   int S = params.slot("iter");
-  Rcpp::NumericVector y = params.slot("data");
+  Rcpp::NumericVector y = model.slot("data");
   int N=y.size();
   Rcpp::List modes = model.slot("modes");
   Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
   Rcpp::NumericMatrix thetastar=clone(theta_);
   Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
   Rcpp::NumericMatrix sigma2star = clone(sigma2_);
-  Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericMatrix>(modes["mixprob"]);
+  Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
   Rcpp::NumericVector pstar = clone(p_);
   Rcpp::NumericVector mu_ = Rcpp::as<Rcpp::NumericMatrix>(modes["mu"]);
   Rcpp::NumericVector mustar = clone(mu_);
@@ -433,7 +432,7 @@ Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod) {
   Rcpp::S4 hypp=model.slot("hyperparams");
   int S = params.slot("iter");
   int K = hypp.slot("k");
-  Rcpp::NumericVector y = params.slot("data");
+  Rcpp::NumericVector y = model.slot("data");
   int N=y.size();
   Rcpp::List modes = model.slot("modes");
   Rcpp::NumericVector tau2_ = Rcpp::as<Rcpp::NumericVector>(modes["tau2"]);
@@ -515,7 +514,7 @@ Rcpp::NumericVector reduced_nu0_batch(Rcpp::S4 xmod) {
   Rcpp::S4 hypp=model.slot("hyperparams");
   int S = params.slot("iter");
   int K = hypp.slot("k");
-  Rcpp::NumericVector y = params.slot("data");
+  Rcpp::NumericVector y = model.slot("data");
   int N=y.size();
   Rcpp::List modes = model.slot("modes");
   Rcpp::IntegerVector nu0_ = Rcpp::as<Rcpp::IntegerVector>(modes["nu0"]);
@@ -586,7 +585,7 @@ Rcpp::NumericVector reduced_s20_batch(Rcpp::S4 xmod) {
   Rcpp::S4 hypp=model.slot("hyperparams");
   int S = params.slot("iter");
   int K = hypp.slot("k");
-  Rcpp::NumericVector y = params.slot("data");
+  Rcpp::NumericVector y = model.slot("data");
   int N=y.size();
   Rcpp::List modes = model.slot("modes");
   Rcpp::NumericVector s20_ = Rcpp::as<Rcpp::NumericVector>(modes["sigma2.0"]);
