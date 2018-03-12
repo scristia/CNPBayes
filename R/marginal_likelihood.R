@@ -7,61 +7,6 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   small.theta.red >= prop.threshold
 }
 
-.blockUpdatesPooledVar <- function(model, params){
-  reject.threshold <- params$reject.threshold
-  prop.threshold <- params$prop.threshold
-  ignore.small.pstar <- params$ignore.small.pstar
-  warnings <- params$warnings
-  model.reduced <- model
-  ##
-  ## Block updates for stage 1 parameters
-  ##
-  ptheta.star <- full_theta_pooled(model)
-  if(paramUpdates(model)[["theta"]]==0) {
-    ignore.small.pstar <- TRUE
-  }
-  if(!ignore.small.pstar){
-    failed <- failSmallPstar(ptheta.star, params)
-    if (failed) {
-      msg <- paste("The model for k=", k(model), " may be overfit.",
-                   "This can lead to an incorrect marginal likelihood")
-      if(warnings) warning(msg)
-      return(NA)
-    }
-  }
-  model.psigma2 <- reduced_sigma_pooled(model.reduced)
-  identical(modes(model.psigma2), modes(model))
-  psigma.star <- p_sigma_reduced_pooled(model.psigma2)
-
-  model.pistar <- reduced_pi_pooled(model.reduced)
-  identical(modes(model.pistar), modes(model))
-  p.pi.star <- p_pmix_reduced_pooled(model.pistar)
-
-  ##
-  ## Block updates for stage 2 parameters
-  ##
-  model.mustar <- reduced_mu_pooled(model.reduced)
-  stopifnot(identical(modes(model.mustar), modes(model)))
-  p.mustar <- p_mu_reduced_pooled(model.mustar)
-
-  model.taustar <- reduced_tau_pooled(model.reduced)
-  identical(modes(model.taustar), modes(model))
-  p.taustar <- p_tau_reduced_pooled(model.mustar)
-
-  model.nu0star <- reduced_nu0_pooled(model.reduced)
-  identical(modes(model.nu0star), modes(model))
-  p.nu0star <- p_nu0_reduced_pooled(model.nu0star)
-
-  model.s20star <- reduced_s20_pooled(model.reduced)
-  p.s20star <- p_s20_reduced_pooled(model.s20star)
-
-  reduced_gibbs <- cbind(ptheta.star, psigma.star, p.mustar, p.pi.star,
-                         p.taustar, p.nu0star, p.s20star)
-  colnames(reduced_gibbs) <- c("theta", "sigma", "pi", "mu",
-                               "tau", "nu0", "s20")
-  reduced_gibbs
-}
-
 reduced <- function(model, params=mlParams()){
   .blockUpdatesBatch(model, params)
 }
