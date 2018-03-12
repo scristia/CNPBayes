@@ -70,9 +70,7 @@ reduced <- function(model, params=mlParams()){
       return(matrix(NA))
     }
   }
-  model.psigma2 <- reduced_sigma_pooled(model.reduced)
-  psigma.star <- psigma_multibatch_pvar_red(model.psigma2)
-
+  logprobs$sigma2 <- reduced_sigma_pooled(model.reduced)
   model.pistar <- pi_multibatch_pvar_red(model.reduced)
   p.pi.star <- p_pmix_reduced_batch(model.pistar)
 

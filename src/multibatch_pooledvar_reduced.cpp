@@ -130,6 +130,7 @@ double log_prob_sigmap(Rcpp::S4 xmod, Rcpp::NumericVector sigma2star) {
   prec = 1.0 / sigma2star;
   Rcpp::NumericMatrix nn(B, K);
   Rcpp::NumericVector ss(B);
+  double df = getDf(model.slot("hyperparams")) ;
   for (int i = 0; i < n; i++) {
     for (int b = 0; b < B; ++b) {
       if (batch[i] != ub[b]) {
@@ -137,7 +138,6 @@ double log_prob_sigmap(Rcpp::S4 xmod, Rcpp::NumericVector sigma2star) {
       }
       for (int k = 0; k < K; ++k) {
         if (zz[i] == k + 1) {
-          //ss(b, k) += pow(x[i] - thetastar(b, k), 2);
           ss[b] += u[i] * pow(x[i] - thetastar(b, k), 2);
         }
       }
@@ -145,15 +145,15 @@ double log_prob_sigmap(Rcpp::S4 xmod, Rcpp::NumericVector sigma2star) {
   }
   double total = 0.0;
   Rcpp::NumericVector prec_typed(1);
-  nn = tableBatchZ(model) ;
+  Rcpp::NumericMatrix tabz = tableBatchZ(xmod);
   for (int b = 0; b < B; ++b) {
-    nu_n = nu0 + sum(nn(b, Rcpp::_));
-    sigma2_n = 1.0 / nu_n * (nu0 * s20 + ss[b]);
+    nu_n = nu0 + sum(tabz(b, Rcpp::_));
+    sigma2_n = 1.0 / nu_n * (nu0 * s20 + ss[b]/df);
     // calculate shape and rate
     shape = 0.5 * nu_n;
     rate = shape * sigma2_n;
     // calculate probability
-    prec_typed[0] = prec[b]; 
+    prec_typed[0] = prec[b];
     tmp = Rcpp::dgamma(prec_typed, shape[0], 1.0 / rate[0], true);
     total += tmp[0];
   }
