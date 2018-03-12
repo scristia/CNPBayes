@@ -167,36 +167,37 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// maringal_theta_pooled
-Rcpp::NumericVector maringal_theta_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_maringal_theta_pooled(SEXP xmodSEXP) {
+// marginal_theta_pooled
+Rcpp::NumericVector marginal_theta_pooled(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_marginal_theta_pooled(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(maringal_theta_pooled(xmod));
+    rcpp_result_gen = Rcpp::wrap(marginal_theta_pooled(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
-// sigma_multibatch_pvar_red
-Rcpp::S4 sigma_multibatch_pvar_red(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_sigma_multibatch_pvar_red(SEXP xmodSEXP) {
+// log_prob_sigmap
+double log_prob_sigmap(Rcpp::S4 xmod, Rcpp::NumericVector sigma2star);
+RcppExport SEXP _CNPBayes_log_prob_sigmap(SEXP xmodSEXP, SEXP sigma2starSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(sigma_multibatch_pvar_red(xmod));
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type sigma2star(sigma2starSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_prob_sigmap(xmod, sigma2star));
     return rcpp_result_gen;
 END_RCPP
 }
-// psigma_multibatch_pvar_red
-Rcpp::NumericVector psigma_multibatch_pvar_red(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_psigma_multibatch_pvar_red(SEXP xmodSEXP) {
+// reduced_sigma_pooled
+Rcpp::NumericVector reduced_sigma_pooled(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_reduced_sigma_pooled(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(psigma_multibatch_pvar_red(xmod));
+    rcpp_result_gen = Rcpp::wrap(reduced_sigma_pooled(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -783,149 +784,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// full_theta_pooled
-Rcpp::NumericVector full_theta_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_full_theta_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(full_theta_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_sigma_pooled
-Rcpp::S4 reduced_sigma_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_sigma_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_sigma_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_sigma_reduced_pooled
-Rcpp::NumericVector p_sigma_reduced_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_sigma_reduced_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_sigma_reduced_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_pi_pooled
-Rcpp::S4 reduced_pi_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_pi_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_pi_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_pmix_reduced_pooled
-Rcpp::NumericVector p_pmix_reduced_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_pmix_reduced_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_pmix_reduced_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_mu_pooled
-Rcpp::S4 reduced_mu_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_mu_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_mu_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_mu_reduced_pooled
-Rcpp::NumericVector p_mu_reduced_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_mu_reduced_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_mu_reduced_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_tau_pooled
-Rcpp::S4 reduced_tau_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_tau_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_tau_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_tau_reduced_pooled
-Rcpp::NumericVector p_tau_reduced_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_tau_reduced_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_tau_reduced_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_nu0_pooled
-Rcpp::S4 reduced_nu0_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_nu0_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_nu0_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_nu0_reduced_pooled
-Rcpp::NumericVector p_nu0_reduced_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_nu0_reduced_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_nu0_reduced_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_s20_pooled
-Rcpp::S4 reduced_s20_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_s20_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_s20_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_s20_reduced_pooled
-Rcpp::NumericVector p_s20_reduced_pooled(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_s20_reduced_pooled(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_s20_reduced_pooled(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
 // theta_pooled
 Rcpp::NumericVector theta_pooled(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_theta_pooled(SEXP xmodSEXP) {
@@ -1068,149 +926,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
     Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
     rcpp_result_gen = Rcpp::wrap(mcmc_singlebatch_pooled(object, mcmcp));
-    return rcpp_result_gen;
-END_RCPP
-}
-// marginal_theta
-Rcpp::NumericVector marginal_theta(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_marginal_theta(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(marginal_theta(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_pmix_reduced
-Rcpp::NumericVector p_pmix_reduced(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_pmix_reduced(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_pmix_reduced(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_sigma
-Rcpp::S4 reduced_sigma(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_sigma(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_sigma(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_sigma_reduced
-Rcpp::NumericVector p_sigma_reduced(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_sigma_reduced(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_sigma_reduced(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_pi
-Rcpp::S4 reduced_pi(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_pi(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_pi(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_mu
-Rcpp::S4 reduced_mu(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_mu(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_mu(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_mu_reduced
-Rcpp::NumericVector p_mu_reduced(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_mu_reduced(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_mu_reduced(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_tau
-Rcpp::S4 reduced_tau(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_tau(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_tau(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_tau_reduced
-Rcpp::NumericVector p_tau_reduced(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_tau_reduced(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_tau_reduced(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_nu0
-Rcpp::S4 reduced_nu0(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_nu0(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_nu0(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_nu0_reduced
-Rcpp::NumericVector p_nu0_reduced(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_nu0_reduced(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_nu0_reduced(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_s20
-Rcpp::S4 reduced_s20(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_reduced_s20(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_s20(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_s20_reduced
-Rcpp::NumericVector p_s20_reduced(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_s20_reduced(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_s20_reduced(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1431,9 +1146,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_compute_u_sums_batch", (DL_FUNC) &_CNPBayes_compute_u_sums_batch, 1},
     {"_CNPBayes_compute_heavy_sums_batch", (DL_FUNC) &_CNPBayes_compute_heavy_sums_batch, 1},
     {"_CNPBayes_compute_heavy_means_batch", (DL_FUNC) &_CNPBayes_compute_heavy_means_batch, 1},
-    {"_CNPBayes_maringal_theta_pooled", (DL_FUNC) &_CNPBayes_maringal_theta_pooled, 1},
-    {"_CNPBayes_sigma_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_sigma_multibatch_pvar_red, 1},
-    {"_CNPBayes_psigma_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_psigma_multibatch_pvar_red, 1},
+    {"_CNPBayes_marginal_theta_pooled", (DL_FUNC) &_CNPBayes_marginal_theta_pooled, 1},
+    {"_CNPBayes_log_prob_sigmap", (DL_FUNC) &_CNPBayes_log_prob_sigmap, 2},
+    {"_CNPBayes_reduced_sigma_pooled", (DL_FUNC) &_CNPBayes_reduced_sigma_pooled, 1},
     {"_CNPBayes_pi_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_pi_multibatch_pvar_red, 1},
     {"_CNPBayes_mu_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_mu_multibatch_pvar_red, 1},
     {"_CNPBayes_tau_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_tau_multibatch_pvar_red, 1},
@@ -1486,19 +1201,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_p_theta_zfixed_batch", (DL_FUNC) &_CNPBayes_p_theta_zfixed_batch, 1},
     {"_CNPBayes_reduced_z_theta_fixed", (DL_FUNC) &_CNPBayes_reduced_z_theta_fixed, 1},
     {"_CNPBayes_p_sigma2_batch", (DL_FUNC) &_CNPBayes_p_sigma2_batch, 1},
-    {"_CNPBayes_full_theta_pooled", (DL_FUNC) &_CNPBayes_full_theta_pooled, 1},
-    {"_CNPBayes_reduced_sigma_pooled", (DL_FUNC) &_CNPBayes_reduced_sigma_pooled, 1},
-    {"_CNPBayes_p_sigma_reduced_pooled", (DL_FUNC) &_CNPBayes_p_sigma_reduced_pooled, 1},
-    {"_CNPBayes_reduced_pi_pooled", (DL_FUNC) &_CNPBayes_reduced_pi_pooled, 1},
-    {"_CNPBayes_p_pmix_reduced_pooled", (DL_FUNC) &_CNPBayes_p_pmix_reduced_pooled, 1},
-    {"_CNPBayes_reduced_mu_pooled", (DL_FUNC) &_CNPBayes_reduced_mu_pooled, 1},
-    {"_CNPBayes_p_mu_reduced_pooled", (DL_FUNC) &_CNPBayes_p_mu_reduced_pooled, 1},
-    {"_CNPBayes_reduced_tau_pooled", (DL_FUNC) &_CNPBayes_reduced_tau_pooled, 1},
-    {"_CNPBayes_p_tau_reduced_pooled", (DL_FUNC) &_CNPBayes_p_tau_reduced_pooled, 1},
-    {"_CNPBayes_reduced_nu0_pooled", (DL_FUNC) &_CNPBayes_reduced_nu0_pooled, 1},
-    {"_CNPBayes_p_nu0_reduced_pooled", (DL_FUNC) &_CNPBayes_p_nu0_reduced_pooled, 1},
-    {"_CNPBayes_reduced_s20_pooled", (DL_FUNC) &_CNPBayes_reduced_s20_pooled, 1},
-    {"_CNPBayes_p_s20_reduced_pooled", (DL_FUNC) &_CNPBayes_p_s20_reduced_pooled, 1},
     {"_CNPBayes_theta_pooled", (DL_FUNC) &_CNPBayes_theta_pooled, 1},
     {"_CNPBayes_theta_heavy", (DL_FUNC) &_CNPBayes_theta_heavy, 1},
     {"_CNPBayes_loglik_pooled", (DL_FUNC) &_CNPBayes_loglik_pooled, 1},
@@ -1512,19 +1214,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_sigma2_heavy", (DL_FUNC) &_CNPBayes_sigma2_heavy, 1},
     {"_CNPBayes_burnin_singlebatch_pooled", (DL_FUNC) &_CNPBayes_burnin_singlebatch_pooled, 2},
     {"_CNPBayes_mcmc_singlebatch_pooled", (DL_FUNC) &_CNPBayes_mcmc_singlebatch_pooled, 2},
-    {"_CNPBayes_marginal_theta", (DL_FUNC) &_CNPBayes_marginal_theta, 1},
-    {"_CNPBayes_p_pmix_reduced", (DL_FUNC) &_CNPBayes_p_pmix_reduced, 1},
-    {"_CNPBayes_reduced_sigma", (DL_FUNC) &_CNPBayes_reduced_sigma, 1},
-    {"_CNPBayes_p_sigma_reduced", (DL_FUNC) &_CNPBayes_p_sigma_reduced, 1},
-    {"_CNPBayes_reduced_pi", (DL_FUNC) &_CNPBayes_reduced_pi, 1},
-    {"_CNPBayes_reduced_mu", (DL_FUNC) &_CNPBayes_reduced_mu, 1},
-    {"_CNPBayes_p_mu_reduced", (DL_FUNC) &_CNPBayes_p_mu_reduced, 1},
-    {"_CNPBayes_reduced_tau", (DL_FUNC) &_CNPBayes_reduced_tau, 1},
-    {"_CNPBayes_p_tau_reduced", (DL_FUNC) &_CNPBayes_p_tau_reduced, 1},
-    {"_CNPBayes_reduced_nu0", (DL_FUNC) &_CNPBayes_reduced_nu0, 1},
-    {"_CNPBayes_p_nu0_reduced", (DL_FUNC) &_CNPBayes_p_nu0_reduced, 1},
-    {"_CNPBayes_reduced_s20", (DL_FUNC) &_CNPBayes_reduced_s20, 1},
-    {"_CNPBayes_p_s20_reduced", (DL_FUNC) &_CNPBayes_p_s20_reduced, 1},
     {"_CNPBayes_update_theta", (DL_FUNC) &_CNPBayes_update_theta, 1},
     {"_CNPBayes_loglik", (DL_FUNC) &_CNPBayes_loglik, 1},
     {"_CNPBayes_log_ddirichlet_", (DL_FUNC) &_CNPBayes_log_ddirichlet_, 2},

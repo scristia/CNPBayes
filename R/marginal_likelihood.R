@@ -56,16 +56,13 @@ reduced <- function(model, params=mlParams()){
   prop.threshold <- params$prop.threshold
   ignore.small.pstar <- params$ignore.small.pstar
   warnings <- params$warnings
-
   model.reduced <- model
-  ##ptheta.star <- marginal_theta_batch(model)
   logprobs <- tibble(theta=marginal_theta_pooled(model.reduced))
-  ##ptheta.star <- theta_multibatch_pvar_red(model)
   if(paramUpdates(model)[["theta"]]==0) {
     ignore.small.pstar <- TRUE
   }
   if(!ignore.small.pstar){
-    failed <- failSmallPstar(ptheta.star, params)
+    failed <- failSmallPstar(logprobs$theta, params)
     if (failed) {
       msg <- paste("The model for k=", k(model), " may be overfit.",
                    "This can lead to an incorrect marginal likelihood")
@@ -73,7 +70,7 @@ reduced <- function(model, params=mlParams()){
       return(matrix(NA))
     }
   }
-  model.psigma2 <- sigma_multibatch_pvar_red(model.reduced)
+  model.psigma2 <- reduced_sigma_pooled(model.reduced)
   psigma.star <- psigma_multibatch_pvar_red(model.psigma2)
 
   model.pistar <- pi_multibatch_pvar_red(model.reduced)
