@@ -111,7 +111,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     return logp;
 }
 
-
+// [[Rcpp::export]]
 double log_prob_sigma2(Rcpp::S4 model, Rcpp::NumericMatrix sigma2star){
   Rcpp::RNGScope scope;
   int K = sigma2star.ncol();
@@ -172,13 +172,13 @@ double log_prob_sigma2(Rcpp::S4 model, Rcpp::NumericMatrix sigma2star){
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector reduced_sigma_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
+Rcpp::NumericVector reduced_sigma_batch(Rcpp::S4 xmod) {
   Rcpp::RNGScope scope;
   Rcpp::S4 model_(xmod);
   Rcpp::S4 model = clone(model_);
   Rcpp::S4 params=model.slot("mcmc.params");
   int S = params.slot("iter");
-  Rcpp::NumericVector y = params.slot("data");
+  Rcpp::NumericVector y = model.slot("data");
   int N=y.size();
   Rcpp::List modes = model.slot("modes");
   Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);

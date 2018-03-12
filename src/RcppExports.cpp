@@ -412,15 +412,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_prob_sigma2
+double log_prob_sigma2(Rcpp::S4 model, Rcpp::NumericMatrix sigma2star);
+RcppExport SEXP _CNPBayes_log_prob_sigma2(SEXP modelSEXP, SEXP sigma2starSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type sigma2star(sigma2starSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_prob_sigma2(model, sigma2star));
+    return rcpp_result_gen;
+END_RCPP
+}
 // reduced_sigma_batch
-Rcpp::NumericVector reduced_sigma_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
-RcppExport SEXP _CNPBayes_reduced_sigma_batch(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+Rcpp::NumericVector reduced_sigma_batch(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_reduced_sigma_batch(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_sigma_batch(xmod, mcmcp));
+    rcpp_result_gen = Rcpp::wrap(reduced_sigma_batch(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1442,7 +1453,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_mcmc_multibatch_pvar", (DL_FUNC) &_CNPBayes_mcmc_multibatch_pvar, 2},
     {"_CNPBayes_log_prob_theta", (DL_FUNC) &_CNPBayes_log_prob_theta, 2},
     {"_CNPBayes_marginal_theta_batch", (DL_FUNC) &_CNPBayes_marginal_theta_batch, 1},
-    {"_CNPBayes_reduced_sigma_batch", (DL_FUNC) &_CNPBayes_reduced_sigma_batch, 2},
+    {"_CNPBayes_log_prob_sigma2", (DL_FUNC) &_CNPBayes_log_prob_sigma2, 2},
+    {"_CNPBayes_reduced_sigma_batch", (DL_FUNC) &_CNPBayes_reduced_sigma_batch, 1},
     {"_CNPBayes_log_prob_pmix", (DL_FUNC) &_CNPBayes_log_prob_pmix, 2},
     {"_CNPBayes_reduced_pi_batch", (DL_FUNC) &_CNPBayes_reduced_pi_batch, 1},
     {"_CNPBayes_log_prob_mu", (DL_FUNC) &_CNPBayes_log_prob_mu, 2},

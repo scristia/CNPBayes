@@ -145,8 +145,12 @@ marginal_theta_batch <- function(xmod) {
     .Call('_CNPBayes_marginal_theta_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-reduced_sigma_batch <- function(xmod, mcmcp) {
-    .Call('_CNPBayes_reduced_sigma_batch', PACKAGE = 'CNPBayes', xmod, mcmcp)
+log_prob_sigma2 <- function(model, sigma2star) {
+    .Call('_CNPBayes_log_prob_sigma2', PACKAGE = 'CNPBayes', model, sigma2star)
+}
+
+reduced_sigma_batch <- function(xmod) {
+    .Call('_CNPBayes_reduced_sigma_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 log_prob_pmix <- function(xmod, pstar) {
