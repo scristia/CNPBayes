@@ -489,4 +489,29 @@ Rcpp::NumericMatrix compute_heavy_means_batch(Rcpp::S4 xmod) {
   return means ;
 }
 
+// [[Rcpp::export]]
+Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_,
+                                    Rcpp::NumericVector alpha_) {
+  // NumericVector x = as<NumericVector>(x_) ;
+  NumericVector x = clone(x_) ;
+  int K = x.size() ;
+  NumericVector alpha = clone(alpha_) ;
+  // NumericVector alpha = as<NumericVector>(alpha_) ;
+  NumericVector total_lg(1) ;
+  NumericVector tmp(1);
+  NumericVector total_lalpha(1) ;
+  NumericVector logD(1) ;
+  NumericVector result(1) ;
+  double s = 0.0 ;
+  for(int k=0; k < K; ++k){
+    total_lg[0] += lgamma(alpha[k]) ;
+    tmp[0] += alpha[k] ;
+    s += (alpha[k] - 1.0) * log(x[k]) ;
+  }
+  total_lalpha = lgamma(tmp[0]) ;
+  logD[0] = total_lg[0] - total_lalpha[0] ;
+  result[0] = s - logD[0] ;
+  return result ;
+}
+
 #endif
