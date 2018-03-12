@@ -131,10 +131,8 @@ reduced <- function(model, params=mlParams()){
   if(paramUpdates(model)[["theta"]]==0) {
     ignore.small.pstar <- TRUE
   }
-  ##tmp <- cbind(p.theta=ptheta.star, theta=thetac(model)) %>%
-  ##as.tibble
   if(!ignore.small.pstar){
-    failed <- failSmallPstar(log_ptheta, params)
+    failed <- failSmallPstar(logprobs$theta, params)
     if (failed) {
       msg <- paste("The model for k=", k(model), " may be overfit.",
                    "This can lead to an incorrect marginal likelihood")
@@ -142,40 +140,33 @@ reduced <- function(model, params=mlParams()){
       return(matrix(NA))
     }
   }
-  ##model.psigma2 <- reduced_sigma_batch(model.reduced)
-  log_psigma <- reduced_sigma_batch(model.reduced)
+  logprobs$sigma <- reduced_sigma_batch(model.reduced)
   stopifnot(identical(modes(model.reduced), modes(model)))
 
   ##psigma.star <- p_sigma_reduced_batch(model.psigma2)
-  log_pmix <- reduced_pi_batch(model.reduced)
+  logprobs$pi <- reduced_pi_batch(model.reduced)
   ##identical(modes(model.pistar), modes(model))
   ##p.pi.star <- p_pmix_reduced_batch(model.pistar)
 
   ##
   ## Block updates for stage 2 parameters
   ##
-  log_pmu <- reduced_mu_batch(model.reduced)
+  logprobs$mu <- reduced_mu_batch(model.reduced)
   ##model.mustar <- reduced_mu_batch(model.reduced)
   stopifnot(identical(modes(model.reduced), modes(model)))
   ##p.mustar <- p_mu_reduced_batch(model.mustar)
 
-  log_ptau2 <- reduced_tau_batch(model.reduced)
+  logprobs$tau2 <- reduced_tau_batch(model.reduced)
   identical(modes(model.reduced), modes(model))
   ##p.taustar <- p_tau_reduced_batch(model.mustar)
 
-  log_pnu0 <- reduced_nu0_batch(model.reduced)
+  logprobs$nu0 <- reduced_nu0_batch(model.reduced)
   identical(modes(model.reduced), modes(model))
   ##p.nu0star <- p_nu0_reduced_batch(model.nu0star)
 
-  log_ps20 <- reduced_s20_batch(model.reduced)
-  reduced_gibbs <- tibble(theta=log_ptheta,
-                          sigma=log_psigma,
-                          mu=log_pmu,
-                          pmix=log_pmix,
-                          tau2=log_ptau2,
-                          nu0=log_pnu0,
-                          s20=log_ps20)
-  reduced_gibbs
+  logprobs$s20 <- reduced_s20_batch(model.reduced)
+  probs <- exp(logprobs)
+  probs
 }
 
 .blockUpdatesMultiBatchPooled <- function(model, params=mlParams()){

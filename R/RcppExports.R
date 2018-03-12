@@ -137,12 +137,16 @@ mcmc_multibatch_pvar <- function(object, mcmcp) {
     .Call('_CNPBayes_mcmc_multibatch_pvar', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
-prob_theta <- function(xmod, thetastar) {
-    .Call('_CNPBayes_prob_theta', PACKAGE = 'CNPBayes', xmod, thetastar)
+log_prob_theta <- function(xmod, thetastar) {
+    .Call('_CNPBayes_log_prob_theta', PACKAGE = 'CNPBayes', xmod, thetastar)
 }
 
 marginal_theta_batch <- function(xmod) {
     .Call('_CNPBayes_marginal_theta_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_sigma_batch <- function(xmod, mcmcp) {
+    .Call('_CNPBayes_reduced_sigma_batch', PACKAGE = 'CNPBayes', xmod, mcmcp)
 }
 
 log_prob_pmix <- function(xmod, pstar) {
@@ -199,6 +203,10 @@ update_tau2_batch <- function(xmod) {
 
 update_sigma20_batch <- function(xmod) {
     .Call('_CNPBayes_update_sigma20_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_nu0_batch <- function(xmod) {
+    .Call('_CNPBayes_update_nu0_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_multinomialPr_batch <- function(xmod) {
