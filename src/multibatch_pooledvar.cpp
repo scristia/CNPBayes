@@ -319,7 +319,7 @@ Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
     Rcpp::RNGScope scope;
-    
+
     // get model
     Rcpp::S4 model(xmod);
 
@@ -457,7 +457,6 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericMatrix sigma2 = chain.slot("sigma2") ;
   NumericMatrix pmix = chain.slot("pi") ;
   NumericMatrix zfreq = chain.slot("zfreq") ;
-  IntegerMatrix Z = chain.slot("z") ;
   //NumericMatrix U = chain.slot("u") ;
   NumericMatrix mu = chain.slot("mu") ;
   NumericMatrix tau2 = chain.slot("tau2") ;
@@ -505,7 +504,6 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   sigma2(0, _) = s2 ;
   pmix(0, _) = p ;
   zfreq(0, _) = zf ;
-  Z(0, _) = z ;
   //U(0, _) = u ;
 
   // Is accessing a slot in an object expensive?
@@ -528,7 +526,6 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     } else {
       tmp = model.slot("zfreq") ;
     }
-    Z(s, _) = z ;
     zfreq(s, _) = tmp ;
     if(up[0] > 0) {
       th = as<Rcpp::NumericVector>(theta_multibatch_pvar(xmod));
@@ -627,7 +624,6 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   chain.slot("nu.0") = nu0 ;
   chain.slot("sigma2.0") = sigma2_0 ;
   chain.slot("zfreq") = zfreq ;
-  chain.slot("z") = Z ;
   //chain.slot("u") = U ;
   chain.slot("loglik") = loglik_ ;
   chain.slot("logprior") = logprior_ ;

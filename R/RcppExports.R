@@ -221,22 +221,6 @@ mcmc_batch <- function(object, mcmcp) {
     .Call('_CNPBayes_mcmc_batch', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
-p_theta_batch <- function(xmod) {
-    .Call('_CNPBayes_p_theta_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
-p_theta_zfixed_batch <- function(xmod) {
-    .Call('_CNPBayes_p_theta_zfixed_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
-reduced_z_theta_fixed <- function(object) {
-    .Call('_CNPBayes_reduced_z_theta_fixed', PACKAGE = 'CNPBayes', object)
-}
-
-p_sigma2_batch <- function(xmod) {
-    .Call('_CNPBayes_p_sigma2_batch', PACKAGE = 'CNPBayes', xmod)
-}
-
 marginal_theta_pooled <- function(xmod) {
     .Call('_CNPBayes_marginal_theta_pooled', PACKAGE = 'CNPBayes', xmod)
 }

@@ -627,50 +627,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// p_theta_batch
-Rcpp::NumericVector p_theta_batch(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_theta_batch(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_theta_batch(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_theta_zfixed_batch
-Rcpp::NumericVector p_theta_zfixed_batch(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_theta_zfixed_batch(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_theta_zfixed_batch(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reduced_z_theta_fixed
-Rcpp::S4 reduced_z_theta_fixed(Rcpp::S4 object);
-RcppExport SEXP _CNPBayes_reduced_z_theta_fixed(SEXP objectSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
-    rcpp_result_gen = Rcpp::wrap(reduced_z_theta_fixed(object));
-    return rcpp_result_gen;
-END_RCPP
-}
-// p_sigma2_batch
-Rcpp::NumericVector p_sigma2_batch(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_p_sigma2_batch(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_sigma2_batch(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
 // marginal_theta_pooled
 Rcpp::NumericVector marginal_theta_pooled(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_marginal_theta_pooled(SEXP xmodSEXP) {
@@ -1175,10 +1131,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_update_sigma2_batch", (DL_FUNC) &_CNPBayes_update_sigma2_batch, 1},
     {"_CNPBayes_mcmc_batch_burnin", (DL_FUNC) &_CNPBayes_mcmc_batch_burnin, 2},
     {"_CNPBayes_mcmc_batch", (DL_FUNC) &_CNPBayes_mcmc_batch, 2},
-    {"_CNPBayes_p_theta_batch", (DL_FUNC) &_CNPBayes_p_theta_batch, 1},
-    {"_CNPBayes_p_theta_zfixed_batch", (DL_FUNC) &_CNPBayes_p_theta_zfixed_batch, 1},
-    {"_CNPBayes_reduced_z_theta_fixed", (DL_FUNC) &_CNPBayes_reduced_z_theta_fixed, 1},
-    {"_CNPBayes_p_sigma2_batch", (DL_FUNC) &_CNPBayes_p_sigma2_batch, 1},
     {"_CNPBayes_marginal_theta_pooled", (DL_FUNC) &_CNPBayes_marginal_theta_pooled, 1},
     {"_CNPBayes_log_prob_sigmap", (DL_FUNC) &_CNPBayes_log_prob_sigmap, 2},
     {"_CNPBayes_reduced_sigma_pooled", (DL_FUNC) &_CNPBayes_reduced_sigma_pooled, 1},
