@@ -142,27 +142,21 @@ reduced <- function(model, params=mlParams()){
   }
   logprobs$sigma <- reduced_sigma_batch(model.reduced)
   stopifnot(identical(modes(model.reduced), modes(model)))
-  ##psigma.star <- p_sigma_reduced_batch(model.psigma2)
   logprobs$pi <- reduced_pi_batch(model.reduced)
-  ##identical(modes(model.pistar), modes(model))
-  ##p.pi.star <- p_pmix_reduced_batch(model.pistar)
-  ##
   ## Block updates for stage 2 parameters
   ##
   logprobs$mu <- reduced_mu_batch(model.reduced)
-  ##model.mustar <- reduced_mu_batch(model.reduced)
   stopifnot(identical(modes(model.reduced), modes(model)))
-  ##p.mustar <- p_mu_reduced_batch(model.mustar)
-
-  logprobs$tau2 <- reduced_tau_batch(model.reduced)
+  ##
+  ## with theta and mu fixed, nothing stochastic -- no need to do reduced sampler
+  ##logprobs$tau2 <- reduced_tau_batch(model.reduced)
+  logprobs$tau2 <- log_prob_tau2(model.reduced, modes(model.reduced)[["tau2"]])
   identical(modes(model.reduced), modes(model))
-  ##p.taustar <- p_tau_reduced_batch(model.mustar)
-
   logprobs$nu0 <- reduced_nu0_batch(model.reduced)
   identical(modes(model.reduced), modes(model))
-  ##p.nu0star <- p_nu0_reduced_batch(model.nu0star)
-
-  logprobs$s20 <- reduced_s20_batch(model.reduced)
+  ##logprobs$s20 <- reduced_s20_batch(model.reduced)
+  ## nothing stochastic at this point in the reduced gibbs sampler
+  logprobs$s20 <- log_prob_sigma2_0(model.reduced, modes(model.reduced)[["sigma2.0"]]) ;
   probs <- exp(logprobs)
   probs
 }
@@ -175,7 +169,8 @@ reduced <- function(model, params=mlParams()){
 
   model.reduced <- model
   ##ptheta.star <- marginal_theta_batch(model)
-  ptheta.star <- theta_multibatch_pvar_red(model)
+  logprobs <- tibble(theta=marginal_theta_pooled(model.reduced))
+  ##ptheta.star <- theta_multibatch_pvar_red(model)
   if(paramUpdates(model)[["theta"]]==0) {
     ignore.small.pstar <- TRUE
   }
@@ -435,8 +430,6 @@ effectiveSizeWarning <- function(model){
   names(m.y) <- paste0("SBP", k(model))
   m.y
 }
-
-
 
 .ml_batchmodel <- function(model, params=mlParams()){
   ## calculate effective size of thetas and check against threshold
@@ -775,3 +768,46 @@ r_marginal_theta <- function(model){
 ##  }
 ##  return p_theta;
 ##}
+
+probSigma2 <- function(model, sigma2star){
+  prec <- 1/sigma2star
+  B <- batch(model)
+  K <- k(model)
+  ub <- unique(b)
+  zz <- z(model)
+  uu <- u(model)
+  ss <- matrix(NA, nrow(prec), ncol(prec))
+  thetastar <- modes(model)[["theta"]]
+  yy <- y(model)
+  for(b in seq_along(ub)){
+    for(k in seq_len(K)){
+      index <- B == ub[i] & zz == k
+      ss[b, k] <- sum(uu[index] * (yy[index] - thetastar[b, k])^2)
+    }
+  }
+  nn <- matrix(NA, nrow(thetastar), ncol(thetastar))
+  nn <- tableBatchZ(model)
+  nu0 <- nu.0(model)
+  s20 <- sigma2.0(model)
+  df <- dfr(model)
+  total <- 0
+  for(b in seq_along(ub)){
+    for(k in seq_len(K)){
+      ## calculate nu_n and sigma2_n
+      nu_n = nu0 + nn[b, k];
+      sigma2_n = 1.0 / nu_n * (nu0 * s20 + ss[b, k]/df);
+      ## calculate shape and rate
+      shape = 0.5 * nu_n;
+      rate = shape * sigma2_n;
+      ## calculate probability
+      prec_typed = prec[b, k];
+      ##tmp = Rcpp::dgamma(prec_typed, shape, 1/rate, TRUE);
+      tmp <- dgamma(prec_typed, shape=shape, rate=rate, log=TRUE)
+      ##tmp2 <- rgamma(1000, shape=shape, rate=rate)
+      ##hist(tmp2, breaks=250)
+      ##abline(v=prec[1])
+      total <- total+tmp;
+    }
+  }
+  total
+}

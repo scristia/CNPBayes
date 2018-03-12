@@ -167,14 +167,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// theta_multibatch_pvar_red
-Rcpp::NumericVector theta_multibatch_pvar_red(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_theta_multibatch_pvar_red(SEXP xmodSEXP) {
+// maringal_theta_pooled
+Rcpp::NumericVector maringal_theta_pooled(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_maringal_theta_pooled(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(theta_multibatch_pvar_red(xmod));
+    rcpp_result_gen = Rcpp::wrap(maringal_theta_pooled(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1431,7 +1431,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_compute_u_sums_batch", (DL_FUNC) &_CNPBayes_compute_u_sums_batch, 1},
     {"_CNPBayes_compute_heavy_sums_batch", (DL_FUNC) &_CNPBayes_compute_heavy_sums_batch, 1},
     {"_CNPBayes_compute_heavy_means_batch", (DL_FUNC) &_CNPBayes_compute_heavy_means_batch, 1},
-    {"_CNPBayes_theta_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_theta_multibatch_pvar_red, 1},
+    {"_CNPBayes_maringal_theta_pooled", (DL_FUNC) &_CNPBayes_maringal_theta_pooled, 1},
     {"_CNPBayes_sigma_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_sigma_multibatch_pvar_red, 1},
     {"_CNPBayes_psigma_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_psigma_multibatch_pvar_red, 1},
     {"_CNPBayes_pi_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_pi_multibatch_pvar_red, 1},

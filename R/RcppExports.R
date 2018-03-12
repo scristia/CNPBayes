@@ -57,8 +57,8 @@ compute_heavy_means_batch <- function(xmod) {
     .Call('_CNPBayes_compute_heavy_means_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-theta_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_theta_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+maringal_theta_pooled <- function(xmod) {
+    .Call('_CNPBayes_maringal_theta_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
 sigma_multibatch_pvar_red <- function(xmod) {

@@ -146,15 +146,13 @@ double log_prob_sigma2(Rcpp::S4 model, Rcpp::NumericMatrix sigma2star){
     }
   }
   double df = getDf(model.slot("hyperparams")) ;
-  Rcpp::NumericMatrix nn(B, K);
+  Rcpp::NumericMatrix nn = tableBatchZ(model) ;
   Rcpp::NumericVector prec_typed(1);
   Rcpp::NumericVector shape(1);
   Rcpp::NumericVector rate(1);
   double total = 0.0;
   for (int b = 0; b < B; ++b) {
     for (int k = 0; k < K; ++k) {
-      // update nn
-      nn(b, k) = sum((zz == (k + 1)) & (batch == ub[b]));
       // calculate nu_n and sigma2_n
       nu_n = nu0 + nn(b, k);
       sigma2_n = 1.0 / nu_n * (nu0 * s20 + ss(b, k)/df);

@@ -591,7 +591,6 @@ Rcpp::NumericMatrix update_sigma2_batch(Rcpp::S4 xmod){
     double nu_n;
     Rcpp::NumericMatrix sigma2_tilde(B, K);
     Rcpp::NumericMatrix sigma2_(B, K);
-
     for (int b = 0; b < B; ++b) {
         for (int k = 0; k < K; ++k) {
             nu_n = nu_0 + tabz(b, k);
