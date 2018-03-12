@@ -72,12 +72,10 @@ reduced <- function(model, params=mlParams()){
   }
   logprobs$sigma2 <- reduced_sigma_pooled(model.reduced)
   logprobs$pi <- reduced_pi_pooled(model.reduced)
-  model.pistar <- pi_multibatch_pvar_red(model.reduced)
-  p.pi.star <- p_pmix_reduced_batch(model.pistar)
-
   ##
   ## Block updates for stage 2 parameters
   ##
+  logprobs$mu <- reduced_mu_pooled(model.reduced)
   model.mustar <- mu_multibatch_pvar_red(model.reduced)
   p.mustar <- p_mu_reduced_batch(model.mustar)
 

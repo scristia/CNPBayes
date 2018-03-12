@@ -253,8 +253,8 @@ reduced_pi_pooled <- function(xmod) {
     .Call('_CNPBayes_reduced_pi_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
-mu_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_mu_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+reduced_mu_pooled <- function(xmod) {
+    .Call('_CNPBayes_reduced_mu_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
 tau_multibatch_pvar_red <- function(xmod) {
