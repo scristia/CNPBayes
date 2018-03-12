@@ -387,7 +387,6 @@ Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
     Rcpp::NumericMatrix tabz = tableBatchZ(xmod);
     Rcpp::IntegerVector batch = model.slot("batch");
     Rcpp::IntegerVector ub = uniqueBatch(batch);
-    //Rcpp::NumericMatrix ss(B, K);
     Rcpp::NumericVector ss(B);
 
     for (int i = 0; i < n; ++i) {
@@ -403,29 +402,20 @@ Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
         }
       }
     }
-    //NumericMatrix sigma2_nh(B, K);
     double shape;
     double rate;
     double sigma2_nh;
     double nu_n;
-    //Rcpp::NumericMatrix sigma2_tilde(B, K);
-    //Rcpp::NumericMatrix sigma2_(B, K);
     Rcpp::NumericVector sigma2_tilde(B);
     Rcpp::NumericVector sigma2_(B);
 
     for (int b = 0; b < B; ++b) {
-      //for (int k = 0; k < K; ++k) {
-        //nu_n = nu_0 + tabz(b, k);
       nu_n = nu_0 + sum(tabz(b, _));
-        //sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k));
       sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss[b]/df);
       shape = 0.5 * nu_n;
       rate = shape * sigma2_nh;
-        //sigma2_tilde(b, k) = Rcpp::as<double>(rgamma(1, shape, 1.0/rate));
       sigma2_tilde[b] = Rcpp::as<double>(rgamma(1, shape, 1.0/rate));
-        //sigma2_(b, k) = 1.0 / sigma2_tilde(b, k);
       sigma2_[b] = 1.0 / sigma2_tilde[b];
-        //}
     }
     return sigma2_;
 }
