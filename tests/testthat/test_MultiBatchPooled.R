@@ -99,12 +99,14 @@ test_that("Marginal likelihood for MultiBatchPooled", {
   data("MultiBatchPooledExample")
   model <- MultiBatchPooledExample
   set.seed(123)
-  mp <- McmcParams(iter=1000, burnin=500, nStarts=4, thin=1)
+  mp <- McmcParams(iter=1000, burnin=1000, nStarts=4, thin=1)
   mcmcParams(model) <- mp
   model2 <- posteriorSimulation(model)
   if(FALSE)  ggMultiBatch(model2)
-  ml <- .ml_multibatch_pooled(model2)
-  marginal_lik(model2) <- ml
+  expect_warning(
+    ## effective size warning
+    ml <- .ml_multibatch_pooled(model2)
+  )
 })
 
 test_that("MultiBatchPooled model selection", {

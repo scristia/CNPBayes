@@ -254,6 +254,7 @@ test_that("kbatch", {
   batch <- sample(1:5, size = N, prob = probs, replace = TRUE)
   p <- c(1/5, 1/3)
   p <- c(p, 1 - sum(p))
+  ##trace(simulateBatchData, browser)
   truth <- simulateBatchData(N = N, batch = batch, theta = means,
       sds = sds, p = p)
   mp <- McmcParams(iter = 100, burnin = 50, nStarts = 10)
@@ -268,20 +269,17 @@ test_that("kbatch", {
 
   set.seed(1000)
   index <- sort(unique(c(sample(seq_len(N), 500), which(batch(kmod) %in% 4:5))))
-  mp <- McmcParams(iter = 100, burnin = 100, nStarts = 20)
+  mp <- McmcParams(iter = 100, burnin = 100, nStarts = 10)
   kmod2 <- MB(dat=y(kmod)[index],
               batches=batch(kmod)[index],
               hp=hpList(k=3)[["MB"]],
               mp=mp)
-  kmod2 <- posteriorSimulation(kmod2)
-  ##yy <- setNames(y(truth), seq_along(y(truth)))
-  ##df <- imputeFromSampledData(kmod2, yy, index)
-  ##cn2 <- df$cn
-  ##expect_true(mean(cn != cn2) < 0.01)
-  cn2 <- map_z(kmod2)
-  pz <- probz(kmod2)
-  pz <- mapCnProbability(kmod2)
-  tab.z <- as.integer(table(z(kmod2)))
+  mp <- McmcParams(iter = 100, burnin = 0, nStarts = 10)
+  kmod3 <- posteriorSimulation(kmod2)
+  cn2 <- map_z(kmod3)
+  pz <- probz(kmod3)
+  pz <- mapCnProbability(kmod3)
+  tab.z <- as.integer(table(z(kmod3)))
   tab.z2 <- colSums(round(pz, 1))
   expect_equal(tab.z, tab.z2, tolerance=1)
   if (FALSE) {

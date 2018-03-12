@@ -310,7 +310,7 @@ Rcpp::NumericVector update_p_batch(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::IntegerVector update_z_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;  
+  Rcpp::S4 model(xmod) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector x = model.slot("data") ;
@@ -321,13 +321,13 @@ Rcpp::IntegerVector update_z_batch(Rcpp::S4 xmod) {
   NumericMatrix p(n, K);
   p = update_multinomialPr_batch(xmod) ;
   //NumericMatrix cumP(n, K) ;
-  //  Make more efficient?
+  //  Make more efficient
   //return cumP ;
   NumericVector u = runif(n) ;
   IntegerVector zz_(n) ;
   IntegerVector zz = clone(zz_) ;
   IntegerMatrix freq(B, K) ;
-  int b ;  
+  int b ;
   for(int i=0; i < n; i++){
     //initialize accumulator ;
     double acc = 0 ;
@@ -345,7 +345,7 @@ Rcpp::IntegerVector update_z_batch(Rcpp::S4 xmod) {
     return zz ;
   }
   //
-  // Don't update z if there are states with zero frequency.  
+  // Don't update z if there are states with zero frequency.
   //
   int counter = model.slot(".internal.counter");
   counter++;

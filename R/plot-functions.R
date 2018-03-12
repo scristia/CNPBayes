@@ -360,6 +360,9 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
 
 .ggMultiBatchPooledChains <- function(model){
   melt.ch <- gatherChains(model)
+  for(i in seq_along(melt.ch)){
+    melt.ch[[i]]$iter <- as.integer(melt.ch[[i]]$iter)
+  }
   iter <- value <- batch <- param <- comp <- NULL
   p.theta <- ggplot(melt.ch$theta, aes(iter, value, group=batch)) +
     geom_point(size=0.3, aes(color=batch)) +
