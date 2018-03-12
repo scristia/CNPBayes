@@ -40,13 +40,12 @@ reduced <- function(model, params=mlParams()){
   ##
   ## with theta and mu fixed, nothing stochastic -- no need to do reduced sampler
   ##logprobs$tau2 <- reduced_tau_batch(model.reduced)
-  logprobs$tau2 <- log_prob_tau2(model.reduced, modes(model.reduced)[["tau2"]])
+  logprobs$tau2 <- log_prob_tau2(model.reduced)
   identical(modes(model.reduced), modes(model))
   logprobs$nu0 <- reduced_nu0_batch(model.reduced)
   identical(modes(model.reduced), modes(model))
-  ##logprobs$s20 <- reduced_s20_batch(model.reduced)
   ## nothing stochastic at this point in the reduced gibbs sampler
-  logprobs$s20 <- log_prob_sigma2_0(model.reduced, modes(model.reduced)[["sigma2.0"]]) ;
+  logprobs$s20 <- log_prob_s20(model.reduced) ;
   probs <- exp(logprobs)
   probs
 }
@@ -79,20 +78,9 @@ reduced <- function(model, params=mlParams()){
   ## nothing stochastic here -- return single value from density
   logprobs$tau2 <- log_prob_tau2(model.reduced)
   logprobs$nu0 <- reduced_nu0_pooled(model.reduced)
-
-  model.nu0star <- nu0_multibatch_pvar_red(model.reduced)
-  p.nu0star <- pnu0_multibatch_pvar_red(model.nu0star)
-
-  model.s20star <- s20_multibatch_pvar_red(model.reduced)
-  p.s20star <- ps20_multibatch_pvar_red(model.s20star)
-
-  reduced_gibbs <- cbind(ptheta.star, psigma.star, p.mustar, p.pi.star,
-                         p.taustar, p.nu0star, p.s20star)
-
-  colnames(reduced_gibbs) <- c("theta", "sigma", "pi", "mu",
-                               "tau", "nu0", "s20")
-
-  reduced_gibbs
+  logprobs$s20 <- log_prob_s20p(model.reduced) ;
+  probs <- exp(logprobs)
+  probs
 }
 
 
@@ -368,15 +356,9 @@ effectiveSizeWarning <- function(model){
   root <- params$root
   reject.threshold <- params$reject.threshold
   prop.threshold <- params$prop.threshold
-
-  ## calculate p(x|theta)
   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
   model2 <- useModes(model)
-  ##stage2.loglik <- stageTwoLogLik_pooled(model2)
-
-  ## calculate log p(theta)
   logPrior <- modes(model)[["logprior"]]
-
   mp <- McmcParams(iter=niter)
   red_gibbs <- .blockUpdatesMultiBatchPooled(model2, params)
   pstar <- blockUpdates(red_gibbs, root)

@@ -382,7 +382,7 @@ Rcpp::NumericVector reduced_mu_batch(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
-double log_prob_tau2(Rcpp::S4 xmod, Rcpp::NumericVector tau2star) {
+double log_prob_tau2(Rcpp::S4 xmod) {
   Rcpp::RNGScope scope;
   // get model and accessories
   Rcpp::S4 model(xmod);
@@ -394,6 +394,8 @@ double log_prob_tau2(Rcpp::S4 xmod, Rcpp::NumericVector tau2star) {
   Rcpp::NumericVector mu_ = Rcpp::as<Rcpp::NumericVector>(modes["mu"]);
   Rcpp::NumericVector mustar = clone(mu_);
   Rcpp::NumericMatrix thetastar = clone(theta_);
+  Rcpp::NumericVector tau2_ = Rcpp::as<Rcpp::NumericVector>(modes["tau2"]);
+  Rcpp::NumericVector tau2star = clone(tau2_);
 
   // hyperparameters
   int K = hypp.slot("k");
@@ -433,8 +435,6 @@ Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod) {
   Rcpp::NumericVector y = model.slot("data");
   int N=y.size();
   Rcpp::List modes = model.slot("modes");
-  Rcpp::NumericVector tau2_ = Rcpp::as<Rcpp::NumericVector>(modes["tau2"]);
-  Rcpp::NumericVector tau2star = clone(tau2_);
   double df = getDf(model.slot("hyperparams")) ;
   Rcpp::NumericVector logp(S) ;
   //
@@ -453,7 +453,7 @@ Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod) {
     model.slot("sigma2.0") = update_sigma20_batch(model) ;
     model.slot("nu.0") = update_nu0_batch(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
-    logp[s]=log_prob_tau2(model, tau2star) ;
+    logp[s]=log_prob_tau2(model) ;
   }
   return logp;
 }
@@ -541,7 +541,7 @@ Rcpp::NumericVector reduced_nu0_batch(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
-double log_prob_sigma2_0(Rcpp::S4 xmod, Rcpp::NumericVector s20star) {
+double log_prob_s20(Rcpp::S4 xmod) {
   Rcpp::RNGScope scope;
   // get model and accessories
   Rcpp::S4 model(xmod);
@@ -556,6 +556,8 @@ double log_prob_sigma2_0(Rcpp::S4 xmod, Rcpp::NumericVector s20star) {
   Rcpp::IntegerVector nu0_ = Rcpp::as<Rcpp::IntegerVector>(modes["nu0"]);
   Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
   Rcpp::NumericMatrix sigma2star = clone(sigma2_);
+  Rcpp::NumericVector s20_ = Rcpp::as<Rcpp::NumericVector>(modes["sigma2.0"]);
+  Rcpp::NumericVector s20star = clone(s20_);
   double nu0star = clone(nu0_)[0];
   // get hyperparameters
   int K = hypp.slot("k");
@@ -586,8 +588,6 @@ Rcpp::NumericVector reduced_s20_batch(Rcpp::S4 xmod) {
   Rcpp::NumericVector y = model.slot("data");
   int N=y.size();
   Rcpp::List modes = model.slot("modes");
-  Rcpp::NumericVector s20_ = Rcpp::as<Rcpp::NumericVector>(modes["sigma2.0"]);
-  Rcpp::NumericVector s20star = clone(s20_);
   double df = getDf(model.slot("hyperparams")) ;
   Rcpp::NumericVector logp(S) ;
   //
@@ -606,7 +606,7 @@ Rcpp::NumericVector reduced_s20_batch(Rcpp::S4 xmod) {
     //model.slot("nu.0") = update_nu0_batch(model) ;
     model.slot("sigma2.0") = update_sigma20_batch(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
-    logp[s]=log_prob_sigma2_0(model, s20star) ;
+    logp[s]=log_prob_s20(model) ;
   }
   return logp;
 }
