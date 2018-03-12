@@ -31,3 +31,17 @@ hyperParams(model) <- hp
 model@u <- rchisq(length(y(model)), hp@dfr)
 SingleBatchModelExample <- model
 save(SingleBatchModelExample, file="../data/SingleBatchModelExample.rda")
+
+
+
+data(SingleBatchModelExample)
+SingleBatchModelExample <- updateObject(SingleBatchModelExample)
+save(SingleBatchModelExample, file="../data/SingleBatchModelExample.rda")
+
+data(MultiBatchModelExample)
+MultiBatchModelExample <- updateObject(MultiBatchModelExample)
+save(MultiBatchModelExample, file="../data/MultiBatchModelExample.rda")
+
+data(MultiBatchPooledExample)
+MultiBatchPooledExample <- updateObject(MultiBatchPooledExample)
+save(MultiBatchPooledExample, file="../data/MultiBatchPooledExample.rda")

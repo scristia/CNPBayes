@@ -17,9 +17,7 @@
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati,
-      z=matrix(NA, nr, ns),
-      u_seed=numeric(nr))
+      zfreq=mati)
 }
 
 .initializeMcmcPooledVar <- function(object){
@@ -41,9 +39,7 @@
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati,
-      z=matrix(NA, nr, ns),
-      u_seed=numeric(nr))
+      zfreq=mati)
 }
 
 setMethod("McmcChains", "missing", function(object){
@@ -52,9 +48,7 @@ setMethod("McmcChains", "missing", function(object){
       nu.0=numeric(), sigma2.0=numeric(),
       zfreq=matrix(),
       logprior=numeric(),
-      loglik=numeric(),
-      z=matrix(),
-      u_seed=numeric())
+      loglik=numeric())
 })
 
 
@@ -85,9 +79,7 @@ setMethod("McmcChains", "SingleBatchPooled", function(object){
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati,
-      z=matrix(NA, nr, ns),
-      u_seed=numeric(nr))
+      zfreq=mati)
 }
 
 
@@ -112,9 +104,7 @@ chains_mb <- function(object){
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati,
-      z=matrix(NA, nr, ns),
-      u_seed=numeric(nr))
+      zfreq=mati)
 }
 
 setMethod("McmcChains", "MultiBatchPooled", function(object){
@@ -164,8 +154,6 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@logprior <- x@logprior[i]
     x@loglik <- x@loglik[i]
     x@zfreq <- x@zfreq[i, , drop=FALSE]
-    x@z <- x@z[i, , drop=FALSE]
-    x@u_seed <- x@u_seed[i]
   }
   x
 })
@@ -173,10 +161,6 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
 #' @rdname nu.0-method
 #' @aliases nu.0,McmcChains-method
 setMethod("nu.0", "McmcChains", function(object) object@nu.0)
-
-#' @rdname u-method
-#' @aliases u,McmcChains-method
-setMethod("u", "McmcChains", function(object) object@u_seed)
 
 #' @rdname sigma2.0-method
 #' @aliases sigma2.0,McmcChains-method
@@ -239,10 +223,6 @@ setMethod("names", "McmcChains", function(x) slotNames(x))
 #' @rdname zfreq-method
 #' @aliases zfreq,McmcChains-method
 setMethod("zFreq", "McmcChains", function(object) object@zfreq )
-
-#' @rdname z-method
-#' @aliases z,McmcChains-method
-setMethod("z", "McmcChains", function(object) object@z )
 
 #' @rdname logPrior-method
 #' @aliases logPrior,McmcChains-method
