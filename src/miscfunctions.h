@@ -46,4 +46,5 @@ Rcpp::NumericMatrix compute_u_sums_batch(Rcpp::S4 xmod) ;
 Rcpp::NumericMatrix compute_heavy_sums_batch(Rcpp::S4 object) ;
 Rcpp::NumericMatrix compute_heavy_means_batch(Rcpp::S4 xmod) ;
 Rcpp::NumericVector dlocScale_t(Rcpp::NumericVector x, double df, double mu, double sigma);
+Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_, Rcpp::NumericVector alpha_) ;
 #endif
