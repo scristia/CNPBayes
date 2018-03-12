@@ -14,7 +14,7 @@ Rcpp::NumericMatrix toMatrix_pvar(Rcpp::NumericVector x, int NR, int NC) {
       // every component in batch i has the same variance
       Y(i, j) = x[iter];
     }
-    iter++;  
+    iter++;
   }
   return Y;
 }

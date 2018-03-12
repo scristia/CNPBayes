@@ -161,7 +161,7 @@ test_that("MultiBatchPooled model selection", {
                              theta = means,
                              sds = sds)
   mp <- McmcParams(iter=1000, burnin=1000, nStarts=4, thin=1)
-  hp <- HyperparametersMultiBatch(k=4,
+  hp <- HyperparametersMultiBatch(k=3,
                                   mu=-0.75,
                                   tau2.0=0.4,
                                   eta.0=32,
@@ -171,6 +171,10 @@ test_that("MultiBatchPooled model selection", {
   ##options(warn=2, error=utils::recover)
   model <- MultiBatchPooled(dat=y(truth), mp=mp, hp=hp,
                             batches=batch(truth))
+
+  model2 <- posteriorSimulation(model)
+  
+
   ## fit model with k=4
   ##
   ## running too few iterations for this to be very useful

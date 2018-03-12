@@ -707,14 +707,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// pi_multibatch_pvar_red
-Rcpp::S4 pi_multibatch_pvar_red(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_pi_multibatch_pvar_red(SEXP xmodSEXP) {
+// reduced_pi_pooled
+Rcpp::NumericVector reduced_pi_pooled(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_reduced_pi_pooled(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(pi_multibatch_pvar_red(xmod));
+    rcpp_result_gen = Rcpp::wrap(reduced_pi_pooled(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1194,7 +1194,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_marginal_theta_pooled", (DL_FUNC) &_CNPBayes_marginal_theta_pooled, 1},
     {"_CNPBayes_log_prob_sigmap", (DL_FUNC) &_CNPBayes_log_prob_sigmap, 2},
     {"_CNPBayes_reduced_sigma_pooled", (DL_FUNC) &_CNPBayes_reduced_sigma_pooled, 1},
-    {"_CNPBayes_pi_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_pi_multibatch_pvar_red, 1},
+    {"_CNPBayes_reduced_pi_pooled", (DL_FUNC) &_CNPBayes_reduced_pi_pooled, 1},
     {"_CNPBayes_mu_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_mu_multibatch_pvar_red, 1},
     {"_CNPBayes_tau_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_tau_multibatch_pvar_red, 1},
     {"_CNPBayes_nu0_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_nu0_multibatch_pvar_red, 1},
