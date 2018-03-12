@@ -110,7 +110,6 @@ double log_prob_sigmap(Rcpp::S4 xmod, Rcpp::NumericVector sigma2star) {
   Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
   Rcpp::NumericMatrix thetastar = clone(theta_);
   Rcpp::NumericVector x = model.slot("data");
-  Rcpp::NumericMatrix tabz = tableBatchZ(xmod) ;
   Rcpp::IntegerVector batch = model.slot("batch") ;
   Rcpp::IntegerVector ub = uniqueBatch(batch) ;
   int n = x.size();
