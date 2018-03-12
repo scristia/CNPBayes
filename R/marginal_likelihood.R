@@ -117,14 +117,17 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   reduced_gibbs
 }
 
+reduced <- function(model, params=mlParams()){
+  .blockUpdatesBatch(model, params)
+}
+
 .blockUpdatesBatch <- function(model, params){
   reject.threshold <- params$reject.threshold
   prop.threshold <- params$prop.threshold
   ignore.small.pstar <- params$ignore.small.pstar
   warnings <- params$warnings
-
   model.reduced <- model
-  log_ptheta <- marginal_theta_batch(model)
+  logprobs <- tibble(theta=marginal_theta_batch(model))
   if(paramUpdates(model)[["theta"]]==0) {
     ignore.small.pstar <- TRUE
   }
@@ -164,20 +167,14 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   identical(modes(model.reduced), modes(model))
   ##p.nu0star <- p_nu0_reduced_batch(model.nu0star)
 
-  model.s20star <- reduced_s20_batch(model.reduced)
-  p.s20star <- p_s20_reduced_batch(model.s20star)
-
-  reduced_gibbs <- cbind(log_ptheta,
-                         log_psigma,
-                         log_pmu,
-                         log_pmix,
-                         log_ptau2,
-                         log_pnu0,
-                         p.s20star)
-
-  colnames(reduced_gibbs) <- c("theta", "sigma", "pi", "mu",
-                               "tau", "nu0", "s20")
-
+  log_ps20 <- reduced_s20_batch(model.reduced)
+  reduced_gibbs <- tibble(theta=log_ptheta,
+                          sigma=log_psigma,
+                          mu=log_pmu,
+                          pmix=log_pmix,
+                          tau2=log_ptau2,
+                          nu0=log_pnu0,
+                          s20=log_ps20)
   reduced_gibbs
 }
 

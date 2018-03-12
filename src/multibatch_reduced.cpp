@@ -17,7 +17,7 @@ Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC) {
 }
 
 // [[Rcpp::export]]
-double prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar) {
+double log_prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar) {
   Rcpp::RNGScope scope;
   Rcpp::S4 model_(xmod);
   Rcpp::S4 model = clone(model_);
@@ -28,7 +28,7 @@ double prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar) {
   Rcpp::NumericVector sigma2_tilde(K);
   Rcpp::NumericVector sigma2 = model.slot("sigma2");
   Rcpp::NumericVector u = model.slot("u") ;
-  Rcpp::NumericMatrix data_mean(B, K);
+  Rcpp::NumericMatrix data_sum(B, K);
   Rcpp::NumericMatrix n_hb(B, K);
   Rcpp::NumericMatrix sumu(B, K);
   Rcpp::NumericVector tauc(K);
@@ -47,38 +47,33 @@ double prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar) {
   zz = model.slot("z");
   // make a B x k matrix of the counts
   n_hb = tableBatchZ(model);
-  data_mean = compute_heavy_sums_batch(model);
+  data_sum = compute_heavy_sums_batch(model);
   sumu = compute_u_sums_batch(model) ;
-  //mu = muc(s, Rcpp::_);
   mu=model.slot("mu") ;
-  //tau2 = tau2c(s, Rcpp::_);
   tau2_tilde = 1.0 / tau2;
-  invs2 = 1.0 / sigma2;    // this is a vector of length B*K
-  sigma2_tilde = Rcpp::as<Rcpp::NumericVector>(toMatrix(invs2, B, K));
+  sigma2_tilde = 1.0 / sigma2;
   double df = getDf(model.slot("hyperparams")) ;
   double total = 0.0;
   double heavyn = 0.0;
   double heavy_mean = 0.0;
   for (int b = 0; b < B; ++b) {
     for(int k = 0; k < K; ++k) {
-      heavyn = n_hb(b, k) * sumu(b, k) / df;
-      heavy_mean = data_mean(b, k) / df;
-      post_prec = 1.0/tau2[k] + heavyn*1.0 * sigma2_tilde(b, k) ;
+      //heavyn = n_hb(b, k) * sumu(b, k) / df;
+      heavyn = sumu(b, k) / df;
+      post_prec = tau2_tilde[k] + heavyn*1.0 * sigma2_tilde(b, k) ;
       if (post_prec == R_PosInf) {
         throw std::runtime_error("Bad simulation. Run again with different start.");
       }
       tau_n = sqrt(1.0/post_prec) ;
-      w1 = (1.0/tau2[k])/post_prec ;
+      w1 = (tau2_tilde[k])/post_prec ;
       w2 = (n_hb(b, k) * sigma2_tilde(b, k))/post_prec ;
+      heavy_mean = data_sum(b, k) / heavyn / df;
       mu_n = w1*mu[k] + w2*heavy_mean ;
       theta[0] = thetastar(b, k);
       tmp = dnorm(theta, mu_n, tau_n, true);
       total += tmp[0];
     }
   }
-  //Rcpp::NumericVector p_theta(1);
-  //p_theta[0]=prod ;
-  //return p_theta;
   return total;
 }
 
@@ -89,17 +84,18 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     Rcpp::S4 model = clone(model_);
     Rcpp::S4 params=model.slot("mcmc.params");
     int S = params.slot("iter");
-    Rcpp::NumericVector y = params.slot("data");
+    Rcpp::NumericVector y = model.slot("data");
     int N=y.size();
     Rcpp::List modes = model.slot("modes");
     Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
     Rcpp::NumericMatrix thetastar=clone(theta_);
     Rcpp::NumericVector logp(S);
     int K = thetastar.ncol();
+    Rcpp::IntegerVector z=model.slot("z") ;
     double df = getDf(model.slot("hyperparams")) ;
     for (int s=0; s < S; ++s) {
       model.slot("z") = update_z_batch(model) ;
-      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+      model.slot("zfreq") = tableZ(K, z) ;
       model.slot("theta") = update_theta_batch(model) ;
       model.slot("sigma2") = update_sigma2_batch(model) ;
       model.slot("mu") = update_mu_batch(model) ;
@@ -108,7 +104,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
       model.slot("nu.0") = update_nu0_batch(model) ;
       model.slot("pi") = update_p_batch(model) ;
       model.slot("u") = Rcpp::rchisq(N, df) ;
-      logp[s]=prob_theta(model, thetastar) ;
+      logp[s]=log_prob_theta(model, thetastar) ;
     }
     return logp;
 }
