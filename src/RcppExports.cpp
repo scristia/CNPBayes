@@ -389,15 +389,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// prob_theta
-double prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar);
-RcppExport SEXP _CNPBayes_prob_theta(SEXP xmodSEXP, SEXP thetastarSEXP) {
+// log_prob_theta
+double log_prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar);
+RcppExport SEXP _CNPBayes_log_prob_theta(SEXP xmodSEXP, SEXP thetastarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type thetastar(thetastarSEXP);
-    rcpp_result_gen = Rcpp::wrap(prob_theta(xmod, thetastar));
+    rcpp_result_gen = Rcpp::wrap(log_prob_theta(xmod, thetastar));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -409,6 +409,18 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(marginal_theta_batch(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// reduced_sigma_batch
+Rcpp::NumericVector reduced_sigma_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
+RcppExport SEXP _CNPBayes_reduced_sigma_batch(SEXP xmodSEXP, SEXP mcmcpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
+    rcpp_result_gen = Rcpp::wrap(reduced_sigma_batch(xmod, mcmcp));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -568,6 +580,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(update_sigma20_batch(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_nu0_batch
+Rcpp::NumericVector update_nu0_batch(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_nu0_batch(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_nu0_batch(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1417,8 +1440,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_sigma2_multibatch_pvar", (DL_FUNC) &_CNPBayes_sigma2_multibatch_pvar, 1},
     {"_CNPBayes_burnin_multibatch_pvar", (DL_FUNC) &_CNPBayes_burnin_multibatch_pvar, 2},
     {"_CNPBayes_mcmc_multibatch_pvar", (DL_FUNC) &_CNPBayes_mcmc_multibatch_pvar, 2},
-    {"_CNPBayes_prob_theta", (DL_FUNC) &_CNPBayes_prob_theta, 2},
+    {"_CNPBayes_log_prob_theta", (DL_FUNC) &_CNPBayes_log_prob_theta, 2},
     {"_CNPBayes_marginal_theta_batch", (DL_FUNC) &_CNPBayes_marginal_theta_batch, 1},
+    {"_CNPBayes_reduced_sigma_batch", (DL_FUNC) &_CNPBayes_reduced_sigma_batch, 2},
     {"_CNPBayes_log_prob_pmix", (DL_FUNC) &_CNPBayes_log_prob_pmix, 2},
     {"_CNPBayes_reduced_pi_batch", (DL_FUNC) &_CNPBayes_reduced_pi_batch, 1},
     {"_CNPBayes_log_prob_mu", (DL_FUNC) &_CNPBayes_log_prob_mu, 2},
@@ -1433,6 +1457,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_update_mu_batch", (DL_FUNC) &_CNPBayes_update_mu_batch, 1},
     {"_CNPBayes_update_tau2_batch", (DL_FUNC) &_CNPBayes_update_tau2_batch, 1},
     {"_CNPBayes_update_sigma20_batch", (DL_FUNC) &_CNPBayes_update_sigma20_batch, 1},
+    {"_CNPBayes_update_nu0_batch", (DL_FUNC) &_CNPBayes_update_nu0_batch, 1},
     {"_CNPBayes_update_multinomialPr_batch", (DL_FUNC) &_CNPBayes_update_multinomialPr_batch, 1},
     {"_CNPBayes_update_p_batch", (DL_FUNC) &_CNPBayes_update_p_batch, 1},
     {"_CNPBayes_update_z_batch", (DL_FUNC) &_CNPBayes_update_z_batch, 1},

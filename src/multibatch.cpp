@@ -198,6 +198,7 @@ Rcpp::NumericVector update_sigma20_batch(Rcpp::S4 xmod){
     }
 }
 
+// [[Rcpp::export]]
 Rcpp::NumericVector update_nu0_batch(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;

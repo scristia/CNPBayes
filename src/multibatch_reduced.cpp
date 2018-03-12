@@ -25,8 +25,8 @@ double log_prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar) {
   int B = thetastar.nrow();
   Rcpp::NumericVector tau2 = model.slot("tau2") ;
   Rcpp::NumericVector tau2_tilde(K);
-  Rcpp::NumericVector sigma2_tilde(K);
-  Rcpp::NumericVector sigma2 = model.slot("sigma2");
+  Rcpp::NumericMatrix sigma2_tilde(K);
+  Rcpp::NumericMatrix sigma2 = model.slot("sigma2");
   Rcpp::NumericVector u = model.slot("u") ;
   Rcpp::NumericMatrix data_sum(B, K);
   Rcpp::NumericMatrix n_hb(B, K);
@@ -67,6 +67,8 @@ double log_prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar) {
       tau_n = sqrt(1.0/post_prec) ;
       w1 = (tau2_tilde[k])/post_prec ;
       w2 = (n_hb(b, k) * sigma2_tilde(b, k))/post_prec ;
+      w1 = w1/(w1 + w2);
+      w2 = 1-w1; 
       heavy_mean = data_sum(b, k) / heavyn / df;
       mu_n = w1*mu[k] + w2*heavy_mean ;
       theta[0] = thetastar(b, k);
@@ -169,7 +171,7 @@ double log_prob_sigma2(Rcpp::S4 model, Rcpp::NumericMatrix sigma2star){
   return total;
 }
 
-
+// [[Rcpp::export]]
 Rcpp::NumericVector reduced_sigma_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp) {
   Rcpp::RNGScope scope;
   Rcpp::S4 model_(xmod);
