@@ -76,11 +76,9 @@ reduced <- function(model, params=mlParams()){
   ## Block updates for stage 2 parameters
   ##
   logprobs$mu <- reduced_mu_pooled(model.reduced)
-  model.mustar <- mu_multibatch_pvar_red(model.reduced)
-  p.mustar <- p_mu_reduced_batch(model.mustar)
-
-  model.taustar <- tau_multibatch_pvar_red(model.reduced)
-  p.taustar <- p_tau_reduced_batch(model.mustar)
+  ## nothing stochastic here -- return single value from density
+  logprobs$tau2 <- log_prob_tau2(model.reduced)
+  logprobs$nu0 <- reduced_nu0_pooled(model.reduced)
 
   model.nu0star <- nu0_multibatch_pvar_red(model.reduced)
   p.nu0star <- pnu0_multibatch_pvar_red(model.nu0star)

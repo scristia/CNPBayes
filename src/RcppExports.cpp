@@ -729,36 +729,37 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// tau_multibatch_pvar_red
-Rcpp::S4 tau_multibatch_pvar_red(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_tau_multibatch_pvar_red(SEXP xmodSEXP) {
+// reduced_tau2_pooled
+Rcpp::NumericVector reduced_tau2_pooled(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_reduced_tau2_pooled(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(tau_multibatch_pvar_red(xmod));
+    rcpp_result_gen = Rcpp::wrap(reduced_tau2_pooled(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
-// nu0_multibatch_pvar_red
-Rcpp::S4 nu0_multibatch_pvar_red(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_nu0_multibatch_pvar_red(SEXP xmodSEXP) {
+// log_prob_nu0p
+double log_prob_nu0p(Rcpp::S4 xmod, int nu0star);
+RcppExport SEXP _CNPBayes_log_prob_nu0p(SEXP xmodSEXP, SEXP nu0starSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(nu0_multibatch_pvar_red(xmod));
+    Rcpp::traits::input_parameter< int >::type nu0star(nu0starSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_prob_nu0p(xmod, nu0star));
     return rcpp_result_gen;
 END_RCPP
 }
-// pnu0_multibatch_pvar_red
-Rcpp::NumericVector pnu0_multibatch_pvar_red(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_pnu0_multibatch_pvar_red(SEXP xmodSEXP) {
+// reduced_nu0_pooled
+Rcpp::NumericVector reduced_nu0_pooled(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_reduced_nu0_pooled(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(pnu0_multibatch_pvar_red(xmod));
+    rcpp_result_gen = Rcpp::wrap(reduced_nu0_pooled(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1196,9 +1197,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_reduced_sigma_pooled", (DL_FUNC) &_CNPBayes_reduced_sigma_pooled, 1},
     {"_CNPBayes_reduced_pi_pooled", (DL_FUNC) &_CNPBayes_reduced_pi_pooled, 1},
     {"_CNPBayes_reduced_mu_pooled", (DL_FUNC) &_CNPBayes_reduced_mu_pooled, 1},
-    {"_CNPBayes_tau_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_tau_multibatch_pvar_red, 1},
-    {"_CNPBayes_nu0_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_nu0_multibatch_pvar_red, 1},
-    {"_CNPBayes_pnu0_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_pnu0_multibatch_pvar_red, 1},
+    {"_CNPBayes_reduced_tau2_pooled", (DL_FUNC) &_CNPBayes_reduced_tau2_pooled, 1},
+    {"_CNPBayes_log_prob_nu0p", (DL_FUNC) &_CNPBayes_log_prob_nu0p, 2},
+    {"_CNPBayes_reduced_nu0_pooled", (DL_FUNC) &_CNPBayes_reduced_nu0_pooled, 1},
     {"_CNPBayes_s20_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_s20_multibatch_pvar_red, 1},
     {"_CNPBayes_ps20_multibatch_pvar_red", (DL_FUNC) &_CNPBayes_ps20_multibatch_pvar_red, 1},
     {"_CNPBayes_theta_pooled", (DL_FUNC) &_CNPBayes_theta_pooled, 1},

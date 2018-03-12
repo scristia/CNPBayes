@@ -257,16 +257,16 @@ reduced_mu_pooled <- function(xmod) {
     .Call('_CNPBayes_reduced_mu_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
-tau_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_tau_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+reduced_tau2_pooled <- function(xmod) {
+    .Call('_CNPBayes_reduced_tau2_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
-nu0_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_nu0_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+log_prob_nu0p <- function(xmod, nu0star) {
+    .Call('_CNPBayes_log_prob_nu0p', PACKAGE = 'CNPBayes', xmod, nu0star)
 }
 
-pnu0_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_pnu0_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+reduced_nu0_pooled <- function(xmod) {
+    .Call('_CNPBayes_reduced_nu0_pooled', PACKAGE = 'CNPBayes', xmod)
 }
 
 s20_multibatch_pvar_red <- function(xmod) {
