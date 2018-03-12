@@ -354,7 +354,7 @@ Rcpp::NumericVector reduced_mu_batch(Rcpp::S4 xmod) {
   Rcpp::NumericMatrix sigma2star = clone(sigma2_);
   Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
   Rcpp::NumericVector pstar = clone(p_);
-  Rcpp::NumericVector mu_ = Rcpp::as<Rcpp::NumericMatrix>(modes["mu"]);
+  Rcpp::NumericVector mu_ = Rcpp::as<Rcpp::NumericVector>(modes["mu"]);
   Rcpp::NumericVector mustar = clone(mu_);
   int K = thetastar.ncol();
   double df = getDf(model.slot("hyperparams")) ;
@@ -378,7 +378,7 @@ Rcpp::NumericVector reduced_mu_batch(Rcpp::S4 xmod) {
     model.slot("sigma2.0") = update_sigma20_batch(model) ;
     model.slot("nu.0") = update_nu0_batch(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
-    logp[s]=log_prob_mu(model, pstar) ;
+    logp[s]=log_prob_mu(model, mustar) ;
   }
   return logp;
 }
