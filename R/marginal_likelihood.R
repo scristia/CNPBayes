@@ -263,45 +263,7 @@ effectiveSizeWarning <- function(model){
         "See ?coda::effectiveSize")
 }
 
-.ml_pooled <- function(model, params=mlParams()){
-  warnings <- params$warnings
-  if (failEffectiveSize(model, params)) {
-    if(warnings) warning(effectiveSizeWarning(model))
-    naresult <- setNames(NA, paste0("SBP", k(model)))
-    if(!params$ignore.effective.size){
-      return(naresult)
-    }
-  }
-  # get parameters from list params
-  niter <- iter(model)
-  root <- params$root
-  reject.threshold <- params$reject.threshold
-  prop.threshold <- params$prop.threshold
-
-  # calculate p(x|theta)
-  logLik <- modes(model)[["loglik"]] ## includes 2nd stage
-  model2 <- useModes(model)
-
-  # calculate log p(theta)
-  logPrior <- modes(model)[["logprior"]]
-
-  # calculate log p(theta|x)
-  mp <- McmcParams(iter=niter)
-  red_gibbs <- .blockUpdatesPooledVar(model2, params)
-  pstar <- blockUpdates(red_gibbs, root)
-  if(failEffectiveSize(model, params)){
-    ## this can fail because the model is mixing beteen components
-    ## and the correction factor is not needed
-    correction.factor <- 0
-  } else correction.factor <- log(factorial(k(model)))
-  ## calculate p(x|model)
-  m.y <- logLik + logPrior - sum(pstar) +
-    correction.factor
-  names(m.y) <- paste0("SBP", k(model))
-  m.y
-}
-
-.ml_batchmodel <- function(model, params=mlParams()){
+k.ml_batchmodel <- function(model, params=mlParams()){
   ## calculate effective size of thetas and check against threshold
   warnings <- params$warnings
   if (failEffectiveSize(model, params)) {
