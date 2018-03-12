@@ -57,46 +57,6 @@ compute_heavy_means_batch <- function(xmod) {
     .Call('_CNPBayes_compute_heavy_means_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
-marginal_theta_pooled <- function(xmod) {
-    .Call('_CNPBayes_marginal_theta_pooled', PACKAGE = 'CNPBayes', xmod)
-}
-
-log_prob_sigmap <- function(xmod, sigma2star) {
-    .Call('_CNPBayes_log_prob_sigmap', PACKAGE = 'CNPBayes', xmod, sigma2star)
-}
-
-reduced_sigma_pooled <- function(xmod) {
-    .Call('_CNPBayes_reduced_sigma_pooled', PACKAGE = 'CNPBayes', xmod)
-}
-
-pi_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_pi_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
-}
-
-mu_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_mu_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
-}
-
-tau_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_tau_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
-}
-
-nu0_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_nu0_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
-}
-
-pnu0_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_pnu0_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
-}
-
-s20_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_s20_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
-}
-
-ps20_multibatch_pvar_red <- function(xmod) {
-    .Call('_CNPBayes_ps20_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
-}
-
 loglik_multibatch_pvar <- function(xmod) {
     .Call('_CNPBayes_loglik_multibatch_pvar', PACKAGE = 'CNPBayes', xmod)
 }
@@ -275,6 +235,46 @@ reduced_z_theta_fixed <- function(object) {
 
 p_sigma2_batch <- function(xmod) {
     .Call('_CNPBayes_p_sigma2_batch', PACKAGE = 'CNPBayes', xmod)
+}
+
+marginal_theta_pooled <- function(xmod) {
+    .Call('_CNPBayes_marginal_theta_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+log_prob_sigmap <- function(xmod, sigma2star) {
+    .Call('_CNPBayes_log_prob_sigmap', PACKAGE = 'CNPBayes', xmod, sigma2star)
+}
+
+reduced_sigma_pooled <- function(xmod) {
+    .Call('_CNPBayes_reduced_sigma_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+pi_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_pi_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+mu_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_mu_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+tau_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_tau_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+nu0_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_nu0_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+pnu0_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_pnu0_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+s20_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_s20_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
+}
+
+ps20_multibatch_pvar_red <- function(xmod) {
+    .Call('_CNPBayes_ps20_multibatch_pvar_red', PACKAGE = 'CNPBayes', xmod)
 }
 
 theta_pooled <- function(xmod) {

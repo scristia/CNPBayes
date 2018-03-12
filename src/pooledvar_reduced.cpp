@@ -196,54 +196,42 @@ Rcpp::NumericVector reduced_sigma_pooled(Rcpp::S4 xmod) {
 }
 
 
-
-
 // [[Rcpp::export]]
-Rcpp::S4 pi_multibatch_pvar_red(Rcpp::S4 xmod) {
+Rcpp::NumericVector reduced_pi_pooled(Rcpp::S4 xmod) {
   Rcpp::RNGScope scope;
-  // model objects and accessories
   Rcpp::S4 model_(xmod);
   Rcpp::S4 model = clone(model_);
-  Rcpp::List modes = model.slot("modes");
   Rcpp::S4 params=model.slot("mcmc.params");
-  Rcpp::S4 chains=model.slot("mcmc.chains");
-
-  // modes
-  Rcpp::NumericVector sigma2_ = Rcpp::as<Rcpp::NumericVector>(modes["sigma2"]);
-  Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
-  Rcpp::NumericVector sigma2star=clone(sigma2_);
-  Rcpp::NumericMatrix thetastar=clone(theta_);
-  //
-  // We need to keep the Z|y,theta* chain
-  //
-  Rcpp::IntegerMatrix Z = chains.slot("z");
-  model.slot("theta") = thetastar;
-  model.slot("sigma2") = sigma2star;
   int S = params.slot("iter");
+  Rcpp::NumericVector y = model.slot("data");
+  int N=y.size();
+  Rcpp::List modes = model.slot("modes");
+  Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
+  Rcpp::NumericMatrix thetastar=clone(theta_);
+  Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
+  Rcpp::NumericVector pstar = clone(p_);
+  int K = thetastar.ncol();
+  double df = getDf(model.slot("hyperparams")) ;
+  Rcpp::NumericVector logp(S) ;
   //
-  // Run reduced Gibbs:
-  //   -- theta is fixed at modal ordinate
-  //   -- sigma2 is fixed at modal ordinate
+  // Run reduced Gibbs    -- theta is fixed at modal ordinate
   //
   for (int s = 0; s < S; ++s) {
-    // update parameters
-    model.slot("z") = z_multibatch_pvar(model);
-    model.slot("data.mean") = compute_means_batch(model);
-    model.slot("data.prec") = compute_prec_batch(model);
-    // model.slot("theta") = update_theta(model) ; Do not update theta !
-    // model.slot("sigma2") = update_sigma2(model) ;
-    model.slot("pi") = update_p_batch(model);
-    model.slot("mu") = update_mu_batch(model);
-    model.slot("tau2") = update_tau2_batch(model);
-    model.slot("nu.0") = nu0_multibatch_pvar(model);
-    model.slot("sigma2.0") = sigma20_multibatch_pvar(model);
-    // capture chain of Zs
-    Z(s, Rcpp::_) = Rcpp::as<Rcpp::NumericVector>(model.slot("z"));
+    model.slot("z") = z_multibatch_pvar(model) ;
+    model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    //model.slot("theta") = theta_multibatch_pvar(model) ;
+    //model.slot("sigma2") = sigma2_multibatch_pvar(model) ;
+    model.slot("mu") = update_mu_batch(model) ;
+    model.slot("tau2") = update_tau2_batch(model) ;
+    model.slot("sigma2.0") = sigma20_multibatch_pvar(model) ;
+    model.slot("nu.0") = nu0_multibatch_pvar(model) ;
+    model.slot("pi") = update_p_batch(model) ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
+    logp[s]=log_prob_pmix(model, pstar) ;
   }
-  chains.slot("z") = Z;
-  model.slot("mcmc.chains") = chains;
-  return model;
+  return logp ;
 }
+
 
 // [[Rcpp::export]]
 Rcpp::S4 mu_multibatch_pvar_red(Rcpp::S4 xmod) {

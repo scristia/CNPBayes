@@ -71,6 +71,7 @@ reduced <- function(model, params=mlParams()){
     }
   }
   logprobs$sigma2 <- reduced_sigma_pooled(model.reduced)
+  logprobs$pi <- reduced_pi_pooled(model.reduced)
   model.pistar <- pi_multibatch_pvar_red(model.reduced)
   p.pi.star <- p_pmix_reduced_batch(model.pistar)
 
