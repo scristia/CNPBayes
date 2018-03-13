@@ -35,10 +35,6 @@ NULL
   post
 }
 
-mcmcMultiBatchPooled <- function(object){
-  .posteriorSimulation(object)
-}
-
 posteriorSimulationPooled <- function(object, iter=1000,
                                       burnin=1000,
                                       thin=10,
