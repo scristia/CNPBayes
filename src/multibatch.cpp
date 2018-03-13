@@ -612,6 +612,7 @@ Rcpp::IntegerVector order_(Rcpp::NumericVector x) {
   return match(x, sorted);
 }
 
+// [[Rcpp::export]]
 Rcpp::IntegerMatrix update_probz_batch(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(xmod) ;

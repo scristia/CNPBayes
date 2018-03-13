@@ -1,6 +1,7 @@
 context("Starting values")
 
 test_that("starting values", {
+  set.seed(123)
   mp <- McmcParams(iter=200, burnin=0, nStarts=10)
 
   ## Create Hyperparameters for batch model

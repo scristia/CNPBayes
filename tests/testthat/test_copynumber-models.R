@@ -34,7 +34,7 @@ context("Copy number models")
 
 test_that("Methods defined for the class", {
   sb <- SingleBatchModelExample
-  cn.model <- SingleBatchCopyNumber(sb)
+  cn.model <- MultiBatchCopyNumber(sb)
 
   expect_false(manyToOneMapping(cn.model))
   cn <- copyNumber(cn.model)

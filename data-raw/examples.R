@@ -36,6 +36,14 @@ save(SingleBatchModelExample, file="../data/SingleBatchModelExample.rda")
 
 data(SingleBatchModelExample)
 SingleBatchModelExample <- updateObject(SingleBatchModelExample)
+
+set.seed(123)
+sb <- simulateBatchData(N=2500, p=rep(1/3, 3),
+                        theta=matrix(c(-1, 0, 1), nrow=1),
+                        sds=matrix(rep(0.1, 3), nrow=1),
+                        batch=rep(1L, 2500),
+                        df=100)
+SingleBatchModelExample <- sb
 save(SingleBatchModelExample, file="../data/SingleBatchModelExample.rda")
 
 data(MultiBatchModelExample)

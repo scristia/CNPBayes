@@ -70,7 +70,7 @@ test_that("easy", {
   expect_equal(sigma(model), sigma(truth), tolerance=0.11)
   expect_equal(p(model), p(truth), tolerance=0.05)
   i <- argMax(model)
-  expect_true(i == which.max(logPrior(chains(model)) + log_lik(chains(model))))
+  expect_true(i == which.max(log_lik(chains(model))))
   expect_identical(sort(thetac(model)[i, ]), as.numeric(modes(model)[["theta"]]))
   expect_identical(sort(sigmac(model)[i, ]),
                    as.numeric(sort(sqrt(modes(model)[["sigma2"]]))))

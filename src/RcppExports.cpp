@@ -615,6 +615,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// update_probz_batch
+Rcpp::IntegerMatrix update_probz_batch(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_probz_batch(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_probz_batch(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // mcmc_batch_burnin
 Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp);
 RcppExport SEXP _CNPBayes_mcmc_batch_burnin(SEXP objectSEXP, SEXP mcmcpSEXP) {
@@ -796,6 +807,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_stageTwoLogLikBatch", (DL_FUNC) &_CNPBayes_stageTwoLogLikBatch, 1},
     {"_CNPBayes_update_theta_batch", (DL_FUNC) &_CNPBayes_update_theta_batch, 1},
     {"_CNPBayes_update_sigma2_batch", (DL_FUNC) &_CNPBayes_update_sigma2_batch, 1},
+    {"_CNPBayes_update_probz_batch", (DL_FUNC) &_CNPBayes_update_probz_batch, 1},
     {"_CNPBayes_mcmc_batch_burnin", (DL_FUNC) &_CNPBayes_mcmc_batch_burnin, 2},
     {"_CNPBayes_mcmc_batch", (DL_FUNC) &_CNPBayes_mcmc_batch, 2},
     {"_CNPBayes_marginal_theta_pooled", (DL_FUNC) &_CNPBayes_marginal_theta_pooled, 1},

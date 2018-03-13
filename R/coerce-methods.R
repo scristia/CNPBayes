@@ -231,7 +231,7 @@ setAs("SingleBatchModel", "MultiBatchModel", function(from, to){
   ch <- chains(from)
   nb <- 1L
   ch@sigma2 <- matrix(NA, iter(from), nb)
-  new("MultiBatchPooled",
+  new("MultiBatchModel",
       k=k(from),
       hyperparams=hp,
       theta=matrix(from@theta, nrow=1),
