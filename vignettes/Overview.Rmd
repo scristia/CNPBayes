@@ -7,7 +7,6 @@ bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Overview of CNPBayes package}
   %\VignetteEngine{knitr::rmarkdown}
-  %\usepackage[utf8]{inputenc} 
 ---
 
 # Introduction
