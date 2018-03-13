@@ -182,7 +182,6 @@ setAs("SingleBatchModel", "SingleBatchPooled", function(from, to){
       .internal.counter=from@.internal.counter)
 })
 
-
 setAs("MultiBatchModel", "MultiBatchPooled", function(from, to){
   hp <- hyperParams(from)
   ##
@@ -211,6 +210,78 @@ setAs("MultiBatchModel", "MultiBatchPooled", function(from, to){
       u=u(from),
       data.mean=from@data.mean,
       data.prec=from@data.prec,
+      z=z(from),
+      zfreq=zFreq(from),
+      probz=from@probz,
+      logprior=logPrior(from),
+      loglik=log_lik(from),
+      mcmc.chains=ch,
+      mcmc.params=mcmcParams(from),
+      label_switch=label_switch(from),
+      marginal_lik=marginal_lik(from),
+      .internal.constraint=from@.internal.constraint,
+      .internal.counter=from@.internal.counter)
+})
+
+setAs("SingleBatchModel", "MultiBatchModel", function(from, to){
+  hp <- hyperParams(from)
+  ##
+  ## chains slot for sigma should be different
+  ##
+  ch <- chains(from)
+  nb <- 1L
+  ch@sigma2 <- matrix(NA, iter(from), nb)
+  new("MultiBatchPooled",
+      k=k(from),
+      hyperparams=hp,
+      theta=matrix(from@theta, nrow=1),
+      batch=rep(1L, length(y(from))),
+      sigma2=matrix(from@sigma2, nrow=1),
+      nu.0=nu.0(from),
+      sigma2.0=sigma2.0(from),
+      pi=p(from),
+      mu=from@mu,
+      tau2=tau2(from),
+      data=y(from),
+      u=u(from),
+      data.mean=matrix(from@data.mean, nrow=1),
+      data.prec=matrix(from@data.prec, nrow=1),
+      z=z(from),
+      zfreq=zFreq(from),
+      probz=from@probz,
+      logprior=logPrior(from),
+      loglik=log_lik(from),
+      mcmc.chains=ch,
+      mcmc.params=mcmcParams(from),
+      label_switch=label_switch(from),
+      marginal_lik=marginal_lik(from),
+      .internal.constraint=from@.internal.constraint,
+      .internal.counter=from@.internal.counter)
+})
+
+setAs("SingleBatchPooled", "MultiBatchPooled", function(from, to){
+  hp <- hyperParams(from)
+  ##
+  ## chains slot for sigma should be different
+  ##
+  ch <- chains(from)
+  nb <- 1L
+  ch@sigma2 <- matrix(NA, iter(from), nb)
+  new("MultiBatchPooled",
+      k=k(from),
+      hyperparams=hp,
+      theta=matrix(theta(from), nrow=1),
+      batch=rep(1L, length(y(from))),
+      sigma2=matrix(sigma2(from), nrow=1),
+      nu.0=nu.0(from),
+      sigma2.0=sigma2.0(from),
+      pi=p(from),
+      mu=from@mu,
+      tau2=tau2(from),
+      data=y(from),
+      u=u(from),
+      data.mean=matrix(from@data.mean, nrow=1),
+      data.prec=matrix(from@data.prec, nrow=1),
       z=z(from),
       zfreq=zFreq(from),
       probz=from@probz,
