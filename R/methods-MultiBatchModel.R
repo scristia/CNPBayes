@@ -301,7 +301,7 @@ setMethod("computeVars", "MultiBatchModel", function(object){
 
 #' @rdname mu-method
 #' @aliases mu,MultiBatchModel-method
-setMethod("mu", "MultiBatchModel", function(object) object@mu)
+setMethod("mu", "MixtureModel", function(object) object@mu)
 
 
 setReplaceMethod("mu", "MultiBatchModel", function(object, value){
@@ -313,7 +313,7 @@ nBatch <- function(object) length(uniqueBatch(object))
 
 batchElements <- function(object) object@batchElements
 
-setReplaceMethod("p", "MultiBatchModel", function(object, value){
+setReplaceMethod("p", "MixtureModel", function(object, value){
   object@pi <- value
   object
 })
@@ -323,7 +323,7 @@ setMethod("pMean", "MultiBatchModel", function(object) {
   mns
 })
 
-setMethod("showMeans", "MultiBatchModel", function(object){
+setMethod("showMeans", "MixtureModel", function(object){
   thetas <- round(theta(object), 2)
   mns <- c("\n", paste0(t(cbind(thetas, "\n")), collapse="\t"))
   mns <- paste0("\t", mns[2])
@@ -331,7 +331,7 @@ setMethod("showMeans", "MultiBatchModel", function(object){
   mns
 })
 
-setMethod("showSigmas", "MultiBatchModel", function(object){
+setMethod("showSigmas", "MixtureModel", function(object){
   sigmas <- round(sqrt(sigma2(object)), 2)
   sigmas <- c("\n", paste0(t(cbind(sigmas, "\n")), collapse="\t"))
   sigmas <- paste0("\t", sigmas[2])
@@ -340,15 +340,15 @@ setMethod("showSigmas", "MultiBatchModel", function(object){
 })
 
 
-setReplaceMethod("sigma2", "MultiBatchModel", function(object, value){
+setReplaceMethod("sigma2", "MixtureModel", function(object, value){
   rownames(value) <- uniqueBatch(object)
   object@sigma2 <- value
   object
 })
 
 #' @rdname sigma2-method
-#' @aliases sigma2,MultiBatchModel-method
-setMethod("sigma2", "MultiBatchModel", function(object) {
+#' @aliases sigma2,MixtureModel-method
+setMethod("sigma2", "MixtureModel", function(object) {
   s2 <- object@sigma2
   ##s2 <- matrix(s2, nBatch(object), k(object))
   rownames(s2) <- uniqueBatch(object)
@@ -369,8 +369,8 @@ setMethod("sigmaMean", "MultiBatchModel", function(object) {
 
 
 #' @rdname tau2-method
-#' @aliases tau2,MultiBatchModel-method
-setMethod("tau2", "MultiBatchModel", function(object) object@tau2)
+#' @aliases tau2,MixtureModel-method
+setMethod("tau2", "MixtureModel", function(object) object@tau2)
 
 setReplaceMethod("tau2", "MultiBatchModel", function(object, value){
   object@tau2 <- value
@@ -379,8 +379,8 @@ setReplaceMethod("tau2", "MultiBatchModel", function(object, value){
 
 
 #' @rdname theta-method
-#' @aliases theta,MultiBatchModel-method
-setMethod("theta", "MultiBatchModel", function(object) {
+#' @aliases theta,MixtureModel-method
+setMethod("theta", "MixtureModel", function(object) {
   b <- object@theta
   ##b <- matrix(b, nBatch(object), k(object))
   rownames(b) <- uniqueBatch(object)
@@ -413,7 +413,7 @@ setMethod("show", "MultiBatchModel", function(object){
   cat("     logprior (s):", round(logPrior(object), 1), "\n")
 })
 
-setMethod("tablez", "MultiBatchModel", function(object){
+setMethod("tablez", "MixtureModel", function(object){
   tab <- table(batch(object), z(object))
   tab <- tab[uniqueBatch(object), , drop=FALSE]
   tab
