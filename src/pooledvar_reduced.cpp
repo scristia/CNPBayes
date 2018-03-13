@@ -19,6 +19,7 @@ Rcpp::NumericMatrix toMatrix_pvar(Rcpp::NumericVector x, int NR, int NC) {
   return Y;
 }
 
+// [[Rcpp::export]]
 double log_prob_thetap(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar){
   Rcpp::RNGScope scope;
   Rcpp::S4 model_(xmod);
@@ -45,8 +46,6 @@ double log_prob_thetap(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar){
   double w1;
   double w2;
   Rcpp::NumericVector tauc(K);
-  Rcpp::NumericMatrix iSigma2(B, K);
-  Rcpp::NumericVector invs2;
   Rcpp::NumericVector theta(1);
   double df = getDf(model.slot("hyperparams")) ;
   double heavyn = 0.0;
@@ -57,8 +56,7 @@ double log_prob_thetap(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar){
   sumu = compute_u_sums_batch(model) ;
   //data_mean = compute_means_batch(model);
   tau2_tilde = 1.0 / tau2;
-  invs2 = 1.0 / sigma2;    // this is a vector of length B
-  sigma2_tilde = Rcpp::as<Rcpp::NumericVector>(toMatrix_pvar(invs2, B, K));
+  sigma2_tilde = 1.0 / sigma2;    // this is a vector of length B
   double total = 0.0;
   for (int k = 0; k < K; ++k) {
     for (int b = 0; b < B; ++b) {
@@ -66,7 +64,7 @@ double log_prob_thetap(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar){
       post_prec = tau2_tilde[k] + heavyn*1.0 * sigma2_tilde[b] ;
       tau_n = sqrt(1/post_prec);
       w1 = tau2_tilde[k]/post_prec;
-      w2 = heavyn * sigma2_tilde(b, k)/post_prec;
+      w2 = heavyn * sigma2_tilde[b]/post_prec;
       heavy_mean = data_sum(b, k) / heavyn / df;
       mu_n = w1*mu[k] + w2*heavy_mean;
       theta[0] = thetastar(b, k);

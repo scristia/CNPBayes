@@ -8,7 +8,8 @@ using namespace Rcpp ;
 // [[Rcpp::export]]
 Rcpp::NumericVector compute_loglik_batch(Rcpp::S4 xmod){
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model_(xmod);
+  Rcpp::S4 model = clone(model_);
   int K = getK(model.slot("hyperparams")) ;
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
@@ -61,7 +62,8 @@ Rcpp::NumericVector compute_loglik_batch(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector update_mu_batch(Rcpp::S4 xmod){
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model_(xmod);
+  Rcpp::S4 model = clone(model_);
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   double tau2_0 = hypp.slot("tau2.0") ;
@@ -87,7 +89,7 @@ Rcpp::NumericVector update_mu_batch(Rcpp::S4 xmod){
     w1[k] = tau2_0_tilde/(tau2_0_tilde + B*tau2_tilde[k]) ;
     w2[k] = B*tau2_tilde[k]/(tau2_0_tilde + B*tau2_tilde[k]) ;
   }
-  NumericMatrix n_b = tableBatchZ(xmod) ;
+  NumericMatrix n_b = tableBatchZ(model) ;
   NumericVector theta_bar(K) ;
   NumericVector th(K) ;
 

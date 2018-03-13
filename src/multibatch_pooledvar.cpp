@@ -65,7 +65,8 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector sigma20_multibatch_pvar(Rcpp::S4 xmod){
     RNGScope scope ;
-    Rcpp::S4 model(xmod) ;
+    Rcpp::S4 model_(xmod);
+    Rcpp::S4 model = clone(model_);
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
     int K = getK(hypp) ;
     IntegerVector batch = model.slot("batch") ;
@@ -112,7 +113,8 @@ Rcpp::NumericVector sigma20_multibatch_pvar(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector nu0_multibatch_pvar(Rcpp::S4 xmod){
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model_(xmod);
+  Rcpp::S4 model = clone(model_);
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector sigma2 = model.slot("sigma2") ;
@@ -161,7 +163,8 @@ Rcpp::NumericVector nu0_multibatch_pvar(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model_(xmod);
+  Rcpp::S4 model = clone(model_);
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   IntegerVector batch = model.slot("batch") ;
@@ -200,7 +203,8 @@ Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::IntegerVector z_multibatch_pvar(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model_(xmod);
+  Rcpp::S4 model = clone(model_);
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector x = model.slot("data") ;
@@ -275,16 +279,16 @@ Rcpp::NumericVector stagetwo_multibatch_pvar(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod){
     RNGScope scope ;
-    Rcpp::S4 model(xmod) ;
+    Rcpp::S4 model_(xmod);
+    Rcpp::S4 model = clone(model_);
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
     int K = getK(hypp) ;
     NumericVector x = model.slot("data") ;
     NumericVector tau2 = model.slot("tau2") ;
     NumericVector sigma2 = model.slot("sigma2") ;
-    NumericMatrix n_hb = tableBatchZ(xmod) ;
+    NumericMatrix n_hb = tableBatchZ(model) ;
     NumericVector mu = model.slot("mu") ;
     int B = n_hb.nrow() ;
-    NumericMatrix ybar = model.slot("data.mean") ;
     NumericMatrix theta_new(B, K) ;
     double w1 = 0.0 ;
     double w2 = 0.0 ;
@@ -294,8 +298,8 @@ Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod){
     NumericVector u = model.slot("u") ;
     double df = getDf(hypp) ;
     // find heavy means by batch
-    NumericMatrix data_sum =  compute_heavy_sums_batch(xmod) ;
-    NumericMatrix sumu = compute_u_sums_batch(xmod) ;
+    NumericMatrix data_sum =  compute_heavy_sums_batch(model) ;
+    NumericMatrix sumu = compute_u_sums_batch(model) ;
     double heavyn = 0.0;
     double heavy_mean = 0.0;
     for (int b = 0; b < B; ++b) {
@@ -305,11 +309,11 @@ Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod){
         if (post_prec == R_PosInf) {
           throw std::runtime_error("Bad simulation. Run again with different start.");
         }
-        tau_n = sqrt(1.0/post_prec) ;
         w1 = (1.0/tau2[k])/post_prec ;
         w2 = (heavyn * 1.0/sigma2[b])/post_prec ;
         heavy_mean = data_sum(b, k) / heavyn / df;
         mu_n = w1*mu[k] + w2*heavy_mean ;
+        tau_n = sqrt(1.0/post_prec) ;
         theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
       }
     }
@@ -319,10 +323,8 @@ Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
     Rcpp::RNGScope scope;
-
-    // get model
-    Rcpp::S4 model(xmod);
-
+    Rcpp::S4 model_(xmod);
+    Rcpp::S4 model = clone(model_);
     // get parameter estimates
     Rcpp::NumericMatrix theta = model.slot("theta");
     Rcpp::IntegerVector z = model.slot("z");
@@ -338,7 +340,7 @@ Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
     double df = getDf(model.slot("hyperparams")) ;
 
     // get batch info
-    Rcpp::NumericMatrix tabz = tableBatchZ(xmod);
+    Rcpp::NumericMatrix tabz = tableBatchZ(model);
     Rcpp::IntegerVector batch = model.slot("batch");
     Rcpp::IntegerVector ub = uniqueBatch(batch);
     Rcpp::NumericVector ss(B);

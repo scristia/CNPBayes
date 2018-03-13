@@ -1,6 +1,39 @@
 #' @include methods-MixtureModel.R
 NULL
 
+setMethod("runBurnin", "SingleBatchModel", function(object){
+  mcmc_marginal_burnin(object, mcmcParams(object))
+})
+
+setMethod("runBurnin", "SingleBatchPooled", function(object){
+  burnin_singlebatch_pooled(object, mcmcParams(object))
+})
+
+setMethod("runBurnin", "MultiBatchModel", function(object){
+  mcmc_batch_burnin(object, mcmcParams(object))
+})
+
+setMethod("runBurnin", "MultiBatchPooled", function(object){
+  burnin_multibatch_pvar(object, mcmcParams(object))
+})
+
+setMethod("runMcmc", "SingleBatchModel", function(object){
+  mcmc_marginal(object, mcmcParams(object))
+})
+
+setMethod("runMcmc", "SingleBatchPooled", function(object){
+  mcmc_singlebatch_pooled(object, mcmcParams(object))
+})
+
+setMethod("runMcmc", "MultiBatchModel", function(object){
+  mcmc_batch(object, mcmcParams(object))
+})
+
+setMethod("runMcmc", "MultiBatchPooled", function(object){
+  mcmc_multibatch_pvar(object, mcmcParams(object))
+})
+
+
 .posteriorSimulation2 <- function(post, params=psParams()){
   post <- runBurnin(post)
   if(!isOrdered(post)) label_switch(post) <- TRUE

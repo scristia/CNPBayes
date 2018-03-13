@@ -229,6 +229,10 @@ mcmc_batch <- function(object, mcmcp) {
     .Call('_CNPBayes_mcmc_batch', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
+log_prob_thetap <- function(xmod, thetastar) {
+    .Call('_CNPBayes_log_prob_thetap', PACKAGE = 'CNPBayes', xmod, thetastar)
+}
+
 marginal_theta_pooled <- function(xmod) {
     .Call('_CNPBayes_marginal_theta_pooled', PACKAGE = 'CNPBayes', xmod)
 }

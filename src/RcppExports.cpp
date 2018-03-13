@@ -650,6 +650,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_prob_thetap
+double log_prob_thetap(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar);
+RcppExport SEXP _CNPBayes_log_prob_thetap(SEXP xmodSEXP, SEXP thetastarSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type thetastar(thetastarSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_prob_thetap(xmod, thetastar));
+    return rcpp_result_gen;
+END_RCPP
+}
 // marginal_theta_pooled
 Rcpp::NumericVector marginal_theta_pooled(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_marginal_theta_pooled(SEXP xmodSEXP) {
@@ -810,6 +822,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_update_probz_batch", (DL_FUNC) &_CNPBayes_update_probz_batch, 1},
     {"_CNPBayes_mcmc_batch_burnin", (DL_FUNC) &_CNPBayes_mcmc_batch_burnin, 2},
     {"_CNPBayes_mcmc_batch", (DL_FUNC) &_CNPBayes_mcmc_batch, 2},
+    {"_CNPBayes_log_prob_thetap", (DL_FUNC) &_CNPBayes_log_prob_thetap, 2},
     {"_CNPBayes_marginal_theta_pooled", (DL_FUNC) &_CNPBayes_marginal_theta_pooled, 1},
     {"_CNPBayes_log_prob_sigmap", (DL_FUNC) &_CNPBayes_log_prob_sigmap, 2},
     {"_CNPBayes_reduced_sigma_pooled", (DL_FUNC) &_CNPBayes_reduced_sigma_pooled, 1},

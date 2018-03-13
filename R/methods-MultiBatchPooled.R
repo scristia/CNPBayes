@@ -261,7 +261,8 @@ gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches, min_
   model <- combine_multibatch_pooled(mod.list, batches)
   meets_conditions <- all(neff > MIN_EFF) && r$mpsrf < 2 && !label_switch(model)
   if(meets_conditions){
-    model <- compute_marginal_lik(model)
+    testing <- tryCatch(compute_marginal_lik(model), error=function(e) NULL)
+    if(is.null(testing)) return(model)
   }
   model
 }
