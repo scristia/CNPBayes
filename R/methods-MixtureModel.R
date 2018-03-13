@@ -162,6 +162,11 @@ setMethod("show", "MixtureModel", function(object){
   cat("     loglik (s)  :", round(log_lik(object), 2), "\n")
 })
 
+setMethod("show", "SingleBatchModel", function(object){
+  object <- as(object, "MultiBatchModel")
+  show(object)
+})
+
 setMethod("alpha", "MixtureModel", function(object) alpha(hyperParams(object)))
 
 #' @rdname y-method
@@ -615,8 +620,9 @@ startAtTrueValues <- function(model, truth){
 
 restartAtChainIndex <- function(model, index){
   ch <- chains(model)
-  theta(model) <- theta(ch)[index, , drop=FALSE]
-  sigma2(model) <- sigma2(ch)[index, , drop=FALSE]
+  nb <- nrow(theta(model))
+  theta(model) <- matrix(theta(ch)[index, ], nrow=nb)
+  sigma2(model) <- matrix(sigma2(ch)[index, ], nrow=nb)
   p(model) <- p(ch)[index, ]
   mu(model) <- mu(ch)[index]
   tau2(model) <- tau2(ch)[index]
