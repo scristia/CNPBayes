@@ -212,7 +212,7 @@ hardTruth <- function(p1, s, N=1000){
   truth
 }
 
-test_that("stay_near_truth", {
+.test_that("stay_near_truth", {
   set.seed(123)
   library(SummarizedExperiment)
   ## embed function in test for now
