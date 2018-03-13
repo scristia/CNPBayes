@@ -123,7 +123,6 @@ combine_multibatch_pooled <- function(model.list, batches){
   n0 <- map(ch.list, nu.0) %>% unlist
   s2.0 <- map(ch.list, sigma2.0) %>% unlist
   logp <- map(ch.list, logPrior) %>% unlist
-  ##uu <- map(ch.list, u) %>% do.call(rbind, .)
   .mu <- map(ch.list, mu) %>% do.call(rbind, .)
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)

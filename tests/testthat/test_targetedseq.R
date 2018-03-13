@@ -21,11 +21,5 @@ test_that("targeted_seq data", {
                    min_effsize=25,
                    batches=rep(1L, length(dat)))
   )
-  ##  mlist <- gibbs_K(mp=mp, dat=dat, k_range=c(2, 3),
-  ##                   max_burnin=50,
-  ##                   min_effsize=25)
-  ##
-  ## Select k=3
-  ##
   expect_identical(names(mlist)[1], "SB3")
 })
