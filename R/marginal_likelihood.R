@@ -7,17 +7,11 @@ failSmallPstar <- function(ptheta.star, params=mlParams()){
   small.theta.red >= prop.threshold
 }
 
-reduced <- function(model, params=mlParams()){
-  .blockUpdatesBatch(model, params)
-}
-
-.blockUpdatesBatch <- function(model, params){
+.message_theta <- function(model, params, logprobs){
   reject.threshold <- params$reject.threshold
   prop.threshold <- params$prop.threshold
   ignore.small.pstar <- params$ignore.small.pstar
   warnings <- params$warnings
-  model.reduced <- model
-  logprobs <- tibble(theta=marginal_theta_batch(model.reduced))
   if(paramUpdates(model)[["theta"]]==0) {
     ignore.small.pstar <- TRUE
   }
@@ -27,9 +21,17 @@ reduced <- function(model, params=mlParams()){
       msg <- paste("The model for k=", k(model), " may be overfit.",
                    "This can lead to an incorrect marginal likelihood")
       if(warnings) warning(msg)
-      return(matrix(NA))
+      return(FALSE)
     }
   }
+  TRUE
+}
+
+.blockUpdatesBatch <- function(model, params){
+  model.reduced <- model
+  logprobs <- tibble(theta=marginal_theta_batch(model.reduced))
+  continue <- .message_theta(model, params, logprobs)
+  if(!continue) return(matrix(NA))
   logprobs$sigma <- reduced_sigma_batch(model.reduced)
   stopifnot(identical(modes(model.reduced), modes(model)))
   logprobs$pi <- reduced_pi_batch(model.reduced)
@@ -51,24 +53,9 @@ reduced <- function(model, params=mlParams()){
 }
 
 .blockUpdatesMultiBatchPooled <- function(model, params=mlParams()){
-  reject.threshold <- params$reject.threshold
-  prop.threshold <- params$prop.threshold
-  ignore.small.pstar <- params$ignore.small.pstar
-  warnings <- params$warnings
   model.reduced <- model
   logprobs <- tibble(theta=marginal_theta_pooled(model.reduced))
-  if(paramUpdates(model)[["theta"]]==0) {
-    ignore.small.pstar <- TRUE
-  }
-  if(!ignore.small.pstar){
-    failed <- failSmallPstar(logprobs$theta, params)
-    if (failed) {
-      msg <- paste("The model for k=", k(model), " may be overfit.",
-                   "This can lead to an incorrect marginal likelihood")
-      if(warnings) warning(msg)
-      return(matrix(NA))
-    }
-  }
+  continue <- .message_theta(model, params, logprobs)
   logprobs$sigma2 <- reduced_sigma_pooled(model.reduced)
   logprobs$pi <- reduced_pi_pooled(model.reduced)
   ##
@@ -82,7 +69,6 @@ reduced <- function(model, params=mlParams()){
   probs <- exp(logprobs)
   probs
 }
-
 
 blockUpdates <- function(reduced_gibbs, root) {
   pstar <- apply(reduced_gibbs, 2, function(x) log(mean(x^(root), na.rm=TRUE)))
@@ -151,54 +137,6 @@ mlParams <- function(root=1/10,
        ignore.small.pstar=ignore.small.pstar,
        warnings=warnings)
 }
-
-.ml_singlebatch <- function(model, params=mlParams()){
-  reject.threshold <- params$reject.threshold
-  prop.threshold <- params$prop.threshold
-  warnings <- params$warnings
-  if (failEffectiveSize(model, params)) {
-    msg <- effectiveSizeWarning(model)
-    if(warnings) warning(msg)
-    naresult <- setNames(NA, paste0("SB", k(model)))
-    if(!params$ignore.effective.size)
-      return(naresult)
-  }
-  ## get parameters from list params
-  ##niter <- params$niter
-  niter <- iter(model)
-  root <- params$root
-
-  ## calculate p(x|theta)
-  logLik <- modes(model)[["loglik"]] ## includes 2nd stage
-  model2 <- useModes(model)
-  ##stage2.loglik <- stageTwoLogLik(model2)
-
-  ## calculate log p(theta)
-  logPrior <- modes(model)[["logprior"]]
-
-  ## calculate log p(theta|x)
-  mp <- McmcParams(iter=niter)
-  red_gibbs <- .blockUpdates(model2, params)
-  if(length(red_gibbs) == 1){
-    ##if(is.na(red_gibbs[1])){
-    names(red_gibbs) <- paste0("SB", k(model))
-    return(red_gibbs)
-  }
-  pstar <- blockUpdates(red_gibbs, root)
-  if(failEffectiveSize(model, params)){
-    ## this can fail because the model is mixing beteen components
-    ## and the correction factor is not needed
-    correction.factor <- 0
-  } else correction.factor <- log(factorial(k(model)))
-
-  ## calculate log p(x|model)
-  m.y <- logLik + logPrior - sum(pstar) +
-    correction.factor
-  names(m.y) <- paste0("SB", k(model))
-  m.y
-}
-
-
 
 ## used for debugging
 computeML <- function(model, params=mlParams()){
