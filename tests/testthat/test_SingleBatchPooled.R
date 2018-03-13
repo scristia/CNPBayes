@@ -31,14 +31,14 @@ test_that("gibbs", {
   model2 <- posteriorSimulation(model)
   expect_equal(marginalLikelihood(model2)[[1]], 37.3, tolerance=0.1)
   expect_equal(log_prob_thetap(model2, theta(model2)), 6.8, tolerance=0.1)
-  sbp <- gibbs_multibatch_pooled(hp=hpList(k=2)[["MBP"]],
-                                 mp=mp,
-                                 dat=lrr,
-                                 batches=rep(1L, length(lrr)),
-                                 min_effsize=20)
-  theta_multibatch_pvar(sbp)
-  log_prob_thetap(sbp, theta(sbp))
-  marginal_theta_pooled(sbp)
+  expect_warning(sbp <- gibbs_multibatch_pooled(hp=hpList(k=2)[["MBP"]],
+                                                mp=mp,
+                                                dat=lrr,
+                                                batches=rep(1L, length(lrr)),
+                                                min_effsize=20))
+  expect_is(theta_multibatch_pvar(sbp), "matrix")
+  expect_equal(log_prob_thetap(sbp, theta(sbp)), 7.42, tolerance=0.1)
+  expect_is(marginal_theta_pooled(sbp), "numeric")
 })
 
 test_that("Valid starts", {
