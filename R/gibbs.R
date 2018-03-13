@@ -305,13 +305,6 @@ gelman_rubin <- function(mcmc_list, hp){
   r
 }
 
-##constructor <- function(nm, hp, mp, batches){
-##  x <- switch(nm,
-##              SingleBatchModel=SingleBatchModel2(dat=dat, hp=hp, mp=mp),
-##              MultiBatchModel=MultiBatchModel(dat=dat, hp=hp, mp=mp, batches=batches))
-##  x
-##}
-
 harmonizeU <- function(model.list){
   uu <- u(model.list[[1]])
   for(i in seq_along(model.list)){
@@ -321,59 +314,6 @@ harmonizeU <- function(model.list){
     model.list[[i]] <- m
   }
   model.list
-}
-
-.gibbs <- function(hp, mp, dat, max_burnin=32000, min_effsize=500){
-  nchains <- nStarts(mp)
-  if(nchains==1) stop("Must initialize at least 2 chains with nStarts ")
-  nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
-  if(iter(mp) < min_effsize){
-    stop(paste("Require at least", min_effsize, "Monte Carlo simulations"))
-  }
-  if(burnin(mp) > max_burnin) stop("Specified burnin is greater than max_burnin")
-  counter <- 0
-  while(burnin(mp) <= max_burnin & counter < 5){
-    message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    mod.list <- replicate(nchains, SingleBatchModel2(dat=dat,
-                                                     hp=hp,
-                                                     mp=mp))
-    ##mod.list <- harmonizeU(mod.list)
-    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
-    label_swapping <- map_lgl(mod.list, label_switch)
-    noswap <- sum(!label_swapping)
-    if(noswap < 2){
-      burnin(mp) <- as.integer(burnin(mp) * 2)
-      mp@thin <- as.integer(thin(mp) * 2)
-      ## only increment counter for label switching
-      counter <- counter + 1
-      mlist <- mcmcList(mod.list)
-      neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-      if(is.null(neff))  neff <- 0
-      r <- gelman_rubin(mlist, hp)
-      message("     r: ", round(r$mpsrf, 2))
-      message("     eff size (minimum): ", round(min(neff), 1))
-      message("     eff size (median): ", round(median(neff), 1))
-      next()
-    }
-    mod.list <- mod.list[ selectModels(mod.list) ]
-    mlist <- mcmcList(mod.list)
-    neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-    if(is.null(neff))  neff <- 0
-    r <- gelman_rubin(mlist, hp)
-    message("     r: ", round(r$mpsrf, 2))
-    message("     eff size (minimum): ", round(min(neff), 1))
-    message("     eff size (median): ", round(median(neff), 1))
-    if(all(neff > min_effsize) && r$mpsrf < 1.2) break()
-    burnin(mp) <- as.integer(burnin(mp) * 2)
-    mp@thin <- as.integer(thin(mp) * 2)
-    counter <- 0
-  }
-  model <- combineModels(mod.list)
-  meets_conditions <- all(neff > min_effsize) && r$mpsrf < 2 && !label_switch(model)
-  if(meets_conditions){
-    model <- compute_marginal_lik(model)
-  }
-  model
 }
 
 compute_marginal_lik <- function(model, params){
