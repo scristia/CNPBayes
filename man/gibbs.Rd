@@ -5,7 +5,8 @@
 \title{Run a Gibbs sampler on one or multiple types of Bayesian Gaussian mixture models}
 \usage{
 gibbs(model = c("SB", "MB", "SBP", "MBP"), dat, mp, hp.list, batches,
-  k_range = c(1, 4), max_burnin = 32000, top = 2, df = 100)
+  k_range = c(1, 4), max_burnin = 32000, top = 2, df = 100,
+  min_effsize = 500)
 }
 \arguments{
 \item{model}{a character vector indicating which models to fit (any combination of 'SB', 'MB', 'SBP', and 'MBP')}

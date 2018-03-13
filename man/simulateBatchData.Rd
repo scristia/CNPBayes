@@ -4,7 +4,7 @@
 \alias{simulateBatchData}
 \title{Create simulated batch data for testing.}
 \usage{
-simulateBatchData(N = 2500, p, theta, sds, batch, zz)
+simulateBatchData(N = 2500, p, theta, sds, batch, zz, df = 10)
 }
 \arguments{
 \item{N}{number of observations}
