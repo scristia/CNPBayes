@@ -869,7 +869,8 @@ setMethod("ggMixture", "MultiBatchCopyNumberPooled", function(model, bins){
 #' @rdname ggplot-functions
 #' @aliases ggMixture,SingleBatchModel-method
 setMethod("ggMixture", "SingleBatchModel", function(model, bins){
-  .gg_singlebatch(model, bins)
+  model <- as(model, "MultiBatchModel")
+  .gg_multibatch(model, bins)
 })
 
 

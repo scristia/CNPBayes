@@ -65,3 +65,17 @@ posteriorSimulationPooled <- function(object, iter=1000,
 setMethod("posteriorSimulation", "MixtureModel", function(object){
   .posteriorSimulation2(object)
 })
+
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,SingleBatchModel-method
+setMethod("posteriorSimulation", "SingleBatchModel", function(object){
+  object <- as(object, "MultiBatchModel")
+  .posteriorSimulation2(object)
+})
+
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,SingleBatchPooled-method
+setMethod("posteriorSimulation", "SingleBatchPooled", function(object){
+  object <- as(object, "MultiBatchPooled")
+  .posteriorSimulation2(object)
+})
