@@ -581,11 +581,6 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                         batches=rep(1L, length(dat)),
                         max_burnin=max_burnin,
                         min_effsize=min_effsize)
-    ##    sb <- gibbs_K(hp.list[["SB"]],
-    ##                  k_range=k_range,
-    ##                  mp=mp,
-    ##                  dat=dat,
-    ##                  max_burnin=max_burnin)
   } else sb <- NULL
   if("MB" %in% model){
     message("Fitting MB models")
@@ -606,11 +601,6 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                                  batches=rep(1L, length(dat)),
                                  max_burnin=max_burnin,
                                  min_effsize=min_effsize)
-    ##    sbp <- gibbsSingleBatchPooled(hp.list[["SBP"]],
-    ##                                  k_range=k_range,
-    ##                                  mp=mp,
-    ##                                  dat=dat,
-    ##                                  max_burnin=max_burnin)
   } else sbp <- NULL
   if("MBP" %in% model){
     message("Fitting MBP models")
