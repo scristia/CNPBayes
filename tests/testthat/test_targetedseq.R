@@ -14,7 +14,9 @@ test_that("targeted_seq data", {
   expect_warning(
     ## warning about effective sample size
     mlist <- gibbs("SB",
-                   mp=mp, dat=dat, k_range=c(2, 3),
+                   mp=mp,
+                   dat=dat,
+                   k_range=c(2, 3),
                    max_burnin=50,
                    min_effsize=25,
                    batches=rep(1L, length(dat)))

@@ -13,11 +13,11 @@ test_that("ggfun", {
   tmp <- ggMixture(truth)
   expect_is(tmp, "ggplot")
 
+  mm <- as(SingleBatchModelExample, "MultiBatchModel")
   tmp <- ggMixture(SingleBatchModelExample, bins=200)
   expect_is(tmp, "ggplot")
 
   bmod <- MultiBatchModelExample
-  tmp <- dnorm_poly_multibatch(bmod)
   tmp <- ggMixture(bmod, bins=200)
   expect_is(tmp, "ggplot")
 })

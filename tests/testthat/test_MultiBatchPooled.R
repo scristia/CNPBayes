@@ -29,7 +29,6 @@ test_that("MultiBatchPooled", {
                              theta = means,
                              sds = sds)
   if(FALSE)  ggMultiBatch(truth)
-
   hp <- HyperparametersMultiBatch(k=3,
                                   mu=-0.75,
                                   tau2.0=0.4,
@@ -40,7 +39,7 @@ test_that("MultiBatchPooled", {
                batches=batch(truth),
                mp=mp)
   u1 <- u(model)
-  model <- posteriorSimulation(model)
+  expect_warning(model <- posteriorSimulation(model))
   u2 <- u(model)
   expect_true(!identical(u1, u2))
 
