@@ -458,30 +458,6 @@ updateK <- function(ncomp, h) {
   h
 }
 
-gibbs_K <- function(hp=Hyperparameters(),
-                    mp,
-                    k_range=c(1, 4),
-                    dat,
-                    max_burnin=32000,
-                    reduce_size=TRUE,
-                    min_effsize=500){
-  K <- seq(k_range[1], k_range[2])
-  hp.list <- map(K, updateK, hp)
-  model.list <- map(hp.list,
-                    .gibbs,
-                    mp=mp,
-                    dat=dat,
-                    max_burnin=max_burnin,
-                    min_effsize=min_effsize)
-  names(model.list) <- paste0("SB", map_dbl(model.list, k))
-  ## sort by marginal likelihood
-  ix <- order(map_dbl(model.list, marginal_lik), decreasing=TRUE)
-  ##
-  ## if(reduce_size) TODO:  remove z chain, keep y in one object
-  ##
-  model.list[ix]
-}
-
 gibbs_batch_K <- function(hp,
                           mp,
                           k_range=c(1, 4),
