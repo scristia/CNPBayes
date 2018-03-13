@@ -20,6 +20,16 @@ test_that("sigma2_pooled", {
   expect_equal(s2.R, 0.028, tolerance=0.01)
 })
 
+test_that("gibbs", {
+  ## example from convergence vignette
+  set.seed(1)
+  N <- 200
+  n <- 81
+  lrr <- c(rnorm(100, -0.5, sd=0.1), rnorm(100, 0, sd=0.1))
+  mp <- McmcParams(iter=50, burnin=10, nStarts=4)
+  mlist <- gibbs(model="SBP", mp=mp, dat=lrr, k_range=c(2, 2))
+})
+
 test_that("Valid starts", {
   library(purrr)
   set.seed(2000)
