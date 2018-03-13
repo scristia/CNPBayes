@@ -485,82 +485,6 @@ gibbs_batch_K <- function(hp,
 }
 
 
-#' Evaluate both single-batch and multi-batch models with the specified range for the number of components, returning the top models sorted by marginal likelihood
-#'
-#' @param hp.list a list of hyperparameters. See example.
-#' @param mp a \code{McmcParams} object
-#' @param dat numeric vector of CNP summary statistics (e.g., median log R ratios)
-#' @param batches an integer vector of the same length as the data providing an index for the batch
-#' @param k_range a length-two integer vector providing the minimum and maximum number of components
-#' @param max_burnin a length-one integer vector indicating the maximum number of burnin iterations
-#' @param top the number of models to return after ordering by the marginal likelihood
-#' @return a list of models
-#' @examples
-#'
-#'  set.seed(100)
-#'  nbatch <- 3
-#'  k <- 3
-#'  means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
-#'      0, 0.05), nbatch, k, byrow = FALSE)
-#'  sds <- matrix(0.15, nbatch, k)
-#'  sds[, 1] <- 0.3
-#'  N <- 1000
-#'  truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
-#'                                                length.out = N),
-#'                             p = c(1/10, 1/5, 1 - 0.1 - 0.2),
-#'                             theta = means,
-#'                             sds = sds)
-#'  hp <- HyperparametersMultiBatch(k=3,
-#'                             mu=-0.75,
-#'                             tau2.0=0.4,
-#'                             eta.0=32,
-#'                             m2.0=0.5)
-#'  hp.sb <- Hyperparameters(tau2.0=0.4,
-#'                           mu.0=-0.75,
-#'                           eta.0=32,
-#'                           m2.0=0.5)
-#'  hp.list <- list(single_batch=hp.sb,
-#'                  multi_batch=hp)
-#'  mp <- McmcParams(iter = 1000,
-#'                   burnin = 1000,
-#'                   nStarts = 4,
-#'                   thin=10)
-#' \dontrun{
-#'    models <- gibbs_all(hp.list=hp.list, dat=y(truth),
-#'                        batches=batch(truth),
-#'                        mp=mp,
-#'                        top=3)
-#' }
-gibbs_all <- function(hp.list,
-                      mp,
-                      dat,
-                      batches,
-                      k_range=c(1, 4),
-                      max_burnin=32000,
-                      top=3){
-  message("Fitting multi-batch models K=", min(k_range), " to K=", max(k_range))
-  mb.models <- gibbs_batch_K(hp.list[["multi_batch"]],
-                             k_range=k_range,
-                             mp=mp,
-                             dat=dat,
-                             batches=batches,
-                             max_burnin=max_burnin)
-  message("Fitting single-batch models K=", min(k_range), " to K=", max(k_range))
-  sb.models <- gibbs_K(hp.list[["single_batch"]],
-                       k_range=k_range,
-                       mp=mp,
-                       dat=dat,
-                       max_burnin=max_burnin)
-  models <- c(mb.models, sb.models)
-  ml <- map_dbl(models, marginal_lik)
-  ix <- head(order(ml, decreasing=TRUE), top)
-  models <- models[ix]
-  names(models) <- paste0("SB", sapply(models, k))
-  models
-}
-
-
-
 #' Run a Gibbs sampler on one or multiple types of Bayesian Gaussian mixture models
 #'
 #' Model types:
@@ -616,6 +540,16 @@ gibbs_all <- function(hp.list,
 #'                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
 #'                              theta = means,
 #'                              sds = sds)
+#'   \dontrun{
+#'     gibbs(model=c("SB", "SBP", "MB", "MBP"),
+#'           dat=y(truth),
+#'           mp=mcmcParams(),
+#'           batches=batch(truth),
+#'           k_range=c(1, 4),
+#'           max_burnin=10000,
+#'           top=2,
+#'           df=100)
+#'   }
 #'
 #' @seealso \code{\link[coda]{gelman.diag}}
 #'   \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
