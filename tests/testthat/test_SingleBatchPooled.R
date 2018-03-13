@@ -3,17 +3,12 @@ test_that("sigma2_pooled", {
   set.seed(2000)
   truth <- simulateData(N = 1000, theta = c(-2, -0.4, 0),
                         sds = c(0.3, 0.15, 0.15),
-                        p = c(0.005, 1/10, 1 - 0.005 - 1/10))
+                        p = c(0.005, 1/10, 1 - 0.005 - 1/10),
+                        df=100)
   mp <- McmcParams(iter = 10, burnin = 10)
   hp <- Hyperparameters(k=3)
   model <- SingleBatchPooled(y(truth), hp, mp)
-  model <- .posteriorSimulation2(model)
-
-  u1 <- u(model)
   model <- posteriorSimulation(model)
-  u2 <- u(model)
-  expect_true(!identical(u1, u2))
-
   set.seed(1223)
   squared <- (y(model)-theta(model)[z(model)])^2
   ss <- sum(squared)
@@ -22,7 +17,7 @@ test_that("sigma2_pooled", {
   set.seed(1223)
   prec.R <- rgamma(1, nu.n, rate=s2.n)
   (s2.R <- 1/prec.R)
-  expect_equal(s2.R, 0.0337, tolerance=0.01)
+  expect_equal(s2.R, 0.028, tolerance=0.01)
 })
 
 test_that("Valid starts", {
