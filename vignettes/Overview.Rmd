@@ -31,14 +31,16 @@ library(tidyverse)
 Our starting point is a `SummarizedExperiment` containing log R ratios from a SNP array and a `GRangesList` containing deletions and duplications identified from a hidden Markov model.
 
 ```{r find_cnps}
-se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
-grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
+path <- system.file("extdata", package="CNPBayes")
+se <- readRDS(file.path(path, "simulated_se.rds"))
+grl <- readRDS(file.path(path, "grl_deletions.rds"))
 ```
 
 Using this data, we identify the genomic coordinates of the CNP locus and use the median to summarize the log R ratios for each sample. We advise against using the first principal component as a summary statistic in large studies as this may capture batch effects. See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`.
 
 ```{r summary, message=FALSE}
-cnv.region <- consensusCNP(grl, max.width=5e6)
+##cnv.region <- consensusCNP(grl, max.width=5e6)
+cnv.region <- readRDS(file.path(path, "cnv_region.rds"))
 i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
 med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
 ```
