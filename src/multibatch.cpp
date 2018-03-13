@@ -20,7 +20,7 @@ Rcpp::NumericVector compute_loglik_batch(Rcpp::S4 xmod){
   NumericMatrix sigma2 = model.slot("sigma2") ;
   IntegerVector batch_freq = model.slot("batchElements") ;
   NumericVector loglik_(1) ;
-  NumericMatrix tabz = tableBatchZ(xmod) ;
+  NumericMatrix tabz = tableBatchZ(model) ;
   int B = ub.size() ;
   NumericMatrix P(B, K) ;
   NumericMatrix sigma(B, K) ;
@@ -125,8 +125,7 @@ Rcpp::NumericVector update_mu_batch(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector update_tau2_batch(Rcpp::S4 xmod){
   RNGScope scope ;
-
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model(clone(xmod));
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   double m2_0 = hypp.slot("m2.0") ;
   int K = getK(hypp) ;
@@ -158,7 +157,7 @@ Rcpp::NumericVector update_tau2_batch(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector update_sigma20_batch(Rcpp::S4 xmod){
     RNGScope scope ;
-    Rcpp::S4 model(xmod) ;
+    Rcpp::S4 model(clone(xmod));
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
     int K = getK(hypp) ;
     IntegerVector batch = model.slot("batch") ;
@@ -203,7 +202,7 @@ Rcpp::NumericVector update_sigma20_batch(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector update_nu0_batch(Rcpp::S4 xmod){
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericMatrix sigma2 = model.slot("sigma2") ;
@@ -250,7 +249,7 @@ Rcpp::NumericVector update_nu0_batch(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericMatrix update_multinomialPr_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   IntegerVector batch = model.slot("batch") ;
@@ -294,7 +293,7 @@ Rcpp::NumericMatrix update_multinomialPr_batch(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericVector update_p_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;  
+  Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   IntegerVector z = model.slot("z") ;  
@@ -312,7 +311,7 @@ Rcpp::NumericVector update_p_batch(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::IntegerVector update_z_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector x = model.slot("data") ;
@@ -359,7 +358,7 @@ Rcpp::IntegerVector update_z_batch(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericMatrix compute_means_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model(clone(xmod)) ;
   NumericVector x = model.slot("data") ;
   NumericVector mu = model.slot("mu") ;
   int n = x.size() ;
@@ -392,7 +391,7 @@ Rcpp::NumericMatrix compute_means_batch(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericMatrix compute_vars_batch(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model(clone(xmod)) ;
   NumericVector x = model.slot("data") ;
   int n = x.size() ;
   IntegerVector z = model.slot("z") ;
@@ -403,7 +402,7 @@ Rcpp::NumericMatrix compute_vars_batch(Rcpp::S4 xmod) {
   IntegerVector ub = uniqueBatch(batch) ;
   int B = ub.size() ;
   NumericMatrix vars(B, K) ;
-  NumericMatrix tabz = tableBatchZ(xmod) ;
+  NumericMatrix tabz = tableBatchZ(model) ;
   NumericMatrix mn = model.slot("data.mean") ;
   NumericVector this_batch(n) ;
   NumericVector is_z(n) ;
@@ -428,8 +427,8 @@ Rcpp::NumericMatrix compute_vars_batch(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericMatrix compute_prec_batch(Rcpp::S4 xmod){
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
-  NumericMatrix vars = compute_vars_batch(xmod) ;
+  Rcpp::S4 model(clone(xmod)) ;
+  NumericMatrix vars = compute_vars_batch(model) ;
   int B = vars.nrow() ;
   int K = vars.ncol() ;
   NumericMatrix prec(B, K) ;
@@ -447,7 +446,7 @@ Rcpp::NumericVector compute_logprior_batch(Rcpp::S4 xmod) {
     RNGScope scope;
     
     // Get model/accessories
-    Rcpp::S4 model(xmod);
+    Rcpp::S4 model(clone(xmod)) ;
     Rcpp::S4 hypp(model.slot("hyperparams"));
 
     // get hyperparameters
@@ -474,7 +473,7 @@ Rcpp::NumericVector compute_logprior_batch(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericVector stageTwoLogLikBatch(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model(clone(xmod)) ;
   NumericMatrix theta = model.slot("theta") ;
   NumericVector tau2 = model.slot("tau2") ;
   NumericVector mu = model.slot("mu") ;
@@ -502,13 +501,13 @@ Rcpp::NumericVector stageTwoLogLikBatch(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector x = model.slot("data") ;
   NumericVector tau2 = model.slot("tau2") ;
   NumericMatrix sigma2 = model.slot("sigma2") ;
-  NumericMatrix n_hb = tableBatchZ(xmod) ;
+  NumericMatrix n_hb = tableBatchZ(model) ;
   NumericVector mu = model.slot("mu") ;
   int B = n_hb.nrow() ;
   NumericMatrix theta_new(B, K) ;
@@ -545,10 +544,8 @@ Rcpp::NumericMatrix update_theta_batch(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericMatrix update_sigma2_batch(Rcpp::S4 xmod){
     Rcpp::RNGScope scope;
-
+    Rcpp::S4 model(clone(xmod)) ;
     // get model
-    Rcpp::S4 model(xmod);
-
     // get parameter estimates
     Rcpp::NumericMatrix theta = model.slot("theta");
     Rcpp::IntegerVector z = model.slot("z");
@@ -565,7 +562,7 @@ Rcpp::NumericMatrix update_sigma2_batch(Rcpp::S4 xmod){
 
     //IntegerVector nn = model.slot("zfreq");
     // get batch info
-    Rcpp::NumericMatrix tabz = tableBatchZ(xmod);
+    Rcpp::NumericMatrix tabz = tableBatchZ(model);
     Rcpp::IntegerVector batch = model.slot("batch");
     Rcpp::IntegerVector ub = uniqueBatch(batch);
     Rcpp::NumericMatrix ss(B, K);
@@ -617,7 +614,7 @@ Rcpp::IntegerVector order_(Rcpp::NumericVector x) {
 // [[Rcpp::export]]
 Rcpp::IntegerMatrix update_probz_batch(Rcpp::S4 xmod){
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = hypp.slot("k") ;
   IntegerVector z = model.slot("z") ;
@@ -651,8 +648,7 @@ Rcpp::IntegerMatrix update_probz_batch(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   RNGScope scope ;
-  Rcpp::S4 xmod = clone(object) ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model(clone(object)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   Rcpp::S4 params(mcmcp) ;
@@ -662,55 +658,54 @@ Rcpp::S4 mcmc_batch_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   int N = x.size() ;
   double df = getDf(model.slot("hyperparams")) ;
   if( S < 1 ){
-    return xmod ;
+    return model ;
   }
   for(int s = 0; s < S; ++s){
     if(up[7] > 0){
-      model.slot("z") = update_z_batch(xmod) ;
+      model.slot("z") = update_z_batch(model) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     }
-    model.slot("data.mean") = compute_means_batch(xmod) ;
-    model.slot("data.prec") = compute_prec_batch(xmod) ;
+    model.slot("data.mean") = compute_means_batch(model) ;
+    model.slot("data.prec") = compute_prec_batch(model) ;
     if(up[0] > 0)
       try {
-        model.slot("theta") = update_theta_batch(xmod) ;
+        model.slot("theta") = update_theta_batch(model) ;
       } catch(std::runtime_error &ex) {
           forward_exception_to_r(ex);
       } catch(...) {
           ::Rf_error("c++ exception (unknown reason)");
       }
     if(up[1] > 0)
-      model.slot("sigma2") = update_sigma2_batch(xmod) ;
+      model.slot("sigma2") = update_sigma2_batch(model) ;
     if(up[3] > 0)
-      model.slot("mu") = update_mu_batch(xmod) ;
+      model.slot("mu") = update_mu_batch(model) ;
     if(up[4] > 0)
-      model.slot("tau2") = update_tau2_batch(xmod) ;
+      model.slot("tau2") = update_tau2_batch(model) ;
     if(up[6] > 0)
-      model.slot("sigma2.0") = update_sigma20_batch(xmod) ;
+      model.slot("sigma2.0") = update_sigma20_batch(model) ;
     if(up[5] > 0)
-      model.slot("nu.0") = update_nu0_batch(xmod) ;
+      model.slot("nu.0") = update_nu0_batch(model) ;
     if(up[2] > 0)
-      model.slot("pi") = update_p_batch(xmod) ;
+      model.slot("pi") = update_p_batch(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
   NumericVector lls2(1);
   NumericVector ll(1);
-  lls2 = stageTwoLogLikBatch(xmod);
-  ll = compute_loglik_batch(xmod);
+  lls2 = stageTwoLogLikBatch(model);
+  ll = compute_loglik_batch(model);
   ll = ll + lls2;
   model.slot("loglik") = ll;
-  model.slot("logprior") = compute_logprior_batch(xmod) ;
-  return xmod ;
+  model.slot("logprior") = compute_logprior_batch(model) ;
+  return model ;
   // return vars ;
 }
 
 // [[Rcpp::export]]
 Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   RNGScope scope ;
-  Rcpp::S4 xmod = clone(object) ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model(clone(object)) ;
   Rcpp::S4 chain(model.slot("mcmc.chains")) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   Rcpp::S4 params(mcmcp) ;
@@ -718,7 +713,7 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   int K = getK(hypp) ;
   int T = params.slot("thin") ;
   int S = params.slot("iter") ;
-  if( S < 1 ) return xmod ;
+  if( S < 1 ) return model ;
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
   double df = getDf(model.slot("hyperparams")) ;
@@ -784,73 +779,73 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   // start at 1 instead of zero. Initial values are as above
   for(int s = 1; s < S; ++s){
     if(up[7] > 0){
-      z = update_z_batch(xmod) ;
+      z = update_z_batch(model) ;
       model.slot("z") = z ;
       tmp = tableZ(K, z) ;
-      model.slot("probz") = update_probz_batch(xmod) ;
+      model.slot("probz") = update_probz_batch(model) ;
       model.slot("zfreq") = tmp ;
       // mean and prec only change if z is updated
-      model.slot("data.mean") = compute_means_batch(xmod) ;
-      model.slot("data.prec") = compute_prec_batch(xmod) ;
+      model.slot("data.mean") = compute_means_batch(model) ;
+      model.slot("data.prec") = compute_prec_batch(model) ;
     } else {
       tmp = model.slot("zfreq") ;
     }
     zfreq(s, _) = tmp ;
     if(up[0] > 0) {
-      th = as<Rcpp::NumericVector>(update_theta_batch(xmod));
+      th = as<Rcpp::NumericVector>(update_theta_batch(model));
       model.slot("theta") = th ;
     } else {
       th = model.slot("theta") ;
     }
     theta(s, _) = th ;
     if(up[1] > 0){
-      s2 = as<Rcpp::NumericVector>(update_sigma2_batch(xmod));
+      s2 = as<Rcpp::NumericVector>(update_sigma2_batch(model));
       model.slot("sigma2") = s2 ;
     } else {
       s2 = model.slot("sigma2") ;
     }
     sigma2(s, _) = s2 ;
     if(up[2] > 0){
-      p = update_p_batch(xmod) ;
+      p = update_p_batch(model) ;
       model.slot("pi") = p ;
     } else {
       p = model.slot("pi") ;
     }
     pmix(s, _) = p ;
     if(up[3] > 0){
-      m = update_mu_batch(xmod) ;
+      m = update_mu_batch(model) ;
       model.slot("mu") = m ;
     } else {
       m = model.slot("mu") ;
     }
     mu(s, _) = m ;
     if(up[4] > 0){
-      t2 = update_tau2_batch(xmod) ;
+      t2 = update_tau2_batch(model) ;
       model.slot("tau2") = t2 ;
     } else {
       t2 = model.slot("tau2") ;
     }
     tau2(s, _) = t2 ;
     if(up[5] > 0){
-      n0 = update_nu0_batch(xmod) ;
+      n0 = update_nu0_batch(model) ;
       model.slot("nu.0") = n0 ;
     } else {
       n0 = model.slot("nu.0") ;
     }
     nu0[s] = n0[0] ;
     if(up[6] > 0){
-      s20 = update_sigma20_batch(xmod) ;
+      s20 = update_sigma20_batch(model) ;
       model.slot("sigma2.0") = s20 ;
     } else {
       s20 = model.slot("sigma2.0") ;
     }
     sigma2_0[s] = s20[0] ;
-    ll = compute_loglik_batch(xmod) ;
-    lls2 = stageTwoLogLikBatch(xmod) ;
+    ll = compute_loglik_batch(model) ;
+    lls2 = stageTwoLogLikBatch(model) ;
     ll = ll + lls2 ;
     loglik_[s] = ll[0] ;
     model.slot("loglik") = ll ;
-    lp = compute_logprior_batch(xmod) ;
+    lp = compute_logprior_batch(model) ;
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
     u = Rcpp::rchisq(N, df) ;
@@ -859,25 +854,25 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     // Thinning
     for(int t = 0; t < T; ++t){
       if(up[7] > 0){
-        model.slot("z") = update_z_batch(xmod) ;
+        model.slot("z") = update_z_batch(model) ;
         model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       }
       if(up[0] > 0)
-        model.slot("theta") = update_theta_batch(xmod) ;
+        model.slot("theta") = update_theta_batch(model) ;
       if(up[1] > 0)
-        model.slot("sigma2") = update_sigma2_batch(xmod) ;
+        model.slot("sigma2") = update_sigma2_batch(model) ;
       if(up[2] > 0)
-        model.slot("pi") = update_p_batch(xmod) ;
+        model.slot("pi") = update_p_batch(model) ;
       if(up[3] > 0)
-        model.slot("mu") = update_mu_batch(xmod) ;
+        model.slot("mu") = update_mu_batch(model) ;
       if(up[4] > 0)
-        model.slot("tau2") = update_tau2_batch(xmod) ;
+        model.slot("tau2") = update_tau2_batch(model) ;
       if(up[5] > 0)
-        model.slot("nu.0") = update_nu0_batch(xmod) ;
+        model.slot("nu.0") = update_nu0_batch(model) ;
      if(up[6] > 0)
-        model.slot("sigma2.0") = update_sigma20_batch(xmod) ;
-      model.slot("data.mean") = compute_means_batch(xmod) ;
-      model.slot("data.prec") = compute_prec_batch(xmod) ;
+        model.slot("sigma2.0") = update_sigma20_batch(model) ;
+      model.slot("data.mean") = compute_means_batch(model) ;
+      model.slot("data.prec") = compute_prec_batch(model) ;
       model.slot("u") = Rcpp::rchisq(N, df) ;
     }
   }
@@ -896,5 +891,5 @@ Rcpp::S4 mcmc_batch(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   chain.slot("logprior") = logprior_ ;
   //chain.slot("u") = U ;
   model.slot("mcmc.chains") = chain ;
-  return xmod ;
+  return model ;
 }
