@@ -403,7 +403,6 @@ Rcpp::NumericMatrix compute_vars_batch(Rcpp::S4 xmod) {
   NumericMatrix vars(B, K) ;
   NumericMatrix tabz = tableBatchZ(xmod) ;
   NumericMatrix mn = model.slot("data.mean") ;
-
   NumericVector this_batch(n) ;
   NumericVector is_z(n) ;
   NumericVector tau2 = model.slot("tau2") ;
@@ -416,7 +415,7 @@ Rcpp::NumericMatrix compute_vars_batch(Rcpp::S4 xmod) {
       if(total[0] <= 1){
         vars(b, k) = tau2[k] ;
       } else {
-        vars(b, k) = sum(pow(x - mn(b,k), 2.0) * this_batch * is_z) / (tabz(b,k)-1) ;
+        vars(b, k) = sum(pow(x - mn(b,k), 2.0) * this_batch * is_z) / (tabz(b, k) - 1) ;
       }
     }
   }

@@ -802,4 +802,3 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
   names(models) <- sapply(models, modelName)
   models
 }
-

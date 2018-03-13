@@ -20,21 +20,6 @@ SingleBatchModel2 <- function(dat=numeric(),
                               mp=McmcParams(iter=1000, burnin=1000,
                                             thin=10, nStarts=4)){
   sb <- MB(dat=dat, hp=hp, mp=mp, batches=rep(1L, length(dat)))
-##  if(length(dat) == 0){
-##    return(.SingleBatchModel2(dat, hp, mp))
-##  }
-##  iter <- 0
-##  validZ <- FALSE
-##  mp.tmp <- McmcParams(iter=0, burnin=5, thin=1, nStarts=1)
-##  while(!validZ){
-##    sb <- .SingleBatchModel2(dat, hp, mp.tmp)
-##    sb <- runBurnin(sb)
-##    tabz <- table(z(sb))
-##    if(length(tabz) == k(hp)) validZ <- TRUE
-##    iter <- iter + 1
-##    if(iter > 50) stop("Trouble initializing valid model")
-##  }
-##  mcmcParams(sb) <- mp
   sb
 }
 
@@ -46,7 +31,6 @@ getK <- function(object){
   hypp <- hyperParams(object)
   getK(hypp)
 }
-
 
 #' Compute the log bayes factor between models.
 #'

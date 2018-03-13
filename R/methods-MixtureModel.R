@@ -615,26 +615,9 @@ startAtTrueValues <- function(model, truth){
 
 restartAtChainIndex <- function(model, index){
   ch <- chains(model)
-  if(!isSB(model) ){
-    B <- nBatch(model)
-    K <- k(model)
-    theta(model) <- matrix(theta(ch)[index, ], B, K)
-    sigma2(model) <- matrix(sigma2(ch)[index, ], B, K)
-    p(model) <- p(ch)[index, ]
-    z(model) <- z(ch)[index, ]
-    mu(model) <- mu(ch)[index, ]
-    tau2(model) <- tau2(ch)[index, ]
-    sigma2.0(model) <- sigma2.0(ch)[index]
-    nu.0(model) <- nu.0(ch)[index]
-    zFreq(model) <- as.integer(table(z(model)))
-    dataMean(model) <- computeMeans(model)
-    dataPrec(model) <- 1/computeVars(model)
-    return(model)
-  }
-  theta(model) <- theta(ch)[index, ]
-  sigma2(model) <- sigma2(ch)[index, ]
+  theta(model) <- theta(ch)[index, , drop=FALSE]
+  sigma2(model) <- sigma2(ch)[index, , drop=FALSE]
   p(model) <- p(ch)[index, ]
-  z(model) <- z(ch)[index, ]
   mu(model) <- mu(ch)[index]
   tau2(model) <- tau2(ch)[index]
   sigma2.0(model) <- sigma2.0(ch)[index]
@@ -774,11 +757,6 @@ mapCnProbability <- function(model){
   ## mean, variance, and class proportion parameters
   map_model <- mapModel(model)
   p <- updateMultinomialProb(map_model)
-  if(isSB(model)){
-    p <- p[, order(theta(map_model))]
-  } else {
-    p <- p[, order(mu(map_model))]
-  }
   return(p)
 }
 

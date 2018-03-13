@@ -21,7 +21,7 @@
 #'                            sds=sds,
 #'                            p=c(1/5, 1/3, 1-1/3-1/5))
 #' @export
-simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
+simulateBatchData <- function(N=2500, p, theta, sds, batch, zz, df=10){
   ## order ys by batch
   if(length(p) != ncol(theta)) stop("length of p must be same as ncol(theta)")
   if(sum(p)!=1) stop("elements of p must sum to 1")
@@ -43,7 +43,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
     cn <- zz[index]
     mu <- theta[b, ]
     s <- sds[b, ]
-    yy[index] <- rnorm(nn, mu[cn], s[cn])
+    yy[index] <- rnorm(nn, mu[cn], s[cn])/sqrt(rchisq(nn, df)/df)
   }
   ##ix <- order(batch)
   ##object <- MultiBatchModel(yy, batch=batch, k=ncol(theta))
@@ -77,23 +77,34 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz){
 #'                       sds=rep(0.1, 3))
 #' @export
 simulateData <- function(N, p, theta, sds, df=10){
-  zz <- simulateZ(N, p)
-y <- rnorm(N, theta[zz], sds[zz]/sqrt(rchisq(N, df)/df))
-# y <- rnorm(N, theta[zz], sds[zz])
-  ##object <- SingleBatchModel(data=y, k=length(theta))
-  object <- SingleBatchModel2(dat=y, hp=hpList(k=length(theta))[["SB"]])
-  z(object) <- as.integer(factor(zz, levels=unique(sort(zz))))
-  p(object) <- p
-  theta(object) <- as.numeric(sapply(split(y(object), z(object)), mean))
-  sigma2(object) <- as.numeric(sapply(split(y(object), z(object)), var))
-  p(object) <- as.numeric(sapply(split(y(object),
-                                       z(object)),
-                                 length)/length(z(object)))
-  mu(object) <- mean(theta(object))
-  tau2(object) <- var(theta(object))
-  log_lik(object) <- computeLoglik(object)
-  logPrior(object) <- computePrior(object)
-  object
+  theta <- matrix(theta, nrow=1)
+  sds <- matrix(sds, nrow=1)
+  object <- simulateBatchData(N=N,
+                              p=p,
+                              theta=theta,
+                              sds=sds,
+                              df=df,
+                              batch=rep(1L, N))
+  return(object)
+##  zz <- simulateZ(N, p)
+##  y <- rnorm(N, theta[zz], sds[zz]/sqrt(rchisq(N, df)/df))
+##  ## y <- rnorm(N, theta[zz], sds[zz])
+##  ##object <- SingleBatchModel(data=y, k=length(theta))
+##  object <- SingleBatchModel2(dat=y, hp=hpList(k=length(theta))[["SB"]])
+##  z(object) <- as.integer(factor(zz, levels=unique(sort(zz))))
+##  p(object) <- p
+##  theta(object) <- matrix(as.numeric(sapply(split(y(object), z(object)), mean)),
+##                          nrow=1)
+##  sigma2(object) <- matrix(as.numeric(sapply(split(y(object), z(object)), var)),
+##                           nrow=1)
+##  p(object) <- as.numeric(sapply(split(y(object),
+##                                       z(object)),
+##                                 length)/length(z(object)))
+##  mu(object) <- mean(theta(object))
+##  tau2(object) <- var(theta(object))
+##  log_lik(object) <- computeLoglik(object)
+##  logPrior(object) <- computePrior(object)
+##  object
 }
 
 simulateZ <- function(N, p){

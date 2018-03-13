@@ -7,7 +7,6 @@ test_that("test_constructor", {
     expect_true(validObject(hypp))
     hypp <- Hyperparameters("batch")
     expect_true(validObject(hypp))
-    ##expect_warning(mmod <- SingleBatchModel())
     mmod <- SingleBatchModel2()
     expect_true(validObject(mmod))
     mc <- McmcChains()
@@ -15,8 +14,10 @@ test_that("test_constructor", {
     hp <- Hyperparameters()
     expect_true(validObject(hp))
     expect_true(validObject(HyperparametersMultiBatch()))
-    truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1,
-        0, 1), sds = rep(0.1, 3))
+    truth <- simulateData(N = 2500,
+                          p = rep(1/3, 3),
+                          theta = c(-1, 0, 1),
+                          sds = rep(0.1, 3))
     expect_true(validObject(truth))
     mmod <- SingleBatchModel2(dat=rnorm(100))
     mmod <- SingleBatchModel2(dat=y(truth))
