@@ -32,46 +32,11 @@
   obj
 }
 
-#' Constructor for MultiBatchModel
-#'
-#' Initializes a MultiBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
-#'
-#' @param dat the data for the simulation.
-#' @param batches an integer-vector of the different batches
-#' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
-#' @param mp An object of class 'McmcParams'
-#' @return An object of class `MultiBatchModel`
-#' @examples
-#'   model <- MultiBatchModel2(rnorm(10), batch=rep(1:2, each=5))
-#'   set.seed(100)
-#'   nbatch <- 3
-#'   k <- 3
-#'   means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
-#'       0, 0.05), nbatch, k, byrow = FALSE)
-#'   sds <- matrix(0.15, nbatch, k)
-#'   sds[, 1] <- 0.3
-#'   N <- 1000
-#'   truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
-#'                                                 length.out = N),
-#'                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
-#'                              theta = means,
-#'                              sds = sds)
-#' 
-#'     truth <- simulateBatchData(N = 2500,
-#'                                batch = rep(letters[1:3], length.out = 2500),
-#'                                theta = means, sds = sds,
-#'                                p = c(1/5, 1/3, 1 - 1/3 - 1/5))
-#'     MultiBatchModel2(dat=y(truth), batches=batch(truth),
-#'                      hp=hpList(k=3)[["MB"]])
-#' @export
-MultiBatchModel2 <- function(dat=numeric(),
-                             hp=HyperparametersMultiBatch(),
-                             mp=McmcParams(iter=1000, thin=10,
-                                           burnin=1000, nStarts=4),
-                             batches=integer()){
-  if(length(dat) == 0){
-    return(.empty_batch_model(hp, mp))
-  }
+.MB <- function(dat=numeric(),
+                hp=HyperparametersMultiBatch(),
+                mp=McmcParams(iter=1000, thin=10,
+                              burnin=1000, nStarts=4),
+                batches=integer()){
   ub <- unique(batches)
   nbatch <- setNames(as.integer(table(batches)), ub)
   B <- length(ub)
@@ -112,7 +77,7 @@ MultiBatchModel2 <- function(dat=numeric(),
              u=u,
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
-             z=integer(N),
+             z=sample(seq_len(K), N, replace=TRUE),
              zfreq=integer(K),
              probz=matrix(0, N, K),
              logprior=numeric(1),
@@ -125,20 +90,67 @@ MultiBatchModel2 <- function(dat=numeric(),
              marginal_lik=as.numeric(NA),
              .internal.constraint=5e-4,
              .internal.counter=0L)
-  z(obj) <- update_z(obj)
-  ztab <- tableBatchZ(obj)
-  cnt <- 0
-  while(!all(ztab > 1)) {
-    z(obj) <- sample(seq_len(K), length(dat), replace=TRUE)
-    cnt <- cnt + 1
-    if(cnt > 3) {
-      browser()
-      stop("trouble initializing z")
-    }
-    ztab <- tableBatchZ(obj)
-  }
-  chains(obj) <- McmcChains(obj)
   obj
+}
+
+#' Constructor for MultiBatchModel
+#'
+#' Initializes a MultiBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
+#'
+#' @param dat the data for the simulation.
+#' @param batches an integer-vector of the different batches
+#' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @param mp An object of class 'McmcParams'
+#' @return An object of class `MultiBatchModel`
+#' @examples
+#'   model <- MultiBatchModel2(rnorm(10), batch=rep(1:2, each=5))
+#'   set.seed(100)
+#'   nbatch <- 3
+#'   k <- 3
+#'   means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+#'       0, 0.05), nbatch, k, byrow = FALSE)
+#'   sds <- matrix(0.15, nbatch, k)
+#'   sds[, 1] <- 0.3
+#'   N <- 1000
+#'   truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+#'                                                 length.out = N),
+#'                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+#'                              theta = means,
+#'                              sds = sds)
+#' 
+#'     truth <- simulateBatchData(N = 2500,
+#'                                batch = rep(letters[1:3], length.out = 2500),
+#'                                theta = means, sds = sds,
+#'                                p = c(1/5, 1/3, 1 - 1/3 - 1/5))
+#'     MultiBatchModel2(dat=y(truth), batches=batch(truth),
+#'                      hp=hpList(k=3)[["MB"]])
+#' @export
+MultiBatchModel2 <- function(dat=numeric(),
+                             hp=HyperparametersMultiBatch(),
+                             mp=McmcParams(iter=1000, thin=10,
+                                           burnin=1000, nStarts=4),
+                             batches=integer()){
+  if(length(dat) == 0){
+    return(.empty_batch_model(hp, mp))
+  }
+  iter <- 0
+  validZ <- FALSE
+  mp.tmp <- McmcParams(iter=0, burnin=burnin(mp), thin=1, nStarts=1)
+  while(!validZ){
+    ##
+    ## Burnin with MB model
+    ##
+    mb <- .MB(dat, hp, mp.tmp, batches)
+    mb <- runBurnin(mb)
+    tabz <- table(z(mb))
+    if(length(tabz) == k(hp)) validZ <- TRUE
+    iter <- iter + 1
+    if(iter > 50) stop("Trouble initializing valid model. Try increasing the burnin")
+  }
+  mb <- sortComponentLabels(mb)
+  mcmcParams(mb) <- mp
+  chains(mb) <- McmcChains(mb)
+  mb
 }
 
 #' @export
