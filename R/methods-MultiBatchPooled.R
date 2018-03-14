@@ -1,6 +1,40 @@
 #' @include methods-MultiBatchModel.R
 NULL
 
+reorderMultiBatchPooled <- function(model){
+  is_ordered <- .ordered_thetas_multibatch(model)
+  if(is_ordered) return(model)
+  thetas <- theta(model)
+  K <- k(model)
+  ix <- order(thetas[1, ])
+  B <- nBatch(model)
+  tab <- tibble(z_orig=z(model),
+                z=z(model),
+                batch=batch(model)) %>%
+    mutate(index=seq_len(nrow(.)))
+  for(i in seq_len(B)){
+    ix.next <- order(thetas[i, ])
+    thetas[i, ] <- thetas[i, ix.next]
+    index <- which(tab$batch == i)
+    tab2 <- tab[index, ] %>%
+      mutate(z_relabel=factor(z, levels=ix.next)) %>%
+      mutate(z_relabel=as.integer(z_relabel))
+    tab$z[index] <- tab2$z_relabel
+  }
+  ps <- p(model)[ix]
+  mu(model) <- mu(model)[ix]
+  tau2(model) <- tau2(model)[ix]
+  theta(model) <- thetas
+  p(model) <- ps
+  z(model) <- tab$z
+  log_lik(model) <- computeLoglik(model)
+  model
+}
+
+setMethod("sortComponentLabels", "MultiBatchPooled", function(model){
+  reorderMultiBatchPooled(model)
+})
+
 MultiBatchPooled <- function(dat=numeric(),
                              hp=HyperparametersMultiBatch(),
                              mp=McmcParams(iter=1000, burnin=1000,
@@ -14,17 +48,7 @@ MultiBatchPooled <- function(dat=numeric(),
   iter <- 0
   validZ <- FALSE
   mp.tmp <- McmcParams(iter=0, burnin=burnin(mp), thin=1, nStarts=1)
-  while(!validZ){
-    ##
-    ## Burnin with MB model
-    ##
-    mb <- MultiBatchModel2(dat, hp, mp.tmp, batches)
-    mb <- runBurnin(mb)
-    tabz <- table(z(mb))
-    if(length(tabz) == k(hp)) validZ <- TRUE
-    iter <- iter + 1
-    if(iter > 50) stop("Trouble initializing valid model. Try increasing the burnin")
-  }
+  mb <- MB(dat, hp, mp, batches)
   ## average variances across components
   mbp <- as(mb, "MultiBatchPooled")
   mbp <- sortComponentLabels(mbp)
@@ -320,39 +344,7 @@ gibbsPooled <- function(hp.list,
   models
 }
 
-reorderMultiBatchPooled <- function(model){
-  is_ordered <- .ordered_thetas_multibatch(model)
-  if(is_ordered) return(model)
-  ## thetas are not all ordered
-  thetas <- theta(model)
-  ##s2s <- sigma2(model)
-  K <- k(model)
-  ix <- order(thetas[1, ])
-  B <- nBatch(model)
-  zlist <- split(z(model), batch(model))
-  for(i in seq_len(B)){
-    ix.next <- order(thetas[i, ])
-    thetas[i, ] <- thetas[i, ix.next]
-    zlist[[i]] <- as.integer(factor(zlist[[i]], levels=ix.next))
-  }
-  zs <- unlist(zlist)
-  ps <- p(model)[ix]
-  ## sigmas are batch-specific not component-specific, and therefore do not need to be reordered
-  mu(model) <- mu(model)[ix]
-  tau2(model) <- tau2(model)[ix]
-  ##sigma2(model) <- s2s
-  theta(model) <- thetas
-  p(model) <- ps
-  z(model) <- zs
-  dataMean(model) <- computeMeans(model)
-  dataPrec(model) <- computePrec(model)
-  log_lik(model) <- computeLoglik(model)
-  model
-}
 
-setMethod("sortComponentLabels", "MultiBatchPooled", function(model){
-  reorderMultiBatchPooled(model)
-})
 
 
 #' @aliases sigma,MultiBatchCopyNumberPooled-method

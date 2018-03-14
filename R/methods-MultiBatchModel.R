@@ -32,11 +32,59 @@
   obj
 }
 
+.ordered_thetas_multibatch<- function(model){
+  thetas <- theta(model)
+  checkOrder <- function(theta) identical(order(theta), seq_along(theta))
+  is_ordered <- apply(thetas, 1, checkOrder)
+  all(is_ordered)
+}
+
+reorderMultiBatch <- function(model){
+  is_ordered <- .ordered_thetas_multibatch(model)
+  if(is_ordered) return(model)
+  ## thetas are not all ordered
+  thetas <- theta(model)
+  s2s <- sigma2(model)
+  K <- k(model)
+  ix <- order(thetas[1, ])
+  B <- nBatch(model)
+  tab <- tibble(z_orig=z(model),
+                z=z(model),
+                batch=batch(model)) %>%
+    mutate(index=seq_len(nrow(.)))
+  for(i in seq_len(B)){
+    ix.next <- order(thetas[i, ])
+    thetas[i, ] <- thetas[i, ix.next]
+    s2s[i, ] <- s2s[i, ix]
+    index <- which(tab$batch == i)
+    tab2 <- tab[index, ] %>%
+      mutate(z_relabel=factor(z, levels=ix.next)) %>%
+      mutate(z_relabel=as.integer(z_relabel))
+    tab$z[index] <- tab2$z_relabel
+  }
+  ps <- p(model)[ix]
+  mu(model) <- mu(model)[ix]
+  tau2(model) <- tau2(model)[ix]
+  sigma2(model) <- s2s
+  theta(model) <- thetas
+  p(model) <- ps
+  z(model) <- tab$z
+  log_lik(model) <- computeLoglik(model)
+  model
+}
+
+setMethod("sortComponentLabels", "MultiBatchModel", function(model){
+  reorderMultiBatch(model)
+})
+
 .MB <- function(dat=numeric(),
                 hp=HyperparametersMultiBatch(),
                 mp=McmcParams(iter=1000, thin=10,
                               burnin=1000, nStarts=4),
                 batches=integer()){
+  ## If the data is not ordered by batch,
+  ## its a little harder to sort component labels
+  dat2 <- tibble(y=dat, batch=batches)
   ub <- unique(batches)
   nbatch <- setNames(as.integer(table(batches)), ub)
   B <- length(ub)
@@ -146,15 +194,15 @@ MultiBatchModel2 <- function(dat=numeric(),
     tabz2 <- table(z(mb))
     validZ <- length(tabz2) == k(hp) && all(tabz1 > 1)
     iter <- iter + 1
-    if(iter > 50) {
-      message("Trouble initializing valid model. Try increasing the burnin")
+    if(iter == 50) {
+      message("Trouble initializing a valid model. The number of components is likely too large")
       return(NULL)
     }
   }
-  mb <- sortComponentLabels(mb)
-  mcmcParams(mb) <- mp
-  chains(mb) <- McmcChains(mb)
-  mb
+  mb2 <- sortComponentLabels(mb)
+  mcmcParams(mb2) <- mp
+  chains(mb2) <- McmcChains(mb2)
+  mb2
 }
 
 #' @export
