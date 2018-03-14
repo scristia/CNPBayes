@@ -78,7 +78,7 @@ test_that("upSample2", {
   theoretical.p <- probz(model.no.upsampling) %>%
     "/"(rowSums(.))
   model.probs <- probz(model)
-  expect_equal(model.probs, theoretical.p, scale=1, tolerance=0.05)
+  expect_equal(model.probs, theoretical.p, scale=1, tolerance=0.1)
 
 
   ## use targeted seq data for a little more challenging

@@ -17,7 +17,7 @@ test_that("sigma2_pooled", {
   set.seed(1223)
   prec.R <- rgamma(1, nu.n, rate=s2.n)
   (s2.R <- 1/prec.R)
-  expect_equal(s2.R, 0.028, tolerance=0.01)
+  expect_equal(s2.R, 0.039, tolerance=0.01)
 })
 
 test_that("gibbs", {

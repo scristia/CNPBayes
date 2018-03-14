@@ -39,7 +39,7 @@ test_that("MultiBatchPooled", {
                batches=batch(truth),
                mp=mp)
   u1 <- u(model)
-  expect_warning(model <- posteriorSimulation(model))
+  model <- posteriorSimulation(model)
   u2 <- u(model)
   expect_true(!identical(u1, u2))
 

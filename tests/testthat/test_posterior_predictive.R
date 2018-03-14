@@ -44,7 +44,7 @@ test_that("SBP", {
   sbp <- SingleBatchPooled(dat=sample(y(sb)),
                            hp=hp,
                            mp=mp)
-  expect_warning(sbp2 <- posteriorSimulation(sbp))
+  sbp2 <- posteriorSimulation(sbp)
   tab <- posteriorPredictive(sbp2)
   expect_is(tab, "tbl_df")
   if(FALSE) ggPredictive(sbp2, tab)
