@@ -17,7 +17,11 @@ test_that("sigma2_pooled", {
   set.seed(1223)
   prec.R <- rgamma(1, nu.n, rate=s2.n)
   (s2.R <- 1/prec.R)
-  expect_equal(s2.R, 0.039, tolerance=0.01)
+  ##
+  ## This unit test is a regression test. Changes to how SBP is initialized will
+  ## effect the value below.
+  ##
+  expect_equal(s2.R, 0.026, tolerance=0.01)
 })
 
 test_that("gibbs", {
