@@ -142,10 +142,14 @@ MultiBatchModel2 <- function(dat=numeric(),
     ##
     mb <- .MB(dat, hp, mp.tmp, batches)
     mb <- runBurnin(mb)
-    tabz <- table(z(mb))
-    if(length(tabz) == k(hp)) validZ <- TRUE
+    tabz1 <- table(batch(mb), z(mb))
+    tabz2 <- table(z(mb))
+    validZ <- length(tabz2) == k(hp) && all(tabz1 > 1)
     iter <- iter + 1
-    if(iter > 50) stop("Trouble initializing valid model. Try increasing the burnin")
+    if(iter > 50) {
+      message("Trouble initializing valid model. Try increasing the burnin")
+      return(NULL)
+    }
   }
   mb <- sortComponentLabels(mb)
   mcmcParams(mb) <- mp
