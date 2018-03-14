@@ -397,10 +397,6 @@ Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("z") = z_multibatch_pvar(xmod) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     }
-    //model.slot("data.mean") = means_multibatch_pvar(xmod) ;
-    model.slot("data.mean") = compute_means_batch(xmod) ;
-    //model.slot("data.prec") = prec_multibatch_pvar(xmod) ;
-    model.slot("data.prec") = compute_prec_batch(xmod) ;
     if(up[0] > 0)
       try {
         model.slot("theta") = theta_multibatch_pvar(xmod) ;
@@ -413,17 +409,17 @@ Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("sigma2") = sigma2_multibatch_pvar(xmod) ;
     if(up[3] > 0)
       //model.slot("mu") = mu_multibatch_pvar(xmod) ;
-      model.slot("mu") = update_mu_batch(xmod) ;
+      model.slot("mu") = update_mu(xmod) ;
     if(up[4] > 0)
       //model.slot("tau2") = tau2_multibatch_pvar(xmod) ;
-      model.slot("tau2") = update_tau2_batch(xmod) ;
+      model.slot("tau2") = update_tau2(xmod) ;
     if(up[6] > 0)
       model.slot("sigma2.0") = sigma20_multibatch_pvar(xmod) ;
     if(up[5] > 0)
       model.slot("nu.0") = nu0_multibatch_pvar(xmod) ;
     if(up[2] > 0)
       //model.slot("pi") = p_multibatch_pvar(xmod) ;
-      model.slot("pi") = update_p_batch(xmod) ;
+      model.slot("pi") = update_p(xmod) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   // compute log prior probability from last iteration of burnin
@@ -434,7 +430,7 @@ Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   lls2 = stagetwo_multibatch_pvar(xmod);
   ll = ll + lls2;
   model.slot("loglik") = ll ;
-  model.slot("logprior") = compute_logprior_batch(xmod) ;
+  model.slot("logprior") = compute_logprior(xmod) ;
   return xmod ;
   // return vars ;
 }
@@ -520,11 +516,9 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       z = z_multibatch_pvar(xmod) ;
       model.slot("z") = z ;
       tmp = tableZ(K, z) ;
-      model.slot("probz") = update_probz_batch(xmod) ;
+      model.slot("probz") = update_probz(xmod) ;
       model.slot("zfreq") = tmp ;
       // mean and prec only change if z is updated
-      model.slot("data.mean") = compute_means_batch(xmod) ;
-      model.slot("data.prec") = compute_prec_batch(xmod) ;
     } else {
       tmp = model.slot("zfreq") ;
     }
@@ -544,21 +538,21 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     }
     sigma2(s, _) = s2 ;
     if(up[2] > 0){
-      p = update_p_batch(xmod) ;
+      p = update_p(xmod) ;
       model.slot("pi") = p ;
     } else {
       p = model.slot("pi") ;
     }
     pmix(s, _) = p ;
     if(up[3] > 0){
-      m = update_mu_batch(xmod) ;
+      m = update_mu(xmod) ;
       model.slot("mu") = m ;
     } else {
       m = model.slot("mu") ;
     }
     mu(s, _) = m ;
     if(up[4] > 0){
-      t2 = update_tau2_batch(xmod) ;
+      t2 = update_tau2(xmod) ;
       model.slot("tau2") = t2 ;
     } else {
       t2 = model.slot("tau2") ;
@@ -584,7 +578,7 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     loglik_[s] = ll[0] ;
     model.slot("loglik") = ll ;
     //lp = logprior_multibatch_pvar(xmod) ;
-    lp = compute_logprior_batch(xmod) ;
+    lp = compute_logprior(xmod) ;
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
     u = Rcpp::rchisq(N, df) ;
@@ -596,18 +590,16 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
         model.slot("z") = z_multibatch_pvar(xmod) ;
         model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       }
-      model.slot("data.mean") = compute_means_batch(xmod) ;
-      model.slot("data.prec") = compute_prec_batch(xmod) ;
       if(up[0] > 0)
         model.slot("theta") = theta_multibatch_pvar(xmod) ;
       if(up[1] > 0)
         model.slot("sigma2") = sigma2_multibatch_pvar(xmod) ;
       if(up[2] > 0)
-        model.slot("pi") = update_p_batch(xmod) ;
+        model.slot("pi") = update_p(xmod) ;
       if(up[3] > 0)
-        model.slot("mu") = update_mu_batch(xmod) ;
+        model.slot("mu") = update_mu(xmod) ;
       if(up[4] > 0)
-        model.slot("tau2") = update_tau2_batch(xmod) ;
+        model.slot("tau2") = update_tau2(xmod) ;
       if(up[5] > 0)
         model.slot("nu.0") = nu0_multibatch_pvar(xmod) ;
      if(up[6] > 0)

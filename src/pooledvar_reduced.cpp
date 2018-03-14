@@ -95,11 +95,11 @@ Rcpp::NumericVector marginal_theta_pooled(Rcpp::S4 xmod) {
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       model.slot("theta") = theta_multibatch_pvar(model) ;
       model.slot("sigma2") = sigma2_multibatch_pvar(model) ;
-      model.slot("mu") = update_mu_batch(model) ;
-      model.slot("tau2") = update_tau2_batch(model) ;
+      model.slot("mu") = update_mu(model) ;
+      model.slot("tau2") = update_tau2(model) ;
       model.slot("sigma2.0") = sigma20_multibatch_pvar(model) ;
       model.slot("nu.0") = nu0_multibatch_pvar(model) ;
-      model.slot("pi") = update_p_batch(model) ;
+      model.slot("pi") = update_p(model) ;
       model.slot("u") = Rcpp::rchisq(N, df) ;
       logp[s]=log_prob_thetap(model, thetastar) ;
     }
@@ -190,11 +190,11 @@ Rcpp::NumericVector reduced_sigma_pooled(Rcpp::S4 xmod) {
     model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     //model.slot("theta") = theta_multibatch_pvar(model) ;
     model.slot("sigma2") = sigma2_multibatch_pvar(model) ;
-    model.slot("mu") = update_mu_batch(model) ;
-    model.slot("tau2") = update_tau2_batch(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
     model.slot("sigma2.0") = sigma20_multibatch_pvar(model) ;
     model.slot("nu.0") = nu0_multibatch_pvar(model) ;
-    model.slot("pi") = update_p_batch(model) ;
+    model.slot("pi") = update_p(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_sigmap(model, sigma2star) ;
   }
@@ -227,11 +227,11 @@ Rcpp::NumericVector reduced_pi_pooled(Rcpp::S4 xmod) {
     model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     //model.slot("theta") = theta_multibatch_pvar(model) ;
     //model.slot("sigma2") = sigma2_multibatch_pvar(model) ;
-    model.slot("mu") = update_mu_batch(model) ;
-    model.slot("tau2") = update_tau2_batch(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
     model.slot("sigma2.0") = sigma20_multibatch_pvar(model) ;
     model.slot("nu.0") = nu0_multibatch_pvar(model) ;
-    model.slot("pi") = update_p_batch(model) ;
+    model.slot("pi") = update_p(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_pmix(model, pstar) ;
   }
@@ -263,9 +263,9 @@ Rcpp::NumericVector reduced_mu_pooled(Rcpp::S4 xmod) {
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       //model.slot("theta") = theta_multibatch_pvar(model) ;
       //model.slot("sigma2") = sigma2_multibatch_pvar(model) ;
-      //model.slot("pi") = update_p_batch(model) ;
-      model.slot("mu") = update_mu_batch(model) ;
-      model.slot("tau2") = update_tau2_batch(model) ;
+      //model.slot("pi") = update_p(model) ;
+      model.slot("mu") = update_mu(model) ;
+      model.slot("tau2") = update_tau2(model) ;
       model.slot("sigma2.0") = sigma20_multibatch_pvar(model) ;
       model.slot("nu.0") = nu0_multibatch_pvar(model) ;
       model.slot("u") = Rcpp::rchisq(N, df) ;
@@ -296,9 +296,9 @@ Rcpp::NumericVector reduced_tau2_pooled(Rcpp::S4 xmod) {
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       //model.slot("theta") = theta_multibatch_pvar(model) ;
       //model.slot("sigma2") = sigma2_multibatch_pvar(model) ;
-      //model.slot("pi") = update_p_batch(model) ;
-      //model.slot("mu") = update_mu_batch(model) ;
-      model.slot("tau2") = update_tau2_batch(model) ;
+      //model.slot("pi") = update_p(model) ;
+      //model.slot("mu") = update_mu(model) ;
+      model.slot("tau2") = update_tau2(model) ;
       model.slot("sigma2.0") = sigma20_multibatch_pvar(model) ;
       model.slot("nu.0") = nu0_multibatch_pvar(model) ;
       model.slot("u") = Rcpp::rchisq(N, df) ;
@@ -372,9 +372,9 @@ Rcpp::NumericVector reduced_nu0_pooled(Rcpp::S4 xmod) {
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       //model.slot("theta") = theta_multibatch_pvar(model) ;
       //model.slot("sigma2") = sigma2_multibatch_pvar(model) ;
-      //model.slot("pi") = update_p_batch(model) ;
-      //model.slot("mu") = update_mu_batch(model) ;
-      //model.slot("tau2") = update_tau2_batch(model) ;
+      //model.slot("pi") = update_p(model) ;
+      //model.slot("mu") = update_mu(model) ;
+      //model.slot("tau2") = update_tau2(model) ;
       model.slot("sigma2.0") = sigma20_multibatch_pvar(model) ;
       model.slot("nu.0") = nu0_multibatch_pvar(model) ;
       model.slot("u") = Rcpp::rchisq(N, df) ;

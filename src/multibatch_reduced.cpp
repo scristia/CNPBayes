@@ -94,15 +94,15 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
     int K = thetastar.ncol();
     double df = getDf(model.slot("hyperparams")) ;
     for (int s=0; s < S; ++s) {
-      model.slot("z") = update_z_batch(model) ;
+      model.slot("z") = update_z(model) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-      model.slot("theta") = update_theta_batch(model) ;
-      model.slot("sigma2") = update_sigma2_batch(model) ;
-      model.slot("mu") = update_mu_batch(model) ;
-      model.slot("tau2") = update_tau2_batch(model) ;
-      model.slot("sigma2.0") = update_sigma20_batch(model) ;
-      model.slot("nu.0") = update_nu0_batch(model) ;
-      model.slot("pi") = update_p_batch(model) ;
+      model.slot("theta") = update_theta(model) ;
+      model.slot("sigma2") = update_sigma2(model) ;
+      model.slot("mu") = update_mu(model) ;
+      model.slot("tau2") = update_tau2(model) ;
+      model.slot("sigma2.0") = update_sigma20(model) ;
+      model.slot("nu.0") = update_nu0(model) ;
+      model.slot("pi") = update_p(model) ;
       model.slot("u") = Rcpp::rchisq(N, df) ;
       logp[s]=log_prob_theta(model, thetastar) ;
     }
@@ -188,16 +188,16 @@ Rcpp::NumericVector reduced_sigma_batch(Rcpp::S4 xmod) {
   // Run reduced Gibbs    -- theta is fixed at modal ordinate
   //
   for (int s = 0; s < S; ++s) {
-    model.slot("z") = update_z_batch(model) ;
+    model.slot("z") = update_z(model) ;
     model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     // THETA FIXED AT MODAL ORDINATE
-    //model.slot("theta") = update_theta_batch(model) ;
-    model.slot("sigma2") = update_sigma2_batch(model) ;
-    model.slot("mu") = update_mu_batch(model) ;
-    model.slot("tau2") = update_tau2_batch(model) ;
-    model.slot("sigma2.0") = update_sigma20_batch(model) ;
-    model.slot("nu.0") = update_nu0_batch(model) ;
-    model.slot("pi") = update_p_batch(model) ;
+    //model.slot("theta") = update_theta(model) ;
+    model.slot("sigma2") = update_sigma2(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("sigma2.0") = update_sigma20(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("pi") = update_p(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_sigma2(model, sigma2star) ;
   }
@@ -250,16 +250,16 @@ Rcpp::NumericVector reduced_pi_batch(Rcpp::S4 xmod) {
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
   for (int s = 0; s < S; ++s) {
-    model.slot("z") = update_z_batch(model) ;
+    model.slot("z") = update_z(model) ;
     model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     // theta, sigma2 FIXED AT MODAL ORDINATES
-    //model.slot("theta") = update_theta_batch(model) ;
-    //model.slot("sigma2") = update_sigma2_batch(model) ;
-    model.slot("mu") = update_mu_batch(model) ;
-    model.slot("tau2") = update_tau2_batch(model) ;
-    model.slot("sigma2.0") = update_sigma20_batch(model) ;
-    model.slot("nu.0") = update_nu0_batch(model) ;
-    model.slot("pi") = update_p_batch(model) ;
+    //model.slot("theta") = update_theta(model) ;
+    //model.slot("sigma2") = update_sigma2(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("sigma2.0") = update_sigma20(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("pi") = update_p(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_pmix(model, pstar) ;
   }
@@ -364,16 +364,16 @@ Rcpp::NumericVector reduced_mu_batch(Rcpp::S4 xmod) {
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
   for (int s = 0; s < S; ++s) {
-    model.slot("z") = update_z_batch(model) ;
+    model.slot("z") = update_z(model) ;
     model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     // FIXED AT MODAL ORDINATES
-    //model.slot("theta") = update_theta_batch(model) ;
-    //model.slot("sigma2") = update_sigma2_batch(model) ;
-    //model.slot("pi") = update_p_batch(model) ;
-    model.slot("mu") = update_mu_batch(model) ;
-    model.slot("tau2") = update_tau2_batch(model) ;
-    model.slot("sigma2.0") = update_sigma20_batch(model) ;
-    model.slot("nu.0") = update_nu0_batch(model) ;
+    //model.slot("theta") = update_theta(model) ;
+    //model.slot("sigma2") = update_sigma2(model) ;
+    //model.slot("pi") = update_p(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("sigma2.0") = update_sigma20(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_mu(model, mustar) ;
   }
@@ -441,16 +441,16 @@ Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod) {
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
   for (int s = 0; s < S; ++s) {
-    model.slot("z") = update_z_batch(model) ;
+    model.slot("z") = update_z(model) ;
     model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     // FIXED AT MODAL ORDINATES
-    //model.slot("theta") = update_theta_batch(model) ;
-    //model.slot("sigma2") = update_sigma2_batch(model) ;
-    //model.slot("pi") = update_p_batch(model) ;
-    //model.slot("mu") = update_mu_batch(model) ;
-    model.slot("tau2") = update_tau2_batch(model) ;
-    model.slot("sigma2.0") = update_sigma20_batch(model) ;
-    model.slot("nu.0") = update_nu0_batch(model) ;
+    //model.slot("theta") = update_theta(model) ;
+    //model.slot("sigma2") = update_sigma2(model) ;
+    //model.slot("pi") = update_p(model) ;
+    //model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("sigma2.0") = update_sigma20(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_tau2(model) ;
   }
@@ -523,16 +523,16 @@ Rcpp::NumericVector reduced_nu0_batch(Rcpp::S4 xmod) {
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
   for (int s = 0; s < S; ++s) {
-    model.slot("z") = update_z_batch(model) ;
+    model.slot("z") = update_z(model) ;
     model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     // FIXED AT MODAL ORDINATES
-    //model.slot("theta") = update_theta_batch(model) ;
-    //model.slot("sigma2") = update_sigma2_batch(model) ;
-    //model.slot("pi") = update_p_batch(model) ;
-    //model.slot("mu") = update_mu_batch(model) ;
-    //model.slot("tau2") = update_tau2_batch(model) ;
-    model.slot("sigma2.0") = update_sigma20_batch(model) ;
-    model.slot("nu.0") = update_nu0_batch(model) ;
+    //model.slot("theta") = update_theta(model) ;
+    //model.slot("sigma2") = update_sigma2(model) ;
+    //model.slot("pi") = update_p(model) ;
+    //model.slot("mu") = update_mu(model) ;
+    //model.slot("tau2") = update_tau2(model) ;
+    model.slot("sigma2.0") = update_sigma20(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_nu0(model, nu0star[0]) ;
   }
@@ -594,16 +594,16 @@ Rcpp::NumericVector reduced_s20_batch(Rcpp::S4 xmod) {
   //   -- theta is fixed at modal ordinate
   //   -- sigma2 is fixed at modal ordinate
   for (int s = 0; s < S; ++s) {
-    model.slot("z") = update_z_batch(model) ;
+    model.slot("z") = update_z(model) ;
     model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     // FIXED AT MODAL ORDINATES
-    //model.slot("theta") = update_theta_batch(model) ;
-    //model.slot("sigma2") = update_sigma2_batch(model) ;
-    //model.slot("pi") = update_p_batch(model) ;
-    //model.slot("mu") = update_mu_batch(model) ;
-    //model.slot("tau2") = update_tau2_batch(model) ;
-    //model.slot("nu.0") = update_nu0_batch(model) ;
-    model.slot("sigma2.0") = update_sigma20_batch(model) ;
+    //model.slot("theta") = update_theta(model) ;
+    //model.slot("sigma2") = update_sigma2(model) ;
+    //model.slot("pi") = update_p(model) ;
+    //model.slot("mu") = update_mu(model) ;
+    //model.slot("tau2") = update_tau2(model) ;
+    //model.slot("nu.0") = update_nu0(model) ;
+    model.slot("sigma2.0") = update_sigma20(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_s20(model) ;
   }

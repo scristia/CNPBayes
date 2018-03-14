@@ -355,11 +355,6 @@ reorderSingleBatch <- function(model){
   model
 }
 
-
-setMethod("sortComponentLabels", "SingleBatchModel", function(model){
-  reorderSingleBatch(model)
-})
-
 setMethod("sortComponentLabels", "MultiBatchModel", function(model){
   reorderMultiBatch(model)
 })

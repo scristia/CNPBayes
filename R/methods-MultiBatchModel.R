@@ -125,7 +125,7 @@ MultiBatchModel2 <- function(dat=numeric(),
              marginal_lik=as.numeric(NA),
              .internal.constraint=5e-4,
              .internal.counter=0L)
-  z(obj) <- update_z_batch(obj)
+  z(obj) <- update_z(obj)
   if(all(z(obj) == 0)) {
     z(obj) <- sample(seq_len(K), length(dat), replace=TRUE)
   }
@@ -251,17 +251,17 @@ batchLik <- function(x, p, mean, sd)  p*dnorm(x, mean, sd)
 
 
 setMethod("computeMeans", "MultiBatchModel", function(object){
-  compute_means_batch(object)
+  compute_means(object)
 })
 
 
 setMethod("computePrec", "MultiBatchModel", function(object){
-  compute_prec_batch(object)
+  compute_prec(object)
 })
 
 
 setMethod("computePrior", "MultiBatchModel", function(object){
-  compute_logprior_batch(object)
+  compute_logprior(object)
 })
 
 .computeModesBatch <- function(object){
@@ -295,7 +295,7 @@ componentVariances <- function(y, z)  v <- sapply(split(y, z), var)
 
 
 setMethod("computeVars", "MultiBatchModel", function(object){
-  compute_vars_batch(object)
+  compute_vars(object)
 })
 
 
@@ -564,14 +564,14 @@ setMethod("relabel", "MultiBatchModel", function(object, zindex){
 })
 
 setMethod("updateMultinomialProb", "MultiBatchModel", function(object){
-  update_multinomialPr_batch(object)
+  update_multinomialPr(object)
 })
 
 
 setMethod("computeLoglik", "MultiBatchModel", function(object){
-  compute_loglik_batch(object)
+  compute_loglik(object)
 })
 
 setMethod("updateZ", "MultiBatchModel", function(object){
-  update_z_batch(object)
+  update_z(object)
 })
