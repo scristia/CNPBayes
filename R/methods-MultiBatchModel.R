@@ -127,8 +127,15 @@ MultiBatchModel2 <- function(dat=numeric(),
              .internal.counter=0L)
   z(obj) <- update_z(obj)
   ztab <- tableBatchZ(obj)
-  if(!all(ztab > 1)) {
+  cnt <- 0
+  while(!all(ztab > 1)) {
     z(obj) <- sample(seq_len(K), length(dat), replace=TRUE)
+    cnt <- cnt + 1
+    if(cnt > 3) {
+      browser()
+      stop("trouble initializing z")
+    }
+    ztab <- tableBatchZ(obj)
   }
   chains(obj) <- McmcChains(obj)
   obj
