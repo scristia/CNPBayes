@@ -271,15 +271,12 @@ Rcpp::NumericMatrix update_multinomialPr(Rcpp::S4 xmod) {
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
       double sigma = sqrt(sigma2(b, k));
-      //tmp = p[k] * dlocScale_t(x, df, theta(b, k), sqrt(sigma2(b, k))) * this_batch ;
       tmp = p[k] * dlocScale_t(x, df, theta(b, k), sigma) * this_batch ;
-      // if(is_true(any(tmp < 1e-10))) tmp[tmp < 1e-10] = 1e-10 ;
       dens += tmp ;
     }
     lik(_, k) = dens ;
     rowtotal += dens ;
   }
-  //return lik ;
   NumericMatrix P(N, K) ;
   for(int k=0; k<K; ++k){
     P(_, k) = lik(_, k)/rowtotal ;
@@ -364,7 +361,7 @@ Rcpp::NumericMatrix compute_means(Rcpp::S4 xmod) {
   int n = x.size() ;
   IntegerVector z = model.slot("z") ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;  
+  int K = getK(hypp) ;
   IntegerVector nn = model.slot("zfreq") ;
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = uniqueBatch(batch) ;
@@ -530,11 +527,11 @@ Rcpp::NumericMatrix update_theta(Rcpp::S4 xmod){
       if (post_prec == R_PosInf) {
         throw std::runtime_error("Bad simulation. Run again with different start.");
       }
-      tau_n = sqrt(1.0/post_prec) ;
       w1 = (1.0/tau2[k])/post_prec ;
       w2 = (heavyn * 1.0/sigma2(b, k))/post_prec ;
       heavy_mean = data_sum(b, k) / heavyn / df;
       mu_n = w1*mu[k] + w2*heavy_mean ;
+      tau_n = sqrt(1.0/post_prec) ;
       theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
     }
   }
@@ -701,7 +698,7 @@ Rcpp::S4 cpp_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
 }
 
 // [[Rcpp::export]]
-Rcpp::S4 mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
+Rcpp::S4 cpp_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   RNGScope scope ;
   Rcpp::S4 model(clone(object)) ;
   Rcpp::S4 chain(model.slot("mcmc.chains")) ;
@@ -777,7 +774,7 @@ Rcpp::S4 mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   //up[3] = 0;
   //up[2] = 0;
   //up[1] = 0;
-  up[0] = 0;
+  //up[0] = 0;
   for(int s = 1; s < S; ++s){
     if(up[7] > 0){
       z = update_z(model) ;

@@ -847,15 +847,9 @@ upSample2 <- function(orig.data,
     z(model2) <- z_multibatch_pvar(model2)
   }
   if(class(model2)=="MultiBatchModel"){
-    z(model2) <- update_z_batch(model2)
-  }
-  if(class(model2)=="SingleBatchModel"){
     z(model2) <- update_z(model2)
   }
-  if(class(model2)=="SingleBatchPooled"){
-    z(model2) <- z_pooled(model2)
-  }
-   model2
+  model2
 }
 
 #' @rdname tile-functions

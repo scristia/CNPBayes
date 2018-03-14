@@ -638,15 +638,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// mcmc
-Rcpp::S4 mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp);
-RcppExport SEXP _CNPBayes_mcmc(SEXP objectSEXP, SEXP mcmcpSEXP) {
+// cpp_mcmc
+Rcpp::S4 cpp_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp);
+RcppExport SEXP _CNPBayes_cpp_mcmc(SEXP objectSEXP, SEXP mcmcpSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
     Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
-    rcpp_result_gen = Rcpp::wrap(mcmc(object, mcmcp));
+    rcpp_result_gen = Rcpp::wrap(cpp_mcmc(object, mcmcp));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -821,7 +821,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_update_sigma2", (DL_FUNC) &_CNPBayes_update_sigma2, 1},
     {"_CNPBayes_update_probz", (DL_FUNC) &_CNPBayes_update_probz, 1},
     {"_CNPBayes_cpp_burnin", (DL_FUNC) &_CNPBayes_cpp_burnin, 2},
-    {"_CNPBayes_mcmc", (DL_FUNC) &_CNPBayes_mcmc, 2},
+    {"_CNPBayes_cpp_mcmc", (DL_FUNC) &_CNPBayes_cpp_mcmc, 2},
     {"_CNPBayes_log_prob_thetap", (DL_FUNC) &_CNPBayes_log_prob_thetap, 2},
     {"_CNPBayes_marginal_theta_pooled", (DL_FUNC) &_CNPBayes_marginal_theta_pooled, 1},
     {"_CNPBayes_log_prob_sigmap", (DL_FUNC) &_CNPBayes_log_prob_sigmap, 2},

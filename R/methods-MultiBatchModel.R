@@ -126,7 +126,8 @@ MultiBatchModel2 <- function(dat=numeric(),
              .internal.constraint=5e-4,
              .internal.counter=0L)
   z(obj) <- update_z(obj)
-  if(all(z(obj) == 0)) {
+  ztab <- tableBatchZ(obj)
+  if(!all(ztab > 1)) {
     z(obj) <- sample(seq_len(K), length(dat), replace=TRUE)
   }
   chains(obj) <- McmcChains(obj)

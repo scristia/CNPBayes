@@ -28,6 +28,6 @@ Rcpp::IntegerVector order_(Rcpp::NumericVector x);
 Rcpp::IntegerMatrix update_probz(Rcpp::S4 xmod);
 
 Rcpp::S4 cpp_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
-Rcpp::S4 mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp);
+Rcpp::S4 cpp_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp);
 
 #endif

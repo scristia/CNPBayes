@@ -59,19 +59,19 @@ test_that("MultiBatchPooled MCMC", {
   zz <- z_multibatch_pvar(model)
   z(model) <- zz
   ## unchanged
-  mns <- compute_means_batch(model)
+  mns <- compute_means(model)
   dataMean(model) <- mns
-  prec <- compute_prec_batch(model)
+  prec <- compute_prec(model)
   dataPrec(model) <- prec
   thetas <- theta_multibatch_pvar(model)
   theta(model) <- thetas
   sigma2s <- sigma2_multibatch_pvar(model)
   sigma2(model) <- sigma2s
   ## same as MultiBatch
-  mus <- update_mu_batch(model)
+  mus <- update_mu(model)
   mu(model) <- mus
   ## unchanged
-  tau2s <- update_tau2_batch(model)
+  tau2s <- update_tau2(model)
   tau2(model) <- tau2s
 
   s20 <- sigma20_multibatch_pvar(model)
@@ -79,7 +79,7 @@ test_that("MultiBatchPooled MCMC", {
   nu0 <- nu0_multibatch_pvar(model)
   nu.0(model) <- nu0
   ## unchanged
-  ps <- update_p_batch(model)
+  ps <- update_p(model)
 
   ll <- loglik_multibatch_pvar(model)
   ll <- stagetwo_multibatch_pvar(model)

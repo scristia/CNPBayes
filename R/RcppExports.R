@@ -225,8 +225,8 @@ cpp_burnin <- function(object, mcmcp) {
     .Call('_CNPBayes_cpp_burnin', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
-mcmc <- function(object, mcmcp) {
-    .Call('_CNPBayes_mcmc', PACKAGE = 'CNPBayes', object, mcmcp)
+cpp_mcmc <- function(object, mcmcp) {
+    .Call('_CNPBayes_cpp_mcmc', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
 log_prob_thetap <- function(xmod, thetastar) {

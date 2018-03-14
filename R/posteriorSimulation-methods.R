@@ -5,18 +5,17 @@ setMethod("runBurnin", "MultiBatchModel", function(object){
   cpp_burnin(object, mcmcParams(object))
 })
 
-setMethod("runBurnin", "MultiBatchPooled", function(object){
-  burnin_multibatch_pvar(object, mcmcParams(object))
+setMethod("runMcmc", "MultiBatchModel", function(object){
+  cpp_mcmc(object, mcmcParams(object))
 })
 
-setMethod("runMcmc", "MultiBatchModel", function(object){
-  mcmc(object, mcmcParams(object))
+setMethod("runBurnin", "MultiBatchPooled", function(object){
+  burnin_multibatch_pvar(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "MultiBatchPooled", function(object){
   mcmc_multibatch_pvar(object, mcmcParams(object))
 })
-
 
 .posteriorSimulation2 <- function(post, params=psParams()){
   post <- runBurnin(post)
