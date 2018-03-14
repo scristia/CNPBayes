@@ -61,10 +61,10 @@ test_that("test_mcmc_restart", {
   ## checks consistency of chain with slot for theta
   ##
   mcmcp <- McmcParams(nStarts=0, iter=1)
-  modelk1 <- MultiBatchModel2(dat = y(truth),
-                              hp=hpList(k=3)[["MB"]],
-                              mp = mcmcp,
-                              batches = batch(truth))
+  modelk1 <- MB(dat = y(truth),
+                hp=hpList(k=3)[["MB"]],
+                mp = mcmcp,
+                batches = batch(truth))
   modelk1 <- sortComponentLabels(modelk1)
   th1 <- as.numeric(theta(modelk1))
   ##

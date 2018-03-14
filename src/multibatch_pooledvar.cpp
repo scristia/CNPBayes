@@ -618,7 +618,6 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   chain.slot("nu.0") = nu0 ;
   chain.slot("sigma2.0") = sigma2_0 ;
   chain.slot("zfreq") = zfreq ;
-  //chain.slot("u") = U ;
   chain.slot("loglik") = loglik_ ;
   chain.slot("logprior") = logprior_ ;
   model.slot("mcmc.chains") = chain ;
