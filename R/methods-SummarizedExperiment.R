@@ -36,15 +36,15 @@ setMethod("collapseBatch", "SummarizedExperiment", function(object, provisional_
 #' @rdname collapseBatch-method
 #' @aliases collapseBatch,numeric-method
 setMethod("collapseBatch", "numeric", function(object, provisional_batch, THR=0.1){
-  N <- choose(length(unique(plate)), 2)
+  N <- choose(length(unique(provisional_batch)), 2)
   cond2 <- TRUE
   while(N > 1 && cond2){
-    B <- plate
-    batch <- .combineBatches(object, provisional_batch, THR=THR)
-    cond2 <- !identical(B, batch)
-    N <- choose(length(unique(batch)), 2)
+    B <- provisional_batch
+    provisional_batch <- .combineBatches(object, provisional_batch, THR=THR)
+    cond2 <- !identical(B, provisional_batch)
+    N <- choose(length(unique(provisional_batch)), 2)
   }
-  makeUnique(batch)
+  makeUnique(provisional_batch)
 })
 
 
