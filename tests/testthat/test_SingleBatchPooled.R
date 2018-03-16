@@ -21,7 +21,7 @@ test_that("sigma2_pooled", {
   ## This unit test is a regression test. Changes to how SBP is initialized will
   ## effect the value below.
   ##
-  expect_equal(s2.R, 0.026, tolerance=0.01)
+  expect_equal(s2.R, 0.039, tolerance=0.01)
 })
 
 test_that("gibbs", {
