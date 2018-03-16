@@ -362,7 +362,7 @@ setGeneric("m2.0<-", function(object,value) standardGeneric("m2.0<-"))
 setGeneric("showMeans", function(object) standardGeneric("showMeans"))
 setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 
-## JC this function could use a better name. See examples
+## Combine batches if distribution of one-dimensional summary is similar by Kolmogorov-Smirnov test statistic
 ##
 #' Estimate batch from a collection of chemistry plates or some other
 #' variable that captures the time in which the arrays were processed.
@@ -397,13 +397,13 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #'                           hp=hpList(k=k(MultiBatchModelExample))[["MB"]],
 #'                           batches=batches, mp=mcmcParams(MultiBatchModelExample))
 #' @param object see \code{showMethods(collapseBatch)}
-#' @param plate a vector labelling from which batch each observation came from.
+#' @param provisional_batch a vector labelling from which batch each observation came from.
 #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
 #' @return The new batch value.
 #' @export
 #' @docType methods
 #' @rdname collapseBatch-method
-setGeneric("collapseBatch", function(object, plate, THR=0.1) standardGeneric("collapseBatch"))
+setGeneric("collapseBatch", function(object, provisional_batch, THR=0.1) standardGeneric("collapseBatch"))
 
 
 

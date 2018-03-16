@@ -11,20 +11,21 @@
 \title{Estimate batch from a collection of chemistry plates or some other
 variable that captures the time in which the arrays were processed.}
 \usage{
-collapseBatch(object, plate, THR = 0.1)
+collapseBatch(object, provisional_batch, THR = 0.1)
 
 \S4method{collapseBatch}{BatchModel}(object)
 
 \S4method{collapseBatch}{MultiBatchModel}(object)
 
-\S4method{collapseBatch}{SummarizedExperiment}(object, plate, THR = 0.1)
+\S4method{collapseBatch}{SummarizedExperiment}(object, provisional_batch,
+  THR = 0.1)
 
-\S4method{collapseBatch}{numeric}(object, plate, THR = 0.1)
+\S4method{collapseBatch}{numeric}(object, provisional_batch, THR = 0.1)
 }
 \arguments{
 \item{object}{see \code{showMethods(collapseBatch)}}
 
-\item{plate}{a vector labelling from which batch each observation came from.}
+\item{provisional_batch}{a vector labelling from which batch each observation came from.}
 
 \item{THR}{threshold below which the null hypothesis should be rejected and batches are collapsed.}
 }

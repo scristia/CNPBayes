@@ -28,24 +28,23 @@ setAs("MixtureModel", "SummarizedExperiment", function(from, to){
 
 #' @rdname collapseBatch-method
 #' @aliases collapseBatch,SummarizedExperiment-method
-setMethod("collapseBatch", "SummarizedExperiment", function(object, plate, THR=0.1){
-  plate <- as.character(object$plate)
-  ##collapseBatch(copyNumber(object)[1, ], plate, THR=THR)
+setMethod("collapseBatch", "SummarizedExperiment", function(object, provisional_batch, THR=0.1){
+  batch <- as.character(object$provisional_batch)
   collapseBatch(assays(object)[["medr"]][1, ]/1000)
 })
 
 #' @rdname collapseBatch-method
 #' @aliases collapseBatch,numeric-method
-setMethod("collapseBatch", "numeric", function(object, plate, THR=0.1){
+setMethod("collapseBatch", "numeric", function(object, provisional_batch, THR=0.1){
   N <- choose(length(unique(plate)), 2)
   cond2 <- TRUE
   while(N > 1 && cond2){
     B <- plate
-    plate <- .combinePlates(object, plate, THR=THR)
-    cond2 <- !identical(B, plate)
-    N <- choose(length(unique(plate)), 2)
+    batch <- .combineBatches(object, provisional_batch, THR=THR)
+    cond2 <- !identical(B, batch)
+    N <- choose(length(unique(batch)), 2)
   }
-  makeUnique(plate)
+  makeUnique(batch)
 })
 
 
@@ -63,7 +62,7 @@ setMethod("combinePlates", "numeric", function(object, plate, THR=0.1){
   makeUnique(plate)
 })
 
-.combinePlates <- function(yy, B, THR=0.1){
+.combineBatches <- function(yy, B, THR=0.1){
   uB <- unique(B)
   ## One plate can pair with many other plates.
   for(j in seq_along(uB)){
