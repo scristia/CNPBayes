@@ -1360,6 +1360,8 @@ setMethod("ggMultiBatch", "MultiBatchPooled", function(model, bins){
   .gg_multibatch_pooled(model, bins)
 })
 
+setGeneric("ggSingleBatch", function(model, bins) standardGeneric("ggSingleBatch"))
+
 #' @rdname Defunct-functions
 #' @aliases ggSingleBatch,MarginalModel-method
 setMethod("ggSingleBatch", "MarginalModel", function(model, bins){

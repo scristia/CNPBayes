@@ -83,7 +83,7 @@
 
 \S4method{marginalLikelihood}{BatchModel}(model, params = mlParams())
 
-\S4method{ggMultiBatch}{BatchModel}(model, bins)
+\S4method{ggMultiBatch}{BatchModel}(model, bins = 100)
 
 DensityModel(object, merge = FALSE)
 
@@ -136,15 +136,15 @@ DensityModel(object, merge = FALSE)
 
 \S4method{plot}{DensityBatchModel,ANY}(x, show.batch = TRUE, ...)
 
-\S4method{ggMultiBatch}{MultiBatchModel}(model, bins)
+\S4method{ggMultiBatch}{MultiBatchModel}(model, bins = 100)
 
-\S4method{ggMultiBatch}{MultiBatchPooled}(model, bins)
+\S4method{ggMultiBatch}{MultiBatchPooled}(model, bins = 100)
 
 \S4method{ggSingleBatch}{MarginalModel}(model, bins)
 
 \S4method{ggSingleBatch}{SingleBatchModel}(model, bins)
 
-\S4method{ggMultiBatch}{MultiBatchCopyNumber}(model, bins)
+\S4method{ggMultiBatch}{MultiBatchCopyNumber}(model, bins = 100)
 
 \S4method{ggSingleBatch}{SingleBatchCopyNumber}(model, bins)
 

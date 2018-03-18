@@ -814,17 +814,11 @@ setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 #' @param bins a length-one numeric vector indicating the number of bins -- passed to \code{geom_hist}
 #' @export
 #' @rdname ggplot-functions
-setGeneric("ggMixture", function(model, bins) standardGeneric("ggMixture"))
-
-#' @export
-#' @return a \code{ggplot} object
-#' @rdname ggplot-functions
-setGeneric("ggSingleBatch", function(model, bins) standardGeneric("ggSingleBatch"))
+setGeneric("ggMixture", function(model, bins=100) standardGeneric("ggMixture"))
 
 #' @export
 #' @rdname ggplot-functions
-setGeneric("ggMultiBatch", function(model, bins) standardGeneric("ggMultiBatch"))
-
+setGeneric("ggMultiBatch", function(model, bins=100) standardGeneric("ggMultiBatch"))
 
 #' @param model a SB, MB, SBP, or MBP model
 #' @examples
