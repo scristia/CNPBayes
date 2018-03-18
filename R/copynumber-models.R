@@ -92,7 +92,8 @@ setMethod("probCopyNumber", "MultiBatchCopyNumberPooled", function(model){
 setMethod("copyNumber", "MultiBatchCopyNumber", function(object){
   component_labels <- mapping(object)
   zz <- map_z(object)
-  component_labels[zz]
+  cn <- component_labels[zz]
+  cn
 })
 
 #' @aliases copyNumber,MultiBatchCopyNumberPooled-method
@@ -100,7 +101,8 @@ setMethod("copyNumber", "MultiBatchCopyNumber", function(object){
 setMethod("copyNumber", "MultiBatchCopyNumberPooled", function(object){
   component_labels <- mapping(object)
   zz <- map_z(object)
-  component_labels[zz]
+  cn <- component_labels[zz]
+  cn
 })
 
 

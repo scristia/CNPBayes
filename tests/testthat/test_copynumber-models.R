@@ -34,11 +34,13 @@ context("Copy number models")
 
 test_that("Methods defined for the class", {
   sb <- SingleBatchModelExample
+  mcmcParams(sb) <- McmcParams(iter=500, burnin=100, thin=1)
+  sb <- posteriorSimulation(sb)
   cn.model <- MultiBatchCopyNumber(sb)
-
   expect_false(manyToOneMapping(cn.model))
   cn <- copyNumber(cn.model)
-  expect_identical(as.integer(cn), z(cn.model))
+  zz <- map_z(cn.model)
+  expect_identical(as.integer(cn), map_z(cn.model))
 
   mapping(cn.model) <- rep("1", 3)
   expect_true(manyToOneMapping(cn.model))
@@ -72,49 +74,6 @@ test_that("Methods defined for the class", {
     ggMixture(cn.model)
   }
 })
-
-test_that("Methods 2", {
-  mb <- MultiBatchModelExample
-  cn.model <- MultiBatchCopyNumber(mb)
-  expect_false(manyToOneMapping(cn.model))
-  cn <- copyNumber(cn.model)
-  expect_identical(cn, as.character(z(cn.model)))
-
-  mapping(cn.model) <- as.character(rep(1, 3))
-  expect_true(manyToOneMapping(cn.model))
-
-  cn.probs <- probCopyNumber(cn.model)
-  expect_true(all(as.numeric(cn.probs) == 1))
-  cn <- copyNumber(cn.model)
-  expect_true(all(cn=="1"))
-
-  mapping(cn.model) <- as.character(rep(2, 3))
-  cn <- copyNumber(cn.model)
-  expect_true(all(cn=="2"))
-
-  mapping(cn.model) <- as.character(c(1, 1, 2))
-  pz <- probz(cn.model)
-  expected <- cbind(rowSums(pz[, 1:2]), pz[, 3])
-  cn.probs <- probCopyNumber(cn.model)
-  expect_equal(expected, cn.probs)
-  cn <- copyNumber(cn.model)
-  expected <- z(cn.model)
-  expected[expected %in% 1:2] <- "1"
-  expected[expected == 3] <- "2"
-  expect_identical(cn, expected)
-
-  mapping(cn.model) <- as.character(c(1, 2, 2))
-  expected <- z(cn.model)
-  expected[expected == 3] <- "2"
-  cn <- copyNumber(cn.model)
-  expect_identical(cn, expected)
-
-  cn.model <- CNPBayes:::sortComponentLabels(cn.model)
-  mapping(cn.model) <- as.character(c(1, 2, 2))
-  if(FALSE)
-    ggMultiBatch(cn.model)
-})
-
 
 .test_that("Mapping components to copy number (single batch)", {
   set.seed(514)
