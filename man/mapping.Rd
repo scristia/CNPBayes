@@ -4,12 +4,9 @@
 \name{mapping}
 \alias{mapping}
 \alias{mapping<-}
-\alias{mapping,SingleBatchCopyNumber-method}
 \alias{mapping,MultiBatchCopyNumber-method}
 \alias{mapping,MultiBatchCopyNumberPooled-method}
 \alias{mapping,MultiBatchCopyNumber-method}
-\alias{mapping<-,SingleBatchCopyNumber,character-method}
-\alias{mapping,SingleBatchCopyNumber,numeric-method}
 \alias{mapping<-,MultiBatchCopyNumber,character-method}
 \alias{mapping,MultiBatchCopyNumber,numeric-method}
 \alias{mapping<-,MultiBatchCopyNumberPooled,character-method}
@@ -20,13 +17,9 @@ mapping(object)
 
 mapping(object) <- value
 
-\S4method{mapping}{SingleBatchCopyNumber}(object)
-
 \S4method{mapping}{MultiBatchCopyNumber}(object)
 
 \S4method{mapping}{MultiBatchCopyNumberPooled}(object)
-
-\S4method{mapping}{SingleBatchCopyNumber,character}(object) <- value
 
 \S4method{mapping}{MultiBatchCopyNumber,character}(object) <- value
 

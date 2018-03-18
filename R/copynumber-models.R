@@ -1,12 +1,6 @@
 #' @include AllClasses.R
 NULL
 
-#' @aliases mapping,SingleBatchCopyNumber-method
-#' @rdname mapping
-setMethod("mapping", "SingleBatchCopyNumber", function(object){
-  object@mapping
-})
-
 #' @aliases mapping,MultiBatchCopyNumber-method
 #' @rdname mapping
 setMethod("mapping", "MultiBatchCopyNumber", function(object){
@@ -18,14 +12,6 @@ setMethod("mapping", "MultiBatchCopyNumber", function(object){
 setMethod("mapping", "MultiBatchCopyNumberPooled", function(object){
   object@mapping
 })
-
-#' @aliases mapping,SingleBatchCopyNumber,numeric-method
-#' @rdname mapping
-setReplaceMethod("mapping", c("SingleBatchCopyNumber", "character"),
-                 function(object, value){
-                   object@mapping <- value
-                   object
-                 })
 
 #' @aliases mapping,MultiBatchCopyNumber,numeric-method
 #' @rdname mapping
@@ -42,10 +28,6 @@ setReplaceMethod("mapping", c("MultiBatchCopyNumberPooled", "character"),
                    object@mapping <- value
                    object
                  })
-
-setMethod("numberStates", "SingleBatchCopyNumber", function(model){
-  length(unique(mapping(model)))
-})
 
 setMethod("numberStates", "MultiBatchCopyNumber", function(model){
   length(unique(mapping(model)))
@@ -93,12 +75,6 @@ manyToOneMapping <- function(model){
   result
 }
 
-#' @aliases probCopyNumber,SingleBatchCopyNumber-method
-#' @rdname probCopyNumber
-setMethod("probCopyNumber", "SingleBatchCopyNumber", function(model){
-  .prob_copynumber(model)
-})
-
 #' @aliases probCopyNumber,MultiBatchCopyNumber-method
 #' @rdname probCopyNumber
 setMethod("probCopyNumber", "MultiBatchCopyNumber", function(model){
@@ -111,71 +87,20 @@ setMethod("probCopyNumber", "MultiBatchCopyNumberPooled", function(model){
   .prob_copynumber(model)
 })
 
-.remap <- function(z, map){
-  for(i in seq_along(map)){
-    z[z == i] <- map[i]
-  }
-  z
-}
-
-.relabel_z <- function(object){
-##  if(!manyToOneMapping(object)) {
-##    map <- mapping(object)
-##    return(z(object))
-##  }
-##  ##zz <- map_z(object)
-##  zz <- z(object)
-##  map <- mapping(object)
-##  if(numberStates(object) == 1){
-##    zz[zz != map[1]] <- map[1]
-##    return(zz)
-##  }
-##  ##
-##  ## multiple states and many-to-one mapping
-##  ##
-##  zz <- .remap(zz, map)
-##  zz
-}
-
-#' @aliases copyNumber,SingleBatchCopyNumber-method
-#' @rdname copyNumber
-setMethod("copyNumber", "SingleBatchCopyNumber", function(object){
-  map <- mapping(object)
-  map[z(object)]
-##  tab <- tibble(y=y(object), cn=cn, z=z(object),
-##                theta=round(theta(object)[z(object)], 3))
-##  thetas <- matrix(theta(object), nrow=length(y(object)),
-##                   ncol=length(theta(object)), byrow=TRUE)
-##  ## Define z* (a candidate for a new z) to be the nearest mode
-##  z.candidate <- abs(y(object)-thetas) %>% as.tibble %>%
-##    apply(1, which.min)
-##  tab <- tibble(y=y(object),
-##                theta=theta(object)[z(object)],
-##                theta.star=theta(object)[z.candidate])
-##  condition1 <- with(tab,
-##                     theta <= y & y <= theta.star)
-##  condition2 <- with(tab,
-##                     theta.star <= y & y <= theta)
-##  zstar <- ifelse(condition1 | condition2, z(object), z.candidate)
-##  object@z <- zstar
-##  cn <- .relabel_z(object)
-##  cn
-})
-
 #' @aliases copyNumber,MultiBatchCopyNumber-method
 #' @rdname copyNumber
 setMethod("copyNumber", "MultiBatchCopyNumber", function(object){
-  map <- mapping(object)
-  map[z(object)]
-##  .relabel_z(object)
+  component_labels <- mapping(object)
+  zz <- map_z(object)
+  component_labels[zz]
 })
 
 #' @aliases copyNumber,MultiBatchCopyNumberPooled-method
 #' @rdname copyNumber
 setMethod("copyNumber", "MultiBatchCopyNumberPooled", function(object){
-  map <- mapping(object)
-  map[z(object)]
-  ##.relabel_z(object)
+  component_labels <- mapping(object)
+  zz <- map_z(object)
+  component_labels[zz]
 })
 
 

@@ -3,14 +3,11 @@
 \docType{methods}
 \name{probCopyNumber}
 \alias{probCopyNumber}
-\alias{probCopyNumber,SingleBatchCopyNumber-method}
 \alias{probCopyNumber,MultiBatchCopyNumber-method}
 \alias{probCopyNumber,MultiBatchCopyNumberPooled-method}
 \title{Posterior probabilities for copy number states}
 \usage{
 probCopyNumber(model)
-
-\S4method{probCopyNumber}{SingleBatchCopyNumber}(model)
 
 \S4method{probCopyNumber}{MultiBatchCopyNumber}(model)
 
