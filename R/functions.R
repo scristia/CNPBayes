@@ -512,7 +512,7 @@ posteriorPredictive <- function(model){
   mcmc.iter <- iter(model)
   tab.list <- vector("list", mcmc.iter)
   df <- dfr(hyperParams(model))
-  batches <- rep(unique(batch(model)), each=K)
+  batches <- sort(rep(unique(batch(model)), each=K))
   for(i in seq_len(mcmc.iter)){
     ## same p assumed for each batch
     a <- alpha[i, ]

@@ -415,6 +415,9 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                   top=2,
                   df=100,
                   min_effsize=500){
+  if(any(!model %in% c("SB", "MB", "SBP", "MBP")))
+    stop("model must be a character vector with elements `SB`, `MB`, `SBP`, `MBP`")
+  model <- unique(model)
   max_burnin <- max(max_burnin, burnin(mp)) + 1
   if(("MB" %in% model || "MBP" %in% model) && missing(batches)){
     stop("batches is missing.  Must specify batches for MB and MBP models")
@@ -466,6 +469,7 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
   models <- c(sb, mb, sbp, mbp)
   ## order models by marginal likelihood
   ml <- map_dbl(models, marginal_lik)
+  top <- min(top, length(models))
   ix <- head(order(ml, decreasing=TRUE), top)
   models <- models[ix]
   names(models) <- sapply(models, modelName)
