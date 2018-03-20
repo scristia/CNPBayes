@@ -102,10 +102,10 @@ test_that("Marginal likelihood for MultiBatchPooled", {
   mcmcParams(model) <- mp
   model2 <- posteriorSimulation(model)
   if(FALSE)  ggMultiBatch(model2)
-  expect_warning(
+  ##expect_warning(
     ## effective size warning
     ml <- .ml_multibatch_pooled(model2)
-  )
+  ##)
 })
 
 test_that("MultiBatchPooled model selection", {
