@@ -272,26 +272,6 @@ gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500)
       nStarts(mp) <- nStarts(mp) + 1
       next()
     }
-    ##    if(nswap > 0){
-    ##      mp@thin <- as.integer(thin(mp) * 2)
-    ##      message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    ##      mod.list2 <- replicate(nswap,
-    ##                            MultiBatchModel2(dat=dat,
-    ##                                            mp=mp,
-    ##                                            hp=hp,
-    ##                                            batches=batches))
-    ##      mod.list2 <- suppressWarnings(map(mod.list2, posteriorSimulation))
-    ##      mod.list[ label_swapping ] <- mod.list2
-    ##      label_swapping <- map_lgl(mod.list, label_switch)
-    ##      if(any(label_swapping)){
-    ##        message("  Label switching detected")
-    ##        mlist <- mcmcList(mod.list)
-    ##        neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-    ##        if(is.null(neff)) neff <- 0
-    ##        r <- gelman_rubin(mlist, hp)
-    ##        break()
-    ##      }
-    ##    }
     mod.list <- mod.list[ no_label_swap ]
     mod.list <- mod.list[ selectModels(mod.list) ]
     mlist <- mcmcList(mod.list)
