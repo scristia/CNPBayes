@@ -299,16 +299,16 @@ gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500)
     if(is.null(neff)) neff <- 0
     r <- gelman_rubin(mlist, hp)
     message("     r: ", round(r$mpsrf, 2))
-    message("     eff size (minimum): ", round(min(neff), 1))
-    message("     eff size (median): ", round(median(neff), 1))
-    if(all(neff > min_effsize) && r$mpsrf < MIN_GR) break()
+    message("     eff size (median): ", round(min(neff), 1))
+    message("     eff size (mean): ", round(mean(neff), 1))
+    if(mean(neff) > min_effsize) && r$mpsrf < MIN_GR) break()
     burnin(mp) <- as.integer(burnin(mp) * 2)
     mp@thin <- as.integer(thin(mp) + 2)
     nStarts(mp) <- nStarts(mp) + 1
     ##mp@thin <- as.integer(thin(mp) * 2)
   }
   model <- combine_batch(mod.list, batches)
-  meets_conditions <- all(neff > min_effsize) &&
+  meets_conditions <- (mean(neff) > min_effsize) &&
     r$mpsrf < MIN_GR &&
     !label_switch(model)
   if(meets_conditions){
