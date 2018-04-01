@@ -440,6 +440,9 @@ posteriorPredictive <- function(model){
   if(class(model)=="MultiBatchModel"){
     tab <- .posterior_predictive_mb(model)
   }
+  if(class(model)=="MultiBatchCopyNumber"){
+    tab <- .posterior_predictive_mb(model)
+  }
   if(class(model) == "SingleBatchPooled"){
     tab <- .posterior_predictive_sbp(model)
   }
