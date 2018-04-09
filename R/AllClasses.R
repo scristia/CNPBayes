@@ -191,6 +191,8 @@ setClass("MixtureModel", representation("VIRTUAL",
 setClass("MultiBatchModel", contains="MixtureModel")
 
 
+setClass("TrioBatchModel", contains="MultiBatchModel", slots=c(triodata="tbl_df"))
+
 #' The 'SingleBatchModel' class
 #'
 #' Run marginal MCMC simulation
