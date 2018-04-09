@@ -1,4 +1,93 @@
-#include "miscfunctions.h"
+#ifndef _miscfunctions_H
+#define _miscfunctions_H
+
+#include <Rcpp.h>
+
+
+using namespace Rcpp;
+// FUNCTIONS FOR ACCESSING HYPERPARAMETERS
+// [[Rcpp::export]]
+int getK(Rcpp::S4 hyperparams) {
+  int k = hyperparams.slot("k");
+  return k;
+}
+
+// [[Rcpp::export]]
+double getDf(Rcpp::S4 hyperparams) {
+  double df = hyperparams.slot("dfr");
+  return df;
+}
+
+// [[Rcpp::export]]
+Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x) {
+  IntegerVector tmp = unique(x) ;
+  IntegerVector b = clone(tmp) ;
+  std::sort(b.begin(), b.end()) ;
+  return b ;
+}
+
+// [[Rcpp::export]]
+Rcpp::IntegerVector tableZ(int K, Rcpp::IntegerVector z){
+  Rcpp::IntegerVector nn(K) ;
+  for(int k = 0; k < K; k++){
+    nn[k] = sum(z == (k+1)) ;
+  }
+  return nn ;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod){
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  int K = getK(model.slot("hyperparams")) ;
+  IntegerVector batch = model.slot("batch") ;
+  IntegerVector ub = uniqueBatch(batch) ;
+  int B = ub.size() ;
+  IntegerVector z = model.slot("z") ;
+  NumericMatrix nn(B, K) ;
+  for(int j = 0; j < B; ++j){
+    for(int k = 0; k < K; k++){
+      nn(j, k) = sum((z == (k+1)) & (batch == ub[j]));
+    }
+  }
+  return nn ;
+}
+
+// Accessors
+Rcpp::IntegerVector getZ(Rcpp::S4 model) {
+    IntegerVector z = model.slot("z");
+    return z;
+}
+
+Rcpp::NumericVector getData(Rcpp::S4 model) {
+    NumericVector y = model.slot("data");
+    return y;
+}
+
+
+
+Rcpp::NumericVector getMu(Rcpp::S4 hyperparams) {
+  NumericVector mu = hyperparams.slot("mu");
+  return mu;
+}
+
+Rcpp::NumericVector getTau2(Rcpp::S4 hyperparams) {
+    NumericVector tau2 = hyperparams.slot("tau2");
+    return tau2;
+}
+
+Rcpp::IntegerVector getAlpha(Rcpp::S4 hyperparams) {
+    IntegerVector alpha = hyperparams.slot("alpha");
+    return alpha;
+}
+
+Rcpp::LogicalVector nonZeroCopynumber(Rcpp::IntegerVector z) {
+//nonZeroCopynumber <- function(object) as.integer(as.integer(z(object)) > 1)
+ LogicalVector nz = z > 1;
+ return nz;
+}
+
+
 
 using namespace Rcpp;
 // Function to simulate from dirichlet distribution
@@ -76,9 +165,8 @@ double trunc_norm(double mean, double sd) {
 }
 
 // Distribution function for skew normal
-NumericVector dsn(NumericVector r, double xi, double omega, double alpha) {
-    NumericVector z, logN, logS, logPDF;
-    z = (r - xi)/omega;
+Rcpp::NumericVector dsn(NumericVector r, double xi, double omega, double alpha) {
+    NumericVector z, logN, logS, logPDF; z = (r - xi)/omega;
     logN = -log(sqrt(2.0 * PI)) - log(omega) - pow(z, 2) / 2.0;
     logS = log(pnorm(alpha * z));
     logPDF = logN + logS - R::pnorm(0.0, 0.0, 1.0, 1, 1);
@@ -228,10 +316,202 @@ int change;
 }
 
 // [[Rcpp::export]]
-IntegerVector tableZ(int K, IntegerVector z){
-  IntegerVector nn(K) ;
-  for(int k = 0; k < K; k++){
-    nn[k] = sum(z == (k+1)) ;
-  }
-  return nn ;
+Rcpp::NumericVector dlocScale_t(NumericVector x, double df, double mu, double sigma) {
+    double coef = tgamma((df + 1.0)/2.0)/(sigma*sqrt(df*PI)*tgamma(df/2.0));
+    NumericVector d = coef*pow(1 + pow((x - mu)/sigma, 2.0)/df, -(df+1.0)/2.0);
+    return d;
 }
+
+// [[Rcpp::export]]
+Rcpp::NumericVector rlocScale_t(NumericVector n, double df, double mu, double sigma) {
+  NumericVector means(n[0]) ;
+  NumericVector sigmas(n[0]) ;
+  for(int i = 0; i < n[0]; ++i){
+    means[i] = mu;
+    sigmas[i] = sigma;
+  }
+  NumericVector y(n[0]) ;
+  NumericVector z(n[0]) ;
+  NumericVector x(n[0]) ;
+  y = rnorm(n[0]) ;
+  z = rchisq(n[0], df) ;
+  x = means + sigmas * y * sqrt(df/z) ;
+  //double coef = tgamma((df + 1.0)/2.0)/(sigma*sqrt(df*PI)*tgamma(df/2.0));
+  //NumericVector d = coef*pow(1 + pow((x - mu)/sigma, 2.0)/df, -(df+1.0)/2.0);
+  //return d;
+  return x;
+}
+
+
+// [[Rcpp::export]]
+Rcpp::NumericVector compute_u_sums(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  NumericVector x = model.slot("data") ;
+  int n = x.size() ;
+  IntegerVector z = model.slot("z") ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  // IntegerVector nn = model.slot("zfreq") ;
+  NumericVector sums( K ) ;
+  NumericVector u = model.slot("u") ;
+  for(int i = 0; i < n; i++){
+    for(int k = 0; k < K; k++){
+      if(z[i] == k+1){
+        sums[k] += u[i] ;
+      }
+    }
+  }
+  return sums ;
+}
+
+
+// [[Rcpp::export]]
+Rcpp::NumericVector compute_heavy_sums(Rcpp::S4 object) {
+  RNGScope scope ;
+  Rcpp::S4 xmod = clone(object) ;
+  Rcpp::S4 model(xmod) ;
+  NumericVector x = model.slot("data") ;
+  int n = x.size() ;
+  IntegerVector z = model.slot("z") ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  // IntegerVector nn = model.slot("zfreq") ;
+
+  NumericVector sums( K ) ;
+  NumericVector u = model.slot("u") ;
+  x = x * u ;
+  for(int i = 0; i < n; i++){
+    for(int k = 0; k < K; k++){
+      if(z[i] == k+1){
+        sums[k] += x[i] ;
+      }
+    }
+  }
+  return sums ;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericVector compute_heavy_means(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  IntegerVector z = model.slot("z") ;
+  int K = getK(hypp) ;
+  IntegerVector nn = tableZ(K, z) ;
+  NumericVector means = compute_heavy_sums(xmod) ;
+  for(int k = 0; k < K; k++){
+    means[k] = means[k] / nn[k] ;
+  }
+  return means ;
+}
+
+
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix compute_u_sums_batch(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  IntegerVector z = model.slot("z") ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  NumericVector u = model.slot("u") ;
+  int n = u.size() ;
+
+  IntegerVector batch = model.slot("batch") ;
+  IntegerVector ub = uniqueBatch(batch) ;
+  int B = ub.size() ;
+  NumericMatrix sums(B, K) ;
+  for(int i = 0; i < n; i++){
+      for(int b = 0; b < B; b++) {
+          for(int k = 0; k < K; k++){
+                  if(z[i] == k+1 & batch[i] == b+1){
+                  sums(b, k) += u[i] ;
+              }
+          }
+      }
+  }
+  //Rcpp::Rcout << "u sums:" << std::endl << sums << std::endl;
+  return sums ;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix compute_heavy_sums_batch(Rcpp::S4 object) {
+  RNGScope scope ;
+  Rcpp::S4 xmod = clone(object) ;
+  Rcpp::S4 model(xmod) ;
+  NumericVector x = model.slot("data") ;
+
+  int n = x.size() ;
+  IntegerVector z = model.slot("z") ;
+  NumericVector u = model.slot("u") ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+
+  IntegerVector batch = model.slot("batch") ;
+  IntegerVector ub = uniqueBatch(batch) ;
+  int B = ub.size() ;
+  // IntegerVector nn = model.slot("zfreq") ;
+  NumericMatrix sums(B, K) ;
+  x = x * u ;
+  for(int i = 0; i < n; i++){
+      for(int b = 0; b < B; b++) {
+          for(int k = 0; k < K; k++){
+              if(z[i] == k+1 & batch[i] == b+1){
+                  sums(b, k) += x[i] ;
+              }
+          }
+      }
+  }
+  //Rcpp::Rcout << "heavy sums:" << std::endl << sums << std::endl;
+  return sums ;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix compute_heavy_means_batch(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  IntegerVector z = model.slot("z") ;
+  int K = getK(hypp) ;
+
+  IntegerVector batch = model.slot("batch") ;
+  IntegerVector ub = uniqueBatch(batch) ;
+  int B = ub.size() ;
+  NumericMatrix nn = tableBatchZ(xmod) ;
+  NumericMatrix means = compute_heavy_sums_batch(xmod) ;
+  for(int b = 0; b < B; b++) {
+      for(int k = 0; k < K; k++){
+          means(b, k) = means(b, k) / nn(b, k) ;
+      }
+  }
+  //Rcpp::Rcout << "means:" << std::endl << means << std::endl;
+  return means ;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericVector log_ddirichlet_(Rcpp::NumericVector x_,
+                                    Rcpp::NumericVector alpha_) {
+  // NumericVector x = as<NumericVector>(x_) ;
+  NumericVector x = clone(x_) ;
+  int K = x.size() ;
+  NumericVector alpha = clone(alpha_) ;
+  // NumericVector alpha = as<NumericVector>(alpha_) ;
+  NumericVector total_lg(1) ;
+  NumericVector tmp(1);
+  NumericVector total_lalpha(1) ;
+  NumericVector logD(1) ;
+  NumericVector result(1) ;
+  double s = 0.0 ;
+  for(int k=0; k < K; ++k){
+    total_lg[0] += lgamma(alpha[k]) ;
+    tmp[0] += alpha[k] ;
+    s += (alpha[k] - 1.0) * log(x[k]) ;
+  }
+  total_lalpha = lgamma(tmp[0]) ;
+  logD[0] = total_lg[0] - total_lalpha[0] ;
+  result[0] = s - logD[0] ;
+  return result ;
+}
+
+#endif

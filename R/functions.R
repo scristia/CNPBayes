@@ -223,46 +223,6 @@ annotateRegions <- function(regions, transcripts){
 }
 
 
-imputeFromSampledData <-  function(model, data, index){
-  if(is.null(names(data))) stop("data must be a named vector")
-  pz2 <- probz(model)
-  cn <- map_z(model)
-  ##pz2 <- mapCnProbability(pz, k(model))
-  ##r2 <- quantile(data, probs=seq(0, 1, by=0.01))
-  df <- data.frame(r=data,
-                   cn=rep(NA, length(data)),
-                   ##p=rep(NA, length(data)),
-                   row.names=names(data))
-  ##df$p[index] <- pz2
-  df$cn[index] <- cn
-  tmp <- ntile(df$r, 1000)
-  df$quantiles <- ntile(df$r, 1000)
-
-  missing_quantiles <- df$quantiles[is.na(df$cn)]
-  complete_quantiles <- df$quantiles[!is.na(df$cn)]
-  missing_quantiles <- missing_quantiles[!missing_quantiles %in% complete_quantiles]
-  names(missing_quantiles) <- missing_quantiles
-  missing_quantiles2 <- unique(missing_quantiles)
-  nearest_quantiles <- sapply(missing_quantiles2, function(x, complete){
-    complete[which.min(abs(complete-x))]
-  }, complete=complete_quantiles)
-  names(nearest_quantiles) <- missing_quantiles2
-  ## same length as original data.frame
-  nearest_quantiles2 <- nearest_quantiles[as.character(df$quantiles)]
-  nearest_quantiles2[is.na(nearest_quantiles2)] <- df$quantiles[ is.na(nearest_quantiles2) ]
-  df$quantiles2 <- nearest_quantiles2
-  ##df[df$quantiles != df$quantiles2, ]
-  df.complete <- df[!is.na(df$cn), ]
-  df.incomplete <- df[is.na(df$cn), ]
-  ## now any missing cn/prob can be 'imputed'
-  cn <- setNames(df.complete$cn, df.complete$quantiles2)
-  df.incomplete$cn <- cn[as.character(df.incomplete$quantiles2)]
-  ##p <- setNames(df.complete$p, df.complete$quantiles2)
-  ##df.incomplete$p <- p[as.character(df.incomplete$quantiles2)]
-  df2 <- rbind(df.incomplete, df.complete)
-  df2 <- df2[rownames(df), ]
-  df2
-}
 
 permnK <- function(k, maxperm){
   if(k < 2) return(matrix(1,1,1))
@@ -300,6 +260,7 @@ permnK <- function(k, maxperm){
 #'   ggMixture(mb2)
 #' @rdname tile-functions
 tileMedians <- function(y, nt, batch){
+  .Deprecated("See downSample")
   if(any(is.na(y))) stop("NAs found in y-vector")
   yy <- y
   logratio <- x <- obs.index <- NULL
@@ -475,27 +436,25 @@ mclustMeans <- function(y, batch){
 posteriorPredictive <- function(model){
   if(class(model)=="SingleBatchModel"){
     tab <- .posterior_predictive_sb(model)
-    return(tab)
   }
   if(class(model)=="MultiBatchModel"){
     tab <- .posterior_predictive_mb(model)
-    return(tab)
+  }
+  if(class(model)=="MultiBatchCopyNumber"){
+    tab <- .posterior_predictive_mb(model)
   }
   if(class(model) == "SingleBatchPooled"){
     tab <- .posterior_predictive_sbp(model)
-    return(tab)
   }
   if(class(model) == "MultiBatchPooled"){
     tab <- .posterior_predictive_mbp(model)
-    return(tab)
   }
-  stop("Model must be one of SB, SBP, MB, and MBP")
+  tab <- tab[, c("y", "component", "batch")]
+  tab$model <- modelName(model)
+  return(tab)
 }
 
 .posterior_predictive_sb <- function(model){
-  mp <- McmcParams(iter=500, burnin=50)
-  mcmcParams(model) <- mp
-  model <- posteriorSimulation(model)
   ch <- chains(model)
   alpha <- p(ch)
   thetas <- theta(ch)
@@ -505,20 +464,20 @@ posteriorPredictive <- function(model){
   K <- seq_len(k(model))
   N <- length(K)
   tab.list <- vector("list", mcmc.iter)
+  df <- dfr(hyperParams(model))
   for(i in 1:nrow(alpha)){
     zz <- sample(K, N, prob=alpha[i, ], replace=TRUE)
-    y <- rnorm(ncol(thetas), (thetas[i, ])[zz], (sigmas[i, ])[zz])
+    ##y <- rnorm(ncol(thetas), (thetas[i, ])[zz], (sigmas[i, ])[zz])
+    y <- rst(ncol(thetas), df=df, mean=(thetas[i, ])[zz], sigma=(sigmas[i, ])[zz])
     tab.list[[i]] <- tibble(y=y, component=zz)
     ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
+  tab$batch <- "1"
   tab
 }
 
 .posterior_predictive_sbp <- function(model){
-  mp <- McmcParams(iter=500, burnin=50)
-  mcmcParams(model) <- mp
-  model <- posteriorSimulation(model)
   ch <- chains(model)
   alpha <- p(ch)
   thetas <- theta(ch)
@@ -527,14 +486,17 @@ posteriorPredictive <- function(model){
   Y <- matrix(NA, mcmc.iter, ncol(alpha))
   K <- seq_len(k(model))
   N <- length(K)
+  df <- dfr(hyperParams(model))
   tab.list <- vector("list", mcmc.iter)
   for(i in 1:nrow(alpha)){
     zz <- sample(K, N, prob=alpha[i, ], replace=TRUE)
-    y <- rnorm(ncol(thetas), (thetas[i, ])[zz], (sigmas[i, ]))
+    ##y <- rnorm(ncol(thetas), (thetas[i, ])[zz], (sigmas[i, ]))
+    y <- rst(ncol(thetas), df=df, mean=(thetas[i, ])[zz], sigma=(sigmas[i, ]))
     tab.list[[i]] <- tibble(y=y, component=zz)
     ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
+  tab$batch <- "1"
   tab
 }
 
@@ -552,7 +514,8 @@ posteriorPredictive <- function(model){
   components <- seq_len(K)
   mcmc.iter <- iter(model)
   tab.list <- vector("list", mcmc.iter)
-  batches <- rep(unique(batch(model)), each=K)
+  df <- dfr(hyperParams(model))
+  batches <- sort(rep(unique(batch(model)), each=K))
   for(i in seq_len(mcmc.iter)){
     ## same p assumed for each batch
     a <- alpha[i, ]
@@ -561,14 +524,15 @@ posteriorPredictive <- function(model){
     ## for each batch, sample K observations with mixture probabilities alpha
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
-      ylist[[b]] <- rnorm(K, (mu[b, ])[zz], (s[b, ])[zz])
+      ##ylist[[b]] <- rnorm(K, (mu[b, ])[zz], (s[b, ])[zz])
+      ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=(s[b, ])[zz])
     }
     y <- unlist(ylist)
     tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
     ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
-  tab$batch <- factor(tab$batch)
+  tab$batch <- as.character(tab$batch)
   tab
 }
 
@@ -588,6 +552,7 @@ posteriorPredictive <- function(model){
   mcmc.iter <- iter(model)
   tab.list <- vector("list", mcmc.iter)
   batches <- rep(unique(batch(model)), each=K)
+  df <- dfr(hyperParams(model))
   for(i in seq_len(mcmc.iter)){
     ## same p assumed for each batch
     a <- alpha[i, ]
@@ -597,14 +562,15 @@ posteriorPredictive <- function(model){
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
       ## sigma is batch-specific but indpendent of z
-      ylist[[b]] <- rnorm(K, (mu[b, ])[zz], s[b])
+      ##ylist[[b]] <- rnorm(K, (mu[b, ])[zz], s[b])
+      ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=s[b])
     }
     y <- unlist(ylist)
     tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
     ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
-  tab$batch <- factor(tab$batch)
+  tab$batch <- as.character(tab$batch)
   tab
 }
 
@@ -624,4 +590,145 @@ useModes <- function(object){
   ##
   z(m2) <- updateZ(m2)
   m2
+}
+
+#' Down sample the observations in a mixture
+#'
+#' For large datasets (several thousand subjects), the computational burden for fitting Bayesian mixture models can be high.  Downsampling can reduce the computational burden with little effect on inference.  This function draws a random sample with replacement.  Batches with few observations are combined with larger batches that have a similar median log R ratio.
+#'
+#' @param dat data.frame with required columns medians, batches, and plate
+#' @param size the number of observations to sample with replacement
+#' @param min.batchsize the smallest number of observations allowed in a batch.  Batches smaller than this size will be combined with other batches
+#' @return A tibble of the downsampled data (medians), the original batches, and the updated batches after downsampling 
+#' @export
+#' @examples
+#' ## TODO: this is more complicated than it needs to be
+#' mb <- MultiBatchModelExample
+#' mapping <- tibble(plate=letters[1:10],
+#'                   batch_orig=sample(c("1", "2", "3"), 10, replace=TRUE))
+#' full.data <- tibble(medians=y(mb),
+#'                     batch_orig=as.character(batch(mb))) %>%
+#'   left_join(mapping, by="batch_orig")
+#' partial.data <- downSample(full.data, 200)
+#' ## map the original batches to the batches after down-sampling
+#' mapping <- partial.data %>%
+#'   select(c(plate, batch_index)) %>%
+#'   group_by(plate) %>%
+#'   summarize(batch_index=unique(batch_index))
+#' mp <- McmcParams(iter=50, burnin=100)
+#' mb2 <- MultiBatchModel2(dat=ds$medians,
+#'                         batches=ds$batch_index, mp=mp)
+#' mb2 <- posteriorSimulation(mb2)
+#' if(FALSE) ggMixture(mb2)
+#' full.dat2 <- full.data %>%
+#'   left_join(mapping, by="plate")
+#' ## compute probabilities for the full dataset
+#' mb.up <- upSample2(full.dat2, mb2)
+#' if(FALSE) ggMixture(mb2)
+#' @rdname downSample
+downSample <- function(dat,
+                       size=1000,
+                       min.batchsize=75){
+  N <- nrow(dat)
+  size <- min(size, N)
+  ##dat <- tiles$logratio
+  ix <- sample(seq_len(N), size, replace=TRUE)
+  dat.sub <- dat[ix, ]
+  ## tricky part:
+  ##
+  ## - if we down sample, there may not be enough observations to estimate the
+  ##   mixture densities for batches with few samples
+  ##
+  ##tab <- tibble(medians=dat.sub,
+  ##              batch.var=batches[ix]) %>%
+  ##  mutate(batch.var=as.character(batch.var))
+  ##
+  ## combine batches with too few observations based on the location (not scale)
+  ##
+  select <- dplyr::select
+  batch.sum <- dat.sub %>%
+    group_by(batch_orig) %>%
+    summarize(mean=mean(medians),
+              n=n())
+  small.batch <- batch.sum %>%
+    filter(n < min.batchsize) %>%
+    mutate(largebatch="")
+  large.batch <- batch.sum %>%
+    filter(n >= min.batchsize) %>%
+    mutate(smallbatch="")
+  if(nrow(large.batch) == 0){
+    batch.sum3 <- small.batch %>%
+      select(-largebatch) %>%
+      mutate(batch_new=1L)
+  } else {
+    for(i in seq_len(nrow(small.batch))){
+      j <- order(abs(small.batch$mean[i] - large.batch$mean))[1]
+      small.batch$largebatch[i] <- large.batch$batch_orig[j]
+      if(nchar(large.batch$smallbatch[j]) > 0){
+        large.batch$smallbatch[j] <- paste0(large.batch$smallbatch[j], ",",
+                                            small.batch$batch_orig[i])
+      } else{
+        large.batch$smallbatch[j] <- small.batch$batch_orig[i]
+      }
+    }
+    colnames(large.batch)[4] <- colnames(small.batch)[4] <- "other"
+    batch.sum2 <- bind_rows(large.batch,
+                            small.batch) %>%
+      mutate(batch_new=paste0(batch_orig, ",", other)) %>%
+      select(-other)
+    if(is.character(batch.sum2$batch_new)){
+      batch.sum2$batch_new <- batch.sum2$batch_new %>%
+        strsplit(., ",") %>%
+        map(as.numeric) %>%
+        map(unique) %>%
+        map(sort) %>%
+        map_chr(paste, collapse=",")
+    }
+    ## need to do it once more
+    small.batch <- filter(batch.sum2, n < min.batchsize)
+    large.batch <- filter(batch.sum2, n >= min.batchsize)
+    for(i in seq_len(nrow(small.batch))){
+      j <- order(abs(small.batch$mean[i] - large.batch$mean))[1]
+      small.batch$batch_new[i] <- large.batch$batch_new[j]
+    }
+    batch.sum3 <- bind_rows(large.batch, small.batch)
+  }
+  tab2 <- left_join(dat.sub, batch.sum3, by="batch_orig") %>%
+    select(-c(mean, n)) %>%
+    mutate(batch_index=as.integer(factor(batch_new, levels=unique(batch_new))))
+  tab2
+}
+
+
+rst <- function (n, df = 100, mean = 0, sigma = 1){
+  if (any(sigma <= 0))
+    stop("The sigma parameter must be positive.")
+  if (any(df <= 0))
+    stop("The df parameter must be positive.")
+  n <- ceiling(n)
+  y <- rnorm(n)
+  z <- rchisq(n, df=df)
+  x <- mean + sigma * y * sqrt(df/z)
+  return(x)
+}
+
+#' Abbreviated model name
+#'
+#' @param model a SingleBatchModel, MultiBatchModel, etc.
+#' @examples
+#' modelName(SingleBatchModelExample)
+#' @export
+modelName <- function(model){
+  model.name <- class(model) %>%
+    gsub("CopyNumber", "", .) %>%
+    gsub("SingleBatchPooled", "SBP", .) %>%
+    gsub("SingleBatchModel", "SB", .) %>%
+    gsub("MultiBatchModel", "MB", .) %>%
+    gsub("MultiBatchPooled", "MBP", .)
+  L <- length(unique(batch(model)))
+  if(L == 1){
+    model.name <- gsub("MB", "SB", model.name)
+  }
+  model.name <- paste0(model.name, k(model))
+  model.name
 }

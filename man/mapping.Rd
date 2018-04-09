@@ -4,15 +4,12 @@
 \name{mapping}
 \alias{mapping}
 \alias{mapping<-}
-\alias{mapping,SingleBatchCopyNumber-method}
 \alias{mapping,MultiBatchCopyNumber-method}
 \alias{mapping,MultiBatchCopyNumberPooled-method}
 \alias{mapping,MultiBatchCopyNumber-method}
-\alias{mapping<-,SingleBatchCopyNumber,numeric-method}
-\alias{mapping,SingleBatchCopyNumber,numeric-method}
-\alias{mapping<-,MultiBatchCopyNumber,numeric-method}
+\alias{mapping<-,MultiBatchCopyNumber,character-method}
 \alias{mapping,MultiBatchCopyNumber,numeric-method}
-\alias{mapping<-,MultiBatchCopyNumberPooled,numeric-method}
+\alias{mapping<-,MultiBatchCopyNumberPooled,character-method}
 \alias{mapping,MultiBatchCopyNumberPooled,numeric-method}
 \title{Map mixture components to copy number states}
 \usage{
@@ -20,17 +17,13 @@ mapping(object)
 
 mapping(object) <- value
 
-\S4method{mapping}{SingleBatchCopyNumber}(object)
-
 \S4method{mapping}{MultiBatchCopyNumber}(object)
 
 \S4method{mapping}{MultiBatchCopyNumberPooled}(object)
 
-\S4method{mapping}{SingleBatchCopyNumber,numeric}(object) <- value
+\S4method{mapping}{MultiBatchCopyNumber,character}(object) <- value
 
-\S4method{mapping}{MultiBatchCopyNumber,numeric}(object) <- value
-
-\S4method{mapping}{MultiBatchCopyNumberPooled,numeric}(object) <- value
+\S4method{mapping}{MultiBatchCopyNumberPooled,character}(object) <- value
 }
 \arguments{
 \item{object}{a SB, SBP, MB, or MBP model}

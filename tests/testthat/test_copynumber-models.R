@@ -1,5 +1,5 @@
 context("Copy number models")
-
+.test_that <- function(expr, name) NULL
   ##
   ## IDEA: There is only one copy number state, but data is not quite normal and
   ## more than a single component is needed to adequately fit the data
@@ -34,91 +34,48 @@ context("Copy number models")
 
 test_that("Methods defined for the class", {
   sb <- SingleBatchModelExample
-  cn.model <- SingleBatchCopyNumber(sb)
-
+  mcmcParams(sb) <- McmcParams(iter=500, burnin=100, thin=1)
+  sb <- posteriorSimulation(sb)
+  cn.model <- MultiBatchCopyNumber(sb)
   expect_false(manyToOneMapping(cn.model))
   cn <- copyNumber(cn.model)
-  expect_identical(cn, z(cn.model))
+  zz <- map_z(cn.model)
+  expect_identical(as.integer(cn), map_z(cn.model))
 
-  mapping(cn.model) <- rep(1, 3)
+  mapping(cn.model) <- rep("1", 3)
   expect_true(manyToOneMapping(cn.model))
   cn.probs <- probCopyNumber(cn.model)
   expect_true(all(as.numeric(cn.probs) == 1))
   cn <- copyNumber(cn.model)
-  expect_true(all(cn==1))
+  expect_true(all(cn=="1"))
 
-  mapping(cn.model) <- rep(2, 3)
+  mapping(cn.model) <- rep("2", 3)
   cn <- copyNumber(cn.model)
-  expect_true(all(cn==2))
+  expect_true(all(cn=="2"))
 
-  mapping(cn.model) <- c(1, 1, 2)
+  mapping(cn.model) <- c("1", "1", "2")
   pz <- probz(cn.model)
   expected <- cbind(rowSums(pz[, 1:2]), pz[, 3])
   cn.probs <- probCopyNumber(cn.model)
   expect_equal(expected, cn.probs)
   cn <- copyNumber(cn.model)
   expected <- z(cn.model)
-  expected[expected %in% 1:2] <- 1
-  expected[expected == 3] <- 2
+  expected[expected %in% 1:2] <- "1"
+  expected[expected == 3] <- "2"
   expect_identical(cn, expected)
 
-  mapping(cn.model) <- c(1, 2, 2)
+  mapping(cn.model) <- as.character(c(1, 2, 2))
   expected <- z(cn.model)
-  expected[expected == 3] <- 2
+  expected[expected == 3] <- "2"
   cn <- copyNumber(cn.model)
   expect_identical(cn, expected)
   if(FALSE){
     ## check visualization
-    ggSingleBatch(cn.model)
+    ggMixture(cn.model)
   }
 })
 
-test_that("Methods 2", {
-  mb <- MultiBatchModelExample
-  cn.model <- MultiBatchCopyNumber(mb)
-  expect_false(manyToOneMapping(cn.model))
-  cn <- copyNumber(cn.model)
-  expect_identical(cn, z(cn.model))
-
-  mapping(cn.model) <- rep(1, 3)
-  expect_true(manyToOneMapping(cn.model))
-
-  cn.probs <- probCopyNumber(cn.model)
-  expect_true(all(as.numeric(cn.probs) == 1))
-  cn <- copyNumber(cn.model)
-  expect_true(all(cn==1))
-
-  mapping(cn.model) <- rep(2, 3)
-  cn <- copyNumber(cn.model)
-  expect_true(all(cn==2))
-
-  mapping(cn.model) <- c(1, 1, 2)
-  pz <- probz(cn.model)
-  expected <- cbind(rowSums(pz[, 1:2]), pz[, 3])
-  cn.probs <- probCopyNumber(cn.model)
-  expect_equal(expected, cn.probs)
-  cn <- copyNumber(cn.model)
-  expected <- z(cn.model)
-  expected[expected %in% 1:2] <- 1
-  expected[expected == 3] <- 2
-  expect_identical(cn, expected)
-
-  ##tmp <- .relabel_z(cn.model)
-
-  mapping(cn.model) <- c(1, 2, 2)
-  expected <- z(cn.model)
-  expected[expected == 3] <- 2
-  cn <- copyNumber(cn.model)
-  expect_identical(cn, expected)
-
-  cn.model <- CNPBayes:::sortComponentLabels(cn.model)
-  mapping(cn.model) <- c(1, 2, 2)
-  if(FALSE)
-    ggMultiBatch(cn.model)
-})
-
-
-test_that("Mapping components to copy number (single batch)", {
+.test_that("Mapping components to copy number (single batch)", {
   set.seed(514)
   sb <- SingleBatchModelExample
   cn.model <- SingleBatchCopyNumber(sb)
@@ -169,7 +126,7 @@ test_that("Mapping components to copy number (single batch)", {
   expect_equivalent(mapping(cn.model), c(1L, 1L, 1L))
 })
 
-test_that("merge two components", {
+.test_that("merge two components", {
   ##
   ## merge 2 of 3 components 
   ##
@@ -179,7 +136,7 @@ test_that("merge two components", {
   mcmcParams(truth) <- McmcParams(iter=200, burnin=0)
   mp <- mcmcParams(truth)
   model <- SingleBatchModel2(mp=mp, dat=y(truth), hp=Hyperparameters(k=3))
-  model <- .posteriorSimulation2(model)
+  expect_warning(model <- .posteriorSimulation2(model))
   cn.model <- SingleBatchCopyNumber(model)
   ## label switching will occur because components are not well separated
   ## expect_warning(model <- posteriorSimulation(truth),
@@ -191,7 +148,7 @@ test_that("merge two components", {
   expect_identical(cnmap2, factor(c(2, 2, 3)))
 })
 
-test_that("Mapping components to copy number (multiple batches)", {
+.test_that("Mapping components to copy number (multiple batches)", {
   sb <- MultiBatchModelExample
   cn.model <- MultiBatchCopyNumber(sb)
   params <- mapParams()
@@ -199,7 +156,7 @@ test_that("Mapping components to copy number (multiple batches)", {
   expect_identical(mapping(cn.model), 1:3)
 })
 
-.test_that <- function(expr, name) NULL
+
 
 .test_that("hapmap", {
   set.seed(134)
@@ -262,4 +219,3 @@ test_that("Mapping components to copy number (multiple batches)", {
     pstar <- marginal_theta(mlist[[2]])
   }
 })
-

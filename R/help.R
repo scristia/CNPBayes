@@ -25,7 +25,7 @@
 #' @importFrom magrittr set_colnames "%>%"
 #' @importFrom purrr map map2 map_lgl map_dbl map_chr
 #' @importFrom tidyr gather spread
-#' @importFrom dplyr mutate bind_rows group_by summarize arrange filter n
+#' @importFrom dplyr mutate bind_rows group_by summarize arrange filter n left_join
 #' @importFrom tibble as.tibble tibble
 #' @useDynLib CNPBayes
 NULL

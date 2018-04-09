@@ -7,7 +7,6 @@ bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Overview of CNPBayes package}
   %\VignetteEngine{knitr::rmarkdown}
-  %\usepackage[utf8]{inputenc} 
 ---
 
 # Introduction
@@ -22,6 +21,7 @@ This vignette provides a concise workflow for fitting mixture models in large ar
 suppressPackageStartupMessages(library(CNPBayes))
 suppressPackageStartupMessages(library(SummarizedExperiment))
 library(ggplot2)
+library(tidyverse)
 ```
 
 # Workflow
@@ -31,14 +31,16 @@ library(ggplot2)
 Our starting point is a `SummarizedExperiment` containing log R ratios from a SNP array and a `GRangesList` containing deletions and duplications identified from a hidden Markov model.
 
 ```{r find_cnps}
-se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
-grl <- readRDS(system.file("extdata", "grl_deletions.rds", package="CNPBayes"))
+path <- system.file("extdata", package="CNPBayes")
+se <- readRDS(file.path(path, "simulated_se.rds"))
+grl <- readRDS(file.path(path, "grl_deletions.rds"))
 ```
 
 Using this data, we identify the genomic coordinates of the CNP locus and use the median to summarize the log R ratios for each sample. We advise against using the first principal component as a summary statistic in large studies as this may capture batch effects. See [Identifying Copy Number Polymorphisms](FindCNPs.pdf) for instructions on finding CNPs with a `SnpArrayExperiment` and `GRangesList`.
 
 ```{r summary, message=FALSE}
-cnv.region <- consensusCNP(grl, max.width=5e6)
+##cnv.region <- consensusCNP(grl, max.width=5e6)
+cnv.region <- readRDS(file.path(path, "cnv_region.rds"))
 i <- subjectHits(findOverlaps(cnv.region, rowRanges(se)))
 med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
 ```
@@ -76,9 +78,33 @@ chains[[2]]
 The posterior predictive distribution is also useful for assessing the adequacy of a model.  Here, the approximation could be improved by increasing burnin, the number of iterations following burnin, and / or by increasing the thinning parameter.
 
 ```{r posteriorPredictive}
-tab <- posteriorPredictive(model)
-tab
-ggPredictive(model, tab) + xlab("median LRR")
+## only one batch
+full.data <- tibble(y=med.summary,
+                    batch=paste("Batch 1"))
+predictive <- posteriorPredictive(model) %>%
+  mutate(batch=paste("Batch", batch),
+         component=factor(component))
+predictive$n <- 4000
+predictive$component <- factor(predictive$component)
+ggplot(predictive, aes(x=y, n_facet=n,
+                       y=..count../n_facet,
+                       fill=component)) +
+  geom_histogram(data=full.data, aes(y, ..density..),
+                 bins=400,
+                 inherit.aes=FALSE,
+                 color="gray70",
+                 fill="gray70",
+                 alpha=0.1) +
+  geom_density(adjust=1, alpha=0.4, size=0.75, color="gray30") +
+  ## show marginal density
+  theme(panel.background=element_rect(fill="white"),
+        axis.line=element_line(color="black"),
+        legend.position="bottom",
+        legend.direction="horizontal") +
+  scale_y_sqrt() +
+  xlab("average copy number") +
+  ylab("density") +
+  guides(color=FALSE)
 ```
 
 ## Mapping mixture components to copy number states
@@ -99,13 +125,21 @@ head(probs)
 
 ## Big data
 
-If thousands of samples are available, we generally do not need to fit the model to all samples in order to adequately estimate the mixture distribution. Below, we indicate a workflow for downsampling. First, we bin the data in the `MultiBatchModelExample`, requiring only 200 observations per batch.  Data in small batches (less than 200 samples) are not binned.  The `tileSummaries` function  computes the average log R ratio for each bin.
+If thousands of samples are available, we generally do not need to fit the model to all samples in order to adequately estimate the mixture distribution. Below, we indicate a workflow for downsampling. Here, we assume that chemistry plate is a useful surrogate of batch.
 
 ```{r downsample}
 mb <- MultiBatchModelExample
-tiled.medians <- tileMedians(y(mb), 200, batch(mb))
-tile.summaries <- tileSummaries(tiled.medians)
-tile.summaries
+full.data <- tibble(medians=y(mb),
+                    plate=batch(mb),
+                    batch_orig=as.character(batch(mb)))
+partial.data <- downSample(full.data,
+                           size=1000,
+                           min.batchsize=50)
+## confusingly, the downsampled data uses a different indexing for batch
+plate.mapping <- partial.data %>%
+  select(c(plate, batch_index)) %>%
+  group_by(plate) %>%
+  summarize(batch_index=unique(batch_index))
 ```
 
 We fit the model to the mean summarized bins in the usual way. To speed up computation, we specify the true k=3 model in this toy example.
@@ -113,22 +147,25 @@ We fit the model to the mean summarized bins in the usual way. To speed up compu
 
 ```{r fit_downsample}
 model <- gibbs(model="MB", k_range=c(3, 3),
-               dat=tile.summaries$avgLRR,
-               batches=tile.summaries$batch,
+               dat=partial.data$medians,
+               batches=partial.data$batch_index,
                mp=mp)[[1]]
 ```
 
-To map posterior probabilities back to the original observations, we use the function `upSample`.
+To map posterior probabilities back to the original observations, we use the function `upSample2`.
 
 ```{r upSample}
-model2 <- upSample(model, tiled.medians)
-model2
+full.data2 <- left_join(full.data, plate.mapping, by="plate")
+model.up <- upSample2(full.data2, model)
+model.up
+nrow(probz(model.up))
+head(round(probz(model.up)), 2)
 ```
 
-The object `model2` can be converted to a copy number model using the same approach as described previously (i.e., `CopyNumberModel(model2)`).  As there is a one-to-one mapping between mixture components and copy number, the posterior probabilities for the mixture components (`probz`) is the same as the posterior probabilties of the copy number states (`probCopyNumber`).
+The object `model.up` can be converted to a copy number model using the same approach as described previously (i.e., `CopyNumberModel(model.up)`).  As there is a one-to-one mapping between mixture components and copy number, the posterior probabilities for the mixture components (`prob.up`) is the same as the posterior probabilties of the copy number states (`probCopyNumber`).
 
 ```{r copy-number-model}
-cn.model <- CopyNumberModel(model2)
+cn.model <- CopyNumberModel(model.up)
 mapping(cn.model)
 round(head(probz(cn.model)), 2)
 round(head(probCopyNumber(cn.model)), 2)

@@ -1,34 +1,19 @@
 #ifndef _multibatch_reduced_H
 #define _multibatch_reduced_H
 
-Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC);
-Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod); 
-Rcpp::NumericVector p_theta_zpermuted_batch(Rcpp::S4 xmod);
-
-Rcpp::NumericVector marginal_sigma2_batch(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
-
-Rcpp::S4 simulate_z_reduced1_batch(Rcpp::S4 object);
-Rcpp::S4 simulate_z_reduced2_batch(Rcpp::S4 object);
-Rcpp::S4 permutedz_reduced1_batch(Rcpp::S4 xmod);
-Rcpp::S4 permutedz_reduced2_batch(Rcpp::S4 xmod);
-
-Rcpp::NumericVector p_pmix_reduced_batch(Rcpp::S4 xmod);
-
-Rcpp::S4 reduced_sigma_batch(Rcpp::S4 xmod);
-Rcpp::NumericVector p_sigma_reduced_batch(Rcpp::S4 xmod);
-
-Rcpp::S4 reduced_pi_batch(Rcpp::S4 xmod);
-
-Rcpp::S4 reduced_mu_batch(Rcpp::S4 xmod);
-Rcpp::NumericVector p_mu_reduced_batch(Rcpp::S4 xmod);
-
-Rcpp::S4 reduced_tau_batch(Rcpp::S4 xmod);
-Rcpp::NumericVector p_tau_reduced_batch(Rcpp::S4 xmod);
-
-Rcpp::S4 reduced_nu0_batch(Rcpp::S4 xmod);
-Rcpp::NumericVector p_nu0_reduced_batch(Rcpp::S4 xmod);
-
-Rcpp::S4 reduced_s20_batch(Rcpp::S4 xmod);
-Rcpp::NumericVector p_s20_reduced_batch(Rcpp::S4 xmod);
+double log_prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar);
+Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod);
+double log_prob_sigma2(Rcpp::S4 model, Rcpp::NumericMatrix sigma2star);
+Rcpp::NumericVector reduced_sigma_batch(Rcpp::S4 xmod) ;
+double log_prob_pmix(Rcpp::S4 xmod, Rcpp::NumericVector pstar);
+Rcpp::NumericVector reduced_pi_batch(Rcpp::S4 xmod) ;
+double log_prob_mu(Rcpp::S4 xmod, Rcpp::NumericVector mustar) ;
+Rcpp::NumericVector reduced_mu_batch(Rcpp::S4 xmod) ;
+double log_prob_tau2(Rcpp::S4 xmod);
+Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod) ;
+double log_prob_nu0(Rcpp::S4 xmod, int nu0star);
+Rcpp::NumericVector reduced_nu0_batch(Rcpp::S4 xmod);
+double log_prob_s20(Rcpp::S4 xmod);
+Rcpp::NumericVector reduced_s20_batch(Rcpp::S4 xmod) ;
 
 #endif

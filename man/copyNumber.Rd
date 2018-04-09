@@ -3,14 +3,11 @@
 \docType{methods}
 \name{copyNumber}
 \alias{copyNumber}
-\alias{copyNumber,SingleBatchCopyNumber-method}
 \alias{copyNumber,MultiBatchCopyNumber-method}
 \alias{copyNumber,MultiBatchCopyNumberPooled-method}
 \title{Extract copy number estimates from a `CopyNumberModel`}
 \usage{
 copyNumber(object)
-
-\S4method{copyNumber}{SingleBatchCopyNumber}(object)
 
 \S4method{copyNumber}{MultiBatchCopyNumber}(object)
 

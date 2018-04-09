@@ -14,6 +14,7 @@ setClassUnion("numericOrMatrix", c("numeric", "matrix"))
 #' @slot beta parameter for nu.0 distribution
 #' @slot a shape for sigma2.0
 #' @slot b rate for sigma2.0
+#' @slot dfr positive number for t-distribution degrees of freedom
 #' @aliases k,Hyperparameters-method
 setClass("Hyperparameters", representation(k="integer",
                                            mu.0="numeric",
@@ -23,7 +24,9 @@ setClass("Hyperparameters", representation(k="integer",
                                            alpha="numeric",
                                            beta="numeric",
                                            a="numeric",
-                                           b="numeric"))
+                                           b="numeric",
+                                           dfr="numeric"))
+
 
 #' An object to specify the hyperparameters of a marginal model.
 #'
@@ -37,20 +40,7 @@ setClass("Hyperparameters", representation(k="integer",
 #' @slot beta parameter for nu.0 distribution
 #' @slot a shape for sigma2.0
 #' @slot b rate for sigma2.0
-setClass("HyperparametersMarginal", contains="Hyperparameters")
-
-#' An object to specify the hyperparameters of a marginal model.
-#'
-#' This class inherits from the Hyperparameters class. This class is for hyperparameters which are marginal over the batches.
-#' @slot k Number of components
-#' @slot mu.0 Prior mean for mu.
-#' @slot tau2.0 prior variance on mu
-#' @slot eta.0 rate paramater for tau2
-#' @slot m2.0 shape parameter for tau2
-#' @slot alpha mixture probabilities
-#' @slot beta parameter for nu.0 distribution
-#' @slot a shape for sigma2.0
-#' @slot b rate for sigma2.0
+#' @slot dfr positive number for t-distribution degrees of freedom
 setClass("HyperparametersSingleBatch", contains="Hyperparameters")
 
 #' An object to specify the hyperparameters of a batch effect model.
@@ -65,20 +55,7 @@ setClass("HyperparametersSingleBatch", contains="Hyperparameters")
 #' @slot beta parameter for nu.0 distribution
 #' @slot a shape for sigma2.0
 #' @slot b rate for sigma2.0
-setClass("HyperparametersBatch",  contains="Hyperparameters")
-
-#' An object to specify the hyperparameters of a batch effect model.
-#'
-#' This class inherits from the Hyperparameters class. This class is for hyperparameters which are hierachical over the batches.
-#' @slot k Number of components
-#' @slot mu.0 Prior mean for mu.
-#' @slot tau2.0 prior variance on mu
-#' @slot eta.0 rate paramater for tau2
-#' @slot m2.0 shape parameter for tau2
-#' @slot alpha mixture probabilities
-#' @slot beta parameter for nu.0 distribution
-#' @slot a shape for sigma2.0
-#' @slot b rate for sigma2.0
+#' @slot dfr positive number for t-distribution degrees of freedom
 setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 
 #' An object to hold estimated paraeters.
@@ -94,7 +71,6 @@ setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 #' @slot logprior log likelihood of prior.
 #' @slot loglik log likelihood.
 #' @slot zfreq table of z.
-#' @slot z latent variables
 setClass("McmcChains", representation(theta="matrix",
                                       sigma2="matrix",
                                       pi="matrix",
@@ -104,8 +80,7 @@ setClass("McmcChains", representation(theta="matrix",
                                       sigma2.0="numeric",
                                       logprior="numeric",
                                       loglik="numeric",
-                                      zfreq="matrix",
-                                      z="matrix"))
+                                      zfreq="matrix"))
 
 #' An object to specify MCMC options for a later simulation
 #'
@@ -144,6 +119,7 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot z latent variables
 #' @slot zfreq table of latent variables
 #' @slot probz n x k matrix of probabilities
+#' @slot u chi-square draws for controlling t-distribution
 #' @slot logprior log likelihood of prior: log(p(sigma2.0)p(nu.0)p(mu))
 #' @slot loglik log likelihood: \eqn{\sum p_k \Phi(\theta_k, \sigma_k)}
 #' @slot mcmc.chains an object of class 'McmcChains' to store MCMC samples
@@ -153,7 +129,7 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot label_switch length-one logical indicating problems with label switching
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
-#' @exportClass
+#' @export
 setClass("MixtureModel", representation("VIRTUAL",
                                         k = "integer",
                                         hyperparams="Hyperparameters",
@@ -170,6 +146,7 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         z="integer",
                                         zfreq="integer",
                                         probz="matrix",
+                                        u="numeric",
                                         logprior="numeric",
                                         loglik="numeric",
                                         mcmc.chains="McmcChains",
@@ -210,10 +187,8 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
-#' @exportClass
+#' @export
 setClass("MultiBatchModel", contains="MixtureModel")
-
-
 
 
 #' The 'SingleBatchModel' class
@@ -228,6 +203,7 @@ setClass("MultiBatchModel", contains="MixtureModel")
 #' @slot pi mixture probabilities which are assumed to be the same for all batches
 #' @slot mu overall mean
 #' @slot tau2 overall variance
+#' @slot u latent chi square variable for t-distribution
 #' @slot data the data for the simulation.
 #' @slot data.mean the empirical means of the components
 #' @slot data.prec the empirical precisions
@@ -243,29 +219,30 @@ setClass("MultiBatchModel", contains="MixtureModel")
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
-#' @exportClass
+#' @export
 setClass("SingleBatchModel", contains="MixtureModel")
 
 
-#' @exportClass
 setClass("SingleBatchPooled", contains="SingleBatchModel")
 
-#' @exportClass
+## SB ## single batch
+## SBP ## single batch pooled
+## SBt ## single batch, t-
+setClass("SBPt", contains="SingleBatchPooled")
+
+
 setClass("MultiBatchPooled", contains="MultiBatchModel")
 
 setClass("UnivariateBatchModel", contains="MultiBatchModel")
 
-#' @exportClass
+#' @export
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
-         representation(mapping="numeric"))
+         representation(mapping="character"))
 
-# setClass("MultiBatchCopyNumber", contains="BatchModel",
-#          representation(mapping="numeric"))
-
-#' @exportClass
+#' @export
 setClass("MultiBatchCopyNumber", contains="MultiBatchModel",
-         representation(mapping="numeric"))
+         representation(mapping="character"))
 
-#' @exportClass
+#' @export
 setClass("MultiBatchCopyNumberPooled", contains="MultiBatchModel",
-         representation(mapping="numeric"))
+         representation(mapping="character"))

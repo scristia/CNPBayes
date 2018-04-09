@@ -11,10 +11,10 @@ setValidity("MixtureModel", function(object){
     msg <- "disagreement of k in hyperparams and model"
     return(msg)
   }
-  ## maximum value of nu0 is currently hard-coded in C as 100
-  ##if(nu.0(object) > 100){
-    ##return("nu.0 can not exceed 100")
-## }
+  if(length(y(object))!=length(u(object))){
+    msg <- "u-vector must be same length as data"
+    return(msg)
+  }
   msg
 })
 
@@ -162,6 +162,11 @@ setMethod("show", "MixtureModel", function(object){
   cat("     loglik (s)  :", round(log_lik(object), 2), "\n")
 })
 
+setMethod("show", "SingleBatchModel", function(object){
+  object <- as(object, "MultiBatchModel")
+  show(object)
+})
+
 setMethod("alpha", "MixtureModel", function(object) alpha(hyperParams(object)))
 
 #' @rdname y-method
@@ -185,9 +190,6 @@ setMethod("batch", "MixtureModel", function(object) object@batch)
 #' @aliases z,MixtureModel-method
 setMethod("z", "MixtureModel", function(object) object@z)
 
-setMethod("computePrec", "MarginalModel", function(object){
-  compute_prec(object)
-})
 
 setMethod("computePrior", "SingleBatchModel", function(object){
   compute_logprior(object)
@@ -224,37 +226,6 @@ setMethod("probz", "MixtureModel", function(object) {
   object@probz/(iter(object)-1)
 })
 
-setMethod("runBurnin", "SingleBatchModel", function(object){
-  mcmc_marginal_burnin(object, mcmcParams(object))
-})
-
-setMethod("runBurnin", "SingleBatchPooled", function(object){
-  burnin_singlebatch_pooled(object, mcmcParams(object))
-})
-
-setMethod("runBurnin", "MultiBatchModel", function(object){
-  mcmc_batch_burnin(object, mcmcParams(object))
-})
-
-setMethod("runBurnin", "MultiBatchPooled", function(object){
-  burnin_multibatch_pvar(object, mcmcParams(object))
-})
-
-setMethod("runMcmc", "SingleBatchModel", function(object){
-  mcmc_marginal(object, mcmcParams(object))
-})
-
-setMethod("runMcmc", "SingleBatchPooled", function(object){
-  mcmc_singlebatch_pooled(object, mcmcParams(object))
-})
-
-setMethod("runMcmc", "MultiBatchModel", function(object){
-  mcmc_batch(object, mcmcParams(object))
-})
-
-setMethod("runMcmc", "MultiBatchPooled", function(object){
-  mcmc_multibatch_pvar(object, mcmcParams(object))
-})
 
 multipleStarts <- function(object){
   if(k(object)==1) return(object)
@@ -327,71 +298,7 @@ psParams <- function(warnings=TRUE,
 
 
 
-.ordered_thetas_multibatch<- function(model){
-  thetas <- theta(model)
-  checkOrder <- function(theta) identical(order(theta), seq_along(theta))
-  is_ordered <- apply(thetas, 1, checkOrder)
-  all(is_ordered)
-}
 
-reorderMultiBatch <- function(model){
-  is_ordered <- .ordered_thetas_multibatch(model)
-  if(is_ordered) return(model)
-  ## thetas are not all ordered
-  thetas <- theta(model)
-  s2s <- sigma2(model)
-  K <- k(model)
-  ix <- order(thetas[1, ])
-  B <- nBatch(model)
-  zlist <- split(z(model), batch(model))
-  for(i in seq_len(B)){
-    ix.next <- order(thetas[i, ])
-    thetas[i, ] <- thetas[i, ix.next]
-    s2s[i, ] <- s2s[i, ix]
-    zlist[[i]] <- as.integer(factor(zlist[[i]], levels=ix.next))
-  }
-  zs <- unlist(zlist)
-  ps <- p(model)[ix]
-  mu(model) <- mu(model)[ix]
-  tau2(model) <- tau2(model)[ix]
-  sigma2(model) <- s2s
-  theta(model) <- thetas
-  p(model) <- ps
-  z(model) <- zs
-  dataMean(model) <- computeMeans(model)
-  dataPrec(model) <- computePrec(model)
-  log_lik(model) <- computeLoglik(model)
-  model
-}
-
-
-
-reorderSingleBatch <- function(model){
-  thetas <- theta(model)
-  K <- k(model)
-  ix <- order(thetas)
-  if(identical(ix, seq_len(K))) return(model)
-  thetas <- thetas[ix]
-  s2s <- sigma2(model)[ix]
-  zs <- as.integer(factor(z(model), levels=ix))
-  ps <- p(model)[ix]
-  sigma2(model) <- s2s
-  theta(model) <- thetas
-  p(model) <- ps
-  z(model) <- zs
-  dataPrec(model) <- 1/computeVars(model)
-  dataMean(model) <- computeMeans(model)
-  model
-}
-
-
-setMethod("sortComponentLabels", "SingleBatchModel", function(model){
-  reorderSingleBatch(model)
-})
-
-setMethod("sortComponentLabels", "MultiBatchModel", function(model){
-  reorderMultiBatch(model)
-})
 
 setMethod("isOrdered", "MixtureModel", function(object){
   identical(order(theta(object)), seq_along(theta(object)))
@@ -587,8 +494,9 @@ setReplaceMethod("log_lik", "MixtureModel", function(object, value){
 argMax <- function(object){
   ll <- log_lik(chains(object))
   if(length(ll) == 1) return(1)
-  lp <- logPrior(chains(object))
-  p <- ll+lp
+  ##lp <- logPrior(chains(object))
+  ##p <- ll+lp
+  p <- ll
   p <- p[is.finite(p)]
   if(length(p) == 0){
     return(1)
@@ -597,9 +505,8 @@ argMax <- function(object){
   which(p == maxp)
 }
 
-setMethod("isSB", "MarginalModel", function(object) TRUE)
 setMethod("isSB", "SingleBatchModel", function(object) TRUE)
-setMethod("isSB", "BatchModel", function(object) FALSE)
+
 setMethod("isSB", "MultiBatchModel", function(object) FALSE)
 
 startAtTrueValues <- function(model, truth){
@@ -618,26 +525,10 @@ startAtTrueValues <- function(model, truth){
 
 restartAtChainIndex <- function(model, index){
   ch <- chains(model)
-  if(!isSB(model) ){
-    B <- nBatch(model)
-    K <- k(model)
-    theta(model) <- matrix(theta(ch)[index, ], B, K)
-    sigma2(model) <- matrix(sigma2(ch)[index, ], B, K)
-    p(model) <- p(ch)[index, ]
-    z(model) <- z(ch)[index, ]
-    mu(model) <- mu(ch)[index, ]
-    tau2(model) <- tau2(ch)[index, ]
-    sigma2.0(model) <- sigma2.0(ch)[index]
-    nu.0(model) <- nu.0(ch)[index]
-    zFreq(model) <- as.integer(table(z(model)))
-    dataMean(model) <- computeMeans(model)
-    dataPrec(model) <- 1/computeVars(model)
-    return(model)
-  }
-  theta(model) <- theta(ch)[index, ]
-  sigma2(model) <- sigma2(ch)[index, ]
+  nb <- nrow(theta(model))
+  theta(model) <- matrix(theta(ch)[index, ], nrow=nb)
+  sigma2(model) <- matrix(sigma2(ch)[index, ], nrow=nb)
   p(model) <- p(ch)[index, ]
-  z(model) <- z(ch)[index, ]
   mu(model) <- mu(ch)[index]
   tau2(model) <- tau2(ch)[index]
   sigma2.0(model) <- sigma2.0(ch)[index]
@@ -777,11 +668,6 @@ mapCnProbability <- function(model){
   ## mean, variance, and class proportion parameters
   map_model <- mapModel(model)
   p <- updateMultinomialProb(map_model)
-  if(isSB(model)){
-    p <- p[, order(theta(map_model))]
-  } else {
-    p <- p[, order(mu(map_model))]
-  }
   return(p)
 }
 
@@ -843,6 +729,70 @@ setMethod("upSample", "MultiBatchModel", function(model, tiles){
   model2
 })
 
+
+dst <- dlocScale_t
+
+
+
+#' @export
+upSample2 <- function(orig.data,
+                      model, ## the downsampled model
+                      up_sample=TRUE){
+  model2 <- useModes(model)
+  ## if we do not upSample, we should be able to recover the original probabilities
+  if(up_sample){
+    y(model2) <- orig.data$medians
+    if(length(unique(batch(model))) > 1) {
+      batch(model2) <- orig.data$batch_index
+    } else batch(model2) <- rep(1L, nrow(orig.data))
+    model2@u <- rchisq(length(y(model2)), df=dfr(model))
+  }
+  thetas <- theta(model2)
+  sigmas <- sigma(model2)
+  if(!is.matrix(thetas)) {
+    thetas <- matrix(thetas, nrow=1)
+    sigmas <- matrix(sigmas, nrow=1)
+  }
+  p.comp <- p(model2)
+  df <- dfr(model2)
+  pooled <- class(model) %in% c("SingleBatchPooled", "MultiBatchPooled")
+  K <- seq_len(k(model2))
+  ##B <- unique(orig.data$batch_index)
+  B <- unique(batch(model2))
+  pz <- matrix(NA, length(y(model2)), max(K))
+  for(b in B){
+    j <- which(batch(model2) == b)
+    m <- thetas[b, ]
+    if(pooled){
+      ss <- sigmas[b]
+    } else {
+      ss <- sigmas[b, ]
+    }
+    yy <- y(model2)[j]
+    for(k in K){
+      if(pooled){
+        temp <- p.comp[k] * dst(yy, df=df, mu=m[k], sigma=ss)
+      } else {
+        temp <- p.comp[k] * dst(yy, df=df, mu=m[k], sigma=ss[k])
+      }
+      pz[j, k] <- temp
+    }
+  }
+  pz2 <- pz/rowSums(pz)
+  ## the probz slot expects a frequency
+  freq <- pz2 * (iter(model) - 1)
+  freq2 <- matrix(as.integer(freq), nrow=nrow(freq), ncol=ncol(freq))
+  probz(model2) <- freq2
+  ## update z's
+  if(class(model2)=="MultiBatchPooled"){
+    z(model2) <- z_multibatch_pvar(model2)
+  }
+  if(class(model2)=="MultiBatchModel"){
+    z(model2) <- update_z(model2)
+  }
+  model2
+}
+
 #' @rdname tile-functions
 #' @aliases upSample,MixtureModel-method
 setMethod("upSample", "MixtureModel", function(model, tiles){
@@ -857,4 +807,18 @@ setMethod("upSample", "MixtureModel", function(model, tiles){
   z(model2) <- z(model)[key]
   batch(model2) <- tiles$batch
   model2
- })
+})
+
+setMethod("u", "MixtureModel", function(object) object@u )
+
+#' Accessor for degrees of freedom
+#'
+#' @rdname dfr-method
+#' @aliases dfr,SBPt-method
+setMethod("dfr", "MixtureModel", function(object) object@hyperparams@dfr )
+
+setReplaceMethod("dfr", "MixtureModel", function(object, value) {
+                     object@hyperparams@dfr <- value
+                     object@u <- rchisq(length(y(object)), value)
+                     object
+})

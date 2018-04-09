@@ -1,12 +1,6 @@
 #' @include AllClasses.R
 NULL
 
-#' @aliases mapping,SingleBatchCopyNumber-method
-#' @rdname mapping
-setMethod("mapping", "SingleBatchCopyNumber", function(object){
-  object@mapping
-})
-
 #' @aliases mapping,MultiBatchCopyNumber-method
 #' @rdname mapping
 setMethod("mapping", "MultiBatchCopyNumber", function(object){
@@ -19,17 +13,9 @@ setMethod("mapping", "MultiBatchCopyNumberPooled", function(object){
   object@mapping
 })
 
-#' @aliases mapping,SingleBatchCopyNumber,numeric-method
-#' @rdname mapping
-setReplaceMethod("mapping", c("SingleBatchCopyNumber", "numeric"),
-                 function(object, value){
-                   object@mapping <- value
-                   object
-                 })
-
 #' @aliases mapping,MultiBatchCopyNumber,numeric-method
 #' @rdname mapping
-setReplaceMethod("mapping", c("MultiBatchCopyNumber", "numeric"),
+setReplaceMethod("mapping", c("MultiBatchCopyNumber", "character"),
                  function(object, value){
                    object@mapping <- value
                    object
@@ -37,15 +23,11 @@ setReplaceMethod("mapping", c("MultiBatchCopyNumber", "numeric"),
 
 #' @aliases mapping,MultiBatchCopyNumberPooled,numeric-method
 #' @rdname mapping
-setReplaceMethod("mapping", c("MultiBatchCopyNumberPooled", "numeric"),
+setReplaceMethod("mapping", c("MultiBatchCopyNumberPooled", "character"),
                  function(object, value){
                    object@mapping <- value
                    object
                  })
-
-setMethod("numberStates", "SingleBatchCopyNumber", function(model){
-  length(unique(mapping(model)))
-})
 
 setMethod("numberStates", "MultiBatchCopyNumber", function(model){
   length(unique(mapping(model)))
@@ -56,9 +38,12 @@ setMethod("numberStates", "MultiBatchCopyNumberPooled", function(model){
 })
 
 manyToOneMapping <- function(model){
-  comp <- seq_len(k(model))
-  map <- mapping(model)
-  !identical(comp, map)
+  tab <- tibble(comp=seq_len(k(model)),
+                copynumber=mapping(model)) %>%
+    group_by(copynumber) %>%
+    summarize(n=n())
+  ##!identical(comp, map)
+  any(tab$n > 1)
 }
 
 .prob_copynumber <- function(model){
@@ -90,12 +75,6 @@ manyToOneMapping <- function(model){
   result
 }
 
-#' @aliases probCopyNumber,SingleBatchCopyNumber-method
-#' @rdname probCopyNumber
-setMethod("probCopyNumber", "SingleBatchCopyNumber", function(model){
-  .prob_copynumber(model)
-})
-
 #' @aliases probCopyNumber,MultiBatchCopyNumber-method
 #' @rdname probCopyNumber
 setMethod("probCopyNumber", "MultiBatchCopyNumber", function(model){
@@ -108,79 +87,22 @@ setMethod("probCopyNumber", "MultiBatchCopyNumberPooled", function(model){
   .prob_copynumber(model)
 })
 
-.remap <- function(z, map){
-  for(i in seq_along(map)){
-    z[z == i] <- map[i]
-  }
-  z
-}
-
-.relabel_z <- function(object){
-  if(!manyToOneMapping(object)) return(z(object))
-  ##zz <- map_z(object)
-  zz <- z(object)
-  map <- mapping(object)
-  if(numberStates(object) == 1){
-    zz[zz != map[1]] <- map[1]
-    return(zz)
-  }
-  ##
-  ## multiple states and many-to-one mapping
-  ##
-  zz <- .remap(zz, map)
-  zz
-}
-
-#' @aliases copyNumber,SingleBatchCopyNumber-method
-#' @rdname copyNumber
-setMethod("copyNumber", "SingleBatchCopyNumber", function(object){
-  cn <- .relabel_z(object)
-  tab <- tibble(y=y(object), cn=cn, z=z(object),
-                theta=round(theta(object)[z(object)], 3))
-  thetas <- matrix(theta(object), nrow=length(y(object)),
-                   ncol=length(theta(object)), byrow=TRUE)
-  ## Define z* (a candidate for a new z) to be the nearest mode
-  z.candidate <- abs(y(object)-thetas) %>% as.tibble %>%
-    apply(1, which.min)
-  tab <- tibble(y=y(object),
-                theta=theta(object)[z(object)],
-                theta.star=theta(object)[z.candidate])
-  condition1 <- with(tab,
-                     theta <= y & y <= theta.star)
-  condition2 <- with(tab,
-                     theta.star <= y & y <= theta)
-  zstar <- ifelse(condition1 | condition2, z(object), z.candidate)
-  object@z <- zstar
-  cn <- .relabel_z(object)
-##  ## only necessary for models with unequal variances
-##  ##tab %>% filter(z != zstar)
-##  cn.range <- tab %>%
-##    ##group_by(cn) %>%
-##    group_by(z) %>%
-##    summarize(miny=min(y),
-##              maxy=max(y),
-##              theta=unique(theta),
-##              cn=unique(cn),
-##              nearest_mode=) 
-##  K <- max(cn)
-##  k <- 1
-##  while(k < K){
-##    cn[ tab$y < cn.range$maxy[k] & cn == k+1 ] <- k
-##    k <- k+1
-##  }
-  cn
-})
-
 #' @aliases copyNumber,MultiBatchCopyNumber-method
 #' @rdname copyNumber
 setMethod("copyNumber", "MultiBatchCopyNumber", function(object){
-  .relabel_z(object)
+  component_labels <- mapping(object)
+  zz <- map_z(object)
+  cn <- component_labels[zz]
+  cn
 })
 
 #' @aliases copyNumber,MultiBatchCopyNumberPooled-method
 #' @rdname copyNumber
 setMethod("copyNumber", "MultiBatchCopyNumberPooled", function(object){
-  .relabel_z(object)
+  component_labels <- mapping(object)
+  zz <- map_z(object)
+  cn <- component_labels[zz]
+  cn
 })
 
 
@@ -292,16 +214,16 @@ isPooled <- function(model){
   ##
   ## sometimes we have multiple hemizygous deletion components that should be merged
   ##  -- allow a greater separation between components that still merges
-  if(!needs.merge){
-    ## only allow separable modes to be merged if the right-most component is
-    ## not merged with the diploid component
-    both.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
-    needs.merge <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
-                          && both.hemizygous, TRUE, FALSE)
-
-    both.homozygous <- all( stats$x.at.maxy < -0.9 )
-    if(both.homozygous) needs.merge <- TRUE
-  }
+  ##if(!needs.merge){
+  ##  ## only allow separable modes to be merged if the right-most component is
+  ##  ## not merged with the diploid component
+  ##  both.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
+  ##  needs.merge <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
+  ##                        && both.hemizygous, TRUE, FALSE)
+  ##
+  ##  both.homozygous <- all( stats$x.at.maxy < -0.9 )
+  ##  if(both.homozygous) needs.merge <- TRUE
+  ##}
   needs.merge
 }
 
@@ -347,11 +269,11 @@ isPooled <- function(model){
       group_by(sign) %>%
       summarize(n=n())
     merge.var[i] <- ifelse(any(probs$n <= 6) || nrow(probs) < 2, TRUE, FALSE)
-    if(!merge.var[i]){
-      is.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
-      merge.var[i] <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
-                             && is.hemizygous, TRUE, FALSE)
-    }
+##    if(!merge.var[i]){
+##      is.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
+##      merge.var[i] <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
+##                             && is.hemizygous, TRUE, FALSE)
+##    }
   }
   ## weight by size of batch
   needs.merge <- sum(merge.var * batchElements(model)) / length(y(model)) > 0.5
@@ -469,7 +391,7 @@ mapComponents <- function(model, params=mapParams()){
 #' @rdname CopyNumber-methods
 SingleBatchCopyNumber <- function(model){
   sb.model <- as(model, "SingleBatchCopyNumber")
-  mapping(sb.model) <- seq_len(k(model))
+  mapping(sb.model) <- as.character(seq_len(k(model)))
   sb.model
 }
 
@@ -478,7 +400,7 @@ SingleBatchCopyNumber <- function(model){
 #' @rdname CopyNumber-methods
 MultiBatchCopyNumber <- function(model){
   mb.model <- as(model, "MultiBatchCopyNumber")
-  mapping(mb.model) <- seq_len(k(model))
+  mapping(mb.model) <- as.character(seq_len(k(model)))
   mb.model
 }
 
@@ -487,7 +409,7 @@ MultiBatchCopyNumber <- function(model){
 #' @rdname CopyNumber-methods
 MultiBatchCopyNumberPooled <- function(model){
   mb.model <- as(model, "MultiBatchCopyNumberPooled")
-  mapping(mb.model) <- seq_len(k(model))
+  mapping(mb.model) <- as.character(seq_len(k(model)))
   mb.model
 }
 
@@ -496,24 +418,24 @@ MultiBatchCopyNumberPooled <- function(model){
 setMethod("CopyNumberModel", "SingleBatchModel",
           function(model, params=mapParams()){
             model.sb <- SingleBatchCopyNumber(model)
-            model.sb <- mapComponents(model.sb, params)
-            model.sb
+            ##model.sb <- mapComponents(model.sb, params)
+            model
 })
 
 #' @rdname CopyNumber-methods
 #' @aliases CopyNumberModel,MultiBatchModel-method
 setMethod("CopyNumberModel", "MultiBatchModel", function(model, params=mapParams()){
   model <- MultiBatchCopyNumber(model)
-  model.cn <- mapComponents(model, params)
-  model.cn
+  ##model.cn <- mapComponents(model, params)
+  model
 })
 
 #' @rdname CopyNumber-methods
 #' @aliases CopyNumberModel,MultiBatchPooled-method
 setMethod("CopyNumberModel", "MultiBatchPooled", function(model, params=mapParams()){
   model <- MultiBatchCopyNumberPooled(model)
-  model.cn <- mapComponents(model, params)
-  model.cn
+  ##model.cn <- mapComponents(model, params)
+  model
 })
 
 #' @export

@@ -17,8 +17,7 @@
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati,
-      z=matrix(NA, nr, ns))
+      zfreq=mati)
 }
 
 .initializeMcmcPooledVar <- function(object){
@@ -40,8 +39,7 @@
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati,
-      z=matrix(NA, nr, ns))
+      zfreq=mati)
 }
 
 setMethod("McmcChains", "missing", function(object){
@@ -50,8 +48,7 @@ setMethod("McmcChains", "missing", function(object){
       nu.0=numeric(), sigma2.0=numeric(),
       zfreq=matrix(),
       logprior=numeric(),
-      loglik=numeric(),
-      z=matrix())
+      loglik=numeric())
 })
 
 
@@ -82,13 +79,9 @@ setMethod("McmcChains", "SingleBatchPooled", function(object){
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati,
-      z=matrix(NA, nr, ns))
+      zfreq=mati)
 }
 
-setMethod("McmcChains", "BatchModel", function(object){
-  .initializeMcmcBatch(object)
-})
 
 setMethod("McmcChains", "MultiBatchModel", function(object){
   .initializeMcmcBatch(object)
@@ -111,8 +104,7 @@ chains_mb <- function(object){
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati,
-      z=matrix(NA, nr, ns))
+      zfreq=mati)
 }
 
 setMethod("McmcChains", "MultiBatchPooled", function(object){
@@ -162,7 +154,6 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@logprior <- x@logprior[i]
     x@loglik <- x@loglik[i]
     x@zfreq <- x@zfreq[i, , drop=FALSE]
-    x@z <- x@z[i, , drop=FALSE]
   }
   x
 })
@@ -232,10 +223,6 @@ setMethod("names", "McmcChains", function(x) slotNames(x))
 #' @rdname zfreq-method
 #' @aliases zfreq,McmcChains-method
 setMethod("zFreq", "McmcChains", function(object) object@zfreq )
-
-#' @rdname z-method
-#' @aliases z,McmcChains-method
-setMethod("z", "McmcChains", function(object) object@z )
 
 #' @rdname logPrior-method
 #' @aliases logPrior,McmcChains-method

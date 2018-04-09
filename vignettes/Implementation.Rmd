@@ -230,7 +230,7 @@ One can explicitly set the mapping using the `mapping<-` replacement method. For
 
 ```{r mapping_manual}
 cn.model2 <- cn.model
-mapping(cn.model2) <- c(1, 1, 2)
+mapping(cn.model2) <- c("1", "1", "2")
 head(probCopyNumber(cn.model2))
 ```
 

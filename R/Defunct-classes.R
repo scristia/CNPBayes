@@ -1,8 +1,8 @@
-#' @include Deprecated-classes.R
+#' @include Defunct-classes.R
 NULL
 
 
-#' Deprecated classes in CNPBayes
+#' Defunct classes in CNPBayes
 #'
 #' The following classes in CNPBayes are deprecated and are provided only for compatability.
 #'
@@ -19,7 +19,7 @@ NULL
 #' slot takes values 1, ..., K, where K is the number of components.
 #' @aliases DensityBatchModel-class
 #' @export
-#' @rdname Deprecated-classes
+#' @rdname Defunct-classes
 setClass("DensityModel", representation(component="list",
                                         overall="numeric",
                                         modes="numeric",
@@ -27,7 +27,7 @@ setClass("DensityModel", representation(component="list",
                                         data="numeric",
                                         quantiles="numeric"))
 
-#' @rdname Deprecated-classes
+#' @rdname Defunct-classes
 #' @slot k An integer value specifying the number of latent classes.
 #' @slot hyperparams An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @slot theta the means of each component and batch
@@ -54,7 +54,7 @@ setClass("DensityModel", representation(component="list",
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 setClass("MarginalModel", contains="MixtureModel")
 
-#' @rdname Deprecated-classes
+#' @rdname Defunct-classes
 #' @slot k An integer value specifying the number of latent classes.
 #' @slot hyperparams An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @slot theta the means of each component and batch
@@ -81,7 +81,7 @@ setClass("MarginalModel", contains="MixtureModel")
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 setClass("BatchModel", contains="MixtureModel")
 
-#' @rdname Deprecated-classes
+#' @rdname Defunct-classes
 #' @export
 setClass("DensityBatchModel", representation(batch="list"), contains="DensityModel")
 
@@ -111,7 +111,7 @@ setClass("DensityBatchModel", representation(batch="list"), contains="DensityMod
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
-#' @rdname Deprecated-classes
+#' @rdname Defunct-classes
 setClass("BatchModel", contains="MixtureModel")
 
 #' Run marginal MCMC simulation
@@ -139,5 +139,34 @@ setClass("BatchModel", contains="MixtureModel")
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
-#' @rdname Deprecated-classes
+#' @rdname Defunct-classes
 setClass("MarginalModel", contains="MixtureModel")
+
+
+#' An object to specify the hyperparameters of a marginal model.
+#'
+#' This class inherits from the Hyperparameters class. This class is for hyperparameters which are marginal over the batches.
+#' @slot k Number of components
+#' @slot mu.0 Prior mean for mu.
+#' @slot tau2.0 prior variance on mu
+#' @slot eta.0 rate paramater for tau2
+#' @slot m2.0 shape parameter for tau2
+#' @slot alpha mixture probabilities
+#' @slot beta parameter for nu.0 distribution
+#' @slot a shape for sigma2.0
+#' @slot b rate for sigma2.0
+setClass("HyperparametersMarginal", contains="Hyperparameters")
+
+#' An object to specify the hyperparameters of a batch effect model.
+#'
+#' This class inherits from the Hyperparameters class. This class is for hyperparameters which are hierachical over the batches.
+#' @slot k Number of components
+#' @slot mu.0 Prior mean for mu.
+#' @slot tau2.0 prior variance on mu
+#' @slot eta.0 rate paramater for tau2
+#' @slot m2.0 shape parameter for tau2
+#' @slot alpha mixture probabilities
+#' @slot beta parameter for nu.0 distribution
+#' @slot a shape for sigma2.0
+#' @slot b rate for sigma2.0
+setClass("HyperparametersBatch",  contains="Hyperparameters")

@@ -3,10 +3,6 @@
 \docType{methods}
 \name{marginalLikelihood}
 \alias{marginalLikelihood}
-\alias{marginalLikelihood,SingleBatchModel-method}
-\alias{marginalLikelihood,SingleBatchModel,ANY-method}
-\alias{marginalLikelihood,SingleBatchPooled-method}
-\alias{marginalLikelihood,SingleBatchPooled,ANY-method}
 \alias{marginalLikelihood,MultiBatchModel-method}
 \alias{marginalLikelihood,MultiBatchModel,ANY-method}
 \alias{marginalLikelihood,MultiBatchPooled-method}
@@ -16,10 +12,6 @@
 \title{Compute the marginal likelihood of a converged model.}
 \usage{
 marginalLikelihood(model, params = mlParams())
-
-\S4method{marginalLikelihood}{SingleBatchModel}(model, params = mlParams())
-
-\S4method{marginalLikelihood}{SingleBatchPooled}(model, params = mlParams())
 
 \S4method{marginalLikelihood}{MultiBatchModel}(model, params = mlParams())
 

@@ -1,6 +1,22 @@
 #' @include methods-MixtureModel.R
 NULL
 
+setMethod("runBurnin", "MultiBatchModel", function(object){
+  cpp_burnin(object, mcmcParams(object))
+})
+
+setMethod("runMcmc", "MultiBatchModel", function(object){
+  cpp_mcmc(object, mcmcParams(object))
+})
+
+setMethod("runBurnin", "MultiBatchPooled", function(object){
+  burnin_multibatch_pvar(object, mcmcParams(object))
+})
+
+setMethod("runMcmc", "MultiBatchPooled", function(object){
+  mcmc_multibatch_pvar(object, mcmcParams(object))
+})
+
 .posteriorSimulation2 <- function(post, params=psParams()){
   post <- runBurnin(post)
   if(!isOrdered(post)) label_switch(post) <- TRUE
@@ -35,10 +51,6 @@ NULL
   post
 }
 
-mcmcMultiBatchPooled <- function(object){
-  .posteriorSimulation(object)
-}
-
 posteriorSimulationPooled <- function(object, iter=1000,
                                       burnin=1000,
                                       thin=10,
@@ -63,5 +75,19 @@ posteriorSimulationPooled <- function(object, iter=1000,
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,MixtureModel-method
 setMethod("posteriorSimulation", "MixtureModel", function(object){
+  .posteriorSimulation2(object)
+})
+
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,SingleBatchModel-method
+setMethod("posteriorSimulation", "SingleBatchModel", function(object){
+  object <- as(object, "MultiBatchModel")
+  .posteriorSimulation2(object)
+})
+
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,SingleBatchPooled-method
+setMethod("posteriorSimulation", "SingleBatchPooled", function(object){
+  object <- as(object, "MultiBatchPooled")
   .posteriorSimulation2(object)
 })

@@ -1,6 +1,40 @@
 #' @include methods-MultiBatchModel.R
 NULL
 
+reorderMultiBatchPooled <- function(model){
+  is_ordered <- .ordered_thetas_multibatch(model)
+  if(is_ordered) return(model)
+  thetas <- theta(model)
+  K <- k(model)
+  ix <- order(thetas[1, ])
+  B <- nBatch(model)
+  tab <- tibble(z_orig=z(model),
+                z=z(model),
+                batch=batch(model)) %>%
+    mutate(index=seq_len(nrow(.)))
+  for(i in seq_len(B)){
+    ix.next <- order(thetas[i, ])
+    thetas[i, ] <- thetas[i, ix.next]
+    index <- which(tab$batch == i)
+    tab2 <- tab[index, ] %>%
+      mutate(z_relabel=factor(z, levels=ix.next)) %>%
+      mutate(z_relabel=as.integer(z_relabel))
+    tab$z[index] <- tab2$z_relabel
+  }
+  ps <- p(model)[ix]
+  mu(model) <- mu(model)[ix]
+  tau2(model) <- tau2(model)[ix]
+  theta(model) <- thetas
+  p(model) <- ps
+  z(model) <- tab$z
+  log_lik(model) <- computeLoglik(model)
+  model
+}
+
+setMethod("sortComponentLabels", "MultiBatchPooled", function(model){
+  reorderMultiBatchPooled(model)
+})
+
 MultiBatchPooled <- function(dat=numeric(),
                              hp=HyperparametersMultiBatch(),
                              mp=McmcParams(iter=1000, burnin=1000,
@@ -14,17 +48,7 @@ MultiBatchPooled <- function(dat=numeric(),
   iter <- 0
   validZ <- FALSE
   mp.tmp <- McmcParams(iter=0, burnin=burnin(mp), thin=1, nStarts=1)
-  while(!validZ){
-    ##
-    ## Burnin with MB model
-    ##
-    mb <- MultiBatchModel2(dat, hp, mp.tmp, batches)
-    mb <- runBurnin(mb)
-    tabz <- table(z(mb))
-    if(length(tabz) == k(hp)) validZ <- TRUE
-    iter <- iter + 1
-    if(iter > 50) stop("Trouble initializing valid model. Try increasing the burnin")
-  }
+  mb <- MB(dat, hp, mp, batches)
   ## average variances across components
   mbp <- as(mb, "MultiBatchPooled")
   mbp <- sortComponentLabels(mbp)
@@ -32,6 +56,9 @@ MultiBatchPooled <- function(dat=numeric(),
   log_lik(mbp) <- loglik_multibatch_pvar(mbp)
   mbp
 }
+
+#' @export
+MBP <- MultiBatchPooled
 
 #' @rdname sigma2-method
 #' @aliases sigma2,MultiBatchPooled-method
@@ -120,7 +147,6 @@ combine_multibatch_pooled <- function(model.list, batches){
   n0 <- map(ch.list, nu.0) %>% unlist
   s2.0 <- map(ch.list, sigma2.0) %>% unlist
   logp <- map(ch.list, logPrior) %>% unlist
-  zz <- map(ch.list, z) %>% do.call(rbind, .)
   .mu <- map(ch.list, mu) %>% do.call(rbind, .)
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
@@ -134,8 +160,7 @@ combine_multibatch_pooled <- function(model.list, batches){
             sigma2.0=s2.0,
             zfreq=zfreq,
             logprior=logp,
-            loglik=ll,
-            z=zz)
+            loglik=ll)
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   iter(mp) <- nrow(th)
@@ -175,6 +200,7 @@ combine_multibatch_pooled <- function(model.list, batches){
                sigma2.0=pm.s20,
                pi=pm.p,
                data=y(model.list[[1]]),
+               u=u(model.list[[1]]),
                data.mean=y_mns,
                data.prec=y_prec,
                z=zz,
@@ -198,13 +224,13 @@ combine_multibatch_pooled <- function(model.list, batches){
 }
 
 
-gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches){
+gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500){
   nchains <- nStarts(mp)
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
   if(iter(mp) < 500){
     warning("Require at least 500 Monte Carlo simulations")
     MIN_EFF <- ceiling(iter(mp) * 0.5)
-  } else MIN_EFF <- 500
+  } else MIN_EFF <- min_effsize
   while(burnin(mp) < max_burnin && thin(mp) < 100){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mod.list <- replicate(nchains, MultiBatchPooled(dat=dat,
@@ -259,7 +285,8 @@ gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches){
   model <- combine_multibatch_pooled(mod.list, batches)
   meets_conditions <- all(neff > MIN_EFF) && r$mpsrf < 2 && !label_switch(model)
   if(meets_conditions){
-    model <- compute_marginal_lik(model)
+    testing <- tryCatch(compute_marginal_lik(model), error=function(e) NULL)
+    if(is.null(testing)) return(model)
   }
   model
 }
@@ -270,7 +297,8 @@ gibbsMultiBatchPooled <- function(hp,
                                   dat,
                                   batches,
                                   max_burnin=32000,
-                                  reduce_size=TRUE){
+                                  reduce_size=TRUE,
+                                  min_effsize=500){
   K <- seq(k_range[1], k_range[2])
   hp.list <- map(K, updateK, hp)
   model.list <- map(hp.list,
@@ -278,7 +306,8 @@ gibbsMultiBatchPooled <- function(hp,
                     mp=mp,
                     dat=dat,
                     batches=batches,
-                    max_burnin=max_burnin)
+                    max_burnin=max_burnin,
+                    min_effsize=min_effsize)
   names(model.list) <- paste0("MBP", map_dbl(model.list, k))
   ## sort by marginal likelihood
   ##
@@ -315,39 +344,7 @@ gibbsPooled <- function(hp.list,
   models
 }
 
-reorderMultiBatchPooled <- function(model){
-  is_ordered <- .ordered_thetas_multibatch(model)
-  if(is_ordered) return(model)
-  ## thetas are not all ordered
-  thetas <- theta(model)
-  ##s2s <- sigma2(model)
-  K <- k(model)
-  ix <- order(thetas[1, ])
-  B <- nBatch(model)
-  zlist <- split(z(model), batch(model))
-  for(i in seq_len(B)){
-    ix.next <- order(thetas[i, ])
-    thetas[i, ] <- thetas[i, ix.next]
-    zlist[[i]] <- as.integer(factor(zlist[[i]], levels=ix.next))
-  }
-  zs <- unlist(zlist)
-  ps <- p(model)[ix]
-  ## sigmas are batch-specific not component-specific, and therefore do not need to be reordered
-  mu(model) <- mu(model)[ix]
-  tau2(model) <- tau2(model)[ix]
-  ##sigma2(model) <- s2s
-  theta(model) <- thetas
-  p(model) <- ps
-  z(model) <- zs
-  dataMean(model) <- computeMeans(model)
-  dataPrec(model) <- computePrec(model)
-  log_lik(model) <- computeLoglik(model)
-  model
-}
 
-setMethod("sortComponentLabels", "MultiBatchPooled", function(model){
-  reorderMultiBatchPooled(model)
-})
 
 
 #' @aliases sigma,MultiBatchCopyNumberPooled-method

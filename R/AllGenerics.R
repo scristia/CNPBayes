@@ -362,7 +362,7 @@ setGeneric("m2.0<-", function(object,value) standardGeneric("m2.0<-"))
 setGeneric("showMeans", function(object) standardGeneric("showMeans"))
 setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 
-## JC this function could use a better name. See examples
+## Combine batches if distribution of one-dimensional summary is similar by Kolmogorov-Smirnov test statistic
 ##
 #' Estimate batch from a collection of chemistry plates or some other
 #' variable that captures the time in which the arrays were processed.
@@ -397,13 +397,13 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #'                           hp=hpList(k=k(MultiBatchModelExample))[["MB"]],
 #'                           batches=batches, mp=mcmcParams(MultiBatchModelExample))
 #' @param object see \code{showMethods(collapseBatch)}
-#' @param plate a vector labelling from which batch each observation came from.
+#' @param provisional_batch a vector labelling from which batch each observation came from.
 #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
 #' @return The new batch value.
 #' @export
 #' @docType methods
 #' @rdname collapseBatch-method
-setGeneric("collapseBatch", function(object, plate, THR=0.1) standardGeneric("collapseBatch"))
+setGeneric("collapseBatch", function(object, provisional_batch, THR=0.1) standardGeneric("collapseBatch"))
 
 
 
@@ -814,17 +814,11 @@ setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 #' @param bins a length-one numeric vector indicating the number of bins -- passed to \code{geom_hist}
 #' @export
 #' @rdname ggplot-functions
-setGeneric("ggMixture", function(model, bins) standardGeneric("ggMixture"))
-
-#' @export
-#' @return a \code{ggplot} object
-#' @rdname ggplot-functions
-setGeneric("ggSingleBatch", function(model, bins) standardGeneric("ggSingleBatch"))
+setGeneric("ggMixture", function(model, bins=100) standardGeneric("ggMixture"))
 
 #' @export
 #' @rdname ggplot-functions
-setGeneric("ggMultiBatch", function(model, bins) standardGeneric("ggMultiBatch"))
-
+setGeneric("ggMultiBatch", function(model, bins=100) standardGeneric("ggMultiBatch"))
 
 #' @param model a SB, MB, SBP, or MBP model
 #' @examples
@@ -913,3 +907,18 @@ setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 setGeneric("copyNumber", function(object) standardGeneric("copyNumber"))
 
 setGeneric("mergeComponents", function(model, j) standardGeneric("mergeComponents"))
+
+### t-distribution stuff
+
+#' Accessor for degrees of freedom
+#'
+#' @param object a Hyperparameters or Hyperparameters-derived class
+#' @export
+#' @examples
+#' hp <- Hyperparams()
+#' dfr(hp)
+setGeneric("dfr", function(object) standardGeneric("dfr"))
+
+setGeneric("dfr<-", function(object, value) standardGeneric("dfr<-"))
+setGeneric("u", function(object) standardGeneric("u"))
+

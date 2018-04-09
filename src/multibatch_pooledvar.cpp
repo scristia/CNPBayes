@@ -1,4 +1,3 @@
-#include "update.h" // for rdirichlet
 #include "miscfunctions.h" // for rdirichlet
 #include "multibatch.h" // getK
 #include <Rmath.h>
@@ -25,6 +24,7 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
   NumericMatrix P(B, K) ;
   //NumericMatrix sigma(B, K) ;
   NumericVector sigma(B);
+  double df = getDf(model.slot("hyperparams")) ;
   // component probabilities for each batch
   for(int b = 0; b < B; ++b){
     int rowsum = 0 ;
@@ -46,7 +46,7 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
-      tmp = P(b, k) * dnorm(x, theta(b, k), sigma[b]) * this_batch ;
+      tmp = P(b, k) * dlocScale_t(x, df, theta(b, k), sigma[b]) * this_batch ;
       dens = dens + tmp ;
     }
     lik(_, k) = dens ;
@@ -65,7 +65,8 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector sigma20_multibatch_pvar(Rcpp::S4 xmod){
     RNGScope scope ;
-    Rcpp::S4 model(xmod) ;
+    Rcpp::S4 model_(xmod);
+    Rcpp::S4 model = clone(model_);
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
     int K = getK(hypp) ;
     IntegerVector batch = model.slot("batch") ;
@@ -112,7 +113,8 @@ Rcpp::NumericVector sigma20_multibatch_pvar(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector nu0_multibatch_pvar(Rcpp::S4 xmod){
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model_(xmod);
+  Rcpp::S4 model = clone(model_);
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector sigma2 = model.slot("sigma2") ;
@@ -161,7 +163,8 @@ Rcpp::NumericVector nu0_multibatch_pvar(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model_(xmod);
+  Rcpp::S4 model = clone(model_);
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   IntegerVector batch = model.slot("batch") ;
@@ -177,12 +180,13 @@ Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod) {
   NumericVector this_batch(N) ;
   NumericVector tmp(N) ;
   NumericVector rowtotal(N) ;
+  double df = getDf(hypp) ;
   for(int k = 0; k < K; ++k){
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
       //tmp = p[k] * dnorm(x, theta(b, k), sqrt(sigma2(b, k))) * this_batch ;
-      tmp = p[k] * dnorm(x, theta(b, k), sqrt(sigma2[b])) * this_batch ;
+      tmp = p[k] * dlocScale_t(x, df, theta(b, k), sqrt(sigma2[b])) * this_batch ;
       dens += tmp ;
     }
     lik(_, k) = dens ;
@@ -199,7 +203,8 @@ Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::IntegerVector z_multibatch_pvar(Rcpp::S4 xmod) {
   RNGScope scope ;
-  Rcpp::S4 model(xmod) ;
+  Rcpp::S4 model_(xmod);
+  Rcpp::S4 model = clone(model_);
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   NumericVector x = model.slot("data") ;
@@ -274,36 +279,43 @@ Rcpp::NumericVector stagetwo_multibatch_pvar(Rcpp::S4 xmod) {
 // [[Rcpp::export]]
 Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod){
     RNGScope scope ;
-    Rcpp::S4 model(xmod) ;
+    Rcpp::S4 model_(xmod);
+    Rcpp::S4 model = clone(model_);
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
     int K = getK(hypp) ;
     NumericVector x = model.slot("data") ;
-    // NumericMatrix theta = model.slot("theta") ;
     NumericVector tau2 = model.slot("tau2") ;
     NumericVector sigma2 = model.slot("sigma2") ;
-    NumericMatrix n_hb = tableBatchZ(xmod) ;
+    NumericMatrix n_hb = tableBatchZ(model) ;
     NumericVector mu = model.slot("mu") ;
     int B = n_hb.nrow() ;
-    NumericMatrix ybar = model.slot("data.mean") ;
     NumericMatrix theta_new(B, K) ;
     double w1 = 0.0 ;
     double w2 = 0.0 ;
     double mu_n = 0.0 ;
     double tau_n = 0.0 ;
     double post_prec = 0.0 ;
-
+    NumericVector u = model.slot("u") ;
+    double df = getDf(hypp) ;
+    // find heavy means by batch
+    NumericMatrix data_sum =  compute_heavy_sums_batch(model) ;
+    NumericMatrix sumu = compute_u_sums_batch(model) ;
+    double heavyn = 0.0;
+    double heavy_mean = 0.0;
     for (int b = 0; b < B; ++b) {
-        for(int k = 0; k < K; ++k){
-            post_prec = 1.0/tau2[k] + n_hb(b, k)*1.0/sigma2[b] ;
-            if (post_prec == R_PosInf) {
-                throw std::runtime_error("Bad simulation. Run again with different start.");
-            }
-            tau_n = sqrt(1.0/post_prec) ;
-            w1 = (1.0/tau2[k])/post_prec ;
-            w2 = (n_hb(b, k) * 1.0/sigma2[b])/post_prec ;
-            mu_n = w1*mu[k] + w2*ybar(b, k) ;
-            theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
+      for(int k = 0; k < K; ++k){
+        heavyn = sumu(b, k) / df;
+        post_prec = 1.0/tau2[k] + heavyn*1.0/sigma2[b] ;
+        if (post_prec == R_PosInf) {
+          throw std::runtime_error("Bad simulation. Run again with different start.");
         }
+        w1 = (1.0/tau2[k])/post_prec ;
+        w2 = (heavyn * 1.0/sigma2[b])/post_prec ;
+        heavy_mean = data_sum(b, k) / heavyn / df;
+        mu_n = w1*mu[k] + w2*heavy_mean ;
+        tau_n = sqrt(1.0/post_prec) ;
+        theta_new(b, k) = as<double>(rnorm(1, mu_n, tau_n)) ;
+      }
     }
     return theta_new ;
 }
@@ -311,10 +323,8 @@ Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod){
 // [[Rcpp::export]]
 Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
     Rcpp::RNGScope scope;
-
-    // get model
-    Rcpp::S4 model(xmod);
-
+    Rcpp::S4 model_(xmod);
+    Rcpp::S4 model = clone(model_);
     // get parameter estimates
     Rcpp::NumericMatrix theta = model.slot("theta");
     Rcpp::IntegerVector z = model.slot("z");
@@ -326,12 +336,13 @@ Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
     int n = x.size();
     int K = theta.ncol();
     int B = theta.nrow();
+    NumericVector u = model.slot("u") ;
+    double df = getDf(model.slot("hyperparams")) ;
 
     // get batch info
-    Rcpp::NumericMatrix tabz = tableBatchZ(xmod);
+    Rcpp::NumericMatrix tabz = tableBatchZ(model);
     Rcpp::IntegerVector batch = model.slot("batch");
     Rcpp::IntegerVector ub = uniqueBatch(batch);
-    //Rcpp::NumericMatrix ss(B, K);
     Rcpp::NumericVector ss(B);
 
     for (int i = 0; i < n; ++i) {
@@ -342,34 +353,25 @@ Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
         for (int k = 0; k < K; ++k){
           if (z[i] == k+1){
             //ss(b, k) += pow(x[i] - theta(b, k), 2);
-            ss[b] += pow(x[i] - theta(b, k), 2);
+            ss[b] += u[i] * pow(x[i] - theta(b, k), 2);
           }
         }
       }
     }
-    //NumericMatrix sigma2_nh(B, K);
     double shape;
     double rate;
     double sigma2_nh;
     double nu_n;
-    //Rcpp::NumericMatrix sigma2_tilde(B, K);
-    //Rcpp::NumericMatrix sigma2_(B, K);
     Rcpp::NumericVector sigma2_tilde(B);
     Rcpp::NumericVector sigma2_(B);
 
     for (int b = 0; b < B; ++b) {
-      //for (int k = 0; k < K; ++k) {
-        //nu_n = nu_0 + tabz(b, k);
       nu_n = nu_0 + sum(tabz(b, _));
-        //sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k));
-      sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss[b]);
+      sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss[b]/df);
       shape = 0.5 * nu_n;
       rate = shape * sigma2_nh;
-        //sigma2_tilde(b, k) = Rcpp::as<double>(rgamma(1, shape, 1.0/rate));
       sigma2_tilde[b] = Rcpp::as<double>(rgamma(1, shape, 1.0/rate));
-        //sigma2_(b, k) = 1.0 / sigma2_tilde(b, k);
       sigma2_[b] = 1.0 / sigma2_tilde[b];
-        //}
     }
     return sigma2_;
 }
@@ -384,6 +386,9 @@ Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   Rcpp::S4 params(mcmcp) ;
   IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;
+  NumericVector x = model.slot("data") ;
+  int N = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
   if( S < 1 ){
     return xmod ;
   }
@@ -392,10 +397,6 @@ Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("z") = z_multibatch_pvar(xmod) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     }
-    //model.slot("data.mean") = means_multibatch_pvar(xmod) ;
-    model.slot("data.mean") = compute_means_batch(xmod) ;
-    //model.slot("data.prec") = prec_multibatch_pvar(xmod) ;
-    model.slot("data.prec") = compute_prec_batch(xmod) ;
     if(up[0] > 0)
       try {
         model.slot("theta") = theta_multibatch_pvar(xmod) ;
@@ -408,17 +409,18 @@ Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("sigma2") = sigma2_multibatch_pvar(xmod) ;
     if(up[3] > 0)
       //model.slot("mu") = mu_multibatch_pvar(xmod) ;
-      model.slot("mu") = update_mu_batch(xmod) ;
+      model.slot("mu") = update_mu(xmod) ;
     if(up[4] > 0)
       //model.slot("tau2") = tau2_multibatch_pvar(xmod) ;
-      model.slot("tau2") = update_tau2_batch(xmod) ;
+      model.slot("tau2") = update_tau2(xmod) ;
     if(up[6] > 0)
       model.slot("sigma2.0") = sigma20_multibatch_pvar(xmod) ;
     if(up[5] > 0)
       model.slot("nu.0") = nu0_multibatch_pvar(xmod) ;
     if(up[2] > 0)
       //model.slot("pi") = p_multibatch_pvar(xmod) ;
-      model.slot("pi") = update_p_batch(xmod) ;
+      model.slot("pi") = update_p(xmod) ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   // compute log prior probability from last iteration of burnin
   // compute log likelihood from last iteration of burnin
@@ -428,7 +430,7 @@ Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   lls2 = stagetwo_multibatch_pvar(xmod);
   ll = ll + lls2;
   model.slot("loglik") = ll ;
-  model.slot("logprior") = compute_logprior_batch(xmod) ;
+  model.slot("logprior") = compute_logprior(xmod) ;
   return xmod ;
   // return vars ;
 }
@@ -448,11 +450,12 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   if( S < 1 ) return xmod ;
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
   NumericMatrix theta = chain.slot("theta") ;
   NumericMatrix sigma2 = chain.slot("sigma2") ;
   NumericMatrix pmix = chain.slot("pi") ;
   NumericMatrix zfreq = chain.slot("zfreq") ;
-  IntegerMatrix Z = chain.slot("z") ;
+  //NumericMatrix U = chain.slot("u") ;
   NumericMatrix mu = chain.slot("mu") ;
   NumericMatrix tau2 = chain.slot("tau2") ;
   NumericVector nu0 = chain.slot("nu.0") ;
@@ -466,6 +469,7 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericVector t2(K) ;//tau2
   NumericVector n0(1) ;//nu0
   IntegerVector z(N) ;
+  NumericVector u(N) ;
   NumericVector s20(1) ; //sigma2_0
   //  NumericVector mns(1) ;
   // NumericVector precs(1) ;
@@ -484,6 +488,7 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   s20 = model.slot("sigma2.0") ;
   zf = model.slot("zfreq") ;
   z = model.slot("z") ;
+  u = model.slot("u") ;
   ll = model.slot("loglik") ;
   lp = model.slot("logprior") ;
   // Record initial values in chains
@@ -497,7 +502,7 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   sigma2(0, _) = s2 ;
   pmix(0, _) = p ;
   zfreq(0, _) = zf ;
-  Z(0, _) = z ;
+  //U(0, _) = u ;
 
   // Is accessing a slot in an object expensive?
 
@@ -511,15 +516,12 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       z = z_multibatch_pvar(xmod) ;
       model.slot("z") = z ;
       tmp = tableZ(K, z) ;
-      model.slot("probz") = update_probz_batch(xmod) ;
+      model.slot("probz") = update_probz(xmod) ;
       model.slot("zfreq") = tmp ;
       // mean and prec only change if z is updated
-      model.slot("data.mean") = compute_means_batch(xmod) ;
-      model.slot("data.prec") = compute_prec_batch(xmod) ;
     } else {
       tmp = model.slot("zfreq") ;
     }
-    Z(s, _) = z ;
     zfreq(s, _) = tmp ;
     if(up[0] > 0) {
       th = as<Rcpp::NumericVector>(theta_multibatch_pvar(xmod));
@@ -536,21 +538,21 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     }
     sigma2(s, _) = s2 ;
     if(up[2] > 0){
-      p = update_p_batch(xmod) ;
+      p = update_p(xmod) ;
       model.slot("pi") = p ;
     } else {
       p = model.slot("pi") ;
     }
     pmix(s, _) = p ;
     if(up[3] > 0){
-      m = update_mu_batch(xmod) ;
+      m = update_mu(xmod) ;
       model.slot("mu") = m ;
     } else {
       m = model.slot("mu") ;
     }
     mu(s, _) = m ;
     if(up[4] > 0){
-      t2 = update_tau2_batch(xmod) ;
+      t2 = update_tau2(xmod) ;
       model.slot("tau2") = t2 ;
     } else {
       t2 = model.slot("tau2") ;
@@ -576,31 +578,33 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     loglik_[s] = ll[0] ;
     model.slot("loglik") = ll ;
     //lp = logprior_multibatch_pvar(xmod) ;
-    lp = compute_logprior_batch(xmod) ;
+    lp = compute_logprior(xmod) ;
     logprior_[s] = lp[0] ;
     model.slot("logprior") = lp ;
+    u = Rcpp::rchisq(N, df) ;
+    model.slot("u") = u ;
+    //U(s, _) = u;
     // Thinning
     for(int t = 0; t < T; ++t){
       if(up[7] > 0){
         model.slot("z") = z_multibatch_pvar(xmod) ;
         model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       }
-      model.slot("data.mean") = compute_means_batch(xmod) ;
-      model.slot("data.prec") = compute_prec_batch(xmod) ;
       if(up[0] > 0)
         model.slot("theta") = theta_multibatch_pvar(xmod) ;
       if(up[1] > 0)
         model.slot("sigma2") = sigma2_multibatch_pvar(xmod) ;
       if(up[2] > 0)
-        model.slot("pi") = update_p_batch(xmod) ;
+        model.slot("pi") = update_p(xmod) ;
       if(up[3] > 0)
-        model.slot("mu") = update_mu_batch(xmod) ;
+        model.slot("mu") = update_mu(xmod) ;
       if(up[4] > 0)
-        model.slot("tau2") = update_tau2_batch(xmod) ;
+        model.slot("tau2") = update_tau2(xmod) ;
       if(up[5] > 0)
         model.slot("nu.0") = nu0_multibatch_pvar(xmod) ;
      if(up[6] > 0)
         model.slot("sigma2.0") = sigma20_multibatch_pvar(xmod) ;
+     model.slot("u") = Rcpp::rchisq(N, df) ;
     }
   }
   //
@@ -614,7 +618,6 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   chain.slot("nu.0") = nu0 ;
   chain.slot("sigma2.0") = sigma2_0 ;
   chain.slot("zfreq") = zfreq ;
-  chain.slot("z") = Z ;
   chain.slot("loglik") = loglik_ ;
   chain.slot("logprior") = logprior_ ;
   model.slot("mcmc.chains") = chain ;
