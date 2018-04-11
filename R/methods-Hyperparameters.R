@@ -288,6 +288,20 @@ setMethod("show", "Hyperparameters", function(object){
   cat("   b      :", b(object), "\n")
 })
 
+setMethod("show", "HyperparametersTrios", function(object){
+  cat("An object of class 'HyperparametersTrios'\n")
+  cat("   states :", paste(object@states, collapse=","), "\n")
+  cat("   k      :", k(object), "\n")
+  cat("   mu.0   :", mu.0(object), "\n")
+  cat("   tau2.0 :", tau2.0(object), "\n")
+  cat("   eta.0  :", eta.0(object), "\n")
+  cat("   m2.0   :", round(m2.0(object), 3), "\n")
+  cat("   alpha  :", alpha(object), "\n")
+  cat("   beta   :", betas(object), "\n")
+  cat("   a      :", a(object), "\n")
+  cat("   b      :", b(object), "\n")
+})
+
 ## hyperparam_list <- function(){
 ##   hp <- HyperparametersBatch(mu=-0.75,
 ##                              tau2.0=0.4,
