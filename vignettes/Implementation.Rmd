@@ -263,7 +263,7 @@ sim.data <- simulateBatchData(N=N,
 Again, one could apply the `gibbs` function to fit this data. Since we know the truth (same variance for each of the 3 mixture component and multiple batches), we could simply run the pooled variance multi-batch model (MBP) with 3 components:
 
 ```{r MBP, eval=FALSE}
-gibbs(model=MBP, k_range=c(3, 3))
+gibbs(model="MBP", k_range=c(3, 3))
 ```
 
 In practice,  we would evaluate many model and select the best model by the marginal likelihood or the Bayes factor:
@@ -271,7 +271,7 @@ In practice,  we would evaluate many model and select the best model by the marg
 ```{r fit_many, eval=FALSE}
 model.list <- gibbs(model=c("SBP", "MBP"), k_range=c(1, 5),
                     dat=y(sim.data),
-                    batches=batches, mp=mp)
+                    batches=batch(sim.data), mp=mp)
 ```
 
 
