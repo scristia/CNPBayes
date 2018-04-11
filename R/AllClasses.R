@@ -58,6 +58,23 @@ setClass("HyperparametersSingleBatch", contains="Hyperparameters")
 #' @slot dfr positive number for t-distribution degrees of freedom
 setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 
+#' An object to specify the hyperparameters of a model with additional parameters for trios
+#' 
+#' This class inherits from the hyperparameters class. 
+#' @slot states The set of copy number states
+#' @slot k Number of components
+#' @slot mu.0 Prior mean for mu.
+#' @slot tau2.0 prior variance on mu
+#' @slot eta.0 rate paramater for tau2
+#' @slot m2.0 shape parameter for tau2
+#' @slot alpha mixture probabilities
+#' @slot beta parameter for nu.0 distribution
+#' @slot a shape for sigma2.0
+#' @slot b rate for sigma2.0
+#' @slot dfr positive number for t-distribution degrees of freedom
+setClass("HyperparametersTrios", slots = c(states="numeric"),
+         contains="Hyperparameters")
+
 #' An object to hold estimated paraeters.
 #'
 #' An object of this class holds estimates of each parameter at each iteration of the MCMC simulation.
@@ -189,7 +206,6 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 #' @export
 setClass("MultiBatchModel", contains="MixtureModel")
-
 
 setClass("TrioBatchModel", contains="MultiBatchModel", slots=c(triodata="tbl_df"))
 

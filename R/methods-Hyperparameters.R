@@ -56,6 +56,40 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
   list(quantiles=x, eta.0=eta.0, m2.0=m2.0, mean=mn, sd=sd)
 }
 
+#' Create an object of class 'Hyperparameters' with additional parameters for Trios
+#' 
+#' @param states specifies the specific copy number states
+#' @return An object of class HyperparameterTrios
+#' @examples 
+#'     hyp.trio <- HyperparameterTrios(states=1:4)
+#'     
+#' @export
+HyperparametersTrios <- function(states=1:4,
+                                 k=length(states),
+                                 mu.0=0,
+                                 tau2.0=0.4,
+                                 eta.0=32,
+                                 m2.0=0.5,
+                                 alpha,
+                                 beta=0.1, ## mean is 1/10
+                                 a=1.8,
+                                 b=6,
+                                 dfr=100){
+  if(missing(alpha)) alpha <- rep(1, k)
+  new("HyperparametersTrios",
+      states=states,
+      k=as.integer(k),
+      mu.0=mu.0,
+      tau2.0=tau2.0,
+      eta.0=eta.0,
+      m2.0=m2.0,
+      alpha=alpha,
+      beta=beta,
+      a=a,
+      b=b,
+      dfr=dfr)
+}
+
 #' Create an object of class 'HyperparametersMultiBatch' for the
 #' batch mixture model
 #'
@@ -208,6 +242,7 @@ setValidity("Hyperparameters", function(object){
 Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="marginal") return(HyperparametersSingleBatch(k, ...))
   if(type=="batch") return(HyperparametersMultiBatch(k, ...))
+  if(type=="trios") return(HyperparametersTrios(states, ...))
 }
 
 #' @rdname k-method
