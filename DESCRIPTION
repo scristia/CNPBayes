@@ -64,6 +64,7 @@ Collate:
     'methods-SBPt.R'
     'methods-SingleBatchPooled.R'
     'methods-SummarizedExperiment.R'
+    'methods-TrioBatchModel.R'
     'model_initialization.R'
     'plot-functions.R'
     'posteriorSimulation-methods.R'
