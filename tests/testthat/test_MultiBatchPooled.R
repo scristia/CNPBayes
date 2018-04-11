@@ -10,7 +10,7 @@ test_that("MultiBatchPooled", {
   mp <- McmcParams(iter=50, burnin=5)
   model <- MultiBatchPooledExample
   mcmcParams(model) <- mp
-  model <- posteriorSimulation(model)
+  expect_warning(model <- posteriorSimulation(model))
   model2 <- as(model, "MultiBatchCopyNumberPooled")
   expect_true(validObject(model2))
   model3 <- useModes(model2)
