@@ -84,7 +84,7 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
                 batches=integer()){
   ## If the data is not ordered by batch,
   ## its a little harder to sort component labels
-  dat2 <- tibble(y=dat, batch=batches)
+  ##dat2 <- tibble(y=dat, batch=batches)
   ub <- unique(batches)
   nbatch <- setNames(as.integer(table(batches)), ub)
   B <- length(ub)
