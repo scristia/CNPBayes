@@ -12,7 +12,7 @@
              nu.0=numeric(1),
              sigma2.0=numeric(1),
              pi=numeric(K),
-             data=numeric(0),
+             data=numeric(K),
              triodata=as_tibble(0),
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
@@ -33,7 +33,7 @@
   obj
 }
 
-.TBM <- function(triodata=tibble(),
+.TBM <- function(triodata=as_tibble(),
                  hp=HyperparametersTrios(),
                  mp=McmcParams(iter=1000, thin=10,
                                burnin=1000, nStarts=4),
@@ -43,9 +43,9 @@
   ub <- unique(batches)
   nbatch <- setNames(as.integer(table(batches)), ub)
   B <- length(ub)
-  N <- nrow(dat$data)
+  N <- nrow(triodata)
   ## move to setValidity
-  if(nrow(dat$data) != length(batches)) {
+  if(nrow(triodata) != length(batches)) {
     stop("batch vector must be the same length as data")
   }
   K <- k(hp)
@@ -65,7 +65,7 @@
   sigma2.0 <- 0.25
   sigma2s <- 1/rgamma(k(hp) * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
     matrix(B, k(hp))
-  u <- rchisq(length(dat), hp@dfr)
+  u <- rchisq(nrow(triodata), hp@dfr)
   obj <- new("TrioBatchModel",
              k=as.integer(K),
              hyperparams=hp,
@@ -76,6 +76,7 @@
              nu.0=nu.0,
              sigma2.0=sigma2.0,
              pi=p,
+             data=triodata$log_ratio,
              triodata=triodata,
              u=u,
              data.mean=matrix(NA, B, K),
@@ -100,7 +101,7 @@
 #'
 #' Initializes a TrioBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
 #'
-#' @param dat the data for the simulation.
+#' @param triodata the data for the simulation.
 #' @param batches an integer-vector of the different batches
 #' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @param mp An object of class 'McmcParams'
@@ -111,7 +112,7 @@ TrioBatchModel <- function(triodata=tibble(),
                            mp=McmcParams(iter=1000, thin=10,
                                          burnin=1000, nStarts=4),
                            batches=integer()){
-  if(nrow(triodat) == 0){
+  if(length(triodata) == 0){
     return(.empty_trio_model(hp, mp))
   }
   iter <- 0
@@ -119,7 +120,7 @@ TrioBatchModel <- function(triodata=tibble(),
   mp.tmp <- McmcParams(iter=0, burnin=burnin(mp), thin=1, nStarts=1)
   while(!validZ){
     ##
-    ## Burnin with MB model
+    ## Burnin with TBM model
     ##
     tbm <- .TBM(triodata, hp, mp.tmp, batches)
     tbm <- runBurnin(tbm)
@@ -328,7 +329,7 @@ cn_adjust2 <- function(gp){
   M
 }
 
-simulate_data_multi <- function(params, N, error=0, GP){
+simulate_data_multi <- function(params, N, batches, error=0, GP){
   gp <- GP
   mendelian.probs <- gMendelian.multi()
   tbl <- .simulate_data_multi(params, N, mendelian.probs, GP)
@@ -337,7 +338,17 @@ simulate_data_multi <- function(params, N, error=0, GP){
    # mutate(log_ratio=(log_ratio-median(log_ratio))/sd(log_ratio))
   M <- cn_adjust2(gp)
   z <- tbl$copy_number - M
-  ##
+ 
+  # append batch info (assumes ordering by trios and id)
+  if(missing(batches)) {
+    batches <- rep(1L, 3*n)
+  } else {
+    batches <- as.integer(factor(batches))
+  }
+  batches <- sort(batches)
+  tbl2 <- cbind(tbl, batches)
+  tbl3 <- as_tibble(tbl2)
+   ##
   ## update parameters to be same as empirical values
   ##
   stats <- component_stats(tbl)
@@ -346,7 +357,7 @@ simulate_data_multi <- function(params, N, error=0, GP){
   params$theta <- stats$mean
   loglik <- sum(dnorm(tbl$log_ratio, params$theta[z],
                       params$sigma[z], log=TRUE))
-  truth <- list(data=tbl, params=params, loglik=loglik)
+  truth <- list(data=tbl3, params=params, loglik=loglik)
   truth
 }
 
