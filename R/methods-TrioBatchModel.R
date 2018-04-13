@@ -404,3 +404,8 @@ component_stats <- function(tbl){
               sd=sd(log_ratio),
               n=n())
 }
+
+setMethod("triodata_lrr", "TrioBatchModel", function(object){
+  object@triodata$log_ratio
+}
+)

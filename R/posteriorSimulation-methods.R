@@ -8,7 +8,7 @@ setMethod("runBurnin", "MultiBatchModel", function(object){
 setMethod("runBurnin", "TrioBatchModel", function(object){
   ## MC: need cpp function for burnin
   object2 <- as(object, "MultiBatchModel")
-  object2@data <- object@triodata$log_ratio
+  object2@data <- triodata_lrr(object)
   cpp_burnin(object2, mcmcParams(object))
   ##cpp_trios_burnin(object, mcmcParams(object))
 })
@@ -19,7 +19,7 @@ setMethod("runMcmc", "MultiBatchModel", function(object){
 
 setMethod("runMcmc", "TrioBatchModel", function(object){
   object2 <- as(object, "MultiBatchModel")
-  object2@data <- triodata(object)$log_ratio
+  object2@data <- triodata_lrr(object)
   cpp_mcmc(object2, mcmcParams(object))
   object3 <- as(object2, "TrioBatchModel")
   object3

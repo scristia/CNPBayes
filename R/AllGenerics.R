@@ -645,6 +645,18 @@ setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"
 setGeneric("zFreq", function(object) standardGeneric("zFreq"))
 setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 
+#' Retrieves intensity data from trios
+#' 
+#' @examples
+#'      triodata_lrr(TrioBatchModelExample)
+#' @param object see \code{showMethods(triodata_lrr)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname triodata_lrr-method
+setGeneric("triodata_lrr", function(object) standardGeneric("triodata_lrr"))
+
+
 #' Retrieve MCMC parameters from model.
 #'
 #' View number of iterations, burnin, etc.
