@@ -1,9 +1,10 @@
 context("Trio models")
 
 test_that("TBM", {
+  library(tidyverse)
   model <- TBM()
   expect_is(model, "TrioBatchModel")
-  
+
   set.seed(98765)
   ##mendelian.probs <- mendelianProb(epsilon=0)
   p <- c(0.24, 0.34, 0.24, 0.09)
@@ -18,26 +19,22 @@ test_that("TBM", {
                       xi=sigma, 
                       mu=theta)
   mp <- McmcParams(iter=50, burnin=5)
-  
+
   nbatch <- 3
   N <- 300
   dat2 <- simulate_data_multi(params, N=N, 
                               batches = rep(c(1:nbatch),
                                           length.out = 3*N),
                               error=0, gp)
-  
   model <- TBM(triodata=dat2$data,
                hp=hp,
-               mp=mp,
-               batches = dat2$data$batches)
-  
-  u1 <- u(model)
+               mp=mp)
+  load_all()
   model <- posteriorSimulation(model)
-  u2 <- u(model)
-  expect_true(!identical(u1, u2))
-  
-  expect_true(validObject(model))
-
+  expect_is(model, "TrioBatchModel")
+  if(FALSE){
+    ggChains(model)[[1]]
+  }
 })
 
 

@@ -40,6 +40,9 @@
                  batches=integer()){
   ## If the data is not ordered by batch,
   ## its a little harder to sort component labels
+  log_ratio <- triodata$log_ratio
+  batches <- triodata$batches
+  triodata <- select(triodata, -c(log_ratio, batches))
   ub <- unique(batches)
   nbatch <- setNames(as.integer(table(batches)), ub)
   B <- length(ub)
@@ -76,7 +79,8 @@
              nu.0=nu.0,
              sigma2.0=sigma2.0,
              pi=p,
-             data=triodata$log_ratio,
+             data=log_ratio,
+             batch=batches,
              triodata=triodata,
              u=u,
              data.mean=matrix(NA, B, K),
@@ -88,13 +92,19 @@
              loglik=numeric(1),
              mcmc.chains=McmcChains(),
              mcmc.params=mp,
-             batch=batches,
              batchElements=nbatch,
              label_switch=FALSE,
              marginal_lik=as.numeric(NA),
              .internal.constraint=5e-4,
              .internal.counter=0L)
   obj
+}
+
+triodata <- function(object){
+  dat <- object@triodata
+  dat$log_ratio <- y(object)
+  dat$batches <- batch(object)
+  dat
 }
 
 #' Constructor for TrioBatchModel
@@ -110,8 +120,7 @@
 TrioBatchModel <- function(triodata=tibble(),
                            hp=HyperparametersTrios(),
                            mp=McmcParams(iter=1000, thin=10,
-                                         burnin=1000, nStarts=4),
-                           batches=integer()){
+                                         burnin=1000, nStarts=4)){
   if(nrow(triodata) == 0){
     return(.empty_trio_model(hp, mp))
   }
@@ -122,7 +131,7 @@ TrioBatchModel <- function(triodata=tibble(),
     ##
     ## Burnin with TBM model
     ##
-    tbm <- .TBM(triodata, hp, mp.tmp, batches)
+    tbm <- .TBM(triodata, hp, mp.tmp)
     tbm <- runBurnin(tbm)
     tabz1 <- table(batch(tbm), z(tbm))
     tabz2 <- table(z(tbm))
