@@ -12,7 +12,7 @@
              nu.0=numeric(1),
              sigma2.0=numeric(1),
              pi=numeric(K),
-             data=numeric(K),
+             #data=numeric(K),
              triodata=as_tibble(0),
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
@@ -112,7 +112,7 @@ TrioBatchModel <- function(triodata=tibble(),
                            mp=McmcParams(iter=1000, thin=10,
                                          burnin=1000, nStarts=4),
                            batches=integer()){
-  if(length(triodata) == 0){
+  if(nrow(triodata) == 0){
     return(.empty_trio_model(hp, mp))
   }
   iter <- 0
