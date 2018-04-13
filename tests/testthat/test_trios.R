@@ -1,18 +1,42 @@
 context("Trio models")
 
 test_that("TBM", {
-  expect_true(validObject(TBM()))
-
+  model <- TBM()
+  expect_is(model, "TrioBatchModel")
+  
   set.seed(98765)
   ##mendelian.probs <- mendelianProb(epsilon=0)
-  p <- c(0.09, 0.24, 0.34, 0.24, 0.09)
-  theta <- c(-3.5,-1.2, 0.3, 1.7, 4)
-  sigma <- c(0.2, 0.2, 0.2, 0.2, 0.2)
+  p <- c(0.24, 0.34, 0.24, 0.09)
+  theta <- c(-1.2, 0.3, 1.7, 4)
+  sigma <- c(0.2, 0.2, 0.2, 0.2)
   params <- data.frame(cbind(p, theta, sigma))
-  gp <- geneticParams(K=5, states=0:4, xi=c(0.2, 0.2, 0.2, 0.2, 0.2), 
-                      mu=c(-3.5, -1.2, 0.3, 1.7, 4))
-  dat2 <- simulate_data_multi(params, N=500, error=0, gp)
-
+  hp <- HyperparametersTrios(states = 1:4,
+                             k = 4)
+  K <- hp@k
+  gp <- geneticParams(K=hp@k, 
+                      states=hp@states, 
+                      xi=sigma, 
+                      mu=theta)
+  mp <- McmcParams(iter=50, burnin=5)
+  
+  nbatch <- 3
+  N <- 300
+  dat2 <- simulate_data_multi(params, N=N, 
+                              batches = rep(c(1:nbatch),
+                                          length.out = 3*N),
+                              error=0, gp)
+  
+  model <- TBM(triodata=dat2$data,
+               hp=hp,
+               mp=mp,
+               batches = dat2$data$batches)
+  
+  u1 <- u(model)
+  model <- posteriorSimulation(model)
+  u2 <- u(model)
+  expect_true(!identical(u1, u2))
+  
+  expect_true(validObject(model))
 
 })
 
