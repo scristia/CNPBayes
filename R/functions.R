@@ -592,6 +592,15 @@ useModes <- function(object){
   m2
 }
 
+missingBatch <- function(dat, ix){
+  batches <- dat$provisional_batch
+  batches.sub <- batches[ix]
+  u.batch <- unique(batches)
+  u.batch.sub <- unique(batches.sub)
+  missing.batch <- u.batch[ !u.batch %in% u.batch.sub ]
+  missing.batch
+}
+
 #' Down sample the observations in a mixture
 #'
 #' For large datasets (several thousand subjects), the computational burden for fitting Bayesian mixture models can be high.  Downsampling can reduce the computational burden with little effect on inference.  This function draws a random sample with replacement.  Batches with few observations are combined with larger batches that have a similar median log R ratio.
@@ -633,11 +642,15 @@ downSample <- function(dat,
   size <- min(size, N)
   ##dat <- tiles$logratio
   ix <- sample(seq_len(N), size, replace=TRUE)
+  missing.batch <- missingBatch(dat, ix)
+  if(length(missing.batch) > 0){
+    ix2 <- which(dat$provisional_batch %in% missing.batch)
+    ix <- c(ix, ix2)
+  }
   dat.sub <- dat[ix, ]
   ## tricky part:
   ##
-  ## - if we down sample, there may not be enough observations to estimate the
-  ##   mixture densities for batches with few samples
+  ## - if we down sample, there may not be enough observations to estimate the mixture densities for batches with few samples
   ##
   ##tab <- tibble(medians=dat.sub,
   ##              batch.var=batches[ix]) %>%
@@ -650,6 +663,7 @@ downSample <- function(dat,
     group_by(batch_orig) %>%
     summarize(mean=mean(medians),
               n=n())
+
   small.batch <- batch.sum %>%
     filter(n < min.batchsize) %>%
     mutate(largebatch="")
