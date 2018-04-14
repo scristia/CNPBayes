@@ -317,32 +317,32 @@ gibbsMultiBatchPooled <- function(hp,
   models <- model.list[ix]
 }
 
-gibbsPooled <- function(hp.list,
-                        mp,
-                        dat,
-                        batches,
-                        k_range=c(1, 4),
-                        max_burnin=32000,
-                        top=3){
-  message("Fitting multi-batch models K=", min(k_range), " to K=", max(k_range))
-  mb.models <- gibbsMultiBatchPooled(hp.list[["multi_batch"]],
-                                     k_range=k_range,
-                                     mp=mp,
-                                     dat=dat,
-                                     batches=batches,
-                                     max_burnin=max_burnin)
-  message("Fitting single-batch models K=", min(k_range), " to K=", max(k_range))
-  sb.models <- gibbs_K(hp.list[["single_batch"]],
-                       k_range=k_range,
-                       mp=mp,
-                       dat=dat,
-                       max_burnin=max_burnin)
-  models <- c(mb.models, sb.models)
-  ml <- map_dbl(models, marginal_lik)
-  ix <- head(order(ml, decreasing=TRUE), top)
-  models <- models[ix]
-  models
-}
+##gibbsPooled <- function(hp.list,
+##                        mp,
+##                        dat,
+##                        batches,
+##                        k_range=c(1, 4),
+##                        max_burnin=32000,
+##                        top=3){
+##  message("Fitting multi-batch models K=", min(k_range), " to K=", max(k_range))
+##  mb.models <- gibbsMultiBatchPooled(hp.list[["multi_batch"]],
+##                                     k_range=k_range,
+##                                     mp=mp,
+##                                     dat=dat,
+##                                     batches=batches,
+##                                     max_burnin=max_burnin)
+##  message("Fitting single-batch models K=", min(k_range), " to K=", max(k_range))
+##  sb.models <- gibbs_K(hp.list[["single_batch"]],
+##                       k_range=k_range,
+##                       mp=mp,
+##                       dat=dat,
+##                       max_burnin=max_burnin)
+##  models <- c(mb.models, sb.models)
+##  ml <- map_dbl(models, marginal_lik)
+##  ix <- head(order(ml, decreasing=TRUE), top)
+##  models <- models[ix]
+##  models
+##}
 
 
 
