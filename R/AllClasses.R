@@ -207,7 +207,9 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @export
 setClass("MultiBatchModel", contains="MixtureModel")
 
-setClass("TrioBatchModel", contains="MultiBatchModel", slots=c(triodata="tbl_df", mprob="data.frame"))
+setClass("TrioBatchModel", contains="MultiBatchModel",
+         slots=c(triodata="tbl_df", mprob="data.frame"))
+                 ##family_member="character"))
 
 #' The 'SingleBatchModel' class
 #'

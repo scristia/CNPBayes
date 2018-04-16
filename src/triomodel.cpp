@@ -5,6 +5,103 @@
 
 using namespace Rcpp ;
 
+
+// [[Rcpp::export]]
+Rcpp::CharacterVector testing_trios(Rcpp::S4 object){
+  RNGScope scope ;
+  Rcpp::S4 model(clone(object)) ;
+  Rcpp::DataFrame triodat(model.slot("triodata"));
+  IntegerVector batch = model.slot("batch") ;
+  int n=batch.size();
+  Rcpp::CharacterVector family_member(n);
+  family_member = triodat["family_member"] ;
+  return family_member;
+}
+
+// [[Rcpp::export]]
+Rcpp::S4 update_offspring(Rcpp::S4 xmod){
+  RNGScope scope ;
+  Rcpp::S4 model(clone(xmod)) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  NumericVector x = model.slot("data") ;
+  NumericMatrix theta = model.slot("theta") ;
+  IntegerVector batch = model.slot("batch") ;
+  int B = theta.nrow() ;
+  int n = x.size() ;
+  NumericMatrix p(n, K);
+  p = update_multinomialPr(xmod) ;
+  //NumericMatrix cumP(n, K) ;
+  //  Make more efficient
+  //return cumP ;
+  NumericVector u = runif(n) ;
+  IntegerVector zz_(n) ;
+  IntegerVector zz = clone(zz_) ;
+  IntegerMatrix freq(B, K) ;
+  int T=n/3;
+
+  Rcpp::CharacterVector family_member(n);
+  Rcpp::CharacterVector trio_id(n);
+  Rcpp::CharacterVector uid(T);
+  Rcpp::DataFrame mprob(model.slot("mprob"));
+  Rcpp::DataFrame triodat(model.slot("triodata"));
+  family_member = triodat["family_member"] ;
+  //Rcpp::CharacterVector father(T);
+  //Rcpp::CharacterVector mother(T);
+  //Rcpp::CharacterVector offspring(T);
+  Rcpp::LogicalVector is_offspring(T);
+  Rcpp::LogicalVector is_father(T);
+  Rcpp::LogicalVector is_mother(T);
+  char f;
+  char m;
+  char o;
+  //is_offspring = std::strncmp(family_member, "o");
+  //is_father = std::strncmp(family_member, "f");
+  //is_mother = std::strncmmp(family_member, "m");
+  //trio_id = unique() ;
+  trio_id = triodat["id"];
+  uid = unique(trio_id) ;
+  char id;
+  char fm;
+  int index;
+  IntegerVector cn=triodat["copy_number"];
+//  for(int i=0; i < T; i++){
+//    id = uid[i];
+//    // MC: test
+//    f = cn[trio_id == id & family_member == "f"];
+//    m = cn[trio_id == id & family_member == "m"];
+//    fm = paste(f, m, sep="");
+//    index = match(fm, mprob["parents"])
+//  }
+
+  int b ;
+  for(int i=0; i < n; i++){
+    //initialize accumulator ;
+    double acc = 0 ;
+    for(int k = 0; k < K; k++){
+      acc += p(i, k) ;
+      if( u[i] < acc ) {
+        zz[i] = k + 1 ;
+        b = batch[i] - 1 ;
+        freq(b, k) += 1 ;
+        break ;
+      }
+    }
+  }
+  // if(is_true(all(freq > 1))){
+  //   return zz ;
+  // }
+  //
+  // Don't update z if there are states with zero frequency.
+  //
+  int counter = model.slot(".internal.counter");
+  counter++;
+  model.slot(".internal.counter") = counter;
+  return model.slot("z") ;
+}
+
+
+
 // [[Rcpp::export]]
 Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   RNGScope scope ;
@@ -23,6 +120,7 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   for(int s = 0; s < S; ++s){
     if(up[7] > 0){
       model.slot("z") = update_z(model) ;
+      //model.slot("z") = update_offspring(model) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     }
     if(up[0] > 0)

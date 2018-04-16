@@ -763,6 +763,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// testing_trios
+Rcpp::CharacterVector testing_trios(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_testing_trios(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
+    rcpp_result_gen = Rcpp::wrap(testing_trios(object));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_offspring
+Rcpp::S4 update_offspring(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_offspring(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_offspring(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // trios_burnin
 Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp);
 RcppExport SEXP _CNPBayes_trios_burnin(SEXP objectSEXP, SEXP mcmcpSEXP) {
@@ -856,6 +878,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_log_prob_nu0p", (DL_FUNC) &_CNPBayes_log_prob_nu0p, 2},
     {"_CNPBayes_reduced_nu0_pooled", (DL_FUNC) &_CNPBayes_reduced_nu0_pooled, 1},
     {"_CNPBayes_log_prob_s20p", (DL_FUNC) &_CNPBayes_log_prob_s20p, 1},
+    {"_CNPBayes_testing_trios", (DL_FUNC) &_CNPBayes_testing_trios, 1},
+    {"_CNPBayes_update_offspring", (DL_FUNC) &_CNPBayes_update_offspring, 1},
     {"_CNPBayes_trios_burnin", (DL_FUNC) &_CNPBayes_trios_burnin, 2},
     {"_CNPBayes_trios_mcmc", (DL_FUNC) &_CNPBayes_trios_mcmc, 2},
     {NULL, NULL, 0}

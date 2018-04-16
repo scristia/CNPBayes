@@ -269,6 +269,14 @@ log_prob_s20p <- function(xmod) {
     .Call('_CNPBayes_log_prob_s20p', PACKAGE = 'CNPBayes', xmod)
 }
 
+testing_trios <- function(object) {
+    .Call('_CNPBayes_testing_trios', PACKAGE = 'CNPBayes', object)
+}
+
+update_offspring <- function(xmod) {
+    .Call('_CNPBayes_update_offspring', PACKAGE = 'CNPBayes', xmod)
+}
+
 trios_burnin <- function(object, mcmcp) {
     .Call('_CNPBayes_trios_burnin', PACKAGE = 'CNPBayes', object, mcmcp)
 }
