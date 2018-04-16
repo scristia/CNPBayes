@@ -14,6 +14,7 @@
              pi=numeric(K),
              #data=numeric(K),
              triodata=as_tibble(0),
+             mprob=data.frame(0),
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
              z=integer(0),
@@ -37,7 +38,7 @@
                  hp=HyperparametersTrios(),
                  mp=McmcParams(iter=1000, thin=10,
                                burnin=1000, nStarts=4),
-                 batches=integer()){
+                 mprob=data.frame()){
   ## If the data is not ordered by batch,
   ## its a little harder to sort component labels
   log_ratio <- triodata$log_ratio
@@ -52,6 +53,7 @@
     stop("batch vector must be the same length as data")
   }
   K <- k(hp)
+  mprob <- mprob
   ## mu_k is the average across batches of the thetas for component k
   ## tau_k is the sd of the batch means for component k
   mu <- sort(rnorm(k(hp), mu.0(hp), sqrt(tau2.0(hp))))
@@ -82,6 +84,7 @@
              data=log_ratio,
              batch=batches,
              triodata=triodata,
+             mprob=mprob, 
              u=u,
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
@@ -120,7 +123,8 @@ triodata <- function(object){
 TrioBatchModel <- function(triodata=tibble(),
                            hp=HyperparametersTrios(),
                            mp=McmcParams(iter=1000, thin=10,
-                                         burnin=1000, nStarts=4)){
+                                         burnin=1000, nStarts=4),
+                           mprob=mprob){
   if(nrow(triodata) == 0){
     return(.empty_trio_model(hp, mp))
   }
@@ -131,7 +135,7 @@ TrioBatchModel <- function(triodata=tibble(),
     ##
     ## Burnin with TBM model
     ##
-    tbm <- .TBM(triodata, hp, mp.tmp)
+    tbm <- .TBM(triodata, hp, mp.tmp, mprob)
     tbm <- runBurnin(tbm)
     tabz1 <- table(batch(tbm), z(tbm))
     tabz2 <- table(z(tbm))
@@ -350,7 +354,7 @@ simulate_data_multi <- function(params, N, batches, error=0, GP){
  
   # append batch info (assumes ordering by trios and id)
   if(missing(batches)) {
-    batches <- rep(1L, 3*n)
+    batches <- rep(1L, 3*N)
   } else {
     batches <- as.integer(factor(batches))
   }
@@ -369,6 +373,7 @@ simulate_data_multi <- function(params, N, batches, error=0, GP){
   truth <- list(data=tbl3, params=params, loglik=loglik)
   truth
 }
+
 
 gMendelian.multi <- function(tau=c(0.5, 0.5, 0.5)){
   tau1 <- tau[1]
@@ -405,6 +410,95 @@ gMendelian.multi <- function(tau=c(0.5, 0.5, 0.5)){
   mendelian.probs[, 5, 4] <- c(0,0,0, tau3, 1 - tau3)
   mendelian.probs[, 5, 5] <- c(0,0,0,0,1)
   mendelian.probs
+}
+
+mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), gp){
+  states <- gp$states
+  tau1 <- tau[1]
+  tau2 <- tau[2]
+  tau3 <- tau[3]
+  mendelian.probs <- array(dim=c(25,6))
+  colnames(mendelian.probs) <- c("parents", "p(0|f,m)", "p(1|f,m)", "p(2|f,m)", "p(3|f,m)", "p(4|f,m)")
+  
+  mendelian.probs[1, 2:6] <- c(1,0,0,0,0)
+  mendelian.probs[2, 2:6] <- c(tau1, 1 - tau1, 0,0,0)
+  mendelian.probs[3, 2:6] <- c(tau2 / 2, 0.5, (1 - tau2) / 2, 0,0)
+  mendelian.probs[4, 2:6] <- c(0, tau3, 1 - tau3, 0,0)
+  mendelian.probs[5, 2:6] <- c(0,0,1,0,0)
+  mendelian.probs[6, 2:6] <- c(tau1, 1 - tau1, 0,0,0)
+  mendelian.probs[7, 2:6] <- c((tau1^2), 2 * (tau1 * (1 - tau1)), ((1 - tau1)^2), 0,0)
+  mendelian.probs[8, 2:6] <- c((tau1 * tau2) / 2, (tau2 * (1 - tau1) + tau1) / 2, (tau1 * (1-tau2) + (1 - tau1)) / 2, ((1 - tau1) * (1 - tau2)) / 2, 0)
+  mendelian.probs[9, 2:6] <- c(0, tau1 * tau3, tau1 * (1 - tau3) + (1 - tau1) * tau3, (1- tau1) * (1 - tau3), 0)
+  mendelian.probs[10, 2:6] <- c(0, 0, tau1, (1 - tau1), 0)
+  mendelian.probs[11, 2:6] <- c(tau2 / 2, 0.5, (1 - tau2) / 2, 0, 0)
+  mendelian.probs[12, 2:6] <- c((tau1 * tau2) / 2, (tau1 + tau2 * (1 - tau1)) / 2, ((1 - tau1) + (tau1 * (1-tau2)) ) / 2, (1 - tau1) * (1 - tau2) / 2, 0)
+  mendelian.probs[13, 2:6] <- c(tau2^2 / 4, tau2 / 2, (0.5 + tau2 * (1 - tau2)) / 2, (1 - tau2) / 2, (1 - tau2)^2 / 4)
+  mendelian.probs[14, 2:6] <- c(0, tau2 * tau3 / 2, (tau3 + tau2 * (1 - tau3)) / 2, (((1 - tau3) + (1 - tau2) * tau3) / 2), (1 - tau2) * (1 - tau1) /2)
+  mendelian.probs[15, 2:6] <- c(0, 0, tau2 / 2, 0.5, (1 - tau2) / 2)
+  mendelian.probs[16, 2:6] <- c(0, tau3, (1-tau3), 0, 0)
+  mendelian.probs[17, 2:6] <- c(0, tau1 * tau3, tau1 * (1 - tau3) + (1 - tau1) * tau3, (1 - tau1) * (1 - tau3), 0)
+  mendelian.probs[18, 2:6] <- c(0, tau2 * tau3 / 2, (tau3 + tau2 * (1 - tau3)) / 2, ((1 - tau3) + (1 - tau2) * tau3) / 2, (1 - tau2) * (1 - tau3) / 2)
+  mendelian.probs[19, 2:6] <- c(0,0, tau3^2, 2 * tau3 * (1 - tau3), (1 - tau3)^2)
+  mendelian.probs[20, 2:6] <- c(0,0,0, tau3, 1-tau3)
+  mendelian.probs[21, 2:6] <- c(0,0,1,0,0)
+  mendelian.probs[22, 2:6] <- c(0,0, tau1, 1 - tau1, 0)
+  mendelian.probs[23, 2:6] <- c(0,0, tau2 / 2, 0.5, (1 - tau2) / 2)
+  mendelian.probs[24, 2:6] <- c(0,0,0, tau3, 1 - tau3)
+  mendelian.probs[25, 2:6] <- c(0,0,0,0,1)
+  
+  if(all((rowSums(mendelian.probs, na.rm=T))==1)==F) stop("mendelian matrix is incorrect")
+  
+  mendelian.probs[, 1] <- c(00, 01, 02, 03, 04, 
+                            10, 11, 12, 13, 14,
+                            20, 21, 22, 23, 24,
+                            30, 31, 32, 33, 34,
+                            40, 41, 42, 43, 44)
+  
+  mprob.mat <- as.tibble(mendelian.probs)
+  
+  
+  mprob.mat[, 1] <- c("00", "01", "02", "03", "04", 
+                      "10", "11", "12", "13", "14",
+                      "20", "21", "22", "23", "24",
+                      "30", "31", "32", "33", "34",
+                      "40", "41", "42", "43", "44")
+  
+  mprob.mat <- mprob.subset(mprob.mat, gp)
+  K <- gp$K
+  ST <- gp$states[1]
+  mprob.mat 
+  
+  #extdata <- system.file("extdata", package="marimba2")
+  #filename <- paste0("mendelian_probs2_",K,"_",ST,".rds")
+  #saveRDS(mprob.mat, file.path(extdata, filename))
+}
+
+mprob.subset <- function(mprob.mat, gp) {
+  K <- gp$K
+  states <- gp$states
+  col.a <- states[1] + 2
+  col.b <- states[K] + 2
+  
+  ref.geno <- c("00", "01", "02", "03", "04", 
+                "10", "11", "12", "13", "14",
+                "20", "21", "22", "23", "24",
+                "30", "31", "32", "33", "34",
+                "40", "41", "42", "43", "44")
+  index <- mprob.label(gp)
+  rows <- match(index, ref.geno)
+  
+  mprob.subset <- mprob.mat[rows, c(col.a:col.b)]
+  mprob.rows <- mprob.mat[rows, 1]
+  mprob.subset <- cbind(mprob.rows, mprob.subset)
+  mprob.subset
+}
+
+mprob.label <- function(gp){
+  n <- gp$K
+  v <- gp$states
+  combo <- permutations(n=n, r=2, v=v, repeats.allowed=T)
+  geno.combo <- paste0(combo[,1], combo[,2])
+  geno.combo
 }
 
 component_stats <- function(tbl){

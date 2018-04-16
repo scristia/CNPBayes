@@ -24,12 +24,13 @@ test_that("TBM", {
   N <- 300
   dat2 <- simulate_data_multi(params, N=N, 
                               batches = rep(c(1:nbatch),
-                                          length.out = 3*N),
-                              error=0, gp)
+                                         length.out = 3*N),
+                              error=0, GP=gp)
+  mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), gp=gp)
   model <- TBM(triodata=dat2$data,
                hp=hp,
-               mp=mp)
-  load_all()
+               mp=mp,
+               mprob=mprob)
   model <- posteriorSimulation(model)
   expect_is(model, "TrioBatchModel")
   if(FALSE){
