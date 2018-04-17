@@ -38,6 +38,7 @@ setMethod("numberStates", "MultiBatchCopyNumberPooled", function(model){
 })
 
 manyToOneMapping <- function(model){
+  copynumber <- NULL
   tab <- tibble(comp=seq_len(k(model)),
                 copynumber=mapping(model)) %>%
     group_by(copynumber) %>%
@@ -289,9 +290,9 @@ isPooled <- function(model){
 ##  .merge_mb(model, j)
 ##})
 
-setMethod("mergeComponents", "MultiBatchCopyNumber", function(model, j){
-  .merge_mb(model, j)
-})
+##setMethod("mergeComponents", "MultiBatchCopyNumber", function(model, j){
+##  .merge_mb(model, j)
+##})
 
 
 #' Map mixture components to distinct copy number states
