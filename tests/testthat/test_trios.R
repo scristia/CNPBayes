@@ -44,9 +44,12 @@ test_that("TBM", {
 
 
 test_that("mcmc", {
+  library(tidyverse)
   model <- simulateTrioData()
 
   family_member <- testing_trios(model)
+
+  cn <- testing_trios(model)
 })
 
 

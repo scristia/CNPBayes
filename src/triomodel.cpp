@@ -7,15 +7,35 @@ using namespace Rcpp ;
 
 
 // [[Rcpp::export]]
-Rcpp::CharacterVector testing_trios(Rcpp::S4 object){
+Rcpp::NumericVector testing_trios(Rcpp::S4 object){
   RNGScope scope ;
   Rcpp::S4 model(clone(object)) ;
   Rcpp::DataFrame triodat(model.slot("triodata"));
   IntegerVector batch = model.slot("batch") ;
   int n=batch.size();
   Rcpp::CharacterVector family_member(n);
+  Rcpp::NumericVector cn(n);
   family_member = triodat["family_member"] ;
-  return family_member;
+  cn = triodat["copy_number"] ;
+  //return family_member;
+  return cn;
+}
+
+// [[Rcpp::export]]
+Rcpp::DataFrame lookup_mprobs(Rcpp::S4 model, Rcpp::IntegerVector f, Rcpp::IntegerVector m){
+  Rcpp::DataFrame mprob(model.slot("mprob"));
+  int nr = mprob.nrow();
+  Rcpp::LogicalVector is_dad(nr);
+  Rcpp::LogicalVector is_mom(nr);
+  Rcpp::LogicalVector is_row(nr);
+  is_dad = mprob["f"] == f;
+  is_mom = mprob["m"] == m;
+  is_row = is_dad & is_mom;
+  // placehold
+  int index = 1;
+  Rcpp::DataFrame row_we_want;
+  row_we_want=mprob[index];
+  return row_we_want;
 }
 
 // [[Rcpp::export]]
@@ -52,27 +72,38 @@ Rcpp::S4 update_offspring(Rcpp::S4 xmod){
   Rcpp::LogicalVector is_offspring(T);
   Rcpp::LogicalVector is_father(T);
   Rcpp::LogicalVector is_mother(T);
-  char f;
-  char m;
-  char o;
+  Rcpp::CharacterVector f(1);
+  f[0]="f";
+  Rcpp::CharacterVector m(1);
+  m[0]="m";
+  Rcpp::IntegerVector f_cn(1);
+  Rcpp::IntegerVector m_cn(1);
+  int o;
   //is_offspring = std::strncmp(family_member, "o");
   //is_father = std::strncmp(family_member, "f");
   //is_mother = std::strncmmp(family_member, "m");
   //trio_id = unique() ;
   trio_id = triodat["id"];
   uid = unique(trio_id) ;
-  char id;
+  Rcpp::CharacterVector id;
   char fm;
   int index;
+  LogicalVector is_dad(n);
+  LogicalVector is_mom(n);
   IntegerVector cn=triodat["copy_number"];
-//  for(int i=0; i < T; i++){
-//    id = uid[i];
-//    // MC: test
-//    f = cn[trio_id == id & family_member == "f"];
-//    m = cn[trio_id == id & family_member == "m"];
-//    fm = paste(f, m, sep="");
-//    index = match(fm, mprob["parents"])
-//  }
+  for(int i=0; i < T; i++){
+    id = uid[i];
+    is_dad = trio_id == id & family_member == f;
+    is_mom = trio_id == id & family_member == m;
+    f_cn = cn[ is_dad ] ;  // length-one integer vector of father copy number
+    m_cn = cn[ is_mom ] ;  // length-one integer vector of mother copy number
+
+    // MC: test
+    //f = cn[trio_id == id & family_member == "f"];
+    //m = cn[trio_id == id & family_member == "m"];
+    //fm = paste(f, m, sep="");
+    //index = match(fm, mprob["parents"])
+  }
 
   int b ;
   for(int i=0; i < n; i++){

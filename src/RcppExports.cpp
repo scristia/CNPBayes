@@ -764,13 +764,26 @@ BEGIN_RCPP
 END_RCPP
 }
 // testing_trios
-Rcpp::CharacterVector testing_trios(Rcpp::S4 object);
+Rcpp::NumericVector testing_trios(Rcpp::S4 object);
 RcppExport SEXP _CNPBayes_testing_trios(SEXP objectSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
     rcpp_result_gen = Rcpp::wrap(testing_trios(object));
+    return rcpp_result_gen;
+END_RCPP
+}
+// lookup_mprobs
+Rcpp::DataFrame lookup_mprobs(Rcpp::S4 model, Rcpp::IntegerVector f, Rcpp::IntegerVector m);
+RcppExport SEXP _CNPBayes_lookup_mprobs(SEXP modelSEXP, SEXP fSEXP, SEXP mSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type f(fSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(lookup_mprobs(model, f, m));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -879,6 +892,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_reduced_nu0_pooled", (DL_FUNC) &_CNPBayes_reduced_nu0_pooled, 1},
     {"_CNPBayes_log_prob_s20p", (DL_FUNC) &_CNPBayes_log_prob_s20p, 1},
     {"_CNPBayes_testing_trios", (DL_FUNC) &_CNPBayes_testing_trios, 1},
+    {"_CNPBayes_lookup_mprobs", (DL_FUNC) &_CNPBayes_lookup_mprobs, 3},
     {"_CNPBayes_update_offspring", (DL_FUNC) &_CNPBayes_update_offspring, 1},
     {"_CNPBayes_trios_burnin", (DL_FUNC) &_CNPBayes_trios_burnin, 2},
     {"_CNPBayes_trios_mcmc", (DL_FUNC) &_CNPBayes_trios_mcmc, 2},

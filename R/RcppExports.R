@@ -273,6 +273,10 @@ testing_trios <- function(object) {
     .Call('_CNPBayes_testing_trios', PACKAGE = 'CNPBayes', object)
 }
 
+lookup_mprobs <- function(model, f, m) {
+    .Call('_CNPBayes_lookup_mprobs', PACKAGE = 'CNPBayes', model, f, m)
+}
+
 update_offspring <- function(xmod) {
     .Call('_CNPBayes_update_offspring', PACKAGE = 'CNPBayes', xmod)
 }
