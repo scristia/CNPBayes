@@ -39,7 +39,8 @@ Suggests:
     BiocStyle,
     rmarkdown,
     BiocCheck,
-    MASS
+    MASS,
+    tidyverse
 Collate: 
     'help.R'
     'AllGenerics.R'

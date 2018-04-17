@@ -658,6 +658,12 @@ downSample <- function(dat,
   ##
   ## combine batches with too few observations based on the location (not scale)
   ##
+  batch_orig <- NULL
+  medians <- NULL
+  largebatch <- NULL
+  other <- NULL
+  . <- NULL
+  batch_New <- NULL
   select <- dplyr::select
   batch.sum <- dat.sub %>%
     group_by(batch_orig) %>%
@@ -733,12 +739,15 @@ rst <- function (n, df = 100, mean = 0, sigma = 1){
 #' modelName(SingleBatchModelExample)
 #' @export
 modelName <- function(model){
+  . <- NULL
   model.name <- class(model) %>%
     gsub("CopyNumber", "", .) %>%
     gsub("SingleBatchPooled", "SBP", .) %>%
     gsub("SingleBatchModel", "SB", .) %>%
     gsub("MultiBatchModel", "MB", .) %>%
-    gsub("MultiBatchPooled", "MBP", .)
+    gsub("MultiBatchPooled", "MBP", .) %>%
+    gsub("CopyNumber", "", .) %>%
+    gsub("MultiBatch", "MB", .)
   L <- length(unique(batch(model)))
   if(L == 1){
     model.name <- gsub("MB", "SB", model.name)

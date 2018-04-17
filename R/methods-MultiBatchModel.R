@@ -172,6 +172,7 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
 #'                                p = c(1/5, 1/3, 1 - 1/3 - 1/5))
 #'     MultiBatchModel2(dat=y(truth), batches=batch(truth),
 #'                      hp=hpList(k=3)[["MB"]])
+#' @rdname MultiBatchModel
 #' @export
 MultiBatchModel2 <- function(dat=numeric(),
                              hp=HyperparametersMultiBatch(),
@@ -206,6 +207,7 @@ MultiBatchModel2 <- function(dat=numeric(),
 }
 
 #' @export
+#' @rdname MultiBatchModel
 MB <- MultiBatchModel2
 
 ensureAllComponentsObserved <- function(obj){
