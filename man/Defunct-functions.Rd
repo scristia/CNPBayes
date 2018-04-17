@@ -44,8 +44,6 @@
 \alias{plot,BatchModel,ANY-method}
 \alias{ggMultiBatch,MultiBatchModel-method}
 \alias{ggMultiBatch,MultiBatchPooled-method}
-\alias{ggSingleBatch,MarginalModel-method}
-\alias{ggSingleBatch,SingleBatchModel-method}
 \alias{ggMultiBatch,MultiBatchCopyNumber-method}
 \alias{ggSingleBatch,SingleBatchCopyNumber-method}
 \alias{downsample}
@@ -62,7 +60,6 @@
 \alias{[,BatchModel,ANY-method}
 \alias{[,BatchModel,ANY,ANY-method}
 \alias{SingleBatchModel}
-\alias{multiBatchDensities}
 \title{DensityModel constructor has been deprecated.}
 \usage{
 \S4method{tau2}{MarginalModel}(object)
@@ -140,10 +137,6 @@ DensityModel(object, merge = FALSE)
 
 \S4method{ggMultiBatch}{MultiBatchPooled}(model, bins = 100)
 
-\S4method{ggSingleBatch}{MarginalModel}(model, bins)
-
-\S4method{ggSingleBatch}{SingleBatchModel}(model, bins)
-
 \S4method{ggMultiBatch}{MultiBatchCopyNumber}(model, bins = 100)
 
 \S4method{ggSingleBatch}{SingleBatchCopyNumber}(model, bins)
@@ -167,8 +160,6 @@ labelSwitching(object, merge = TRUE)
 \S4method{[}{BatchModel,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
 SingleBatchModel(data = numeric(), k = 3, hypp, mcmc.params)
-
-multiBatchDensities(model)
 }
 \arguments{
 \item{object}{see \code{showMethods(DensityModel)}}
@@ -293,8 +284,6 @@ Create an object for running hierarchical MCMC simulations.
 DensityModel constructor and methods are Defunct
 }
 \seealso{
-See \code{\link{ggSingleBatch}} and \code{\link{ggMultiBatch}} for visualization
-
 \code{\link{BatchModel}}.  For single-batch data, use
 
 \code{\link{DensityModel-class}} \code{\link{kmeans}}
