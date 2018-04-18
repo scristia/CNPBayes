@@ -449,6 +449,9 @@ posteriorPredictive <- function(model){
   if(class(model) == "MultiBatchPooled"){
     tab <- .posterior_predictive_mbp(model)
   }
+  if(class(model) == "MultiBatchCopyNumberPooled"){
+    tab <- .posterior_predictive_mbp(model)
+  }
   tab <- tab[, c("y", "component", "batch")]
   tab$model <- modelName(model)
   return(tab)
@@ -521,7 +524,8 @@ posteriorPredictive <- function(model){
     a <- alpha[i, ]
     mu <- matrix(thetas[i, ], nb, K)
     s <- matrix(sigmas[i, ], nb, K)
-    ## for each batch, sample K observations with mixture probabilities alpha
+    ## for each batch, sample K observations with
+    ## mixture probabilities alpha
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
       ##ylist[[b]] <- rnorm(K, (mu[b, ])[zz], (s[b, ])[zz])
