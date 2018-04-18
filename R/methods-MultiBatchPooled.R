@@ -287,6 +287,7 @@ gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches, min_
   if(meets_conditions){
     testing <- tryCatch(compute_marginal_lik(model), error=function(e) NULL)
     if(is.null(testing)) return(model)
+    model <- testing
   }
   model
 }
