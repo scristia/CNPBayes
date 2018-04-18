@@ -22,7 +22,13 @@ simulateTrioData <- function(){
                               batches = rep(c(1:nbatch),
                                          length.out = 3*N),
                               error=0, GP=gp)
+  ## MC: update mprob.matrix
   mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), gp=gp)
+  mprob <- mprob[, -1] %>%
+    as.tibble() %>%
+    mutate(father=as.numeric(father),
+           mother=as.numeric(mother)) %>%
+    as.matrix
   model <- TBM(triodata=dat2$data,
                hp=hp,
                mp=mp,
@@ -46,11 +52,11 @@ test_that("TBM", {
 test_that("mcmc", {
   library(tidyverse)
   model <- simulateTrioData()
+  mp <- model@mprob
 
   family_member <- testing_trios(model)
-
   cn <- testing_trios(model)
-  
+
   row_extract <- lookup_mprobs(model, 2, 2)
 })
 

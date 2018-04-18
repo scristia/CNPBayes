@@ -14,7 +14,7 @@
              pi=numeric(K),
              #data=numeric(K),
              triodata=as_tibble(0),
-             mprob=data.frame(0),
+             mprob=matrix(NA, 0, 0),
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
              z=integer(0),
@@ -38,7 +38,7 @@
                  hp=HyperparametersTrios(),
                  mp=McmcParams(iter=1000, thin=10,
                                burnin=1000, nStarts=4),
-                 mprob=data.frame()){
+                 mprob=matrix()){
   ## If the data is not ordered by batch,
   ## its a little harder to sort component labels
   log_ratio <- triodata$log_ratio
@@ -71,6 +71,10 @@
   sigma2s <- 1/rgamma(k(hp) * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
     matrix(B, k(hp))
   u <- rchisq(nrow(triodata), hp@dfr)
+  index <- match(c("father", "mother"), colnames(mprob))
+  mprob2 <- mprob[, -index]
+  father <- mprob[, "father"]
+  mother <- mprob[, "mother"]
   obj <- new("TrioBatchModel",
              k=as.integer(K),
              hyperparams=hp,
@@ -84,7 +88,7 @@
              data=log_ratio,
              batch=batches,
              triodata=triodata,
-             mprob=mprob, 
+             mprob=mprob2, 
              u=u,
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
@@ -98,6 +102,8 @@
              batchElements=nbatch,
              label_switch=FALSE,
              marginal_lik=as.numeric(NA),
+             father=as.integer(father),
+             mother=as.integer(mother),
              .internal.constraint=5e-4,
              .internal.counter=0L)
   obj

@@ -208,7 +208,8 @@ setClass("MixtureModel", representation("VIRTUAL",
 setClass("MultiBatchModel", contains="MixtureModel")
 
 setClass("TrioBatchModel", contains="MultiBatchModel",
-         slots=c(triodata="tbl_df", mprob="data.frame"))
+         slots=c(triodata="tbl_df", mprob="matrix",
+                 father="numeric", mother="numeric"))
                  ##family_member="character"))
 
 #' The 'SingleBatchModel' class

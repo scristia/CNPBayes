@@ -27,48 +27,28 @@ Rcpp::CharacterVector testing_trios(Rcpp::S4 object){
 }
 
 // [[Rcpp::export]]
-Rcpp::DataFrame lookup_mprobs(Rcpp::S4 model, StringVector father, StringVector mother){
-  Rcpp::DataFrame mprob(model.slot("mprob"));
-  //int nr = mprob.nrow();
-  //Rcpp::LogicalVector dad(nr);
-  //Rcpp::CharacterVector mom(nr);
-  //Rcpp::CharacterVector is_row(nr);
-  StringVector dad = mprob["father"];
-  StringVector mom = mprob["mother"];
-  std::string level = Rcpp::as<std::string>(mother[0]);
-  Rcpp::LogicalVector ind(mom.size());
-  for (int i = 0; i < mom.size(); i++){
-    ind[i] = (mom[i] == level);
-  }
-  
-  std::string level2 = Rcpp::as<std::string>(father[0]);
-  Rcpp::LogicalVector ind2(dad.size());
-  for (int i = 0; i < dad.size(); i++){
-    ind2[i] = (dad[i] == level2);
-  }
-  
+Rcpp::NumericVector lookup_mprobs(Rcpp::S4 model, Rcpp::IntegerVector father, Rcpp::IntegerVector mother){
+  Rcpp::NumericMatrix mprob = model.slot("mprob");
+  IntegerVector f = model.slot("father");
+  IntegerVector m = model.slot("mother");
+  Rcpp::LogicalVector ind(m.size());
+  Rcpp::LogicalVector ind2(f.size());
+  ind = f == father[0];
+  ind2 = m == mother[0];
   Rcpp::LogicalVector index(ind.size());
   index = ind==TRUE & ind2==TRUE;
-  
-  Rcpp::CharacterVector parents_col = mprob["parents"];
-  Rcpp::NumericVector cn_1 = mprob["p(1|f,m)"];
-  Rcpp::NumericVector cn_2 = mprob["p(2|f,m)"];
-  Rcpp::NumericVector cn_3 = mprob["p(3|f,m)"];
-  Rcpp::NumericVector cn_4 = mprob["p(4|f,m)"];
-  Rcpp::CharacterVector father_col = mprob["father"];
-  Rcpp::CharacterVector mother_col = mprob["mother"];
-
-  return Rcpp::DataFrame::create(Rcpp::Named("parents")  = parents_col[index],
-                                 Rcpp::Named("p(1|f,m)")  = cn_1[index],
-                                 Rcpp::Named("p(2|f,m)")  = cn_2[index],
-                                 Rcpp::Named("p(3|f,m)")  = cn_3[index],
-                                 Rcpp::Named("p(4|f,m)")  = cn_4[index],
-                                 Rcpp::Named("father")  = father_col[index],
-                                 Rcpp::Named("mother")  = mother_col[index]);
+  int nr=f.size();
+  int j;
+  for(int i = 0; i < nr; i ++){
+    if(index[i]){
+      j = i + 1;
+      break;
+    }
+  }
+  Rcpp::NumericVector result(mprob.ncol());
+  result=mprob(j, _);
+  return result;
 }
-  
-
-
 
 
 // [[Rcpp::export]]
@@ -130,7 +110,7 @@ Rcpp::S4 update_offspring(Rcpp::S4 xmod){
     is_mom = trio_id == id & family_member == m;
     f_cn = cn[ is_dad ] ;  // length-one integer vector of father copy number
     m_cn = cn[ is_mom ] ;  // length-one integer vector of mother copy number
-
+    // mendel.probs = lookup_mprobs(model, f_cn, m_cn) ;
     // MC: test
     //f = cn[trio_id == id & family_member == "f"];
     //m = cn[trio_id == id & family_member == "m"];

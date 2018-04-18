@@ -775,14 +775,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // lookup_mprobs
-Rcpp::DataFrame lookup_mprobs(Rcpp::S4 model, StringVector father, StringVector mother);
+Rcpp::NumericVector lookup_mprobs(Rcpp::S4 model, Rcpp::IntegerVector father, Rcpp::IntegerVector mother);
 RcppExport SEXP _CNPBayes_lookup_mprobs(SEXP modelSEXP, SEXP fatherSEXP, SEXP motherSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type model(modelSEXP);
-    Rcpp::traits::input_parameter< StringVector >::type father(fatherSEXP);
-    Rcpp::traits::input_parameter< StringVector >::type mother(motherSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type father(fatherSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type mother(motherSEXP);
     rcpp_result_gen = Rcpp::wrap(lookup_mprobs(model, father, mother));
     return rcpp_result_gen;
 END_RCPP
