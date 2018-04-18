@@ -32,7 +32,8 @@ Imports:
     tidyr,
     dplyr,
     tibble,
-    scales
+    scales,
+    data.table
 Suggests:
     testthat,
     knitr,
