@@ -345,6 +345,8 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
   n_facet <- NULL
   ..density.. <- NULL
   x <- NULL
+  predictive$y[predictive$y < min(full.data$y)] <- min(full.data$y)
+  predictive$y[predictive$y > max(full.data$y)] <- max(full.data$y)
   fig <- ggplot(predictive, aes(x=y, n_facet=n,
                                 y=..count../n_facet,
                                 fill=component)) +
