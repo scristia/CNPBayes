@@ -50,6 +50,8 @@ test_that("mcmc", {
   family_member <- testing_trios(model)
 
   cn <- testing_trios(model)
+  
+  row_extract <- lookup_mprobs(model, 2, 2)
 })
 
 

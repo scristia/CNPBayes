@@ -2,12 +2,17 @@
 #include "multibatch.h" 
 #include <Rmath.h>
 #include <Rcpp.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <iterator>
+#include <list>
 
 using namespace Rcpp ;
 
 
 // [[Rcpp::export]]
-Rcpp::NumericVector testing_trios(Rcpp::S4 object){
+Rcpp::CharacterVector testing_trios(Rcpp::S4 object){
   RNGScope scope ;
   Rcpp::S4 model(clone(object)) ;
   Rcpp::DataFrame triodat(model.slot("triodata"));
@@ -16,27 +21,55 @@ Rcpp::NumericVector testing_trios(Rcpp::S4 object){
   Rcpp::CharacterVector family_member(n);
   Rcpp::NumericVector cn(n);
   family_member = triodat["family_member"] ;
-  cn = triodat["copy_number"] ;
-  //return family_member;
-  return cn;
+  // cn = triodat["copy_number"] ;
+  return family_member;
+  // return cn;
 }
 
 // [[Rcpp::export]]
-Rcpp::DataFrame lookup_mprobs(Rcpp::S4 model, Rcpp::IntegerVector f, Rcpp::IntegerVector m){
+Rcpp::DataFrame lookup_mprobs(Rcpp::S4 model, StringVector father, StringVector mother){
   Rcpp::DataFrame mprob(model.slot("mprob"));
-  int nr = mprob.nrow();
-  Rcpp::LogicalVector is_dad(nr);
-  Rcpp::LogicalVector is_mom(nr);
-  Rcpp::LogicalVector is_row(nr);
-  is_dad = mprob["f"] == f;
-  is_mom = mprob["m"] == m;
-  is_row = is_dad & is_mom;
-  // placehold
-  int index = 1;
-  Rcpp::DataFrame row_we_want;
-  row_we_want=mprob[index];
-  return row_we_want;
+  //int nr = mprob.nrow();
+  //Rcpp::LogicalVector dad(nr);
+  //Rcpp::CharacterVector mom(nr);
+  //Rcpp::CharacterVector is_row(nr);
+  StringVector dad = mprob["father"];
+  StringVector mom = mprob["mother"];
+  std::string level = Rcpp::as<std::string>(mother[0]);
+  Rcpp::LogicalVector ind(mom.size());
+  for (int i = 0; i < mom.size(); i++){
+    ind[i] = (mom[i] == level);
+  }
+  
+  std::string level2 = Rcpp::as<std::string>(father[0]);
+  Rcpp::LogicalVector ind2(dad.size());
+  for (int i = 0; i < dad.size(); i++){
+    ind2[i] = (dad[i] == level2);
+  }
+  
+  Rcpp::LogicalVector index(ind.size());
+  index = ind==TRUE & ind2==TRUE;
+  
+  Rcpp::CharacterVector parents_col = mprob["parents"];
+  Rcpp::NumericVector cn_1 = mprob["p(1|f,m)"];
+  Rcpp::NumericVector cn_2 = mprob["p(2|f,m)"];
+  Rcpp::NumericVector cn_3 = mprob["p(3|f,m)"];
+  Rcpp::NumericVector cn_4 = mprob["p(4|f,m)"];
+  Rcpp::CharacterVector father_col = mprob["father"];
+  Rcpp::CharacterVector mother_col = mprob["mother"];
+
+  return Rcpp::DataFrame::create(Rcpp::Named("parents")  = parents_col[index],
+                                 Rcpp::Named("p(1|f,m)")  = cn_1[index],
+                                 Rcpp::Named("p(2|f,m)")  = cn_2[index],
+                                 Rcpp::Named("p(3|f,m)")  = cn_3[index],
+                                 Rcpp::Named("p(4|f,m)")  = cn_4[index],
+                                 Rcpp::Named("father")  = father_col[index],
+                                 Rcpp::Named("mother")  = mother_col[index]);
 }
+  
+
+
+
 
 // [[Rcpp::export]]
 Rcpp::S4 update_offspring(Rcpp::S4 xmod){

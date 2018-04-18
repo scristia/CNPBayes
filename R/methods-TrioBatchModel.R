@@ -464,9 +464,10 @@ mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), gp){
                       "40", "41", "42", "43", "44")
   
   mprob.mat <- mprob.subset(mprob.mat, gp)
-  K <- gp$K
-  ST <- gp$states[1]
-  mprob.mat 
+  setDT(mprob.mat)[, c("father","mother") := tstrsplit(parents, "")]
+  #K <- gp$K
+  #ST <- gp$states[1]
+  mprob.mat
   
   #extdata <- system.file("extdata", package="marimba2")
   #filename <- paste0("mendelian_probs2_",K,"_",ST,".rds")

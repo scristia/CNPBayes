@@ -764,7 +764,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // testing_trios
-Rcpp::NumericVector testing_trios(Rcpp::S4 object);
+Rcpp::CharacterVector testing_trios(Rcpp::S4 object);
 RcppExport SEXP _CNPBayes_testing_trios(SEXP objectSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -775,15 +775,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // lookup_mprobs
-Rcpp::DataFrame lookup_mprobs(Rcpp::S4 model, Rcpp::IntegerVector f, Rcpp::IntegerVector m);
-RcppExport SEXP _CNPBayes_lookup_mprobs(SEXP modelSEXP, SEXP fSEXP, SEXP mSEXP) {
+Rcpp::DataFrame lookup_mprobs(Rcpp::S4 model, StringVector father, StringVector mother);
+RcppExport SEXP _CNPBayes_lookup_mprobs(SEXP modelSEXP, SEXP fatherSEXP, SEXP motherSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type model(modelSEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type f(fSEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(lookup_mprobs(model, f, m));
+    Rcpp::traits::input_parameter< StringVector >::type father(fatherSEXP);
+    Rcpp::traits::input_parameter< StringVector >::type mother(motherSEXP);
+    rcpp_result_gen = Rcpp::wrap(lookup_mprobs(model, father, mother));
     return rcpp_result_gen;
 END_RCPP
 }
