@@ -5,6 +5,10 @@ getK <- function(hyperparams) {
     .Call('_CNPBayes_getK', PACKAGE = 'CNPBayes', hyperparams)
 }
 
+getSt <- function(hyperparams) {
+    .Call('_CNPBayes_getSt', PACKAGE = 'CNPBayes', hyperparams)
+}
+
 getDf <- function(hyperparams) {
     .Call('_CNPBayes_getDf', PACKAGE = 'CNPBayes', hyperparams)
 }
@@ -275,6 +279,14 @@ family_member <- function(object) {
 
 lookup_mprobs <- function(model, father, mother) {
     .Call('_CNPBayes_lookup_mprobs', PACKAGE = 'CNPBayes', model, father, mother)
+}
+
+cn_adjust <- function(xmod) {
+    .Call('_CNPBayes_cn_adjust', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_zt <- function(xmod) {
+    .Call('_CNPBayes_update_zt', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_trioPr <- function(xmod) {

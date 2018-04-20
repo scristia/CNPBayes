@@ -56,6 +56,62 @@ Rcpp::NumericVector lookup_mprobs(Rcpp::S4 model, Rcpp::IntegerVector father, Rc
 }
 
 // [[Rcpp::export]]
+Rcpp::IntegerVector cn_adjust(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(clone(xmod)) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  Rcpp::IntegerVector states = getSt(hypp);
+  return states;
+}
+
+// [[Rcpp::export]]
+Rcpp::IntegerVector update_zt(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(clone(xmod)) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  NumericVector x = model.slot("data") ;
+  NumericMatrix theta = model.slot("theta") ;
+  IntegerVector batch = model.slot("batch") ;
+  int B = theta.nrow() ;
+  int n = x.size() ;
+  NumericMatrix p(n, K);
+  p = update_multinomialPr(xmod) ;
+  //NumericMatrix cumP(n, K) ;
+  //  Make more efficient
+  //return cumP ;
+  NumericVector u = runif(n) ;
+  IntegerVector zz_(n) ;
+  IntegerVector zz = clone(zz_) ;
+  IntegerMatrix freq(B, K) ;
+  int b ;
+  int M ;
+  for(int i=0; i < n; i++){
+    //initialize accumulator ;
+    double acc = 0 ;
+    for(int k = 0; k < K; k++){
+      acc += p(i, k) ;
+      if( u[i] < acc ) {
+        zz[i] = k + 1 ;
+        b = batch[i] - 1 ;
+        freq(b, k) += 1 ;
+        break ;
+      }
+    }
+  }
+  if(is_true(all(freq > 1))){
+    return zz ;
+  }
+  //
+  // Don't update z if there are states with zero frequency.
+  //
+  int counter = model.slot(".internal.counter");
+  counter++;
+  model.slot(".internal.counter") = counter;
+  return model.slot("z") ;
+}
+
+// [[Rcpp::export]]
 Rcpp::NumericVector update_trioPr(Rcpp::S4 xmod){
   RNGScope scope ;
   Rcpp::S4 model(clone(xmod)) ;
@@ -103,11 +159,11 @@ Rcpp::S4 update_offspring(Rcpp::S4 xmod){
   Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
-  NumericVector x = model.slot("data") ;
+  Rcpp::DataFrame triodat(model.slot("triodata"));
   NumericMatrix theta = model.slot("theta") ;
   IntegerVector batch = model.slot("batch") ;
   int B = theta.nrow() ;
-  int n = x.size() ;
+  int n = triodat.size() ;
   NumericMatrix p(n, K);
   //p = update_trioPr(xmod) ;
   
@@ -124,7 +180,6 @@ Rcpp::S4 update_offspring(Rcpp::S4 xmod){
   Rcpp::CharacterVector trio_id(n);
   Rcpp::CharacterVector uid(T);
   Rcpp::DataFrame mprob(model.slot("mprob"));
-  Rcpp::DataFrame triodat(model.slot("triodata"));
   family_member = triodat["family_member"] ;
   //Rcpp::CharacterVector father(T);
   //Rcpp::CharacterVector mother(T);
