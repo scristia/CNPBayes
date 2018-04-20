@@ -64,51 +64,68 @@ Rcpp::IntegerVector cn_adjust(Rcpp::S4 xmod) {
   return states;
 }
 
+// need to map components to copy number
 // [[Rcpp::export]]
 Rcpp::IntegerVector update_zt(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
-  NumericVector x = model.slot("data") ;
-  NumericMatrix theta = model.slot("theta") ;
-  IntegerVector batch = model.slot("batch") ;
-  int B = theta.nrow() ;
-  int n = x.size() ;
-  NumericMatrix p(n, K);
-  p = update_multinomialPr(xmod) ;
-  //NumericMatrix cumP(n, K) ;
-  //  Make more efficient
-  //return cumP ;
-  NumericVector u = runif(n) ;
-  IntegerVector zz_(n) ;
-  IntegerVector zz = clone(zz_) ;
-  IntegerMatrix freq(B, K) ;
-  int b ;
-  int M ;
-  for(int i=0; i < n; i++){
-    //initialize accumulator ;
-    double acc = 0 ;
-    for(int k = 0; k < K; k++){
-      acc += p(i, k) ;
-      if( u[i] < acc ) {
-        zz[i] = k + 1 ;
-        b = batch[i] - 1 ;
-        freq(b, k) += 1 ;
-        break ;
-      }
+  IntegerVector zz;
+  zz = update_z(model) ;
+  zz.offspring=update_offspring(model); // length 300
+  Rcpp::DataFrame triodat=model.slot("triodata");
+  CharacterVector family_member=triodat["family_member"];
+  LogicalVector is_offspring;
+  is_offspring = family_member == "o";
+  n = zz.size();
+  int j = 0;
+  for(int i = 0; i < n; i++){
+    if(is_offspring[i] == TRUE){
+      zz[i] = zz.offspring[j];
+      j++;
     }
   }
-  if(is_true(all(freq > 1))){
-    return zz ;
-  }
-  //
-  // Don't update z if there are states with zero frequency.
-  //
-  int counter = model.slot(".internal.counter");
-  counter++;
-  model.slot(".internal.counter") = counter;
-  return model.slot("z") ;
+  return zz;
+//  NumericVector x = model.slot("data") ;
+//  NumericMatrix theta = model.slot("theta") ;
+//  IntegerVector batch = model.slot("batch") ;
+//  int B = theta.nrow() ;
+//  int n = x.size() ;
+//  NumericMatrix p(n, K);
+//  p = update_multinomialPr(xmod) ;
+//  //NumericMatrix cumP(n, K) ;
+//  //  Make more efficient
+//  //return cumP ;
+//  NumericVector u = runif(n) ;
+//  IntegerVector zz_(n) ;
+//  IntegerVector zz = clone(zz_) ;
+//  IntegerMatrix freq(B, K) ;
+//  int b ;
+//  int M ;
+//  for(int i=0; i < n; i++){
+//    //initialize accumulator ;
+//    double acc = 0 ;
+//    for(int k = 0; k < K; k++){
+//      acc += p(i, k) ;
+//      if( u[i] < acc ) {
+//        zz[i] = k + 1 ;
+//        b = batch[i] - 1 ;
+//        freq(b, k) += 1 ;
+//        break ;
+//      }
+//    }
+//  }
+//  if(is_true(all(freq > 1))){
+//    return zz ;
+//  }
+//  //
+//  // Don't update z if there are states with zero frequency.
+//  //
+//  int counter = model.slot(".internal.counter");
+//  counter++;
+//  model.slot(".internal.counter") = counter;
+//  return model.slot("z") ;
 }
 
 // [[Rcpp::export]]
@@ -152,8 +169,8 @@ Rcpp::S4 update_offspring(Rcpp::S4 xmod){
   int B = theta.nrow() ;
   int n = triodat.size() ;
   NumericMatrix p(n, K);
-  //p = update_trioPr(xmod) ;
-  
+  p = update_trioPr(xmod) ;  // number trios x K
+
   //NumericMatrix cumP(n, K) ;
   //  Make more efficient
   //return cumP ;
@@ -193,19 +210,19 @@ Rcpp::S4 update_offspring(Rcpp::S4 xmod){
   LogicalVector is_dad(n);
   LogicalVector is_mom(n);
   IntegerVector cn=triodat["copy_number"];
-  for(int i=0; i < T; i++){
-    id = uid[i];
-    is_dad = trio_id == id & family_member == f;
-    is_mom = trio_id == id & family_member == m;
-    f_cn = cn[ is_dad ] ;  // length-one integer vector of father copy number
-    m_cn = cn[ is_mom ] ;  // length-one integer vector of mother copy number
-    // mendel.probs = lookup_mprobs(model, f_cn, m_cn) ;
-    // MC: test
-    //f = cn[trio_id == id & family_member == "f"];
-    //m = cn[trio_id == id & family_member == "m"];
-    //fm = paste(f, m, sep="");
-    //index = match(fm, mprob["parents"])
-  }
+//  for(int i=0; i < T; i++){
+//    id = uid[i];
+//    is_dad = trio_id == id & family_member == f;
+//    is_mom = trio_id == id & family_member == m;
+//    f_cn = cn[ is_dad ] ;  // length-one integer vector of father copy number
+//    m_cn = cn[ is_mom ] ;  // length-one integer vector of mother copy number
+//    // mendel.probs = lookup_mprobs(model, f_cn, m_cn) ;
+//    // MC: test
+//    //f = cn[trio_id == id & family_member == "f"];
+//    //m = cn[trio_id == id & family_member == "m"];
+//    //fm = paste(f, m, sep="");
+//    //index = match(fm, mprob["parents"])
+//  }
 
   int b ;
   for(int i=0; i < n; i++){
@@ -252,7 +269,7 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   }
   for(int s = 0; s < S; ++s){
     if(up[7] > 0){
-      model.slot("z") = update_z(model) ;
+      model.slot("z") = update_zt(model) ;
       //model.slot("z") = update_offspring(model) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     }
