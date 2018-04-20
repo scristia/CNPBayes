@@ -786,14 +786,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // lookup_mprobs
-Rcpp::NumericVector lookup_mprobs(Rcpp::S4 model, Rcpp::IntegerVector father, Rcpp::IntegerVector mother);
+Rcpp::NumericVector lookup_mprobs(Rcpp::S4 model, int father, int mother);
 RcppExport SEXP _CNPBayes_lookup_mprobs(SEXP modelSEXP, SEXP fatherSEXP, SEXP motherSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type model(modelSEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type father(fatherSEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type mother(motherSEXP);
+    Rcpp::traits::input_parameter< int >::type father(fatherSEXP);
+    Rcpp::traits::input_parameter< int >::type mother(motherSEXP);
     rcpp_result_gen = Rcpp::wrap(lookup_mprobs(model, father, mother));
     return rcpp_result_gen;
 END_RCPP
@@ -821,7 +821,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // update_trioPr
-Rcpp::NumericVector update_trioPr(Rcpp::S4 xmod);
+Rcpp::NumericMatrix update_trioPr(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_update_trioPr(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

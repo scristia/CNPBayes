@@ -55,10 +55,22 @@ test_that("burnin", {
   mp <- model@mprob
   model <- runBurnin(model)
   family_member <- family_member(model)
-  
-  row_extract <- lookup_mprobs(model, 1, 1)
-  
+
+  lookup_mprobs(model, 1L, 1L)
+
+  tmp <- matrix(NA, 16, 4)
+  k <- 1
+  for(i in 1:4){
+    for(j in 1:4){
+      tmp[k, ] <- lookup_mprobs(model, as.integer(i), as.integer(j))
+      k <- k+1
+    }
+  }
+
   update_trioPr(model)
+
+
+
 })
 
 
