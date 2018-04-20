@@ -209,7 +209,8 @@ setClass("MultiBatchModel", contains="MixtureModel")
 
 setClass("TrioBatchModel", contains="MultiBatchModel",
          slots=c(triodata="tbl_df", mprob="matrix",
-                 father="numeric", mother="numeric"))
+                 father="numeric", mother="numeric", 
+                 pi_child="numeric"))
                  ##family_member="character"))
 
 #' The 'SingleBatchModel' class

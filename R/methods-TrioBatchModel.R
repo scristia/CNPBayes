@@ -12,6 +12,7 @@
              nu.0=numeric(1),
              sigma2.0=numeric(1),
              pi=numeric(K),
+             pi_child=numeric(K),
              #data=numeric(K),
              triodata=as_tibble(0),
              mprob=matrix(NA, 0, 0),
@@ -59,6 +60,7 @@
   mu <- sort(rnorm(k(hp), mu.0(hp), sqrt(tau2.0(hp))))
   tau2 <- 1/rgamma(k(hp), 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
   p <- rdirichlet(1, alpha(hp))[1, ]
+  p.child <- rdirichlet(1, alpha(hp))[1, ]
   sim_theta <- function(mu, tau, B) sort(rnorm(B, mu, tau))
   . <- NULL
   thetas <- map2(mu, sqrt(tau2), sim_theta, B) %>%
@@ -85,6 +87,7 @@
              nu.0=nu.0,
              sigma2.0=sigma2.0,
              pi=p,
+             pi_child=p.child,
              data=log_ratio,
              batch=batches,
              triodata=triodata,
