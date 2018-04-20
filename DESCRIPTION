@@ -33,7 +33,8 @@ Imports:
     dplyr,
     tibble,
     scales,
-    data.table
+    data.table,
+    RcppArmadillo
 Suggests:
     testthat,
     knitr,

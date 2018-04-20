@@ -763,14 +763,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// testing_trios
-Rcpp::CharacterVector testing_trios(Rcpp::S4 object);
-RcppExport SEXP _CNPBayes_testing_trios(SEXP objectSEXP) {
+// family_member
+Rcpp::CharacterVector family_member(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_family_member(SEXP objectSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
-    rcpp_result_gen = Rcpp::wrap(testing_trios(object));
+    rcpp_result_gen = Rcpp::wrap(family_member(object));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -784,6 +784,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type father(fatherSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type mother(motherSEXP);
     rcpp_result_gen = Rcpp::wrap(lookup_mprobs(model, father, mother));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_trioPr
+Rcpp::NumericVector update_trioPr(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_trioPr(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_trioPr(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -891,8 +902,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_log_prob_nu0p", (DL_FUNC) &_CNPBayes_log_prob_nu0p, 2},
     {"_CNPBayes_reduced_nu0_pooled", (DL_FUNC) &_CNPBayes_reduced_nu0_pooled, 1},
     {"_CNPBayes_log_prob_s20p", (DL_FUNC) &_CNPBayes_log_prob_s20p, 1},
-    {"_CNPBayes_testing_trios", (DL_FUNC) &_CNPBayes_testing_trios, 1},
+    {"_CNPBayes_family_member", (DL_FUNC) &_CNPBayes_family_member, 1},
     {"_CNPBayes_lookup_mprobs", (DL_FUNC) &_CNPBayes_lookup_mprobs, 3},
+    {"_CNPBayes_update_trioPr", (DL_FUNC) &_CNPBayes_update_trioPr, 1},
     {"_CNPBayes_update_offspring", (DL_FUNC) &_CNPBayes_update_offspring, 1},
     {"_CNPBayes_trios_burnin", (DL_FUNC) &_CNPBayes_trios_burnin, 2},
     {"_CNPBayes_trios_mcmc", (DL_FUNC) &_CNPBayes_trios_mcmc, 2},

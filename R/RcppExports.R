@@ -269,12 +269,16 @@ log_prob_s20p <- function(xmod) {
     .Call('_CNPBayes_log_prob_s20p', PACKAGE = 'CNPBayes', xmod)
 }
 
-testing_trios <- function(object) {
-    .Call('_CNPBayes_testing_trios', PACKAGE = 'CNPBayes', object)
+family_member <- function(object) {
+    .Call('_CNPBayes_family_member', PACKAGE = 'CNPBayes', object)
 }
 
 lookup_mprobs <- function(model, father, mother) {
     .Call('_CNPBayes_lookup_mprobs', PACKAGE = 'CNPBayes', model, father, mother)
+}
+
+update_trioPr <- function(xmod) {
+    .Call('_CNPBayes_update_trioPr', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_offspring <- function(xmod) {

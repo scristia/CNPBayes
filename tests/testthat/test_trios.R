@@ -49,15 +49,16 @@ test_that("TBM", {
 })
 
 
-test_that("mcmc", {
+test_that("burnin", {
   library(tidyverse)
   model <- simulateTrioData()
   mp <- model@mprob
-
-  family_member <- testing_trios(model)
-  cn <- testing_trios(model)
-
-  row_extract <- lookup_mprobs(model, 2, 2)
+  model <- runBurnin(model)
+  family_member <- family_member(model)
+  
+  row_extract <- lookup_mprobs(model, 1, 1)
+  
+  update_trioPr(model)
 })
 
 

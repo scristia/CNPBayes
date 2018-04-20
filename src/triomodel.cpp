@@ -1,3 +1,7 @@
+// [[Rcpp::depends(RcppArmadillo)]]
+
+//#include <RcppArmadillo.h>
+
 #include "miscfunctions.h" // for rdirichlet
 #include "multibatch.h" 
 #include <Rmath.h>
@@ -9,10 +13,11 @@
 #include <list>
 
 using namespace Rcpp ;
+//using namespace RcppArmadillo;
 
 
 // [[Rcpp::export]]
-Rcpp::CharacterVector testing_trios(Rcpp::S4 object){
+Rcpp::CharacterVector family_member(Rcpp::S4 object){
   RNGScope scope ;
   Rcpp::S4 model(clone(object)) ;
   Rcpp::DataFrame triodat(model.slot("triodata"));
@@ -50,6 +55,47 @@ Rcpp::NumericVector lookup_mprobs(Rcpp::S4 model, Rcpp::IntegerVector father, Rc
   return result;
 }
 
+// [[Rcpp::export]]
+Rcpp::NumericVector update_trioPr(Rcpp::S4 xmod){
+  RNGScope scope ;
+  Rcpp::S4 model(clone(xmod)) ;
+  Rcpp::DataFrame triodat(model.slot("triodata"));
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  NumericVector z = model.slot("z");
+  CharacterVector fam = family_member(xmod);
+  //std::string level = Rcpp::as<std::string>(level_of_species[0]);
+  Rcpp::LogicalVector fat_ind(fam.size());
+  for (int i = 0; i < fam.size(); i++){
+    fat_ind[i] = (fam[i] == "f");
+  }
+  
+  Rcpp::LogicalVector mat_ind(fam.size());
+  for (int i = 0; i < fam.size(); i++){
+    mat_ind[i] = (fam[i] == "m");
+  }
+  
+  Rcpp::NumericVector zf = z[fat_ind];
+  Rcpp::NumericVector zm = z[mat_ind];
+  int trio_size = zf.size();
+  Rcpp::NumericVector zm_cn = zm[1];
+  int zm_cn_size = zm_cn.size();
+  return zm_cn_size;
+  //Rcpp::NumericMatrix zo_prob(trio_size,K);
+  //int trio_rowfill = zo_prob.nrow() * zo_prob.ncol();
+  //Rcpp:NumericVector trans_probs = lookup_mprobs(xmod, zf[1], zm[1]);
+  //Rcpp::NumericVector tp;
+ 
+ //for (int i = 0; i < trio_size; i++){
+   //Rcpp::NumericVector trans_probs = lookup_mprobs(xmod, zf[i], zm[i]);
+   //for (int j = 0; j < K; j++){
+     //Rcpp::IntegerVector tp = trans_probs[j];
+     //zo_prob(i,j) = tp;  
+// }
+ // }
+  //return zm[1];
+}
+
 
 // [[Rcpp::export]]
 Rcpp::S4 update_offspring(Rcpp::S4 xmod){
@@ -63,7 +109,8 @@ Rcpp::S4 update_offspring(Rcpp::S4 xmod){
   int B = theta.nrow() ;
   int n = x.size() ;
   NumericMatrix p(n, K);
-  p = update_multinomialPr(xmod) ;
+  //p = update_trioPr(xmod) ;
+  
   //NumericMatrix cumP(n, K) ;
   //  Make more efficient
   //return cumP ;
