@@ -494,7 +494,7 @@ setMethod("tablez", "MixtureModel", function(object){
 })
 
 
-uniqueBatch <- function(object) unique(batch(object))
+##uniqueBatch <- function(object) unique(batch(object))
 
 
 ## Create a data.frame of the component densities for each batch
