@@ -528,12 +528,10 @@ posteriorPredictive <- function(model){
     ## mixture probabilities alpha
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
-      ##ylist[[b]] <- rnorm(K, (mu[b, ])[zz], (s[b, ])[zz])
       ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=(s[b, ])[zz])
     }
     y <- unlist(ylist)
     tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
-    ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
   tab$batch <- as.character(tab$batch)
@@ -555,8 +553,12 @@ posteriorPredictive <- function(model){
   components <- seq_len(K)
   mcmc.iter <- iter(model)
   tab.list <- vector("list", mcmc.iter)
-  batches <- rep(unique(batch(model)), each=K)
+  ##batches <- rep(unique(batch(model)), each=K)
+  batches <- sort(rep(unique(batch(model)), each=K))
   df <- dfr(hyperParams(model))
+  ##  bb <- rownames(theta(model))
+  ##  ix <- match(as.character(seq_along(bb)), bb)
+  ##browser()
   for(i in seq_len(mcmc.iter)){
     ## same p assumed for each batch
     a <- alpha[i, ]
@@ -566,12 +568,10 @@ posteriorPredictive <- function(model){
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
       ## sigma is batch-specific but indpendent of z
-      ##ylist[[b]] <- rnorm(K, (mu[b, ])[zz], s[b])
       ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=s[b])
     }
     y <- unlist(ylist)
     tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
-    ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
   tab$batch <- as.character(tab$batch)
