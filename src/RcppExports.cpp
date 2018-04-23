@@ -798,28 +798,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cn_adjust
-Rcpp::IntegerVector cn_adjust(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_cn_adjust(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(cn_adjust(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_zt
-Rcpp::IntegerVector update_zt(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_update_zt(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_zt(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
 // update_trioPr
 Rcpp::NumericMatrix update_trioPr(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_update_trioPr(SEXP xmodSEXP) {
@@ -832,13 +810,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // update_offspring
-Rcpp::S4 update_offspring(Rcpp::S4 xmod);
+Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_update_offspring(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(update_offspring(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_ztrio
+Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_ztrio(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_ztrio(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -938,10 +927,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_log_prob_s20p", (DL_FUNC) &_CNPBayes_log_prob_s20p, 1},
     {"_CNPBayes_family_member", (DL_FUNC) &_CNPBayes_family_member, 1},
     {"_CNPBayes_lookup_mprobs", (DL_FUNC) &_CNPBayes_lookup_mprobs, 3},
-    {"_CNPBayes_cn_adjust", (DL_FUNC) &_CNPBayes_cn_adjust, 1},
-    {"_CNPBayes_update_zt", (DL_FUNC) &_CNPBayes_update_zt, 1},
     {"_CNPBayes_update_trioPr", (DL_FUNC) &_CNPBayes_update_trioPr, 1},
     {"_CNPBayes_update_offspring", (DL_FUNC) &_CNPBayes_update_offspring, 1},
+    {"_CNPBayes_update_ztrio", (DL_FUNC) &_CNPBayes_update_ztrio, 1},
     {"_CNPBayes_trios_burnin", (DL_FUNC) &_CNPBayes_trios_burnin, 2},
     {"_CNPBayes_trios_mcmc", (DL_FUNC) &_CNPBayes_trios_mcmc, 2},
     {NULL, NULL, 0}

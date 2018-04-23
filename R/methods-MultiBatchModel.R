@@ -194,7 +194,7 @@ MultiBatchModel2 <- function(dat=numeric(),
     tabz2 <- table(z(mb))
     validZ <- length(tabz2) == k(hp) && all(tabz1 > 1)
     iter <- iter + 1
-    if(iter == 50) {
+    if(iter == 100) {
       message("Trouble initializing a valid model. The number of components is likely too large")
       return(NULL)
     }

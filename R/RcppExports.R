@@ -281,20 +281,16 @@ lookup_mprobs <- function(model, father, mother) {
     .Call('_CNPBayes_lookup_mprobs', PACKAGE = 'CNPBayes', model, father, mother)
 }
 
-cn_adjust <- function(xmod) {
-    .Call('_CNPBayes_cn_adjust', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_zt <- function(xmod) {
-    .Call('_CNPBayes_update_zt', PACKAGE = 'CNPBayes', xmod)
-}
-
 update_trioPr <- function(xmod) {
     .Call('_CNPBayes_update_trioPr', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_offspring <- function(xmod) {
     .Call('_CNPBayes_update_offspring', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_ztrio <- function(xmod) {
+    .Call('_CNPBayes_update_ztrio', PACKAGE = 'CNPBayes', xmod)
 }
 
 trios_burnin <- function(object, mcmcp) {

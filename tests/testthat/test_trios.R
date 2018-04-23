@@ -1,7 +1,7 @@
 context("Trio models")
 
 simulateTrioData <- function(){
-  set.seed(98765)
+  set.seed(123)
   ##mendelian.probs <- mendelianProb(epsilon=0)
   p <- c(0.24, 0.34, 0.24, 0.09)
   theta <- c(-1.2, 0.3, 1.7, 4)
@@ -48,7 +48,6 @@ test_that("TBM", {
   }
 })
 
-
 test_that("burnin", {
   library(tidyverse)
   model <- simulateTrioData()
@@ -68,6 +67,9 @@ test_that("burnin", {
   }
 
   update_trioPr(model)
+  update_z(model)
+  update_offspring(model)
+  update_ztrio(model)
 
 
 
