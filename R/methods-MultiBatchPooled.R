@@ -60,6 +60,8 @@ MultiBatchPooled <- function(dat=numeric(),
 #' @export
 MBP <- MultiBatchPooled
 
+## MBP
+
 #' @rdname sigma2-method
 #' @aliases sigma2,MultiBatchPooled-method
 setMethod("sigma2", "MultiBatchPooled", function(object) {
@@ -69,6 +71,26 @@ setMethod("sigma2", "MultiBatchPooled", function(object) {
   s2
 })
 
+setMethod("sigma", "MultiBatchPooled", function(object) {
+  s2 <- sigma2(object)
+  sqrt(s2)
+})
+
+#' @rdname sigma2-method
+#' @aliases sigma2<-,MultiBatchCopyNumberPooled-method
+setReplaceMethod("sigma2", "MultiBatchPooled", function(object, value){
+  names(value) <- uniqueBatch(object)
+  object@sigma2 <- value
+  object
+})
+
+setReplaceMethod("sigma", "MultiBatchPooled", function(object, value) {
+  sigma2(object) <- value^2
+  object
+})
+
+## MultiBatch Copy number
+
 #' @rdname sigma2-method
 #' @aliases sigma2,MultiBatchCopyNumberPooled-method
 setMethod("sigma2", "MultiBatchCopyNumberPooled", function(object) {
@@ -77,16 +99,25 @@ setMethod("sigma2", "MultiBatchCopyNumberPooled", function(object) {
   s2
 })
 
-setReplaceMethod("sigma2", "MultiBatchPooled", function(object, value){
+#' @rdname sigma2-method
+#' @aliases sigma,MultiBatchCopyNumberPooled-method
+setMethod("sigma", "MultiBatchCopyNumberPooled", function(object) {
+  sqrt(sigma2(object))
+  s2
+})
+
+#' @rdname sigma2-method
+#' @aliases sigma2,MultiBatchCopyNumberPooled-method
+setReplaceMethod("sigma2", "MultiBatchCopyNumberPooled", function(object, value){
   names(value) <- uniqueBatch(object)
   object@sigma2 <- value
   object
 })
 
-
-setReplaceMethod("sigma2", "MultiBatchCopyNumberPooled", function(object, value){
-  names(value) <- uniqueBatch(object)
-  object@sigma2 <- value
+#' @rdname sigma2-method
+#' @aliases sigma,MultiBatchCopyNumberPooled-method
+setReplaceMethod("sigma", "MultiBatchCopyNumberPooled", function(object, value){
+  sigma2(object) <- value^2
   object
 })
 

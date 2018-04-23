@@ -40,6 +40,10 @@ setGeneric("theta<-", function(object, value) standardGeneric("theta<-"))
 setGeneric("sigma2<-", function(object, value) standardGeneric("sigma2<-"))
 setGeneric("p<-", function(object, value) standardGeneric("p<-"))
 
+#' @export
+#' @rdname sigma2-method
+setGeneric("sigma<-", function(object, value) standardGeneric("sigma<-"))
+
 #' Retrieve overall mean
 #'
 #' @examples
