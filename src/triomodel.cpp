@@ -199,7 +199,6 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   for(int s = 0; s < S; ++s){
     if(up[7] > 0){
       model.slot("z") = update_ztrio(model) ;
-      //model.slot("z") = update_offspring(model) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     }
     if(up[0] > 0)
@@ -311,7 +310,7 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   //up[0] = 0;
   for(int s = 1; s < S; ++s){
     if(up[7] > 0){
-      z = update_z(model) ;
+      z = update_ztrio(model) ;
       model.slot("z") = z ;
       tmp = tableZ(K, z) ;
       model.slot("probz") = update_probz(model) ;
@@ -376,7 +375,7 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     // Thinning
     for(int t = 0; t < T; ++t){
       if(up[7] > 0){
-        model.slot("z") = update_z(model) ;
+        model.slot("z") = update_ztrio(model) ;
         model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       }
       if(up[0] > 0)

@@ -51,8 +51,10 @@ test_that("TBM", {
 test_that("burnin", {
   library(tidyverse)
   model <- simulateTrioData()
-  mp <- model@mprob
+  mp <- McmcParams(iter=50, burnin=5)
+  # runBurnin defined for TBM in posteriorSimulation
   model <- runBurnin(model)
+  
   family_member <- family_member(model)
 
   lookup_mprobs(model, 1L, 1L)
