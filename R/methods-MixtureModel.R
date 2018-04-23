@@ -740,7 +740,8 @@ upSample2 <- function(orig.data,
                       up_sample=TRUE){
   model2 <- useModes(model)
   ## if we do not upSample, we should be able to recover the original probabilities
-  orig.data <- orig.data[order(orig.data$batch_index), ]
+  ##orig.data$ix <- seq_len(nrow(orig.data))
+  ##orig.data <- orig.data[order(orig.data$batch_index), ]
   if(up_sample){
     y(model2) <- orig.data$medians
     if(length(unique_batch(batch(model))) > 1) {
