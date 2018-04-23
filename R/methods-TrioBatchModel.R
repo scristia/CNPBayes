@@ -16,6 +16,7 @@
              #data=numeric(K),
              triodata=as_tibble(0),
              mprob=matrix(NA, 0, 0),
+             #maplabel=numeric(K),
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
              z=integer(0),
@@ -39,7 +40,8 @@
                  hp=HyperparametersTrios(),
                  mp=McmcParams(iter=1000, thin=10,
                                burnin=1000, nStarts=4),
-                 mprob=matrix()){
+                 mprob=matrix(), 
+                 maplabel=maplabel){
   ## If the data is not ordered by batch,
   ## its a little harder to sort component labels
   log_ratio <- triodata$log_ratio
@@ -55,6 +57,7 @@
   }
   K <- k(hp)
   mprob <- mprob
+  maplabel <- maplabel
   ## mu_k is the average across batches of the thetas for component k
   ## tau_k is the sd of the batch means for component k
   mu <- sort(rnorm(k(hp), mu.0(hp), sqrt(tau2.0(hp))))
@@ -91,7 +94,8 @@
              data=log_ratio,
              batch=batches,
              triodata=triodata,
-             mprob=mprob2, 
+             mprob=mprob2,
+             maplabel=maplabel,
              u=u,
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
@@ -133,7 +137,9 @@ TrioBatchModel <- function(triodata=tibble(),
                            hp=HyperparametersTrios(),
                            mp=McmcParams(iter=1000, thin=10,
                                          burnin=1000, nStarts=4),
-                           mprob=mprob){
+                           mprob=mprob,
+                           maplabel=maplabel
+                           ){
   if(nrow(triodata) == 0){
     return(.empty_trio_model(hp, mp))
   }
@@ -144,7 +150,7 @@ TrioBatchModel <- function(triodata=tibble(),
     ##
     ## Burnin with TBM model
     ##
-    tbm <- .TBM(triodata, hp, mp.tmp, mprob)
+    tbm <- .TBM(triodata, hp, mp.tmp, mprob, maplabel)
     tbm <- runBurnin(tbm)
     tabz1 <- table(batch(tbm), z(tbm))
     tabz2 <- table(z(tbm))
@@ -474,6 +480,13 @@ mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), gp){
   
   mprob.mat <- mprob.subset(mprob.mat, gp)
   setDT(mprob.mat)[, c("father","mother") := tstrsplit(parents, "")]
+  
+  mprob.mat <- mprob.mat[, -1] %>%
+    as.tibble() %>%
+    mutate(father=as.numeric(father),
+           mother=as.numeric(mother)) %>%
+    as.matrix
+  
   #K <- gp$K
   #ST <- gp$states[1]
   mprob.mat
@@ -522,3 +535,7 @@ setMethod("triodata_lrr", "TrioBatchModel", function(object){
   object@triodata$log_ratio
 }
 )
+
+setMethod("updateZ", "TrioBatchModel", function(object){
+  update_ztrio(object)
+})

@@ -13,8 +13,8 @@ int getK(Rcpp::S4 hyperparams) {
 }
 
 // [[Rcpp::export]]
-int getSt(Rcpp::S4 hyperparams) {
-  int states = hyperparams.slot("states");
+Rcpp::IntegerVector getSt(Rcpp::S4 hyperparams) { 
+  Rcpp::IntegerVector states = hyperparams.slot("states");
   return states;
 }
 

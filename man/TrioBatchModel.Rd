@@ -6,7 +6,7 @@
 \usage{
 TrioBatchModel(triodata = tibble(), hp = HyperparametersTrios(),
   mp = McmcParams(iter = 1000, thin = 10, burnin = 1000, nStarts = 4),
-  mprob = mprob)
+  mprob = mprob, maplabel = maplabel)
 }
 \arguments{
 \item{triodata}{the data for the simulation.}

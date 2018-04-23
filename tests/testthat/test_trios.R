@@ -10,8 +10,14 @@ simulateTrioData <- function(){
   hp <- HyperparametersTrios(states = 1:4,
                              k = 4)
   K <- hp@k
+  
+  # for gp, which is for the simulation fn only, 
+  # K must have 1: 1 correspondence to states
+  # this means gp and hp may differ
+  # adjust as required
+
   gp <- geneticParams(K=hp@k,
-                      states=hp@states,
+                      states=0:3,
                       xi=sigma,
                       mu=theta)
   mp <- McmcParams(iter=50, burnin=5)
@@ -22,17 +28,16 @@ simulateTrioData <- function(){
                               batches = rep(c(1:nbatch),
                                          length.out = 3*N),
                               error=0, GP=gp)
-  ## MC: update mprob.matrix
+ 
   mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), gp=gp)
-  mprob <- mprob[, -1] %>%
-    as.tibble() %>%
-    mutate(father=as.numeric(father),
-           mother=as.numeric(mother)) %>%
-    as.matrix
+
+  maplabel <- c(0,1,2,2)
   model <- TBM(triodata=dat2$data,
                hp=hp,
                mp=mp,
-               mprob=mprob)
+               mprob=mprob,
+               maplabel=maplabel
+               )
 }
 
 test_that("TBM", {
@@ -72,6 +77,7 @@ test_that("burnin", {
   update_z(model)
   update_offspring(model)
   update_ztrio(model)
+  runMcmc(model)
 
 
 

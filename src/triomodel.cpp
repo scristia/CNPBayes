@@ -36,10 +36,15 @@ Rcpp::NumericVector lookup_mprobs(Rcpp::S4 model, int father, int mother){
   Rcpp::NumericMatrix mprob = model.slot("mprob");
   IntegerVector f = model.slot("father");
   IntegerVector m = model.slot("mother");
+  IntegerVector map = model.slot("maplabel");
+  int fat2 = father - 1;
+  int mot2 = mother - 1;
+  int f2 = map[fat2];
+  int m2 = map[mot2];
   Rcpp::LogicalVector ind(m.size());
   Rcpp::LogicalVector ind2(f.size());
-  ind = f == father;
-  ind2 = m == mother;
+  ind = f == f2;
+  ind2 = m == m2;
   Rcpp::LogicalVector index(ind.size());
   index = ind==TRUE & ind2==TRUE;
   int nr=f.size();
@@ -137,14 +142,41 @@ Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
 //  model.slot(".internal.counter") = counter;
 //  return model.slot("z") ;
 }  
+
+// [[Rcpp::export]]
+Rcpp::IntegerVector adjust_cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map, Rcpp::IntegerVector sts){
+  Rcpp::IntegerVector sts2 = sts.sort();
+  int sts_max = sts2[sts.size()];
+  Rcpp::LogicalVector state_ind(ztrio.size());
+  for (int i = 0; i < sts_max; i++){
+    for (int j=0; j < ztrio.size(); j++){
+      state_ind[j] = (ztrio[j] == sts2[i]);
+    }
+  }
+  
+  for(int j = 0; j < ztrio.size(); j++){
+    if(state_ind[j] == TRUE){
+      for (int i = 0; i < sts_max; i++){
+        int sti = sts2[i];
+        int stsub = map[sti];
+      ztrio[j] = stsub;
+    }
+  }
+  }
+  
+  return ztrio;
+  
+}
   
 // need to map components to copy number
 // [[Rcpp::export]]
 Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(clone(xmod)) ;
+  IntegerVector map = model.slot("maplabel");
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
+  Rcpp::IntegerVector sts = getSt(hypp);
   Rcpp::DataFrame triodat(model.slot("triodata"));
   int n = triodat.size() ;
   NumericVector u = runif(n) ;
@@ -170,7 +202,10 @@ Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
   j++;
     }
   }
-  return ztrio;
+  
+  Rcpp::IntegerVector ztrio2;
+  ztrio2 = adjust_cn(ztrio, map, sts);
+  return ztrio2;
   
   //
   // Don't update ztrio if there are states with zero frequency.
