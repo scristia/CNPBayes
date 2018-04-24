@@ -140,7 +140,6 @@ TrioBatchModel <- function(triodata=tibble(),
                            mprob=mprob,
                            maplabel=maplabel
                            ){
-  browser()
   if(nrow(triodata) == 0){
     return(.empty_trio_model(hp, mp))
   }

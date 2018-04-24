@@ -3,7 +3,6 @@ context("Trio models")
 simulateTrioData <- function(maplabel=c(0,1,2,2)){
   set.seed(123)
   ##mendelian.probs <- mendelianProb(epsilon=0)
-  K <- hp@k
 
   # for gp, which is for the simulation fn only, 
   # K must have 1: 1 correspondence to states
@@ -62,9 +61,8 @@ test_that("burnin", {
   zz <- z(model)
   m <- model@maplabel
   truth <- m [ zz ]
-  cn.test <- z2cn(model)
-  expect_identical(cn.test, truth)
-
+  ##cn.test <- z2cn(model)
+  ##expect_identical(cn.test, truth)
 
   expect_true(validObject(model))
 
@@ -73,25 +71,17 @@ test_that("burnin", {
   model <- runBurnin(model)
 
   family_member <- family_member(model)
+  expect_is(family_member, "character")
 
-  lookup_mprobs(model, 1L, 1L)
+  p <- lookup_mprobs(model, 1L, 1L)
+  expect_is(p, "numeric")
 
-  tmp <- matrix(NA, 16, 4)
-  k <- 1
-  for(i in 1:4){
-    for(j in 1:4){
-      tmp[k, ] <- lookup_mprobs(model, as.integer(i), as.integer(j))
-      k <- k+1
-    }
-  }
   update_trioPr(model)
   update_z(model)
   update_offspring(model)
   update_ztrio(model)
   runMcmc(model)
-
-
-
+  
 })
 
 
