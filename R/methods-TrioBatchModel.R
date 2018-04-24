@@ -427,8 +427,8 @@ gMendelian.multi <- function(tau=c(0.5, 0.5, 0.5)){
   mendelian.probs
 }
 
-mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), gp){
-  states <- gp$states
+mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), maplabel){
+  
   tau1 <- tau[1]
   tau2 <- tau[2]
   tau3 <- tau[3]
@@ -478,7 +478,7 @@ mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), gp){
                       "30", "31", "32", "33", "34",
                       "40", "41", "42", "43", "44")
   
-  mprob.mat <- mprob.subset(mprob.mat, gp)
+  mprob.mat <- mprob.subset2(mprob.mat, maplabel)
   setDT(mprob.mat)[, c("father","mother") := tstrsplit(parents, "")]
   
   mprob.mat <- mprob.mat[, -1] %>%
@@ -496,6 +496,37 @@ mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), gp){
   #saveRDS(mprob.mat, file.path(extdata, filename))
 }
 
+# assumes contiguous CN states but not 1:1 K:states correspondence
+mprob.subset2 <- function(mprob.mat, maplabel) {
+  K <- length(states)
+  states <- unique(maplabel)
+  col.a <- states[1] + 2
+  col.b <- states[K] + 2
+  
+  ref.geno <- c("00", "01", "02", "03", "04", 
+                "10", "11", "12", "13", "14",
+                "20", "21", "22", "23", "24",
+                "30", "31", "32", "33", "34",
+                "40", "41", "42", "43", "44")
+  index <- mprob.label2(states)
+  rows <- match(index, ref.geno)
+  
+  mprob.subset <- mprob.mat[rows, c(col.a:col.b)]
+  mprob.rows <- mprob.mat[rows, 1]
+  mprob.subset <- cbind(mprob.rows, mprob.subset)
+  mprob.subset
+}
+
+mprob.label2 <- function(states){
+  n <- length(states)
+  v <- states
+  combo <- permutations(n=n, r=2, v=v, repeats.allowed=T)
+  geno.combo <- paste0(combo[,1], combo[,2])
+  geno.combo
+}
+
+# deprecate this subsetting matrix function based on gp 
+# and 1:1 K:CN correspondence
 mprob.subset <- function(mprob.mat, gp) {
   K <- gp$K
   states <- gp$states
@@ -516,6 +547,7 @@ mprob.subset <- function(mprob.mat, gp) {
   mprob.subset
 }
 
+# deprecate this as well as associated with mprob.subset
 mprob.label <- function(gp){
   n <- gp$K
   v <- gp$states

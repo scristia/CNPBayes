@@ -197,11 +197,11 @@ Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
     }
   }
   
-  // return ztrio;
+   return ztrio;
   
   Rcpp::IntegerVector ztrio2;
   ztrio2 = z2cn(ztrio, map);
-  return ztrio2;
+  //return ztrio2;
   
   //
   // Don't update ztrio if there are states with zero frequency.

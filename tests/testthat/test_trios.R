@@ -18,8 +18,8 @@ simulateTrioData <- function(){
   # this means gp and hp may differ
   # adjust as required
 
-  gp <- geneticParams(K=hp@k,
-                      states=0:3,
+  gp <- geneticParams(K=5,
+                      states=0:4,
                       xi=sigma,
                       mu=theta)
   mp <- McmcParams(iter=50, burnin=5)
@@ -31,9 +31,10 @@ simulateTrioData <- function(){
                                          length.out = 3*N),
                               error=0, GP=gp)
  
-  mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), gp=gp)
-
   maplabel <- c(0,1,2,2)
+  # mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), gp=gp)
+  mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel)
+  
   model <- TBM(triodata=dat2$data,
                hp=hp,
                mp=mp,
