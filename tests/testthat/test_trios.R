@@ -9,7 +9,7 @@ simulateTrioData <- function(){
   theta <- c(-1.2, 0.3, 1.7, 4)
   sigma <- c(0.2, 0.2, 0.2, 0.2)
   params <- data.frame(cbind(p, theta, sigma))
-  hp <- HyperparametersTrios(states = 1:3,
+  hp <- HyperparametersTrios(states = 1:4,
                              k = 4)
   K <- hp@k
   
@@ -18,8 +18,8 @@ simulateTrioData <- function(){
   # this means gp and hp may differ
   # adjust as required
 
-  gp <- geneticParams(K=5,
-                      states=0:4,
+  gp <- geneticParams(K=4,
+                      states=1:4,
                       xi=sigma,
                       mu=theta)
   mp <- McmcParams(iter=50, burnin=5)
@@ -31,7 +31,7 @@ simulateTrioData <- function(){
                                          length.out = 3*N),
                               error=0, GP=gp)
  
-  maplabel <- c(0,1,2,2)
+  maplabel <- c(1,2,3,4)
   # mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), gp=gp)
   mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel)
   

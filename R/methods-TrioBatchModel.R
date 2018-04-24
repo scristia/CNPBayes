@@ -498,8 +498,8 @@ mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), maplabel){
 
 # assumes contiguous CN states but not 1:1 K:states correspondence
 mprob.subset2 <- function(mprob.mat, maplabel) {
-  K <- length(states)
   states <- unique(maplabel)
+  K <- length(states)
   col.a <- states[1] + 2
   col.b <- states[K] + 2
   
