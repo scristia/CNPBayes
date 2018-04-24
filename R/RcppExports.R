@@ -289,8 +289,8 @@ update_offspring <- function(xmod) {
     .Call('_CNPBayes_update_offspring', PACKAGE = 'CNPBayes', xmod)
 }
 
-adjust_cn <- function(ztrio, map, sts) {
-    .Call('_CNPBayes_adjust_cn', PACKAGE = 'CNPBayes', ztrio, map, sts)
+z2cn <- function(ztrio, map, sts) {
+    .Call('_CNPBayes_z2cn', PACKAGE = 'CNPBayes', ztrio, map, sts)
 }
 
 update_ztrio <- function(xmod) {

@@ -820,16 +820,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// adjust_cn
-Rcpp::IntegerVector adjust_cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map, Rcpp::IntegerVector sts);
-RcppExport SEXP _CNPBayes_adjust_cn(SEXP ztrioSEXP, SEXP mapSEXP, SEXP stsSEXP) {
+// z2cn
+Rcpp::IntegerVector z2cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map, Rcpp::IntegerVector sts);
+RcppExport SEXP _CNPBayes_z2cn(SEXP ztrioSEXP, SEXP mapSEXP, SEXP stsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type ztrio(ztrioSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type map(mapSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type sts(stsSEXP);
-    rcpp_result_gen = Rcpp::wrap(adjust_cn(ztrio, map, sts));
+    rcpp_result_gen = Rcpp::wrap(z2cn(ztrio, map, sts));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -942,7 +942,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_lookup_mprobs", (DL_FUNC) &_CNPBayes_lookup_mprobs, 3},
     {"_CNPBayes_update_trioPr", (DL_FUNC) &_CNPBayes_update_trioPr, 1},
     {"_CNPBayes_update_offspring", (DL_FUNC) &_CNPBayes_update_offspring, 1},
-    {"_CNPBayes_adjust_cn", (DL_FUNC) &_CNPBayes_adjust_cn, 3},
+    {"_CNPBayes_z2cn", (DL_FUNC) &_CNPBayes_z2cn, 3},
     {"_CNPBayes_update_ztrio", (DL_FUNC) &_CNPBayes_update_ztrio, 1},
     {"_CNPBayes_trios_burnin", (DL_FUNC) &_CNPBayes_trios_burnin, 2},
     {"_CNPBayes_trios_mcmc", (DL_FUNC) &_CNPBayes_trios_mcmc, 2},

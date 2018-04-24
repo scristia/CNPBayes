@@ -45,12 +45,12 @@ Rcpp::NumericVector lookup_mprobs(Rcpp::S4 model, int father, int mother){
   Rcpp::LogicalVector ind2(f.size());
   ind = f == f2;
   ind2 = m == m2;
-  Rcpp::LogicalVector index(ind.size());
-  index = ind==TRUE & ind2==TRUE;
+  Rcpp::LogicalVector is_parental_cn(ind.size());
+  is_parental_cn = ind==TRUE & ind2==TRUE;
   int nr=f.size();
-  int j;
-  for(int i = 0; i < nr; i ++){
-    if(index[i]){
+  int j = 0;
+  for(int i = 0; i < nr; i++){
+    if(is_parental_cn[i] == TRUE){
       j = i ;
       break;
     }
@@ -60,6 +60,12 @@ Rcpp::NumericVector lookup_mprobs(Rcpp::S4 model, int father, int mother){
   return result;
 }
 
+//
+// RS notes:Currently, component labels do not necessarily correspond to the integer copy
+// number. Update of the component labels for the parents is independent of copy
+// number. Updates of the component labels for the offspring depends on how
+// components are mapped to copy number.
+//
 // [[Rcpp::export]]
 Rcpp::NumericMatrix update_trioPr(Rcpp::S4 xmod){
   RNGScope scope ;
@@ -108,7 +114,7 @@ Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
   int child_size = zo.size();
   NumericMatrix p(child_size, K);
   p = update_trioPr(xmod) ;  // number trios x K
-  
+
   //NumericMatrix cumP(n, K) ;
   //  Make more efficient
   //return cumP ;
@@ -116,7 +122,7 @@ Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
   IntegerVector zc_(child_size) ;
   IntegerVector zc = clone(zc_) ;
   IntegerMatrix freq(B, K) ;
-  
+
   int b ;
   for(int i=0; i < child_size; i++){
     //initialize accumulator ;
@@ -130,21 +136,25 @@ Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
         break ;
       }
     }
-  } 
+  }
   if(is_true(all(freq > 1))){
     return zc ;
   }
-  
   // avoid the control may reach of non-void function
   // will prob need to fix later to return subset of slot z
- // int counter = model.slot(".internal.counter");
-//  counter++;
-//  model.slot(".internal.counter") = counter;
-//  return model.slot("z") ;
-}  
+  // int counter = model.slot(".internal.counter");
+  //  counter++;
+  //  model.slot(".internal.counter") = counter;
+  //  return model.slot("z") ;
+}
+
+
+//
+// Translate component labels to copy number based on the mapping slot
+//
 
 // [[Rcpp::export]]
-Rcpp::IntegerVector adjust_cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map, Rcpp::IntegerVector sts){
+Rcpp::IntegerVector z2cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map, Rcpp::IntegerVector sts){
   Rcpp::IntegerVector sts2 = sts.sort();
   int sts_max = sts2[sts.size()];
   Rcpp::LogicalVector state_ind(ztrio.size());
@@ -153,7 +163,6 @@ Rcpp::IntegerVector adjust_cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map
       state_ind[j] = (ztrio[j] == sts2[i]);
     }
   }
-  
   for(int j = 0; j < ztrio.size(); j++){
     if(state_ind[j] == TRUE){
       for (int i = 0; i < sts_max; i++){
@@ -163,11 +172,9 @@ Rcpp::IntegerVector adjust_cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map
     }
   }
   }
-  
   return ztrio;
-  
 }
-  
+
 // need to map components to copy number
 // [[Rcpp::export]]
 Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
@@ -175,7 +182,7 @@ Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
   Rcpp::S4 model(clone(xmod)) ;
   IntegerVector map = model.slot("maplabel");
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
+  // int K = getK(hypp) ;
   Rcpp::IntegerVector sts = getSt(hypp);
   Rcpp::DataFrame triodat(model.slot("triodata"));
   int n = triodat.size() ;
@@ -183,7 +190,7 @@ Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
   IntegerVector ztrio_(n) ;
   IntegerVector ztrio = clone(ztrio_) ;
   ztrio = update_z(model) ;
-  
+
   //Rcpp::CharacterVector family_member=triodat["family_member"];
   // Rcpp::LogicalVector is_offspring;
   CharacterVector fam = family_member(xmod);
@@ -193,20 +200,19 @@ Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
   }
   IntegerVector zz_offspring;
   zz_offspring = update_offspring(model); // length 300
-  
+
   n = zz_offspring.size();
   int j = 0;
   for(int i = 0; i < n; i++){
-  if(child_ind[i] == TRUE){
-  ztrio[i] = zz_offspring[j];
-  j++;
+    if(child_ind[i] == TRUE){
+      ztrio[i] = zz_offspring[j];
+      j++;
     }
   }
-  
   Rcpp::IntegerVector ztrio2;
-  ztrio2 = adjust_cn(ztrio, map, sts);
+  ztrio2 = z2cn(ztrio, map, sts);
   return ztrio2;
-  
+
   //
   // Don't update ztrio if there are states with zero frequency.
   //
