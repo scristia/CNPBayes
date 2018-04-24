@@ -1,5 +1,7 @@
 context("Trio models")
 
+library(testthat)
+
 simulateTrioData <- function(){
   set.seed(123)
   ##mendelian.probs <- mendelianProb(epsilon=0)
@@ -7,7 +9,7 @@ simulateTrioData <- function(){
   theta <- c(-1.2, 0.3, 1.7, 4)
   sigma <- c(0.2, 0.2, 0.2, 0.2)
   params <- data.frame(cbind(p, theta, sigma))
-  hp <- HyperparametersTrios(states = 1:4,
+  hp <- HyperparametersTrios(states = 1:3,
                              k = 4)
   K <- hp@k
   

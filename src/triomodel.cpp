@@ -138,34 +138,28 @@ Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
   // avoid the control may reach of non-void function
   // will prob need to fix later to return subset of slot z
  // int counter = model.slot(".internal.counter");
-//  counter++;
+// counter++;
 //  model.slot(".internal.counter") = counter;
 //  return model.slot("z") ;
 }  
 
 // [[Rcpp::export]]
-Rcpp::IntegerVector adjust_cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map, Rcpp::IntegerVector sts){
-  Rcpp::IntegerVector sts2 = sts.sort();
-  int sts_max = sts2[sts.size()];
-  Rcpp::LogicalVector state_ind(ztrio.size());
-  for (int i = 0; i < sts_max; i++){
-    for (int j=0; j < ztrio.size(); j++){
-      state_ind[j] = (ztrio[j] == sts2[i]);
-    }
-  }
+Rcpp::IntegerVector z2cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map){
+  //Rcpp::S4 model(clone(xmod)) ;
+  //Rcpp::IntegerVector map = model.slot("maplabel");
+  //Rcpp::IntegerVector map2 = map.sort();
+  // map2.erase(std::unique(map2.begin(), map2.end()), map2.end());
+  //int map2_max = max(map);
   
-  for(int j = 0; j < ztrio.size(); j++){
-    if(state_ind[j] == TRUE){
-      for (int i = 0; i < sts_max; i++){
-        int sti = sts2[i];
-        int stsub = map[sti];
-      ztrio[j] = stsub;
+  //Rcpp::IntegerVector ztemp = model.slot("z");
+
+  for (int i = 0; i < ztrio.size(); i++){
+    int zind = ztrio[i] - 1;
+    int maplab = map[zind];
+      ztrio[i] = maplab;
     }
-  }
-  }
   
   return ztrio;
-  
 }
   
 // need to map components to copy number
@@ -173,7 +167,7 @@ Rcpp::IntegerVector adjust_cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map
 Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(clone(xmod)) ;
-  IntegerVector map = model.slot("maplabel");
+  Rcpp::IntegerVector map = model.slot("maplabel");
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   Rcpp::IntegerVector sts = getSt(hypp);
@@ -203,8 +197,10 @@ Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
     }
   }
   
+  // return ztrio;
+  
   Rcpp::IntegerVector ztrio2;
-  ztrio2 = adjust_cn(ztrio, map, sts);
+  ztrio2 = z2cn(ztrio, map);
   return ztrio2;
   
   //
