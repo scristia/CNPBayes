@@ -5,10 +5,7 @@ library(testthat)
 simulateTrioData <- function(){
   set.seed(123)
   ##mendelian.probs <- mendelianProb(epsilon=0)
-  p <- c(0.24, 0.34, 0.24, 0.09)
-  theta <- c(-1.2, 0.3, 1.7, 4)
-  sigma <- c(0.2, 0.2, 0.2, 0.2)
-  params <- data.frame(cbind(p, theta, sigma))
+
   hp <- HyperparametersTrios(states = 1:4,
                              k = 4)
   K <- hp@k
@@ -17,9 +14,20 @@ simulateTrioData <- function(){
   # K must have 1: 1 correspondence to states
   # this means gp and hp may differ
   # adjust as required
-
-  gp <- geneticParams(K=4,
-                      states=1:4,
+  
+  # params same K/ states as gp for simulation to run
+  # p <- c(0.24, 0.34, 0.24, 0.09)
+  # theta <- c(-1.2, 0.3, 1.7, 4)
+  # sigma <- c(0.2, 0.2, 0.2, 0.2)
+  # params <- data.frame(cbind(p, theta, sigma))
+  
+  p <- c(0.24, 0.34, 0.33)
+  theta <- c(-1.2, 0.3, 1.7)
+  sigma <- c(0.2, 0.2, 0.2)
+  params <- data.frame(cbind(p, theta, sigma))
+  
+  gp <- geneticParams(K=3,
+                      states=1:3,
                       xi=sigma,
                       mu=theta)
   mp <- McmcParams(iter=50, burnin=5)
@@ -31,7 +39,7 @@ simulateTrioData <- function(){
                                          length.out = 3*N),
                               error=0, GP=gp)
  
-  maplabel <- c(1,2,3,4)
+  maplabel <- c(0,1,2,2)
   # mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), gp=gp)
   mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel)
   
