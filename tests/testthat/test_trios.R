@@ -1,12 +1,10 @@
 context("Trio models")
 
-library(testthat)
-
-simulateTrioData <- function(){
+simulateTrioData <- function(maplabel=c(0,1,2,2)){
   set.seed(123)
   ##mendelian.probs <- mendelianProb(epsilon=0)
   K <- hp@k
-  
+
   # for gp, which is for the simulation fn only, 
   # K must have 1: 1 correspondence to states
   # this means gp and hp may differ
@@ -35,18 +33,13 @@ simulateTrioData <- function(){
                               batches = rep(c(1:nbatch),
                                          length.out = 3*N),
                               error=0, GP=gp)
- 
   hp <- HyperparametersTrios(k = 4)
-  maplabel <- c(0,1,2,2)
-  # mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), gp=gp)
   mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel)
-  
   model <- TBM(triodata=dat2$data,
                hp=hp,
                mp=mp,
                mprob=mprob,
-               maplabel=maplabel
-               )
+               maplabel=maplabel)
 }
 
 test_that("TBM", {
@@ -64,11 +57,21 @@ test_that("TBM", {
 
 test_that("burnin", {
   library(tidyverse)
-  model <- simulateTrioData()
+  model <- simulateTrioData(maplabel=1:4)
+
+  zz <- z(model)
+  m <- model@maplabel
+  truth <- m [ zz ]
+  cn.test <- z2cn(model)
+  expect_identical(cn.test, truth)
+
+
+  expect_true(validObject(model))
+
   mp <- McmcParams(iter=50, burnin=5)
   # runBurnin defined for TBM in posteriorSimulation
   model <- runBurnin(model)
-  
+
   family_member <- family_member(model)
 
   lookup_mprobs(model, 1L, 1L)
@@ -81,7 +84,6 @@ test_that("burnin", {
       k <- k+1
     }
   }
-
   update_trioPr(model)
   update_z(model)
   update_offspring(model)

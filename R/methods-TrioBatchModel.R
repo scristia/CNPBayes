@@ -56,8 +56,8 @@
     stop("batch vector must be the same length as data")
   }
   K <- k(hp)
-  mprob <- mprob
-  maplabel <- maplabel
+  ##mprob <- mprob
+  ##maplabel <- maplabel
   ## mu_k is the average across batches of the thetas for component k
   ## tau_k is the sd of the batch means for component k
   mu <- sort(rnorm(k(hp), mu.0(hp), sqrt(tau2.0(hp))))
@@ -140,6 +140,7 @@ TrioBatchModel <- function(triodata=tibble(),
                            mprob=mprob,
                            maplabel=maplabel
                            ){
+  browser()
   if(nrow(triodata) == 0){
     return(.empty_trio_model(hp, mp))
   }
