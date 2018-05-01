@@ -72,7 +72,7 @@ setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 #' @slot a shape for sigma2.0
 #' @slot b rate for sigma2.0
 #' @slot dfr positive number for t-distribution degrees of freedom
-setClass("HyperparametersTrios", slots = c(states="numeric"),
+setClass("HyperparametersTrios",
          contains="Hyperparameters")
 
 #' An object to hold estimated paraeters.

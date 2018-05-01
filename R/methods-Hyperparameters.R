@@ -58,14 +58,12 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 
 #' Create an object of class 'Hyperparameters' with additional parameters for Trios
 #' 
-#' @param states specifies the specific copy number states
 #' @return An object of class HyperparameterTrios
 #' @examples 
-#'     hyp.trio <- HyperparameterTrios(states=1:4)
+#'     hyp.trio <- HyperparameterTrios(k=3
 #'     
 #' @export
-HyperparametersTrios <- function(states=1:4,
-                                 k=length(states),
+HyperparametersTrios <- function(k=3,
                                  mu.0=0,
                                  tau2.0=0.4,
                                  eta.0=32,
@@ -77,7 +75,6 @@ HyperparametersTrios <- function(states=1:4,
                                  dfr=100){
   if(missing(alpha)) alpha <- rep(1, k)
   new("HyperparametersTrios",
-      states=states,
       k=as.integer(k),
       mu.0=mu.0,
       tau2.0=tau2.0,
@@ -242,7 +239,7 @@ setValidity("Hyperparameters", function(object){
 Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="marginal") return(HyperparametersSingleBatch(k, ...))
   if(type=="batch") return(HyperparametersMultiBatch(k, ...))
-  if(type=="trios") return(HyperparametersTrios(states, ...))
+  if(type=="trios") return(HyperparametersTrios(k, ...))
 }
 
 #' @rdname k-method
@@ -288,19 +285,19 @@ setMethod("show", "Hyperparameters", function(object){
   cat("   b      :", b(object), "\n")
 })
 
-setMethod("show", "HyperparametersTrios", function(object){
-  cat("An object of class 'HyperparametersTrios'\n")
-  cat("   states :", paste(object@states, collapse=","), "\n")
-  cat("   k      :", k(object), "\n")
-  cat("   mu.0   :", mu.0(object), "\n")
-  cat("   tau2.0 :", tau2.0(object), "\n")
-  cat("   eta.0  :", eta.0(object), "\n")
-  cat("   m2.0   :", round(m2.0(object), 3), "\n")
-  cat("   alpha  :", alpha(object), "\n")
-  cat("   beta   :", betas(object), "\n")
-  cat("   a      :", a(object), "\n")
-  cat("   b      :", b(object), "\n")
-})
+#setMethod("show", "HyperparametersTrios", function(object){
+#  cat("An object of class 'HyperparametersTrios'\n")
+#  cat("   states :", paste(object@states, collapse=","), "\n")
+#  cat("   k      :", k(object), "\n")
+#  cat("   mu.0   :", mu.0(object), "\n")
+#  cat("   tau2.0 :", tau2.0(object), "\n")
+#  cat("   eta.0  :", eta.0(object), "\n")
+#  cat("   m2.0   :", round(m2.0(object), 3), "\n")
+#  cat("   alpha  :", alpha(object), "\n")
+#  cat("   beta   :", betas(object), "\n")
+#  cat("   a      :", a(object), "\n")
+#  cat("   b      :", b(object), "\n")
+#})
 
 ## hyperparam_list <- function(){
 ##   hp <- HyperparametersBatch(mu=-0.75,

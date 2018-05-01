@@ -289,10 +289,6 @@ update_offspring <- function(xmod) {
     .Call('_CNPBayes_update_offspring', PACKAGE = 'CNPBayes', xmod)
 }
 
-z2cn <- function(ztrio, map) {
-    .Call('_CNPBayes_z2cn', PACKAGE = 'CNPBayes', ztrio, map)
-}
-
 update_ztrio <- function(xmod) {
     .Call('_CNPBayes_update_ztrio', PACKAGE = 'CNPBayes', xmod)
 }
@@ -303,5 +299,9 @@ trios_burnin <- function(object, mcmcp) {
 
 trios_mcmc <- function(object, mcmcp) {
     .Call('_CNPBayes_trios_mcmc', PACKAGE = 'CNPBayes', object, mcmcp)
+}
+
+z2cn <- function(xmod, map) {
+    .Call('_CNPBayes_z2cn', PACKAGE = 'CNPBayes', xmod, map)
 }
 
