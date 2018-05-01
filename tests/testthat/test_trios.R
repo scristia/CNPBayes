@@ -58,7 +58,7 @@ test_that("TBM", {
 test_that("mprob matrix", {
   
   # the default full deletion matrix
-  maplabel <- c(0,1,2)
+  maplabel <- c(0,1,2) ## 0, 0, 2   2,2,2   ## k  [0,1,2]  [1, 2, 3], [2, 3, 4], [0,0,2], [2,2,2], [1, 2, 2]
   mprob.check <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel)
   
   # deletion example
