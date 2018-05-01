@@ -100,3 +100,9 @@ setMethod("posteriorSimulation", "SingleBatchPooled", function(object){
   object <- as(object, "MultiBatchPooled")
   .posteriorSimulation2(object)
 })
+
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,TrioBatchModel-method
+setMethod("posteriorSimulation", "TrioBatchModel", function(object){
+  .posteriorSimulation2(object)
+})
