@@ -429,6 +429,34 @@ gMendelian.multi <- function(tau=c(0.5, 0.5, 0.5)){
 
 mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), maplabel){
   
+  # to avoid confusion, maplabel1 will always be unique applied throughout all functions
+  # and maplabel will not
+  # so line below will repeat as needed
+  maplabel1 <- unique(maplabel)
+
+  # these conditionals means if maplabel has only one component = 2,
+  # then it defaults to biallelic matrix
+  if (all(any(maplabel1 < 2) & any(maplabel1 > 2))) {
+    mprob.mat <- mprob.matrix.mallelic(tau, maplabel)
+  } else {
+    mprob.mat <- mprob.matrix.biallelic(tau, maplabel)
+  }
+ 
+  setDT(mprob.mat)[, c("father","mother") := tstrsplit(parents, "")]
+  
+  mprob.mat <- mprob.mat[, -1] %>%
+    as.tibble() %>%
+    mutate(father=as.numeric(father),
+           mother=as.numeric(mother)) %>%
+    as.matrix
+
+mprob.mat2 <- mprob.mat.resize(mprob.mat, maplabel)  
+
+mprob.mat2
+  
+}    
+
+mprob.matrix.mallelic <- function (tau=c(0.5, 0.5, 0.5), maplabel){
   tau1 <- tau[1]
   tau2 <- tau[2]
   tau3 <- tau[3]
@@ -462,53 +490,93 @@ mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), maplabel){
   mendelian.probs[25, 2:6] <- c(0,0,0,0,1)
   
   if(all((rowSums(mendelian.probs, na.rm=T))==1)==F) stop("mendelian matrix is incorrect")
-  
-  mendelian.probs[, 1] <- c(00, 01, 02, 03, 04, 
-                            10, 11, 12, 13, 14,
-                            20, 21, 22, 23, 24,
-                            30, 31, 32, 33, 34,
-                            40, 41, 42, 43, 44)
-  
+ 
+  # must do as.tibble step as cbind converts all cells into one type i.e. characters otherwise
   mprob.mat <- as.tibble(mendelian.probs)
-  
-  
-  mprob.mat[, 1] <- c("00", "01", "02", "03", "04", 
-                      "10", "11", "12", "13", "14",
-                      "20", "21", "22", "23", "24",
-                      "30", "31", "32", "33", "34",
-                      "40", "41", "42", "43", "44")
+  ref.geno <- reference.genotype(maplabel)
+  mprob.mat[, 1] <- ref.geno
   
   mprob.mat <- mprob.subset2(mprob.mat, maplabel)
-  setDT(mprob.mat)[, c("father","mother") := tstrsplit(parents, "")]
-  
-  mprob.mat <- mprob.mat[, -1] %>%
-    as.tibble() %>%
-    mutate(father=as.numeric(father),
-           mother=as.numeric(mother)) %>%
-    as.matrix
-  
-  #K <- gp$K
-  #ST <- gp$states[1]
   mprob.mat
-  
-  #extdata <- system.file("extdata", package="marimba2")
-  #filename <- paste0("mendelian_probs2_",K,"_",ST,".rds")
-  #saveRDS(mprob.mat, file.path(extdata, filename))
 }
 
-# assumes contiguous CN states but not 1:1 K:states correspondence
-mprob.subset2 <- function(mprob.mat, maplabel) {
-  states <- unique(maplabel)
-  K <- length(states)
-  col.a <- states[1] + 2
-  col.b <- states[K] + 2
+mprob.matrix.biallelic <- function (tau=c(0.5, 0.5, 0.5), maplabel){
+  # note in biallelic, only 1 tau value required
+  tau1 <- tau[1]
+  allele1 <- c(1, 1-tau1, 0)
+  allele2 <- 1 - allele1
   
-  ref.geno <- c("00", "01", "02", "03", "04", 
-                "10", "11", "12", "13", "14",
-                "20", "21", "22", "23", "24",
-                "30", "31", "32", "33", "34",
-                "40", "41", "42", "43", "44")
-  index <- mprob.label2(states)
+  # kronecker's product
+  a1a1 <- allele1 %x% allele1
+  a1a2 <- allele1 %x% allele2 + allele2 %x% allele1
+  a2a2 <- allele2 %x% allele2
+  ref.geno <- reference.genotype(maplabel)
+  
+  # put the three vectors together for the biallelic transmission matrix
+  #for single autosomal locus
+  mendelian.probs <- array(dim=c(9,4))
+  offspring.geno <- cbind(a1a1, a1a2, a2a2)
+  mendelian.probs[,2:4] <- offspring.geno
+  mprob.mat <- as.tibble(mendelian.probs)
+  mprob.mat[,1] <- ref.geno
+
+  # correctly label the columns 
+  maplabel1 <- unique(maplabel)
+  
+  if (all(maplabel1 < 3)){
+    maplabel2 <- c(0,1,2)
+  } else {
+    maplabel2 <- c(2,3,4)
+  }
+  
+  colnames.label <- vector(length = 3)
+  for (i in 1:3) {
+    cn <- maplabel2[i]
+    label <- paste0("p(",cn,"|f,m)")
+    colnames.label[i] <- label
+  }
+  
+  colnames(mprob.mat)[1] <- "parents"
+  colnames(mprob.mat)[2:4] <- colnames.label
+  
+  mprob.mat <- mprob.subset2(mprob.mat, maplabel)
+  mprob.mat
+}
+
+reference.genotype <- function(maplabel){
+ 
+   maplabel1 <- unique(maplabel)
+  
+  if (all(any(maplabel1 < 2) & any(maplabel1 > 2))) {
+    ref.geno <- c("00", "01", "02", "03", "04", 
+                  "10", "11", "12", "13", "14",
+                  "20", "21", "22", "23", "24",
+                  "30", "31", "32", "33", "34",
+                  "40", "41", "42", "43", "44")
+  } else {
+    if (all(maplabel1 < 3)){ # this is deletion matrix reference genotypes
+      ref.geno <- c("00", "01", "02", 
+                    "10", "11", "12",
+                    "20", "21", "22")
+    } else { # this would be duplication matrix reference genotypes
+      ref.geno <- c("22", "23", "24", 
+                    "32", "33", "34",
+                    "42", "43", "44")
+    }
+  }
+}
+
+mprob.subset2 <- function(mprob.mat, maplabel) {
+  maplabel1 <- unique(maplabel)
+  K <- length(maplabel1)
+  M <- ifelse(all(maplabel1 > 1), 0, 2)
+  col.a <- maplabel1[1] + M
+  col.b <- maplabel1[K] + M
+  
+  # reference genotype is an index to enable the relevant rows of the 
+  #transmission matrix to be subset 
+  ref.geno <- reference.genotype(maplabel)
+  index <- mprob.label2(maplabel)
   rows <- match(index, ref.geno)
   
   mprob.subset <- mprob.mat[rows, c(col.a:col.b)]
@@ -517,13 +585,60 @@ mprob.subset2 <- function(mprob.mat, maplabel) {
   mprob.subset
 }
 
-mprob.label2 <- function(states){
-  n <- length(states)
-  v <- states
-  combo <- permutations(n=n, r=2, v=v, repeats.allowed=T)
+mprob.label2 <- function(maplabel){
+  maplabel1 <- unique(maplabel)
+  n <- length(maplabel1)
+  combo <- permutations(n=n, r=2, v=maplabel1, repeats.allowed=T)
   geno.combo <- paste0(combo[,1], combo[,2])
   geno.combo
 }
+
+mprob.mat.resize <- function(mprob.matrix, maplabel){
+  maplabel1 <- unique(maplabel)
+  K <- ncol(mprob.matrix)
+  mprob.mat2 <- mprob.matrix[,1:(K-2)]
+  mprob.mat2t <- t(mprob.mat2)
+  mprob.mat3 <- cbind(mprob.mat2t, maplabel1)
+  mprob.mat3 <- data.frame(mprob.mat3)
+  
+  maplabel.sort <- data.frame(sort(maplabel))
+  colnames(maplabel.sort) <- "maplabels"
+  
+  mprob.sized <- left_join(maplabel.sort, mprob.mat3, by=c("maplabels"="maplabel1"))
+  sized.matrix <- as.matrix(t(mprob.sized))
+  sized.matrix <- sized.matrix[-1,]
+  rownames(sized.matrix) <- NULL
+
+  L <- length(maplabel)
+  colnames.label <- vector(length = L)
+  for (i in 1:L) {
+    cn <- maplabel[i]
+    label <- paste0("p(",cn,"|f,m)")
+    colnames.label[i] <- label
+  }
+  
+  colnames(sized.matrix) <- colnames.label
+  mprob.parents <- mprob.matrix[,(K-1):K]
+  mprob.mat.sized <- cbind(sized.matrix, mprob.parents)
+  
+  mprob.mat.sized
+}
+
+component_stats <- function(tbl){
+  tbl %>% group_by(copy_number) %>%
+    summarize(mean=mean(log_ratio),
+              sd=sd(log_ratio),
+              n=n())
+}
+
+setMethod("triodata_lrr", "TrioBatchModel", function(object){
+  object@triodata$log_ratio
+}
+)
+
+setMethod("updateZ", "TrioBatchModel", function(object){
+  update_ztrio(object)
+})
 
 # deprecate this subsetting matrix function based on gp 
 # and 1:1 K:CN correspondence
@@ -556,18 +671,5 @@ mprob.label <- function(gp){
   geno.combo
 }
 
-component_stats <- function(tbl){
-  tbl %>% group_by(copy_number) %>%
-    summarize(mean=mean(log_ratio),
-              sd=sd(log_ratio),
-              n=n())
-}
 
-setMethod("triodata_lrr", "TrioBatchModel", function(object){
-  object@triodata$log_ratio
-}
-)
 
-setMethod("updateZ", "TrioBatchModel", function(object){
-  update_ztrio(object)
-})

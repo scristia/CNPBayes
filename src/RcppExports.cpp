@@ -820,18 +820,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// z2cn
-Rcpp::IntegerVector z2cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map);
-RcppExport SEXP _CNPBayes_z2cn(SEXP ztrioSEXP, SEXP mapSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type ztrio(ztrioSEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type map(mapSEXP);
-    rcpp_result_gen = Rcpp::wrap(z2cn(ztrio, map));
-    return rcpp_result_gen;
-END_RCPP
-}
 // update_ztrio
 Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_update_ztrio(SEXP xmodSEXP) {
@@ -864,6 +852,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
     Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
     rcpp_result_gen = Rcpp::wrap(trios_mcmc(object, mcmcp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// z2cn
+Rcpp::S4 z2cn(Rcpp::S4 xmod, Rcpp::IntegerVector map);
+RcppExport SEXP _CNPBayes_z2cn(SEXP xmodSEXP, SEXP mapSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type map(mapSEXP);
+    rcpp_result_gen = Rcpp::wrap(z2cn(xmod, map));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -941,10 +941,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_lookup_mprobs", (DL_FUNC) &_CNPBayes_lookup_mprobs, 3},
     {"_CNPBayes_update_trioPr", (DL_FUNC) &_CNPBayes_update_trioPr, 1},
     {"_CNPBayes_update_offspring", (DL_FUNC) &_CNPBayes_update_offspring, 1},
-    {"_CNPBayes_z2cn", (DL_FUNC) &_CNPBayes_z2cn, 2},
     {"_CNPBayes_update_ztrio", (DL_FUNC) &_CNPBayes_update_ztrio, 1},
     {"_CNPBayes_trios_burnin", (DL_FUNC) &_CNPBayes_trios_burnin, 2},
     {"_CNPBayes_trios_mcmc", (DL_FUNC) &_CNPBayes_trios_mcmc, 2},
+    {"_CNPBayes_z2cn", (DL_FUNC) &_CNPBayes_z2cn, 2},
     {NULL, NULL, 0}
 };
 

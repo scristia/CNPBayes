@@ -140,6 +140,7 @@ Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
   if(is_true(all(freq > 1))){
     return zc ;
   }
+  
   // avoid the control may reach of non-void function
   // will prob need to fix later to return subset of slot z
  // int counter = model.slot(".internal.counter");
@@ -147,24 +148,6 @@ Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
 //  model.slot(".internal.counter") = counter;
 //  return model.slot("z") ;
 }  
-
-// [[Rcpp::export]]
-Rcpp::IntegerVector z2cn(Rcpp::IntegerVector ztrio, Rcpp::IntegerVector map){
-  //Rcpp::S4 model(clone(xmod)) ;
-  //Rcpp::IntegerVector map = model.slot("maplabel");
-  //Rcpp::IntegerVector map2 = map.sort();
-  // map2.erase(std::unique(map2.begin(), map2.end()), map2.end());
-  //int map2_max = max(map);
-  
-  //Rcpp::IntegerVector ztemp = model.slot("z");
-
-  for (int i = 0; i < ztrio.size(); i++){
-    int zind = ztrio[i] - 1;
-    int maplab = map[zind];
-      ztrio[i] = maplab;
-    }
-  return ztrio;
-}
 
 // need to map components to copy number
 // [[Rcpp::export]]
@@ -174,7 +157,7 @@ Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
   Rcpp::IntegerVector map = model.slot("maplabel");
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   // int K = getK(hypp) ;
-  Rcpp::IntegerVector sts = getSt(hypp);
+  // Rcpp::IntegerVector sts = getSt(hypp);
   Rcpp::DataFrame triodat(model.slot("triodata"));
   int n = triodat.size() ;
   NumericVector u = runif(n) ;
@@ -203,9 +186,11 @@ Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
 
    return ztrio;
 
-  Rcpp::IntegerVector ztrio2;
-  ztrio2 = z2cn(ztrio, map);
-  //return ztrio2;
+  // do not return ztrio2 as want to keep component labels consistent
+  // Rcpp::IntegerVector ztrio2;
+  // ztrio2 = z2cn(ztrio, map);
+  // return ztrio2;
+  
   //
   // Don't update ztrio if there are states with zero frequency.
   //
@@ -446,3 +431,21 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   return model ;
 }
 
+// [[Rcpp::export]]
+Rcpp::S4  z2cn(Rcpp::S4 xmod, Rcpp::IntegerVector map){
+  Rcpp::S4 model(clone(xmod)) ;
+  Rcpp::IntegerVector ztrio = model.slot("z");
+  //Rcpp::IntegerVector map = model.slot("maplabel");
+  //Rcpp::IntegerVector map2 = map.sort();
+  // map2.erase(std::unique(map2.begin(), map2.end()), map2.end());
+  //int map2_max = max(map);
+  
+  for (int i = 0; i < ztrio.size(); i++){
+    int zind = ztrio[i] - 1;
+    int maplab = map[zind];
+    ztrio[i] = maplab;
+  }
+  
+  model.slot("z") = ztrio ;
+  return model;
+}
