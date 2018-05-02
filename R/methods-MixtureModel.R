@@ -807,13 +807,14 @@ setMethod("upSample", "MixtureModel", function(model, tiles){
   probs2 <- probs[key, , drop=FALSE]
   probz(model2) <- probs2 * (iter(model) - 1)
   z(model2) <- z(model)[key]
+  batch(model2) <- tiles$batch
   model2
 })
 
 setMethod("u", "MixtureModel", function(object) object@u )
 
 #' Accessor for degrees of freedom
-#' 
+#'
 #' @rdname dfr-method
 #' @aliases dfr,SBPt-method
 setMethod("dfr", "MixtureModel", function(object) object@hyperparams@dfr )

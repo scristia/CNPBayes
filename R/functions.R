@@ -279,8 +279,8 @@ tileMedians <- function(y, nt, batch){
     ## observations can be quite different within a tile (e.g., homozygous deletions)
     ##
     tiles <- ntile(x, nt) %>% as.tibble %>%
-      mutate(x=x) %>%
-      set_colnames(c("tile", "logratio"))
+      mutate(x=x, obs.index) %>%
+      set_colnames(c("tile", "logratio", "obs.index"))
     tiles2 <- tiles %>%
       group_by(tile) %>%
       summarize(spread=abs(diff(range(logratio))),

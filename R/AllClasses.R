@@ -193,8 +193,6 @@ setClass("MixtureModel", representation("VIRTUAL",
 setClass("MultiBatchModel", contains="MixtureModel")
 
 
-
-
 #' The 'SingleBatchModel' class
 #'
 #' Run marginal MCMC simulation
