@@ -27,6 +27,6 @@
 #' @importFrom tidyr gather spread
 #' @importFrom dplyr mutate bind_rows group_by summarize arrange filter n left_join select
 #' @importFrom tibble as.tibble tibble as_tibble
-#' @importFrom data.table setDT tstrsplit
+#' @importFrom data.table setDT tstrsplit frank
 #' @useDynLib CNPBayes
 NULL

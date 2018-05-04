@@ -243,7 +243,7 @@ gibbs_trios_K <- function(hp,
                     batches=batches,
                     max_burnin=max_burnin,
                     min_effsize=min_effsize)
-  names(model.list) <- paste0("MB", map_dbl(model.list, k))
+  names(model.list) <- paste0("TMB", map_dbl(model.list, k))
   ## sort by marginal likelihood
   ##
   ## if(reduce_size) TODO:  remove z chain, keep y in one object
@@ -268,7 +268,7 @@ gibbs_trios <- function(model="trio",
     ## MC:  implement
     hp.list <- hpTrioList(df=df)
   }
-  message("Fitting SB models")
+  message("Fitting TMB models")
   sb <- gibbs_trios_K(hp.list,
                       k_range=k_range,
                       mp=mp,
@@ -276,117 +276,6 @@ gibbs_trios <- function(model="trio",
                       batches=rep(1L, length(dat)),
                       max_burnin=max_burnin,
                       min_effsize=min_effsize)
-}
-
-
-.simulate_data_multi <- function(params, n, mendelian.probs, GP){
-  gp <- GP
-  states <- gp$states + 1
-  K <- nrow(params)
-  p <- params$p
-  theta <- params$theta
-  sigma <- params$sigma
-  c_mk <- sample(1:K, size = n, replace = TRUE, prob = p)
-  c_fk <- sample(1:K, size = n, replace = TRUE, prob = p)
-  c_o <- rep(NA, length = n)
-  M <- cn_adjust2(gp)
-  c_m <- c_mk + M
-  c_f <- c_fk + M
-  for(i in 1:n){
-    cn_m <- c_m[i] + 1
-    cn_f <- c_f[i] + 1
-    p.offspring <- mendelian.probs[, cn_m, cn_f]
-    p.offspring <- p.offspring[states]
-    c_o[i] <- sample(1:K, size = 1, prob = p.offspring)
-  }
-  c_o <- c_o + M
-  c_ok <- c_o - M
-  id.index <- formatC(seq_len(n), flag="0", width=3)
-  logr.tbl <- tibble(m=rnorm(n, mean = theta[c_mk], sd = sigma[c_mk]),
-                     f=rnorm(n, mean = theta[c_fk], sd = sigma[c_fk]),
-                     o=rnorm(n, mean = theta[c_ok], sd = sigma[c_ok]),
-                     id=factor(paste0("trio_", id.index))) %>%
-    gather(key="family_member", value="log_ratio", -id) 
-  cn.mat <- cbind(c_m, c_f, c_o)
-  colnames(cn.mat) <- c("m", "f", "o")
-  cn.tbl <- as.tibble(cn.mat) %>%
-    mutate(id=factor(paste0("trio_", id.index))) %>%
-    gather(key="family_member", value="copy_number", -id)
-  tbl <- left_join(logr.tbl, cn.tbl, by=c("id", "family_member")) %>%
-    mutate(family_member=factor(family_member, levels=c("m", "f", "o"))) %>%
-    arrange(id, family_member)
-  tbl
-}
-
-geneticParams <- function(K=5,
-                          states=0:4,
-                          tau=c(1, 0.5, 0),
-                          xi=c(1.5, 1, 1, 1, 1), 
-                          mu=c(-3, -0.5, 0, 1, 2), ## theoretical
-                          nu=1,
-                          sigma2.0=0.001,
-                          a=rep(1, K),
-                          eta=c(0.5, 0.5),
-                          error=5e-4,
-                          ncp=30,
-                          model="Genetic"){
-  ##m.probs <- gMendelian(tau)
-  list(K=K,
-       states=states,
-       tau=tau,
-       mu=mu,
-       xi=xi,
-       nu=nu,
-       sigma2.0=sigma2.0,
-       a=a,
-       eta=eta,
-       error=error,
-       ncp=ncp,
-       ##m.probs=m.probs,
-       model=model)
-}
-
-cn_adjust2 <- function(gp){
-  states <- gp$states
-  start.state <-states[1]
-  M <- (-1)
-  M <- ifelse(start.state==1, M <- 0, M)
-  M <- ifelse(start.state==2, M <- 1, M)
-  M <- ifelse(start.state==3, M <- 2, M)
-  M <- as.numeric(M)
-  M
-}
-
-simulate_data_multi <- function(params, N, batches, error=0, GP){
-  gp <- GP
-  mendelian.probs <- gMendelian.multi()
-  tbl <- .simulate_data_multi(params, N, mendelian.probs, GP)
-  ## standardize
-  #tbl <- tbl %>%
-   # mutate(log_ratio=(log_ratio-median(log_ratio))/sd(log_ratio))
-  M <- cn_adjust2(gp)
-  z <- tbl$copy_number - M
- 
-  # append batch info (assumes ordering by trios and id)
-  if(missing(batches)) {
-    batches <- rep(1L, 3*N)
-  } else {
-    batches <- as.integer(factor(batches))
-  }
-  batches <- sort(batches)
-  tbl2 <- cbind(tbl, batches)
-  tbl3 <- as_tibble(tbl2)
-   ##
-  ## update parameters to be same as empirical values
-  ##
-  stats <- component_stats(tbl)
-  params$p <- stats$n/sum(stats$n)
-  params$sigma <- stats$sd
-  params$theta <- stats$mean
-  loglik <- sum(dnorm(tbl$log_ratio, params$theta[z],
-                      params$sigma[z], log=TRUE))
-  truth <- list(data=tbl3, params=params, loglik=loglik)
-  truth
 }
 
 
@@ -450,9 +339,13 @@ mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), maplabel){
            mother=as.numeric(mother)) %>%
     as.matrix
 
+# makes sure transmission matrix same size as maplabel, including repeats CN states
 mprob.mat2 <- mprob.mat.resize(mprob.mat, maplabel)  
 
-mprob.mat2
+# makes sure each row adds to 1
+mprob.mat3 <- mprob.balance(mprob.mat2, maplabel)
+
+mprob.mat3
   
 }    
 
@@ -624,11 +517,111 @@ mprob.mat.resize <- function(mprob.matrix, maplabel){
   mprob.mat.sized
 }
 
+mprob.balance <- function (mprob.matrix, maplabel){
+    cols <- length(maplabel)
+    mprob2 <- mprob.matrix[,1:cols]
+    mprob2 <- (mprob2)/(rowSums(mprob2))
+    mprob.matrix[, 1:cols] <- mprob2
+    mprob.matrix
+}
+
+
 component_stats <- function(tbl){
-  tbl %>% group_by(copy_number) %>%
+  tbl2 <- tbl %>% group_by(batches, copy_number) %>%
     summarize(mean=mean(log_ratio),
               sd=sd(log_ratio),
               n=n())
+  k <- length(unique(tbl2$batches))
+  denom <- sum(tbl2$n)/k
+  tbl3 <- tbl2 %>% group_by(batches, copy_number) %>% mutate(p = n / denom)
+  tbl3
+  }
+
+
+# deprecate the following simulation functions:
+.simulate_data_multi2 <- function(params, n, mprob, maplabel){
+  
+  K <- nrow(params)
+  p <- params$p
+  theta <- params$theta
+  sigma2 <- params$sigma2
+  sigma <- sqrt(sigma2)
+  c_mk <- sample(1:K, size = n, replace = TRUE, prob = p)
+  c_fk <- sample(1:K, size = n, replace = TRUE, prob = p)
+  
+  c_m <- maplabel[c_mk]
+  c_f <- maplabel[c_fk]
+  
+  c_ok <- rep(NA, length = n)
+  C <- ncol(mprob)
+  
+  for(i in 1:n){
+    cn_ms <- c_m[i]
+    cn_fs <- c_f[i]
+    mprob2 <- mprob[mprob[,"mother"]==cn_ms,]
+    mprob2 <- mprob2[mprob2[,"father"]==cn_fs,]
+    mprob3 <- mprob2[1:(C-2)]
+    c_ok[i] <- sample(1:K, size = 1, prob = mprob3)
+  }
+  c_o <- maplabel[c_ok]
+
+  id.index <- formatC(seq_len(n), flag="0", width=3)
+  logr.tbl <- tibble(m=rnorm(n, mean = theta[c_mk], sd = sigma[c_mk]),
+                     f=rnorm(n, mean = theta[c_fk], sd = sigma[c_fk]),
+                     o=rnorm(n, mean = theta[c_ok], sd = sigma[c_ok]),
+                     id=factor(paste0("trio_", id.index))) %>%
+    gather(key="family_member", value="log_ratio", -id) 
+  cn.mat <- cbind(c_m, c_f, c_o)
+  colnames(cn.mat) <- c("m", "f", "o")
+  cn.tbl <- as.tibble(cn.mat) %>%
+    mutate(id=factor(paste0("trio_", id.index))) %>%
+    gather(key="family_member", value="copy_number", -id)
+  tbl <- left_join(logr.tbl, cn.tbl, by=c("id", "family_member")) %>%
+    mutate(family_member=factor(family_member, levels=c("m", "f", "o"))) %>%
+    arrange(id, family_member)
+  tbl
+}
+
+simulate_data_multi2 <- function(params, N, batches, error=0, mendelian.probs, maplabel){
+  tbl <- .simulate_data_multi2(params, N, mendelian.probs, maplabel)
+  
+  # append batch info (assumes ordering by trios and id)
+  if(missing(batches)) {
+    batches <- rep(1L, 3*N)
+  } else {
+    batches <- as.integer(factor(batches))
+  }
+  batches <- sort(batches)
+  tbl2 <- cbind(tbl, batches)
+  tbl3 <- as_tibble(tbl2)
+  ##
+  ## update parameters to be same as empirical values
+  ##
+  stats <- component_stats(tbl3)
+  p <- stats %>% group_by(copy_number) %>% summarize(p=mean(p))
+  sd <- stats %>% group_by(copy_number) %>% summarize(sd=mean(sd))
+  mean <- stats %>% group_by(copy_number) %>% summarize(mean=mean(mean))
+  params$p <- p$p
+  params$sigma2 <- (sd$sd)^2
+  params$theta <- mean$mean
+  komponent <- frank(tbl$copy_number, ties.method=c("dense"))
+  loglik <- sum(dnorm(tbl$log_ratio, params$theta[komponent],
+                      sqrt(params$sigma2[komponent]), log=TRUE))
+  truth <- list(data=tbl3, params=params, loglik=loglik)
+  truth
+}
+
+# 
+startAtTrueValues2 <- function(model, truth_stats, data){
+  rows <- length(unique(truth_stats$batches))
+  cols <- length(unique(truth_stats$copy_number))
+  theta(model) <- matrix(truth_stats$mean, nrow=rows, ncol=cols, byrow=T)
+  sigma2(model) <- matrix((truth_stats$sd)^2, nrow=rows, ncol=cols, byrow=T)
+  p(model) <- data$params$p
+  z(model) <- as.integer(data$data$copy_number)
+  zFreq1 <- truth_stats %>% group_by(copy_number) %>% summarize(zfreq=sum(n))
+  zFreq(model) <- zFreq1$zfreq
+  model
 }
 
 setMethod("triodata_lrr", "TrioBatchModel", function(object){
@@ -639,6 +632,10 @@ setMethod("triodata_lrr", "TrioBatchModel", function(object){
 setMethod("updateZ", "TrioBatchModel", function(object){
   update_ztrio(object)
 })
+
+##################################
+#deprecated functions
+###############################
 
 # deprecate this subsetting matrix function based on gp 
 # and 1:1 K:CN correspondence
@@ -671,5 +668,118 @@ mprob.label <- function(gp){
   geno.combo
 }
 
+# deprecate the following simulation functions:
+.simulate_data_multi <- function(params, n, mendelian.probs, GP){
+  gp <- GP
+  states <- gp$states + 1
+  K <- nrow(params)
+  p <- params$p
+  theta <- params$theta
+  sigma2 <- params$sigma2
+  sigma <- sqrt(sigma2)
+  c_mk <- sample(1:K, size = n, replace = TRUE, prob = p)
+  c_fk <- sample(1:K, size = n, replace = TRUE, prob = p)
+  c_o <- rep(NA, length = n)
+  M <- cn_adjust2(gp)
+  c_m <- c_mk + M
+  c_f <- c_fk + M
+  for(i in 1:n){
+    cn_m <- c_m[i] + 1
+    cn_f <- c_f[i] + 1
+    p.offspring <- mendelian.probs[, cn_m, cn_f]
+    p.offspring <- p.offspring[states]
+    c_o[i] <- sample(1:K, size = 1, prob = p.offspring)
+  }
+  c_o <- c_o + M
+  c_ok <- c_o - M
+  id.index <- formatC(seq_len(n), flag="0", width=3)
+  logr.tbl <- tibble(m=rnorm(n, mean = theta[c_mk], sd = sigma[c_mk]),
+                     f=rnorm(n, mean = theta[c_fk], sd = sigma[c_fk]),
+                     o=rnorm(n, mean = theta[c_ok], sd = sigma[c_ok]),
+                     id=factor(paste0("trio_", id.index))) %>%
+    gather(key="family_member", value="log_ratio", -id) 
+  cn.mat <- cbind(c_m, c_f, c_o)
+  colnames(cn.mat) <- c("m", "f", "o")
+  cn.tbl <- as.tibble(cn.mat) %>%
+    mutate(id=factor(paste0("trio_", id.index))) %>%
+    gather(key="family_member", value="copy_number", -id)
+  tbl <- left_join(logr.tbl, cn.tbl, by=c("id", "family_member")) %>%
+    mutate(family_member=factor(family_member, levels=c("m", "f", "o"))) %>%
+    arrange(id, family_member)
+  tbl
+}
 
+geneticParams <- function(K=5,
+                          states=0:4,
+                          tau=c(1, 0.5, 0),
+                          xi=c(1.5, 1, 1, 1, 1), 
+                          mu=c(-3, -0.5, 0, 1, 2), ## theoretical
+                          nu=1,
+                          sigma2.0=0.001,
+                          a=rep(1, K),
+                          eta=c(0.5, 0.5),
+                          error=5e-4,
+                          ncp=30,
+                          model="Genetic"){
+  ##m.probs <- gMendelian(tau)
+  list(K=K,
+       states=states,
+       tau=tau,
+       mu=mu,
+       xi=xi,
+       nu=nu,
+       sigma2.0=sigma2.0,
+       a=a,
+       eta=eta,
+       error=error,
+       ncp=ncp,
+       ##m.probs=m.probs,
+       model=model)
+}
+
+cn_adjust2 <- function(gp){
+  states <- gp$states
+  start.state <-states[1]
+  M <- (-1)
+  M <- ifelse(start.state==1, M <- 0, M)
+  M <- ifelse(start.state==2, M <- 1, M)
+  M <- ifelse(start.state==3, M <- 2, M)
+  M <- as.numeric(M)
+  M
+}
+
+simulate_data_multi <- function(params, N, batches, error=0, GP){
+  gp <- GP
+  mendelian.probs <- gMendelian.multi()
+  tbl <- .simulate_data_multi(params, N, mendelian.probs, GP)
+  ## standardize
+  #tbl <- tbl %>%
+  # mutate(log_ratio=(log_ratio-median(log_ratio))/sd(log_ratio))
+  M <- cn_adjust2(gp)
+  z <- tbl$copy_number - M
+  
+  # append batch info (assumes ordering by trios and id)
+  if(missing(batches)) {
+    batches <- rep(1L, 3*N)
+  } else {
+    batches <- as.integer(factor(batches))
+  }
+  batches <- sort(batches)
+  tbl2 <- cbind(tbl, batches)
+  tbl3 <- as_tibble(tbl2)
+  ##
+  ## update parameters to be same as empirical values
+  ##
+  stats <- component_stats(tbl3)
+  p <- stats %>% group_by(copy_number) %>% summarise(p=mean(p))
+  sd <- stats %>% group_by(copy_number) %>% summarise(sd=mean(sd))
+  mean <- stats %>% group_by(copy_number) %>% summarise(mean=mean(mean))
+  params$p <- p$p
+  params$sigma2 <- (sd$sd)^2
+  params$theta <- mean$mean
+  loglik <- sum(dnorm(tbl$log_ratio, params$theta[z],
+                      sqrt(params$sigma2[z]), log=TRUE))
+  truth <- list(data=tbl3, params=params, loglik=loglik)
+  truth
+}
 
