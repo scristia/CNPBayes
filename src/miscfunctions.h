@@ -35,7 +35,7 @@ Rcpp::NumericVector dlocScale_t(Rcpp::NumericVector x, double df,
         double mu, double sigma);
 
 // Rob
-Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x) ;
+Rcpp::IntegerVector unique_batch(Rcpp::IntegerVector x) ;
 Rcpp::IntegerVector tableZ(int K, Rcpp::IntegerVector z) ;
 Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod);
 

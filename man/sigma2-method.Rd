@@ -2,25 +2,46 @@
 % Please edit documentation in R/AllGenerics.R, R/methods-McmcChains.R,
 %   R/methods-MultiBatchModel.R, R/methods-MultiBatchPooled.R
 \docType{methods}
-\name{sigma2}
+\name{sigma<-}
+\alias{sigma<-}
 \alias{sigma2}
 \alias{sigma2,McmcChains-method}
 \alias{sigma2,missing-method}
 \alias{sigma2,MixtureModel-method}
+\alias{sigma,MixtureModel-method}
 \alias{sigma2,MultiBatchPooled-method}
+\alias{sigma2<-,MultiBatchPooled-method}
+\alias{sigma2<-,MultiBatchCopyNumberPooled-method}
 \alias{sigma2,MultiBatchCopyNumberPooled-method}
+\alias{sigma,MultiBatchCopyNumberPooled-method}
+\alias{sigma2<-,MultiBatchCopyNumberPooled-method}
+\alias{sigma2,MultiBatchCopyNumberPooled-method}
+\alias{sigma<-,MultiBatchCopyNumberPooled-method}
+\alias{sigma,MultiBatchCopyNumberPooled-method}
 \alias{sigma,MultiBatchCopyNumberPooled-method}
 \title{Retrieve the variances of each component and batch distribution}
 \usage{
+sigma(object) <- value
+
 sigma2(object)
 
 \S4method{sigma2}{McmcChains}(object)
 
 \S4method{sigma2}{MixtureModel}(object)
 
+\S4method{sigma}{MixtureModel}(object)
+
 \S4method{sigma2}{MultiBatchPooled}(object)
 
+\S4method{sigma2}{MultiBatchPooled}(object) <- value
+
 \S4method{sigma2}{MultiBatchCopyNumberPooled}(object)
+
+\S4method{sigma}{MultiBatchCopyNumberPooled}(object)
+
+\S4method{sigma2}{MultiBatchCopyNumberPooled}(object) <- value
+
+\S4method{sigma}{MultiBatchCopyNumberPooled}(object) <- value
 
 \S4method{sigma}{MultiBatchCopyNumberPooled}(object)
 }

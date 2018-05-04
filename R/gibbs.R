@@ -319,7 +319,8 @@ gibbs_batch_K <- function(hp,
                     batches=batches,
                     max_burnin=max_burnin,
                     min_effsize=min_effsize)
-  names(model.list) <- paste0("MB", map_dbl(model.list, k))
+  ##names(model.list) <- paste0("MB", map_dbl(model.list, k))
+  names(model.list) <- sapply(model.list, modelName)
   ## sort by marginal likelihood
   ##
   ## if(reduce_size) TODO:  remove z chain, keep y in one object

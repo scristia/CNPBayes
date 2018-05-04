@@ -16,7 +16,7 @@
 #' @importFrom matrixStats colSds colVars colMedians rowProds colMaxs
 #' @importFrom BiocGenerics unlist
 #' @importFrom graphics lines par
-#' @importFrom stats dnorm qnorm kmeans ks.test plot.ts qgamma rbeta rgamma rgeom rnorm runif setNames rpois
+#' @importFrom stats dnorm qnorm kmeans ks.test plot.ts qgamma rbeta rgamma rgeom rnorm runif setNames rpois rchisq dgamma
 #' @importFrom coda effectiveSize mcmc.list gelman.diag mcmc as.mcmc.list
 #' @importFrom mclust Mclust mclustBIC
 #' @importFrom reshape2 melt

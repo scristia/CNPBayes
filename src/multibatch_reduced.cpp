@@ -123,7 +123,7 @@ double log_prob_sigma2(Rcpp::S4 model, Rcpp::NumericMatrix sigma2star){
   Rcpp::NumericVector nu0 = model.slot("nu.0");
   Rcpp::NumericVector s20 = model.slot("sigma2.0");
   Rcpp::IntegerVector batch = model.slot("batch") ;
-  Rcpp::IntegerVector ub = uniqueBatch(batch) ;
+  Rcpp::IntegerVector ub = unique_batch(batch) ;
   Rcpp::IntegerVector zz = model.slot("z") ;
   Rcpp::NumericVector u = model.slot("u") ;
   Rcpp::NumericVector x = model.slot("data") ;
@@ -277,7 +277,7 @@ double log_prob_mu(Rcpp::S4 xmod, Rcpp::NumericVector mustar) {
   Rcpp::List modes = model.slot("modes");
   Rcpp::NumericVector x = model.slot("data");
   Rcpp::IntegerVector batch = model.slot("batch") ;
-  Rcpp::IntegerVector ub = uniqueBatch(batch) ;
+  Rcpp::IntegerVector ub = unique_batch(batch) ;
   int S = mcmcp.slot("iter");
   int B = ub.size() ;
   // get hyperparameters
@@ -402,7 +402,7 @@ double log_prob_tau2(Rcpp::S4 xmod) {
   double eta_0 = hypp.slot("eta.0");
   // batch and component parameters
   Rcpp::IntegerVector batch = model.slot("batch");
-  Rcpp::IntegerVector ub = uniqueBatch(batch);
+  Rcpp::IntegerVector ub = unique_batch(batch);
   int B = ub.size();
   // updated parameters
   double eta_B = eta_0 + B;
@@ -549,7 +549,7 @@ double log_prob_s20(Rcpp::S4 xmod) {
   Rcpp::S4 hypp = model.slot("hyperparams");
   Rcpp::List modes = model.slot("modes");
   Rcpp::IntegerVector batch = model.slot("batch");
-  Rcpp::IntegerVector ub = uniqueBatch(batch);
+  Rcpp::IntegerVector ub = unique_batch(batch);
   int B = ub.size();
   // get ordinal modes.
   Rcpp::IntegerVector nu0_ = Rcpp::as<Rcpp::IntegerVector>(modes["nu0"]);

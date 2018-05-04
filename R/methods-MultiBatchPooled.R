@@ -60,6 +60,8 @@ MultiBatchPooled <- function(dat=numeric(),
 #' @export
 MBP <- MultiBatchPooled
 
+## MBP
+
 #' @rdname sigma2-method
 #' @aliases sigma2,MultiBatchPooled-method
 setMethod("sigma2", "MultiBatchPooled", function(object) {
@@ -69,6 +71,26 @@ setMethod("sigma2", "MultiBatchPooled", function(object) {
   s2
 })
 
+setMethod("sigma", "MultiBatchPooled", function(object) {
+  s2 <- sigma2(object)
+  sqrt(s2)
+})
+
+#' @rdname sigma2-method
+#' @aliases sigma2<-,MultiBatchCopyNumberPooled-method
+setReplaceMethod("sigma2", "MultiBatchPooled", function(object, value){
+  names(value) <- uniqueBatch(object)
+  object@sigma2 <- value
+  object
+})
+
+setReplaceMethod("sigma", "MultiBatchPooled", function(object, value) {
+  sigma2(object) <- value^2
+  object
+})
+
+## MultiBatch Copy number
+
 #' @rdname sigma2-method
 #' @aliases sigma2,MultiBatchCopyNumberPooled-method
 setMethod("sigma2", "MultiBatchCopyNumberPooled", function(object) {
@@ -77,16 +99,25 @@ setMethod("sigma2", "MultiBatchCopyNumberPooled", function(object) {
   s2
 })
 
-setReplaceMethod("sigma2", "MultiBatchPooled", function(object, value){
+#' @rdname sigma2-method
+#' @aliases sigma,MultiBatchCopyNumberPooled-method
+setMethod("sigma", "MultiBatchCopyNumberPooled", function(object) {
+  sqrt(sigma2(object))
+  s2
+})
+
+#' @rdname sigma2-method
+#' @aliases sigma2,MultiBatchCopyNumberPooled-method
+setReplaceMethod("sigma2", "MultiBatchCopyNumberPooled", function(object, value){
   names(value) <- uniqueBatch(object)
   object@sigma2 <- value
   object
 })
 
-
-setReplaceMethod("sigma2", "MultiBatchCopyNumberPooled", function(object, value){
-  names(value) <- uniqueBatch(object)
-  object@sigma2 <- value
+#' @rdname sigma2-method
+#' @aliases sigma,MultiBatchCopyNumberPooled-method
+setReplaceMethod("sigma", "MultiBatchCopyNumberPooled", function(object, value){
+  sigma2(object) <- value^2
   object
 })
 
@@ -287,6 +318,7 @@ gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches, min_
   if(meets_conditions){
     testing <- tryCatch(compute_marginal_lik(model), error=function(e) NULL)
     if(is.null(testing)) return(model)
+    model <- testing
   }
   model
 }
@@ -317,32 +349,32 @@ gibbsMultiBatchPooled <- function(hp,
   models <- model.list[ix]
 }
 
-gibbsPooled <- function(hp.list,
-                        mp,
-                        dat,
-                        batches,
-                        k_range=c(1, 4),
-                        max_burnin=32000,
-                        top=3){
-  message("Fitting multi-batch models K=", min(k_range), " to K=", max(k_range))
-  mb.models <- gibbsMultiBatchPooled(hp.list[["multi_batch"]],
-                                     k_range=k_range,
-                                     mp=mp,
-                                     dat=dat,
-                                     batches=batches,
-                                     max_burnin=max_burnin)
-  message("Fitting single-batch models K=", min(k_range), " to K=", max(k_range))
-  sb.models <- gibbs_K(hp.list[["single_batch"]],
-                       k_range=k_range,
-                       mp=mp,
-                       dat=dat,
-                       max_burnin=max_burnin)
-  models <- c(mb.models, sb.models)
-  ml <- map_dbl(models, marginal_lik)
-  ix <- head(order(ml, decreasing=TRUE), top)
-  models <- models[ix]
-  models
-}
+##gibbsPooled <- function(hp.list,
+##                        mp,
+##                        dat,
+##                        batches,
+##                        k_range=c(1, 4),
+##                        max_burnin=32000,
+##                        top=3){
+##  message("Fitting multi-batch models K=", min(k_range), " to K=", max(k_range))
+##  mb.models <- gibbsMultiBatchPooled(hp.list[["multi_batch"]],
+##                                     k_range=k_range,
+##                                     mp=mp,
+##                                     dat=dat,
+##                                     batches=batches,
+##                                     max_burnin=max_burnin)
+##  message("Fitting single-batch models K=", min(k_range), " to K=", max(k_range))
+##  sb.models <- gibbs_K(hp.list[["single_batch"]],
+##                       k_range=k_range,
+##                       mp=mp,
+##                       dat=dat,
+##                       max_burnin=max_burnin)
+##  models <- c(mb.models, sb.models)
+##  ml <- map_dbl(models, marginal_lik)
+##  ix <- head(order(ml, decreasing=TRUE), top)
+##  models <- models[ix]
+##  models
+##}
 
 
 

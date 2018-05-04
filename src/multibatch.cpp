@@ -15,7 +15,7 @@ Rcpp::NumericVector compute_loglik(Rcpp::S4 xmod){
   int N = x.size() ;
   NumericVector p = model.slot("pi") ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch);
+  IntegerVector ub = unique_batch(batch);
   NumericMatrix theta = model.slot("theta") ;
   NumericMatrix sigma2 = model.slot("sigma2") ;
   IntegerVector batch_freq = model.slot("batchElements") ;
@@ -77,7 +77,7 @@ Rcpp::NumericVector update_mu(Rcpp::S4 xmod){
   IntegerVector nn = model.slot("zfreq") ;
 
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
+  IntegerVector ub = unique_batch(batch) ;
   int B = ub.size() ;
 
   NumericVector tau2_B_tilde(K) ;;
@@ -135,7 +135,7 @@ Rcpp::NumericVector update_tau2(Rcpp::S4 xmod){
   NumericMatrix theta = model.slot("theta") ;
 
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
+  IntegerVector ub = unique_batch(batch) ;
   int B = ub.size() ;
   double eta_B = eta_0 + B ;
 
@@ -161,7 +161,7 @@ Rcpp::NumericVector update_sigma20(Rcpp::S4 xmod){
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
     int K = getK(hypp) ;
     IntegerVector batch = model.slot("batch") ;
-    IntegerVector ub = uniqueBatch(batch) ;
+    IntegerVector ub = unique_batch(batch) ;
     int B = ub.size() ;
     NumericVector a = hypp.slot("a") ;
     NumericVector b = hypp.slot("b") ;
@@ -253,7 +253,7 @@ Rcpp::NumericMatrix update_multinomialPr(Rcpp::S4 xmod) {
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
+  IntegerVector ub = unique_batch(batch) ;
   NumericVector p = model.slot("pi") ;
   NumericMatrix sigma2 = model.slot("sigma2") ;
   NumericMatrix theta = model.slot("theta") ;
@@ -364,7 +364,7 @@ Rcpp::NumericMatrix compute_means(Rcpp::S4 xmod) {
   int K = getK(hypp) ;
   IntegerVector nn = model.slot("zfreq") ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
+  IntegerVector ub = unique_batch(batch) ;
   int B = ub.size() ;
   NumericMatrix means(B, K) ;
   NumericVector is_z(n) ;
@@ -396,7 +396,7 @@ Rcpp::NumericMatrix compute_vars(Rcpp::S4 xmod) {
   int K = getK(hypp) ;
   IntegerVector nn = model.slot("zfreq") ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
+  IntegerVector ub = unique_batch(batch) ;
   int B = ub.size() ;
   NumericMatrix vars(B, K) ;
   NumericMatrix tabz = tableBatchZ(model) ;
@@ -561,7 +561,7 @@ Rcpp::NumericMatrix update_sigma2(Rcpp::S4 xmod){
     // get batch info
     Rcpp::NumericMatrix tabz = tableBatchZ(model);
     Rcpp::IntegerVector batch = model.slot("batch");
-    Rcpp::IntegerVector ub = uniqueBatch(batch);
+    Rcpp::IntegerVector ub = unique_batch(batch);
     Rcpp::NumericMatrix ss(B, K);
 
     for (int i = 0; i < n; ++i) {

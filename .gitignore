@@ -24,3 +24,5 @@ inst/unitTests
 /vignettes/Overview.md
 /R/methods-BatchModel.R
 /R/methods-MarginalModel.R
+/src/symbols.rds
+/vignettes/Overview.tex

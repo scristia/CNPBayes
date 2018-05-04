@@ -27,14 +27,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// uniqueBatch
-Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x);
-RcppExport SEXP _CNPBayes_uniqueBatch(SEXP xSEXP) {
+// unique_batch
+Rcpp::IntegerVector unique_batch(Rcpp::IntegerVector x);
+RcppExport SEXP _CNPBayes_unique_batch(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(uniqueBatch(x));
+    rcpp_result_gen = Rcpp::wrap(unique_batch(x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -767,7 +767,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_getK", (DL_FUNC) &_CNPBayes_getK, 1},
     {"_CNPBayes_getDf", (DL_FUNC) &_CNPBayes_getDf, 1},
-    {"_CNPBayes_uniqueBatch", (DL_FUNC) &_CNPBayes_uniqueBatch, 1},
+    {"_CNPBayes_unique_batch", (DL_FUNC) &_CNPBayes_unique_batch, 1},
     {"_CNPBayes_tableZ", (DL_FUNC) &_CNPBayes_tableZ, 2},
     {"_CNPBayes_tableBatchZ", (DL_FUNC) &_CNPBayes_tableBatchZ, 1},
     {"_CNPBayes_rMultinom", (DL_FUNC) &_CNPBayes_rMultinom, 2},

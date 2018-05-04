@@ -91,6 +91,7 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 #' Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
 #' the Inverse Gamma sampling distribution for the component-specific
 #' variances)
+#' @param dfr length-one numeric vector setting degrees of freedom for t-distributions
 #' @return An object of class HyperparametersBatch
 #' @examples
 #' HyperparametersMultiBatch(k=3)
@@ -98,15 +99,15 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 #' @export
 #' @seealso \code{\link{hpList}}
 HyperparametersMultiBatch <- function(k=3L,
-                                 mu.0=0,
-                                 tau2.0=0.4,
-                                 eta.0=32,
-                                 m2.0=0.5,
-                                 alpha,
-                                 beta=0.1, ## mean is 1/10
-                                 a=1.8,
-                                 b=6,
-                                 dfr=100){
+                                      mu.0=0,
+                                      tau2.0=0.4,
+                                      eta.0=32,
+                                      m2.0=0.5,
+                                      alpha,
+                                      beta=0.1, ## mean is 1/10
+                                      a=1.8,
+                                      b=6,
+                                      dfr=100){
   if(missing(alpha)) alpha <- rep(1, k)
   new("HyperparametersMultiBatch",
       k=as.integer(k),
@@ -288,4 +289,5 @@ hpList <- function(...){
        MBP=mbp)
 }
 
+#' @aliases dfr,Hyperparameters-method
 setMethod("dfr", "Hyperparameters", function(object) object@dfr)

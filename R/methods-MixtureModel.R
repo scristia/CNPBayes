@@ -740,9 +740,11 @@ upSample2 <- function(orig.data,
                       up_sample=TRUE){
   model2 <- useModes(model)
   ## if we do not upSample, we should be able to recover the original probabilities
+  ##orig.data$ix <- seq_len(nrow(orig.data))
+  ##orig.data <- orig.data[order(orig.data$batch_index), ]
   if(up_sample){
     y(model2) <- orig.data$medians
-    if(length(unique(batch(model))) > 1) {
+    if(length(unique_batch(batch(model))) > 1) {
       batch(model2) <- orig.data$batch_index
     } else batch(model2) <- rep(1L, nrow(orig.data))
     model2@u <- rchisq(length(y(model2)), df=dfr(model))
@@ -758,7 +760,7 @@ upSample2 <- function(orig.data,
   pooled <- class(model) %in% c("SingleBatchPooled", "MultiBatchPooled")
   K <- seq_len(k(model2))
   ##B <- unique(orig.data$batch_index)
-  B <- unique(batch(model2))
+  B <- unique_batch(batch(model2))
   pz <- matrix(NA, length(y(model2)), max(K))
   for(b in B){
     j <- which(batch(model2) == b)

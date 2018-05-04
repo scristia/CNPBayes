@@ -92,10 +92,6 @@ setMethod("relabel", "BatchModel", function(object, zindex){
   object
 })
 
-setMethod("computeModes", "MarginalModel", function(object){
-  .computeModesSingleBatch(object)
-})
-
 
 setMethod("showMeans", "MarginalModel", function(object){
   paste(round(theta(object), 2), collapse=", ")
@@ -226,23 +222,28 @@ setMethod("marginalLikelihood", "BatchModel",
           })
 
 setMethod("runBurnin", "MarginalModel", function(object){
-  mcmc_marginal_burnin(object, mcmcParams(object))
+  .Defunct()
+  ##mcmc_marginal_burnin(object, mcmcParams(object))
 })
 
 setMethod("runBurnin", "BatchModel", function(object){
-  mcmc_batch_burnin(object, mcmcParams(object))
+  .Defunct()
+  ##mcmc_batch_burnin(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "MarginalModel", function(object){
-  mcmc_marginal(object, mcmcParams(object))
+  .Defunct()
+  ##mcmc_marginal(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "BatchModel", function(object){
-  mcmc_batch(object, mcmcParams(object))
+  .Defunct()
+  ##mcmc_batch(object, mcmcParams(object))
 })
 
 setMethod("computeModes", "BatchModel", function(object){
-  .computeModesBatch(object)
+  .Defunct()
+  ##.computeModesBatch(object)
 })
 
 setMethod("sortComponentLabels", "MarginalModel", function(model){
@@ -417,8 +418,8 @@ setMethod("densitiesCluster", "SingleBatchModel", function(object){
        clusters=km, quantiles=dens$quantiles, data=dens$data)
 })
 
-#' DensityModel constructor has been deprecated.  
-#' @seealso See \code{\link{ggSingleBatch}} and \code{\link{ggMultiBatch}} for visualization
+#' DensityModel constructor has been deprecated.
+#' 
 #' @return An object of class 'DensityModel'
 #' @export
 #' @rdname Defunct-functions
@@ -1351,42 +1352,25 @@ setMethod("quantiles", "DensityModel", function(object) object@quantiles)
 #' @rdname Defunct-functions
 setMethod("ggMultiBatch", "MultiBatchModel", function(model, bins){
   .Defunct("See ggMixture")
-  .gg_multibatch(model, bins)
 })
 
 #' @rdname Defunct-functions
 setMethod("ggMultiBatch", "MultiBatchPooled", function(model, bins){
   .Defunct("See ggMixture")
-  .gg_multibatch_pooled(model, bins)
 })
 
 setGeneric("ggSingleBatch", function(model, bins) standardGeneric("ggSingleBatch"))
 
-#' @rdname Defunct-functions
-#' @aliases ggSingleBatch,MarginalModel-method
-setMethod("ggSingleBatch", "MarginalModel", function(model, bins){
-  .Defunct("See ggMixture")
-  .gg_singlebatch(model, bins)
-})
-
-#' @rdname Defunct-functions
-#' @aliases ggSingleBatch,SingleBatchModel-method
-setMethod("ggSingleBatch", "SingleBatchModel", function(model, bins){
-  .Defunct("See ggMixture")
-  .gg_singlebatch(model, bins)
-})
 
 #' @rdname Defunct-functions
 setMethod("ggMultiBatch", "MultiBatchCopyNumber", function(model, bins){
   .Defunct("See ggMixture")
-  .gg_multibatch_copynumber(model, bins)
 })
 
 #' @rdname Defunct-functions
 #' @aliases ggSingleBatch,SingleBatchCopyNumber-method
 setMethod("ggSingleBatch", "SingleBatchCopyNumber", function(model, bins){
   .Defunct("See ggMixture")
-  .gg_singlebatch_copynumber(model, bins)
 })
 
 setReplaceMethod("p", "BatchModel", function(object, value){
@@ -1814,12 +1798,12 @@ newMarginalModel <- function(object){
   object2
 }
 
-#' @export
-#' @rdname Defunct-functions
-multiBatchDensities <- function(model){
-  .Defunct("ggMixture")
-  dnorm_poly_multibatch(model)
-}
+## #' @export
+## #' @rdname Defunct-functions
+## multiBatchDensities <- function(model){
+##   .Defunct("ggMixture")
+##   dnorm_poly_multibatch(model)
+## }
 
 #' @rdname collapseBatch-method
 #' @aliases collapseBatch,BatchModel-method

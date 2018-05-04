@@ -49,6 +49,8 @@ variances).}
 Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
 the Inverse Gamma sampling distribution for the component-specific
 variances)}
+
+\item{dfr}{length-one numeric vector setting degrees of freedom for t-distributions}
 }
 \value{
 An object of class HyperparametersBatch
