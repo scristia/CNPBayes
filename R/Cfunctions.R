@@ -171,7 +171,7 @@ probSigma2 <- function(model, sigma2star){
   yy <- y(model)
   for(b in seq_along(ub)){
     for(k in seq_len(K)){
-      index <- B == ub[i] & zz == k
+      index <- B == ub[b] & zz == k
       ss[b, k] <- sum(uu[index] * (yy[index] - thetastar[b, k])^2)
     }
   }
@@ -217,6 +217,7 @@ probTheta <- function(model){
   invs2 = 1.0 / sigma2;    ##this is a vector of length B
   sigma2_tilde = matrix(invs2, nrow=1)
   total = 0.0;
+  df <- dfr(model)
   for (k in seq_len(K)) {
     for (b in seq_len(nrow(thetastar))) {
       heavyn = sumu[b, k] / df;

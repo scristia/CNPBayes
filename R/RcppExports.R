@@ -13,8 +13,8 @@ getDf <- function(hyperparams) {
     .Call('_CNPBayes_getDf', PACKAGE = 'CNPBayes', hyperparams)
 }
 
-uniqueBatch <- function(x) {
-    .Call('_CNPBayes_uniqueBatch', PACKAGE = 'CNPBayes', x)
+unique_batch <- function(x) {
+    .Call('_CNPBayes_unique_batch', PACKAGE = 'CNPBayes', x)
 }
 
 tableZ <- function(K, z) {

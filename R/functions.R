@@ -449,6 +449,9 @@ posteriorPredictive <- function(model){
   if(class(model) == "MultiBatchPooled"){
     tab <- .posterior_predictive_mbp(model)
   }
+  if(class(model) == "MultiBatchCopyNumberPooled"){
+    tab <- .posterior_predictive_mbp(model)
+  }
   tab <- tab[, c("y", "component", "batch")]
   tab$model <- modelName(model)
   return(tab)
@@ -521,15 +524,14 @@ posteriorPredictive <- function(model){
     a <- alpha[i, ]
     mu <- matrix(thetas[i, ], nb, K)
     s <- matrix(sigmas[i, ], nb, K)
-    ## for each batch, sample K observations with mixture probabilities alpha
+    ## for each batch, sample K observations with
+    ## mixture probabilities alpha
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
-      ##ylist[[b]] <- rnorm(K, (mu[b, ])[zz], (s[b, ])[zz])
       ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=(s[b, ])[zz])
     }
     y <- unlist(ylist)
     tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
-    ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
   tab$batch <- as.character(tab$batch)
@@ -551,8 +553,12 @@ posteriorPredictive <- function(model){
   components <- seq_len(K)
   mcmc.iter <- iter(model)
   tab.list <- vector("list", mcmc.iter)
-  batches <- rep(unique(batch(model)), each=K)
+  ##batches <- rep(unique(batch(model)), each=K)
+  batches <- sort(rep(unique(batch(model)), each=K))
   df <- dfr(hyperParams(model))
+  ##  bb <- rownames(theta(model))
+  ##  ix <- match(as.character(seq_along(bb)), bb)
+  ##browser()
   for(i in seq_len(mcmc.iter)){
     ## same p assumed for each batch
     a <- alpha[i, ]
@@ -562,12 +568,10 @@ posteriorPredictive <- function(model){
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
       ## sigma is batch-specific but indpendent of z
-      ##ylist[[b]] <- rnorm(K, (mu[b, ])[zz], s[b])
       ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=s[b])
     }
     y <- unlist(ylist)
     tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
-    ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
   tab$batch <- as.character(tab$batch)
@@ -590,6 +594,15 @@ useModes <- function(object){
   ##
   z(m2) <- updateZ(m2)
   m2
+}
+
+missingBatch <- function(dat, ix){
+  batches <- dat$provisional_batch
+  batches.sub <- batches[ix]
+  u.batch <- unique(batches)
+  u.batch.sub <- unique(batches.sub)
+  missing.batch <- u.batch[ !u.batch %in% u.batch.sub ]
+  missing.batch
 }
 
 #' Down sample the observations in a mixture
@@ -633,11 +646,15 @@ downSample <- function(dat,
   size <- min(size, N)
   ##dat <- tiles$logratio
   ix <- sample(seq_len(N), size, replace=TRUE)
+  missing.batch <- missingBatch(dat, ix)
+  if(length(missing.batch) > 0){
+    ix2 <- which(dat$provisional_batch %in% missing.batch)
+    ix <- c(ix, ix2)
+  }
   dat.sub <- dat[ix, ]
   ## tricky part:
   ##
-  ## - if we down sample, there may not be enough observations to estimate the
-  ##   mixture densities for batches with few samples
+  ## - if we down sample, there may not be enough observations to estimate the mixture densities for batches with few samples
   ##
   ##tab <- tibble(medians=dat.sub,
   ##              batch.var=batches[ix]) %>%
@@ -645,11 +662,18 @@ downSample <- function(dat,
   ##
   ## combine batches with too few observations based on the location (not scale)
   ##
+  batch_orig <- NULL
+  medians <- NULL
+  largebatch <- NULL
+  other <- NULL
+  . <- NULL
+  batch_New <- NULL
   select <- dplyr::select
   batch.sum <- dat.sub %>%
     group_by(batch_orig) %>%
     summarize(mean=mean(medians),
               n=n())
+
   small.batch <- batch.sum %>%
     filter(n < min.batchsize) %>%
     mutate(largebatch="")
@@ -719,12 +743,15 @@ rst <- function (n, df = 100, mean = 0, sigma = 1){
 #' modelName(SingleBatchModelExample)
 #' @export
 modelName <- function(model){
+  . <- NULL
   model.name <- class(model) %>%
     gsub("CopyNumber", "", .) %>%
     gsub("SingleBatchPooled", "SBP", .) %>%
     gsub("SingleBatchModel", "SB", .) %>%
     gsub("MultiBatchModel", "MB", .) %>%
-    gsub("MultiBatchPooled", "MBP", .)
+    gsub("MultiBatchPooled", "MBP", .) %>%
+    gsub("CopyNumber", "", .) %>%
+    gsub("MultiBatch", "MB", .)
   L <- length(unique(batch(model)))
   if(L == 1){
     model.name <- gsub("MB", "SB", model.name)

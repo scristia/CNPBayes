@@ -14,7 +14,7 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
   int N = x.size() ;
   NumericVector p = model.slot("pi") ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch);
+  IntegerVector ub = unique_batch(batch);
   NumericMatrix theta = model.slot("theta") ;
   NumericVector sigma2 = model.slot("sigma2") ;
   IntegerVector batch_freq = model.slot("batchElements") ;
@@ -70,7 +70,7 @@ Rcpp::NumericVector sigma20_multibatch_pvar(Rcpp::S4 xmod){
     Rcpp::S4 hypp(model.slot("hyperparams")) ;
     int K = getK(hypp) ;
     IntegerVector batch = model.slot("batch") ;
-    IntegerVector ub = uniqueBatch(batch) ;
+    IntegerVector ub = unique_batch(batch) ;
     int B = ub.size() ;
     NumericVector a = hypp.slot("a") ;
     NumericVector b = hypp.slot("b") ;
@@ -168,7 +168,7 @@ Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod) {
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
+  IntegerVector ub = unique_batch(batch) ;
   NumericVector p = model.slot("pi") ;
   NumericVector sigma2 = model.slot("sigma2") ;
   NumericMatrix theta = model.slot("theta") ;
@@ -342,7 +342,7 @@ Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
     // get batch info
     Rcpp::NumericMatrix tabz = tableBatchZ(model);
     Rcpp::IntegerVector batch = model.slot("batch");
-    Rcpp::IntegerVector ub = uniqueBatch(batch);
+    Rcpp::IntegerVector ub = unique_batch(batch);
     Rcpp::NumericVector ss(B);
 
     for (int i = 0; i < n; ++i) {

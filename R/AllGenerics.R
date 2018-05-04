@@ -40,6 +40,10 @@ setGeneric("theta<-", function(object, value) standardGeneric("theta<-"))
 setGeneric("sigma2<-", function(object, value) standardGeneric("sigma2<-"))
 setGeneric("p<-", function(object, value) standardGeneric("p<-"))
 
+#' @export
+#' @rdname sigma2-method
+setGeneric("sigma<-", function(object, value) standardGeneric("sigma<-"))
+
 #' Retrieve overall mean
 #'
 #' @examples
@@ -96,10 +100,15 @@ setGeneric("chains<-", function(object, value) standardGeneric("chains<-"))
 #' is called in conjunction with an accessor for one of these
 #' parameters.
 #' @examples
-#' theta.chain <- theta(chains(SingleBatchModelExample))
-#' dim(theta.chain)
-#' plot.ts(theta.chain, plot.type="single",
-#'         col=seq_len(k(SingleBatchModelExample)))
+#' sb <- SingleBatchModelExample
+#' iter(sb, force=TRUE) <- 10
+#' burnin(sb) <- 50
+#' sb <- posteriorSimulation(sb)
+#' theta(chains(sb))
+#' \dontrun{
+#'   plot.ts(theta.chain, plot.type="single",
+#'           col=seq_len(k(SingleBatchModelExample)))
+#' }
 #' @param object \code{showMethods(chains)}
 #' @return The simulated chains.
 #' @export
@@ -212,6 +221,10 @@ setGeneric("bic", function(object) standardGeneric("bic"))
 #' @docType methods
 #' @rdname theta-method
 setGeneric("theta", function(object) standardGeneric("theta"))
+
+#' @rdname theta-method
+#' @export
+setGeneric("theta<-", function(object, value) standardGeneric("theta<-"))
 
 #' Retrieve the variances of each component and batch distribution
 #'

@@ -172,6 +172,7 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
 #'                                p = c(1/5, 1/3, 1 - 1/3 - 1/5))
 #'     MultiBatchModel2(dat=y(truth), batches=batch(truth),
 #'                      hp=hpList(k=3)[["MB"]])
+#' @rdname MultiBatchModel
 #' @export
 MultiBatchModel2 <- function(dat=numeric(),
                              hp=HyperparametersMultiBatch(),
@@ -206,6 +207,7 @@ MultiBatchModel2 <- function(dat=numeric(),
 }
 
 #' @export
+#' @rdname MultiBatchModel
 MB <- MultiBatchModel2
 
 ensureAllComponentsObserved <- function(obj){
@@ -418,6 +420,12 @@ setReplaceMethod("sigma2", "MixtureModel", function(object, value){
   object
 })
 
+#' @aliases sigma<-,MixtureModel-method
+setReplaceMethod("sigma", "MixtureModel", function(object, value){
+  sigma2(object) <- value^2
+  object
+})
+
 #' @rdname sigma2-method
 #' @aliases sigma2,MixtureModel-method
 setMethod("sigma2", "MixtureModel", function(object) {
@@ -425,6 +433,14 @@ setMethod("sigma2", "MixtureModel", function(object) {
   ##s2 <- matrix(s2, nBatch(object), k(object))
   rownames(s2) <- uniqueBatch(object)
   s2
+})
+
+#' @rdname sigma2-method
+#' @aliases sigma,MixtureModel-method
+setMethod("sigma", "MixtureModel", function(object) {
+  s2 <- sigma2(object)
+  ##s2 <- matrix(s2, nBatch(object), k(object))
+  sqrt(s2)
 })
 
 setMethod("tablez", "MultiBatchModel", function(object){
@@ -490,7 +506,6 @@ setMethod("tablez", "MixtureModel", function(object){
   tab <- tab[uniqueBatch(object), , drop=FALSE]
   tab
 })
-
 
 uniqueBatch <- function(object) unique(batch(object))
 

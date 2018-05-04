@@ -4,11 +4,14 @@
 \docType{methods}
 \name{theta}
 \alias{theta}
+\alias{theta<-}
 \alias{theta,McmcChains-method}
 \alias{theta,MixtureModel-method}
 \title{Accessor for the theta parameter in the hierarchical mixture model}
 \usage{
 theta(object)
+
+theta(object) <- value
 
 \S4method{theta}{McmcChains}(object)
 

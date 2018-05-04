@@ -145,7 +145,9 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot label_switch length-one logical indicating problems with label switching
+#' @slot marginal_lik the marginal likelihood of the model
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
+#' @slot .internal.counter For internal use only.
 #' @export
 setClass("MixtureModel", representation("VIRTUAL",
                                         k = "integer",
@@ -243,6 +245,7 @@ setClass("TrioBatchModel", contains="MultiBatchModel",
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 #' @export
+#' @rdname SingleBatchModel-class
 setClass("SingleBatchModel", contains="MixtureModel")
 
 
@@ -259,6 +262,7 @@ setClass("MultiBatchPooled", contains="MultiBatchModel")
 setClass("UnivariateBatchModel", contains="MultiBatchModel")
 
 #' @export
+#' @rdname SingleBatchModel-class
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
          representation(mapping="character"))
 
