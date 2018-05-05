@@ -163,8 +163,9 @@ Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
   NumericVector u = runif(n) ;
   IntegerVector ztrio_(n) ;
   IntegerVector ztrio = clone(ztrio_) ;
+  // updates z for everyone
   ztrio = update_z(model) ;
-
+  //return ztrio ;
   //Rcpp::CharacterVector family_member=triodat["family_member"];
   // Rcpp::LogicalVector is_offspring;
   CharacterVector fam = family_member(xmod);
@@ -174,7 +175,6 @@ Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
   }
   IntegerVector zz_offspring;
   zz_offspring = update_offspring(model); // length 300
-
   n = zz_offspring.size();
   int j = 0;
   for(int i = 0; i < n; i++){
@@ -183,8 +183,7 @@ Rcpp::IntegerVector update_ztrio(Rcpp::S4 xmod) {
       j++;
     }
   }
-
-   return ztrio;
+  return ztrio;
 
   // do not return ztrio2 as want to keep component labels consistent
   // Rcpp::IntegerVector ztrio2;

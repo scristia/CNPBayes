@@ -18,19 +18,19 @@ simulateTrioData <- function(maplabel=c(0,1,2)){
   # please note params must match length of gp$K
   p <- c(0.24, 0.34, 0.33)
   theta <- c(-1.2, 0.3, 1.7)
-  sigma2 <- c(0.2, 0.2, 0.2)
+  sigma2 <- c(0.05, 0.05, 0.05)
   params <- data.frame(cbind(p, theta, sigma2))
   
   mp <- McmcParams(iter=50, burnin=5)
 
-  nbatch <- 3
+  nbatch <- 1
   N <- 300
   maplabel <- c(0,1,2)
   mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel)
   dat2 <- simulate_data_multi2(params, N=N,
-                              batches = rep(c(1:nbatch),
-                                         length.out = 3*N),
-                              error=0, mprob, maplabel)
+                               batches = rep(c(1:nbatch),
+                                             length.out = 3*N),
+                               error=0, mprob, maplabel)
   hp <- HyperparametersTrios(k = 3)
   model <- TBM(triodata=dat2$data,
                hp=hp,
@@ -163,11 +163,29 @@ test_that("burnin", {
   runMcmc(model)
 })
 
+test_that("posterior predictive", {
+  set.seed(123)
+  library(tidyverse)
+  model <- simulateTrioData()
+  u1 <- u(model)
+  mp <- McmcParams(iter=1000, burnin=1000, thin=1)
+  mcmcParams(model) <- mp
+  model <- posteriorSimulation(model)
+  ##tab <- posteriorPredictive(model)
+  ggMixture(model)
+
+  mp <- McmcParams(iter=1000, burnin=1000, thin=1)
+  ##mb <- MB(dat=y(model), batches=batch(model))
+  mb2 <- gibbs(model="MB", dat=y(model),
+               batches=batch(model),
+               mp=mp, k_range=c(3, 3), max_burnin=2000)
+  ggMixture(mb2[[1]])
+})
+
 test_that("full example", {
   set.seed(123)
   library(tidyverse)
   model <- simulateTrioData()
-
   u1 <- u(model)
   model <- posteriorSimulation(model)
   u2 <- u(model)

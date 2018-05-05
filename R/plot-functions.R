@@ -405,6 +405,94 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
 ##    facet_wrap(~batch, nrow=nb)
 }
 
+
+.gg_triobatch <- function(model, bins){
+  browser()
+  colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
+              "#D55E00", "#CC79A7",  "#009E73")
+  predictive <- posteriorPredictive(model) %>%
+    mutate(component=factor(component))
+  predictive.summary <- predictive %>%
+    group_by(model, batch) %>%
+    summarize(n=n())
+  predictive <- left_join(predictive, predictive.summary,
+                          by=c("model", "batch")) %>%
+    mutate(batch=paste("Batch", batch))
+  colors <- colors[seq_len(k(model))]
+  ##df <- multiBatchDensities(model)
+  full.data <- tibble(y=y(model),
+                      batch=batch(model)) %>%
+    mutate(batch=paste("Batch", batch)) %>%
+    mutate(model=modelName(model))
+  ##xlimit <- c(-5, 1)
+  batch.data <- full.data %>%
+    group_by(batch, model) %>%
+    summarize(n=n()) %>%
+    mutate(x=-Inf, y=Inf)
+  ..count.. <- NULL
+  n_facet <- NULL
+  ..density.. <- NULL
+  x <- NULL
+  predictive$y[predictive$y < min(full.data$y)] <- min(full.data$y)
+  predictive$y[predictive$y > max(full.data$y)] <- max(full.data$y)
+  fig <- ggplot(predictive, aes(x=y, n_facet=n,
+                                y=..count../n_facet,
+                                fill=component)) +
+    geom_histogram(data=full.data, aes(y, ..density..),
+                   bins=bins,
+                   inherit.aes=FALSE,
+                   color="gray70",
+                   fill="gray70",
+                   alpha=0.1) +
+    geom_density(adjust=1, alpha=0.4, size=0.75, color="gray30") +
+    geom_text(data=batch.data, aes(x=x, y=y, label=paste0("  n=", n)),
+              hjust="inward", vjust="inward",
+              inherit.aes=FALSE,
+              size=3) +
+    ## show marginal density
+    theme(panel.background=element_rect(fill="white"),
+          axis.line=element_line(color="black"),
+          legend.position="bottom",
+          legend.direction="horizontal") +
+    ##facet_grid(batch~model,
+    facet_wrap(~batch, ncol=1, strip.position="right") +
+    ##labeller=labeller(model=ml)) +
+    scale_y_sqrt() +
+    scale_color_manual(values=colors) +
+    scale_fill_manual(values=colors) +
+    xlab("average copy number") +
+    ylab("density") +
+    ##coord_cartesian(xlim=xlimit) +
+    guides(color=FALSE) ##+
+  return(fig)
+##    ggtitle(cnp.id)
+  ##df <- multiBatchDensities(model)
+##  dat <- dnorm_poly_multibatch(model)
+##  nb <- nBatch(model)
+##  df.observed <- tibble(y=observed(model),
+##                        batch=paste0("batch: ", batch(model)))
+##  if(missing(bins))
+##    bins <- nrow(df.observed)/2
+##  component <- y <- ..density.. <- x <- y <- NULL
+##  dat <- as.tibble(dat)
+##  ##
+##  ## Replace histogram with geom_polygon.  Need x and y
+##  ##  -
+##  ggplot(dat, aes(x, y, group=component)) +
+##    ##geom_density() +
+##    ##facet_wrap(~batch, nrow=nb) +
+##    geom_histogram(data=df.observed, aes(y, ..density..),
+##                   bins=bins,
+##                   inherit.aes=FALSE) +
+##    geom_polygon(aes(fill=component, color=component), alpha=0.4) +
+##    xlab("quantiles") + ylab("density") +
+##    scale_color_manual(values=colors) +
+##    scale_fill_manual(values=colors) +
+##    scale_y_sqrt() +
+##    guides(fill=guide_legend(""), color=guide_legend("")) +
+##    facet_wrap(~batch, nrow=nb)
+}
+
 mb_pred_data <- function(model, predict){
   batches <- factor(batch(model), labels=paste("batch", unique(batch(model))))
   dat <- tibble(y=y(model),
