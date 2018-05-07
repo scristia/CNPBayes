@@ -67,6 +67,7 @@ Rcpp::NumericVector lookup_mprobs(Rcpp::S4 model, int father, int mother){
 // components are mapped to copy number.
 //
 // update_trioPr is the Mendelian prob lookup module
+
 // [[Rcpp::export]]
 Rcpp::NumericMatrix update_trioPr(Rcpp::S4 xmod){
   RNGScope scope ;
@@ -386,6 +387,7 @@ Rcpp::IntegerVector tableZpar(Rcpp::S4 xmod){
 }
 
 // this is update for pi_parents only
+
 // [[Rcpp::export]]
 Rcpp::NumericVector update_pp(Rcpp::S4 xmod) {
   RNGScope scope ;
@@ -446,7 +448,6 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("sigma2.0") = update_sigma20(model) ;
     if(up[6] > 0)
       model.slot("nu.0") = update_nu0(model) ;
-
     if(up[2] > 0)
       model.slot("pi_parents") = update_pp(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;

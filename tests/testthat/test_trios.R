@@ -168,7 +168,7 @@ test_that("posterior predictive", {
   library(tidyverse)
   model <- simulateTrioData()
   u1 <- u(model)
-  mp <- McmcParams(iter=4000, burnin=16000, thin=5)
+  mp <- McmcParams(iter=4000, burnin=4000, thin=5)
   mcmcParams(model) <- mp
   model <- posteriorSimulation(model)
   ##tab <- posteriorPredictive(model)
@@ -203,15 +203,22 @@ test_that("full example", {
   theta <- c(-4,-1, 2)
   sigma2 <- c(0.05, 0.05, 0.05)
   params <- data.frame(cbind(p, theta, sigma2))
+  maplabel <- c(0,1,2)
   
-  #p <- c(0.11, 0.26, 0.37, 0.26)
-  #theta <- c(-3.5,-1.2, 0.3, 1.7)
-  #sigma2 <- c(0.3, 0.3, 0.3, 0.3)
-  #params <- data.frame(cbind(p, theta, sigma2))
+  p <- c(0.11, 0.26, 0.37, 0.26)
+  theta <- c(-4,-1.2, 1.5, 3)
+  sigma2 <- c(0.05, 0.05, 0.05, 0.05)
+  params <- data.frame(cbind(p, theta, sigma2))
+  maplabel <- c(0,1,2,3)
+  
+  p <- c(0.24, 0.43, 0.33)
+  theta <- c(-2, 0.3, 1.7)
+  sigma2 <- c(0.05, 0.05, 0.05)
+  params <- data.frame(cbind(p, theta, sigma2))
+  maplabel <- c(0,1,2)
   
   nbatch <- 1
   N <- 300
-  maplabel <- c(0,1,2)
   mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel)
   truth <- simulate_data_multi2(params, N=N,
                                batches = rep(c(1:nbatch),
@@ -227,7 +234,7 @@ test_that("full example", {
   
   truth_sum <- component_stats(truth$data)
   
-  mp <- McmcParams(iter=2000, burnin=2000, thin=3)
+  mp <- McmcParams(iter=2000, burnin=1000, thin=1)
   mcmcParams(model) <- mp
   model <- posteriorSimulation(model)
   ##tab <- posteriorPredictive(model)
@@ -238,7 +245,7 @@ test_that("full example", {
   ##mb <- MB(dat=y(model), batches=batch(model))
   mb2 <- gibbs(model="MB", dat=y(model),
                batches=batch(model),
-               mp=mp, k_range=c(3, 3), max_burnin=8000)
+               mp=mp, k_range=c(3, 3), max_burnin=2000)
   
   #model <- MultiBatchModel2(dat=y(truth), batches=batch(truth),
   #                         hp=hpList(k=3)[["MB"]])
