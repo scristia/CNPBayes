@@ -12,7 +12,7 @@
              nu.0=numeric(1),
              sigma2.0=numeric(1),
              pi=numeric(K),
-             #pi_child=numeric(K),
+             pi_parents=numeric(K),
              #data=numeric(K),
              triodata=as_tibble(0),
              mprob=matrix(NA, 0, 0),
@@ -21,6 +21,7 @@
              data.prec=matrix(NA, B, K),
              z=integer(0),
              zfreq=integer(K),
+             zfreq_parents=integer(K),
              probz=matrix(0, N, K),
              logprior=numeric(1),
              loglik=numeric(1),
@@ -63,7 +64,7 @@
   mu <- sort(rnorm(k(hp), mu.0(hp), sqrt(tau2.0(hp))))
   tau2 <- 1/rgamma(k(hp), 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
   p <- rdirichlet(1, alpha(hp))[1, ]
-  p.child <- rdirichlet(1, alpha(hp))[1, ]
+  pp <- rdirichlet(1, alpha(hp))[1, ]
   sim_theta <- function(mu, tau, B) sort(rnorm(B, mu, tau))
   . <- NULL
   thetas <- map2(mu, sqrt(tau2), sim_theta, B) %>%
@@ -90,7 +91,7 @@
              nu.0=nu.0,
              sigma2.0=sigma2.0,
              pi=p,
-             #pi_child=p.child,
+             pi_parents=pp,
              data=log_ratio,
              batch=batches,
              triodata=triodata,
@@ -101,6 +102,7 @@
              data.prec=matrix(NA, B, K),
              z=sample(seq_len(K), N, replace=TRUE),
              zfreq=integer(K),
+             zfreq_parents=integer(K),
              probz=matrix(0, N, K),
              logprior=numeric(1),
              loglik=numeric(1),
@@ -624,14 +626,46 @@ startAtTrueValues2 <- function(model, truth_stats, data){
   model
 }
 
+#' Retrieve mixture proportions of parents.
+#'
+#' @examples
+#'      pp(TrioBatchModelExample)
+#' @param object an object of class McmcChains
+#' @return A vector of length the number of components
+#' @export
+pp <- function(object) object@mcmc.chains@pi_parents
+
+
 setMethod("triodata_lrr", "TrioBatchModel", function(object){
   object@triodata$log_ratio
 }
 )
 
 setMethod("updateZ", "TrioBatchModel", function(object){
-  update_ztrio(object)
+  update_z(object)
 })
+
+
+setMethod("computeMeans", "TrioBatchModel", function(object){
+  compute_means(object)
+})
+
+
+setMethod("computePrec", "TrioBatchModel", function(object){
+  compute_prec(object)
+})
+
+setMethod("computeModes", "TrioBatchModel", function(object){
+  .computeModesBatch(object)
+})
+
+componentVariances <- function(y, z)  v <- sapply(split(y, z), var)
+
+
+setMethod("computeVars", "TrioBatchModel", function(object){
+  compute_vars(object)
+})
+
 
 ##################################
 #deprecated functions

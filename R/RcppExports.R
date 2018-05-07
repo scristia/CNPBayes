@@ -285,12 +285,36 @@ update_trioPr <- function(xmod) {
     .Call('_CNPBayes_update_trioPr', PACKAGE = 'CNPBayes', xmod)
 }
 
+update_multinomialPrOff <- function(xmod) {
+    .Call('_CNPBayes_update_multinomialPrOff', PACKAGE = 'CNPBayes', xmod)
+}
+
 update_offspring <- function(xmod) {
     .Call('_CNPBayes_update_offspring', PACKAGE = 'CNPBayes', xmod)
 }
 
-update_ztrio <- function(xmod) {
-    .Call('_CNPBayes_update_ztrio', PACKAGE = 'CNPBayes', xmod)
+update_zchild <- function(xmod) {
+    .Call('_CNPBayes_update_zchild', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_multinomialPrPar <- function(xmod) {
+    .Call('_CNPBayes_update_multinomialPrPar', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_parents <- function(xmod) {
+    .Call('_CNPBayes_update_parents', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_zparents <- function(xmod) {
+    .Call('_CNPBayes_update_zparents', PACKAGE = 'CNPBayes', xmod)
+}
+
+tableZpar <- function(xmod) {
+    .Call('_CNPBayes_tableZpar', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_pp <- function(xmod) {
+    .Call('_CNPBayes_update_pp', PACKAGE = 'CNPBayes', xmod)
 }
 
 trios_burnin <- function(object, mcmcp) {
