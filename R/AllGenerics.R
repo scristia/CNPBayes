@@ -658,6 +658,18 @@ setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"
 setGeneric("zFreq", function(object) standardGeneric("zFreq"))
 setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 
+#' Calculates a frequency table of latent variable assigments for parents by observation.
+#' 
+#' @examples
+#'      zfreqpar(TrioBatchModelExample)
+#' @param object see \code{showMethods(zfreqpar)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname zfreqpar-method
+setGeneric("zFreqPar", function(object) standardGeneric("zFreqPar"))
+setGeneric("zFreqPar<-", function(object,value) standardGeneric("zFreqPar<-"))
+
 #' Retrieves intensity data from trios
 #' 
 #' @examples
@@ -669,6 +681,17 @@ setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 #' @rdname triodata_lrr-method
 setGeneric("triodata_lrr", function(object) standardGeneric("triodata_lrr"))
 
+#' Retrieves mixture proportions of parents
+#' 
+#' @examples
+#'      pp(TrioBatchModelExample)
+#' @param object see \code{showMethods(pp)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname pp-method
+setGeneric("pp", function(object) standardGeneric("pp"))
+setGeneric("pp<-", function(object, value) standardGeneric("pp<-"))
 
 #' Retrieve MCMC parameters from model.
 #'

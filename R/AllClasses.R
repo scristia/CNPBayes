@@ -91,13 +91,15 @@ setClass("HyperparametersTrios",
 setClass("McmcChains", representation(theta="matrix",
                                       sigma2="matrix",
                                       pi="matrix",
+                                      pi_parents="matrix",
                                       mu="numericOrMatrix",
                                       tau2="numericOrMatrix",
                                       nu.0="numeric",
                                       sigma2.0="numeric",
                                       logprior="numeric",
                                       loglik="numeric",
-                                      zfreq="matrix"))
+                                      zfreq="matrix",
+                                      zfreq_parents="matrix"))
 
 #' An object to specify MCMC options for a later simulation
 #'
@@ -212,8 +214,8 @@ setClass("MultiBatchModel", contains="MixtureModel")
 setClass("TrioBatchModel", contains="MultiBatchModel",
          slots=c(triodata="tbl_df", mprob="matrix",
                  father="numeric", mother="numeric", 
-                 maplabel="numeric"
-                 ))
+                 maplabel="numeric", pi_parents="numeric",
+                 zfreq_parents="integer"))
                  ##family_member="character"))
 
 #' The 'SingleBatchModel' class

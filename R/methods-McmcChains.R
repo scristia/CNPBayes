@@ -11,13 +11,15 @@
       theta=matrix(NA, nr, K),
       sigma2=matrix(NA, nr, K),
       pi=matrix(NA, nr, K),
+      pi_parents=matrix(NA, nr, K),
       mu=numeric(nr),
       tau2=numeric(nr),
       nu.0=numeric(nr),
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati)
+      zfreq=mati,
+      zfreq_parents=mati)
 }
 
 .initializeMcmcPooledVar <- function(object){
@@ -44,9 +46,9 @@
 
 setMethod("McmcChains", "missing", function(object){
   new("McmcChains", theta=matrix(), sigma2=matrix(),
-      pi=matrix(), mu=numeric(), tau2=numeric(),
+      pi=matrix(), pi_parents=matrix(), mu=numeric(), tau2=numeric(),
       nu.0=numeric(), sigma2.0=numeric(),
-      zfreq=matrix(),
+      zfreq=matrix(), zfreq_parents=matrix(),
       logprior=numeric(),
       loglik=numeric())
 })
@@ -73,17 +75,23 @@ setMethod("McmcChains", "SingleBatchPooled", function(object){
       theta=matrix(NA, nr, K*B),
       sigma2=matrix(NA, nr, K*B),
       pi=matrix(NA, nr, K),
+      pi_parents=matrix(NA, nr, K),
       mu=matrix(NA, nr, K),
       tau2=matrix(NA, nr, K),
       nu.0=numeric(nr),
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati)
+      zfreq=mati,
+      zfreq_parents=mati)
 }
 
 
 setMethod("McmcChains", "MultiBatchModel", function(object){
+  .initializeMcmcBatch(object)
+})
+
+setMethod("McmcChains", "TrioBatchModel", function(object){
   .initializeMcmcBatch(object)
 })
 
@@ -143,6 +151,7 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@theta <- x@theta[i, , drop=FALSE]
     x@sigma2 <- x@sigma2[i, , drop=FALSE]
     x@pi <- x@pi[i, , drop=FALSE]
+    x@pi_parents <- x@pi_parents[i, , drop=FALSE]
     if(is.matrix(x@mu)){
       x@mu <- x@mu[i, , drop=FALSE]
     } else x@mu <- x@mu[i]
@@ -154,6 +163,7 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@logprior <- x@logprior[i]
     x@loglik <- x@loglik[i]
     x@zfreq <- x@zfreq[i, , drop=FALSE]
+    x@zfreq_parents <- x@zfreq_parents[i, , drop=FALSE]
   }
   x
 })
@@ -165,6 +175,15 @@ setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 #' @rdname sigma2.0-method
 #' @aliases sigma2.0,McmcChains-method
 setMethod("sigma2.0", "McmcChains", function(object) object@sigma2.0)
+
+#' @rdname pp-method
+#' @aliases pp,McmcChains-Method
+setMethod("pp", "McmcChains", function(object) object@pi_parents)
+
+setReplaceMethod("pp", "McmcChains", function(object, value){
+  object@pi_parents <- value
+  object
+})
 
 setReplaceMethod("theta", "McmcChains", function(object, value){
   object@theta <- value
@@ -224,6 +243,10 @@ setMethod("names", "McmcChains", function(x) slotNames(x))
 #' @aliases zfreq,McmcChains-method
 setMethod("zFreq", "McmcChains", function(object) object@zfreq )
 
+#' @rdname zfreqpar-method
+#' @aliases zfreqpar,McmcChains-method
+setMethod("zFreqPar", "McmcChains", function(object) object@zfreq_parents )
+
 #' @rdname logPrior-method
 #' @aliases logPrior,McmcChains-method
 setMethod("logPrior", "McmcChains", function(object) object@logprior)
@@ -235,5 +258,10 @@ setReplaceMethod("logPrior", "McmcChains", function(object, value) {
 
 setReplaceMethod("zFreq", "McmcChains", function(object, value){
   object@zfreq <- value
+  object
+})
+
+setReplaceMethod("zFreqPar", "McmcChains", function(object, value){
+  object@zfreq_parents <- value
   object
 })
