@@ -16,7 +16,7 @@ simulateTrioData <- function(maplabel=c(0,1,2)){
   # params <- data.frame(cbind(p, theta, sigma))
   
   # please note params must match length of gp$K
-  p <- c(0.24, 0.34, 0.33)
+  p <- c(0.24, 0.43, 0.33)
   theta <- c(-1.2, 0.3, 1.7)
   sigma2 <- c(0.05, 0.05, 0.05)
   params <- data.frame(cbind(p, theta, sigma2))
@@ -168,18 +168,26 @@ test_that("posterior predictive", {
   library(tidyverse)
   model <- simulateTrioData()
   u1 <- u(model)
-  mp <- McmcParams(iter=1000, burnin=1000, thin=1)
+  mp <- McmcParams(iter=4000, burnin=16000, thin=5)
   mcmcParams(model) <- mp
   model <- posteriorSimulation(model)
   ##tab <- posteriorPredictive(model)
   ggMixture(model)
+  ggChains(model)
 
-  mp <- McmcParams(iter=1000, burnin=1000, thin=1)
+  mp <- McmcParams(iter=4000, burnin=1000, thin=1)
   ##mb <- MB(dat=y(model), batches=batch(model))
   mb2 <- gibbs(model="MB", dat=y(model),
                batches=batch(model),
-               mp=mp, k_range=c(3, 3), max_burnin=2000)
+               mp=mp, k_range=c(3, 3), max_burnin=8000)
+  
+  #model <- MultiBatchModel2(dat=y(truth), batches=batch(truth),
+   #                         hp=hpList(k=3)[["MB"]])
+  
   ggMixture(mb2[[1]])
+  ggChains(mb2[[1]])
+  str(mb2[[1]])
+  expect_identical(model@data, mb2[[1]]@data)
 })
 
 test_that("full example", {
@@ -193,7 +201,7 @@ test_that("full example", {
   
   p <- c(0.25, 0.5, 0.25)
   theta <- c(-4,-1, 2)
-  sigma2 <- c(0.3, 0.3, 0.3)
+  sigma2 <- c(0.05, 0.05, 0.05)
   params <- data.frame(cbind(p, theta, sigma2))
   
   #p <- c(0.11, 0.26, 0.37, 0.26)
@@ -201,32 +209,50 @@ test_that("full example", {
   #sigma2 <- c(0.3, 0.3, 0.3, 0.3)
   #params <- data.frame(cbind(p, theta, sigma2))
   
-  nbatch <- 3
+  nbatch <- 1
   N <- 300
   maplabel <- c(0,1,2)
   mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel)
   truth <- simulate_data_multi2(params, N=N,
-                              batches = rep(c(1:nbatch),
-                              length.out = 3*N),
-                              error=0, mprob, maplabel)
-  truth_sum <- component_stats(truth$data)
-  
-  mp <- McmcParams(iter=300, burnin=300, nStarts = 5)
+                               batches = rep(c(1:nbatch),
+                                             length.out = 3*N),
+                               error=0, mprob, maplabel)
   hp <- HyperparametersTrios(k = 3)
+  
   model <- TBM(triodata=truth$data,
                hp=hp,
                mp=mp,
                mprob=mprob,
                maplabel=maplabel)
   
-  model <- startAtTrueValues2(model, truth_sum, truth)
-  expect_identical(truth$data$batches, batch(model))
-  expect_identical(truth$params$theta, apply(theta(model), 2, mean))
-  expect_equal(truth$params$sigma2, apply(sigma2(model), 2, mean), tolerance = 0.1)
-  expect_identical(truth$params$p, p(model))
-  expect_identical(as.integer(truth$data$copy_number), z(model))
+  truth_sum <- component_stats(truth$data)
   
+  mp <- McmcParams(iter=2000, burnin=2000, thin=3)
+  mcmcParams(model) <- mp
   model <- posteriorSimulation(model)
+  ##tab <- posteriorPredictive(model)
+  ggMixture(model)
+  ggChains(model)
+  
+  mp <- McmcParams(iter=2000, burnin=1000, thin=1)
+  ##mb <- MB(dat=y(model), batches=batch(model))
+  mb2 <- gibbs(model="MB", dat=y(model),
+               batches=batch(model),
+               mp=mp, k_range=c(3, 3), max_burnin=8000)
+  
+  #model <- MultiBatchModel2(dat=y(truth), batches=batch(truth),
+  #                         hp=hpList(k=3)[["MB"]])
+  
+  ggMixture(mb2[[1]])
+  ggChains(mb2[[1]])
+  
+  #model <- startAtTrueValues2(model, truth_sum, truth)
+  #expect_identical(truth$data$batches, batch(model))
+  #expect_identical(truth$params$theta, apply(theta(model), 2, mean))
+  #expect_equal(truth$params$sigma2, apply(sigma2(model), 2, mean), tolerance = 0.1)
+  #expect_identical(truth$params$p, p(model))
+  #expect_identical(as.integer(truth$data$copy_number), z(model))
+  #model <- posteriorSimulation(model)
 
   # check z are three components and that they are non-specific components
   zs <- unique(model@z)
@@ -235,21 +261,26 @@ test_that("full example", {
   expect_equal(sort(unique(zs)), 1:hp@k)
   
   # check parameters similar
-  model.theta.means <- apply(theta(model),2, mean)
-  expect_equal(model.theta.means, truth$params$theta,
+  # model.theta.means <- apply(theta(model),2, mean)
+  expect_equal(model@modes@theta, truth$params$theta,
                scale=0.01, tolerance=1)
-  model.sigma2.means <- apply(sigma2(model),2, mean)
-  expect_equal(model.sigma2.means, truth$params$sigma2,
+  #model.sigma2.means <- apply(sigma2(model),2, mean)
+  expect_equal(model@modes@sigma2, truth$params$sigma2,
                scale=0.01, tolerance=1)
-  expect_equal(p(model), truth$params$p,
+  expect_equal(model@pi_parents, truth$params$p,
+               scale=0.01, tolerance=0.5)
+  expect_equal(model@pi, truth$params$p,
                scale=0.01, tolerance=0.5)
   
   # apply maplabel conversion
   results <- z2cn(model, maplabel)
+  results.mb <- z2cn(mb2[[1]], maplabel)
   
   # this unit test specific to maplabel c(0,1,2) - change accordingly
-  expect_equal(model@z-1, results@z)
+   expect_equal(model@z-1, results@z)
+   expect_equal(mb2[[1]]@z-1, results.mb@z)
   
   expect_equal(sort(unique(results@z)), sort(unique(maplabel)))
-  expect_identical(results@z, as.integer(dat2$data$copy_number))
+  expect_identical(results@z, as.integer(model@triodata$copy_number))
+  expect_identical(results.mb@z, as.integer(model@triodata$copy_number))
 })
