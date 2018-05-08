@@ -126,10 +126,38 @@ test_that("mprob matrix", {
   expect_equal(mprob[,4], mprob.check2[,4])
 })
 
+test_that("constructor", {
+  set.seed(123)
+  maplabel <- c(0, 1, 2)
+  mendel <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel)
+  mns <- c(-2, 0, 2)
+  comp <- sample(1:3, 300, replace=TRUE)
+  triodat <- tibble(log_ratio=rnorm(300, mean=mns[comp]),
+                    family_member=rep(c("f", "m", "o"), 100),
+                    batches=1L,
+                    copy_number=comp-1)
+  test <- TBM(triodata=triodat,
+              mprob=mendel,
+              maplabel=maplabel)
+  expect_true(validObject(test))
+  yy <- y(test)
+  expect_identical(yy, y(test))
+  expect_identical(triodat$copy_number, triodata(test)$copy_number)
+
+  triodat2 <- triodat %>%
+    mutate(family_member=rev(family_member))
+  test <- TBM(triodata=triodat2,
+              mprob=mendel,
+              maplabel=maplabel)
+  expect_true(validObject(test))
+  yy <- y(test)
+  expect_identical(yy, y(test))
+  expect_identical(triodat2$copy_number, triodata(test)$copy_number)
+})
+
 test_that("burnin", {
   library(tidyverse)
-  model <- simulateTrioData2(maplabel=c(0,1,2))
-
+  model <- simulateTrioData(maplabel=c(0,1,2))
   zz <- z(model)
   m <- model@maplabel
   truth <- m [ zz ]
@@ -160,25 +188,23 @@ test_that("posterior predictive", {
   library(tidyverse)
   model <- simulateTrioData()
   u1 <- u(model)
-  mp <- McmcParams(iter=4000, burnin=4000, thin=5)
+  mp <- McmcParams(iter=500, burnin=200, thin=1)
   mcmcParams(model) <- mp
   model <- posteriorSimulation(model)
-  ##tab <- posteriorPredictive(model)
-  ggMixture(model)
-  ggChains(model)
-
-  mp <- McmcParams(iter=4000, burnin=1000, thin=1)
-  ##mb <- MB(dat=y(model), batches=batch(model))
-  mb2 <- gibbs(model="MB", dat=y(model),
-               batches=batch(model),
-               mp=mp, k_range=c(3, 3), max_burnin=8000)
-  #model <- MultiBatchModel2(dat=y(truth), batches=batch(truth),
-   #                         hp=hpList(k=3)[["MB"]])
-
-  ggMixture(mb2[[1]])
-  ggChains(mb2[[1]])
-  str(mb2[[1]])
-  expect_identical(model@data, mb2[[1]]@data)
+  p <- ggMixture(model)
+  expect_is(p, "gg")
+  if(FALSE){
+    ggMixture(model)
+    ggChains(model)
+    mp <- McmcParams(iter=4000, burnin=1000, thin=1)
+    mb2 <- gibbs(model="MB", dat=y(model),
+                 batches=batch(model),
+                 mp=mp, k_range=c(3, 3), max_burnin=8000)
+    ggMixture(mb2[[1]])
+    ggChains(mb2[[1]])
+    str(mb2[[1]])
+    expect_identical(model@data, mb2[[1]]@data)
+  }
 })
 
 .test_that("full example", {
@@ -313,13 +339,58 @@ test_that("fix parents", {
                mp=mp,
                mprob=mprob,
                maplabel=maplabel)
+  expect_identical(y(model), truth$data$log_ratio)
   truth_sum <- component_stats(truth$data)
-  index <- model@triodata$family_member=="o"
-  cn <- model@triodata$copy_number
-  # fix children z
-  model@z[index] <- as.integer(cn[index] + 1)
+  is_offspring <- model@triodata$family_member=="o"
+  true.cn <- as.integer(truth$data$copy_number)[is_offspring]
+  true.component <- true.cn + 1L
+  model@z[is_offspring] <- true.component
   mcmcParams(model) <- mp
-  model <- posteriorSimulation(model)
-  ggMixture(model)
-  ggChains(model)
+  ##
+  up <- rep(1L, 10)
+  names(up) <- c("theta", "sigma2",
+                 "pi", "mu",
+                 "tau2",
+                 "nu.0",
+                 "sigma2.0",
+                 "z.parents",
+                 "z.offspring",
+                 "pi.parents")
+  up["z.offspring"] <- 0L
+  mcmcParams(model) <- McmcParams(iter=500, burnin=100, param_updates=up)
+  system.time(model <- posteriorSimulation(model))
+  ## test that component indices for offspring have not changed
+  expect_identical(z(model)[is_offspring], true.component)
+  expect_identical(y(model), truth$data$log_ratio)
+
+  mp2 <- McmcParams(iter=500, burnin=100)
+  model2 <- MB(dat=truth$data$log_ratio,
+               hp=hp,
+               mp=mp2,
+               batches=rep(1L, nrow(truth$data)))
+  expect_identical(y(model2), truth$data$log_ratio)
+  system.time(mb <- posteriorSimulation(model2))
+  if(FALSE){
+    ggMixture(mb) ## looks great
+  }
+  expect_identical(truth$data$log_ratio, y(model2))
+  expect_identical(y(model), y(model2))
+  ##
+  ## the component indices from the multibatch model are nearly identical to the
+  ## true component indices
+  expect_true(mean(z(mb)[is_offspring] == true.component) > 0.99)
+  ##
+  ## Compare parental component indices that were not fixed in trio model to
+  ## multi-batch estimates
+  ##
+  expect_true(mean(z(mb)[!is_offspring] == z(model)[!is_offspring]) > 0.99)
+  ##
+  ## note that the weights seem to be wrong in the trio model
+  ##
+  expect_equal(p(mb), p(model))
+  if(FALSE){
+    ggMixture(model)
+    ggChains(model)
+    ggMixture(mb)
+  }
 })
