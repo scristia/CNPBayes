@@ -54,10 +54,11 @@ setValidity("McmcParams", function(object){
     return(msg)
   }
   up <- paramUpdates(object)
-  if(!identical(names(up), names(.param_updates()))){
-    msg <- "vector for slot param_updates should have same names as .param_updates()"
-    return(msg)
-  }
+##  if(!identical(names(up), names(.param_updates()))){
+##    msg <- "vector for slot param_updates should have same names as .param_updates()"
+##    return(msg)
+  ##  }
+  msg
 })
 
 #' @rdname nStarts-method
