@@ -317,7 +317,7 @@ test_that("posterior predictive", {
   expect_identical(results.mb@z, as.integer(model@triodata$copy_number))
 })
 
-test_that("fix parents", {
+test_that("fix offspring", {
   set.seed(123)
   library(tidyverse)
   p <- c(0.24, 0.43, 0.33)
