@@ -809,39 +809,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// update_multinomialPrOff
-Rcpp::NumericMatrix update_multinomialPrOff(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_update_multinomialPrOff(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_multinomialPrOff(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_offspring
-Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_update_offspring(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_offspring(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_zchild
-Rcpp::IntegerVector update_zchild(Rcpp::S4 xmod);
-RcppExport SEXP _CNPBayes_update_zchild(SEXP xmodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_zchild(xmod));
-    return rcpp_result_gen;
-END_RCPP
-}
 // update_multinomialPrPar
 Rcpp::NumericMatrix update_multinomialPrPar(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_update_multinomialPrPar(SEXP xmodSEXP) {
@@ -894,6 +861,50 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(update_pp(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_multinomialPrChild
+Rcpp::NumericMatrix update_multinomialPrChild(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_multinomialPrChild(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_multinomialPrChild(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_multinomialPrOff
+Rcpp::NumericMatrix update_multinomialPrOff(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_multinomialPrOff(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_multinomialPrOff(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_offspring
+Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_offspring(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_offspring(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_zchild
+Rcpp::IntegerVector update_zchild(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_zchild(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_zchild(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1006,14 +1017,15 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_family_member", (DL_FUNC) &_CNPBayes_family_member, 1},
     {"_CNPBayes_lookup_mprobs", (DL_FUNC) &_CNPBayes_lookup_mprobs, 3},
     {"_CNPBayes_update_trioPr", (DL_FUNC) &_CNPBayes_update_trioPr, 1},
-    {"_CNPBayes_update_multinomialPrOff", (DL_FUNC) &_CNPBayes_update_multinomialPrOff, 1},
-    {"_CNPBayes_update_offspring", (DL_FUNC) &_CNPBayes_update_offspring, 1},
-    {"_CNPBayes_update_zchild", (DL_FUNC) &_CNPBayes_update_zchild, 1},
     {"_CNPBayes_update_multinomialPrPar", (DL_FUNC) &_CNPBayes_update_multinomialPrPar, 1},
     {"_CNPBayes_update_parents", (DL_FUNC) &_CNPBayes_update_parents, 1},
     {"_CNPBayes_update_zparents", (DL_FUNC) &_CNPBayes_update_zparents, 1},
     {"_CNPBayes_tableZpar", (DL_FUNC) &_CNPBayes_tableZpar, 1},
     {"_CNPBayes_update_pp", (DL_FUNC) &_CNPBayes_update_pp, 1},
+    {"_CNPBayes_update_multinomialPrChild", (DL_FUNC) &_CNPBayes_update_multinomialPrChild, 1},
+    {"_CNPBayes_update_multinomialPrOff", (DL_FUNC) &_CNPBayes_update_multinomialPrOff, 1},
+    {"_CNPBayes_update_offspring", (DL_FUNC) &_CNPBayes_update_offspring, 1},
+    {"_CNPBayes_update_zchild", (DL_FUNC) &_CNPBayes_update_zchild, 1},
     {"_CNPBayes_trios_burnin", (DL_FUNC) &_CNPBayes_trios_burnin, 2},
     {"_CNPBayes_trios_mcmc", (DL_FUNC) &_CNPBayes_trios_mcmc, 2},
     {"_CNPBayes_z2cn", (DL_FUNC) &_CNPBayes_z2cn, 2},

@@ -97,152 +97,6 @@ Rcpp::NumericMatrix update_trioPr(Rcpp::S4 xmod){
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix update_multinomialPrOff(Rcpp::S4 xmod) {
-  RNGScope scope ;
-  Rcpp::S4 model(clone(xmod)) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique_batch(batch) ;
-  NumericMatrix ptrio = update_trioPr(xmod) ;
-  NumericMatrix sigma2 = model.slot("sigma2") ;
-  NumericMatrix theta = model.slot("theta") ;
-  int B = sigma2.nrow() ;
-  NumericVector x = model.slot("data") ;
-  IntegerVector nb = model.slot("batchElements") ;
-  int N = ptrio.size() ;
-  NumericVector this_batch(N) ;
-  NumericVector tmp ;
-  NumericVector rowtotal(N) ;
-  double df = getDf(hypp) ;
-  CharacterVector fam = family_member(xmod);
-  Rcpp::LogicalVector child_ind(fam.size());
-  for (int i = 0; i < fam.size(); i++){
-    child_ind[i] = (fam[i] == "o");
-  }
- 
-  Rcpp::NumericVector xo = x[child_ind];
-  int M = xo.size() ;
-  NumericMatrix poff(M,K) ;
-  NumericMatrix lik(M, K) ;
-
-  for(int i = 0; i < M; ++i) {
-    NumericVector ptrio2 = ptrio(i, _ ) ;
-    for(int k = 0; k < K; ++k){
-      NumericVector dens(N) ;
-      for(int b = 0; b < B; ++b){
-        this_batch = batch == ub[b] ;
-        double sigma = sqrt(sigma2(b, k));
-        tmp = ptrio2[k] * dlocScale_t(xo, df, theta(b, k), sigma) * this_batch ;
-        dens += tmp ;
-      }
-      lik(_, k) = tmp;
-      //rowtotal += dens ;
-    }
-   // NumericMatrix PP(M, K) ;
-    //for(int k=0; k<K; ++k){
-    //  PP(_, k) = lik(_, k)/rowtotal ;
-    //} 
-    NumericVector PPI = lik(i,_) ;
-    poff.row(i) = PPI ;
-  }
-  NumericVector sumrow = rowSums(poff);
-  for (int j = 0; j < M; ++j) {
-    poff(j,_) = poff(j,_) / sumrow[j];
-  }
-  return poff;
-}
-
-// [[Rcpp::export]]
-Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
-  RNGScope scope ;
-  Rcpp::S4 model(clone(xmod)) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  Rcpp::DataFrame triodat(model.slot("triodata"));
-  NumericMatrix theta = model.slot("theta") ;
-  IntegerVector batch = model.slot("batch") ;
-  int B = theta.nrow() ;
-  CharacterVector fam = family_member(xmod);
-  Rcpp::LogicalVector child_ind(fam.size());
-  for (int i = 0; i < fam.size(); i++){
-    child_ind[i] = (fam[i] == "o");
-  }
-  IntegerVector z = model.slot("z");
-  Rcpp::IntegerVector zo = z[child_ind];
-  int child_size = zo.size();
-  NumericMatrix p(child_size, K);
-  p = update_multinomialPrOff(xmod) ;  // number trios x K
-
-  //NumericMatrix cumP(n, K) ;
-  //  Make more efficient
-  //return cumP ;
-  NumericVector uc = runif(child_size) ;
-  IntegerVector zc_(child_size) ;
-  IntegerVector zc = clone(zc_) ;
-  IntegerMatrix freq(B, K) ;
-
-  int b ;
-  for(int i=0; i < child_size; i++){
-    //initialize accumulator ;
-    double acc = 0 ;
-    for(int k = 0; k < K; k++){
-      acc += p(i, k) ;
-      if( uc[i] < acc ) {
-        zc[i] = k + 1 ;
-        b = batch[i] - 1 ;
-        freq(b, k) += 1 ;
-        break ;
-      }
-    }
-  }
-    return zc ;
-}  
-
-// this selectively updates z for offspring
-
-// [[Rcpp::export]]
-Rcpp::IntegerVector update_zchild(Rcpp::S4 xmod) {
-  RNGScope scope ;
-  Rcpp::S4 model(clone(xmod)) ;
-  // Rcpp::IntegerVector map = model.slot("maplabel");
-  // Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  // int K = getK(hypp) ;
-  // Rcpp::IntegerVector sts = getSt(hypp);
- // Rcpp::DataFrame triodat(model.slot("triodata"));
-  //int n = triodat.size() ;
-//  NumericVector u = runif(n) ;
-//  IntegerVector ztrio_(n) ;
-//  IntegerVector ztrio = clone(ztrio_) ;
-  // updates z for everyone
-//  ztrio = update_z(model) ;
-
-  Rcpp::IntegerVector ztrio = model.slot("z");
-  
-  //return ztrio ;
-  //Rcpp::CharacterVector family_member=triodat["family_member"];
-  // Rcpp::LogicalVector is_offspring;
-  CharacterVector fam = family_member(xmod);
-  Rcpp::LogicalVector child_ind(fam.size());
-  for (int i = 0; i < fam.size(); i++){
-    child_ind[i] = (fam[i] == "o");
-  }
-  // return child_ind;
-  
-  IntegerVector zz_offspring;
-  zz_offspring = update_offspring(model); // length 300
-  int n = ztrio.size() ;
-  int j = 0;
-  for(int i = 0; i < n; i++){
-    if(child_ind[i] == TRUE){
-      ztrio[i] = zz_offspring[j];
-      j++;
-    }
-  }
-  return ztrio;
-}
-
-// [[Rcpp::export]]
 Rcpp::NumericMatrix update_multinomialPrPar(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(clone(xmod)) ;
@@ -250,6 +104,7 @@ Rcpp::NumericMatrix update_multinomialPrPar(Rcpp::S4 xmod) {
   int K = getK(hypp) ;
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = unique_batch(batch) ;
+  NumericVector p = model.slot("pi") ;
   NumericVector pp = model.slot("pi_parents") ;
   NumericMatrix sigma2 = model.slot("sigma2") ;
   NumericMatrix theta = model.slot("theta") ;
@@ -272,11 +127,15 @@ Rcpp::NumericMatrix update_multinomialPrPar(Rcpp::S4 xmod) {
   Rcpp::NumericVector xp = x[!child_ind];
   int M = xp.size() ;
   
+  // added an additional p[k] weight for experimentation/
+  // more feedback
   for(int k = 0; k < K; ++k){
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
       double sigma = sqrt(sigma2(b, k));
+      //tmp = p[k] * pp[k] * dlocScale_t(xp, df, theta(b, k), sigma) * this_batch ;
+      //tmp = ((p[k]+pp[k])/2) * dlocScale_t(xp, df, theta(b, k), sigma) * this_batch ;
       tmp = pp[k] * dlocScale_t(xp, df, theta(b, k), sigma) * this_batch ;
       dens += tmp ;
     }
@@ -407,6 +266,203 @@ Rcpp::NumericVector update_pp(Rcpp::S4 xmod) {
 }
 
 // [[Rcpp::export]]
+Rcpp::NumericMatrix update_multinomialPrChild(Rcpp::S4 xmod) {
+    RNGScope scope ;
+    Rcpp::S4 model(clone(xmod)) ;
+    Rcpp::S4 hypp(model.slot("hyperparams")) ;
+    int K = getK(hypp) ;
+    IntegerVector batch = model.slot("batch") ;
+    IntegerVector ub = unique_batch(batch) ;
+    NumericMatrix ptrio = update_trioPr(xmod) ;
+    NumericVector p = model.slot("pi") ;
+    NumericMatrix sigma2 = model.slot("sigma2") ;
+    NumericMatrix theta = model.slot("theta") ;
+    int B = sigma2.nrow() ;
+    NumericVector x = model.slot("data") ;
+    IntegerVector nb = model.slot("batchElements") ;
+    int N = ptrio.size() ;
+    NumericVector this_batch(N) ;
+    NumericVector tmp ;
+    NumericVector rowtotal(N) ;
+    double df = getDf(hypp) ;
+    CharacterVector fam = family_member(xmod);
+    Rcpp::LogicalVector child_ind(fam.size());
+    for (int i = 0; i < fam.size(); i++){
+      child_ind[i] = (fam[i] == "o");
+    }
+    
+    Rcpp::NumericVector xo = x[child_ind];
+    int M = xo.size() ;
+    NumericMatrix lik(M, K) ;
+    
+      for(int k = 0; k < K; ++k){
+        NumericVector dens(N) ;
+        for(int b = 0; b < B; ++b){
+          this_batch = batch == ub[b] ;
+          double sigma = sqrt(sigma2(b, k));
+          tmp = ptrio(_,k) * dlocScale_t(xo, df, theta(b, k), sigma) * this_batch ;
+          dens += tmp ;
+        }
+        lik(_, k) = dens;
+        rowtotal += dens ;
+      }
+      NumericMatrix PC(M, K) ;
+      for(int k=0; k<K; ++k){
+        PC(_, k) = lik(_, k)/rowtotal ;
+      } 
+    return PC;
+}
+
+// works but too slow - use different function/ approach
+// deprecate once update_multinomialPrChild works
+// [[Rcpp::export]]
+Rcpp::NumericMatrix update_multinomialPrOff(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(clone(xmod)) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  IntegerVector batch = model.slot("batch") ;
+  IntegerVector ub = unique_batch(batch) ;
+  NumericMatrix ptrio = update_trioPr(xmod) ;
+  NumericMatrix sigma2 = model.slot("sigma2") ;
+  NumericMatrix theta = model.slot("theta") ;
+  int B = sigma2.nrow() ;
+  NumericVector x = model.slot("data") ;
+  IntegerVector nb = model.slot("batchElements") ;
+  int N = ptrio.size() ;
+  NumericVector this_batch(N) ;
+  NumericVector tmp ;
+  NumericVector rowtotal(N) ;
+  double df = getDf(hypp) ;
+  CharacterVector fam = family_member(xmod);
+  Rcpp::LogicalVector child_ind(fam.size());
+  for (int i = 0; i < fam.size(); i++){
+    child_ind[i] = (fam[i] == "o");
+  }
+  
+  Rcpp::NumericVector xo = x[child_ind];
+  int M = xo.size() ;
+  NumericMatrix poff(M,K) ;
+  NumericMatrix lik(M, K) ;
+  
+  for(int i = 0; i < M; ++i) {
+    NumericVector ptrio2 = ptrio(i, _ ) ;
+    for(int k = 0; k < K; ++k){
+      NumericVector dens(N) ;
+      for(int b = 0; b < B; ++b){
+        this_batch = batch == ub[b] ;
+        double sigma = sqrt(sigma2(b, k));
+        tmp = ptrio2[k] * dlocScale_t(xo, df, theta(b, k), sigma) * this_batch ;
+        dens += tmp ;
+      }
+      lik(_, k) = tmp;
+      //rowtotal += dens ;
+    }
+    // NumericMatrix PP(M, K) ;
+    //for(int k=0; k<K; ++k){
+    //  PP(_, k) = lik(_, k)/rowtotal ;
+    //} 
+    NumericVector PPI = lik(i,_) ;
+    poff.row(i) = PPI ;
+  }
+  NumericVector sumrow = rowSums(poff);
+  for (int j = 0; j < M; ++j) {
+    poff(j,_) = poff(j,_) / sumrow[j];
+  }
+  return poff;
+}
+
+// [[Rcpp::export]]
+Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
+  RNGScope scope ;
+  Rcpp::S4 model(clone(xmod)) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  Rcpp::DataFrame triodat(model.slot("triodata"));
+  NumericMatrix theta = model.slot("theta") ;
+  IntegerVector batch = model.slot("batch") ;
+  int B = theta.nrow() ;
+  CharacterVector fam = family_member(xmod);
+  Rcpp::LogicalVector child_ind(fam.size());
+  for (int i = 0; i < fam.size(); i++){
+    child_ind[i] = (fam[i] == "o");
+  }
+  IntegerVector z = model.slot("z");
+  Rcpp::IntegerVector zo = z[child_ind];
+  int child_size = zo.size();
+  NumericMatrix p(child_size, K);
+   //p = update_multinomialPrOff(xmod) ;  
+  p = update_multinomialPrChild(xmod) ;
+  
+  //NumericMatrix cumP(n, K) ;
+  //  Make more efficient
+  //return cumP ;
+  NumericVector uc = runif(child_size) ;
+  IntegerVector zc_(child_size) ;
+  IntegerVector zc = clone(zc_) ;
+  IntegerMatrix freq(B, K) ;
+  
+  int b ;
+  for(int i=0; i < child_size; i++){
+    //initialize accumulator ;
+    double acc = 0 ;
+    for(int k = 0; k < K; k++){
+      acc += p(i, k) ;
+      if( uc[i] < acc ) {
+        zc[i] = k + 1 ;
+        b = batch[i] - 1 ;
+        freq(b, k) += 1 ;
+        break ;
+      }
+    }
+  }
+  return zc ;
+}  
+
+// this selectively updates z for offspring
+
+// [[Rcpp::export]]
+Rcpp::IntegerVector update_zchild(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(clone(xmod)) ;
+  // Rcpp::IntegerVector map = model.slot("maplabel");
+  // Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  // int K = getK(hypp) ;
+  // Rcpp::IntegerVector sts = getSt(hypp);
+  // Rcpp::DataFrame triodat(model.slot("triodata"));
+  //int n = triodat.size() ;
+  //  NumericVector u = runif(n) ;
+  //  IntegerVector ztrio_(n) ;
+  //  IntegerVector ztrio = clone(ztrio_) ;
+  // updates z for everyone
+  //  ztrio = update_z(model) ;
+  
+  Rcpp::IntegerVector ztrio = model.slot("z");
+  
+  //return ztrio ;
+  //Rcpp::CharacterVector family_member=triodat["family_member"];
+  // Rcpp::LogicalVector is_offspring;
+  CharacterVector fam = family_member(xmod);
+  Rcpp::LogicalVector child_ind(fam.size());
+  for (int i = 0; i < fam.size(); i++){
+    child_ind[i] = (fam[i] == "o");
+  }
+  // return child_ind;
+  
+  IntegerVector zz_offspring;
+  zz_offspring = update_offspring(model); // length 300
+  int n = ztrio.size() ;
+  int j = 0;
+  for(int i = 0; i < n; i++){
+    if(child_ind[i] == TRUE){
+      ztrio[i] = zz_offspring[j];
+      j++;
+    }
+  }
+  return ztrio;
+}
+
+// [[Rcpp::export]]
 Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   RNGScope scope ;
   Rcpp::S4 model(clone(object)) ;
@@ -429,27 +485,24 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     if(up[8] > 0){
       model.slot("z") = update_zchild(model) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-    }
+      }
     if(up[9] > 0)
-      model.slot("pi") = update_p(model) ;
-   // if(up[10] > 0){
-    //  model.slot("z") = update_zchild(model) ;
-    //  model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-    //}
+      model.slot("pi_parents") = update_pp(model) ;
     if(up[0] > 0)
       model.slot("theta") = update_theta(model) ;
     if(up[1] > 0)
       model.slot("sigma2") = update_sigma2(model) ;
+    if(up[2] > 0)
+      model.slot("pi") = update_p(model) ;
     if(up[3] > 0)
       model.slot("mu") = update_mu(model) ;
     if(up[4] > 0)
       model.slot("tau2") = update_tau2(model) ;
     if(up[5] > 0)
-      model.slot("sigma2.0") = update_sigma20(model) ;
-    if(up[6] > 0)
       model.slot("nu.0") = update_nu0(model) ;
-    if(up[2] > 0)
-      model.slot("pi_parents") = update_pp(model) ;
+    if(up[6] > 0)
+      model.slot("sigma2.0") = update_sigma20(model) ;
+
     model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   // compute log prior probability from last iteration of burnin
@@ -564,26 +617,31 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     }
     zfreq_parents(s, _) = tmp ;
  
- if(up[8] > 0){
-   z = update_zchild(model) ;
-   model.slot("z") = z ;
-   tmp = tableZ(K, model.slot("z")) ;
-   model.slot("zfreq") = tmp ;
-   model.slot("probz") = update_probz(model) ;
- } else {
-   z = model.slot("z") ;
-   tmp = model.slot("zfreq") ;
- }
- zfreq(s, _) = tmp ;
- 
-if(up[9] > 0){
-  p = update_p(model) ;
-  model.slot("pi") = p ;
-} else {
-  p = model.slot("pi") ;
-}
-pmix(s, _) = p ;
-
+  if(up[8] > 0){
+    z = update_zchild(model) ;
+    model.slot("z") = z ;
+    tmp = tableZ(K, model.slot("z")) ;
+    model.slot("zfreq") = tmp ;
+    } else {
+      z = model.slot("z") ;
+      tmp = model.slot("zfreq") ;
+      }
+  zfreq(s, _) = tmp ;
+  if(up[9] > 0){
+    pp = update_pp(model) ;
+    model.slot("pi_parents") = pp ;
+    } else {
+      pp = model.slot("pi_parents") ;
+      }
+    pmix_parents(s, _) = pp ;
+  if(up[2] > 0){
+    p = update_p(model) ;
+    model.slot("pi") = p ;
+    } else {
+        p = model.slot("pi") ;
+      }
+    pmix(s, _) = p ;
+  
     //if(up[10] > 0){
     //  z = update_z(model) ;
     //  model.slot("z") = z ;
@@ -607,14 +665,6 @@ pmix(s, _) = p ;
       model.slot("sigma2") = update_sigma2(model) ;
     }
     sigma2c(s, _) = as<Rcpp::NumericVector>(model.slot("sigma2"));
-
-    if(up[2] > 0){
-      pp = update_pp(model) ;
-      model.slot("pi_parents") = pp ;
-    } else {
-      pp = model.slot("pi_parents") ;
-    }
-    pmix_parents(s, _) = pp ;
     if(up[3] > 0){
       m = update_mu(model) ;
       model.slot("mu") = m ;
@@ -642,6 +692,7 @@ pmix(s, _) = p ;
     } else {
       s20 = model.slot("sigma2.0") ;
     }
+    model.slot("probz") = update_probz(model) ;
     sigma2_0[s] = s20[0] ;
     ll = compute_loglik(model) ;
     lls2 = stageTwoLogLikBatch(model) ;
@@ -665,18 +716,14 @@ pmix(s, _) = p ;
         model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       }
       if(up[9] > 0)
+        model.slot("pi_parents") = update_pp(model) ;
+      if(up[2] > 0)
         model.slot("pi") = update_p(model) ;
-      //if(up[10] > 0){
-      //  model.slot("z") = update_z(model) ;
-      //  model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-      //}
+
       if(up[0] > 0)
         model.slot("theta") = update_theta(model) ;
       if(up[1] > 0)
         model.slot("sigma2") = update_sigma2(model) ;
-
-      if(up[2] > 0)
-        model.slot("pi_parents") = update_pp(model) ;
       if(up[3] > 0)
         model.slot("mu") = update_mu(model) ;
       if(up[4] > 0)
