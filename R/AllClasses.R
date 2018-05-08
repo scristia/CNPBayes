@@ -61,7 +61,6 @@ setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 #' An object to specify the hyperparameters of a model with additional parameters for trios
 #' 
 #' This class inherits from the hyperparameters class. 
-#' @slot states The set of copy number states
 #' @slot k Number of components
 #' @slot mu.0 Prior mean for mu.
 #' @slot tau2.0 prior variance on mu

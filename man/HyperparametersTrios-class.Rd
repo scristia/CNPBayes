@@ -10,8 +10,6 @@ This class inherits from the hyperparameters class.
 \section{Slots}{
 
 \describe{
-\item{\code{states}}{The set of copy number states}
-
 \item{\code{k}}{Number of components}
 
 \item{\code{mu.0}}{Prior mean for mu.}
