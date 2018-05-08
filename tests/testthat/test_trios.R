@@ -225,6 +225,7 @@ test_that("full example", {
                                              length.out = 3*N),
                                error=0, mprob, maplabel)
   hp <- HyperparametersTrios(k = 3)
+  mp <- McmcParams(iter=2000, burnin=1000, thin=1)
   
   model <- TBM(triodata=truth$data,
                hp=hp,
@@ -234,10 +235,17 @@ test_that("full example", {
   
   truth_sum <- component_stats(truth$data)
   
-  mp <- McmcParams(iter=2000, burnin=1000, thin=1)
+  index <- model@triodata$family_member=="o"
+  cn <- model@triodata$copy_number
+  
+  # fix children z
+  model@z[index] <- as.integer(cn[index] + 1)
+  
+  #fix parental z. remember to reset model
+  model@z[!index] <- as.integer(cn[!index] + 1)
+  
   mcmcParams(model) <- mp
   model <- posteriorSimulation(model)
-  ##tab <- posteriorPredictive(model)
   ggMixture(model)
   ggChains(model)
   
