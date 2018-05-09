@@ -81,6 +81,11 @@
   mprob2 <- mprob[, -index]
   father <- mprob[, "father"]
   mother <- mprob[, "mother"]
+  zamp <- sample(seq_len(K), N, replace=TRUE)
+  is_offspring <- model@triodata$family_member=="o"
+  # write R update z module
+  #zo <- update
+  zamp[is_offspring] <- zo
   obj <- new("TrioBatchModel",
              k=as.integer(K),
              hyperparams=hp,
@@ -125,6 +130,92 @@ triodata <- function(object){
   dat
 }
 
+combine_batchTrios <- function(model.list, batches){
+  . <- NULL
+  ch.list <- map(model.list, chains)
+  th <- map(ch.list, theta) %>% do.call(rbind, .)
+  s2 <- map(ch.list, sigma2) %>% do.call(rbind, .)
+  ll <- map(ch.list, log_lik) %>% unlist
+  pp <- map(ch.list, p) %>% do.call(rbind, .)
+  n0 <- map(ch.list, nu.0) %>% unlist
+  s2.0 <- map(ch.list, sigma2.0) %>% unlist
+  logp <- map(ch.list, logPrior) %>% unlist
+  .mu <- map(ch.list, mu) %>% do.call(rbind, .)
+  .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
+  zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
+  mc <- new("McmcChains",
+            theta=th,
+            sigma2=s2,
+            pi=pp,
+            mu=.mu,
+            tau2=.tau2,
+            nu.0=n0,
+            sigma2.0=s2.0,
+            zfreq=zfreq,
+            logprior=logp,
+            loglik=ll)
+  hp <- hyperParams(model.list[[1]])
+  mp <- mcmcParams(model.list[[1]])
+  iter(mp) <- nrow(th)
+  B <- length(unique(batches))
+  K <- k(model.list[[1]])
+  pm.th <- matrix(colMeans(th), B, K)
+  pm.s2 <- matrix(colMeans(s2), B, K)
+  pm.p <- colMeans(pp)
+  pm.n0 <- median(n0)
+  pm.mu <- colMeans(.mu)
+  pm.tau2 <- colMeans(.tau2)
+  pm.s20 <- mean(s2.0)
+  pz <- map(model.list, probz) %>% Reduce("+", .)
+  pz <- pz/length(model.list)
+  ## the accessor divides by number of iterations, so rescale
+  pz <- pz * (iter(mp) - 1)
+  zz <- max.col(pz)
+  yy <- y(model.list[[1]])
+  y_mns <- as.numeric(tapply(yy, zz, mean))
+  y_prec <- as.numeric(1/tapply(yy, zz, var))
+  zfreq <- as.integer(table(zz))
+  any_label_swap <- any(map_lgl(model.list, label_switch))
+  ## use mean marginal likelihood in combined model,
+  ## or NA if marginal likelihood has not been estimated
+  ml <- map_dbl(model.list, marginal_lik)
+  if(all(is.na(ml))) {
+    ml <- as.numeric(NA)
+  } else ml <- mean(ml, na.rm=TRUE)
+  nbatch <- as.integer(table(batch(model.list[[1]])))
+  model <- new(class(model.list[[1]]),
+               k=k(hp),
+               hyperparams=hp,
+               theta=pm.th,
+               sigma2=pm.s2,
+               mu=pm.mu,
+               tau2=pm.tau2,
+               nu.0=pm.n0,
+               sigma2.0=pm.s20,
+               pi=pm.p,
+               data=y(model.list[[1]]),
+               u=u(model.list[[1]]),
+               data.mean=y_mns,
+               data.prec=y_prec,
+               z=zz,
+               zfreq=zfreq,
+               probz=pz,
+               logprior=numeric(1),
+               loglik=numeric(1),
+               mcmc.chains=mc,
+               batch=batch(model.list[[1]]),
+               batchElements=nbatch,
+               modes=list(),
+               mcmc.params=mp,
+               label_switch=any_label_swap,
+               marginal_lik=ml,
+               .internal.constraint=5e-4,
+               .internal.counter=0L)
+  modes(model) <- computeModes(model)
+  log_lik(model) <- computeLoglik(model)
+  logPrior(model) <- computePrior(model)
+  model
+}
 #' Constructor for TrioBatchModel
 #'
 #' Initializes a TrioBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
@@ -173,7 +264,7 @@ TrioBatchModel <- function(triodata=tibble(),
 TBM <- TrioBatchModel
 
 
-.gibbs_trios_mcmc <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500){
+.gibbs_trios_mcmc <- function(hp, mp, dat, mprob, maplabel, max_burnin=32000, batches, min_effsize=500){
   nchains <- nStarts(mp)
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
   if(iter(mp) < 500){
@@ -185,12 +276,12 @@ TBM <- TrioBatchModel
   neff <- 0; r <- 2
   while(burnin(mp) < max_burnin && thin(mp) < 100){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    mod.list <- replicate(nchains, TBM(dat=dat,
+    mod.list <- replicate(nchains, TBM(triodata=dat,
                                        hp=hp,
                                        mp=mp,
-                                       batches=batches))
+                                       mprob=mprob,
+                                       maplabel=maplabel))
 
-    ## MC: Define a method for runBurnin / runMcmc  :  define corresponding CPP code
     mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
     no_label_swap <- !map_lgl(mod.list, label_switch)
     if(sum(no_label_swap) < MIN_CHAINS){
@@ -216,8 +307,8 @@ TBM <- TrioBatchModel
     nStarts(mp) <- nStarts(mp) + 1
     ##mp@thin <- as.integer(thin(mp) * 2)
   }
-  ## MC: combine_batch / new function needed for TrioBatchModel
-  model <- combine_batch(mod.list, batches)
+
+  model <- combine_batchTrios(mod.list, batches)
   meets_conditions <- (mean(neff) > min_effsize) &&
     r$mpsrf < MIN_GR &&
     !label_switch(model)
@@ -233,19 +324,23 @@ gibbs_trios_K <- function(hp,
                           k_range=c(1, 4),
                           dat,
                           batches,
+                          maplabel,
+                          mprob,
                           max_burnin=32000,
                           reduce_size=TRUE,
                           min_effsize=500){
   K <- seq(k_range[1], k_range[2])
   hp.list <- map(K, updateK, hp)
   model.list <- map(hp.list,
-                    .gibbs_trio_mcmc,
+                    .gibbs_trios_mcmc,
                     mp=mp,
                     dat=dat,
                     batches=batches,
+                    maplabel=maplabel,
+                    mprob=mprob,
                     max_burnin=max_burnin,
                     min_effsize=min_effsize)
-  names(model.list) <- paste0("TMB", map_dbl(model.list, k))
+  names(model.list) <- paste0("TBM", map_dbl(model.list, k))
   ## sort by marginal likelihood
   ##
   ## if(reduce_size) TODO:  remove z chain, keep y in one object
@@ -254,7 +349,7 @@ gibbs_trios_K <- function(hp,
   models <- model.list[ix]
 }
 
-gibbs_trios <- function(model="trio",
+gibbs_trios <- function(model="trios",
                         dat,
                         mp,
                         hp.list,
@@ -264,18 +359,19 @@ gibbs_trios <- function(model="trio",
                         top=2,
                         df=100,
                         min_effsize=500){
-  model <- unique(model)
+  #model <- unique(model)
   max_burnin <- max(max_burnin, burnin(mp)) + 1
   if(missing(hp.list)){
-    ## MC:  implement
-    hp.list <- hpTrioList(df=df)
+    hp.list <- hpList(df=df)
   }
   message("Fitting TMB models")
-  sb <- gibbs_trios_K(hp.list,
+  tbm <- gibbs_trios_K(hp.list,
                       k_range=k_range,
                       mp=mp,
                       dat=dat,
                       batches=rep(1L, length(dat)),
+                      maplabel=maplabel,
+                      mprob=mprob,
                       max_burnin=max_burnin,
                       min_effsize=min_effsize)
 }
@@ -395,10 +491,11 @@ mprob.matrix.mallelic <- function (tau=c(0.5, 0.5, 0.5), maplabel){
   mprob.mat
 }
 
-mprob.matrix.biallelic <- function (tau=c(0.5, 0.5, 0.5), maplabel){
+# error term is hard coded into bi-allelic matrix for now
+mprob.matrix.biallelic <- function (tau=c(0.5, 0.5, 0.5), maplabel, error = 0.001){
   # note in biallelic, only 1 tau value required
   tau1 <- tau[1]
-  allele1 <- c(1, 1-tau1, 0)
+  allele1 <- c(1 - error, 1-tau1-error, 0 + error)
   allele2 <- 1 - allele1
   
   # kronecker's product
@@ -817,3 +914,30 @@ simulate_data_multi <- function(params, N, batches, error=0, GP){
   truth
 }
 
+# adapted from old SNR script
+# MC: will modify variables to be more self-explanatory later
+snr.calc.median<-function(count.num, sd.num, deltas, lrr.list){
+  loop.length<-ifelse(length(lrr.list)!=1, length(lrr.list)-1, 1)
+  variance<-rep(NA,loop.length)
+  for (i in 1:loop.length){
+    var.calc<-((count.num[[i]]-1)*(sd.num[[i]]^2)+(count.num[[i+1]]-1)*(sd.num[[i+1]]^2))/(count.num[i]+count.num[i+1]-2)
+    variance[i]<-var.calc
+  }
+  snr<-deltas/(variance^0.5)
+  median.snr<-median(snr)
+  return(median.snr)
+}
+
+# wrapper function 
+snr.calc <- function(model){
+  lrr<-as.numeric(y(model))
+  calls<-as.numeric(z(model))
+  avglrr.list <- split(lrr, calls)
+  comp.means <- sapply(avglrr.list, mean)
+  comp.means <- sort(comp.means)
+  deltas <- diff(comp.means)
+  sds <- sapply(avglrr.list, sd)
+  count<-sapply(avglrr.list,length)
+  SNR<-snr.calc.median(count, sds, deltas, avglrr.list)
+  SNR
+}
