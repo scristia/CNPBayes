@@ -853,6 +853,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// tableBatchZpar
+Rcpp::NumericMatrix tableBatchZpar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_tableBatchZpar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(tableBatchZpar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // update_pp
 Rcpp::NumericVector update_pp(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_update_pp(SEXP xmodSEXP) {
@@ -905,6 +916,50 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(update_zchild(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_mu2
+Rcpp::NumericVector update_mu2(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_mu2(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_mu2(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compute_vars2
+Rcpp::NumericMatrix compute_vars2(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_compute_vars2(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_vars2(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compute_prec2
+Rcpp::NumericMatrix compute_prec2(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_compute_prec2(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_prec2(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_sigma22
+Rcpp::NumericMatrix update_sigma22(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_sigma22(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_sigma22(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1021,11 +1076,16 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_update_parents", (DL_FUNC) &_CNPBayes_update_parents, 1},
     {"_CNPBayes_update_zparents", (DL_FUNC) &_CNPBayes_update_zparents, 1},
     {"_CNPBayes_tableZpar", (DL_FUNC) &_CNPBayes_tableZpar, 1},
+    {"_CNPBayes_tableBatchZpar", (DL_FUNC) &_CNPBayes_tableBatchZpar, 1},
     {"_CNPBayes_update_pp", (DL_FUNC) &_CNPBayes_update_pp, 1},
     {"_CNPBayes_update_multinomialPrChild", (DL_FUNC) &_CNPBayes_update_multinomialPrChild, 1},
     {"_CNPBayes_update_multinomialPrOff", (DL_FUNC) &_CNPBayes_update_multinomialPrOff, 1},
     {"_CNPBayes_update_offspring", (DL_FUNC) &_CNPBayes_update_offspring, 1},
     {"_CNPBayes_update_zchild", (DL_FUNC) &_CNPBayes_update_zchild, 1},
+    {"_CNPBayes_update_mu2", (DL_FUNC) &_CNPBayes_update_mu2, 1},
+    {"_CNPBayes_compute_vars2", (DL_FUNC) &_CNPBayes_compute_vars2, 1},
+    {"_CNPBayes_compute_prec2", (DL_FUNC) &_CNPBayes_compute_prec2, 1},
+    {"_CNPBayes_update_sigma22", (DL_FUNC) &_CNPBayes_update_sigma22, 1},
     {"_CNPBayes_trios_burnin", (DL_FUNC) &_CNPBayes_trios_burnin, 2},
     {"_CNPBayes_trios_mcmc", (DL_FUNC) &_CNPBayes_trios_mcmc, 2},
     {"_CNPBayes_z2cn", (DL_FUNC) &_CNPBayes_z2cn, 2},

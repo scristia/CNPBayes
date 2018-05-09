@@ -81,11 +81,11 @@
   mprob2 <- mprob[, -index]
   father <- mprob[, "father"]
   mother <- mprob[, "mother"]
-  zamp <- sample(seq_len(K), N, replace=TRUE)
-  is_offspring <- model@triodata$family_member=="o"
+  ##zamp <- sample(seq_len(K), N, replace=TRUE)
+  ##is_offspring <- model@triodata$family_member=="o"
   # write R update z module
   #zo <- update
-  zamp[is_offspring] <- zo
+  ##zamp[is_offspring] <- zo
   obj <- new("TrioBatchModel",
              k=as.integer(K),
              hyperparams=hp,

@@ -301,6 +301,10 @@ tableZpar <- function(xmod) {
     .Call('_CNPBayes_tableZpar', PACKAGE = 'CNPBayes', xmod)
 }
 
+tableBatchZpar <- function(xmod) {
+    .Call('_CNPBayes_tableBatchZpar', PACKAGE = 'CNPBayes', xmod)
+}
+
 update_pp <- function(xmod) {
     .Call('_CNPBayes_update_pp', PACKAGE = 'CNPBayes', xmod)
 }
@@ -319,6 +323,22 @@ update_offspring <- function(xmod) {
 
 update_zchild <- function(xmod) {
     .Call('_CNPBayes_update_zchild', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_mu2 <- function(xmod) {
+    .Call('_CNPBayes_update_mu2', PACKAGE = 'CNPBayes', xmod)
+}
+
+compute_vars2 <- function(xmod) {
+    .Call('_CNPBayes_compute_vars2', PACKAGE = 'CNPBayes', xmod)
+}
+
+compute_prec2 <- function(xmod) {
+    .Call('_CNPBayes_compute_prec2', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_sigma22 <- function(xmod) {
+    .Call('_CNPBayes_update_sigma22', PACKAGE = 'CNPBayes', xmod)
 }
 
 trios_burnin <- function(object, mcmcp) {

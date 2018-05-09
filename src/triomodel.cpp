@@ -634,7 +634,6 @@ Rcpp::NumericMatrix update_sigma22(Rcpp::S4 xmod){
       if (batch[i] != ub[b]) {
         continue;
       }
-      
       for (int k = 0; k < K; ++k){
         if(z[i] == k+1 & batch[i] == b+1){
           ss(b, k) += u[i] * pow(x[i] - theta(b, k), 2);
@@ -690,11 +689,11 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     if(up[7] > 0){
       model.slot("z") = update_zparents(model) ;
       model.slot("zfreq_parents") = tableZpar(model);
-      //model.slot("zfreq") = tableZpar(model);
+      //model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+      model.slot("zfreq") = tableZpar(model);
     }
     if(up[8] > 0){
       model.slot("z") = update_zchild(model) ;
-      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     }
     if(up[9] > 0)
       model.slot("pi_parents") = update_pp(model) ;
