@@ -136,32 +136,42 @@ combine_batchTrios <- function(model.list, batches){
   th <- map(ch.list, theta) %>% do.call(rbind, .)
   s2 <- map(ch.list, sigma2) %>% do.call(rbind, .)
   ll <- map(ch.list, log_lik) %>% unlist
-  pp <- map(ch.list, p) %>% do.call(rbind, .)
+  ppi <- map(ch.list, p) %>% do.call(rbind, .)
+  pp.par <- map(ch.list, pp) %>% do.call(rbind, .)
   n0 <- map(ch.list, nu.0) %>% unlist
   s2.0 <- map(ch.list, sigma2.0) %>% unlist
   logp <- map(ch.list, logPrior) %>% unlist
   .mu <- map(ch.list, mu) %>% do.call(rbind, .)
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
+  zfreqpar <- map(ch.list, zFreqPar) %>% do.call(rbind, .)
   mc <- new("McmcChains",
             theta=th,
             sigma2=s2,
-            pi=pp,
+            pi=ppi,
+            pi_parents=pp.par,
             mu=.mu,
             tau2=.tau2,
             nu.0=n0,
             sigma2.0=s2.0,
             zfreq=zfreq,
+            zfreq_parents=zfreqpar,
             logprior=logp,
             loglik=ll)
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
+  triodata <- model.list[[1]]@triodata
+  mprob <- model.list[[1]]@mprob
+  father <- model.list[[1]]@father
+  mother <- model.list[[1]]@mother
+  maplabel <- model.list[[1]]@maplabel
   iter(mp) <- nrow(th)
   B <- length(unique(batches))
   K <- k(model.list[[1]])
   pm.th <- matrix(colMeans(th), B, K)
   pm.s2 <- matrix(colMeans(s2), B, K)
-  pm.p <- colMeans(pp)
+  pm.p <- colMeans(ppi)
+  pm.par <- colMeans(pp.par)
   pm.n0 <- median(n0)
   pm.mu <- colMeans(.mu)
   pm.tau2 <- colMeans(.tau2)
@@ -184,6 +194,11 @@ combine_batchTrios <- function(model.list, batches){
   } else ml <- mean(ml, na.rm=TRUE)
   nbatch <- as.integer(table(batch(model.list[[1]])))
   model <- new(class(model.list[[1]]),
+               triodata=triodata,
+               mprob=mprob,
+               father=father,
+               mother=mother,
+               maplabel=maplabel,
                k=k(hp),
                hyperparams=hp,
                theta=pm.th,
@@ -193,6 +208,7 @@ combine_batchTrios <- function(model.list, batches){
                nu.0=pm.n0,
                sigma2.0=pm.s20,
                pi=pm.p,
+               pi_parents=pm.par,
                data=y(model.list[[1]]),
                u=u(model.list[[1]]),
                data.mean=y_mns,
@@ -233,7 +249,7 @@ TrioBatchModel <- function(triodata=tibble(),
                            mprob=mprob,
                            maplabel=maplabel
                            ){
-  if(nrow(triodata) == 0){
+  if(length(triodata) == 0){
     return(.empty_trio_model(hp, mp))
   }
   iter <- 0
@@ -262,7 +278,6 @@ TrioBatchModel <- function(triodata=tibble(),
 
 #' @export
 TBM <- TrioBatchModel
-
 
 .gibbs_trios_mcmc <- function(hp, mp, dat, mprob, maplabel, max_burnin=32000, batches, min_effsize=500){
   nchains <- nStarts(mp)
@@ -349,7 +364,7 @@ gibbs_trios_K <- function(hp,
   models <- model.list[ix]
 }
 
-gibbs_trios <- function(model="trios",
+gibbs_trios <- function(model="TBM",
                         dat,
                         mp,
                         hp.list,
@@ -362,9 +377,10 @@ gibbs_trios <- function(model="trios",
   #model <- unique(model)
   max_burnin <- max(max_burnin, burnin(mp)) + 1
   if(missing(hp.list)){
-    hp.list <- hpList(df=df)
+    #note this line will have to be incorporated in gibbs.R when generalised
+    hp.list <- hpList(df=df)[["TBM"]]
   }
-  message("Fitting TMB models")
+  message("Fitting TBM models")
   tbm <- gibbs_trios_K(hp.list,
                       k_range=k_range,
                       mp=mp,
@@ -414,7 +430,7 @@ gMendelian.multi <- function(tau=c(0.5, 0.5, 0.5)){
   mendelian.probs
 }
 
-mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), maplabel){
+mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), maplabel, error){
   
   # to avoid confusion, maplabel1 will always be unique applied throughout all functions
   # and maplabel will not
@@ -426,7 +442,7 @@ mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), maplabel){
   if (all(any(maplabel1 < 2) & any(maplabel1 > 2))) {
     mprob.mat <- mprob.matrix.mallelic(tau, maplabel)
   } else {
-    mprob.mat <- mprob.matrix.biallelic(tau, maplabel)
+    mprob.mat <- mprob.matrix.biallelic(tau, maplabel, error)
   }
  
   setDT(mprob.mat)[, c("father","mother") := tstrsplit(parents, "")]
@@ -636,6 +652,7 @@ component_stats <- function(tbl){
   tbl3
   }
 
+# sensitivity and specificity function
 
 # deprecate the following simulation functions:
 .simulate_data_multi2 <- function(params, n, mprob, maplabel){
@@ -723,16 +740,6 @@ startAtTrueValues2 <- function(model, truth_stats, data){
   model
 }
 
-#' Retrieve mixture proportions of parents.
-#'
-#' @examples
-#'      pp(TrioBatchModelExample)
-#' @param object an object of class McmcChains
-#' @return A vector of length the number of components
-#' @export
-pp <- function(object) object@mcmc.chains@pi_parents
-
-
 setMethod("triodata_lrr", "TrioBatchModel", function(object){
   object@triodata$log_ratio
 }
@@ -764,155 +771,52 @@ setMethod("computeVars", "TrioBatchModel", function(object){
 })
 
 
-##################################
-#deprecated functions
-###############################
+setMethod("show", "TrioBatchModel", function(object){
+  ##callNextMethod()
+  cls <- class(object)
+  cat(paste0("An object of class ", cls), "\n")
+  cat("     n. obs      :", length(y(object)), "\n")
+  cat("     n. batches  :", nBatch(object), "\n")
+  cat("     k           :", k(object), "\n")
+  cat("     nobs/batch  :", table(batch(object)), "\n")
+  cat("     loglik (s)  :", round(log_lik(object), 1), "\n")
+  cat("     logprior (s):", round(logPrior(object), 1), "\n")
+})
 
-# deprecate this subsetting matrix function based on gp 
-# and 1:1 K:CN correspondence
-mprob.subset <- function(mprob.mat, gp) {
-  K <- gp$K
-  states <- gp$states
-  col.a <- states[1] + 2
-  col.b <- states[K] + 2
-  
-  ref.geno <- c("00", "01", "02", "03", "04", 
-                "10", "11", "12", "13", "14",
-                "20", "21", "22", "23", "24",
-                "30", "31", "32", "33", "34",
-                "40", "41", "42", "43", "44")
-  index <- mprob.label(gp)
-  rows <- match(index, ref.geno)
-  
-  mprob.subset <- mprob.mat[rows, c(col.a:col.b)]
-  mprob.rows <- mprob.mat[rows, 1]
-  mprob.subset <- cbind(mprob.rows, mprob.subset)
-  mprob.subset
-}
+#' @rdname k-method
+#' @aliases k,TrioBatchModel-method
+setMethod("k", "TrioBatchModel", function(object) object@k)
 
-# deprecate this as well as associated with mprob.subset
-mprob.label <- function(gp){
-  n <- gp$K
-  v <- gp$states
-  combo <- permutations(n=n, r=2, v=v, repeats.allowed=T)
-  geno.combo <- paste0(combo[,1], combo[,2])
-  geno.combo
-}
+#' @rdname k-method
+#' @aliases k<-,TrioBatchModel-method
+setReplaceMethod("k", "TrioBatchModel",
+                 function(object, value) {
+                   k <- as.integer(value)
+                   hypp <- hyperParams(object)
+                   hypp@k <- k
+                   hypp@alpha <- rep(1, k)
+                   hyperParams(object) <- hypp
+                   object@k <- k
+                   object@pi <- rep(1/k, k)
+                   object@probz <- matrix(0, length(y(object)), k)
+                   object <- startingValues(object)
+                   object
+                 }
+)
 
-# deprecate the following simulation functions:
-.simulate_data_multi <- function(params, n, mendelian.probs, GP){
-  gp <- GP
-  states <- gp$states + 1
-  K <- nrow(params)
-  p <- params$p
-  theta <- params$theta
-  sigma2 <- params$sigma2
-  sigma <- sqrt(sigma2)
-  c_mk <- sample(1:K, size = n, replace = TRUE, prob = p)
-  c_fk <- sample(1:K, size = n, replace = TRUE, prob = p)
-  c_o <- rep(NA, length = n)
-  M <- cn_adjust2(gp)
-  c_m <- c_mk + M
-  c_f <- c_fk + M
-  for(i in 1:n){
-    cn_m <- c_m[i] + 1
-    cn_f <- c_f[i] + 1
-    p.offspring <- mendelian.probs[, cn_m, cn_f]
-    p.offspring <- p.offspring[states]
-    c_o[i] <- sample(1:K, size = 1, prob = p.offspring)
-  }
-  c_o <- c_o + M
-  c_ok <- c_o - M
-  id.index <- formatC(seq_len(n), flag="0", width=3)
-  logr.tbl <- tibble(m=rnorm(n, mean = theta[c_mk], sd = sigma[c_mk]),
-                     f=rnorm(n, mean = theta[c_fk], sd = sigma[c_fk]),
-                     o=rnorm(n, mean = theta[c_ok], sd = sigma[c_ok]),
-                     id=factor(paste0("trio_", id.index))) %>%
-    gather(key="family_member", value="log_ratio", -id) 
-  cn.mat <- cbind(c_m, c_f, c_o)
-  colnames(cn.mat) <- c("m", "f", "o")
-  cn.tbl <- as.tibble(cn.mat) %>%
-    mutate(id=factor(paste0("trio_", id.index))) %>%
-    gather(key="family_member", value="copy_number", -id)
-  tbl <- left_join(logr.tbl, cn.tbl, by=c("id", "family_member")) %>%
-    mutate(family_member=factor(family_member, levels=c("m", "f", "o"))) %>%
-    arrange(id, family_member)
-  tbl
-}
+#' Retrieve mixture proportions of parents.
+#'
+#' @examples
+#'      pp(TrioBatchModelExample)
+#' @param object an object of class TrioBatchModel
+#' @return A vector of length the number of components
+#' @export
+pp <- function(object) object@pi_parents
 
-geneticParams <- function(K=5,
-                          states=0:4,
-                          tau=c(1, 0.5, 0),
-                          xi=c(1.5, 1, 1, 1, 1), 
-                          mu=c(-3, -0.5, 0, 1, 2), ## theoretical
-                          nu=1,
-                          sigma2.0=0.001,
-                          a=rep(1, K),
-                          eta=c(0.5, 0.5),
-                          error=5e-4,
-                          ncp=30,
-                          model="Genetic"){
-  ##m.probs <- gMendelian(tau)
-  list(K=K,
-       states=states,
-       tau=tau,
-       mu=mu,
-       xi=xi,
-       nu=nu,
-       sigma2.0=sigma2.0,
-       a=a,
-       eta=eta,
-       error=error,
-       ncp=ncp,
-       ##m.probs=m.probs,
-       model=model)
-}
-
-cn_adjust2 <- function(gp){
-  states <- gp$states
-  start.state <-states[1]
-  M <- (-1)
-  M <- ifelse(start.state==1, M <- 0, M)
-  M <- ifelse(start.state==2, M <- 1, M)
-  M <- ifelse(start.state==3, M <- 2, M)
-  M <- as.numeric(M)
-  M
-}
-
-simulate_data_multi <- function(params, N, batches, error=0, GP){
-  gp <- GP
-  mendelian.probs <- gMendelian.multi()
-  tbl <- .simulate_data_multi(params, N, mendelian.probs, GP)
-  ## standardize
-  #tbl <- tbl %>%
-  # mutate(log_ratio=(log_ratio-median(log_ratio))/sd(log_ratio))
-  M <- cn_adjust2(gp)
-  z <- tbl$copy_number - M
-  
-  # append batch info (assumes ordering by trios and id)
-  if(missing(batches)) {
-    batches <- rep(1L, 3*N)
-  } else {
-    batches <- as.integer(factor(batches))
-  }
-  batches <- sort(batches)
-  tbl2 <- cbind(tbl, batches)
-  tbl3 <- as_tibble(tbl2)
-  ##
-  ## update parameters to be same as empirical values
-  ##
-  stats <- component_stats(tbl3)
-  p <- stats %>% group_by(copy_number) %>% summarise(p=mean(p))
-  sd <- stats %>% group_by(copy_number) %>% summarise(sd=mean(sd))
-  mean <- stats %>% group_by(copy_number) %>% summarise(mean=mean(mean))
-  params$p <- p$p
-  params$sigma2 <- (sd$sd)^2
-  params$theta <- mean$mean
-  loglik <- sum(dnorm(tbl$log_ratio, params$theta[z],
-                      sqrt(params$sigma2[z]), log=TRUE))
-  truth <- list(data=tbl3, params=params, loglik=loglik)
-  truth
-}
+setReplaceMethod("pp", "TrioBatchModel", function(object, value){
+  object@pi_parents <- value
+  object
+})
 
 # adapted from old SNR script
 # MC: will modify variables to be more self-explanatory later
@@ -940,4 +844,34 @@ snr.calc <- function(model){
   count<-sapply(avglrr.list,length)
   SNR<-snr.calc.median(count, sds, deltas, avglrr.list)
   SNR
+}
+
+# cross table in the same format as caret package
+# specifically for 3 state cross table
+modified.sens.spec.calc <- function(cross.table, cn.type=c("DEL", "DUP")){
+  # sensitivity = TP / TP+ FN
+  # specificity = TN / TN + FP
+  if(cn.type == "DEL"){
+    tp <- cross.table[2,2] + cross.table[1,1]
+    fn <- cross.table[3,1] + cross.table[3,2]
+    tn <- cross.table[3,3]
+    fp <- cross.table[1,2] + cross.table[1,3] + cross.table[2,1] + cross.table[2,3]
+    sens <- tp / (tp + fn)
+    spec <- tn / (tn + fp)
+  } else{
+    tp <- cross.table[2,2] + cross.table[3,3]
+    fn <- cross.table[1,2] + cross.table[1,3]
+    tn <- cross.table[1,1]
+    fp <- cross.table[2,1] + cross.table[2,3] + cross.table[3,1] + cross.table[3,2]
+    sens <- tp / (tp + fn)
+    spec <- tn / (tn + fp)
+  }
+  sens.spec <- list("sensitivity" = sens, "specificity" = spec)
+  return(sens.spec)
+}
+
+ci95.wrap <- function(vector) {
+  test <- t.test(vector)
+  ci95 <- test$conf.int
+  ci95
 }
