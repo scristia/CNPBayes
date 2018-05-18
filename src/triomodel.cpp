@@ -684,13 +684,13 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     return model ;
   }
   for(int s = 0; s < S; ++s){
-    //model.slot("z") = update_z(model) ;
-    //model.slot("zfreq") = tableZ(K, model.slot("z"));
+    model.slot("z") = update_z(model) ;
+    model.slot("zfreq_parents") = tableZ(K, model.slot("z"));
     if(up[7] > 0){
       model.slot("z") = update_zparents(model) ;
-      model.slot("zfreq_parents") = tableZpar(model);
-      //model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       model.slot("zfreq") = tableZpar(model);
+      //model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+      //model.slot("zfreq") = tableZpar(model);
     }
     if(up[8] > 0){
       model.slot("z") = update_zchild(model) ;
@@ -804,27 +804,28 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       z = update_zparents(model) ;
       model.slot("z") = z ;
       tmp = tableZpar(model) ;
-      model.slot("zfreq_parents") = tmp ;
+      model.slot("zfreq") = tmp ;
       //model.slot("zfreq") = tmp ;
       //model.slot("probz") = update_probz(model) ;
     } else {
       z = model.slot("z") ;
-      tmp = model.slot("zfreq_parents") ;
+      tmp = model.slot("zfreq") ;
       //tmp = model.slot("zfreq") ;
     }
-    zfreq_parents(s, _) = tmp ;
-    //zfreq(s, _) = tmp ;
+    //zfreq_parents(s, _) = tmp ;
+    zfreq(s, _) = tmp ;
     if(up[8] > 0){
       z = update_zchild(model) ;
       model.slot("z") = z ;
       tmp = tableZ(K, model.slot("z")) ;
-      model.slot("zfreq") = tmp ;
+      model.slot("zfreq_parents") = tmp ;
       model.slot("probz") = update_probz(model) ;
     } else {
       z = model.slot("z") ;
-      tmp = model.slot("zfreq") ;
+      tmp = model.slot("zfreq_parents") ;
     }
-    zfreq(s, _) = tmp ;
+    //zfreq(s, _) = tmp ;
+    zfreq_parents(s, _) = tmp ;
     if(up[9] > 0){
       pp = update_pp(model) ;
       model.slot("pi_parents") = pp ;
@@ -889,13 +890,13 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     for(int t = 0; t < T; ++t){
       if(up[7] > 0){
         model.slot("z") = update_zparents(model) ;
-        model.slot("zfreq_parents") = tableZpar(model) ;
+        model.slot("zfreq") = tableZpar(model) ;
         //tmp = model.slot("zfreq_parents") ;
         //model.slot("zfreq") = tmp ;
       }
       if(up[8] > 0){
         model.slot("z") = update_zchild(model) ;
-        model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+        model.slot("zfreq_parents") = tableZ(K, model.slot("z")) ;
       }
       if(up[9] > 0)
         model.slot("pi_parents") = update_pp(model) ;

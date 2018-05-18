@@ -399,7 +399,7 @@ gibbs_batch_K <- function(hp,
 #' @seealso \code{\link[coda]{gelman.diag}}
 #'   \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
 #' @export
-gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
+gibbs <- function(model=c("SB", "MB", "SBP", "MBP", "TBM"),
                   dat,
                   mp,
                   hp.list,
@@ -408,12 +408,14 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                   max_burnin=32e3,
                   top=2,
                   df=100,
-                  min_effsize=500){
-  if(any(!model %in% c("SB", "MB", "SBP", "MBP")))
-    stop("model must be a character vector with elements `SB`, `MB`, `SBP`, `MBP`")
+                  min_effsize=500,
+                  maplabel,
+                  mprob){
+  if(any(!model %in% c("SB", "MB", "SBP", "MBP", "TBM")))
+    stop("model must be a character vector with elements `SB`, `MB`, `SBP`, `MBP`, 'TBM'")
   model <- unique(model)
   max_burnin <- max(max_burnin, burnin(mp)) + 1
-  if(("MB" %in% model || "MBP" %in% model) && missing(batches)){
+  if(("MB" %in% model || "MBP" %in% model || "TBM" %in% model) && missing(batches)){
     stop("batches is missing.  Must specify batches for MB and MBP models")
   }
   model <- unique(model)
@@ -460,6 +462,18 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                                  max_burnin=max_burnin,
                                  min_effsize=min_effsize)
   } else mbp <- NULL
+  if("TBM" %in% model){
+    message("Fitting TBM models")
+    tbm <- gibbs_trios_K(hp.list[["TBM"]],
+                        k_range=k_range,
+                        mp=mp,
+                        dat=dat,
+                        maplabel=maplabel,
+                        mprob=mprob,
+                        batches=batches,
+                        max_burnin=max_burnin,
+                        min_effsize=min_effsize)
+  } else tbm<- NULL
   models <- c(sb, mb, sbp, mbp)
   ## order models by marginal likelihood
   ml <- map_dbl(models, marginal_lik)

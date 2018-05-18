@@ -176,10 +176,6 @@ setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 #' @aliases sigma2.0,McmcChains-method
 setMethod("sigma2.0", "McmcChains", function(object) object@sigma2.0)
 
-#' @rdname pp-method
-#' @aliases pp,McmcChains-Method
-setMethod("pp", "McmcChains", function(object) object@pi_parents)
-
 setReplaceMethod("pp", "McmcChains", function(object, value){
   object@pi_parents <- value
   object

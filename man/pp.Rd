@@ -7,7 +7,7 @@
 pp(object)
 }
 \arguments{
-\item{object}{an object of class McmcChains}
+\item{object}{an object of class TrioBatchModel}
 }
 \value{
 A vector of length the number of components

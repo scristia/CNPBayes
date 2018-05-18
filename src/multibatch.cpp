@@ -4,7 +4,6 @@
 
 using namespace Rcpp ;
 
-
 // [[Rcpp::export]]
 Rcpp::NumericVector compute_loglik(Rcpp::S4 xmod){
   RNGScope scope ;

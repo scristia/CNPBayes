@@ -244,8 +244,16 @@ Hyperparameters <- function(type="batch", k=2L, ...){
 }
 
 #' @rdname k-method
-#' @aliases k<-,Hyperparemeters-method
+#' @aliases k<-,Hyperparameters-method
 setReplaceMethod("k", "Hyperparameters", function(object, value){
+  object@k <- as.integer(value)
+  object@alpha <- rep(1L, value)
+  object
+})
+
+#' @rdname k-method
+#' @aliases k<-,HyperparametersTrios-method
+setReplaceMethod("k", "HyperparametersTrios", function(object, value){
   object@k <- as.integer(value)
   object@alpha <- rep(1L, value)
   object
@@ -311,14 +319,16 @@ setMethod("show", "Hyperparameters", function(object){
 #' hp.list <- hpList(k=3)
 #' hp.list[["SB"]]
 #' @rdname Hyperparameters
-#' @seealso \code{\link{HyperparametersMultiBatch}} \code{\link{Hyperparameters}}
+#' @seealso \code{\link{HyperparametersMultiBatch}} \code{\link{Hyperparameters}} \code{\link{HyperparametersTrios}}
 hpList <- function(...){
   sbp <- sb <- Hyperparameters(...)
   mb <- mbp <- HyperparametersMultiBatch(...)
+  tbm <- HyperparametersTrios(...)
   list(SB=sb,
        MB=mb,
        SBP=sbp,
-       MBP=mbp)
+       MBP=mbp,
+       TBM=tbm)
 }
 
 #' @aliases dfr,Hyperparameters-method

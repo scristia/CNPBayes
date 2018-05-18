@@ -5,10 +5,6 @@ getK <- function(hyperparams) {
     .Call('_CNPBayes_getK', PACKAGE = 'CNPBayes', hyperparams)
 }
 
-getSt <- function(hyperparams) {
-    .Call('_CNPBayes_getSt', PACKAGE = 'CNPBayes', hyperparams)
-}
-
 getDf <- function(hyperparams) {
     .Call('_CNPBayes_getDf', PACKAGE = 'CNPBayes', hyperparams)
 }

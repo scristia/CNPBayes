@@ -124,8 +124,6 @@ setReplaceMethod("p", "MixtureModel", function(object, value){
   object
 })
 
-
-
 setReplaceMethod("nu.0", "MixtureModel", function(object, value){
   object@nu.0 <- value
   object

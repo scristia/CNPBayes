@@ -71,8 +71,7 @@ setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 #' @slot a shape for sigma2.0
 #' @slot b rate for sigma2.0
 #' @slot dfr positive number for t-distribution degrees of freedom
-setClass("HyperparametersTrios",
-         contains="Hyperparameters")
+setClass("HyperparametersTrios", contains="Hyperparameters")
 
 #' An object to hold estimated paraeters.
 #'
@@ -211,7 +210,7 @@ setClass("MixtureModel", representation("VIRTUAL",
 setClass("MultiBatchModel", contains="MixtureModel")
 
 setClass("TrioBatchModel", contains="MultiBatchModel",
-         slots=c(triodata="tbl_df", mprob="matrix",
+         slots=c(triodata="list", mprob="matrix",
                  father="numeric", mother="numeric", 
                  maplabel="numeric", pi_parents="numeric",
                  zfreq_parents="integer"))

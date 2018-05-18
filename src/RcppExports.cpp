@@ -16,17 +16,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// getSt
-Rcpp::IntegerVector getSt(Rcpp::S4 hyperparams);
-RcppExport SEXP _CNPBayes_getSt(SEXP hyperparamsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type hyperparams(hyperparamsSEXP);
-    rcpp_result_gen = Rcpp::wrap(getSt(hyperparams));
-    return rcpp_result_gen;
-END_RCPP
-}
 // getDf
 double getDf(Rcpp::S4 hyperparams);
 RcppExport SEXP _CNPBayes_getDf(SEXP hyperparamsSEXP) {
@@ -1002,7 +991,6 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_getK", (DL_FUNC) &_CNPBayes_getK, 1},
-    {"_CNPBayes_getSt", (DL_FUNC) &_CNPBayes_getSt, 1},
     {"_CNPBayes_getDf", (DL_FUNC) &_CNPBayes_getDf, 1},
     {"_CNPBayes_unique_batch", (DL_FUNC) &_CNPBayes_unique_batch, 1},
     {"_CNPBayes_tableZ", (DL_FUNC) &_CNPBayes_tableZ, 2},
