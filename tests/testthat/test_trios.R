@@ -25,7 +25,7 @@ simulateTrioData <- function(maplabel=c(0,1,2)){
   nbatch <- 1
   N <- 300
   maplabel <- c(0,1,2)
-  mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel)
+  mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel, error=0.001)
   dat2 <- simulate_data_multi2(params, N=N,
                                batches = rep(c(1:nbatch),
                                              length.out = 3*N),
@@ -619,6 +619,65 @@ test_that("hard_example", {
   }
   expect_true(mean(z(mb[[1]]) == true.component) > 0.9)
 
+  hp <- HyperparametersTrios(k = 3)
+  mp <- McmcParams(iter=1000, burnin=2000, thin=1)
+  model <- TBM(triodata=truth$data,
+               hp=hp,
+               mp=mp,
+               mprob=mprob,
+               maplabel=maplabel)
+  mcmcParams(model) <- mp
+  model <- posteriorSimulation(model)
+  ## test that component indices for offspring have not changed
+  expect_true(mean(z(model) == true.component) > 0.9)
+  if(FALSE){
+    ggMixture(model)
+  }
+})
+
+test_that("gibbs implement", {
+  set.seed(123)
+  library(tidyverse)
+  p <- c(0.24, 0.43, 0.33)
+  theta <- c(-2, 0.3, 1.7)
+  sigma2 <- c(0.2, 0.2, 0.2)
+  params <- data.frame(cbind(p, theta, sigma2))
+  maplabel <- c(0,1,2)
+  nbatch <- 1
+  N <- 300
+  mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel, error=0.001)
+  truth <- simulate_data_multi2(params, N=N,
+                                batches = rep(c(1:nbatch),
+                                              length.out = 3*N),
+                                error=0, mprob, maplabel)
+  true.cn <- as.integer(truth$data$copy_number)
+  true.component <- true.cn + 1L
+  
+  mp2 <- McmcParams(iter=1000, burnin=1000)
+  model2 <- MB(dat=truth$data$log_ratio,
+               hp=hp,
+               mp=mp2,
+               batches=rep(1L, nrow(truth$data)))
+  mb <- gibbs(model=c("SB", "SBP"), k_range=c(3, 3),
+              dat=truth$data$log_ratio,
+              mp=mp2, max_burnin=8000)
+  
+  #mp <- McmcParams(iter=4000, burnin=1000, thin=1)
+  mb2 <- gibbs(model="MB", dat=truth$data$log_ratio,
+               batches=truth$data$batches,
+               mp=mp2, k_range=c(3, 3), max_burnin=2000)
+  
+  
+  tbm1 <- gibbs_trios(model="TBM", dat=as.tibble(truth$data),
+               batches=truth$data$batches,
+               mp=mp2, k_range=c(3, 3), max_burnin=1000)
+  
+  if(FALSE){
+    ggMixture(mb[[1]])
+    ggChains(mb2[[1]])
+  }
+  expect_true(mean(z(mb[[1]]) == true.component) > 0.9)
+  
   hp <- HyperparametersTrios(k = 3)
   mp <- McmcParams(iter=1000, burnin=2000, thin=1)
   model <- TBM(triodata=truth$data,
