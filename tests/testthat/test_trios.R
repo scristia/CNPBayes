@@ -673,10 +673,11 @@ test_that("gibbs implement", {
                mp=mp2, k_range=c(3, 3), max_burnin=1000)
   
   if(FALSE){
-    ggMixture(mb[[1]])
+    ggMixture(mb2[[1]])
+    ggMixture(model[[1]])
     ggChains(mb2[[1]])
   }
-  expect_true(mean(z(mb[[1]]) == true.component) > 0.9)
+  expect_true(mean(z(model[[1]]) == true.component) > 0.9)
   
   hp <- HyperparametersTrios(k = 3)
   mp <- McmcParams(iter=1000, burnin=2000, thin=1)
