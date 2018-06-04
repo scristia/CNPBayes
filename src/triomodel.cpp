@@ -337,65 +337,6 @@ Rcpp::NumericMatrix update_multinomialPrChild(Rcpp::S4 xmod) {
   return PC;
 }
 
-// works but too slow - use different function/ approach
-// deprecate once update_multinomialPrChild works
-// [[Rcpp::export]]
-Rcpp::NumericMatrix update_multinomialPrOff(Rcpp::S4 xmod) {
-  RNGScope scope ;
-  Rcpp::S4 model(clone(xmod)) ;
-  Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
-  IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = unique_batch(batch) ;
-  NumericMatrix ptrio = update_trioPr(xmod) ;
-  NumericMatrix sigma2 = model.slot("sigma2") ;
-  NumericMatrix theta = model.slot("theta") ;
-  int B = sigma2.nrow() ;
-  NumericVector x = model.slot("data") ;
-  IntegerVector nb = model.slot("batchElements") ;
-  int N = ptrio.size() ;
-  NumericVector this_batch(N) ;
-  NumericVector tmp ;
-  NumericVector rowtotal(N) ;
-  double df = getDf(hypp) ;
-  CharacterVector fam = family_member(xmod);
-  Rcpp::LogicalVector child_ind(fam.size());
-  for (int i = 0; i < fam.size(); i++){
-    child_ind[i] = (fam[i] == "o");
-  }
-  
-  Rcpp::NumericVector xo = x[child_ind];
-  int M = xo.size() ;
-  NumericMatrix poff(M,K) ;
-  NumericMatrix lik(M, K) ;
-  
-  for(int i = 0; i < M; ++i) {
-    NumericVector ptrio2 = ptrio(i, _ ) ;
-    for(int k = 0; k < K; ++k){
-      NumericVector dens(N) ;
-      for(int b = 0; b < B; ++b){
-        this_batch = batch == ub[b] ;
-        double sigma = sqrt(sigma2(b, k));
-        tmp = ptrio2[k] * dlocScale_t(xo, df, theta(b, k), sigma) * this_batch ;
-        dens += tmp ;
-      }
-      lik(_, k) = tmp;
-      //rowtotal += dens ;
-    }
-    // NumericMatrix PP(M, K) ;
-    //for(int k=0; k<K; ++k){
-    //  PP(_, k) = lik(_, k)/rowtotal ;
-    //} 
-    NumericVector PPI = lik(i,_) ;
-    poff.row(i) = PPI ;
-  }
-  NumericVector sumrow = rowSums(poff);
-  for (int j = 0; j < M; ++j) {
-    poff(j,_) = poff(j,_) / sumrow[j];
-  }
-  return poff;
-}
-
 // [[Rcpp::export]]
 Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
   RNGScope scope ;

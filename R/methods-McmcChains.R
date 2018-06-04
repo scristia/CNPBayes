@@ -45,10 +45,10 @@
 }
 
 setMethod("McmcChains", "missing", function(object){
-  new("McmcChains", theta=matrix(), sigma2=matrix(),
-      pi=matrix(), pi_parents=matrix(), mu=numeric(), tau2=numeric(),
+  new("McmcChains", theta=matrix(0), sigma2=matrix(0),
+      pi=matrix(0), pi_parents=matrix(0), mu=numeric(), tau2=numeric(),
       nu.0=numeric(), sigma2.0=numeric(),
-      zfreq=matrix(), zfreq_parents=matrix(),
+      zfreq=matrix(0), zfreq_parents=matrix(0),
       logprior=numeric(),
       loglik=numeric())
 })

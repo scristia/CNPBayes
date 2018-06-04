@@ -309,10 +309,6 @@ update_multinomialPrChild <- function(xmod) {
     .Call('_CNPBayes_update_multinomialPrChild', PACKAGE = 'CNPBayes', xmod)
 }
 
-update_multinomialPrOff <- function(xmod) {
-    .Call('_CNPBayes_update_multinomialPrOff', PACKAGE = 'CNPBayes', xmod)
-}
-
 update_offspring <- function(xmod) {
     .Call('_CNPBayes_update_offspring', PACKAGE = 'CNPBayes', xmod)
 }
