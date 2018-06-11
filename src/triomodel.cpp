@@ -104,7 +104,6 @@ Rcpp::NumericMatrix update_multinomialPrPar(Rcpp::S4 xmod) {
   int K = getK(hypp) ;
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = unique_batch(batch) ;
-  NumericVector p = model.slot("pi") ;
   NumericVector pp = model.slot("pi_parents") ;
   NumericMatrix sigma2 = model.slot("sigma2") ;
   NumericMatrix theta = model.slot("theta") ;
@@ -112,12 +111,11 @@ Rcpp::NumericMatrix update_multinomialPrPar(Rcpp::S4 xmod) {
   NumericVector x = model.slot("data") ;
   IntegerVector nb = model.slot("batchElements") ;
   int N = x.size() ;
-  NumericMatrix lik(N, K) ;
+  //NumericMatrix lik(N, K) ;
   NumericVector this_batch(N) ;
   NumericVector tmp(N) ;
   NumericVector rowtotal(N) ;
   double df = getDf(hypp) ;
-  
   CharacterVector fam = family_member(xmod);
   Rcpp::LogicalVector child_ind(fam.size());
   for (int i = 0; i < fam.size(); i++){
@@ -126,8 +124,8 @@ Rcpp::NumericMatrix update_multinomialPrPar(Rcpp::S4 xmod) {
   
   Rcpp::NumericVector xp = x[!child_ind];
   int M = xp.size() ;
+  NumericMatrix lik(M, K) ;
   
-  // added an additional p[k] weight for experimentation/
   // more feedback
   for(int k = 0; k < K; ++k){
     NumericVector dens(N) ;
@@ -193,7 +191,16 @@ Rcpp::IntegerVector update_parents(Rcpp::S4 xmod){
       }
     }
   }
-  return zpar ;
+  if(is_true(all(freq > 1))){
+    return zpar ;
+  }
+  //
+  // Don't update z if there are states with zero frequency.
+  //
+  int counter = model.slot(".internal.counter");
+  counter++;
+  model.slot(".internal.counter") = counter;
+  return model.slot("z") ;
 }  
 
 // [[Rcpp::export]]
@@ -381,7 +388,16 @@ Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
       }
     }
   }
-  return zc ;
+  if(is_true(all(freq > 1))){
+    return zc ;
+  }
+  //
+  // Don't update z if there are states with zero frequency.
+  //
+  int counter = model.slot(".internal.counter");
+  counter++;
+  model.slot(".internal.counter") = counter;
+  return model.slot("z") ;
 }  
 
 // this selectively updates z for offspring
@@ -390,18 +406,6 @@ Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
 Rcpp::IntegerVector update_zchild(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(clone(xmod)) ;
-  // Rcpp::IntegerVector map = model.slot("maplabel");
-  // Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  // int K = getK(hypp) ;
-  // Rcpp::IntegerVector sts = getSt(hypp);
-  // Rcpp::DataFrame triodat(model.slot("triodata"));
-  //int n = triodat.size() ;
-  //  NumericVector u = runif(n) ;
-  //  IntegerVector ztrio_(n) ;
-  //  IntegerVector ztrio = clone(ztrio_) ;
-  // updates z for everyone
-  //  ztrio = update_z(model) ;
-  
   Rcpp::IntegerVector ztrio = model.slot("z");
   
   //return ztrio ;
@@ -424,7 +428,7 @@ Rcpp::IntegerVector update_zchild(Rcpp::S4 xmod) {
       j++;
     }
   }
-  return ztrio;
+return ztrio;
 }
 
 // [[Rcpp::export]]
@@ -625,38 +629,30 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     return model ;
   }
   for(int s = 0; s < S; ++s){
-    model.slot("z") = update_z(model) ;
-    model.slot("zfreq_parents") = tableZ(K, model.slot("z"));
     if(up[7] > 0){
       model.slot("z") = update_zparents(model) ;
-      model.slot("zfreq") = tableZpar(model);
-      //model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-      //model.slot("zfreq") = tableZpar(model);
-    }
-    if(up[8] > 0){
       model.slot("z") = update_zchild(model) ;
+      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     }
-    if(up[9] > 0)
-      model.slot("pi_parents") = update_pp(model) ;
-    if(up[0] > 0)
-      model.slot("theta") = update_theta(model) ;
-    if(up[1] > 0)
-      model.slot("sigma2") = update_sigma2(model) ;
-    if(up[2] > 0)
-      model.slot("pi") = update_p(model) ;
-    if(up[3] > 0)
-      model.slot("mu") = update_mu(model) ;
-    if(up[4] > 0)
-      model.slot("tau2") = update_tau2(model) ;
-    if(up[5] > 0)
-      model.slot("nu.0") = update_nu0(model) ;
-    if(up[6] > 0)
-      model.slot("sigma2.0") = update_sigma20(model) ;
-    
-    model.slot("u") = Rcpp::rchisq(N, df) ;
+    if(up[0] > 0){
+        model.slot("theta") = update_theta(model) ;
+      }
+      if(up[1] > 0)
+        model.slot("sigma2") = update_sigma2(model) ;
+      if(up[3] > 0)
+        model.slot("mu") = update_mu(model) ;
+      if(up[4] > 0)
+        model.slot("tau2") = update_tau2(model) ;
+      if(up[6] > 0)
+        model.slot("sigma2.0") = update_sigma20(model) ;
+      if(up[5] > 0)
+        model.slot("nu.0") = update_nu0(model) ;
+      if(up[9] > 0)
+        model.slot("pi_parents") = update_pp(model) ;
+      if(up[2] > 0)
+        model.slot("pi") = update_p(model) ;
+      model.slot("u") = Rcpp::rchisq(N, df) ;
   }
-  // compute log prior probability from last iteration of burnin
-  // compute log likelihood from last iteration of burnin
   NumericVector lls2(1);
   NumericVector ll(1);
   lls2 = stageTwoLogLikBatch(model);
