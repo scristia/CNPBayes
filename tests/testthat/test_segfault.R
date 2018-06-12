@@ -1,6 +1,7 @@
 
 # before running the unit test, prep the folder structure and batch input files
 # for reproducibility please use the params_seeds.rds file already in the testthat folder
+# params_seeds.rds is currently for deletion seeds
 #need to prep params tables in the form of cnp_1.rds
 
 setwd("/dcs01/chaklab/chaklab1/users/mchou/batchrun6/params_dup")
