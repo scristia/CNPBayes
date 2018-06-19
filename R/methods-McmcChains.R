@@ -11,7 +11,7 @@
       theta=matrix(NA, nr, K),
       sigma2=matrix(NA, nr, K),
       pi=matrix(NA, nr, K),
-      pi_parents=matrix(NA, nr, K),
+      pi_chd=matrix(NA, nr, K),
       mu=numeric(nr),
       tau2=numeric(nr),
       nu.0=numeric(nr),
@@ -46,15 +46,12 @@
 
 setMethod("McmcChains", "missing", function(object){
   new("McmcChains", theta=matrix(0), sigma2=matrix(0),
-      pi=matrix(0), pi_parents=matrix(0), mu=numeric(), tau2=numeric(),
+      pi=matrix(0), mu=numeric(),  tau2=numeric(), 
       nu.0=numeric(), sigma2.0=numeric(),
-      zfreq=matrix(0), zfreq_parents=matrix(0),
+      zfreq=matrix(0),
       logprior=numeric(),
       loglik=numeric())
 })
-
-
-
 
 setMethod("McmcChains", "MixtureModel", function(object){
   .initializeMcmc(object)
@@ -75,15 +72,13 @@ setMethod("McmcChains", "SingleBatchPooled", function(object){
       theta=matrix(NA, nr, K*B),
       sigma2=matrix(NA, nr, K*B),
       pi=matrix(NA, nr, K),
-      pi_parents=matrix(NA, nr, K),
       mu=matrix(NA, nr, K),
       tau2=matrix(NA, nr, K),
       nu.0=numeric(nr),
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati,
-      zfreq_parents=mati)
+      zfreq=mati)
 }
 
 
@@ -91,8 +86,37 @@ setMethod("McmcChains", "MultiBatchModel", function(object){
   .initializeMcmcBatch(object)
 })
 
+.initializeMcmcBatch2 <- function(object){
+  mcmc.params <- mcmcParams(object)
+  nr <- iter(mcmc.params)[1]
+  ns <- length(y(object))
+  K <- k(object)
+  B <- nBatch(object)
+  mati <- matrix(as.integer(NA), nr, K)
+  new("McmcChains",
+      theta=matrix(NA, nr, K*B),
+      theta_chd=matrix(NA, nr, K*B),
+      sigma2=matrix(NA, nr, K*B),
+      sigma2_chd=matrix(NA, nr, K*B),
+      pi=matrix(NA, nr, K),
+      pi_chd=matrix(NA, nr, K),
+      mu=matrix(NA, nr, K),
+      mu_chd=matrix(NA, nr, K),
+      tau2=matrix(NA, nr, K),
+      tau2_chd=matrix(NA, nr, K),
+      nu.0=numeric(nr),
+      nu.0_chd=numeric(nr),
+      sigma2.0=numeric(nr),
+      sigma2.0_chd=numeric(nr),
+      logprior=numeric(nr),
+      loglik=numeric(nr),
+      zfreq=mati,
+      zfreq_parents=mati,
+      zfreq_chd=mati)
+}
+
 setMethod("McmcChains", "TrioBatchModel", function(object){
-  .initializeMcmcBatch(object)
+  .initializeMcmcBatch2(object)
 })
 
 chains_mb <- function(object){
@@ -151,7 +175,7 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@theta <- x@theta[i, , drop=FALSE]
     x@sigma2 <- x@sigma2[i, , drop=FALSE]
     x@pi <- x@pi[i, , drop=FALSE]
-    x@pi_parents <- x@pi_parents[i, , drop=FALSE]
+    x@pi_chd <- x@pi_chd[i, , drop=FALSE]
     if(is.matrix(x@mu)){
       x@mu <- x@mu[i, , drop=FALSE]
     } else x@mu <- x@mu[i]
@@ -177,7 +201,7 @@ setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 setMethod("sigma2.0", "McmcChains", function(object) object@sigma2.0)
 
 setReplaceMethod("pp", "McmcChains", function(object, value){
-  object@pi_parents <- value
+  object@pi_chd <- value
   object
 })
 
@@ -243,6 +267,10 @@ setMethod("zFreq", "McmcChains", function(object) object@zfreq )
 #' @aliases zfreqpar,McmcChains-method
 setMethod("zFreqPar", "McmcChains", function(object) object@zfreq_parents )
 
+#' @rdname zfreqchd-method
+#' @aliases zfreqchd,McmcChains-method
+setMethod("zFreqChd", "McmcChains", function(object) object@zfreq_chd )
+
 #' @rdname logPrior-method
 #' @aliases logPrior,McmcChains-method
 setMethod("logPrior", "McmcChains", function(object) object@logprior)
@@ -259,5 +287,101 @@ setReplaceMethod("zFreq", "McmcChains", function(object, value){
 
 setReplaceMethod("zFreqPar", "McmcChains", function(object, value){
   object@zfreq_parents <- value
+  object
+})
+
+setReplaceMethod("zFreqChd", "McmcChains", function(object, value){
+  object@zfreq_chd <- value
+  object
+})
+
+#' @rdname thetachd-method
+#' @aliases thetachd,McmcChains-method
+setMethod("thetachd", "McmcChains", function(object) object@theta_chd )
+
+setReplaceMethod("thetachd", "McmcChains", function(object, value){
+  object@theta_chd <- value
+  object
+})
+
+#' @rdname sigma2chd-method
+#' @aliases sigma2chd,McmcChains-method
+setMethod("sigma2chd", "McmcChains", function(object) object@sigma2_chd )
+
+setReplaceMethod("sigma2chd", "McmcChains", function(object, value){
+  object@sigma2_chd <- value
+  object
+})
+
+#' @rdname muchd-method
+#' @aliases muchd,McmcChains-method
+setMethod("muchd", "McmcChains", function(object) object@mu_chd )
+
+setReplaceMethod("muchd", "McmcChains", function(object, value){
+  object@mu_chd <- value
+  object
+})
+
+#' @rdname muchd-method
+#' @aliases muchd,McmcChains-method
+setMethod("muchd", "McmcChains", function(object) object@mu_chd )
+
+setReplaceMethod("muchd", "McmcChains", function(object, value){
+  object@mu_chd <- value
+  object
+})
+
+#' @rdname tau2chd-method
+#' @aliases tau2chd,McmcChains-method
+setMethod("tau2chd", "McmcChains", function(object) object@tau2_chd )
+
+setReplaceMethod("tau2chd", "McmcChains", function(object, value){
+  object@tau2_chd <- value
+  object
+})
+
+#' @rdname pp-method
+#' @aliases pp,McmcChains-method
+setMethod("pp", "McmcChains", function(object) object@pi_chd )
+
+setReplaceMethod("pp", "McmcChains", function(object, value){
+  object@pi_chd <- value
+  object
+})
+
+#' @rdname sigma2.0chd-method
+#' @aliases sigma2.0chd,McmcChains-method
+setMethod("sigma2.0chd", "McmcChains", function(object) object@sigma2.0_chd )
+
+setReplaceMethod("sigma2.0chd", "McmcChains", function(object, value){
+  object@sigma2.0_chd <- value
+  object
+})
+
+#' @rdname nuchd-method
+#' @aliases nuchd,McmcChains-method
+setMethod("nuchd", "McmcChains", function(object) object@nu.0_chd )
+
+setReplaceMethod("nuchd", "McmcChains", function(object, value){
+  object@nu.0_chd <- value
+  object
+})
+
+
+#' @rdname probzchd-method
+#' @aliases probzchd,McmcChains-method
+setMethod("probzchd", "McmcChains", function(object) object@probz_chd )
+
+setReplaceMethod("probzchd", "McmcChains", function(object, value){
+  object@probz_chd <- value
+  object
+})
+
+#' @rdname probzpar-method
+#' @aliases probzpar,McmcChains-method
+setMethod("probzpar", "McmcChains", function(object) object@probz_par )
+
+setReplaceMethod("probzpar", "McmcChains", function(object, value){
+  object@probz_par <- value
   object
 })

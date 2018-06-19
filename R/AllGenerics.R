@@ -39,7 +39,6 @@ setGeneric("theta<-", function(object, value) standardGeneric("theta<-"))
 
 setGeneric("sigma2<-", function(object, value) standardGeneric("sigma2<-"))
 setGeneric("p<-", function(object, value) standardGeneric("p<-"))
-setGeneric("pp<-", function(object, value) standardGeneric("pp<-"))
 
 #' @export
 #' @rdname sigma2-method
@@ -671,6 +670,18 @@ setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 setGeneric("zFreqPar", function(object) standardGeneric("zFreqPar"))
 setGeneric("zFreqPar<-", function(object,value) standardGeneric("zFreqPar<-"))
 
+#' Calculates a frequency table of latent variable assigments for offspring by observation.
+#' 
+#' @examples
+#'      zfreqchd(TrioBatchModelExample)
+#' @param object see \code{showMethods(zfreqchd)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname zfreqchd-method
+setGeneric("zFreqChd", function(object) standardGeneric("zFreqChd"))
+setGeneric("zFreqChd<-", function(object,value) standardGeneric("zFreqChd<-"))
+
 #' Retrieves intensity data from trios
 #' 
 #' @examples
@@ -958,4 +969,175 @@ setGeneric("dfr", function(object) standardGeneric("dfr"))
 
 setGeneric("dfr<-", function(object, value) standardGeneric("dfr<-"))
 setGeneric("u", function(object) standardGeneric("u"))
+
+#' Calculates a frequency table of thetas for parents by observation.
+#' 
+#' @examples
+#'      thetapar(TrioBatchModelExample)
+#' @param object see \code{showMethods(thetapar)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname thetapar-method
+setGeneric("thetapar", function(object) standardGeneric("thetapar"))
+setGeneric("thetapar<-", function(object,value) standardGeneric("thetapar<-"))
+
+#' Calculates a frequency table of theta for offspring by observation.
+#' 
+#' @examples
+#'      thetachd(TrioBatchModelExample)
+#' @param object see \code{showMethods(thetachd)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname thetachd-method
+setGeneric("thetachd", function(object) standardGeneric("thetachd"))
+setGeneric("thetachd<-", function(object,value) standardGeneric("thetachd<-"))
+
+#' Calculates a frequency table of sigma2 for parents by observation.
+#' 
+#' @examples
+#'      sigma2par(TrioBatchModelExample)
+#' @param object see \code{showMethods(sigma2par)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname sigma2par-method
+setGeneric("sigma2par", function(object) standardGeneric("sigma2par"))
+setGeneric("sigma2par<-", function(object,value) standardGeneric("sigma2par<-"))
+
+#' Calculates a frequency table of sigma2 for offspring by observation.
+#' 
+#' @examples
+#'      sigma2chd(TrioBatchModelExample)
+#' @param object see \code{showMethods(sigma2chd)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname sigma2chd-method
+setGeneric("sigma2chd", function(object) standardGeneric("sigma2chd"))
+setGeneric("sigma2chd<-", function(object,value) standardGeneric("sigma2chd<-"))
+
+#' Calculates a frequency table of tau2 for parents by observation.
+#' 
+#' @examples
+#'      tau2par(TrioBatchModelExample)
+#' @param object see \code{showMethods(tau2par)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname tau2par-method
+setGeneric("tau2par", function(object) standardGeneric("tau2par"))
+setGeneric("tau2par<-", function(object,value) standardGeneric("tau2par<-"))
+
+#' Calculates a frequency table of tau2 for offspring by observation.
+#' 
+#' @examples
+#'      tau2chd(TrioBatchModelExample)
+#' @param object see \code{showMethods(tau2chd)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname tau2chd-method
+setGeneric("tau2chd", function(object) standardGeneric("tau2chd"))
+setGeneric("tau2chd<-", function(object,value) standardGeneric("tau2chd<-"))
+
+#' Calculates a frequency table of sigma2.0 for offspring by observation.
+#' 
+#' @examples
+#'      sigma2.0chd(TrioBatchModelExample)
+#' @param object see \code{showMethods(sigma2.0chd)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname sigma2.0chd-method
+setGeneric("sigma2.0chd", function(object) standardGeneric("sigma2.0chd"))
+setGeneric("sigma2.0chd<-", function(object,value) standardGeneric("sigma2.0chd<-"))
+
+
+#' Calculates a frequency table of mu for parents by observation.
+#' 
+#' @examples
+#'      mupar(TrioBatchModelExample)
+#' @param object see \code{showMethods(mupar)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname mupar-method
+setGeneric("mupar", function(object) standardGeneric("mupar"))
+setGeneric("mupar<-", function(object,value) standardGeneric("mupar<-"))
+
+#' Calculates a frequency table of mu for offspring by observation.
+#' 
+#' @examples
+#'      muchd(TrioBatchModelExample)
+#' @param object see \code{showMethods(muchd)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname muchd-method
+setGeneric("muchd", function(object) standardGeneric("muchd"))
+setGeneric("muchd<-", function(object,value) standardGeneric("muchd<-"))
+
+#' Calculates a frequency table of nu for parents by observation.
+#' 
+#' @examples
+#'      nupar(TrioBatchModelExample)
+#' @param object see \code{showMethods(nupar)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname nupar-method
+setGeneric("nupar", function(object) standardGeneric("nupar"))
+setGeneric("nupar<-", function(object,value) standardGeneric("nupar<-"))
+
+#' Calculates a frequency table of nu for offspring by observation.
+#' 
+#' @examples
+#'      nuchd(TrioBatchModelExample)
+#' @param object see \code{showMethods(nuchd)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname nuchd-method
+setGeneric("nuchd", function(object) standardGeneric("nuchd"))
+setGeneric("nuchd<-", function(object,value) standardGeneric("nuchd<-"))
+
+#' Calculates a frequency table of nu for offspring by observation.
+#' 
+#' @examples
+#'      pp(TrioBatchModelExample)
+#' @param object see \code{showMethods(pp)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname pp-method
+setGeneric("pp", function(object) standardGeneric("pp"))
+setGeneric("pp<-", function(object,value) standardGeneric("pp<-"))
+
+#' Retrieve the probability of latent variable membership by observation for parents.
+#'
+#' @examples
+#'      probzpar(TrioBatchModelExample)
+#' @param object see \code{showMethods(probzpar)}
+#' @return A matrix of size number of observations x number of components
+#' @export
+#' @docType methods
+#' @rdname probzpar-method
+setGeneric("probzpar", function(object) standardGeneric("probzpar"))
+
+setGeneric("probzpar<-", function(object, value) standardGeneric("probzpar<-"))
+
+#' Retrieve the probability of latent variable membership by observation for offspring.
+#'
+#' @examples
+#'      probzchd(TrioBatchModelExample)
+#' @param object see \code{showMethods(probzchd)}
+#' @return A matrix of size number of observations x number of components
+#' @export
+#' @docType methods
+#' @rdname probzchd-method
+setGeneric("probzchd", function(object) standardGeneric("probzchd"))
+
+setGeneric("probzchd<-", function(object, value) standardGeneric("probzchd<-"))
 
