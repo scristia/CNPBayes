@@ -349,6 +349,26 @@ update_zchild <- function(xmod) {
     .Call('_CNPBayes_update_zchild', PACKAGE = 'CNPBayes', xmod)
 }
 
+compute_u_sums_batchpar <- function(xmod) {
+    .Call('_CNPBayes_compute_u_sums_batchpar', PACKAGE = 'CNPBayes', xmod)
+}
+
+compute_heavy_sums_batchpar <- function(object) {
+    .Call('_CNPBayes_compute_heavy_sums_batchpar', PACKAGE = 'CNPBayes', object)
+}
+
+update_thetapar <- function(xmod) {
+    .Call('_CNPBayes_update_thetapar', PACKAGE = 'CNPBayes', xmod)
+}
+
+compute_u_sums_batchchd <- function(xmod) {
+    .Call('_CNPBayes_compute_u_sums_batchchd', PACKAGE = 'CNPBayes', xmod)
+}
+
+compute_heavy_sums_batchchd <- function(object) {
+    .Call('_CNPBayes_compute_heavy_sums_batchchd', PACKAGE = 'CNPBayes', object)
+}
+
 update_thetachd <- function(xmod) {
     .Call('_CNPBayes_update_thetachd', PACKAGE = 'CNPBayes', xmod)
 }

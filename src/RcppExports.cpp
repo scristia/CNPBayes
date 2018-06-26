@@ -985,6 +985,61 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// compute_u_sums_batchpar
+Rcpp::NumericMatrix compute_u_sums_batchpar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_compute_u_sums_batchpar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_u_sums_batchpar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compute_heavy_sums_batchpar
+Rcpp::NumericMatrix compute_heavy_sums_batchpar(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_compute_heavy_sums_batchpar(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_heavy_sums_batchpar(object));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_thetapar
+Rcpp::NumericMatrix update_thetapar(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_thetapar(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_thetapar(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compute_u_sums_batchchd
+Rcpp::NumericMatrix compute_u_sums_batchchd(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_compute_u_sums_batchchd(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_u_sums_batchchd(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compute_heavy_sums_batchchd
+Rcpp::NumericMatrix compute_heavy_sums_batchchd(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_compute_heavy_sums_batchchd(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_heavy_sums_batchchd(object));
+    return rcpp_result_gen;
+END_RCPP
+}
 // update_thetachd
 Rcpp::NumericMatrix update_thetachd(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_update_thetachd(SEXP xmodSEXP) {
@@ -1187,6 +1242,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_update_multinomialPrChild", (DL_FUNC) &_CNPBayes_update_multinomialPrChild, 1},
     {"_CNPBayes_update_offspring", (DL_FUNC) &_CNPBayes_update_offspring, 1},
     {"_CNPBayes_update_zchild", (DL_FUNC) &_CNPBayes_update_zchild, 1},
+    {"_CNPBayes_compute_u_sums_batchpar", (DL_FUNC) &_CNPBayes_compute_u_sums_batchpar, 1},
+    {"_CNPBayes_compute_heavy_sums_batchpar", (DL_FUNC) &_CNPBayes_compute_heavy_sums_batchpar, 1},
+    {"_CNPBayes_update_thetapar", (DL_FUNC) &_CNPBayes_update_thetapar, 1},
+    {"_CNPBayes_compute_u_sums_batchchd", (DL_FUNC) &_CNPBayes_compute_u_sums_batchchd, 1},
+    {"_CNPBayes_compute_heavy_sums_batchchd", (DL_FUNC) &_CNPBayes_compute_heavy_sums_batchchd, 1},
     {"_CNPBayes_update_thetachd", (DL_FUNC) &_CNPBayes_update_thetachd, 1},
     {"_CNPBayes_update_sigma2par", (DL_FUNC) &_CNPBayes_update_sigma2par, 1},
     {"_CNPBayes_update_sigma2chd", (DL_FUNC) &_CNPBayes_update_sigma2chd, 1},

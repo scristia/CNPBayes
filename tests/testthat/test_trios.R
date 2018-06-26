@@ -1,3 +1,5 @@
+library(testthat)
+
 context("Trio models")
 
 .test_that <- function(nm, expr) NULL
@@ -155,16 +157,32 @@ test_that("constructor", {
 
 test_that("burnin", {
   library(tidyverse)
-  model <- simulateTrioData(maplabel=c(0,1,2))
-  zz <- z(model)
-  m <- model@maplabel
-  truth <- m [ zz ]
+  N = 300
+  nbatch <- 1
+  p <- c(0.01, 0.18, 0.81)
+  theta <- c(-4,-1.5, 0.5)
+  sigma2 <- c(0.1, 0.1, 0.1)
+  params <- data.frame(cbind(p, theta, sigma2))
+  maplabel <- c(0,1,2)
+  hp <- HyperparametersTrios(k = 3)
+  mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel, error=0.001)
+  model <- simulate_data_multi2(params, N=N,
+                                         batches = rep(c(1:nbatch),
+                                                       length.out = 3*N),
+                                         error=0.001, mprob, maplabel)
+  zz <- model$data$copy_number
+  truth <- maplabel [ zz ]
   ##cn.test <- z2cn(model)
   ##expect_identical(cn.test, truth)
 
   expect_true(validObject(model))
-
+  truth <- model
   mp <- McmcParams(iter=50, burnin=5)
+  model <- TBM(triodata=truth$data,
+               hp=hp,
+               mp=mp,
+               mprob=mprob,
+               maplabel=maplabel)
   # runBurnin defined for TBM in posteriorSimulation
   model <- runBurnin(model)
 
@@ -219,17 +237,17 @@ test_that("full example", {
   params <- data.frame(cbind(p, theta, sigma2))
   maplabel <- c(0,1,2)
 
-  p <- c(0.11, 0.26, 0.37, 0.26)
-  theta <- c(-4,-1.2, 1.5, 3)
-  sigma2 <- c(0.05, 0.05, 0.05, 0.05)
-  params <- data.frame(cbind(p, theta, sigma2))
-  maplabel <- c(0,1,2,3)
+  #p <- c(0.11, 0.26, 0.37, 0.26)
+  #theta <- c(-4,-1.2, 1.5, 3)
+  #sigma2 <- c(0.05, 0.05, 0.05, 0.05)
+  #params <- data.frame(cbind(p, theta, sigma2))
+  #maplabel <- c(0,1,2,3)
 
-  p <- c(0.24, 0.43, 0.33)
-  theta <- c(-2, 0.3, 1.7)
-  sigma2 <- c(0.3, 0.3, 0.3)
-  params <- data.frame(cbind(p, theta, sigma2))
-  maplabel <- c(0,1,2)
+  #p <- c(0.24, 0.43, 0.33)
+  #theta <- c(-2, 0.3, 1.7)
+  #sigma2 <- c(0.3, 0.3, 0.3)
+  #params <- data.frame(cbind(p, theta, sigma2))
+  #maplabel <- c(0,1,2)
 
   nbatch <- 1
   N <- 300
@@ -239,8 +257,8 @@ test_that("full example", {
                                              length.out = 3*N),
                                error=0, mprob, maplabel)
   hp <- HyperparametersTrios(k = 3)
-  mp <- McmcParams(iter=2000, burnin=2000, thin=5)
-
+  mp <- McmcParams(iter=2000, burnin=2000, thin=2, nStarts=3)
+  
   model <- TBM(triodata=truth$data,
                hp=hp,
                mp=mp,
@@ -602,7 +620,7 @@ test_that("gibbs implement", {
   true.cn <- as.integer(truth$data$copy_number)
   true.component <- true.cn + 1L
   
-  mp2 <- McmcParams(iter=1000, burnin=1000)
+  mp2 <- McmcParams(iter=4000, burnin=16000, thin=7)
   model2 <- MB(dat=truth$data$log_ratio,
                hp=hp,
                mp=mp2,
@@ -611,15 +629,15 @@ test_that("gibbs implement", {
               dat=truth$data$log_ratio,
               mp=mp2, max_burnin=2000)
   
-  #mp <- McmcParams(iter=4000, burnin=1000, thin=1)
+  mp <- McmcParams(iter=1000, burnin=1000, thin=1)
   mb2 <- gibbs(model="MB", dat=truth$data$log_ratio,
                batches=truth$data$batches,
-               mp=mp2, k_range=c(3, 3), max_burnin=2000)
+               mp=mp, k_range=c(3, 3), max_burnin=2000)
   
   
   tbm1 <- gibbs_trios(model="TBM", dat=as.tibble(truth$data),
                batches=truth$data$batches,
-               mp=mp2, k_range=c(3, 3), max_burnin=2000)
+               mp=mp2, k_range=c(3, 3), max_burnin=16000)
   
   if(FALSE){
     ggMixture(mb[[1]])

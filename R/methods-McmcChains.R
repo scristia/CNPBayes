@@ -105,7 +105,7 @@ setMethod("McmcChains", "MultiBatchModel", function(object){
       tau2=matrix(NA, nr, K),
       tau2_chd=matrix(NA, nr, K),
       nu.0=numeric(nr),
-      nu.0_chd=numeric(nr),
+      nu.0chd=numeric(nr),
       sigma2.0=numeric(nr),
       sigma2.0_chd=numeric(nr),
       logprior=numeric(nr),
@@ -360,10 +360,10 @@ setReplaceMethod("sigma2.0chd", "McmcChains", function(object, value){
 
 #' @rdname nuchd-method
 #' @aliases nuchd,McmcChains-method
-setMethod("nuchd", "McmcChains", function(object) object@nu.0_chd )
+setMethod("nuchd", "McmcChains", function(object) object@nu.0chd )
 
 setReplaceMethod("nuchd", "McmcChains", function(object, value){
-  object@nu.0_chd <- value
+  object@nu.0chd <- value
   object
 })
 

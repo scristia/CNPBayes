@@ -97,7 +97,7 @@ setClass("McmcChains", representation(theta="matrix",
                                       tau2="numericOrMatrix",
                                       tau2_chd="numericOrMatrix",
                                       nu.0="numeric",
-                                      nu.0_chd="numeric",
+                                      nu.0chd="numeric",
                                       sigma2.0="numeric",
                                       sigma2.0_chd="numeric",
                                       logprior="numeric",
@@ -221,7 +221,7 @@ setClass("TrioBatchModel", contains="MultiBatchModel",
                  father="numeric", mother="numeric", 
                  maplabel="numeric", theta_chd="matrix", sigma2_chd="matrix", sigma2.0_chd="numeric",
                  pi_chd="numeric", mu_chd="numeric", tau2_chd="numeric",
-                 nu.0_chd="numeric", zfreq_parents="integer",
+                 nu.0chd="numeric", zfreq_parents="integer",
                  zfreq_chd="integer", probz_par="matrix", probz_chd="matrix"))
                  ##family_member="character"))
 

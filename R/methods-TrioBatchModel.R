@@ -1,3 +1,24 @@
+#' @rdname k-methodtrio
+#' @aliases k,TrioBatchModel-method
+setMethod("k", "TrioBatchModel", function(object) object@k)
+
+#' @rdname k-methodtrio
+#' @aliases k<-,TrioBatchModel-method
+setReplaceMethod("k", "TrioBatchModel",
+                 function(object, value) {
+                   k <- as.integer(value)
+                   hypp <- hyperparametersTrios(object)
+                   hypp@k <- k
+                   hypp@alpha <- rep(1, k)
+                   hyperParams(object) <- hypp
+                   object@k <- k
+                   object@pi <- rep(1/k, k)
+                   object@probz <- matrix(0, length(y(object)), k)
+                   object <- startingValues(object)
+                   object
+                 }
+)
+
 .empty_trio_model <- function(hp, mp){
   K <- k(hp)
   B <- 0
@@ -14,7 +35,7 @@
              tau2=numeric(K),
              tau2_chd=numeric(K),
              nu.0=numeric(1),
-             nu.0_chd=numeric(1),
+             nu.0chd=numeric(1),
              sigma2.0=numeric(1),
              sigma2.0_chd=numeric(1),
              pi=numeric(K),
@@ -115,7 +136,7 @@
              tau2=tau2,
              tau2_chd=tau2_chd,
              nu.0=nu.0,
-             nu.0_chd=nu.0,
+             nu.0chd=nu.0,
              sigma2.0=sigma2.0,
              sigma2.0_chd=sigma2.0_chd,
              pi=p,
@@ -157,7 +178,7 @@ triodata <- function(object){
 }
 
 setReplaceMethod("probzpar", "TrioBatchModel", function(object, value){
-  object@probzpar <- value
+  object@probz_par <- value
   object
 })
 
@@ -169,11 +190,11 @@ setReplaceMethod("probzpar", "TrioBatchModel", function(object, value){
 #' @aliases probzpar,TrioBatchModel-method
 setMethod("probzpar", "TrioBatchModel", function(object) {
   ## because first iteration not saved
-  object@probzpar/(iter(object)-1)
+  object@probz_par/(iter(object)-1)
 })
 
 setReplaceMethod("probzchd", "TrioBatchModel", function(object, value){
-  object@probzchd <- value
+  object@probz_chd <- value
   object
 })
 
@@ -185,7 +206,7 @@ setReplaceMethod("probzchd", "TrioBatchModel", function(object, value){
 #' @aliases probzchd,TrioBatchModel-method
 setMethod("probzchd", "TrioBatchModel", function(object) {
   ## because first iteration not saved
-  object@probzchd/(iter(object)-1)
+  object@probz_chd/(iter(object)-1)
 })
 
 combine_batchTrios <- function(model.list, batches){
@@ -199,7 +220,7 @@ combine_batchTrios <- function(model.list, batches){
   ppi <- map(ch.list, p) %>% do.call(rbind, .)
   pp.chd <- map(ch.list, pp) %>% do.call(rbind, .)
   n0 <- map(ch.list, nu.0) %>% unlist
-  n0_chd <- map(ch.list, nu.0_chd) %>% unlist
+  n0_chd <- map(ch.list, nuchd) %>% unlist
   s2.0 <- map(ch.list, sigma2.0) %>% unlist
   s2.0chd <- map(ch.list, sigma2.0chd) %>% unlist
   logp <- map(ch.list, logPrior) %>% unlist
@@ -222,7 +243,7 @@ combine_batchTrios <- function(model.list, batches){
             tau2=data.matrix(.tau2),
             tau2_chd=data.matrix(.tau2_chd),
             nu.0=n0,
-            nu.0_chd=n0_chd,
+            nu.0chd=n0_chd,
             sigma2.0=s2.0,
             sigma2.0_chd=s2.0chd,
             zfreq=zfreq,
@@ -249,7 +270,7 @@ combine_batchTrios <- function(model.list, batches){
   pm.n0 <- median(n0)
   pm.n0chd <- median(n0_chd)
   pm.mu <- colMeans(.mu)
-  pm.mupar <- colMeans(.mu_chd)
+  pm.muchd <- colMeans(.mu_chd)
   pm.tau2 <- colMeans(.tau2)
   pm.tau2chd <- colMeans(.tau2_chd)
   pm.s20 <- mean(s2.0)
@@ -298,7 +319,7 @@ combine_batchTrios <- function(model.list, batches){
                tau2=pm.tau2,
                tau2_chd=pm.tau2chd,
                nu.0=pm.n0,
-               nu.0_chd=pm.n0chd,
+               nu.0chd=pm.n0chd,
                sigma2.0=pm.s20,
                sigma2.0_chd=pm.s20chd,
                pi=pm.p,
