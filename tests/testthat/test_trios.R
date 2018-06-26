@@ -609,6 +609,7 @@ test_that("gibbs implement", {
   theta <- c(-2, 0.3, 1.7)
   sigma2 <- c(0.1, 0.1, 0.1)
   params <- data.frame(cbind(p, theta, sigma2))
+  hp <- HyperparametersTrios(k = 3)
   maplabel <- c(0,1,2)
   nbatch <- 1
   N <- 300
@@ -620,7 +621,7 @@ test_that("gibbs implement", {
   true.cn <- as.integer(truth$data$copy_number)
   true.component <- true.cn + 1L
   
-  mp2 <- McmcParams(iter=4000, burnin=16000, thin=7)
+  mp2 <- McmcParams(iter=4000, burnin=2000, thin=3)
   model2 <- MB(dat=truth$data$log_ratio,
                hp=hp,
                mp=mp2,
@@ -637,7 +638,7 @@ test_that("gibbs implement", {
   
   tbm1 <- gibbs_trios(model="TBM", dat=as.tibble(truth$data),
                batches=truth$data$batches,
-               mp=mp2, k_range=c(3, 3), max_burnin=16000)
+               mp=mp2, k_range=c(3, 3), max_burnin=2000)
   
   if(FALSE){
     ggMixture(mb[[1]])
