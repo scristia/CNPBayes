@@ -1,3 +1,60 @@
+shapeParams <- function(){
+  m <- matrix(c(1, 1,
+                10, 1,
+                1, 10,
+                30, 30,
+                10, 20,
+                20, 10,
+                30, 10,
+                10, 30), ncol=2,
+              byrow=TRUE)
+  rownames(m) <- c("null",
+                   "allB",
+                   "zeroB",
+                   "balanced",
+                   "one-thirdB",
+                   "two-thirdsB",
+                   "one-fourthB",
+                   "three-fourthsB")
+  m
+}
+
+d_beta <- function(params){
+  function(x, ...) dbeta(x, params[1], params[2], ...)
+}
+null <- function(){
+  params <- shapeParams()["null", ]
+  d_beta(params)
+}
+aa <- function(){
+  params <- shapeParams()["zeroB", ]
+  d_beta(params)
+}
+bb <- function(){
+  params <- shapeParams()["allB", ]
+  d_beta(params)
+}
+ab <- function(){
+  params <- shapeParams()["balanced", ]
+  d_beta(params)
+}
+aab <- function(){
+  params <- shapeParams()["one-thirdB", ]
+  d_beta(params)
+}
+abb <- function(){
+  params <- shapeParams()["two-thirdsB", ]
+  d_beta(params)
+}
+aaab <- function(){
+  params <- shapeParams()["one-fourthB", ]
+  d_beta(params)
+}
+abbb <- function(){
+  params <- shapeParams()["three-fourthsB", ]
+  d_beta(params)
+}
+
 .p_b <- function(gt){
   gt <- factor(gt, levels=1:3)
   tab <- table(gt)
@@ -9,6 +66,60 @@
 
 p_b <- function(gt){
   as.numeric(apply(gt, 1, .p_b))
+}
+
+d0 <- null()
+
+## p.b = population frequency of B allele
+## p.b should be the same length as the x-vector
+## x: vector of B allele frequencies
+d1 <- function(x, p.b){
+  daa <- aa()
+  dbb <- bb()
+  p.outlier <- 1e-4
+  p.outlier + (1-p.outlier)*(
+    (1-p.b)*daa(x) + p.b*dbb(x)
+  )
+}
+
+d2 <- function(x, p.b){
+  daa <- aa()
+  dab <- ab()
+  dbb <- bb()
+  p.outlier <- 1e-4
+  p.outlier + (1-p.outlier)*(
+    (1-p.b)^2*daa(x) + p.b^2*dbb(x) +
+    2*p.b*(1-p.b)*dab(x)
+  )
+}
+
+d3 <- function(x, p.b){
+  p.a <- 1-p.b
+  daa <- aa()
+  daab <- aab()
+  dabb <- abb()
+  dbb <- bb()
+  p.outlier <- 1e-4
+  p.outlier + (1-p.outlier)*(
+    (1-p.b)^3*daa(x) + choose(3, 1)*p.a^2*p.b*daab(x) +
+    choose(3, 1)*p.a*p.b^2*dabb(x) + p.b^3*dbb(x)
+  )
+}
+
+d4 <- function(x, p.b){
+  p.a <- 1-p.b
+  daaaa <- aa()
+  daaab <- aaab()
+  daabb <- ab()
+  dabbb <- abbb()
+  dbbbb <- bb()
+  p.outlier <- 1e-4
+  p.outlier + (1-p.outlier)*(
+    (1-p.b)^4*daaaa(x) + choose(4, 1)*p.a^3*p.b*daaab(x) +
+    choose(4, 2)*p.a^2*p.b^2*daabb(x) +
+    choose(4, 1)*p.a*p.b^3*dabbb(x) +
+    p.b^4*dbbbb(x)
+  )
 }
 
 mixtureProbs <- function(snpdat, cn.model, min_heterozygosity=0.05){
@@ -183,7 +294,7 @@ candidateModels <- function(cn.model){
   model.list
 }
 
-
+#' @export
 bafLikelihood <- function(cn.model, snpdata){
   model.list <- candidateModels(cn.model)
   if(length(model.list) > 1){

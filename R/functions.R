@@ -784,9 +784,22 @@ orderModels <- function(models, bf.thr=10){
   if(!any(is.na(mliks))){
     ml <- marginalLik(models)
     bf <- bayesFactor(models, prior.odds=1)
-    model.order <- strsplit(names(bf), "-")[[1]] 
+    model.order <- strsplit(names(bf), "-")[[1]]
     if(bf < bf.thr) model.order <- rev(model.order)
     models <- models[ model.order ]
   }
   models
+}
+
+#' Extract marginal likelihoods from a list of models
+#' 
+#' @param list of models
+#' @export
+marginalLik <- function(models){
+  ml <- sapply(models, marginal_lik) %>%
+  round(1)
+  names(ml) <- sapply(models, modelName)
+  ml2 <- paste0(names(ml), ": ", ml)
+  names(ml2) <- names(ml)
+  ml2
 }
