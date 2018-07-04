@@ -1,3 +1,11 @@
+genotypes <- function(se){
+  assays(se)[["GT"]]
+}
+
+bafs <- function(se){
+  assays(se)[["baf"]]
+}
+
 shapeParams <- function(){
   m <- matrix(c(1, 1,
                 10, 1,
@@ -231,6 +239,9 @@ pBAF_02 <- function(snpdat, cn.model){
     mutate(prob=prob_cn0*p0 + prob_cn2*p2)
 }
 
+cmap <- function(model){
+  paste(unique(mapping(model)), collapse="")
+}
 
 .modelProb <- function(cn.model, snpdata){
   cn_map <- paste0("m_", cmap(cn.model))
@@ -292,6 +303,10 @@ candidateModels <- function(cn.model){
     model.list[[i]] <- m
   }
   model.list
+}
+
+ccmap <- function(model){
+  paste(mapping(model), collapse="")
 }
 
 #' @export
