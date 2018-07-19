@@ -40,7 +40,8 @@ Suggests:
     rmarkdown,
     BiocCheck,
     MASS,
-    VanillaICE
+    VanillaICE,
+    tidyverse
 Collate: 
     'help.R'
     'AllGenerics.R'
