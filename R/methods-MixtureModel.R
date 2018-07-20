@@ -71,7 +71,7 @@ sigma.0 <- function(object) sqrt(sigma2.0(object))
 #' Retrieve mixture proportions.
 #'
 #' @examples
-#'      p(MarginalModelExample)
+#'      p(SingleBatchModelExample)
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A vector of length the number of components
 #' @export
