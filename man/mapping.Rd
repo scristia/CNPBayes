@@ -36,8 +36,8 @@ Map mixture components to copy number states
 \examples{
 cn.model <- CopyNumberModel(SingleBatchModelExample)
 ## manually remap first two components to the same copy number state
-mapping(cn.model) <- c(1, 1, 2)
 \dontrun{
+ mapping(cn.model) <- c(1, 1, 2)
  ggMixture(cn.model)
 }
 }

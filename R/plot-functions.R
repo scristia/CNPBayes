@@ -442,12 +442,12 @@ mb_predictive <- function(model, predict, adjust=1/3){
 #'
 #' @param models list of models
 #' @examples
-#'   sb <- SingleBatchModelExample
-#'   mcmcParams(sb) <- McmcParams(iter=500, burnin=50)
-#'   sb <- posteriorSimulation(sb)
-#'   models <- list(MultiBatchModelExample, sb)
-#'   tab <- predictiveDataTable(models)
 #'   \dontrun{
+#'     sb <- SingleBatchModelExample
+#'     mcmcParams(sb) <- McmcParams(iter=500, burnin=50)
+#'     sb <- posteriorSimulation(sb)
+#'     models <- list(MultiBatchModelExample, sb)
+#'     tab <- predictiveDataTable(models)
 #'     library(ggplot2)
 #'     ggplot(tab, aes(y, fill=predictive)) +
 #'       geom_density(alpha=0.4, adjust=1/2) +
@@ -510,7 +510,9 @@ sb_predictive <- function(model, predict, adjust=1/3){
 #'   }
 #'   bmodel <- posteriorSimulation(bmodel)
 #'   tab <- posteriorPredictive(bmodel)
-#'   ggPredictive(bmodel, tab)
+#'   \dontrun{
+#'       ggPredictive(bmodel, tab)
+#'   }
 #' @export
 #' @return a `gg` object
 ggPredictive <- function(model, predict, adjust=1/3){

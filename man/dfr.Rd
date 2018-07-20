@@ -13,6 +13,8 @@ dfr(object)
 Accessor for degrees of freedom
 }
 \examples{
-hp <- Hyperparams()
-dfr(hp)
+\dontrun{
+    hp <- Hyperparams()
+    dfr(hp)
+}
 }

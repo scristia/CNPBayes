@@ -46,9 +46,11 @@ is performed recursively on the batch variables defined for a given
 CNP until no batches can be combined.
 }
 \examples{
-bt <- combinePlates(y(MultiBatchModelExample), batch(MultiBatchModelExample))
-batches <- as.integer(factor(bt))
-model <- MultiBatchModel2(dat=y(MultiBatchModelExample),
-                          hp=hpList(k=k(MultiBatchModelExample))[["MB"]],
-                          batches=batches, mp=mcmcParams(MultiBatchModelExample))
+\dontrun{
+    bt <- combinePlates(y(MultiBatchModelExample), batch(MultiBatchModelExample))
+    batches <- as.integer(factor(bt))
+    model <- MultiBatchModel2(dat=y(MultiBatchModelExample),
+                              hp=hpList(k=k(MultiBatchModelExample))[["MB"]],
+                              batches=batches, mp=mcmcParams(MultiBatchModelExample))
+}
 }

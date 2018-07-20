@@ -21,6 +21,7 @@ For large datasets (several thousand subjects), the computational burden for fit
 }
 \examples{
 ## TODO: this is more complicated than it needs to be
+library(dplyr)
 mb <- MultiBatchModelExample
 mapping <- tibble(plate=letters[1:10],
                   batch_orig=sample(c("1", "2", "3"), 10, replace=TRUE))
@@ -34,13 +35,15 @@ mapping <- partial.data \%>\%
   group_by(plate) \%>\%
   summarize(batch_index=unique(batch_index))
 mp <- McmcParams(iter=50, burnin=100)
-mb2 <- MultiBatchModel2(dat=ds$medians,
-                        batches=ds$batch_index, mp=mp)
-mb2 <- posteriorSimulation(mb2)
-if(FALSE) ggMixture(mb2)
-full.dat2 <- full.data \%>\%
-  left_join(mapping, by="plate")
-## compute probabilities for the full dataset
-mb.up <- upSample2(full.dat2, mb2)
-if(FALSE) ggMixture(mb2)
+\dontrun{
+    mb2 <- MultiBatchModel2(dat=ds$medians,
+                            batches=ds$batch_index, mp=mp)
+    mb2 <- posteriorSimulation(mb2)
+    if(FALSE) ggMixture(mb2)
+    full.dat2 <- full.data \%>\%
+      left_join(mapping, by="plate")
+    ## compute probabilities for the full dataset
+    mb.up <- upSample2(full.dat2, mb2)
+    if(FALSE) ggMixture(mb2)
+}
 }
