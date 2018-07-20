@@ -160,6 +160,7 @@ setMethod("show", "MixtureModel", function(object){
   cat("     nu.0 (s)    :", nu.0(object), "\n")
   cat("     logprior(s):", round(logPrior(object), 2), "\n")
   cat("     loglik (s)  :", round(log_lik(object), 2), "\n")
+  cat("     log marginal lik (s)  :", round(log_lik(object), 2), "\n")
 })
 
 setMethod("show", "SingleBatchModel", function(object){

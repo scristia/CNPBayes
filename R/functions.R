@@ -695,7 +695,8 @@ downSample <- function(dat,
   }
   tab2 <- left_join(dat.sub, batch.sum3, by="batch_orig") %>%
     select(-c(mean, n)) %>%
-    mutate(batch_index=as.integer(factor(batch_new, levels=unique(batch_new))))
+    mutate(batch_index=as.integer(factor(batch_new,
+                                         levels=unique(batch_new))))
   tab2
 }
 
@@ -724,6 +725,7 @@ modelName <- function(model){
     gsub("SingleBatchPooled", "SBP", .) %>%
     gsub("SingleBatchModel", "SB", .) %>%
     gsub("MultiBatchModel", "MB", .) %>%
+    gsub("MultiBatchCopyNumber", "MB", .) %>%
     gsub("MultiBatchPooled", "MBP", .)
   L <- length(unique(batch(model)))
   if(L == 1){
@@ -731,4 +733,73 @@ modelName <- function(model){
   }
   model.name <- paste0(model.name, k(model))
   model.name
+}
+
+freeParams <- function(model){
+  ## K: number of free parameters to be estimated
+  ##   - component and batch-specific parameters:  theta, sigma2  ( k(model) * nBatch(model))
+  ##   - mixing probabilities: (k-1)*nBatch
+  ##   - component-specific parameters: mu, tau2                 2 x k(model)
+  ##   - length-one parameters: sigma2.0, nu.0                   +2
+  nBatch <- function(model) length(unique(batch(model)))
+  nm <- substr(modelName(model), 1, 2)
+  nsigma <- ncol(sigma(model))
+  ntheta <- k(model)
+  if(is.null(nsigma)) nsigma <- length(sigma(model))
+  K <- (ntheta + nsigma)*nBatch(model) + (k(model)-1) + 2*k(model) + 2
+  K
+}
+
+#' Compute the Bayes factor
+#'
+#' Calculated as log(ML1) - log(ML2) + log prior odds
+#' where ML1 is the marginal likelihood of the model with the most free parameters
+#'
+#' @param model.list list of models from \code{gibbs}
+#' @param prior.odds scalar
+#' @export
+bayesFactor <- function(model.list, prior.odds=1){
+  ## set null model to be the model with the fewest free parameters
+  free.params <- sapply(model.list, freeParams)
+  ix <- order(free.params, decreasing=TRUE)
+  model.list2 <- model.list[ix]
+  model.names <- sapply(model.list2, modelName)
+  nm <- paste(model.names, collapse="-")
+  ##p2 <- p[ix]
+  ## log marginal likelihood
+  log.mlik <- sapply(model.list2, marginal_lik)
+  bf <- log.mlik[1] - log.mlik[2] + log(prior.odds)
+  names(bf) <- nm
+  bf
+}
+
+#' Order models by Bayes factor
+#'
+#' @param models list of \code{MixtureModel}-derived objects
+#' @param bf.thr scalar: minimal bayes factor for selecting a model with more parameters over a more parsimonious model
+#'
+#' @export
+orderModels <- function(models, bf.thr=10){
+  mliks <- sapply(models, marginal_lik)
+  if(!any(is.na(mliks))){
+    ml <- marginalLik(models)
+    bf <- bayesFactor(models, prior.odds=1)
+    model.order <- strsplit(names(bf), "-")[[1]]
+    if(bf < bf.thr) model.order <- rev(model.order)
+    models <- models[ model.order ]
+  }
+  models
+}
+
+#' Extract marginal likelihoods from a list of models
+#' 
+#' @param list of models
+#' @export
+marginalLik <- function(models){
+  ml <- sapply(models, marginal_lik) %>%
+  round(1)
+  names(ml) <- sapply(models, modelName)
+  ml2 <- paste0(names(ml), ": ", ml)
+  names(ml2) <- names(ml)
+  ml2
 }
