@@ -2,8 +2,8 @@
 #'
 #' @param N number of observations
 #' @param p a vector indicating probability of membership to each component
-#' @param theta a vector of means, one per component/batch
-#' @param sds a vector of standard deviations, one per component/batch
+#' @param theta a matrix of means.  Columns are components and rows are batches.
+#' @param sds a matrix of standard deviations.  Columns are components and rows are batches.
 #' @param batch a vector of labels indication from which batch each simulation should come from
 #' @param zz a vector indicating latent variable membership. Can be omitted.
 #' @return An object of class 'MultiBatchModel'
