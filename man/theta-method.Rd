@@ -36,6 +36,7 @@ object, and for plotting the chain of \code{theta} values.
 }
 \examples{
 ## MarginalModel
+\dontrun{
 k(SingleBatchModelExample)
 theta(SingleBatchModelExample)
 plot.ts(theta(chains(SingleBatchModelExample)))
@@ -45,4 +46,5 @@ length(unique(batch(MultiBatchModelExample)))
 theta(MultiBatchModelExample)
 ## Plot means for batches in one component
 plot.ts(theta(chains(MultiBatchModelExample))[, 1:3])
+}
 }

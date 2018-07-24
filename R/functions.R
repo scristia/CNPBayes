@@ -328,10 +328,12 @@ ntile <- function(x, n) {
 #' Calculate posterior proportion of cases by component
 #'
 #' @examples
+#' \dontrun{
 #'      # generate random case control status
-#'      case_control <- rbinom(length(y(MarginalModelExample)), 1, 0.5)
-#'      case_control_posterior <- posterior_cases(MarginalModelExample,
+#'      case_control <- rbinom(length(y(SingleBatchModelExample)), 1, 0.5)
+#'      case_control_posterior <- posterior_cases(SingleBatchModelExample,
 #'                                                case_control)
+#' }
 #' @param model An instance of a \code{MixtureModel}-derived class.
 #' @param case_control A vector of 1's and 0's where a 1 indicates a case and a 0 a control
 #' @param alpha prior alpha for the beta
@@ -603,6 +605,7 @@ useModes <- function(object){
 #' @export
 #' @examples
 #' ## TODO: this is more complicated than it needs to be
+#' library(dplyr)
 #' mb <- MultiBatchModelExample
 #' mapping <- tibble(plate=letters[1:10],
 #'                   batch_orig=sample(c("1", "2", "3"), 10, replace=TRUE))
@@ -616,15 +619,17 @@ useModes <- function(object){
 #'   group_by(plate) %>%
 #'   summarize(batch_index=unique(batch_index))
 #' mp <- McmcParams(iter=50, burnin=100)
-#' mb2 <- MultiBatchModel2(dat=ds$medians,
-#'                         batches=ds$batch_index, mp=mp)
-#' mb2 <- posteriorSimulation(mb2)
-#' if(FALSE) ggMixture(mb2)
-#' full.dat2 <- full.data %>%
-#'   left_join(mapping, by="plate")
-#' ## compute probabilities for the full dataset
-#' mb.up <- upSample2(full.dat2, mb2)
-#' if(FALSE) ggMixture(mb2)
+#' \dontrun{
+#'     mb2 <- MultiBatchModel2(dat=ds$medians,
+#'                             batches=ds$batch_index, mp=mp)
+#'     mb2 <- posteriorSimulation(mb2)
+#'     if(FALSE) ggMixture(mb2)
+#'     full.dat2 <- full.data %>%
+#'       left_join(mapping, by="plate")
+#'     ## compute probabilities for the full dataset
+#'     mb.up <- upSample2(full.dat2, mb2)
+#'     if(FALSE) ggMixture(mb2)
+#' }
 #' @rdname downSample
 downSample <- function(dat,
                        size=1000,

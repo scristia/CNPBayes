@@ -96,10 +96,12 @@ setGeneric("chains<-", function(object, value) standardGeneric("chains<-"))
 #' is called in conjunction with an accessor for one of these
 #' parameters.
 #' @examples
-#' theta.chain <- theta(chains(SingleBatchModelExample))
-#' dim(theta.chain)
-#' plot.ts(theta.chain, plot.type="single",
-#'         col=seq_len(k(SingleBatchModelExample)))
+#' \dontrun{
+#'     theta.chain <- theta(chains(SingleBatchModelExample))
+#'     dim(theta.chain)
+#'     plot.ts(theta.chain, plot.type="single",
+#'             col=seq_len(k(SingleBatchModelExample)))
+#' }
 #' @param object \code{showMethods(chains)}
 #' @return The simulated chains.
 #' @export
@@ -196,6 +198,7 @@ setGeneric("bic", function(object) standardGeneric("bic"))
 #' object, and for plotting the chain of \code{theta} values.
 #' @examples
 #' ## MarginalModel
+#' \dontrun{
 #' k(SingleBatchModelExample)
 #' theta(SingleBatchModelExample)
 #' plot.ts(theta(chains(SingleBatchModelExample)))
@@ -205,6 +208,7 @@ setGeneric("bic", function(object) standardGeneric("bic"))
 #' theta(MultiBatchModelExample)
 #' ## Plot means for batches in one component
 #' plot.ts(theta(chains(MultiBatchModelExample))[, 1:3])
+#' }
 #' @param object see \code{showMethods(theta)}
 #' @return A vector of length number of components or a matrix of size 
 #' number of batches x number of components
@@ -433,11 +437,13 @@ setGeneric("collapseBatch", function(object, provisional_batch, THR=0.1) standar
 #' is performed recursively on the batch variables defined for a given
 #' CNP until no batches can be combined.
 #' @examples
-#' bt <- combinePlates(y(MultiBatchModelExample), batch(MultiBatchModelExample))
-#' batches <- as.integer(factor(bt))
-#' model <- MultiBatchModel2(dat=y(MultiBatchModelExample),
-#'                           hp=hpList(k=k(MultiBatchModelExample))[["MB"]],
-#'                           batches=batches, mp=mcmcParams(MultiBatchModelExample))
+#' \dontrun{
+#'     bt <- combinePlates(y(MultiBatchModelExample), batch(MultiBatchModelExample))
+#'     batches <- as.integer(factor(bt))
+#'     model <- MultiBatchModel2(dat=y(MultiBatchModelExample),
+#'                               hp=hpList(k=k(MultiBatchModelExample))[["MB"]],
+#'                               batches=batches, mp=mcmcParams(MultiBatchModelExample))
+#' }
 #' @param object see \code{showMethods(combinePlates)}
 #' @param plate a vector labelling from which batch each observation came from.
 #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
@@ -857,8 +863,8 @@ setGeneric("CopyNumberModel", function(model, params=mapParams()) standardGeneri
 #' @examples
 #' cn.model <- CopyNumberModel(SingleBatchModelExample)
 #' ## manually remap first two components to the same copy number state
-#' mapping(cn.model) <- c(1, 1, 2)
 #' \dontrun{
+#'  mapping(cn.model) <- c(1, 1, 2)
 #'  ggMixture(cn.model)
 #' }
 #' @param object a SB, SBP, MB, or MBP model
@@ -894,13 +900,15 @@ setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 #' copyNumber(cn.model)
 #'
 #' ## here is an identity mapping
-#' mapping(cn.model) <- 1:3
-#' identical(copyNumber(cn.model), z(cn.model))
-#' table(copyNumber(cn.model))
+#' \dontrun{
+#'     mapping(cn.model) <- 1:3
+#'     identical(copyNumber(cn.model), z(cn.model))
+#'     table(copyNumber(cn.model))
 #'
-#' ## here, we map the first two mixture components to one copy number state
-#' mapping(cn.model) <- c(1, 1, 2)
-#' table(copyNumber(cn.model))
+#'     ## here, we map the first two mixture components to one copy number state
+#'     mapping(cn.model) <- c(1, 1, 2)
+#'     table(copyNumber(cn.model))
+#' }
 #' @seealso \code{\link{mapComponents}} \code{\link{CopyNumberModel}}
 #' @export
 #' @rdname copyNumber
@@ -915,8 +923,10 @@ setGeneric("mergeComponents", function(model, j) standardGeneric("mergeComponent
 #' @param object a Hyperparameters or Hyperparameters-derived class
 #' @export
 #' @examples
-#' hp <- Hyperparams()
-#' dfr(hp)
+#' \dontrun{
+#'     hp <- Hyperparams()
+#'     dfr(hp)
+#' }
 setGeneric("dfr", function(object) standardGeneric("dfr"))
 
 setGeneric("dfr<-", function(object, value) standardGeneric("dfr<-"))

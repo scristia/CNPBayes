@@ -13,12 +13,12 @@ predictiveDataTable(models)
 Create a tibble of posterior predictive distributions for a list of models
 }
 \examples{
-  sb <- SingleBatchModelExample
-  mcmcParams(sb) <- McmcParams(iter=500, burnin=50)
-  sb <- posteriorSimulation(sb)
-  models <- list(MultiBatchModelExample, sb)
-  tab <- predictiveDataTable(models)
   \dontrun{
+    sb <- SingleBatchModelExample
+    mcmcParams(sb) <- McmcParams(iter=500, burnin=50)
+    sb <- posteriorSimulation(sb)
+    models <- list(MultiBatchModelExample, sb)
+    tab <- predictiveDataTable(models)
     library(ggplot2)
     ggplot(tab, aes(y, fill=predictive)) +
       geom_density(alpha=0.4, adjust=1/2) +

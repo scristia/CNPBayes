@@ -30,5 +30,7 @@ Compare the posterior predictive distribution to the empirical data
   }
   bmodel <- posteriorSimulation(bmodel)
   tab <- posteriorPredictive(bmodel)
-  ggPredictive(bmodel, tab)
+  \dontrun{
+      ggPredictive(bmodel, tab)
+  }
 }

@@ -17,9 +17,9 @@ For an EM-implementation of Gaussian mixture models for CNPs, see the Bioconduct
 
 This vignette provides a concise workflow for fitting mixture models in large array-based genome-wide association studies. Other vignettes in this package provide details on the [implementation](Implementation.Rmd) and functions for evaluating [convergence](Convergence.Rmd).
 
-```{r lib} 
-suppressPackageStartupMessages(library(CNPBayes))
-suppressPackageStartupMessages(library(SummarizedExperiment))
+```{r lib, message=FALSE} 
+library(CNPBayes)
+library(SummarizedExperiment)
 library(ggplot2)
 library(tidyverse)
 ```

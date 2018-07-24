@@ -25,13 +25,15 @@ cn.model <- CopyNumberModel(sb)
 copyNumber(cn.model)
 
 ## here is an identity mapping
-mapping(cn.model) <- 1:3
-identical(copyNumber(cn.model), z(cn.model))
-table(copyNumber(cn.model))
+\dontrun{
+    mapping(cn.model) <- 1:3
+    identical(copyNumber(cn.model), z(cn.model))
+    table(copyNumber(cn.model))
 
-## here, we map the first two mixture components to one copy number state
-mapping(cn.model) <- c(1, 1, 2)
-table(copyNumber(cn.model))
+    ## here, we map the first two mixture components to one copy number state
+    mapping(cn.model) <- c(1, 1, 2)
+    table(copyNumber(cn.model))
+}
 }
 \seealso{
 \code{\link{mapComponents}} \code{\link{CopyNumberModel}}
