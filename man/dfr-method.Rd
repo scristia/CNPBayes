@@ -4,7 +4,6 @@
 \name{dfr,MixtureModel-method}
 \alias{dfr,MixtureModel-method}
 \alias{dfr,SBPt-method}
-\alias{dfr,SBPt-method}
 \title{Accessor for degrees of freedom}
 \usage{
 \S4method{dfr}{MixtureModel}(object)
