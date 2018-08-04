@@ -14,7 +14,7 @@ vignette: >
 
 A Markov Chain Monte Carlo posterior simulation should be visually inspected to assess convergence.
 
-```{r lib}
+```{r packages, message=FALSE}
 # load CNPBayes
 suppressMessages(library(CNPBayes))
 # load packages for manipulating and visualizing data

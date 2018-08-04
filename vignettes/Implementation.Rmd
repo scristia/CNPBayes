@@ -18,7 +18,7 @@ For an EM-implementation of Gaussian mixture models for CNPs, see the Bioconduct
 
 The key distinction of this package is an emphasis on exploring models that account for batch effects -- differences between groups of samples that were processed at different times and/or by different labs.  For smaller studies, the more standard ``SingleBatchModel` may be reasonable.  This package provides an infrastructure for fitting all of these models and then comparing these models by marginal likelihoods or Bayes factors.  The main applications we envision these models for are in studies of germline diseases containing thousands of samples and several hundred CNPs.  We suggest parallelizing by CNP (e.g., devoting a single core to each CNP), though leave the details on parallelization to the user.
 
-```{r lib} 
+```{r lib, message=FALSE} 
 library(CNPBayes)
 library(ggplot2)
 ```

@@ -1,4 +1,6 @@
-test_that("extdata is current", {
+.test_that <- function(nm, expr) NULL
+
+.test_that("extdata is current", {
   library(SummarizedExperiment)
   se <- readRDS(system.file("extdata", "simulated_se.rds", package="CNPBayes"))
   ##se2 <- updateObject(se)
