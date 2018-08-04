@@ -38,6 +38,7 @@ setMethod("numberStates", "MultiBatchCopyNumberPooled", function(model){
 })
 
 manyToOneMapping <- function(model){
+  copynumber <- NULL
   tab <- tibble(comp=seq_len(k(model)),
                 copynumber=mapping(model)) %>%
     group_by(copynumber) %>%
@@ -130,7 +131,6 @@ setMethod("copyNumber", "MultiBatchCopyNumberPooled", function(object){
 #'   the value specified by this parameter, (ii) there are 3 or more states, and
 #'   (iii) the first component has a mean less than \code{max_homozygous[2]}, we
 #'   infer that the first component is a homozygous deletion.
-#' @seealso \code{\link{mapComponents}}
 #' @examples
 #' mapParams()
 #' @export
@@ -180,157 +180,158 @@ isPooled <- function(model){
                       "MultiBatchCopyNumberPooled")
 }
 
-.merge_components <- function(model, j){
-  x <- component.left <- component.right <- NULL
-  dens <- dnorm_poly(model) %>% filter(component!="SB") %>%
-    as.tibble %>%
-    arrange(component, x) %>%
-    filter(component %in% c(j, j+1))
-  stats <- dens %>%
-    group_by(component) %>%
-    summarize(n=n(),
-              max.y=max(y),
-              x.at.maxy=x[y==max(y)][1])
-  ##
-  ## where does difference in component 1 density and component 2 density change sign
-  ##
-  ##d1 <- filter(dens, cnstate==state1 & !duplicated(x))
-  d1 <- filter(dens, component == j & !duplicated(x))
-  d2 <- filter(dens, component == j+1) %>%
-    filter(!duplicated(x))
-  keep <- d1$y <= stats$max.y[1] &
-    d1$x >= stats$x.at.maxy[1] &
-    d2$y <= stats$max.y[2] &
-    d2$x <= stats$x.at.maxy[2]
-  d1 <- d1[keep, ]
-  d2 <- d2[keep, ]
-  ## number of quantiles where difference in density is negative and number of
-  ## quantiles where difference in density is positive
-  probs <- tibble(component.left=d1$y, component.right=d2$y) %>%
-    mutate(sign=sign(component.left - component.right)) %>%
-    group_by(sign) %>%
-    summarize(n=n())
-  needs.merge <- ifelse(any(probs$n <= 6) || nrow(probs) < 2, TRUE, FALSE)
-  ##
-  ## sometimes we have multiple hemizygous deletion components that should be merged
-  ##  -- allow a greater separation between components that still merges
-  ##if(!needs.merge){
-  ##  ## only allow separable modes to be merged if the right-most component is
-  ##  ## not merged with the diploid component
-  ##  both.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
-  ##  needs.merge <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
-  ##                        && both.hemizygous, TRUE, FALSE)
-  ##
-  ##  both.homozygous <- all( stats$x.at.maxy < -0.9 )
-  ##  if(both.homozygous) needs.merge <- TRUE
-  ##}
-  needs.merge
-}
+## .merge_components <- function(model, j){
+##   x <- component.left <- component.right <- NULL
+##   dens <- dnorm_poly(model) %>% filter(component!="SB") %>%
+##     as.tibble %>%
+##     arrange(component, x) %>%
+##     filter(component %in% c(j, j+1))
+##   stats <- dens %>%
+##     group_by(component) %>%
+##     summarize(n=n(),
+##               max.y=max(y),
+##               x.at.maxy=x[y==max(y)][1])
+##   ##
+##   ## where does difference in component 1 density and component 2 density change sign
+##   ##
+##   ##d1 <- filter(dens, cnstate==state1 & !duplicated(x))
+##   d1 <- filter(dens, component == j & !duplicated(x))
+##   d2 <- filter(dens, component == j+1) %>%
+##     filter(!duplicated(x))
+##   keep <- d1$y <= stats$max.y[1] &
+##     d1$x >= stats$x.at.maxy[1] &
+##     d2$y <= stats$max.y[2] &
+##     d2$x <= stats$x.at.maxy[2]
+##   d1 <- d1[keep, ]
+##   d2 <- d2[keep, ]
+##   ## number of quantiles where difference in density is negative and number of
+##   ## quantiles where difference in density is positive
+##   probs <- tibble(component.left=d1$y, component.right=d2$y) %>%
+##     mutate(sign=sign(component.left - component.right)) %>%
+##     group_by(sign) %>%
+##     summarize(n=n())
+##   needs.merge <- ifelse(any(probs$n <= 6) || nrow(probs) < 2, TRUE, FALSE)
+##   ##
+##   ## sometimes we have multiple hemizygous deletion components that should be merged
+##   ##  -- allow a greater separation between components that still merges
+##   ##if(!needs.merge){
+##   ##  ## only allow separable modes to be merged if the right-most component is
+##   ##  ## not merged with the diploid component
+##   ##  both.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
+##   ##  needs.merge <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
+##   ##                        && both.hemizygous, TRUE, FALSE)
+##   ##
+##   ##  both.homozygous <- all( stats$x.at.maxy < -0.9 )
+##   ##  if(both.homozygous) needs.merge <- TRUE
+##   ##}
+##   needs.merge
+# }
 
-.merge_mb <- function(model, j){
-  x <- NULL
-  if(class(model) == "MultiBatchCopyNumberPooled"){
-    dens <- dnorm_poly_multibatch_pooled(model) %>% filter(component!="overall") %>%
-      arrange(component, x) %>%
-      filter(component %in% c(j, j+1))
-  } else {
-    dens <- dnorm_poly_multibatch(model) %>% filter(component!="overall") %>%
-      arrange(component, x) %>%
-      filter(component %in% c(j, j+1)) 
-  }
-  stats <- dens %>%
-    group_by(batch, component) %>%
-    summarize(n=n(),
-              max.y=max(y),
-              x.at.maxy=x[y==max(y)][1]) %>%
-    filter(batch != "overall")
-
-  ubatch <- levels(dens$batch)
-  ubatch <- ubatch[ubatch != "overall"]
-  merge.var <- rep(NA, length(ubatch))
-  component.left <- component.right <- NULL
-  for(i in seq_along(ubatch)){
-    d1 <- filter(dens, component == j & batch==ubatch[i]) %>%
-      filter(y > 0)
-    d2 <- filter(dens, component == (j+1) & batch==ubatch[i]) %>%
-      filter(y > 0)
-    d1 <- filter(d1, x >= min(d2$x))
-    stats2 <- filter(stats, batch == ubatch[i])
-    keep <- d1$y <= stats2$max.y[1] &
-      d1$x >= stats2$x.at.maxy[1] &
-      d2$y <= stats2$max.y[2] &
-      d2$x <= stats2$x.at.maxy[2]
-    d1 <- d1[keep, ]
-    d2 <- d2[keep, ]
-    ## number of quantiles where difference in density is negative and number of
-    ## quantiles where difference in density is positive
-    probs <- tibble(component.left=d1$y, component.right=d2$y) %>%
-      mutate(sign=sign(component.left - component.right)) %>%
-      group_by(sign) %>%
-      summarize(n=n())
-    merge.var[i] <- ifelse(any(probs$n <= 6) || nrow(probs) < 2, TRUE, FALSE)
-##    if(!merge.var[i]){
-##      is.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
-##      merge.var[i] <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
-##                             && is.hemizygous, TRUE, FALSE)
-##    }
-  }
-  ## weight by size of batch
-  needs.merge <- sum(merge.var * batchElements(model)) / length(y(model)) > 0.5
-  needs.merge
-}
-
-
-setMethod("mergeComponents", "SingleBatchCopyNumber", function(model, j){
-  .merge_components(model, j)
-})
-
-setMethod("mergeComponents", "MultiBatchCopyNumberPooled", function(model, j){
-  .merge_mb(model, j)
-})
-
-setMethod("mergeComponents", "MultiBatchCopyNumber", function(model, j){
-  .merge_mb(model, j)
-})
+## .merge_mb <- function(model, j){
+##   x <- NULL
+##   if(class(model) == "MultiBatchCopyNumberPooled"){
+##     dens <- dnorm_poly_multibatch_pooled(model) %>% filter(component!="overall") %>%
+##       arrange(component, x) %>%
+##       filter(component %in% c(j, j+1))
+##   } else {
+##     dens <- dnorm_poly_multibatch(model) %>% filter(component!="overall") %>%
+##       arrange(component, x) %>%
+##       filter(component %in% c(j, j+1)) 
+##   }
+##   stats <- dens %>%
+##     group_by(batch, component) %>%
+##     summarize(n=n(),
+##               max.y=max(y),
+##               x.at.maxy=x[y==max(y)][1]) %>%
+##     filter(batch != "overall")
+## 
+##   ubatch <- levels(dens$batch)
+##   ubatch <- ubatch[ubatch != "overall"]
+##   merge.var <- rep(NA, length(ubatch))
+##   component.left <- component.right <- NULL
+##   for(i in seq_along(ubatch)){
+##     d1 <- filter(dens, component == j & batch==ubatch[i]) %>%
+##       filter(y > 0)
+##     d2 <- filter(dens, component == (j+1) & batch==ubatch[i]) %>%
+##       filter(y > 0)
+##     d1 <- filter(d1, x >= min(d2$x))
+##     stats2 <- filter(stats, batch == ubatch[i])
+##     keep <- d1$y <= stats2$max.y[1] &
+##       d1$x >= stats2$x.at.maxy[1] &
+##       d2$y <= stats2$max.y[2] &
+##       d2$x <= stats2$x.at.maxy[2]
+##     d1 <- d1[keep, ]
+##     d2 <- d2[keep, ]
+##     ## number of quantiles where difference in density is negative and number of
+##     ## quantiles where difference in density is positive
+##     probs <- tibble(component.left=d1$y, component.right=d2$y) %>%
+##       mutate(sign=sign(component.left - component.right)) %>%
+##       group_by(sign) %>%
+##       summarize(n=n())
+##     merge.var[i] <- ifelse(any(probs$n <= 6) || nrow(probs) < 2, TRUE, FALSE)
+## ##    if(!merge.var[i]){
+## ##      is.hemizygous <- all(stats$x.at.maxy > -1 & stats$x.at.maxy < -0.2)
+## ##      merge.var[i] <- ifelse((any(probs$n <= 15) || nrow(probs) < 2)
+## ##                             && is.hemizygous, TRUE, FALSE)
+## ##    }
+##   }
+##   ## weight by size of batch
+##   needs.merge <- sum(merge.var * batchElements(model)) / length(y(model)) > 0.5
+##   needs.merge
+## }
 
 
-#' Map mixture components to distinct copy number states
-#'
-#'
-#'
-#' @param params a list of mapping parameters
-#' @param model a SB, MB, SBP, or MBP model
-#' @examples
-#' ## Batch model
-#' bmodel <- MultiBatchModelExample
-#' cn.model <- CopyNumberModel(bmodel)
-#' mapping(cn.model)
-#' \dontrun{
-#'   ggMixture(cn.model)
-#' }
-#' @seealso \code{\link{CopyNumberModel}} \code{\link{mapParams}}
-#' @export
-mapComponents <- function(model, params=mapParams()){
-  if(length(modes(model)) > 0){
-    model <- useModes(model)
-  }
-  K <- seq_len(k(model) - 1)
-  cn.states <- seq_len(k(model))
-  counter <- 1
-  for(j in K){
-    is.merge <- mergeComponents(model, j)
-    if(!is.merge){
-      ## only increment counter when model does not change
-      counter <- counter + 1
-      next()
-    }
-    ## model changes
-    cn.states[j+1] <- counter
-    cn.states[ seq_along(cn.states) > (j + 1)] <- cn.states[ seq_along(cn.states) > (j + 1)] - 1
-    mapping(model) <- cn.states
-  }
-  model
-}
+##setMethod("mergeComponents", "SingleBatchCopyNumber", function(model, j){
+##  .merge_components(model, j)
+##})
+
+##setMethod("mergeComponents", "MultiBatchCopyNumberPooled",
+##          function(model, j){
+##  .merge_mb(model, j)
+##})
+
+##setMethod("mergeComponents", "MultiBatchCopyNumber", function(model, j){
+##  .merge_mb(model, j)
+##})
+
+
+## #' Map mixture components to distinct copy number states
+## #'
+## #'
+## #'
+## #' @param params a list of mapping parameters
+## #' @param model a SB, MB, SBP, or MBP model
+## #' @examples
+## #' ## Batch model
+## #' bmodel <- MultiBatchModelExample
+## #' cn.model <- CopyNumberModel(bmodel)
+## #' mapping(cn.model)
+## #' \dontrun{
+## #'   ggMixture(cn.model)
+## #' }
+## #' @seealso \code{\link{CopyNumberModel}} \code{\link{mapParams}}
+## #' @export
+## mapComponents <- function(model, params=mapParams()){
+##   if(length(modes(model)) > 0){
+##     model <- useModes(model)
+##   }
+##   K <- seq_len(k(model) - 1)
+##   cn.states <- seq_len(k(model))
+##   counter <- 1
+##   for(j in K){
+##     is.merge <- mergeComponents(model, j)
+##     if(!is.merge){
+##       ## only increment counter when model does not change
+##       counter <- counter + 1
+##       next()
+##     }
+##     ## model changes
+##     cn.states[j+1] <- counter
+##     cn.states[ seq_along(cn.states) > (j + 1)] <- cn.states[ seq_along(cn.states) > (j + 1)] - 1
+##     mapping(model) <- cn.states
+##   }
+##   model
+## }
 
 
 ##  p <- probz(model)

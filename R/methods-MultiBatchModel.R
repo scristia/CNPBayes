@@ -48,6 +48,7 @@ reorderMultiBatch <- function(model){
   K <- k(model)
   ix <- order(thetas[1, ])
   B <- nBatch(model)
+  . <- NULL
   tab <- tibble(z_orig=z(model),
                 z=z(model),
                 batch=batch(model)) %>%

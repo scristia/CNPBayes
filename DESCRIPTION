@@ -81,4 +81,5 @@ LazyData: TRUE
 URL: https://github.com/scristia/CNPBayes
 BugReports: https://github.com/scristia/CNPBayes/issues
 NeedsCompilation: yes
+Encoding: UTF-8
 RoxygenNote: 6.1.0

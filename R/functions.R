@@ -582,6 +582,9 @@ downSample <- function(dat,
   ## combine batches with too few observations based on the location (not scale)
   ##
   select <- dplyr::select
+  . <- medians <- largebatch <- other <- batch_orig <- NULL
+  batch_new <- NULL
+  b
   batch.sum <- dat.sub %>%
     group_by(batch_orig) %>%
     summarize(mean=mean(medians),
@@ -656,6 +659,7 @@ rst <- function (n, df = 100, mean = 0, sigma = 1){
 #' modelName(SingleBatchModelExample)
 #' @export
 modelName <- function(model){
+  . <- NULL
   model.name <- class(model) %>%
     gsub("CopyNumber", "", .) %>%
     gsub("SingleBatchPooled", "SBP", .) %>%

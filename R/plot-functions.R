@@ -341,6 +341,10 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
     group_by(batch, model) %>%
     summarize(n=n()) %>%
     mutate(x=-Inf, y=Inf)
+  ..count.. <- NULL
+  n_facet <- NULL
+  ..density.. <- NULL
+  x <- NULL
   fig <- ggplot(predictive, aes(x=y, n_facet=n,
                                 y=..count../n_facet,
                                 fill=component)) +
@@ -584,6 +588,11 @@ multibatch_figure <- function(theoretical, empirical, model){
     group_by(batch, model) %>%
     summarize(n=n()) %>%
     mutate(x=-Inf, y=Inf)
+  ..count.. <- NULL
+  n_facet <- NULL
+  ..density.. <- NULL
+  x <- NULL
+  copynumber <- NULL
   fig <- ggplot(predictive, aes(x=y, n_facet=n,
                                 y=..count../n_facet,
                                 fill=copynumber)) +

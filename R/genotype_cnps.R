@@ -143,6 +143,7 @@ mixtureProbs <- function(snpdat, cn.model, min_heterozygosity=0.05){
   keep <- rowMeans(is.na(B)) < 0.1
   B <- B[keep, ]
   p.b <- p.b[ keep ]
+  baf <- NULL
   B <- B %>%
     as.tibble %>%
     mutate(p.b=p.b) %>%
@@ -163,6 +164,7 @@ pBaf <- function(snpdat, cn.model){
     set_colnames(paste0("prob_cn", unique(mapping(cn.model)))) %>%
     mutate(id=colnames(snpdat))
   pwr <- 1/10
+  p0 <- p1 <- p2 <- p3 <- p4 <- baf <- id <- NULL
   B <- mixtureProbs(snpdat, cn.model) %>%
     group_by(id) %>%
     summarize(baf=mean(baf, na.rm=TRUE),
@@ -177,6 +179,8 @@ pBaf <- function(snpdat, cn.model){
 
 .pBAF_012 <- function(snpdat, cn.model){
   cols <- paste0("prob_cn", unique(mapping(cn.model)))
+  p0 <- p1 <- p2 <- NULL
+  prob_cn0 <- prob_cn1 <- prob_cn2 <- NULL
   B <- pBaf(snpdat, cn.model) %>%
     select(c("baf", "p0", "p1", "p2", cols)) %>%
     mutate(prob=prob_cn0*p0 + prob_cn1*p1 + prob_cn2*p2)
@@ -188,6 +192,8 @@ pBAF_012 <- function(snpdat, cn.model){
 
 pBAF_0123 <- function(snpdat, cn.model){
   cols <- paste0("prob_cn", unique(mapping(cn.model)))
+  p0 <- p1 <- p2 <- p3 <- NULL
+  prob_cn0 <- prob_cn1 <- prob_cn2 <- prob_cn3 <- NULL
   B <- pBaf(snpdat, cn.model) %>%
     select(c("p0", "p1", "p2", "p3", cols)) %>%
     mutate(prob=prob_cn0*p0 + prob_cn1*p1 + prob_cn2*p2 + prob_cn3*p3)
@@ -195,6 +201,8 @@ pBAF_0123 <- function(snpdat, cn.model){
 
 pBAF_123 <- function(snpdat, cn.model){
   cols <- paste0("prob_cn", unique(mapping(cn.model)))
+  p0 <- p1 <- p2 <- p3 <- NULL
+  prob_cn0 <- prob_cn1 <- prob_cn2 <- prob_cn3 <- NULL
   B <- pBaf(snpdat, cn.model) %>%
     select(c("baf", "p1", "p2", "p3", cols)) %>%
     mutate(prob=prob_cn1*p1 + prob_cn2*p2 + prob_cn3*p3)
@@ -202,6 +210,8 @@ pBAF_123 <- function(snpdat, cn.model){
 
 .pBAF_12 <- function(snpdat, cn.model){
   cols <- paste0("prob_cn", unique(mapping(cn.model)))
+  p0 <- p1 <- p2 <- p3 <- NULL
+  prob_cn0 <- prob_cn1 <- prob_cn2 <- prob_cn3 <- NULL
   B <- pBaf(snpdat, cn.model) %>%
     select(c("baf", "p1", "p2", cols)) %>%
     mutate(prob=prob_cn1*p1 + prob_cn2*p2)
@@ -213,6 +223,7 @@ pBAF_12 <- function(snpdat, cn.model){
 
 pBAF_2 <- function(snpdat, cn.model){
   cols <- paste0("prob_cn", unique(mapping(cn.model)))
+  p2 <- NULL
   B <- pBaf(snpdat, cn.model) %>%
     select("baf", "p2", cols) %>%
     mutate(prob=p2)
@@ -220,6 +231,8 @@ pBAF_2 <- function(snpdat, cn.model){
 
 pBAF_234 <- function(snpdat, cn.model){
   cols <- paste0("prob_cn", unique(mapping(cn.model)))
+  p2 <- p3 <- p4 <- NULL
+  prob_cn2 <- prob_cn3 <- prob_cn4 <- NULL
   B <- pBaf(snpdat, cn.model) %>%
     select(c("baf", "p2", "p3", "p4", cols)) %>%
     mutate(prob=prob_cn2*p2 + prob_cn3*p3 + prob_cn4*p4)
@@ -227,6 +240,8 @@ pBAF_234 <- function(snpdat, cn.model){
 
 pBAF_23 <- function(snpdat, cn.model){
   cols <- paste0("prob_cn", unique(mapping(cn.model)))
+  p2 <- p3 <- p4 <- NULL
+  prob_cn2 <- prob_cn3 <- prob_cn4 <- NULL
   B <- pBaf(snpdat, cn.model) %>%
     select(c("baf", "p2", "p3", cols)) %>%
     mutate(prob=prob_cn2*p2 + prob_cn3*p3)
@@ -234,6 +249,8 @@ pBAF_23 <- function(snpdat, cn.model){
 
 pBAF_02 <- function(snpdat, cn.model){
   cols <- paste0("prob_cn", unique(mapping(cn.model)))
+  p0 <- p2 <- p3 <- p4 <- NULL
+  prob_cn0 <- prob_cn2 <- prob_cn3 <- prob_cn4 <- NULL
   B <- pBaf(snpdat, cn.model) %>%
     select(c("baf", "p0", "p2", cols)) %>%
     mutate(prob=prob_cn0*p0 + prob_cn2*p2)
