@@ -268,7 +268,7 @@ setGeneric("sigma2.0", function(object) standardGeneric("sigma2.0"))
 #' Retrieve data.
 #'
 #' @examples
-#'      y(SingleBatchModelExample)
+#'      head(y(SingleBatchModelExample))
 #' @param object see \code{showMethods(y)}
 #' @return A vector containing the data
 #' @export
@@ -837,18 +837,11 @@ setGeneric("upSample", function(model, tiles) standardGeneric("upSample"))
 #' Constructs a CopyNumberModel from SB, SBP, MB, or MBP models
 #'
 #' The mixture components do not necessarily reflect distinct copy number
-#' states, possibly due to skewed (non-Gaussian) log R ratios. While easy to fit
-#' skewed data with a finite mixture of Gaussians, additional steps are needed
-#' to assess whether the components correspond to distinct copy number states.
-#' An automated approach for mapping mixture components to copy number states is
-#' provided by the \code{mapComponents} function. The mapping can also be done
-#' manually -- see \code{mapping<-}. This accessor \code{copyNumber} returns the
-#' copy number states -- i.e., the result after mapping mixture components to
-#' copy number states.
+#' states, possibly due to skewed (non-Gaussian) log R ratios. While easy to fit skewed data with a finite mixture of Gaussians, additional steps are needed to assess whether the components correspond to distinct copy number states.  This accessor \code{copyNumber} returns the copy number states -- i.e., the result after mapping mixture components to copy number states.
 #'
 #' @param model a SB, SBP, MB, or MBP model
 #' @param params a list of parameters used for mapping mixture components to copy number states.
-#' @seealso \code{\link{mapComponents}} \code{\link{copyNumber}}
+#' @seealso \code{\link{copyNumber}}
 #' @export
 #' @examples
 #' sb <- SingleBatchModelExample
@@ -909,7 +902,7 @@ setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 #'     mapping(cn.model) <- c(1, 1, 2)
 #'     table(copyNumber(cn.model))
 #' }
-#' @seealso \code{\link{mapComponents}} \code{\link{CopyNumberModel}}
+#' @seealso \code{\link{CopyNumberModel}}
 #' @export
 #' @rdname copyNumber
 setGeneric("copyNumber", function(object) standardGeneric("copyNumber"))
@@ -923,12 +916,15 @@ setGeneric("mergeComponents", function(model, j) standardGeneric("mergeComponent
 #' @param object a Hyperparameters or Hyperparameters-derived class
 #' @export
 #' @examples
-#' \dontrun{
-#'     hp <- Hyperparams()
-#'     dfr(hp)
-#' }
+#'   hp <- Hyperparameters()
+#'   dfr(hp)
+#'   dfr(hp) <- 10
+#'   dfr(hp)
+#' @rdname dfr
 setGeneric("dfr", function(object) standardGeneric("dfr"))
 
+#' @export
+#' @rdname dfr
 setGeneric("dfr<-", function(object, value) standardGeneric("dfr<-"))
-setGeneric("u", function(object) standardGeneric("u"))
 
+setGeneric("u", function(object) standardGeneric("u"))

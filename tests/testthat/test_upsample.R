@@ -44,7 +44,7 @@ test_that("upSample2", {
     summarize(batch_index=unique(batch_index))
 
   ## Fit a model as per usual to the down-sampled data
-  mp <- McmcParams(iter=200, burnin=10, )
+  mp <- McmcParams(iter=200, burnin=10)
   hp <- HyperparametersMultiBatch(k=3)
   model <- MultiBatchModel2(dat=partial.data$medians,
                             batches=partial.data$batch_index,

@@ -8,7 +8,15 @@ NULL
 ## circumvent this issue, we have a while loop that simulates a model and runs 5
 ## iterations burnin. If the parameter values are valid, we stop. If not, we
 ## simulate a new model.
+
+#' @param dat numeric vector
+#' @param hp object of class Hyperparameters created by \code{Hyperparameters} function
+#' @param mp a \code{McmcParams} object
 #' @export
+#' @examples
+#' SingleBatchPooled()
+#' ## or, equivalently
+#' SBP()
 #' @rdname SingleBatchModel2
 SingleBatchPooled <- function(dat=numeric(),
                               hp=Hyperparameters(),
@@ -43,6 +51,15 @@ SingleBatchPooled <- function(dat=numeric(),
   sbp
 }
 
+#' @param dat numeric vector
+#' @param hp object of class Hyperparameters created by \code{Hyperparameters} function
+#' @param mp a \code{McmcParams} object
+#' @export
+#' @examples
+#' SingleBatchPooled()
+#' ## or, equivalently
+#' SBP()
+#' @rdname SingleBatchModel2
 #' @export
 SBP <- SingleBatchPooled
 
@@ -54,9 +71,9 @@ setValidity("SingleBatchPooled", function(object){
   TRUE
 })
 
-setMethod("updateZ", "SingleBatchPooled", function(object){
-  z_pooled(object)
-})
+##setMethod("updateZ", "SingleBatchPooled", function(object){
+##  z_pooled(object)
+##})
 
 combine_singlebatch_pooled <- function(model.list, batches){
   ch.list <- map(model.list, chains)

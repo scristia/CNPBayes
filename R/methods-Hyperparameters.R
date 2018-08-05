@@ -288,4 +288,14 @@ hpList <- function(...){
        MBP=mbp)
 }
 
+#' @rdname dfr
+#' @aliases dfr,Hyperparameters-method
 setMethod("dfr", "Hyperparameters", function(object) object@dfr)
+
+#' @aliases dfr<-,Hyperparameters,numeric-method
+#' @rdname dfr
+setReplaceMethod("dfr", c("Hyperparameters", "numeric"),
+                 function(object, value){
+                   object@dfr <- value
+                   object
+                 })

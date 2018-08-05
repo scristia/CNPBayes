@@ -1,9 +1,9 @@
 #' @include methods-SingleBatchModel.R
 NULL
 
-setMethod("computeLoglik", "SBPt", function(object){
-  loglik_pooled(object)
-})
+##setMethod("computeLoglik", "SBPt", function(object){
+##  loglik_pooled(object)
+##})
 
 ## ad-hoc constructor
 ##.SingleBatchPooled <- function(dat=numeric(),
@@ -146,7 +146,8 @@ setMethod("u", "SBPt", function(object) object@u )
 #' @aliases dfr,SBPt-method
 setMethod("dfr", "SBPt", function(object) object@hyperparams@dfr )
 
-setReplaceMethod("dfr", "SBPt", function(object, value) {
+#' @aliases dfr<-,SBPt,numeric-method
+setReplaceMethod("dfr", c("SBPt", "numeric"), function(object, value) {
                      object@hyperparams@dfr <- value
                      object@u <- rchisq(length(y(object)), value)
                      object

@@ -48,19 +48,19 @@ setMethod("collapseBatch", "numeric", function(object, provisional_batch, THR=0.
 })
 
 
-#' @rdname combinePlates-method
-#' @aliases combinePlates,numeric-method
-setMethod("combinePlates", "numeric", function(object, plate, THR=0.1){
-  N <- choose(length(unique(plate)), 2)
-  cond2 <- TRUE
-  while(N > 1 && cond2){
-    B <- plate
-    plate <- .combinePlates(object, plate, THR=THR)
-    cond2 <- !identical(B, plate)
-    N <- choose(length(unique(plate)), 2)
-  }
-  makeUnique(plate)
-})
+## #' @rdname combinePlates-method
+## #' @aliases combinePlates,numeric-method
+## setMethod("combinePlates", "numeric", function(object, plate, THR=0.1){
+##   N <- choose(length(unique(plate)), 2)
+##   cond2 <- TRUE
+##   while(N > 1 && cond2){
+##     B <- plate
+##     plate <- .combinePlates(object, plate, THR=THR)
+##     cond2 <- !identical(B, plate)
+##     N <- choose(length(unique(plate)), 2)
+##   }
+##   makeUnique(plate)
+## })
 
 .combineBatches <- function(yy, B, THR=0.1){
   uB <- unique(B)

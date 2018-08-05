@@ -36,5 +36,5 @@ copyNumber(cn.model)
 }
 }
 \seealso{
-\code{\link{mapComponents}} \code{\link{CopyNumberModel}}
+\code{\link{CopyNumberModel}}
 }

@@ -290,33 +290,33 @@ updateThetaBatch <- function(model){
   theta_new
 }
 
-updateZbatch <- function(model) {
-  K = k(model)
-  x = y(model)
-  nn <- length(x)
-  theta <- theta(model)
-  batch=batch(model)
-  B = nrow(theta)
-  p <- matrix(NA, nn, K)
-  p = update_multinomialPr_batch(model) ;
-  u = runif(nn) ;
-  zz=rep(NA, length(nn))
-  freq <- matrix(0, B, K)
-  for (i in seq_len(nn)){
-    ##initialize accumulator ;
-    acc = 0 ;
-    for(k in seq_len(K)){
-      acc = acc + p[i, k] ;
-      if( u[i] < acc ) {
-        zz[i] = k + 1 ;
-        b = batch[i] ;
-        freq[b, k] = freq[b, k] + 1 ;
-        break ;
-      }
-    }
-  }
-  if(all(freq > 1)){
-    return (zz) ;
-  }
-  return(z(model))
-}
+## updateZbatch <- function(model) {
+##   K = k(model)
+##   x = y(model)
+##   nn <- length(x)
+##   theta <- theta(model)
+##   batch=batch(model)
+##   B = nrow(theta)
+##   p <- matrix(NA, nn, K)
+##   p = update_multinomialPr_batch(model) ;
+##   u = runif(nn) ;
+##   zz=rep(NA, length(nn))
+##   freq <- matrix(0, B, K)
+##   for (i in seq_len(nn)){
+##     ##initialize accumulator ;
+##     acc = 0 ;
+##     for(k in seq_len(K)){
+##       acc = acc + p[i, k] ;
+##       if( u[i] < acc ) {
+##         zz[i] = k + 1 ;
+##         b = batch[i] ;
+##         freq[b, k] = freq[b, k] + 1 ;
+##         break ;
+##       }
+##     }
+##   }
+##   if(all(freq > 1)){
+##     return (zz) ;
+##   }
+##   return(z(model))
+## }

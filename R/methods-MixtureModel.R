@@ -228,31 +228,31 @@ setMethod("probz", "MixtureModel", function(object) {
 })
 
 
-multipleStarts <- function(object){
-  if(k(object)==1) return(object)
-  mcmcp <- mcmcParams(object)
-  mmod <- replicate(nStarts(mcmcp), SingleBatchModel(y(object), mcmc.params=mcmcp,
-                                                  hypp=hyperParams(object), k=k(object)))
-  models <- suppressMessages(lapply(mmod, runBurnin))
-  lp <- sapply(models, log_lik)
-  select <- which.max(lp)
-  if(length(select) == 0) stop("No model selected")
-  model <- models[[select]]
-  if(isSB(object)) return(model)
-  ##
-  ##  initialize batch model
-  ##
-  bmodel <- MultiBatchModel(data=y(model), batch=batch(object), k=k(object), hypp=hyperParams(object))
-  mcmcParams(bmodel, force=TRUE) <- mcmcParams(object)
-  theta(bmodel) <- matrix(theta(model), nBatch(object), k(object), byrow=TRUE)
-  mu(bmodel) <- theta(model)
-  z(bmodel) <- z(model)
-  bmodel <- ensureAllComponentsObserved(bmodel)
-  zFreq(bmodel) <- as.integer(table(z(bmodel)))
-  dataMean(bmodel) <- computeMeans(bmodel)
-  dataPrec(bmodel) <- computePrec(bmodel)
-  bmodel
-}
+## multipleStarts <- function(object){
+##   if(k(object)==1) return(object)
+##   mcmcp <- mcmcParams(object)
+##   mmod <- replicate(nStarts(mcmcp), SingleBatchModel(y(object), mcmc.params=mcmcp,
+##                                                   hypp=hyperParams(object), k=k(object)))
+##   models <- suppressMessages(lapply(mmod, runBurnin))
+##   lp <- sapply(models, log_lik)
+##   select <- which.max(lp)
+##   if(length(select) == 0) stop("No model selected")
+##   model <- models[[select]]
+##   if(isSB(object)) return(model)
+##   ##
+##   ##  initialize batch model
+##   ##
+##   bmodel <- MultiBatchModel(data=y(model), batch=batch(object), k=k(object), hypp=hyperParams(object))
+##   mcmcParams(bmodel, force=TRUE) <- mcmcParams(object)
+##   theta(bmodel) <- matrix(theta(model), nBatch(object), k(object), byrow=TRUE)
+##   mu(bmodel) <- theta(model)
+##   z(bmodel) <- z(model)
+##   bmodel <- ensureAllComponentsObserved(bmodel)
+##   zFreq(bmodel) <- as.integer(table(z(bmodel)))
+##   dataMean(bmodel) <- computeMeans(bmodel)
+##   dataPrec(bmodel) <- computePrec(bmodel)
+##   bmodel
+## }
 
 selectByLogLik <- function(model.list){
   lp <- sapply(model.list, log_lik)
@@ -270,25 +270,25 @@ selectByLogLik <- function(model.list){
   model
 }
 
-multipleStarts2 <- function(object){
-  if(k(object)==1) return(object)
-  mcmcp <- mcmcParams(object)
-  ##
-  ##
-  if(is(object, "MultiBatchModel")){
-    model.list <- replicate(nStarts(mcmcp),
-                            MultiBatchModel(y(object), mcmc.params=mcmcp,
-                                       hypp=hyperParams(object), k=k(object),
-                                       batch=batch(object)))
-  }
-  if(is(object, "SingleBatchModel")){
-    model.list <- replicate(nStarts(mcmcp),
-                            SingleBatchModel(y(object), mcmc.params=mcmcp,
-                                          hypp=hyperParams(object), k=k(object)))
-  }
-  model <- selectByLogLik(model.list)
-  model
-}
+## multipleStarts2 <- function(object){
+##   if(k(object)==1) return(object)
+##   mcmcp <- mcmcParams(object)
+##   ##
+##   ##
+##   if(is(object, "MultiBatchModel")){
+##     model.list <- replicate(nStarts(mcmcp),
+##                             MultiBatchModel(y(object), mcmc.params=mcmcp,
+##                                        hypp=hyperParams(object), k=k(object),
+##                                        batch=batch(object)))
+##   }
+##   if(is(object, "SingleBatchModel")){
+##     model.list <- replicate(nStarts(mcmcp),
+##                             SingleBatchModel(y(object), mcmc.params=mcmcp,
+##                                           hypp=hyperParams(object), k=k(object)))
+##   }
+##   model <- selectByLogLik(model.list)
+##   model
+## }
 
 
 psParams <- function(warnings=TRUE,
@@ -380,7 +380,7 @@ makeUnique <- function(x){
 #' Calculate the maximum a posteriori estimate of latent variable assignment.
 #'
 #' @examples
-#'      map_z(SingleBatchModelExample)
+#'      head(map_z(SingleBatchModelExample))
 #' @param object an object of class MixtureModel.
 #' @return map estimate of latent variable assignment for each observation
 #' @export
@@ -423,7 +423,7 @@ setMethod("pMean", "MixtureModel", function(object){
 #' Retrieve overall mean at each iteration of the MCMC.
 #'
 #' @examples
-#'      muc(SingleBatchModelExample)
+#'      head(muc(SingleBatchModelExample))
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A vector of length N or matrix of size N x B, where N is the 
 #' number of observations and B is the number of unique batches.
@@ -734,7 +734,67 @@ setMethod("upSample", "MultiBatchModel", function(model, tiles){
 dst <- dlocScale_t
 
 
-
+#' Restore model of down-sampled to original dimension.
+#'
+#' @examples
+#'  library(tidyverse)
+#'  library(dplyr)
+#'  set.seed(123)
+#'  k <- 3
+#'  nbatch <- 3
+#'  means <- matrix(c(-1.2, -1, -0.8, -0.2, 0, 0.2, 0.8, 1, 1.2),
+#'      nbatch, k, byrow = FALSE)
+#'  sds <- matrix(0.1, nbatch, k)
+#'  N <- 1500
+#'  truth <- simulateBatchData(N = N,
+#'                             batch = rep(letters[1:3],
+#'                                         length.out = N),
+#'                             theta = means,
+#'                             sds = sds,
+#'                             p = c(1/5, 1/3, 1 - 1/3 - 1/5))
+#'
+#'  ##
+#'  ## Make a tibble:  required plate, plate.index, batch_orig
+#'  ##
+#'  full.data <- tibble(medians=y(truth),
+#'                      plate=batch(truth),
+#'                      batch_orig=as.character(batch(truth))) %>%
+#'    mutate(plate.index=as.integer(factor(plate, levels=unique(plate))))
+#'
+#'
+#'  ## Below, we down-sample to 500 observations
+#'  ## Required:  batch_orig, batch_index
+#'  partial.data <- downSample(full.data, size=500)
+#'
+#'  ##
+#'  ## Required:  a mapping from plate to batch
+#'  ##
+#'  select <- dplyr::select
+#'  summarize <- dplyr::summarize
+#'  plate.mapping <- partial.data %>%
+#'    select(c(plate, batch_index)) %>%
+#'    group_by(plate) %>%
+#'    summarize(batch_index=unique(batch_index))
+#'
+#'  ## Fit a model as per usual to the down-sampled data
+#'  mp <- McmcParams(iter=200, burnin=10)
+#'  hp <- HyperparametersMultiBatch(k=3)
+#'  model <- MultiBatchModel2(dat=partial.data$medians,
+#'                            batches=partial.data$batch_index,
+#'                            mp=mp,
+#'                            hp=hp)
+#'  model <- posteriorSimulation(model)
+#'  ##
+#'  ## Add the batching used for the down-sampled data to the full data
+#'  ##
+#'  full.data2 <- left_join(full.data, plate.mapping, by="plate")
+#'  ##
+#'  ## Estimate probabilities for each individual in the full data
+#'  ##
+#'  model.full <- upSample2(full.data2, model)
+#' @param orig.data a \code{data.frame} containing the original data (not downsampled) with the batch labels stored with colname \code{batch_orig} and the median-summarized data stored in column \code{medians}
+#' @param model model fit to the down-sampled data
+#' @param up_sample logical.  If TRUE, model is restored to the original dimension.
 #' @export
 upSample2 <- function(orig.data,
                       model, ## the downsampled model
@@ -818,8 +878,10 @@ setMethod("u", "MixtureModel", function(object) object@u )
 #' @aliases dfr,SBPt-method
 setMethod("dfr", "MixtureModel", function(object) object@hyperparams@dfr )
 
-setReplaceMethod("dfr", "MixtureModel", function(object, value) {
-                     object@hyperparams@dfr <- value
-                     object@u <- rchisq(length(y(object)), value)
-                     object
-})
+#' @aliases dfr<-,MixtureModel,numeric-method
+setReplaceMethod("dfr", c("MixtureModel", "numeric"),
+                 function(object, value) {
+                   object@hyperparams@dfr <- value
+                   object@u <- rchisq(length(y(object)), value)
+                   object
+                 })

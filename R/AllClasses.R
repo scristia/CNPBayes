@@ -129,6 +129,8 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot label_switch length-one logical indicating problems with label switching
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
+#' @slot .internal.counter For internal use only.
+#' @slot marginal_lik scalar for marginal likelihood
 #' @export
 setClass("MixtureModel", representation("VIRTUAL",
                                         k = "integer",
@@ -235,14 +237,24 @@ setClass("MultiBatchPooled", contains="MultiBatchModel")
 
 setClass("UnivariateBatchModel", contains="MultiBatchModel")
 
+#' Mixture model container where mixture components have been genotyped
+#'
+#' The components in a mixture model need not correspond to distinct copy number states. For example, when batch or copy number does not explain skewness or heavy-tails.
+#'
+#' @slot mapping character string vector indicating the copy number states.  Typically '0', '1', '2', '3', or '4'.
+#'
+#' @details Suppose a mixture model with four components is selected, where the 3rd and 4th components both correspond to the diploid state.  The mapping slot will be the vector "0", "1", "2", and "2".
+#' @rdname CopyNumber-classes
 #' @export
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
          representation(mapping="character"))
 
+#' @rdname CopyNumber-classes
 #' @export
 setClass("MultiBatchCopyNumber", contains="MultiBatchModel",
          representation(mapping="character"))
 
+#' @rdname CopyNumber-classes
 #' @export
 setClass("MultiBatchCopyNumberPooled", contains="MultiBatchModel",
          representation(mapping="character"))

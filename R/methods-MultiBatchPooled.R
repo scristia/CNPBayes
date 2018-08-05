@@ -13,6 +13,7 @@ reorderMultiBatchPooled <- function(model){
                 z=z(model),
                 batch=batch(model)) %>%
     mutate(index=seq_len(nrow(.)))
+  z_relabel <- NULL
   for(i in seq_len(B)){
     ix.next <- order(thetas[i, ])
     thetas[i, ] <- thetas[i, ix.next]
@@ -58,7 +59,33 @@ MultiBatchPooled <- function(dat=numeric(),
   mbp
 }
 
+#' Constructor for MultiBatchPooled model
+#'
+#' Initializes a MultiBatchPooled model, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means. The variance is assumed to be the same for all components, but allowed to differ by batch.
+#'
+#' @param dat the data for the simulation.
+#' @param batches an integer-vector of the different batches
+#' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @param mp An object of class 'McmcParams'
+#' @return An object of class `MultiBatchPooled`
 #' @export
+#' @examples
+#'   model <- MBP(rnorm(10), batch=rep(1L, 10))
+#'   set.seed(100)
+#'   nbatch <- 3
+#'   k <- 3
+#'   means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+#'       0, 0.05), nbatch, k, byrow = FALSE)
+#'   sds <- matrix(0.15, nbatch, k)
+#'   sds[, 1] <- 0.3
+#'   N <- 1000
+#'   truth <- simulateBatchData(N = 2500,
+#'                              batch = rep(letters[1:3],
+#'                              length.out = 2500),
+#'                              theta = means, sds = sds,
+#'                              p = c(1/5, 1/3, 1 - 1/3 - 1/5))
+#'   MBP(dat=y(truth), batches=batch(truth),
+#'       hp=hpList(k=3)[["MB"]])
 MBP <- MultiBatchPooled
 
 #' @rdname sigma2-method

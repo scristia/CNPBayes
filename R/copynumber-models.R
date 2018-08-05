@@ -419,7 +419,7 @@ MultiBatchCopyNumberPooled <- function(model){
 setMethod("CopyNumberModel", "SingleBatchModel",
           function(model, params=mapParams()){
             model.sb <- SingleBatchCopyNumber(model)
-            ##model.sb <- mapComponents(model.sb, params)
+            ##model.sb <- mapComponentsxo(model.sb, params)
             model
 })
 
