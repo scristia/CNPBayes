@@ -22,7 +22,7 @@ Extract copy number estimates from a `CopyNumberModel`
 \examples{
 sb <- SingleBatchModelExample
 cn.model <- CopyNumberModel(sb)
-copyNumber(cn.model)
+head(copyNumber(cn.model))
 
 ## here is an identity mapping
 \dontrun{

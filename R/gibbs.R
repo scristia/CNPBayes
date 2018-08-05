@@ -348,18 +348,15 @@ gibbs_batch_K <- function(hp,
 #'   details.
 #' @param top a length-one numeric vector indicating how many of the top
 #'   models to return.
+#' @param df length-1 numeric vector for t-distribution degrees of freedom
+#' @param min_effsize length-1 numeric vector specifying the minimum effective size of the MCMC simulations.  If below this value, the marginal likelihood will not be estimated.
 #'
 #' @details For each model specified, a Gibbs sampler will be initiated
 #for \code{nStarts} independently simulated starting values (we suggest
 #\code{nStarts > 2}).  The burnin, number of iterations after burnin,
 #and the thin parameters are specified in the \code{mp} argument.    If
 #the effective number of independent MCMC draws for any of the parameter
-#chains is less than 500 or if the multivariate Gelman Rubin convergence
-#diagnostic is less than 1.2, the thin and the burnin will be doubled
-#and we start over -- new chains are initalized independently and the
-#Gibbs sampler is restarted. This process is repeated until the
-#effective sample size is greater than 500 and the Gelman Rubin
-#convergence diagnostic is less than 1.2.
+#chains is less than \code{min_effsize} or if the multivariate Gelman Rubin convergence #diagnostic is less than 1.2, the thin and the burnin will be doubled and we start over -- new chains are initalized independently and the Gibbs sampler is restarted. This process is repeated until the effective sample size is greater than 500 and the Gelman Rubin #convergence diagnostic is less than 1.2.
 #'
 #' The number of mixture models fit depends on \code{k_range} and
 #\code{model}. For example, if \code{model=c("SBP", "MBP")} and
@@ -384,19 +381,23 @@ gibbs_batch_K <- function(hp,
 #'                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
 #'                              theta = means,
 #'                              sds = sds)
-#'   \dontrun{
-#'     gibbs(model=c("SB", "SBP", "MB", "MBP"),
-#'           dat=y(truth),
-#'           mp=mcmcParams(),
-#'           batches=batch(truth),
-#'           k_range=c(1, 4),
-#'           max_burnin=10000,
-#'           top=2,
-#'           df=100)
-#'   }
+#'   ## clearly not enough simulations
+#'   mp <- McmcParams(iter=10, burnin=5)
+#'   ## this should be much higher > 1,000
+#'   max_burnin <- 10
+#'   ## suppress the warnings from the short chains
+#'   suppressWarnings(gibbs(model=c("SB", "SBP", "MB", "MBP"),
+#'         dat=y(truth),
+#'         mp=mp,
+#'         batches=batch(truth),
+#'         k_range=c(1, 4),
+#'         max_burnin=max_burnin,
+#'         top=2,
+#'         df=100))
 #'
 #' @seealso \code{\link[coda]{gelman.diag}}
 #'   \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
+#'   See \code{\link{ggplot-functions}}
 #' @export
 gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                   dat,

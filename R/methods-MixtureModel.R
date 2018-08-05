@@ -410,7 +410,7 @@ sigmac <- function(object) sigma(chains(object))
 #' Retrieve mixture proportions at each iteration of the MCMC.
 #'
 #' @examples
-#'      pic(SingleBatchModelExample)
+#'      head(pic(MultiBatchModelExample))
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A matrix of size MCMC iterations x Number of components
 #' @export
@@ -706,6 +706,7 @@ setMethod("marginal_lik", "MixtureModel", function(object){
 })
 
 #' @aliases marginal_lik<-,MixtureModel,numeric-method
+#' @param value scalar for marginal likelihood
 #' @rdname marginal_lik
 setReplaceMethod("marginal_lik", c("MixtureModel", "numeric"),
                  function(object, value){
@@ -714,21 +715,21 @@ setReplaceMethod("marginal_lik", c("MixtureModel", "numeric"),
                  })
 
 
-#' @rdname tile-functions
-#' @aliases upSample,MultiBatchModel-method
-setMethod("upSample", "MultiBatchModel", function(model, tiles){
-  tile.sum <- tileSummaries(tiles)
-  ##stopifnot(all.equal(y(model), tile.sum$avgLRR))
-  key <- match(tiles$tile, tile.sum$tile)
-  model2 <- model
-  y(model2) <- tiles$logratio
-  probs <- probz(model)
-  probs2 <- probs[key, , drop=FALSE]
-  probz(model2) <- probs2 * (iter(model) - 1)
-  z(model2) <- z(model)[key]
-  batch(model2) <- tiles$batch
-  model2
-})
+## #' @rdname tile-functions
+## #' @aliases upSample,MultiBatchModel-method
+## setMethod("upSample", "MultiBatchModel", function(model, tiles){
+##   tile.sum <- tileSummaries(tiles)
+##   ##stopifnot(all.equal(y(model), tile.sum$avgLRR))
+##   key <- match(tiles$tile, tile.sum$tile)
+##   model2 <- model
+##   y(model2) <- tiles$logratio
+##   probs <- probz(model)
+##   probs2 <- probs[key, , drop=FALSE]
+##   probz(model2) <- probs2 * (iter(model) - 1)
+##   z(model2) <- z(model)[key]
+##   batch(model2) <- tiles$batch
+##   model2
+## })
 
 
 dst <- dlocScale_t
@@ -854,31 +855,34 @@ upSample2 <- function(orig.data,
   model2
 }
 
-#' @rdname tile-functions
-#' @aliases upSample,MixtureModel-method
-setMethod("upSample", "MixtureModel", function(model, tiles){
-  tile.sum <- tileSummaries(tiles)
-  ##stopifnot(all.equal(y(model), tile.sum$avgLRR, tolerance=0.1, scale=1))
-  key <- match(tiles$tile, tile.sum$tile)
-  model2 <- model
-  y(model2) <- tiles$logratio
-  probs <- probz(model)
-  probs2 <- probs[key, , drop=FALSE]
-  probz(model2) <- probs2 * (iter(model) - 1)
-  z(model2) <- z(model)[key]
-  batch(model2) <- tiles$batch
-  model2
-})
+## #' @rdname tile-functions
+## #' @aliases upSample,MixtureModel-method
+## setMethod("upSample", "MixtureModel", function(model, tiles){
+##   tile.sum <- tileSummaries(tiles)
+##   ##stopifnot(all.equal(y(model), tile.sum$avgLRR, tolerance=0.1, scale=1))
+##   key <- match(tiles$tile, tile.sum$tile)
+##   model2 <- model
+##   y(model2) <- tiles$logratio
+##   probs <- probz(model)
+##   probs2 <- probs[key, , drop=FALSE]
+##   probz(model2) <- probs2 * (iter(model) - 1)
+##   z(model2) <- z(model)[key]
+##   batch(model2) <- tiles$batch
+##   model2
+## })
 
 setMethod("u", "MixtureModel", function(object) object@u )
 
 #' Accessor for degrees of freedom
 #'
+#' @param object a MixtureModel-derived object
 #' @rdname dfr-method
-#' @aliases dfr,SBPt-method
+#' @aliases dfr,MixtureModel-method
 setMethod("dfr", "MixtureModel", function(object) object@hyperparams@dfr )
 
-#' @aliases dfr<-,MixtureModel,numeric-method
+#' @aliases dfr,MixtureModel,numeric-method
+#' @param value scalar providing degrees of freedom for t-distribution
+#' @rdname "dfr-method"
 setReplaceMethod("dfr", c("MixtureModel", "numeric"),
                  function(object, value) {
                    object@hyperparams@dfr <- value

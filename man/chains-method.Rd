@@ -24,10 +24,8 @@ is called in conjunction with an accessor for one of these
 parameters.
 }
 \examples{
-\dontrun{
-    theta.chain <- theta(chains(SingleBatchModelExample))
+    theta.chain <- theta(chains(MultiBatchModelExample))
     dim(theta.chain)
     plot.ts(theta.chain, plot.type="single",
             col=seq_len(k(SingleBatchModelExample)))
-}
 }

@@ -732,8 +732,8 @@ orderModels <- function(models, bf.thr=10){
 }
 
 #' Extract marginal likelihoods from a list of models
-#' 
-#' @param list of models
+#'
+#' @param models list of models
 #' @export
 marginalLik <- function(models){
   ml <- sapply(models, marginal_lik) %>%

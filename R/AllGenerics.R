@@ -96,12 +96,10 @@ setGeneric("chains<-", function(object, value) standardGeneric("chains<-"))
 #' is called in conjunction with an accessor for one of these
 #' parameters.
 #' @examples
-#' \dontrun{
-#'     theta.chain <- theta(chains(SingleBatchModelExample))
+#'     theta.chain <- theta(chains(MultiBatchModelExample))
 #'     dim(theta.chain)
 #'     plot.ts(theta.chain, plot.type="single",
 #'             col=seq_len(k(SingleBatchModelExample)))
-#' }
 #' @param object \code{showMethods(chains)}
 #' @return The simulated chains.
 #' @export
@@ -112,9 +110,7 @@ setGeneric("chains", function(object) standardGeneric("chains"))
 #' Accessor for Hyperparameters object for a MixtureModel-derived object
 #'
 #' @examples
-#' \dontrun{
 #'     hyperParams(SingleBatchModelExample)
-#' }
 #' @param object see \code{showMethods(hyperParams)}
 #' @return The Hyperparameters of a MixtureModel
 #' @export
@@ -233,7 +229,7 @@ setGeneric("sigma2", function(object) standardGeneric("sigma2"))
 #' Retrieve the probability of latent variable membership by observation.
 #'
 #' @examples
-#'      probz(SingleBatchModelExample)
+#'      head(probz(SingleBatchModelExample))
 #' @param object see \code{showMethods(probz)}
 #' @return A matrix of size number of observations x number of components
 #' @export
@@ -295,7 +291,7 @@ setGeneric("oned", function(object) standardGeneric("oned"))
 #'
 #' Retrieves the simulated latent variable assignments of each observation at each MCMC simulation.
 #' @examples
-#'      z(SingleBatchModelExample)
+#'      head(z(SingleBatchModelExample))
 #' @param object see \code{showMethods(z)}
 #' @return A vector the length of the data
 #' @export
@@ -395,11 +391,15 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' is performed recursively on the batch variables defined for a given
 #' CNP until no batches can be combined.
 #' @examples
-#' bt <- collapseBatch(y(MultiBatchModelExample), batch(MultiBatchModelExample))
+#' mb.ex <- MultiBatchModelExample
+#' batches <- batch(mb.ex)
+#' bt <- collapseBatch(y(mb.ex), batches)
 #' batches <- as.integer(factor(bt))
-#' model <- MultiBatchModel2(dat=y(MultiBatchModelExample),
-#'                           hp=hpList(k=k(MultiBatchModelExample))[["MB"]],
-#'                           batches=batches, mp=mcmcParams(MultiBatchModelExample))
+#' hp <- hpList(k=k(mb.ex))[["MB"]]
+#' model <- MB(dat=y(mb.ex),
+#'             hp=hp,
+#'             batch=batches,
+#'             mp=mcmcParams(mb.ex))
 #' @param object see \code{showMethods(collapseBatch)}
 #' @param provisional_batch a vector labelling from which batch each observation came from.
 #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
@@ -411,47 +411,41 @@ setGeneric("collapseBatch", function(object, provisional_batch, THR=0.1) standar
 
 
 
-#' Combine chemistry plates into batches
-#'
-#' In high-throughput assays, low-level summaries of copy number at
-#' copy number polymorphic loci (e.g., the mean log R ratio for each
-#' sample, or a principal-component derived summary) often differ
-#' between groups of samples due to technical sources of variation
-#' such as reagents, technician, or laboratory.  Technical (as opposed
-#' to biological) differences between groups of samples are referred
-#' to as batch effects.  A useful surrogate for batch is the chemistry
-#' plate on which the samples were hybridized. In large studies, a
-#' Bayesian hierarchical mixture model with plate-specific means and
-#' variances is computationally prohibitive.  However, chemistry
-#' plates processed at similar times may be qualitatively similar in
-#' terms of the distribution of the copy number summary statistic.
-#' Further, we have observed that some copy number polymorphic loci
-#' exhibit very little evidence of a batch effect, while other loci
-#' are more prone to technical variation.  We suggest combining plates
-#' that are qualitatively similar in terms of the Kolmogorov-Smirnov
-#' two-sample test of the distribution and to implement this test
-#' independently for each candidate copy number polymophism identified
-#' in a study.  The \code{combinePlates} function is a wrapper to the
-#' \code{ks.test} implemented in the \code{stats} package that
-#' compares all pairwise combinations of plates.  The \code{ks.test}
-#' is performed recursively on the batch variables defined for a given
-#' CNP until no batches can be combined.
-#' @examples
-#' \dontrun{
-#'     bt <- combinePlates(y(MultiBatchModelExample), batch(MultiBatchModelExample))
-#'     batches <- as.integer(factor(bt))
-#'     model <- MultiBatchModel2(dat=y(MultiBatchModelExample),
-#'                               hp=hpList(k=k(MultiBatchModelExample))[["MB"]],
-#'                               batches=batches, mp=mcmcParams(MultiBatchModelExample))
-#' }
-#' @param object see \code{showMethods(combinePlates)}
-#' @param plate a vector labelling from which batch each observation came from.
-#' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
-#' @return The new batch value.
-#' @export
-#' @docType methods
-#' @rdname combinePlates-method
-setGeneric("combinePlates", function(object, plate, THR=0.1) standardGeneric("combinePlates"))
+## #' Combine chemistry plates into batches
+## #'
+## #' In high-throughput assays, low-level summaries of copy number at
+## #' copy number polymorphic loci (e.g., the mean log R ratio for each
+## #' sample, or a principal-component derived summary) often differ
+## #' between groups of samples due to technical sources of variation
+## #' such as reagents, technician, or laboratory.  Technical (as opposed
+## #' to biological) differences between groups of samples are referred
+## #' to as batch effects.  A useful surrogate for batch is the chemistry
+## #' plate on which the samples were hybridized. In large studies, a
+## #' Bayesian hierarchical mixture model with plate-specific means and
+## #' variances is computationally prohibitive.  However, chemistry
+## #' plates processed at similar times may be qualitatively similar in
+## #' terms of the distribution of the copy number summary statistic.
+## #' Further, we have observed that some copy number polymorphic loci
+## #' exhibit very little evidence of a batch effect, while other loci
+## #' are more prone to technical variation.  We suggest combining plates
+## #' that are qualitatively similar in terms of the Kolmogorov-Smirnov
+## #' two-sample test of the distribution and to implement this test
+## #' independently for each candidate copy number polymophism identified
+## #' in a study.  The \code{combinePlates} function is a wrapper to the
+## #' \code{ks.test} implemented in the \code{stats} package that
+## #' compares all pairwise combinations of plates.  The \code{ks.test}
+## #' is performed recursively on the batch variables defined for a given
+## #' CNP until no batches can be combined.
+## #' @examples
+## 
+## #' @param object see \code{showMethods(combinePlates)}
+## #' @param plate a vector labelling from which batch each observation came from.
+## #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
+## #' @return The new batch value.
+## #' @export
+## #' @docType methods
+## #' @rdname combinePlates-method
+## setGeneric("combinePlates", function(object, plate, THR=0.1) standardGeneric("combinePlates"))
 
 setGeneric("thetac", function(object) standardGeneric("thetac"))
 
@@ -505,7 +499,7 @@ setGeneric("alpha", function(object) standardGeneric("alpha"))
 #'
 #' @examples
 #' ## retrieve log likelihood at each MCMC iteration
-#' log_lik(chains(SingleBatchModelExample))
+#' head(log_lik(chains(SingleBatchModelExample)))
 #' ## retrieve log likelihood at last MCMC iteration
 #' log_lik(SingleBatchModelExample)
 #' @param object see showMethods(log_lik)
@@ -744,12 +738,17 @@ setGeneric("marginalLikelihood",
 #' @param ... currently ignored
 #' @return A character vector
 #' @examples
-#' \dontrun{
 #'    g <- GRanges("chr1", IRanges(10, 15))
 #'    chromosome(g)
-#' }
+#' @rdname chromosome
 #' @export
 setGeneric("chromosome", function(object, ...) standardGeneric("chromosome"))
+
+#' @rdname chromosome
+#' @aliases chromosome,GenomicRanges-method
+setMethod("chromosome", "GenomicRanges", function(object, ...){
+  as.character(seqnames(object))
+})
 
 
 
@@ -793,9 +792,9 @@ setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
 #'
 #' The \code{ggChains} method provides a convenient wrapper for plotting the chains of all parameters in the various mixture model implementations.  In addition to the estimated number of independent MCMC draws (effective sample size) and Gelman-Rubin convergence diagnostics implemented in \code{gibbs}, visualization of the chains is helpful for assessing convergence.
 #'
-#' The \code{ggMixture} method overlays the posterior approximation of the Gaussian mixture on the empirical data.
+#' The \code{ggMixture} method overlays the density of the posterior predictive distribution of the Gaussian mixture on the empirical data. \code{ggMixture} assumes that you have already run the Gibbs sampler either by the \code{gibbs} function or by the \code{posteriorSimulation} function.
 #'
-#' @seealso \code{\link{gibbs}}
+#' @seealso \code{\link{gibbs}} 
 #'
 #' @param model A SB, MB, SBP, or MBP model
 #' @rdname ggplot-functions
@@ -822,17 +821,17 @@ setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 #' @rdname ggplot-functions
 setGeneric("ggMixture", function(model, bins=100) standardGeneric("ggMixture"))
 
-#' @export
-#' @rdname ggplot-functions
-setGeneric("ggMultiBatch", function(model, bins=100) standardGeneric("ggMultiBatch"))
+## #' @export
+## #' @rdname ggplot-functions
+## setGeneric("ggMultiBatch", function(model, bins=100) standardGeneric("ggMultiBatch"))
 
-#' @param model a SB, MB, SBP, or MBP model
-#' @examples
-#'
-#' @export
-#' @return a SB, MB, SBP, or MBP model
-#' @rdname tile-functions
-setGeneric("upSample", function(model, tiles) standardGeneric("upSample"))
+## #' @param model a SB, MB, SBP, or MBP model
+## #' @examples
+## #'
+## #' @export
+## #' @return a SB, MB, SBP, or MBP model
+## #' @rdname tile-functions
+## setGeneric("upSample", function(model, tiles) standardGeneric("upSample"))
 
 #' Constructs a CopyNumberModel from SB, SBP, MB, or MBP models
 #'
@@ -890,7 +889,7 @@ setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 #' @examples
 #' sb <- SingleBatchModelExample
 #' cn.model <- CopyNumberModel(sb)
-#' copyNumber(cn.model)
+#' head(copyNumber(cn.model))
 #'
 #' ## here is an identity mapping
 #' \dontrun{

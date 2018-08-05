@@ -442,36 +442,36 @@ mb_predictive <- function(model, predict, adjust=1/3){
   dat
 }
 
-#' Create a tibble of posterior predictive distributions for a list of models
-#'
-#' @param models list of models
-#' @examples
-#'   \dontrun{
-#'     sb <- SingleBatchModelExample
-#'     mcmcParams(sb) <- McmcParams(iter=500, burnin=50)
-#'     sb <- posteriorSimulation(sb)
-#'     models <- list(MultiBatchModelExample, sb)
-#'     tab <- predictiveDataTable(models)
-#'     library(ggplot2)
-#'     ggplot(tab, aes(y, fill=predictive)) +
-#'       geom_density(alpha=0.4, adjust=1/2) +
-#'       facet_grid(model~batch) +
-#'       guides(fill=guide_legend(title="")) +
-#'       theme(panel.background=element_rect(fill="white"))
-#'   }
-#' @export
-predictiveDataTable <- function(models){
-  tab.list <- vector("list", length(models))
-  for(i in seq_along(models)){
-    pred <- posteriorPredictive(models[[i]])
-    tab.list[[i]] <- .predictiveDataTable(models[[i]], pred)
-  }
-  tab <- do.call(rbind, tab.list)
-  ## assume models were ordered by marginal likelihood
-  mod.names <- sapply(models, modelName)
-  tab$model <- factor(tab$model, levels=mod.names)
-  tab
-}
+## #' Create a tibble of posterior predictive distributions for a list of models
+## #'
+## #' @param models list of models
+## #' @examples
+## #'     sb <- SingleBatchModelExample
+## #'     mcmcParams(sb) <- McmcParams(iter=500, burnin=50)
+## #'     sb <- posteriorSimulation(sb)
+## #'     models <- list(MultiBatchModelExample, sb)
+## #'     tab <- predictiveDataTable(models)
+## #'     \dontrun{
+## #'     library(ggplot2)
+## #'     ggplot(tab, aes(y, fill=predictive)) +
+## #'       geom_density(alpha=0.4, adjust=1/2) +
+## #'       facet_grid(model~batch) +
+## #'       guides(fill=guide_legend(title="")) +
+## #'       theme(panel.background=element_rect(fill="white"))
+## #'     }
+## #' @export
+## predictiveDataTable <- function(models){
+##   tab.list <- vector("list", length(models))
+##   for(i in seq_along(models)){
+##     pred <- posteriorPredictive(models[[i]])
+##     tab.list[[i]] <- .predictiveDataTable(models[[i]], pred)
+##   }
+##   tab <- do.call(rbind, tab.list)
+##   ## assume models were ordered by marginal likelihood
+##   mod.names <- sapply(models, modelName)
+##   tab$model <- factor(tab$model, levels=mod.names)
+##   tab
+## }
 
 sb_pred_data <- function(model, predict){
   dat <- tibble(y=y(model), predictive="empirical")
@@ -498,35 +498,24 @@ sb_predictive <- function(model, predict, adjust=1/3){
   fig
 }
 
-#' Compare the posterior predictive distribution to the empirical data
-#'
-#' @param model a SB, MB, SBP, or MBP model
-#' @param predict a \code{tibble} of the posterior predictive values, batch (only for MB and MBP models), and mixture component assignments
-#' @param adjust a length-one numeric vector passed to \code{geom_density} -- controls the smoothness of the kernal density
-#' @examples
-#'   bmodel <- MultiBatchModelExample
-#'   mp <- McmcParams(iter=500, burnin=150, nStarts=4)
-#'   mcmcParams(bmodel) <- mp
-#'   \dontrun{
-#'      ## this is preferred to posteriorSimulation, but takes longer
-#'      bmodel <- gibbs(model="MB", dat=y(bmodel), mp=mp, hp.list=hpList()[["MB"]],
-#'                      batches=batch(bmodel))
-#'   }
-#'   bmodel <- posteriorSimulation(bmodel)
-#'   tab <- posteriorPredictive(bmodel)
-#'   \dontrun{
-#'       ggPredictive(bmodel, tab)
-#'   }
-#' @export
-#' @return a `gg` object
-ggPredictive <- function(model, predict, adjust=1/3){
-  if(!isSB(model)){
-    fig <- mb_predictive(model, predict, adjust)
-  } else {
-    fig <- sb_predictive(model, predict, adjust)
-  }
-  fig
-}
+## #' Compare the posterior predictive distribution to the empirical data
+## #'
+## #' @param model a SB, MB, SBP, or MBP model
+## #' @param predict a \code{tibble} of the posterior predictive values, batch (only for MB and MBP models), and mixture component assignments
+## #' @param adjust a length-one numeric vector passed to \code{geom_density} -- controls the smoothness of the kernal density
+## #' @examples
+## #'   bmodel <- MultiBatchModelExample
+## #'   fig <- ggMixture(MultiBatchModelExample)
+## #' @export
+## #' @return a `gg` object
+## ggPredictive <- function(model, predict, adjust=1/3){
+##   if(!isSB(model)){
+##     fig <- mb_predictive(model, predict, adjust)
+##   } else {
+##     fig <- sb_predictive(model, predict, adjust)
+##   }
+##   fig
+## }
 
 multibatch_figure <- function(theoretical, empirical, model){
   nb <- nBatch(model)
@@ -660,6 +649,9 @@ multibatch_figure <- function(theoretical, empirical, model){
 
 #' @export
 #' @rdname ggplot-functions
+#' @examples
+#' data(MultiBatchModelExample)
+#' fig <- ggMixture(MultiBatchModelExample)
 #' @aliases ggMixture,MultiBatchCopyNumber-method
 setMethod("ggMixture", "MultiBatchCopyNumber", function(model, bins=100){
   .gg_multibatch_copynumber(model, bins)

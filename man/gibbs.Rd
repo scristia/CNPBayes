@@ -26,6 +26,10 @@ details.}
 
 \item{top}{a length-one numeric vector indicating how many of the top
 models to return.}
+
+\item{df}{length-1 numeric vector for t-distribution degrees of freedom}
+
+\item{min_effsize}{length-1 numeric vector specifying the minimum effective size of the MCMC simulations.  If below this value, the marginal likelihood will not be estimated.}
 }
 \value{
 A list of models of length \code{top} sorted by decreasing
@@ -56,19 +60,23 @@ The number of mixture models fit depends on \code{k_range} and
                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
                              theta = means,
                              sds = sds)
-  \dontrun{
-    gibbs(model=c("SB", "SBP", "MB", "MBP"),
-          dat=y(truth),
-          mp=mcmcParams(),
-          batches=batch(truth),
-          k_range=c(1, 4),
-          max_burnin=10000,
-          top=2,
-          df=100)
-  }
+  ## clearly not enough simulations
+  mp <- McmcParams(iter=10, burnin=5)
+  ## this should be much higher > 1,000
+  max_burnin <- 10
+  ## suppress the warnings from the short chains
+  suppressWarnings(gibbs(model=c("SB", "SBP", "MB", "MBP"),
+        dat=y(truth),
+        mp=mp,
+        batches=batch(truth),
+        k_range=c(1, 4),
+        max_burnin=max_burnin,
+        top=2,
+        df=100))
 
 }
 \seealso{
 \code{\link[coda]{gelman.diag}}
   \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
+  See \code{\link{ggplot-functions}}
 }

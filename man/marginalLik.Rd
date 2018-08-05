@@ -7,7 +7,7 @@
 marginalLik(models)
 }
 \arguments{
-\item{list}{of models}
+\item{models}{list of models}
 }
 \description{
 Extract marginal likelihoods from a list of models

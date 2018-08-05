@@ -91,6 +91,7 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 #' Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
 #' the Inverse Gamma sampling distribution for the component-specific
 #' variances)
+#' @param dfr length-one numeric vector for t-distribution degrees of freedom
 #' @return An object of class HyperparametersBatch
 #' @examples
 #' HyperparametersMultiBatch(k=3)
@@ -152,6 +153,7 @@ HyperparametersMultiBatch <- function(k=3L,
 #' Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
 #' the Inverse Gamma sampling distribution for the component-specific
 #' variances)
+#' @param dfr length-one numeric vector for t-distribution degrees of freedom
 #'
 #' @return An object of class HyperparametersSingleBatch
 #' @examples

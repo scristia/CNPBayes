@@ -9,15 +9,8 @@ NULL
 ## iterations burnin. If the parameter values are valid, we stop. If not, we
 ## simulate a new model.
 
-#' @param dat numeric vector
-#' @param hp object of class Hyperparameters created by \code{Hyperparameters} function
-#' @param mp a \code{McmcParams} object
 #' @export
-#' @examples
-#' SingleBatchPooled()
-#' ## or, equivalently
-#' SBP()
-#' @rdname SingleBatchModel2
+#' @rdname SingleBatchModel
 SingleBatchPooled <- function(dat=numeric(),
                               hp=Hyperparameters(),
                               mp=McmcParams(iter=1000, burnin=1000,
@@ -51,15 +44,8 @@ SingleBatchPooled <- function(dat=numeric(),
   sbp
 }
 
-#' @param dat numeric vector
-#' @param hp object of class Hyperparameters created by \code{Hyperparameters} function
-#' @param mp a \code{McmcParams} object
 #' @export
-#' @examples
-#' SingleBatchPooled()
-#' ## or, equivalently
-#' SBP()
-#' @rdname SingleBatchModel2
+#' @rdname SingleBatchModel
 #' @export
 SBP <- SingleBatchPooled
 

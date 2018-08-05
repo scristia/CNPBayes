@@ -55,9 +55,13 @@ is performed recursively on the batch variables defined for a given
 CNP until no batches can be combined.
 }
 \examples{
-bt <- collapseBatch(y(MultiBatchModelExample), batch(MultiBatchModelExample))
+mb.ex <- MultiBatchModelExample
+batches <- batch(mb.ex)
+bt <- collapseBatch(y(mb.ex), batches)
 batches <- as.integer(factor(bt))
-model <- MultiBatchModel2(dat=y(MultiBatchModelExample),
-                          hp=hpList(k=k(MultiBatchModelExample))[["MB"]],
-                          batches=batches, mp=mcmcParams(MultiBatchModelExample))
+hp <- hpList(k=k(mb.ex))[["MB"]]
+model <- MB(dat=y(mb.ex),
+            hp=hp,
+            batch=batches,
+            mp=mcmcParams(mb.ex))
 }

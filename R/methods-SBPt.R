@@ -142,13 +142,13 @@ setValidity("SingleBatchPooled", function(object){
 
 setMethod("u", "SBPt", function(object) object@u )
 
-#' @rdname dfr-method
-#' @aliases dfr,SBPt-method
-setMethod("dfr", "SBPt", function(object) object@hyperparams@dfr )
-
-#' @aliases dfr<-,SBPt,numeric-method
-setReplaceMethod("dfr", c("SBPt", "numeric"), function(object, value) {
-                     object@hyperparams@dfr <- value
-                     object@u <- rchisq(length(y(object)), value)
-                     object
-})
+# #' @rdname dfr-method
+# #' @aliases dfr,SBPt-method
+# setMethod("dfr", "SBPt", function(object) object@hyperparams@dfr )
+# 
+# #' @aliases dfr,SBPt,numeric-method
+# setReplaceMethod("dfr", c("SBPt", "numeric"), function(object, value) {
+#                      object@hyperparams@dfr <- value
+#                      object@u <- rchisq(length(y(object)), value)
+#                      object
+# })

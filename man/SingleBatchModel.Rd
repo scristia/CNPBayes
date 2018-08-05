@@ -3,12 +3,16 @@
 %   R/methods-SingleBatchPooled.R
 \name{SingleBatchModel2}
 \alias{SingleBatchModel2}
+\alias{SB}
 \alias{SingleBatchPooled}
 \alias{SBP}
 \title{Constructors for SB and SBP models}
 \usage{
 SingleBatchModel2(dat = numeric(), hp = Hyperparameters(),
   mp = McmcParams(iter = 1000, burnin = 1000, thin = 10, nStarts = 4))
+
+SB(dat = numeric(), hp = Hyperparameters(), mp = McmcParams(iter =
+  1000, burnin = 1000, thin = 10, nStarts = 4))
 
 SingleBatchPooled(dat = numeric(), hp = Hyperparameters(),
   mp = McmcParams(iter = 1000, burnin = 1000, thin = 10, nStarts = 4))
@@ -22,36 +26,25 @@ SBP(dat = numeric(), hp = Hyperparameters(), mp = McmcParams(iter =
 \item{hp}{an object of class \code{Hyperparameters}}
 
 \item{mp}{an object of class \code{McmcParams}}
-
-\item{dat}{numeric vector}
-
-\item{hp}{object of class Hyperparameters created by \code{Hyperparameters} function}
-
-\item{mp}{a \code{McmcParams} object}
-
-\item{dat}{numeric vector}
-
-\item{hp}{object of class Hyperparameters created by \code{Hyperparameters} function}
-
-\item{mp}{a \code{McmcParams} object}
 }
 \value{
+An instance of \code{MultiBatchModel}
+
 An instance of \code{MultiBatchModel}
 }
 \description{
 This creates a MultiBatchModel object with a single batch.
 }
 \examples{
-SingleBatchModel2()
-SingleBatchModel2(dat=rnorm(100), hpList(k=2)[["SB"]])
-SingleBatchPooled()
-SingleBatchPooled()
-## or, equivalently
-SBP()
+SB()
+SB(dat=rnorm(100), hpList(k=2)[["SB"]])
+## pooled variance model
 SingleBatchPooled()
 ## or, equivalently
 SBP()
 }
 \seealso{
+\code{\link{MultiBatchModel2}}
+
 \code{\link{MultiBatchModel2}}
 }

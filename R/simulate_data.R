@@ -6,6 +6,7 @@
 #' @param sds a matrix of standard deviations.  Columns are components and rows are batches.
 #' @param batch a vector of labels indication from which batch each simulation should come from
 #' @param zz a vector indicating latent variable membership. Can be omitted.
+#' @param df length-1 numeric vector for the t-distribution degrees of freedom
 #' @return An object of class 'MultiBatchModel'
 #' @examples
 #' k <- 3
@@ -70,6 +71,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz, df=10){
 #' @param p a vector indicating probability of membership to each component
 #' @param theta a vector of means, one per component
 #' @param sds a vector of standard deviations, one per component
+#' @param df length-1 numeric vector for the t-distribution degrees of freedom
 #' @return An object of class 'SingleBatchModel'
 #' @examples
 #' truth <- simulateData(N=2500, p=rep(1/3, 3),
