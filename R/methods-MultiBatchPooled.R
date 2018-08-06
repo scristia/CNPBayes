@@ -252,7 +252,8 @@ combine_multibatch_pooled <- function(model.list, batches){
 }
 
 
-gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500){
+gibbs_multibatch_pooled <- function(hp, mp, dat,
+                                    max_burnin=32000, batches, min_effsize=500){
   nchains <- nStarts(mp)
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
   if(iter(mp) < 500){
@@ -311,10 +312,11 @@ gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches, min_
     mp@thin <- as.integer(thin(mp) * 2)
   }
   model <- combine_multibatch_pooled(mod.list, batches)
-  meets_conditions <- all(neff > MIN_EFF) && r$mpsrf < 2 && !label_switch(model)
+  meets_conditions <- all(neff > MIN_EFF) &&
+    r$mpsrf < 2 && !label_switch(model)
   if(meets_conditions){
     testing <- tryCatch(compute_marginal_lik(model), error=function(e) NULL)
-    if(is.null(testing)) return(model)
+    if(is.null(testing)) return(testing)
   }
   model
 }
