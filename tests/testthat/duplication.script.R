@@ -116,19 +116,23 @@ prop.true.child <- sum(cn.truth.child == results.child) / length(cn.truth.child)
 
 # this is for the MB model comparison
 results.mb <- z2cn(mb2[[1]], maplabel)
+results.mb.parent <- results.mb@z[!is_offspring]
+results.mb.child <- results.mb@z[is_offspring]
 #cn.truth2 <- as.factor(cn.truth)
 #results.mb2 <- as.factor(results.mb@z)
 #cn.compare.overall.mb <- table(results.mb2, cn.truth2)
 
 prop.true.overall.mb <- sum(cn.truth == results.mb@z) / length(cn.truth)
+prop.true.parent.mb <- sum(cn.truth.parent == results.mb.parent) / length(cn.truth.parent)
+prop.true.child.mb <- sum(cn.truth.child == results.mb.child) / length(cn.truth.child)
 
 #sens.spec.mb <- modified.sens.spec.calc(cn.compare.overall.mb,cn.type="DEL")
 #sens.mb <- sens.spec.mb$sensitivity
 #spec.mb <- sens.spec.mb$specificity
-
 true.stats <- component_stats(truth$data)
 truth.child.pi <- table(cn.truth.child)/length(cn.truth.child)
 child.pi <- table(results.child)/length(results.child)
+parent.pi <- table(results.parent)/length(results.parent)
 
 # input all the info
 summaryResults <- list(params = params.all,
@@ -140,7 +144,10 @@ summaryResults <- list(params = params.all,
                        AccuracyParents = prop.true.parent,
                        AccuracyChild = prop.true.child,
                        AccuracyMB = prop.true.overall.mb,
+                       AccuracyMBParents = prop.true.parent.mb,
+                       AccuracyMBChild = prop.true.child.mb,
                        ModelPi = model[[1]]@pi,
+                       ModelParentPi = parent.pi,
                        ModelChildPi = child.pi,
                        ModelTheta = model[[1]]@theta,
                        ModelSigma2 = model[[1]]@sigma2

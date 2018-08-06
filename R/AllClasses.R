@@ -87,24 +87,17 @@ setClass("HyperparametersTrios", contains="Hyperparameters")
 #' @slot loglik log likelihood.
 #' @slot zfreq table of z.
 setClass("McmcChains", representation(theta="matrix",
-                                      theta_chd="matrix",
                                       sigma2="matrix",
-                                      sigma2_chd="matrix",
                                       pi="matrix",
-                                      pi_chd="matrix",
+                                      pi_parents="matrix",
                                       mu="numericOrMatrix",
-                                      mu_chd="numericOrMatrix",
                                       tau2="numericOrMatrix",
-                                      tau2_chd="numericOrMatrix",
                                       nu.0="numeric",
-                                      nu.0chd="numeric",
                                       sigma2.0="numeric",
-                                      sigma2.0_chd="numeric",
                                       logprior="numeric",
                                       loglik="numeric",
                                       zfreq="matrix",
-                                      zfreq_parents="matrix",
-                                      zfreq_chd="matrix"))
+                                      zfreq_parents="matrix"))
 
 #' An object to specify MCMC options for a later simulation
 #'
@@ -219,10 +212,8 @@ setClass("MultiBatchModel", contains="MixtureModel")
 setClass("TrioBatchModel", contains="MultiBatchModel",
          slots=c(triodata="list", mprob="matrix",
                  father="numeric", mother="numeric", 
-                 maplabel="numeric", theta_chd="matrix", sigma2_chd="matrix", sigma2.0_chd="numeric",
-                 pi_chd="numeric", mu_chd="numeric", tau2_chd="numeric",
-                 nu.0chd="numeric", zfreq_parents="integer",
-                 zfreq_chd="integer", probz_par="matrix", probz_chd="matrix"))
+                 maplabel="numeric", pi_parents="numeric",
+                 zfreq_parents="integer", probz_par="matrix"))
                  ##family_member="character"))
 
 #' The 'SingleBatchModel' class

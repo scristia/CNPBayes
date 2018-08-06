@@ -259,7 +259,7 @@ Rcpp::NumericMatrix update_multinomialPr(Rcpp::S4 xmod) {
   NumericMatrix theta = model.slot("theta") ;
   int B = sigma2.nrow() ;
   NumericVector x = model.slot("data") ;
-  //IntegerVector nb = model.slot("batchElements") ;
+  IntegerVector nb = model.slot("batchElements") ;
   int N = x.size() ;
   NumericMatrix lik(N, K) ;
   NumericVector this_batch(N) ;

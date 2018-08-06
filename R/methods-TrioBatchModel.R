@@ -1,24 +1,3 @@
-#' @rdname k-methodtrio
-#' @aliases k,TrioBatchModel-method
-setMethod("k", "TrioBatchModel", function(object) object@k)
-
-#' @rdname k-methodtrio
-#' @aliases k<-,TrioBatchModel-method
-setReplaceMethod("k", "TrioBatchModel",
-                 function(object, value) {
-                   k <- as.integer(value)
-                   hypp <- hyperparametersTrios(object)
-                   hypp@k <- k
-                   hypp@alpha <- rep(1, k)
-                   hyperParams(object) <- hypp
-                   object@k <- k
-                   object@pi <- rep(1/k, k)
-                   object@probz <- matrix(0, length(y(object)), k)
-                   object <- startingValues(object)
-                   object
-                 }
-)
-
 .empty_trio_model <- function(hp, mp){
   K <- k(hp)
   B <- 0
@@ -27,19 +6,13 @@ setReplaceMethod("k", "TrioBatchModel",
              k=as.integer(K),
              hyperparams=hp,
              theta=matrix(NA, 0, K),
-             theta_chd=matrix(NA, 0, K),
              sigma2=matrix(NA, 0, K),
-             sigma2_chd=matrix(NA, 0, K),
              mu=numeric(K),
-             mu_chd=numeric(K),
              tau2=numeric(K),
-             tau2_chd=numeric(K),
              nu.0=numeric(1),
-             nu.0chd=numeric(1),
              sigma2.0=numeric(1),
-             sigma2.0_chd=numeric(1),
              pi=numeric(K),
-             pi_chd=numeric(K),
+             pi_parents=numeric(K),
              #data=numeric(K),
              triodata=as_tibble(0),
              mprob=matrix(NA, 0, 0),
@@ -49,10 +22,9 @@ setReplaceMethod("k", "TrioBatchModel",
              z=integer(0),
              zfreq=integer(K),
              zfreq_parents=integer(K),
-             zfreq_chd=integer(K),
              probz=matrix(0, N, K),
-             probz_par=matrix(0, N, K),
-             probz_chd=matrix(0, N, K),
+             # note this assumes parents are 2/3 of N
+             probz_par=matrix(0, 2/3*N, K),
              logprior=numeric(1),
              loglik=numeric(1),
              mcmc.chains=McmcChains(),
@@ -92,26 +64,18 @@ setReplaceMethod("k", "TrioBatchModel",
   ## mu_k is the average across batches of the thetas for component k
   ## tau_k is the sd of the batch means for component k
   mu <- sort(rnorm(k(hp), mu.0(hp), sqrt(tau2.0(hp))))
-  mu_chd <- sort(rnorm(k(hp), mu.0(hp), sqrt(tau2.0(hp))))
   tau2 <- 1/rgamma(k(hp), 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
-  tau2_chd <- 1/rgamma(k(hp), 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
   p <- rdirichlet(1, alpha(hp))[1, ]
   pp <- rdirichlet(1, alpha(hp))[1, ]
-  sim_theta <- function(mu_par, tau_par, B) sort(rnorm(B, mu_par, tau_par))
+  sim_theta <- function(mu, tau, B) sort(rnorm(B, mu, tau))
   . <- NULL
   thetas <- map2(mu, sqrt(tau2), sim_theta, B) %>%
     do.call(cbind, .) %>%
     apply(., 1, sort) %>%
     t
   if(K == 1) thetas <- t(thetas)
-  thetas_chd <- map2(mu, sqrt(tau2_chd), sim_theta, B) %>%
-    do.call(cbind, .) %>%
-    apply(., 1, sort) %>%
-    t
-  if(K == 1) thetas_chd <- t(thetas_chd)
   nu.0 <- 3.5
   sigma2.0 <- 0.25
-  sigma2.0_chd <- 0.25
   sigma2s <- 1/rgamma(k(hp) * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
     matrix(B, k(hp))
   u <- rchisq(nrow(triodata), hp@dfr)
@@ -128,19 +92,13 @@ setReplaceMethod("k", "TrioBatchModel",
              k=as.integer(K),
              hyperparams=hp,
              theta=thetas,
-             theta_chd=thetas_chd,
              sigma2=sigma2s,
-             sigma2_chd=sigma2s,
              mu=mu,
-             mu_chd=mu,
              tau2=tau2,
-             tau2_chd=tau2_chd,
              nu.0=nu.0,
-             nu.0chd=nu.0,
              sigma2.0=sigma2.0,
-             sigma2.0_chd=sigma2.0_chd,
              pi=p,
-             pi_chd=pp,
+             pi_parents=pp,
              data=log_ratio,
              batch=batches,
              triodata=triodata,
@@ -152,10 +110,9 @@ setReplaceMethod("k", "TrioBatchModel",
              z=sample(seq_len(K), N, replace=TRUE),
              zfreq=integer(K),
              zfreq_parents=integer(K),
-             zfreq_chd=integer(K),
              probz=matrix(0, N, K),
-             probz_par=matrix(0, N, K),
-             probz_chd=matrix(0, N, K),
+             # note this assumes parents are 2/3 of N
+             probz_par=matrix(0, 2/3*N, K),
              logprior=numeric(1),
              loglik=numeric(1),
              mcmc.chains=McmcChains(),
@@ -193,62 +150,32 @@ setMethod("probzpar", "TrioBatchModel", function(object) {
   object@probz_par/(iter(object)-1)
 })
 
-setReplaceMethod("probzchd", "TrioBatchModel", function(object, value){
-  object@probz_chd <- value
-  object
-})
-
-## TODO Dangerous to have accessor do something more than return the value of it
-## slot.  Further
-## probzchd(object) <- probzchd(object)
-## will not behave as expected
-#' @rdname probzchd-method
-#' @aliases probzchd,TrioBatchModel-method
-setMethod("probzchd", "TrioBatchModel", function(object) {
-  ## because first iteration not saved
-  object@probz_chd/(iter(object)-1)
-})
-
 combine_batchTrios <- function(model.list, batches){
   . <- NULL
   ch.list <- map(model.list, chains)
   th <- map(ch.list, theta) %>% do.call(rbind, .)
-  th_chd <- map(ch.list, thetachd) %>% do.call(rbind, .)
   s2 <- map(ch.list, sigma2) %>% do.call(rbind, .)
-  s2_chd <- map(ch.list, sigma2chd) %>% do.call(rbind, .)
   ll <- map(ch.list, log_lik) %>% unlist
   ppi <- map(ch.list, p) %>% do.call(rbind, .)
-  pp.chd <- map(ch.list, pp) %>% do.call(rbind, .)
+  pp.par <- map(ch.list, pp) %>% do.call(rbind, .)
   n0 <- map(ch.list, nu.0) %>% unlist
-  n0_chd <- map(ch.list, nuchd) %>% unlist
   s2.0 <- map(ch.list, sigma2.0) %>% unlist
-  s2.0chd <- map(ch.list, sigma2.0chd) %>% unlist
   logp <- map(ch.list, logPrior) %>% unlist
   .mu <- map(ch.list, mu) %>% do.call(rbind, .)
-  .mu_chd <- map(ch.list, muchd) %>% do.call(rbind, .)
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
-  .tau2_chd <- map(ch.list, tau2chd) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
   zfreqpar <- map(ch.list, zFreqPar) %>% do.call(rbind, .)
-  zfreqchd <- map(ch.list, zFreqChd) %>% do.call(rbind, .)
   mc <- new("McmcChains",
             theta=data.matrix(th),
-            theta_chd=data.matrix(th_chd),
             sigma2=data.matrix(s2),
-            sigma2_chd=data.matrix(s2_chd),
             pi=data.matrix(ppi),
-            pi_chd=data.matrix(pp.chd),
+            pi_parents=data.matrix(pp.par),
             mu=data.matrix(.mu),
-            mu_chd=data.matrix(.mu_chd),
             tau2=data.matrix(.tau2),
-            tau2_chd=data.matrix(.tau2_chd),
             nu.0=n0,
-            nu.0chd=n0_chd,
             sigma2.0=s2.0,
-            sigma2.0_chd=s2.0chd,
             zfreq=zfreq,
             zfreq_parents=zfreqpar,
-            zfreq_chd=zfreqchd,
             logprior=logp,
             loglik=ll)
   hp <- hyperParams(model.list[[1]])
@@ -262,19 +189,13 @@ combine_batchTrios <- function(model.list, batches){
   B <- length(unique(batches))
   K <- k(model.list[[1]])
   pm.th <- matrix(colMeans(th), B, K)
-  pm.thchd <- matrix(colMeans(th_chd), B, K)
   pm.s2 <- matrix(colMeans(s2), B, K)
-  pm.s2chd <- matrix(colMeans(s2_chd), B, K)
   pm.p <- colMeans(ppi)
-  pm.chd <- colMeans(pp.chd)
+  pm.par <- colMeans(pp.par)
   pm.n0 <- median(n0)
-  pm.n0chd <- median(n0_chd)
   pm.mu <- colMeans(.mu)
-  pm.muchd <- colMeans(.mu_chd)
   pm.tau2 <- colMeans(.tau2)
-  pm.tau2chd <- colMeans(.tau2_chd)
   pm.s20 <- mean(s2.0)
-  pm.s20chd <- mean(s2.0chd)
   pz <- map(model.list, probz) %>% Reduce("+", .)
   pz <- pz/length(model.list)
   ## the accessor divides by number of iterations, so rescale
@@ -288,12 +209,9 @@ combine_batchTrios <- function(model.list, batches){
   pzpar <- pzpar/length(model.list)
   pzpar <- pzpar * (iter(mp) - 1)
   zzpar <- max.col(pzpar)
+  #fam.class <- model.list[[1]]@triodata$family_member
+  #zzpar <- zzpar[fam.class!="o"]
   zfreq_parents <- as.integer(table(zzpar))
-  pzchd <- map(model.list, probzchd) %>% Reduce("+", .)
-  pzchd <- pzchd/length(model.list)
-  pzchd <- pzchd * (iter(mp) - 1)
-  zzchd <- max.col(pzchd)
-  zfreq_chd <- as.integer(table(zzchd))
   any_label_swap <- any(map_lgl(model.list, label_switch))
   ## use mean marginal likelihood in combined model,
   ## or NA if marginal likelihood has not been estimated
@@ -311,19 +229,13 @@ combine_batchTrios <- function(model.list, batches){
                k=k(hp),
                hyperparams=hp,
                theta=pm.th,
-               theta_chd=pm.thchd,
                sigma2=pm.s2,
-               sigma2_chd=pm.s2chd,
                mu=pm.mu,
-               mu_chd=pm.muchd,
                tau2=pm.tau2,
-               tau2_chd=pm.tau2chd,
                nu.0=pm.n0,
-               nu.0chd=pm.n0chd,
                sigma2.0=pm.s20,
-               sigma2.0_chd=pm.s20chd,
                pi=pm.p,
-               pi_chd=pm.chd,
+               pi_parents=pm.par,
                data=y(model.list[[1]]),
                u=u(model.list[[1]]),
                data.mean=y_mns,
@@ -331,10 +243,8 @@ combine_batchTrios <- function(model.list, batches){
                z=zz,
                zfreq=zfreq,
                zfreq_parents=zfreq_parents,
-               zfreq_chd=zfreq_chd,
                probz=pz,
                probz_par=pzpar,
-               probz_chd=pzchd,
                logprior=numeric(1),
                loglik=numeric(1),
                mcmc.chains=mc,
@@ -930,10 +840,10 @@ setReplaceMethod("k", "TrioBatchModel",
 #' @param object an object of class TrioBatchModel
 #' @return A vector of length the number of components
 #' @export
-pp <- function(object) object@pi_chd
+pp <- function(object) object@pi_parents
 
 setReplaceMethod("pp", "TrioBatchModel", function(object, value){
-  object@pi_chd <- value
+  object@pi_parents <- value
   object
 })
 
