@@ -397,7 +397,7 @@ gibbs_batch_K <- function(hp,
 #'
 #' @seealso \code{\link[coda]{gelman.diag}}
 #'   \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
-#'   See \code{\link{ggplot-functions}}
+#'   See \code{\link{ggChains}}
 #' @export
 gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                   dat,

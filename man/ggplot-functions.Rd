@@ -56,8 +56,8 @@ The \code{ggMixture} method overlays the density of the posterior predictive dis
   ## plot the mixture
   fig.mix <- ggMixture(sb)
 data(MultiBatchModelExample)
-ggMixture(MultiBatchModelExample)
+fig <- ggMixture(MultiBatchModelExample)
 }
 \seealso{
-\code{\link{gibbs}} \code{\link{posteriorSimulation-method}}
+\code{\link{gibbs}}
 }

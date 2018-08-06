@@ -78,5 +78,5 @@ The number of mixture models fit depends on \code{k_range} and
 \seealso{
 \code{\link[coda]{gelman.diag}}
   \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
-  See \code{\link{ggplot-functions}}
+  See \code{\link{ggChains}}
 }
