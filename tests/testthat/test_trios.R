@@ -747,7 +747,7 @@ test_that("fix multiple values", {
 
   p <- c(0.25, 0.5, 0.25)
   theta <- c(-2, 0.3, 1.7)
-  sigma2 <- c(0.3, 0.3, 0.3)
+  sigma2 <- c(0.5, 0.5, 0.5)
   params <- data.frame(cbind(p, theta, sigma2))
   maplabel <- c(0,1,2)
   nbatch <- 1
@@ -765,22 +765,27 @@ test_that("fix multiple values", {
   true.component <- true.cn + 1L
   
   up <- rep(1L, 10)
-  mp <- McmcParams(iter=2000, burnin=2000, thin=1, param_updates=up)
+  mp <- McmcParams(iter=2000, burnin=1000, thin=1, param_updates=up, nStarts=4)
   mb2 <- gibbs(model="MB", dat=truth$data$log_ratio,
               batches=rep(c(1:nbatch),
                           length.out = 3*N),
-              mp=mp, k_range=c(3, 3), max_burnin=2000)
+              mp=mp, k_range=c(3, 3), max_burnin=8000)
 
-  model <- gibbs_trios(model="TBM", dat=as.tibble(truth$data), hp.list = hp,
-                       batches=truth$data$batches,
-                       mp=mp, k_range=c(3, 3), max_burnin=4000)
-  
-  iter1 <- model[[1]]@mcmc.params@iter
-  burnin1 <- model[[1]]@mcmc.params@burnin
-  thin1 <- model[[1]]@mcmc.params@thin
-  model[[1]]@theta <- (as.matrix(mb2[[1]]@modes$theta))
+  #iter1 <- model[[1]]@mcmc.params@iter
+  #burnin1 <- model[[1]]@mcmc.params@burnin
+  #thin1 <- model[[1]]@mcmc.params@thin
+  theta.feed <- (as.matrix(mb2[[1]]@modes$theta))
+  #model[[1]]@theta <- (as.matrix(mb2[[1]]@modes$theta))
   #model[[1]]@sigma2 <- (as.matrix(mb2[[1]]@modes$sigma2))
   #model@pi <- mb2[[1]]@modes$mixprob
+  
+  #model <- gibbs_trios(model="TBM", dat=as.tibble(truth$data), hp.list = hp,
+  #                      batches=truth$data$batches,
+  #                      mp=mp, k_range=c(3, 3), max_burnin=4000)
+  
+  model <- gibbs_trios2(model="TBM", dat=as.tibble(truth$data), hp.list = hp,
+                       batches=truth$data$batches,
+                       mp=mp, k_range=c(3, 3), max_burnin=4000, theta.feed=theta.feed)
   
   up <- rep(1L, 10)
   names(up) <- c("theta", "sigma2",
@@ -792,14 +797,22 @@ test_that("fix multiple values", {
                  "z.offspring",
                  "pi.parents")
   up["theta"] <- 0L
-  up["sigma2"] <- 0L
   
   mcmcParams(model[[1]]) <- McmcParams(iter=iter1, burnin=burnin1, thin=thin1, param_updates=up)
   model <- posteriorSimulation(model[[1]])
   modes(model) <- computeModes(model)
   
-  model@theta <- (as.matrix(model@modes$theta))
+  #model@theta <- (as.matrix(model@modes$theta))
   model@sigma2 <- (as.matrix(model@modes$sigma2))
+  #model@pi <- model@modes$mixprob
+  
+  up["sigma2"] <- 0L
+  mcmcParams(model) <- McmcParams(iter=iter1, burnin=burnin1, thin=thin1, param_updates=up)
+  model <- posteriorSimulation(model)
+  modes(model) <- computeModes(model)
+  
+  #model@theta <- (as.matrix(model@modes$theta))
+  #model@sigma2 <- (as.matrix(model@modes$sigma2))
   model@pi <- model@modes$mixprob
   
   up["pi"] <- 0L
@@ -818,7 +831,7 @@ test_that("fix multiple values", {
   #mb <- posteriorSimulation(model2)
   if(FALSE){
     ggMixture(mb2[[1]])
-    ggMixture(model) 
+    ggMixture(model[[1]]) 
     ##ggMixture(model[[1]]) 
   }
   
@@ -827,15 +840,15 @@ test_that("fix multiple values", {
   true.cn <- as.integer(truth$data$copy_number)
   true.component <- true.cn + 1L
   mean(z(mb2[[1]]) == true.component)
-  mean(z(model) == true.component)
+  mean(z(model[[1]]) == true.component)
   true.cn <- as.integer(truth$data$copy_number)[is_offspring]
   true.component <- true.cn + 1L
   truth.par <- as.integer(truth$data$copy_number)[!is_offspring] + 1L
   #expect_identical(z(mb)[!is_offspring], as.integer(truth$data$copy_number)[!is_offspring] + 1L)
   mean(z(mb2[[1]])[is_offspring] == true.component)
-  mean(z(model)[is_offspring] == true.component)
+  mean(z(model[[1]])[is_offspring] == true.component)
   mean(z(mb2[[1]])[!is_offspring] == truth.par)
-  mean(z(model)[!is_offspring] == truth.par)
+  mean(z(model[[1]])[!is_offspring] == truth.par)
 
   # run values 30 times - see who does better overall
   
