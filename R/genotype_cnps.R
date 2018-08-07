@@ -330,8 +330,6 @@ ccmap <- function(model){
 #'
 #' @param cn.model a copy number model
 #' @param snpdata a \code{SummarizedExperiment} with assay element `GT` containing an integer coding (1, 2, and 3) for the generic genotypes AA, AB, and BB, respectively.
-#' @examples
-#'
 #' @export
 #' @return a list. The first element is the log likeihood and the second element is the copy number model that maximized the likelihood.
 bafLikelihood <- function(cn.model, snpdata){

@@ -882,7 +882,7 @@ setMethod("dfr", "MixtureModel", function(object) object@hyperparams@dfr )
 
 #' @aliases dfr,MixtureModel,numeric-method
 #' @param value scalar providing degrees of freedom for t-distribution
-#' @rdname "dfr-method"
+#' @rdname dfr-method
 setReplaceMethod("dfr", c("MixtureModel", "numeric"),
                  function(object, value) {
                    object@hyperparams@dfr <- value

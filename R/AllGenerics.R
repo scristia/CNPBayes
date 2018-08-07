@@ -919,11 +919,11 @@ setGeneric("mergeComponents", function(model, j) standardGeneric("mergeComponent
 #'   dfr(hp)
 #'   dfr(hp) <- 10
 #'   dfr(hp)
-#' @rdname dfr
+#' @rdname dfr-method
 setGeneric("dfr", function(object) standardGeneric("dfr"))
 
 #' @export
-#' @rdname dfr
+#' @rdname dfr-method
 setGeneric("dfr<-", function(object, value) standardGeneric("dfr<-"))
 
 setGeneric("u", function(object) standardGeneric("u"))

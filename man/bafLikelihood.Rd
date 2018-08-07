@@ -17,6 +17,3 @@ a list. The first element is the log likeihood and the second element is the cop
 \description{
 Calculate the likelihood of the observed B allele frequencies for a given copy number model
 }
-\examples{
-
-}
