@@ -4,8 +4,9 @@
 \alias{MB}
 \title{Constructor for MultiBatchModel}
 \usage{
-MB(dat = numeric(), hp = HyperparametersMultiBatch(), mp = McmcParams(iter
-  = 1000, thin = 10, burnin = 1000, nStarts = 4), batches = integer())
+MB(dat = numeric(), hp = HyperparametersMultiBatch(),
+  mp = McmcParams(iter = 1000, thin = 10, burnin = 1000, nStarts = 4),
+  batches = integer())
 }
 \arguments{
 \item{dat}{the data for the simulation.}

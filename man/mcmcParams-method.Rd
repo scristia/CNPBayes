@@ -6,9 +6,7 @@
 \alias{mcmcParams<-}
 \alias{mcmcParams,MixtureModel-method}
 \alias{mcmcParams<-,MixtureModel-method}
-\alias{mcmcParams,MixtureModel-method}
 \alias{mcmcParams<-,list-method}
-\alias{mcmcParams,list-method}
 \alias{mcmcParams,list-method}
 \title{Retrieve MCMC parameters from model.}
 \usage{
