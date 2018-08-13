@@ -912,7 +912,7 @@ setGeneric("mergeComponents", function(model, j) standardGeneric("mergeComponent
 
 #' Accessor for degrees of freedom
 #'
-#' @param object a Hyperparameters or Hyperparameters-derived class
+#' @param object a Hyperparameters- or MixtureModel-derived class
 #' @export
 #' @examples
 #'   hp <- Hyperparameters()

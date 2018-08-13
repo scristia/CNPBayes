@@ -425,7 +425,7 @@ Rcpp::NumericMatrix compute_u_sums_batch(Rcpp::S4 xmod) {
   for(int i = 0; i < n; i++){
       for(int b = 0; b < B; b++) {
           for(int k = 0; k < K; k++){
-                  if(z[i] == k+1 & batch[i] == b+1){
+            if((z[i] == (k+1)) & (batch[i] == (b+1))){
                   sums(b, k) += u[i] ;
               }
           }
@@ -457,7 +457,7 @@ Rcpp::NumericMatrix compute_heavy_sums_batch(Rcpp::S4 object) {
   for(int i = 0; i < n; i++){
       for(int b = 0; b < B; b++) {
           for(int k = 0; k < K; k++){
-              if(z[i] == k+1 & batch[i] == b+1){
+            if((z[i] == (k+1)) & (batch[i] == (b+1))){
                   sums(b, k) += x[i] ;
               }
           }

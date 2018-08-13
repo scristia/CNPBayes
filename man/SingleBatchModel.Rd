@@ -11,14 +11,14 @@
 SingleBatchModel2(dat = numeric(), hp = Hyperparameters(),
   mp = McmcParams(iter = 1000, burnin = 1000, thin = 10, nStarts = 4))
 
-SB(dat = numeric(), hp = Hyperparameters(), mp = McmcParams(iter =
-  1000, burnin = 1000, thin = 10, nStarts = 4))
+SB(dat = numeric(), hp = Hyperparameters(), mp = McmcParams(iter = 1000,
+  burnin = 1000, thin = 10, nStarts = 4))
 
 SingleBatchPooled(dat = numeric(), hp = Hyperparameters(),
   mp = McmcParams(iter = 1000, burnin = 1000, thin = 10, nStarts = 4))
 
-SBP(dat = numeric(), hp = Hyperparameters(), mp = McmcParams(iter =
-  1000, burnin = 1000, thin = 10, nStarts = 4))
+SBP(dat = numeric(), hp = Hyperparameters(), mp = McmcParams(iter = 1000,
+  burnin = 1000, thin = 10, nStarts = 4))
 }
 \arguments{
 \item{dat}{numeric vector of average log R ratios}

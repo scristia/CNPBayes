@@ -25,11 +25,9 @@ dfr(object) <- value
 \S4method{dfr}{MixtureModel,numeric}(object) <- value
 }
 \arguments{
-\item{object}{a Hyperparameters or Hyperparameters-derived class}
+\item{object}{a Hyperparameters- or MixtureModel-derived class}
 
 \item{value}{scalar providing degrees of freedom for t-distribution}
-
-\item{object}{a MixtureModel-derived object}
 }
 \description{
 Accessor for degrees of freedom

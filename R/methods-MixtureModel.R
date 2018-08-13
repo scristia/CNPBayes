@@ -1,4 +1,4 @@
-#' @include AllGenerics.R
+""#' @include AllGenerics.R
 NULL
 
 setValidity("MixtureModel", function(object){
@@ -875,7 +875,6 @@ setMethod("u", "MixtureModel", function(object) object@u )
 
 #' Accessor for degrees of freedom
 #'
-#' @param object a MixtureModel-derived object
 #' @rdname dfr-method
 #' @aliases dfr,MixtureModel-method
 setMethod("dfr", "MixtureModel", function(object) object@hyperparams@dfr )
