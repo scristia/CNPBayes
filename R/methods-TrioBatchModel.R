@@ -464,7 +464,7 @@ pi.fix <- function(model){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mod.list <- replicate(nchains, TBM(triodata=dat,
                                        hp=hp,
-                                       mp=mp2,
+                                       mp=mp,
                                        mprob=mprob,
                                        maplabel=maplabel))
     mod.list <- map(mod.list, theta.fix, theta.feed)
@@ -918,6 +918,15 @@ simulate_data_multi2 <- function(params, N, batches, error=0, mendelian.probs, m
   ## update parameters to be same as empirical values
   ##
   stats <- component_stats(tbl3)
+  
+  while(nrow(stats)!=length(maplabel)){
+    tbl <- .simulate_data_multi2(params, N, mendelian.probs, maplabel)
+    batches <- sort(batches)
+    tbl2 <- cbind(tbl, batches)
+    tbl3 <- as_tibble(tbl2)
+    stats <- component_stats(tbl3)
+  }
+  
   p <- stats %>% group_by(copy_number) %>% summarize(p=mean(p))
   sd <- stats %>% group_by(copy_number) %>% summarize(sd=mean(sd))
   mean <- stats %>% group_by(copy_number) %>% summarize(mean=mean(mean))
@@ -1049,6 +1058,32 @@ snr.calc <- function(model){
   SNR<-snr.calc.median(count, sds, deltas, avglrr.list)
   SNR
 }
+
+snr.calc.mean<-function(count.num, sd.num, deltas, lrr.list){
+  loop.length<-ifelse(length(lrr.list)!=1, length(lrr.list)-1, 1)
+  variance<-rep(NA,loop.length)
+  for (i in 1:loop.length){
+    var.calc<-((count.num[[i]]-1)*(sd.num[[i]]^2)+(count.num[[i+1]]-1)*(sd.num[[i+1]]^2))/(count.num[i]+count.num[i+1]-2)
+    variance[i]<-var.calc
+  }
+  snr<-deltas/(variance^0.5)
+  mean.snr<-mean(snr)
+  return(mean.snr)
+}
+
+snr.calc2 <- function(model){
+  lrr<-as.numeric(y(model))
+  calls<-as.numeric(z(model))
+  avglrr.list <- split(lrr, calls)
+  comp.means <- sapply(avglrr.list, mean)
+  comp.means <- sort(comp.means)
+  deltas <- diff(comp.means)
+  sds <- sapply(avglrr.list, sd)
+  count<-sapply(avglrr.list,length)
+  SNR<-snr.calc.mean(count, sds, deltas, avglrr.list)
+  SNR
+}
+
 
 # cross table in the same format as caret package
 # specifically for 3 state cross table

@@ -747,7 +747,7 @@ test_that("fix multiple values", {
 
   p <- c(0.25, 0.5, 0.25)
   theta <- c(-2, 0.3, 1.7)
-  sigma2 <- c(0.5, 0.5, 0.5)
+  sigma2 <- c(0.4, 0.4, 0.4)
   params <- data.frame(cbind(p, theta, sigma2))
   maplabel <- c(0,1,2)
   nbatch <- 1
@@ -759,7 +759,7 @@ test_that("fix multiple values", {
                                 error=0, mprob, maplabel)
   hp <- HyperparametersTrios(k = 3)
   truth_sum <- component_stats(truth$data)
-  is_offspring <- model@triodata$family_member=="o"
+  is_offspring <- truth$data$family_member=="o"
   true.cn <- as.integer(truth$data$copy_number)
   # specific to maplabel starting with 0s
   true.component <- true.cn + 1L
@@ -782,6 +782,7 @@ test_that("fix multiple values", {
   #model <- gibbs_trios(model="TBM", dat=as.tibble(truth$data), hp.list = hp,
   #                      batches=truth$data$batches,
   #                      mp=mp, k_range=c(3, 3), max_burnin=4000)
+  mp <- McmcParams(iter=4000, burnin=1000, thin=3, param_updates=up, nStarts=4)
   
   model <- gibbs_trios2(model="TBM", dat=as.tibble(truth$data), hp.list = hp,
                        batches=truth$data$batches,
