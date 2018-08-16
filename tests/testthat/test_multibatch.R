@@ -126,7 +126,8 @@ test_that("easy", {
   truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
                                                 length.out = N),
                              theta = means, sds = sds,
-                             p = c(1/5, 1/3, 1 - 1/3 - 1/5))
+                             p = c(1/5, 1/3, 1 - 1/3 - 1/5),
+                             df=100)
   ##yy <- y(truth)
   ##expect_identical(yy[order(batch(truth))], yy)
   mcmcp <- McmcParams(iter = 50, burnin = 0)

@@ -63,5 +63,6 @@ BatchModel and MarginalModel both inherit from this class.
 \item{\code{.internal.constraint}}{Constraint on parameters. For internal use only.}
 
 \item{\code{.internal.counter}}{For internal use only.}
+\item{\code{marginal_lik}}{scalar for marginal likelihood}
 }}
 

@@ -6,7 +6,6 @@
 \alias{mapping<-}
 \alias{mapping,MultiBatchCopyNumber-method}
 \alias{mapping,MultiBatchCopyNumberPooled-method}
-\alias{mapping,MultiBatchCopyNumber-method}
 \alias{mapping<-,MultiBatchCopyNumber,character-method}
 \alias{mapping,MultiBatchCopyNumber,numeric-method}
 \alias{mapping<-,MultiBatchCopyNumberPooled,character-method}
@@ -23,7 +22,8 @@ mapping(object) <- value
 
 \S4method{mapping}{MultiBatchCopyNumber,character}(object) <- value
 
-\S4method{mapping}{MultiBatchCopyNumberPooled,character}(object) <- value
+
+  \S4method{mapping}{MultiBatchCopyNumberPooled,character}(object) <- value
 }
 \arguments{
 \item{object}{a SB, SBP, MB, or MBP model}
@@ -36,8 +36,8 @@ Map mixture components to copy number states
 \examples{
 cn.model <- CopyNumberModel(SingleBatchModelExample)
 ## manually remap first two components to the same copy number state
-mapping(cn.model) <- c(1, 1, 2)
 \dontrun{
+ mapping(cn.model) <- c(1, 1, 2)
  ggMixture(cn.model)
 }
 }

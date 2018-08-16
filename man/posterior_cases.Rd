@@ -22,8 +22,10 @@ A matrix of dimension S (MCMC iterations) by K (number of components) where each
 Calculate posterior proportion of cases by component
 }
 \examples{
+\dontrun{
      # generate random case control status
-     case_control <- rbinom(length(y(MarginalModelExample)), 1, 0.5)
-     case_control_posterior <- posterior_cases(MarginalModelExample,
+     case_control <- rbinom(length(y(SingleBatchModelExample)), 1, 0.5)
+     case_control_posterior <- posterior_cases(SingleBatchModelExample,
                                                case_control)
+}
 }

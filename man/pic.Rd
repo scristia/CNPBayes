@@ -16,5 +16,5 @@ A matrix of size MCMC iterations x Number of components
 Retrieve mixture proportions at each iteration of the MCMC.
 }
 \examples{
-     pic(SingleBatchModelExample)
+     head(pic(MultiBatchModelExample))
 }

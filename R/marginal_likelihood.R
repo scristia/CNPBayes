@@ -138,6 +138,28 @@ mlParams <- function(root=1/10,
        warnings=warnings)
 }
 
+## used for debugging
+## computeML <- function(model, params=mlParams()){
+##   ## calculate p(x|theta)
+##   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
+##   stage2.loglik <- stageTwoLogLik(model)
+## 
+##   ## calculate log p(theta)
+##   logPrior <- modes(model)[["logprior"]]
+## 
+##   ## calculate log p(theta|x)
+##   ##mp <- McmcParams(iter=niter)
+##   mp <- McmcParams(iter=iter(model))
+##   red_gibbs <- .blockUpdates(model, params)
+##   pstar <- blockUpdates(red_gibbs, root=1)
+## 
+##   ## calculate p(x|model)
+##   setNames(c(logLik, stage2.loglik, logPrior,
+##              sum(pstar), log(factorial(k(model)))),
+##            c("loglik", "stage2lik", "logprior",
+##              "total.pstar", "correction"))
+## }
+
 thetaEffectiveSize <- function(model){
   thetas <- as.data.frame(thetac(model))
   eff_size <- sapply(thetas, effectiveSize)

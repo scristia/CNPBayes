@@ -4,7 +4,6 @@
 \name{ggChains}
 \alias{ggChains}
 \alias{ggMixture}
-\alias{ggMultiBatch}
 \alias{ggMixture,MultiBatchCopyNumber-method}
 \alias{ggMixture,MultiBatchCopyNumberPooled-method}
 \alias{ggMixture,MultiBatchModel-method}
@@ -16,8 +15,6 @@
 ggChains(model)
 
 ggMixture(model, bins = 100)
-
-ggMultiBatch(model, bins = 100)
 
 \S4method{ggMixture}{MultiBatchCopyNumber}(model, bins = 100)
 
@@ -43,7 +40,7 @@ A \code{gg} object
 The \code{ggChains} method provides a convenient wrapper for plotting the chains of all parameters in the various mixture model implementations.  In addition to the estimated number of independent MCMC draws (effective sample size) and Gelman-Rubin convergence diagnostics implemented in \code{gibbs}, visualization of the chains is helpful for assessing convergence.
 }
 \details{
-The \code{ggMixture} method overlays the posterior approximation of the Gaussian mixture on the empirical data.
+The \code{ggMixture} method overlays the density of the posterior predictive distribution of the Gaussian mixture on the empirical data. \code{ggMixture} assumes that you have already run the Gibbs sampler either by the \code{gibbs} function or by the \code{posteriorSimulation} function.
 }
 \examples{
   sb <- SingleBatchModelExample
@@ -58,6 +55,8 @@ The \code{ggMixture} method overlays the posterior approximation of the Gaussian
 
   ## plot the mixture
   fig.mix <- ggMixture(sb)
+data(MultiBatchModelExample)
+fig <- ggMixture(MultiBatchModelExample)
 }
 \seealso{
 \code{\link{gibbs}}

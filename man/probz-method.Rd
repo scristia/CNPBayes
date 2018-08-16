@@ -20,5 +20,5 @@ A matrix of size number of observations x number of components
 Retrieve the probability of latent variable membership by observation.
 }
 \examples{
-     probz(SingleBatchModelExample)
+     head(probz(SingleBatchModelExample))
 }

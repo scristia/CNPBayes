@@ -3,17 +3,14 @@ NULL
 
 #' Constructors for SB and SBP models
 #'
-#' Create objects of class SingleBatchModel or SingleBatchPooled
+#' This creates a MultiBatchModel object with a single batch.
 #'
 #' @param dat numeric vector of average log R ratios
 #' @param mp an object of class \code{McmcParams}
 #' @param hp an object of class \code{Hyperparameters}
+#' @rdname SingleBatchModel
 #' @seealso \code{\link{MultiBatchModel2}}
 #' @return An instance of \code{MultiBatchModel}
-#' @examples
-#' SingleBatchModel2()
-#' SingleBatchModel2(dat=rnorm(100), hpList(k=2)[["SB"]])
-#' SingleBatchPooled()
 #' @export
 SingleBatchModel2 <- function(dat=numeric(),
                               hp=Hyperparameters(),
@@ -23,8 +20,25 @@ SingleBatchModel2 <- function(dat=numeric(),
   sb
 }
 
+#' @rdname SingleBatchModel
+#' @seealso \code{\link{MultiBatchModel2}}
+#' @return An instance of \code{MultiBatchModel}
+#' @examples
+#' SB()
+#' SB(dat=rnorm(100), hpList(k=2)[["SB"]])
+#' ## pooled variance model
+#' SingleBatchPooled()
+#' ## or, equivalently
+#' SBP()
 #' @export
-SB <- SingleBatchModel2
+SB <- function(dat=numeric(),
+               hp=Hyperparameters(),
+               mp=McmcParams(iter=1000, burnin=1000,
+                             thin=10, nStarts=4)){
+  sb <- MB(dat=dat, hp=hp, mp=mp, batches=rep(1L, length(dat)))
+  sb
+}
+
 
 
 getK <- function(object){
