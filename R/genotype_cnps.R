@@ -130,14 +130,15 @@ d4 <- function(x, p.b){
   )
 }
 
-mixtureProbs <- function(snpdat, cn.model, min_heterozygosity=0.05){
-  pz <- probCopyNumber(cn.model) %>%
-    as.tibble %>%
-    set_colnames(paste0("prob_cn", unique(mapping(cn.model)))) %>%
-    mutate(id=colnames(snpdat))
-
+#' @param snpdat SummarizedExperiment with gt and baf assays
+#' @param cn.model a CopyNumberModel
+mixtureProbs <- function(snpdat, cn.model){
+  ##pz <- probCopyNumber(cn.model) %>%
+  ##  as.tibble %>%
+  ##  set_colnames(paste0("prob_cn", unique(mapping(cn.model)))) %>%
+  ##  mutate(id=colnames(snpdat))
   snpdat2 <- snpdat
-  select_cols <- unique(mapping(cn.model))
+  ##select_cols <- unique(mapping(cn.model))
   p.b <- p_b(genotypes(snpdat2))
   B <- bafs(snpdat2)
   keep <- rowMeans(is.na(B)) < 0.1
@@ -152,10 +153,12 @@ mixtureProbs <- function(snpdat, cn.model, min_heterozygosity=0.05){
            p1=d1(baf, p.b),
            p2=d2(baf, p.b),
            p3=d3(baf, p.b),
-           p4=d4(baf, p.b))
-  B2 <- filter(B, !is.na(baf)) %>%
-    left_join(pz, by="id")
-  B2
+           p4=d4(baf, p.b)) %>%
+    filter(!is.na(baf))
+##  B2 <- filter(B, !is.na(baf)) %>%
+##    left_join(pz, by="id")
+  ##  B2
+  B
 }
 
 pBaf <- function(snpdat, cn.model){
