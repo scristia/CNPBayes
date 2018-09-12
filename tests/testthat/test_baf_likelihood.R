@@ -66,7 +66,7 @@ test_that("baf likelihood", {
               p.bb=unique(p.bb),
               gt=simulateGt(n, p.aa, p.ab, p.bb, true.model),
               baf=simulateBaf(gt, true.model))
-  id <- paste0("sample", seq_along(y(model1)))
+  id <- paste0("sample", seq_along(y(sb)))
   ## B is returned by modelProb
   BAF.matrix <- do.call(cbind, tab$baf) %>% t %>%
     as.matrix %>%
