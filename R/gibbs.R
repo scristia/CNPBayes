@@ -248,7 +248,10 @@ compute_marginal_lik <- function(model, params){
   model
 }
 
-gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500){
+gibbs_batch <- function(hp, mp, dat, max_burnin=32000,
+                        batches,
+                        min_GR=1.2,
+                        min_effsize=500){
   nchains <- nStarts(mp)
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
   if(iter(mp) < 500){
@@ -256,7 +259,7 @@ gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500)
     MIN_EFF <- ceiling(iter(mp) * 0.5)
   } else MIN_EFF <- min_effsize
   MIN_CHAINS <- 3
-  MIN_GR <- 1.2
+  MIN_GR <- min_GR
   neff <- 0; r <- 2
   while(burnin(mp) < max_burnin && thin(mp) < 100){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
@@ -309,6 +312,7 @@ gibbs_batch_K <- function(hp,
                           batches,
                           max_burnin=32000,
                           reduce_size=TRUE,
+                          min_GR=1.2,
                           min_effsize=500){
   K <- seq(k_range[1], k_range[2])
   hp.list <- map(K, updateK, hp)
@@ -318,6 +322,7 @@ gibbs_batch_K <- function(hp,
                     dat=dat,
                     batches=batches,
                     max_burnin=max_burnin,
+                    min_GR=min_GR,
                     min_effsize=min_effsize)
   names(model.list) <- paste0("MB", map_dbl(model.list, k))
   ## sort by marginal likelihood
@@ -349,6 +354,7 @@ gibbs_batch_K <- function(hp,
 #' @param top a length-one numeric vector indicating how many of the top
 #'   models to return.
 #' @param df length-1 numeric vector for t-distribution degrees of freedom
+#' @param min_GR length-1 numeric vector specifying the maximum Gelman-Rubin (GR) statistic.  If the GR statistic is above this value, the marginal likelihood will not be estimated.
 #' @param min_effsize length-1 numeric vector specifying the minimum effective size of the MCMC simulations.  If below this value, the marginal likelihood will not be estimated.
 #'
 #' @details For each model specified, a Gibbs sampler will be initiated
@@ -356,7 +362,7 @@ gibbs_batch_K <- function(hp,
 #\code{nStarts > 2}).  The burnin, number of iterations after burnin,
 #and the thin parameters are specified in the \code{mp} argument.    If
 #the effective number of independent MCMC draws for any of the parameter
-#chains is less than \code{min_effsize} or if the multivariate Gelman Rubin convergence #diagnostic is less than 1.2, the thin and the burnin will be doubled and we start over -- new chains are initalized independently and the Gibbs sampler is restarted. This process is repeated until the effective sample size is greater than 500 and the Gelman Rubin #convergence diagnostic is less than 1.2.
+#chains is less than \code{min_effsize} or if the multivariate Gelman Rubin convergence #diagnostic is less than 1.2 (default), the thin and the burnin will be doubled and we start over -- new chains are initalized independently and the Gibbs sampler is restarted. This process is repeated until the effective sample size is greater than 500 and the Gelman Rubin #convergence diagnostic is less than 1.2.
 #'
 #' The number of mixture models fit depends on \code{k_range} and
 #\code{model}. For example, if \code{model=c("SBP", "MBP")} and
@@ -392,6 +398,7 @@ gibbs_batch_K <- function(hp,
 #'         batches=batch(truth),
 #'         k_range=c(1, 4),
 #'         max_burnin=max_burnin,
+#'         min_GR=1.2,
 #'         top=2,
 #'         df=100))
 #'
@@ -408,7 +415,8 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                   max_burnin=32e3,
                   top=2,
                   df=100,
-                  min_effsize=500){
+                  min_effsize=500,
+                  min_GR=1.2){
   if(any(!model %in% c("SB", "MB", "SBP", "MBP")))
     stop("model must be a character vector with elements `SB`, `MB`, `SBP`, `MBP`")
   model <- unique(model)
@@ -428,6 +436,7 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                         dat=dat,
                         batches=rep(1L, length(dat)),
                         max_burnin=max_burnin,
+                        min_GR=min_GR,
                         min_effsize=min_effsize)
   } else sb <- NULL
   if("MB" %in% model){
@@ -438,6 +447,7 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                         dat=dat,
                         batches=batches,
                         max_burnin=max_burnin,
+                        min_GR=min_GR,
                         min_effsize=min_effsize)
   } else mb <- NULL
   if("SBP" %in% model){
@@ -448,6 +458,7 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                                  dat=dat,
                                  batches=rep(1L, length(dat)),
                                  max_burnin=max_burnin,
+                                 min_GR=min_GR,
                                  min_effsize=min_effsize)
   } else sbp <- NULL
   if("MBP" %in% model){
@@ -458,6 +469,7 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
                                  dat=dat,
                                  batches=batches,
                                  max_burnin=max_burnin,
+                                 min_GR=min_GR,
                                  min_effsize=min_effsize)
   } else mbp <- NULL
   models <- c(sb, mb, sbp, mbp)
