@@ -364,8 +364,8 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 
 ## Combine batches if distribution of one-dimensional summary is similar by Kolmogorov-Smirnov test statistic
 ##
-#' Estimate batch from a collection of chemistry plates or some other
-#' variable that captures the time in which the arrays were processed.
+
+#' Estimate batch from any sample-level surrogate variables that capture aspects of sample processing, such as the PCR experiment (e.g., the 96 well chemistry plate), laboratory, DNA source, or DNA extraction method.
 #'
 #' In high-throughput assays, low-level summaries of copy number at
 #' copy number polymorphic loci (e.g., the mean log R ratio for each
@@ -389,7 +389,8 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' \code{ks.test} implemented in the \code{stats} package that
 #' compares all pairwise combinations of plates.  The \code{ks.test}
 #' is performed recursively on the batch variables defined for a given
-#' CNP until no batches can be combined.
+#' CNP until no batches can be combined. For smaller values of THR, plates are more likely to be judged as similar and combined.
+#'
 #' @examples
 #' mb.ex <- MultiBatchModelExample
 #' batches <- batch(mb.ex)
@@ -402,12 +403,13 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #'             mp=mcmcParams(mb.ex))
 #' @param object see \code{showMethods(collapseBatch)}
 #' @param provisional_batch a vector labelling from which batch each observation came from.
-#' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
+#' @param THR p-value threshold below which the null hypothesis should be rejected and batches are collapsed
+#' @param nchar integer specifying the maximum number of characters in the batch labels
 #' @return The new batch value.
 #' @export
 #' @docType methods
 #' @rdname collapseBatch-method
-setGeneric("collapseBatch", function(object, provisional_batch, THR=0.1) standardGeneric("collapseBatch"))
+setGeneric("collapseBatch", function(object, provisional_batch, THR=0.1, nchar=8) standardGeneric("collapseBatch"))
 
 
 

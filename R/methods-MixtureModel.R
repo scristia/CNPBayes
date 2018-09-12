@@ -369,10 +369,10 @@ setReplaceMethod("m2.0", "Hyperparameters", function(object, value){
 ##
 ## the batch names tend to be much too long
 ##
-makeUnique <- function(x){
+makeUnique <- function(x, nchar=8){
   ub <- unique(x)
   ##names(ub) <- ub
-  maxchar <- pmin(nchar(ub), 8)
+  maxchar <- pmin(nchar(ub), nchar)
   abbrv <- setNames(make.unique(substr(ub, 1, maxchar)), ub)
   as.character(abbrv[x])
 }
