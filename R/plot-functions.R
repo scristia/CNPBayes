@@ -329,12 +329,12 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
     summarize(n=n())
   predictive <- left_join(predictive, predictive.summary,
                           by=c("model", "batch")) %>%
-    mutate(batch=paste("Batch", batch))
+    mutate(batch=factor(paste("Batch", batch)))
   colors <- colors[seq_len(k(model))]
   ##df <- multiBatchDensities(model)
   full.data <- tibble(y=y(model),
                       batch=batch(model)) %>%
-    mutate(batch=paste("Batch", batch)) %>%
+    mutate(batch=factor(paste("Batch", batch))) %>%
     mutate(model=modelName(model))
   ##xlimit <- c(-5, 1)
   batch.data <- full.data %>%
@@ -354,6 +354,7 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
                    color="gray70",
                    fill="gray70",
                    alpha=0.1) +
+    facet_wrap(~batch, ncol=1, strip.position="right") +
     geom_density(adjust=1, alpha=0.4, size=0.75, color="gray30") +
     geom_text(data=batch.data, aes(x=x, y=y, label=paste0("  n=", n)),
               hjust="inward", vjust="inward",
@@ -365,7 +366,6 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
           legend.position="bottom",
           legend.direction="horizontal") +
     ##facet_grid(batch~model,
-    facet_wrap(~batch, ncol=1, strip.position="right") +
     ##labeller=labeller(model=ml)) +
     scale_y_sqrt() +
     scale_color_manual(values=colors) +
