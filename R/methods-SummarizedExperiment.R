@@ -123,19 +123,27 @@ setMethod("collapseBatch", "numeric", function(object, provisional_batch, THR=0.
 #'
 #' @details All pairwise comparisons of batches are performed.  The two most similar batches are combined if the p-value exceeds THR.  The process is repeated recursively until no two batches can be combined.
 #' @return vector of batch labels
-collapseBatch2 <- function(oned, provisional_batch, THR=0.1){
-  .combineBatches3(oned, provisional_batch, THR)
+combineSurrogates <- function(oned, provisional_batch, THR=0.1){
+  dat <- tibble(oned=oned, provisional_batch=provisional_batch)
+  .combineBatches3(dat, THR)
 }
 
-.combineBatches3 <- function(yy, B, THR=0.1){
-  current <- B
+.combineBatches3 <- function(dat, THR=0.1, min_oned=-1){
+  dat2 <- filter(dat, oned > min_oned)
+  current <- dat2$provisional_batch
+  oned <- dat2$oned
   latest <- NULL
   while(!identical(current, latest)){
     if(is.null(latest)) latest <- current
     current <- latest
-    latest <- .combineBatches2(yy, current, THR)$batches
+    latest <- .combineBatches2(oned, current, THR)$batches
   }
-  latest
+  result <- tibble(provisional_batch=dat2$provisional_batch,
+                   batch=latest) %>%
+    group_by(provisional_batch) %>%
+    summarize(batch=unique(batch))
+  dat3 <- left_join(dat, result, by="provisional_batch")
+  dat3$batch
 }
 
 .combineBatches2 <- function(yy, B, THR=0.1){
@@ -153,10 +161,12 @@ collapseBatch2 <- function(oned, provisional_batch, THR=0.1){
   for(j in seq_along(uB)){
     for(k in seq_along(uB)){
       if(k <= j) next() ## next k
+      ## get rid of duplicate values
+      yy <- yy + runif(length(yy), -1e-10, 1e-10)
       b1 <- uB[j]
       b2 <- uB[k]
       ## edits
-      tmp <- suppressWarnings(ks.test(yy[B==b1], yy[B==b2]))
+      tmp <- ks.test(yy[B==b1], yy[B==b2])
       stat[j, k] <- tmp$statistic
       bb <- c(b1, b2) %>%
         sort %>%
