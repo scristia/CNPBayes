@@ -517,3 +517,104 @@ gibbs2 <- function(dat, gp=gPar(df=100)){
                   max_burnin=gp$max_burnin)
   list(models=models, data=dat2)
 }
+
+gibbs_multibatch_pooled <- function(hp, mp, dat,
+                                    max_burnin=32000,
+                                    batches,
+                                    min_GR=1.2,
+                                    min_effsize=500){
+  nchains <- nStarts(mp)
+  nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
+  if(iter(mp) < 500){
+    warning("Require at least 500 Monte Carlo simulations")
+    MIN_EFF <- ceiling(iter(mp) * 0.5)
+  } else MIN_EFF <- min_effsize
+  while(burnin(mp) < max_burnin && thin(mp) < 100){
+    message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
+    mod.list <- replicate(nchains, MultiBatchPooled(dat=dat,
+                                                    hp=hp,
+                                                    mp=mp,
+                                                    batches=batches))
+    mod.list <- suppressWarnings(map(mod.list, .posteriorSimulation2))
+    label_swapping <- map_lgl(mod.list, label_switch)
+    nswap <- sum(label_swapping)
+    if(nswap > 0){
+      mp@thin <- as.integer(thin(mp) * 2)
+      if(thin(mp) > 100){
+        mlist <- mcmcList(mod.list)
+        neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
+        if(is.null(neff)) neff <- 0
+        r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
+        if(is.null(r)) r <- list(mpsrf=10)
+        break()
+      }
+      message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
+      mod.list2 <- replicate(nswap,
+                             MultiBatchPooled(dat=dat,
+                                              mp=mp,
+                                              hp=hp,
+                                              batches=batches))
+      mod.list2 <- suppressWarnings(map(mod.list2, .posteriorSimulation2))
+      mod.list[ label_swapping ] <- mod.list2
+      label_swapping <- map_lgl(mod.list, label_switch)
+      if(any(label_swapping)){
+        message("  Label switching detected")
+        mlist <- mcmcList(mod.list)
+        neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
+        if(is.null(neff)) neff <- 0
+        r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
+        if(is.null(r)) r <- list(mpsrf=10)
+        break()
+      }
+    }
+    mod.list <- mod.list[ selectModels(mod.list) ]
+    mlist <- mcmcList(mod.list)
+    neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
+    if(is.null(neff)) neff <- 0
+    r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
+    if(is.null(r)) r <- list(mpsrf=10)
+    message("     r: ", round(r$mpsrf, 2))
+    message("     eff size (minimum): ", round(min(neff), 1))
+    message("     eff size (median): ", round(median(neff), 1))
+    if(all(neff > MIN_EFF) && r$mpsrf < min_GR) break()
+    burnin(mp) <- as.integer(burnin(mp) * 2)
+    mp@thin <- as.integer(thin(mp) * 2)
+  }
+  model <- combine_multibatch_pooled(mod.list, batches)
+  meets_conditions <- all(neff > MIN_EFF) &&
+    r$mpsrf < 2 && !label_switch(model)
+  if(meets_conditions){
+    testing <- tryCatch(compute_marginal_lik(model), error=function(e) NULL)
+    if(is.null(testing)) return(testing)
+    model <- testing
+  }
+  model
+}
+
+gibbsMultiBatchPooled <- function(hp,
+                                  mp,
+                                  k_range=c(1, 4),
+                                  dat,
+                                  batches,
+                                  max_burnin=32000,
+                                  reduce_size=TRUE,
+                                  min_GR=1.2,
+                                  min_effsize=500){
+  K <- seq(k_range[1], k_range[2])
+  hp.list <- map(K, updateK, hp)
+  model.list <- map(hp.list,
+                    gibbs_multibatch_pooled,
+                    mp=mp,
+                    dat=dat,
+                    batches=batches,
+                    max_burnin=max_burnin,
+                    min_GR=min_GR,
+                    min_effsize=min_effsize)
+  names(model.list) <- paste0("MBP", map_dbl(model.list, k))
+  ## sort by marginal likelihood
+  ##
+  ## if(reduce_size) TODO:  remove z chain, keep y in one object
+  ##
+  ix <- order(map_dbl(model.list, marginal_lik), decreasing=TRUE)
+  models <- model.list[ix]
+}
