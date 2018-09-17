@@ -279,7 +279,11 @@ gibbs_batch <- function(hp, mp, dat, max_burnin=32000,
     mod.list <- mod.list[ selectModels(mod.list) ]
     mlist <- mcmcList(mod.list)
     neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-    if(is.null(neff)) neff <- 0
+    if(is.null(neff)){
+      neff <- 0
+    }else {
+      neff <- neff[ neff > 0 ]
+    }
     r <- gelman_rubin(mlist, hp)
     message("     Gelman-Rubin: ", round(r$mpsrf, 2))
     message("     eff size (median): ", round(min(neff), 1))
@@ -510,7 +514,6 @@ gibbs2 <- function(dat, gp=gPar(df=100)){
                   mp=gp$mp,
                   hp.list=gp$hp,
                   k_range=gp$k_range,
-                  max_burnin=gp$max_burnin,
                   top=gp$top,
                   df=gp$df,
                   min_effsize=gp$min_effsize,
@@ -543,7 +546,11 @@ gibbs_multibatch_pooled <- function(hp, mp, dat,
       if(thin(mp) > 100){
         mlist <- mcmcList(mod.list)
         neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-        if(is.null(neff)) neff <- 0
+        if(is.null(neff)){
+          neff <- 0
+        }else {
+          neff <- neff[ neff > 0 ]
+        }
         r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
         if(is.null(r)) r <- list(mpsrf=10)
         break()
@@ -561,7 +568,11 @@ gibbs_multibatch_pooled <- function(hp, mp, dat,
         message("  Label switching detected")
         mlist <- mcmcList(mod.list)
         neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-        if(is.null(neff)) neff <- 0
+        if(is.null(neff)){
+          neff <- 0
+        }else {
+          neff <- neff[ neff > 0 ]
+        }
         r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
         if(is.null(r)) r <- list(mpsrf=10)
         break()
@@ -570,13 +581,17 @@ gibbs_multibatch_pooled <- function(hp, mp, dat,
     mod.list <- mod.list[ selectModels(mod.list) ]
     mlist <- mcmcList(mod.list)
     neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-    if(is.null(neff)) neff <- 0
+    if(is.null(neff)){
+      neff <- 0
+    }else {
+      neff <- neff[ neff > 0 ]
+    }
     r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
     if(is.null(r)) r <- list(mpsrf=10)
     message("     r: ", round(r$mpsrf, 2))
     message("     eff size (minimum): ", round(min(neff), 1))
     message("     eff size (median): ", round(median(neff), 1))
-    if(all(neff > MIN_EFF) && r$mpsrf < min_GR) break()
+    if(mean(neff) > MIN_EFF && r$mpsrf < min_GR) break()
     burnin(mp) <- as.integer(burnin(mp) * 2)
     mp@thin <- as.integer(thin(mp) * 2)
   }
