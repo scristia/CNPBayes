@@ -13,10 +13,10 @@
 augmentData <- function(full.data){
   full.data$augmented <- FALSE
   dat <- group_by(full.data, batch) %>%
-    summarize(nhom=sum(medians < -1),
-              min_homdel=min(medians),
-              nambiguous=sum(medians < -0.9))
-  nzero <- sum(dat$nhom <= 2)
+    summarize(nhom=sum(medians < -1, na.rm=TRUE),
+              min_homdel=min(medians, na.rm=TRUE),
+              nambiguous=sum(medians < -0.9, na.rm=TRUE))
+  nzero <- sum(dat$nhom <= 2, na.rm=TRUE)
   if(nzero == 0 || nzero == nrow(dat))
     return(full.data)
   dat2 <- dat %>%
