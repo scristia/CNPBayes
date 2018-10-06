@@ -888,3 +888,26 @@ setReplaceMethod("dfr", c("MixtureModel", "numeric"),
                    object@u <- rchisq(length(y(object)), value)
                    object
                  })
+
+## i can be logical or numeric
+setMethod("[", c("MixtureModel", "logical"),
+          function(x, i, j, ..., drop=TRUE){
+            x@data <- oned(x)[i]
+            x@z <- z(x)[i]
+            x@probz <- x@probz[i, , drop=FALSE]
+            x@zfreq <- as.integer(table(z(x)))
+            x@batch <- batch(x)[i]
+            x@batchElements <- as.integer(table(batch(x)))
+            return(x)
+})
+
+setMethod("[", c("MixtureModel", "numeric"),
+          function(x, i, j, ..., drop=TRUE){
+            x@data <- oned(x)[i]
+            x@z <- z(x)[i]
+            x@probz <- x@probz[i, , drop=FALSE]
+            x@zfreq <- as.integer(table(z(x)))
+            x@batch <- batch(x)[i]
+            x@batchElements <- as.integer(table(batch(x)))
+            return(x)
+          })

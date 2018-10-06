@@ -486,40 +486,40 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP"),
   models
 }
 
-gPar <- function(model=c("SB", "MB", "SBP", "MBP"),
-                 df=100, iter=1000, burnin=1000, thin=1,
-                 max_burnin=32e3, top=2,
-                 min_effsize=500,
-                 min_GR=1.2,
-                 hp=hpList(df=100)){
-  list(model=model,
-       hp.list=hp,
-       mp=mcmcParams(iter=iter, burnin=burnin, thin=thin),
-       k_range=c(1, 4),
-       max_burnin=32e3,
-       df=df,
-       min_GR=min_GR,
-       min_effsize=min_effsize)
-}
-
-#' @param dat a tibble containing id, oned summary, and batch
-#' @param gp a list of parameters for the Bayesian model and MCMC
-gibbs2 <- function(dat, gp=gPar(df=100)){
-  if(!"id" %in% colnames(dat)) stop("dat must have an id field")
-  dat2 <- dat %>%
-    arrange(batch_index)
-  models <- gibbs(model=gpar[["model"]],
-                  dat=dat2$oned,
-                  batches=dat2$batch_index,
-                  mp=gp$mp,
-                  hp.list=gp$hp,
-                  k_range=gp$k_range,
-                  top=gp$top,
-                  df=gp$df,
-                  min_effsize=gp$min_effsize,
-                  max_burnin=gp$max_burnin)
-  list(models=models, data=dat2)
-}
+## gPar <- function(model=c("SB", "MB", "SBP", "MBP"),
+##                  df=100, iter=1000, burnin=1000, thin=1,
+##                  max_burnin=32e3, top=2,
+##                  min_effsize=500,
+##                  min_GR=1.2,
+##                  hp=hpList(df=100)){
+##   list(model=model,
+##        hp.list=hp,
+##        mp=mcmcParams(iter=iter, burnin=burnin, thin=thin),
+##        k_range=c(1, 4),
+##        max_burnin=32e3,
+##        df=df,
+##        min_GR=min_GR,
+##        min_effsize=min_effsize)
+## }
+## 
+## #' @param dat a tibble containing id, oned summary, and batch
+## #' @param gp a list of parameters for the Bayesian model and MCMC
+## gibbs2 <- function(dat, gp=gPar(df=100)){
+##   if(!"id" %in% colnames(dat)) stop("dat must have an id field")
+##   dat2 <- dat %>%
+##     arrange(batch_index)
+##   models <- gibbs(model=gpar[["model"]],
+##                   dat=dat2$oned,
+##                   batches=dat2$batch_index,
+##                   mp=gp$mp,
+##                   hp.list=gp$hp,
+##                   k_range=gp$k_range,
+##                   top=gp$top,
+##                   df=gp$df,
+##                   min_effsize=gp$min_effsize,
+##                   max_burnin=gp$max_burnin)
+##   list(models=models, data=dat2)
+## }
 
 gibbs_multibatch_pooled <- function(hp, mp, dat,
                                     max_burnin=32000,
