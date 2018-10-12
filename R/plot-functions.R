@@ -526,7 +526,8 @@ multibatch_figure <- function(theoretical, empirical, model){
   scale_y <- scale_y_sqrt()
   lrr <- NULL
   ..count.. <- NULL
-  ghist <- geom_histogram(data=empirical, aes(lrr, ..count..), binwidth=0.01, inherit.aes=FALSE)
+  ghist <- geom_histogram(data=empirical, aes(lrr, ..count..),
+                          binwidth=0.01, inherit.aes=FALSE)
   gobj <- ggplot() + ghist + facet_wrap(~batch)
   gb <- ggplot_build(gobj)
   ylimit <- gb$layout$panel_ranges[[1]][["y.range"]]
