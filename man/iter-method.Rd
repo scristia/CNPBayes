@@ -6,29 +6,31 @@
 \alias{iter<-}
 \alias{iter}
 \alias{iter,McmcParams-method}
+\alias{iter<-,McmcParams,ANY-method}
 \alias{iter<-,McmcParams-method}
 \alias{iter,MixtureModel-method}
+\alias{iter<-,MixtureModel,ANY-method}
 \alias{iter<-,MixtureModel-method}
 \title{Reset number of iterations.}
 \usage{
-iter(object, force = FALSE) <- value
+iter(object) <- value
 
 iter(object)
 
 \S4method{iter}{McmcParams}(object)
 
-\S4method{iter}{McmcParams}(object, force = FALSE) <- value
+\S4method{iter}{McmcParams,ANY}(object) <- value
 
 \S4method{iter}{MixtureModel}(object)
 
-\S4method{iter}{MixtureModel}(object, force = FALSE) <- value
+\S4method{iter}{MixtureModel,ANY}(object) <- value
 }
 \arguments{
 \item{object}{see \code{showMethods(iter)}}
 
-\item{force}{Allow changing of the size of the elements?}
-
 \item{value}{new number of iterations}
+
+\item{force}{Allow changing of the size of the elements?}
 }
 \value{
 The number of MCMC iterations

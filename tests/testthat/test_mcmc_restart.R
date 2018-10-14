@@ -5,7 +5,7 @@ test_that("test_mcmc_restart", {
   truth <- simulateData(N = 500, theta = c(-1, 0, 1), sds = c(0.1,
       0.1, 0.1), p = c(1/5, 1/6, 1 - 1/5 - 1/6))
   model <- truth
-  mcmcParams(model, force = TRUE) <- McmcParams(iter = 1, burnin = 0, nStarts=0)
+  mcmcParams(model) <- McmcParams(iter = 1, burnin = 0, nStarts=0)
   model <- posteriorSimulation(model)
   ##tmp=replicate(20, theta(posteriorSimulation(model)))
   mc <- chains(model)
@@ -18,7 +18,7 @@ test_that("test_mcmc_restart", {
   theta.last <- theta(model)
   expect_identical(theta.first, theta.last[1, ])
   model <- truth
-  mcmcParams(model, force = TRUE) <- McmcParams(iter = 1, burnin = 1)
+  mcmcParams(model) <- McmcParams(iter = 1, burnin = 1)
   model <- posteriorSimulation(model)
   mc <- chains(model)
   ## not the same as truth because of burnin

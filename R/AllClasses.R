@@ -161,7 +161,6 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         .internal.constraint="numeric",
                                         .internal.counter="integer"))
 
-
 #' An object for running MCMC simulations.
 #'
 #' Run hierarchical MCMC for batch model.

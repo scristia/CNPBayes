@@ -1,4 +1,4 @@
-""#' @include AllGenerics.R
+#' @include AllGenerics.R
 NULL
 
 setValidity("MixtureModel", function(object){
@@ -68,6 +68,7 @@ sigma.0 <- function(object) sqrt(sigma2.0(object))
 
 
 
+
 #' Retrieve mixture proportions.
 #'
 #' @examples
@@ -75,12 +76,19 @@ sigma.0 <- function(object) sqrt(sigma2.0(object))
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A vector of length the number of components
 #' @export
-p <- function(object) object@pi
+setMethod("p", "MixtureModel", function(object){
+  object@pi
+})
 
 nComp <- function(object) length(p(object))
-dataMean <- function(object) object@data.mean
-dataPrec <- function(object) object@data.prec
-dataSd <- function(object) sqrt(1/dataPrec(object))
+
+setMethod("dataMean", "MixtureModel", function(object) object@data.mean)
+setMethod("dataPrec", "MixtureModel", function(object) object@data.prec)
+setMethod("dataSd", "MixtureModel", function(object) sqrt(1/dataPrec(object)))
+
+##dataMean <- function(object) object@data.mean
+##dataPrec <- function(object) object@data.prec
+##dataSd <- function(object) sqrt(1/dataPrec(object))
 
 #' @rdname k-method
 #' @aliases k,MixtureModel-method
@@ -585,10 +593,10 @@ setReplaceMethod("burnin", "MixtureModel", function(object, value){
 
 #' @rdname iter-method
 #' @aliases iter<-,MixtureModel-method
-setReplaceMethod("iter", "MixtureModel", function(object, force=FALSE, value){
+setReplaceMethod("iter", "MixtureModel", function(object, value){
   mp <- mcmcParams(object)
   iter(mp) <- value
-  mcmcParams(object, force=force) <- mp
+  mcmcParams(object) <- mp
   object
 })
 
@@ -612,27 +620,20 @@ sigma20c <- function(object) sigma2.0(chains(object))
 
 #' @rdname mcmcParams-method
 #' @aliases mcmcParams,MixtureModel-method
-setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=TRUE, value){
+setReplaceMethod("mcmcParams", "MixtureModel", function(object, value){
   it <- iter(object)
   if(it != iter(value)){
-    if(!force){
-      msg <- "Replacement will change the size of the elements in mcmc.chains slot."
-      msg2 <- "Force=TRUE will allow the replacement"
-      stop(paste(msg, msg2, sep="\n"))
+    if(iter(value) > iter(object)){
+      object@mcmc.params <- value
+      ## create a new chain
+      mcmc_chains <- McmcChains(object)
     } else {
-      ## force is TRUE
-      if(iter(value) > iter(object)){
-        object@mcmc.params <- value
-        ## create a new chain
-        mcmc_chains <- McmcChains(object)
-      } else {
-        object@mcmc.params <- value
-        index <- seq_len(iter(value))
-        mcmc_chains <- chains(object)[index, ]
-      }
-      chains(object) <- mcmc_chains
-      return(object)
+      object@mcmc.params <- value
+      index <- seq_len(iter(value))
+      mcmc_chains <- chains(object)[index, ]
     }
+    chains(object) <- mcmc_chains
+    return(object)
   }
   ## if we've got to this point, it must be safe to update mcmc.params
   ## (i.e., size of chains is not effected)
@@ -643,9 +644,9 @@ setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=TRUE, valu
 #' @rdname mcmcParams-method
 #' @aliases mcmcParams,list-method
 setReplaceMethod("mcmcParams", "list",
-                 function(object, force=TRUE, value){
+                 function(object, value){
                    for(i in seq_along(object)){
-                     mcmcParams(object[[i]], force=force) <- value
+                     mcmcParams(object[[i]]) <- value
                    }
                    object
                  })

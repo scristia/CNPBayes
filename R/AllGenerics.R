@@ -83,6 +83,9 @@ setGeneric("tau2", function(object) standardGeneric("tau2"))
 setGeneric("tau2<-", function(object, value) standardGeneric("tau2<-"))
 setGeneric("nu.0<-", function(object, value) standardGeneric("nu.0<-"))
 setGeneric("sigma2.0<-", function(object, value) standardGeneric("sigma2.0<-"))
+
+setGeneric("dataMean", function(object) standardGeneric("dataMean"))
+setGeneric("dataPrec", function(object) standardGeneric("dataPrec"))
 setGeneric("dataMean<-", function(object, value) standardGeneric("dataMean<-"))
 setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 
@@ -286,6 +289,8 @@ setGeneric("y<-", function(object, value) standardGeneric("y<-"))
 #' @rdname oned-method
 #' @export
 setGeneric("oned", function(object) standardGeneric("oned"))
+
+setGeneric("oned<-", function(object, value) standardGeneric("oned<-"))
 
 #' Retrieve latent variable assignments.
 #'
@@ -546,7 +551,7 @@ setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 #' @export
 #' @docType methods
 #' @rdname iter-method
-setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<-"))
+setGeneric("iter<-", function(object, value) standardGeneric("iter<-"))
 
 #' Number of MCMC iterations.
 #'
@@ -667,7 +672,7 @@ setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
 #' @export
 #' @docType methods
 #' @rdname mcmcParams-method
-setGeneric("mcmcParams<-", function(object, force=FALSE, value) standardGeneric("mcmcParams<-"))
+setGeneric("mcmcParams<-", function(object, value) standardGeneric("mcmcParams<-"))
 
 #' Calculate log likelihood of prior for model
 #'
@@ -804,7 +809,7 @@ setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
 #' @export
 #' @examples
 #'   sb <- SingleBatchModelExample
-#'   iter(sb, force=TRUE) <- 1000
+#'   iter(sb) <- 1000
 #'   burnin(sb) <- 100
 #'   sb <- posteriorSimulation(sb)
 #'   fig.chains <- ggChains(sb)
@@ -929,3 +934,17 @@ setGeneric("dfr", function(object) standardGeneric("dfr"))
 setGeneric("dfr<-", function(object, value) standardGeneric("dfr<-"))
 
 setGeneric("u", function(object) standardGeneric("u"))
+
+setGeneric("p", function(object) standardGeneric("p"))
+
+setGeneric("sigma<-", function(object, value) standardGeneric("sigma<-"))
+
+setGeneric("flags", function(object) standardGeneric("flags"))
+setGeneric("flags<-", function(object, value) standardGeneric("flags<-"))
+setGeneric("values<-", function(object, value) standardGeneric("values<-"))
+setGeneric("u<-", function(object, value) standardGeneric("u<-"))
+setGeneric("parameters", function(object) standardGeneric("parameters"))
+setGeneric("parameters<-", function(object, value) standardGeneric("parameters<-"))
+setGeneric("summaries", function(object) standardGeneric("summaries"))
+setGeneric("summaries<-", function(object, value) standardGeneric("summaries<-"))
+setGeneric("dataSd", function(object) standardGeneric("dataSd"))

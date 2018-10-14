@@ -1,9 +1,25 @@
+## number comonents (K)
+## number MCMC (S)
+## number batches (B)
+initialize_mcmc <- function(K, S, B){
+  new("McmcChains",
+      theta=matrix(NA, S, K*B),
+      sigma2=matrix(NA, S, K*B),
+      pi=matrix(NA, S, K),
+      mu=numeric(S),
+      tau2=numeric(S),
+      nu.0=numeric(S),
+      sigma2.0=numeric(S),
+      logprior=numeric(S),
+      loglik=numeric(S),
+      zfreq=matrix(as.integer(NA), S, K))
+}
+
 .initializeMcmc <- function(object){
   ## add 1 for starting values (either the last run from the burnin,
   ## or default values if no burnin
   mcmc.params <- mcmcParams(object)
   nr <- iter(mcmc.params)
-  ns <- length(y(object))
   K <- k(object)
   mati <- matrix(as.integer(NA), nr, K)
   vec <- numeric(nr)
@@ -25,7 +41,6 @@
   ## or default values if no burnin
   mcmc.params <- mcmcParams(object)
   nr <- iter(mcmc.params)
-  ns <- length(y(object))
   K <- k(object)
   mati <- matrix(as.integer(NA), nr, K)
   vec <- numeric(nr)
@@ -174,6 +189,10 @@ setReplaceMethod("theta", "McmcChains", function(object, value){
 setReplaceMethod("sigma2", "McmcChains", function(object, value){
   object@sigma2 <- value
   object
+})
+
+setMethod("p", "McmcChains", function(object){
+  object@pi
 })
 
 setReplaceMethod("p", "McmcChains", function(object, value){

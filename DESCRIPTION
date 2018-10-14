@@ -48,6 +48,8 @@ Collate:
     'AllClasses.R'
     'Cfunctions.R'
     'Defunct-classes.R'
+    'MixtureModelClasses.R'
+    'MultiBatchList.R'
     'RcppExports.R'
     'augment.R'
     'coerce-methods.R'

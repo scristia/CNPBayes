@@ -35,6 +35,11 @@ setReplaceMethod("burnin", "McmcParams", function(object,value){
 #' @aliases thin,McmcParams-method
 setMethod("thin", "McmcParams", function(object) object@thin)
 
+setReplaceMethod("thin", c("McmcParams", "numeric"), function(object, value){
+  object@thin <- value
+  object
+})
+
 #' @rdname iter-method
 #' @aliases iter,McmcParams-method
 setMethod("iter", "McmcParams", function(object) object@iter)
@@ -88,7 +93,7 @@ setReplaceMethod("paramUpdates", "McmcParams", function(x, value){
 
 #' @rdname iter-method
 #' @aliases iter<-,McmcParams-method
-setReplaceMethod("iter", "McmcParams", function(object, force=FALSE, value){
+setReplaceMethod("iter", "McmcParams", function(object, value){
   object@iter <- value
   object
 })

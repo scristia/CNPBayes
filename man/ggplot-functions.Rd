@@ -44,7 +44,7 @@ The \code{ggMixture} method overlays the density of the posterior predictive dis
 }
 \examples{
   sb <- SingleBatchModelExample
-  iter(sb, force=TRUE) <- 1000
+  iter(sb) <- 1000
   burnin(sb) <- 100
   sb <- posteriorSimulation(sb)
   fig.chains <- ggChains(sb)

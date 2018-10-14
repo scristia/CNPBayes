@@ -10,7 +10,7 @@ test_that("ggfun", {
   expect_is(tmp, "ggplot")
 
   mm <- SingleBatchModelExample
-  iter(mm, force=TRUE) <- 500
+  iter(mm) <- 500
   burnin(mm) <- 100
   nStarts(mm) <- 1
   thin(mm) <- 1

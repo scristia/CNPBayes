@@ -2,6 +2,16 @@ load("../data/MarginalModelExample.RData")
 SingleBatchModelExample <- as(MarginalModelExample, "SingleBatchModel")
 save(SingleBatchModelExample, file="../data/SingleBatchModelExample.rda")
 
+setMethod("coerce", "MultiBatchModel", "MultiBatchModel2", function(from, to){
+  dat <- tibble(id=as.character(seq_along(y(from))),
+                oned=y(from),
+                batch=batch(from))
+  
+})
+
+
+
+
 load("../data/BatchModelExample.RData")
 MultiBatchModelExample <- as(BatchModelExample, "MultiBatchModel")
 save(MultiBatchModelExample, file="../data/MultiBatchModelExample.rda")
