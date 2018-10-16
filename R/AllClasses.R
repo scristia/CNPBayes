@@ -89,6 +89,10 @@ setClass("McmcChains", representation(theta="matrix",
 #' @slot burnin A one length numeric to specify burnin. The first $n$ samples will be discarded.
 #' @slot nstarts A one length numeric to specify the number of chains in a simulation.
 #' @slot param_updates Indicates whether each parameter should be updated (1) or fixed (0).
+#' @slot min_GR minimum value of multivariate Gelman Rubin statistic for diagnosing convergence. Default is 1.2.
+#' @slot min_effsize  the minimum mean effective size of the chains. Default is 1/3 * iter.
+#' @slot max_burnin The maximum number of burnin iterations before we give up and return the existing model.
+#' @slot min_chains minimum number of independence MCMC chains used for assessing convergence. Default is 3.
 #' @examples
 #' McmcParams()
 #' McmcParams(iter=1000)
@@ -99,7 +103,11 @@ setClass("McmcParams", representation(thin="numeric",
                                       iter="numeric",
                                       burnin="numeric",
                                       nstarts="numeric",
-                                      param_updates="integer"))
+                                      param_updates="integer",
+                                      min_GR="numeric",
+                                      min_effsize="numeric",
+                                      max_burnin="numeric",
+                                      min_chains="numeric"))
 
 #' An object for running MCMC simulations.
 #'

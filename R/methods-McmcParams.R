@@ -9,20 +9,47 @@
 #' @param param_updates labeled vector specifying whether each parameter is to be updated (1) or not (0).
 #' @return An object of class 'McmcParams'
 #' @export
-McmcParams <- function(iter=1000L, burnin=0L, thin=1L, nStarts=1L,
-                       param_updates=.param_updates()){
+McmcParams <- function(iter=1000L,
+                       burnin=0L,
+                       thin=1L,
+                       nStarts=1L,
+                       param_updates=.param_updates(),
+                       min_GR=1.2,
+                       min_effsize=round(1/3*iter, 0),
+                       max_burnin=32000,
+                       min_chains=1){
   if(missing(thin)) thin <- rep(1L, length(iter))
   new("McmcParams", iter=as.integer(iter),
       burnin=as.integer(burnin),
       thin=as.integer(thin),
       nstarts=as.integer(nStarts),
-      param_updates=param_updates)
+      param_updates=param_updates,
+      min_GR=min_GR,
+      min_effsize=min_effsize,
+      max_burnin=max_burnin,
+      min_chains=min_chains)
 }
 
 
 #' @rdname burnin-method
 #' @aliases burnin,McmcParams-method
 setMethod("burnin", "McmcParams", function(object)  object@burnin)
+
+#' @rdname min_GR-method
+#' @aliases min_GR,McmcParams-method
+setMethod("min_GR", "McmcParams", function(object)  object@min_GR)
+
+#' @rdname min_chains-method
+#' @aliases min_chains,McmcParams-method
+setMethod("min_chains", "McmcParams", function(object)  object@min_chains)
+
+#' @rdname max_burnin-method
+#' @aliases max_burnin,McmcParams-method
+setMethod("max_burnin", "McmcParams", function(object)  object@max_burnin)
+
+#' @rdname min_effsize-method
+#' @aliases min_effsize,McmcParams-method
+setMethod("min_effsize", "McmcParams", function(object)  object@min_effsize)
 
 #' @rdname burnin-method
 #' @aliases burnin<-,McmcParams-method
@@ -62,6 +89,9 @@ setValidity("McmcParams", function(object){
   if(!identical(names(up), names(.param_updates()))){
     msg <- "vector for slot param_updates should have same names as .param_updates()"
     return(msg)
+  }
+  if(nStarts(object) < min_chains(object)){
+    msg <- "number of independent starts is less than the mininum number required for assessing convergence"
   }
 })
 

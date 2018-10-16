@@ -3,11 +3,11 @@
 ## number batches (B)
 initialize_mcmc <- function(K, S, B){
   new("McmcChains",
-      theta=matrix(NA, S, K*B),
-      sigma2=matrix(NA, S, K*B),
-      pi=matrix(NA, S, K),
-      mu=numeric(S),
-      tau2=numeric(S),
+      theta=matrix(numeric(), S, K*B),
+      sigma2=matrix(numeric(), S, K*B),
+      pi=matrix(numeric(), S, K),
+      mu=matrix(numeric(), S, K),
+      tau2=matrix(numeric(), S, K),
       nu.0=numeric(S),
       sigma2.0=numeric(S),
       logprior=numeric(S),
@@ -67,7 +67,7 @@ setMethod("McmcChains", "missing", function(object){
 })
 
 
-
+setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 
 setMethod("McmcChains", "MixtureModel", function(object){
   .initializeMcmc(object)

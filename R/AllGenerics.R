@@ -534,6 +534,11 @@ setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 #' @rdname burnin-method
 setGeneric("burnin", function(object) standardGeneric("burnin"))
 
+setGeneric("min_GR", function(object) standardGeneric("min_GR"))
+setGeneric("min_effsize", function(object) standardGeneric("min_effsize"))
+setGeneric("max_burnin", function(object) standardGeneric("max_burnin"))
+setGeneric("min_chains", function(object) standardGeneric("min_chains"))
+
 #' Reset number of burnin iterations.
 #'
 #' This function changes the number of burnin simulations to be discarded.
@@ -948,3 +953,7 @@ setGeneric("parameters<-", function(object, value) standardGeneric("parameters<-
 setGeneric("summaries", function(object) standardGeneric("summaries"))
 setGeneric("summaries<-", function(object, value) standardGeneric("summaries<-"))
 setGeneric("dataSd", function(object) standardGeneric("dataSd"))
+
+#' @export
+setGeneric("findSurrogates", function(object, THR=0.1) standardGeneric("findSurrogates"))
+setGeneric("isSampled", function(object, THR=0.1) standardGeneric("isSampled"))

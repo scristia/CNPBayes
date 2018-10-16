@@ -10,7 +10,6 @@ integerMatrix <- function(x, scale=100) {
 }
 
 #' @export
-
 setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   cnmat <- matrix(y(from), 1, length(y(from)))
   cnmat <- integerMatrix(cnmat, 1000)
@@ -117,18 +116,42 @@ setMethod("collapseBatch", "numeric", function(object, provisional_batch, THR=0.
 #' is performed recursively on the batch variables defined for a given
 #' CNP until no batches can be combined. For smaller values of THR, plates are more likely to be judged as similar and combined.
 #' @export
-#' @param oned a vector of one-dimensional sample-level summary statistics of DNA abundance
-#' @param provisional_batch surrogate variable for batch effect. Required to be the same length as \code{oned}.
+#' @param object a MultiBatch instance
 #' @param THR scalar for the p-value cutoff from the K-S test.  Two batches with p-value > THR will be combined to define a single new batch
 #'
 #' @details All pairwise comparisons of batches are performed.  The two most similar batches are combined if the p-value exceeds THR.  The process is repeated recursively until no two batches can be combined.
-#' @return vector of batch labels
-combineSurrogates <- function(oned, provisional_batch, THR=0.1){
-  dat <- tibble(oned=oned, provisional_batch=provisional_batch)
-  .combineBatches3(dat, THR)
-}
+#' @return MultiBatch object
+setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
+  dat <- downSampledData(object) %>%
+    select(c(id, provisional_batch, oned))
+  dat2 <- find_surrogates(dat, THR) %>%
+    mutate(batch=factor(batch, levels=unique(batch)),
+           batch_labels=as.character(batch),
+           batch=as.integer(batch)) %>%
+    filter(!duplicated(id)) %>%
+    arrange(batch) %>%
+    select(c(provisional_batch, batch, batch_labels))
+  ##
+  ## There is a many to one mapping from provisional_batch to batch
+  ## Since each sample belongs to a single plate, samples in the downsampled data will only belong to a single batch
+  full.data <- assays(object)
+  full.data2 <- full.data %>%
+    select(-batch) %>%
+    left_join(dat2, by="provisional_batch") %>%
+    filter(!duplicated(id)) %>%
+    arrange(batch)
+  assays(object) <- full.data2
+  L <- length(unique(full.data2$batch))
+  if( L != specs(object)$number_batches ){
+    spec <- specs(object)
+    spec$number_batches <- L
+    specs(object) <- spec
+  }
+  object
+})
 
-.combineBatches3 <- function(dat, THR=0.1, min_oned=-1){
+find_surrogates <- function(dat, THR=0.1, min_oned=-1){
+  ## do not define batches based on homozygous deletion
   dat2 <- filter(dat, oned > min_oned)
   current <- dat2$provisional_batch
   oned <- dat2$oned
@@ -136,19 +159,24 @@ combineSurrogates <- function(oned, provisional_batch, THR=0.1){
   while(!identical(current, latest)){
     if(is.null(latest)) latest <- current
     current <- latest
-    latest <- .combineBatches2(oned, current, THR)$batches
+    latest <- .find_surrogates(oned, current, THR)$batches
   }
   result <- tibble(provisional_batch=dat2$provisional_batch,
                    batch=latest) %>%
     group_by(provisional_batch) %>%
     summarize(batch=unique(batch))
-  dat3 <- left_join(dat, result, by="provisional_batch")
-  dat3$batch
+  if("batch" %in% colnames(dat)){
+    dat <- select(dat, -batch)
+  }
+  dat3 <- dat %>%
+    left_join(result, by="provisional_batch")
+  dat3
 }
 
-.combineBatches2 <- function(yy, B, THR=0.1){
+.find_surrogates <- function(x, B, THR=0.1){
+  if(length(unique(B))==1) return(B)
   B2 <- B
-  dat <- tibble(y=yy, batch=B) %>%
+  dat <- tibble(x=x, batch=B) %>%
     group_by(batch) %>%
     summarize(n=n()) %>%
     arrange(-n)
@@ -162,11 +190,11 @@ combineSurrogates <- function(oned, provisional_batch, THR=0.1){
     for(k in seq_along(uB)){
       if(k <= j) next() ## next k
       ## get rid of duplicate values
-      yy <- yy + runif(length(yy), -1e-10, 1e-10)
+      x <- x + runif(length(x), -1e-10, 1e-10)
       b1 <- uB[j]
       b2 <- uB[k]
       ## edits
-      tmp <- ks.test(yy[B==b1], yy[B==b2])
+      tmp <- ks.test(x[B==b1], x[B==b2])
       stat[j, k] <- tmp$statistic
       bb <- c(b1, b2) %>%
         sort %>%

@@ -1,4 +1,4 @@
-#' @include MixtureModelClasses.R
+#' @include MultiBatch.R
 NULL
 
 setClass("MultiBatchList", representation(data="tbl_df",

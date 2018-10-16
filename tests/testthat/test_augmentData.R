@@ -2,8 +2,8 @@ context("Data augmentation")
 test_that("augment data", {
   extdata <- system.file("extdata", package="CNPBayes")
   hapmap <- readRDS(file.path(extdata, "hapmap.rds"))
-  current <- augmentData(hapmap)
   set.seed(123)
+  current <- augmentData(hapmap)
   mp <- McmcParams(iter=1000, burnin=500, thin=1)
   models <- gibbs(model="MBP",
                   dat=current$medians,
@@ -14,5 +14,5 @@ test_that("augment data", {
                   df=100,
                   min_effsize=200)
   ml <- marginal_lik(models[[1]])
-  expect_equal(as.integer(round(ml)), 84)
+  expect_equal(as.integer(round(ml)), -32)
 })

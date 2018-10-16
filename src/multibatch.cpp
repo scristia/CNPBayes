@@ -640,8 +640,6 @@ Rcpp::IntegerMatrix update_probz(Rcpp::S4 xmod){
   return pZ ;
 }
 
-
-
 // [[Rcpp::export]]
 Rcpp::S4 cpp_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   RNGScope scope ;

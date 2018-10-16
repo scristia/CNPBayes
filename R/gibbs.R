@@ -3,6 +3,10 @@ set_param_names <- function(x, nm){
   set_colnames(x, paste0(nm, K))
 }
 
+##
+## divides each chain into halves
+## 
+##
 mcmcList <- function(model.list){
   if(!is(model.list, "list")){
     model.list <- list(model.list)
@@ -81,6 +85,8 @@ diagnostics <- function(model.list){
   list(neff=neff, r=r)
 }
 
+## we shouldn't define an aggregate method for class list, but we could do this for a MultiBatchList class
+##
 combine_batch <- function(model.list, batches){
   . <- NULL
   ch.list <- map(model.list, chains)
@@ -104,7 +110,7 @@ combine_batch <- function(model.list, batches){
             sigma2.0=s2.0,
             zfreq=zfreq,
             logprior=logp,
-            loglik=ll)
+            loglik=ll)  
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   iter(mp) <- nrow(th)
@@ -167,6 +173,7 @@ combine_batch <- function(model.list, batches){
   logPrior(model) <- computePrior(model)
   model
 }
+
 
 selectModels <- function(model.list){
   ll <- sapply(model.list, log_lik)

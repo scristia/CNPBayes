@@ -91,3 +91,63 @@ setMethod("posteriorSimulation", "SingleBatchPooled", function(object){
   object <- as(object, "MultiBatchPooled")
   .posteriorSimulation2(object)
 })
+
+
+
+setMethod("runBurnin", "MultiBatchModel", function(object){
+  cpp_burnin(object, mcmcParams(object))
+})
+
+setMethod("runBurnin", "MultiBatch", function(object){
+  mbm <- as(object, "MultiBatchModel")
+  mbm <- runBurnin(mbm, mcmcParams(mbm))
+  ## The MBM model does not have the original data
+  mb <- as(mbm, "MultiBatch")
+  ## do not use replacement method
+  mb@data <- assays(object)
+  down_sample(mb) <- down_sample(object)
+  mb
+})
+
+setMethod("runMcmc", "MultiBatch", function(object){
+  mbm <- as(object, "MultiBatchModel")
+##  mp <- mcmcParams(mbm)
+##  up <- .param_updates(mp)
+##  up[ ] <- 0L
+##  up[ c("theta", "sigma2") ] <- 1L
+##  mp@param_updates <- up
+##  mcmcParams(mbm) <- mp
+  mbm <- runMcmc(mbm)
+  mb <- as(mbm, "MultiBatch")
+  ## do not use replacement method
+  mb@data <- assays(object)
+  down_sample(mb) <- down_sample(object)
+  mb
+})
+
+setMethod("posteriorSimulation", "MultiBatch", function(object){
+  object <- runBurnin(object)
+  if(!isOrdered(object)) label_switch(object) <- TRUE
+  object <- sortComponentLabels(object)
+  if( iter(object) < 1 ) return(object)
+  object <- runMcmc(object)
+  modes(object) <- computeModes(object)
+  if(isOrdered(object)){
+    label_switch(object) <- FALSE
+    return(object)
+  }
+  ## not ordered: try additional MCMC simulations
+  label_switch(object) <- TRUE
+  object <- sortComponentLabels(object)
+  ## reset counter for posterior probabilities
+  object@probz[] <- 0
+  object <- runMcmc(object)
+  modes(object) <- computeModes(object)
+  if(isOrdered(object)){
+    label_switch(object) <- FALSE
+    return(object)
+  }
+  label_switch(object) <- TRUE
+  object <- sortComponentLabels(object)
+  object
+})

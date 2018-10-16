@@ -92,7 +92,7 @@ test_that("MultiBatchPooled MCMC", {
 .test_that <- function(nm, expr) NULL
 
 
-test_that("Marginal likelihood for MultiBatchPooled", {
+.test_that("Marginal likelihood for MultiBatchPooled", {
   library(magrittr)
   library(tibble)
   data("MultiBatchPooledExample")

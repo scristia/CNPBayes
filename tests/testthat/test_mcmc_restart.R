@@ -28,12 +28,12 @@ test_that("test_mcmc_restart", {
   ## the chain
   expect_equal(as.numeric(theta(model)), theta(mc)[1, ])
   model <- truth
-  mcmcParams(model, force = TRUE) <- McmcParams(iter = 0, burnin = 1)
+  mcmcParams(model) <- McmcParams(iter = 0, burnin = 1)
   model <- posteriorSimulation(model)
   mc <- chains(model)
   expect_identical(0L, nrow(theta(mc)))
   model <- truth
-  mcmcParams(model, force = TRUE) <- McmcParams(iter = 1, burnin = 0, nStarts=0)
+  mcmcParams(model) <- McmcParams(iter = 1, burnin = 0, nStarts=0)
   model <- posteriorSimulation(model)
   mcmcParams(model) <- McmcParams(iter=10, burnin=0, nStarts=0)
   model <- posteriorSimulation(model)
