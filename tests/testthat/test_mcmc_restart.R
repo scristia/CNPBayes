@@ -5,14 +5,14 @@ test_that("test_mcmc_restart", {
   truth <- simulateData(N = 500, theta = c(-1, 0, 1), sds = c(0.1,
       0.1, 0.1), p = c(1/5, 1/6, 1 - 1/5 - 1/6))
   model <- truth
-  mcmcParams(model) <- McmcParams(iter = 1, burnin = 0, nStarts=0)
+  mcmcParams(model) <- McmcParams(iter = 1, burnin = 0, nStarts=1)
   model <- posteriorSimulation(model)
   ##tmp=replicate(20, theta(posteriorSimulation(model)))
   mc <- chains(model)
   expect_identical(theta(truth)[1, ], theta(mc)[1, ])
   expect_identical(sigma(truth)[1, ], sigma(mc)[1, ])
   model2 <- model
-  mcmcParams(model2) <- McmcParams(iter = 10, burnin = 0, nStarts=0)
+  mcmcParams(model2) <- McmcParams(iter = 10, burnin = 0, nStarts=1)
   model2 <- posteriorSimulation(model2)
   theta.first <- thetac(model2)[1, ]
   theta.last <- theta(model)
@@ -33,9 +33,9 @@ test_that("test_mcmc_restart", {
   mc <- chains(model)
   expect_identical(0L, nrow(theta(mc)))
   model <- truth
-  mcmcParams(model) <- McmcParams(iter = 1, burnin = 0, nStarts=0)
+  mcmcParams(model) <- McmcParams(iter = 1, burnin = 0, nStarts=1)
   model <- posteriorSimulation(model)
-  mcmcParams(model) <- McmcParams(iter=10, burnin=0, nStarts=0)
+  mcmcParams(model) <- McmcParams(iter=10, burnin=0, nStarts=1)
   model <- posteriorSimulation(model)
   mc <- chains(model)
   expect_identical(10L, nrow(theta(mc)))
@@ -55,12 +55,12 @@ test_that("test_mcmc_restart", {
   truth <- simulateBatchData(N = 2500, batch = rep(letters[1:3],
       length.out = 2500), p = c(1/4, 1/6, 1 - 1/4 - 1/6), theta = means,
       sds = sds)
-  mcmcp <- McmcParams(iter = 1, burnin = 0, nStarts=0)
+  mcmcp <- McmcParams(iter = 1, burnin = 0, nStarts=1)
   set.seed(123)
   ##
   ## checks consistency of chain with slot for theta
   ##
-  mcmcp <- McmcParams(nStarts=0, iter=1)
+  mcmcp <- McmcParams(nStarts=1, iter=1)
   modelk1 <- MB(dat = y(truth),
                 hp=hpList(k=3)[["MB"]],
                 mp = mcmcp,

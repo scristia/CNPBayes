@@ -125,7 +125,7 @@ test_that("revised_constructors", {
 
   ## flags
   label_switch(mb2)
-  label_switch(mb2) <- label_switch(mb2)a
+  label_switch(mb2) <- label_switch(mb2)
 
   ## summaries
   dataMean(mb2)
