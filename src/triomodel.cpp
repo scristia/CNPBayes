@@ -770,7 +770,7 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     if(up[6] > 0)
       model.slot("sigma2.0") = update_sigma20(model) ;
     if(up[8] > 0){
-      //model.slot("z") = update_zchild(model) ;
+      model.slot("z") = update_zchild(model) ;
       //model.slot("zfreq") = tableZpar(model) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     }

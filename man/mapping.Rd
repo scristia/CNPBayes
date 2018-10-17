@@ -6,6 +6,7 @@
 \alias{mapping<-}
 \alias{mapping,MultiBatchCopyNumber-method}
 \alias{mapping,MultiBatchCopyNumberPooled-method}
+\alias{mapping,MultiBatchCopyNumber-method}
 \alias{mapping<-,MultiBatchCopyNumber,character-method}
 \alias{mapping,MultiBatchCopyNumber,numeric-method}
 \alias{mapping<-,MultiBatchCopyNumberPooled,character-method}
@@ -22,8 +23,7 @@ mapping(object) <- value
 
 \S4method{mapping}{MultiBatchCopyNumber,character}(object) <- value
 
-
-  \S4method{mapping}{MultiBatchCopyNumberPooled,character}(object) <- value
+\S4method{mapping}{MultiBatchCopyNumberPooled,character}(object) <- value
 }
 \arguments{
 \item{object}{a SB, SBP, MB, or MBP model}

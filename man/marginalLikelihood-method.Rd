@@ -6,17 +6,16 @@
 \alias{marginalLikelihood,MultiBatchModel-method}
 \alias{marginalLikelihood,MultiBatchModel,ANY-method}
 \alias{marginalLikelihood,MultiBatchPooled-method}
+\alias{marginalLikelihood,MultiBatchModel,ANY-method}
 \alias{marginalLikelihood,list-method}
 \alias{marginalLikelihood,list,ANY-method}
 \title{Compute the marginal likelihood of a converged model.}
 \usage{
 marginalLikelihood(model, params = mlParams())
 
-\S4method{marginalLikelihood}{MultiBatchModel}(model,
-  params = mlParams())
+\S4method{marginalLikelihood}{MultiBatchModel}(model, params = mlParams())
 
-\S4method{marginalLikelihood}{MultiBatchPooled}(model,
-  params = mlParams())
+\S4method{marginalLikelihood}{MultiBatchPooled}(model, params = mlParams())
 
 \S4method{marginalLikelihood}{list}(model, params = mlParams(warnings =
   FALSE))

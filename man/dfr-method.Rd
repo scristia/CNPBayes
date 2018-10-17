@@ -28,7 +28,6 @@ dfr(object) <- value
 \item{object}{a Hyperparameters- or MixtureModel-derived class}
 
 \item{value}{scalar providing degrees of freedom for t-distribution}
->>>>>>> master
 }
 \description{
 Accessor for degrees of freedom

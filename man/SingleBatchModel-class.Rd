@@ -3,7 +3,6 @@
 \docType{class}
 \name{SingleBatchModel-class}
 \alias{SingleBatchModel-class}
-\alias{SingleBatchCopyNumber-class}
 \title{The 'SingleBatchModel' class}
 \description{
 Run marginal MCMC simulation

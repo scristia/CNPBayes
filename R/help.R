@@ -3,7 +3,7 @@
 #' @docType package
 #' @name CNPBayes
 #' @import methods
-#' @importFrom gtools rdirichlet ddirichlet permutations
+#' @importFrom gtools rdirichlet ddirichlet permutations smartbind
 #' @importFrom GenomeInfoDb seqinfo seqlevels<- seqlevels seqinfo<- seqnames
 #' @import IRanges
 #' @importFrom utils capture.output

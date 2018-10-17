@@ -244,7 +244,7 @@ test_that("update_zparent and update_zchild", {
   
   model <- gibbs_trios(model="TBM", dat=as.tibble(truth$data), hp.list = hp,
                        batches=truth$data$batches,
-                       mp=mp, k_range=c(3, 3), max_burnin=100)
+                       mp=mp, k_range=c(2, 3), max_burnin=1000)
   
   # this set should be divisible by 3 (only updating child)
   which(model[[1]]@z != update_zchild(model[[1]]))/3
@@ -765,6 +765,7 @@ test_that("fix multiple values", {
   true.component <- true.cn + 1L
   
   up <- rep(1L, 10)
+  mp <- McmcParams(iter=500, burnin=500, thin=1, param_updates=up, nStarts=1)
   mp <- McmcParams(iter=2000, burnin=1000, thin=1, param_updates=up, nStarts=4)
   mb2 <- gibbs(model="MB", dat=truth$data$log_ratio,
               batches=rep(c(1:nbatch),

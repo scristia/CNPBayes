@@ -596,6 +596,165 @@ gibbs_trios2 <- function(model="TBM",
                        theta.feed=theta.feed)
 }
 
+par.fix <- function(model, values) {
+  # values is in the form of a model@z input
+  model@z <- values
+  model
+}
+
+.gibbs_trios_mcmc3 <- function(hp, mp, dat, mprob, maplabel, max_burnin=32000, batches, min_effsize=500, theta.feed, par.feed){
+  nchains <- nStarts(mp)
+  nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
+  if(iter(mp) < 500){
+    warning("Require at least 500 Monte Carlo simulations")
+    MIN_EFF <- ceiling(iter(mp) * 0.5)
+  } else MIN_EFF <- min_effsize
+  MIN_CHAINS <- 3
+  MIN_GR <- 1.2
+  neff <- 0; r <- 2
+  while(burnin(mp) < max_burnin && thin(mp) < 100){
+    message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
+    mod.list <- replicate(nchains, TBM(triodata=dat,
+                                       hp=hp,
+                                       mp=mp,
+                                       mprob=mprob,
+                                       maplabel=maplabel))
+    mod.list <- map(mod.list, theta.fix, theta.feed)
+    mod.list <- map(mod.list, par.fix, par.feed)
+    mp2 <- mp
+    up <- rep(1L, 10)
+    names(up) <- c("theta", "sigma2",
+                   "pi", "mu",
+                   "tau2",
+                   "nu.0",
+                   "sigma2.0",
+                   "z.parents",
+                   "z.offspring",
+                   "pi.parents")
+    #up["theta"] <- 0L
+    #up["z.parents"] <- 0L
+    #mp2@param_updates <- up
+    #mod.list <- map(mod.list, mp.fix, mp2)
+    #mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
+    #mod.list <- map(mod.list, sigma2.fix)
+    up["sigma2"] <- 0L
+    mp2@param_updates <- up
+    mod.list <- map(mod.list, mp.fix, mp2)
+    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
+    #mod.list <- map(mod.list, pi.fix)
+    up["pi"] <- 0L
+    
+    #up["theta"] <- 1L
+    mp2@param_updates <- up
+    mod.list <- map(mod.list, mp.fix, mp2)
+    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
+    mod.list <- map(mod.list, theta.fix2)
+    up["theta"] <- 0L
+    
+    mp2@param_updates <- up
+    mod.list <- map(mod.list, mp.fix, mp2)
+    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
+    
+    no_label_swap <- !map_lgl(mod.list, label_switch)
+    if(sum(no_label_swap) < MIN_CHAINS){
+      burnin(mp) <- as.integer(burnin(mp) * 2)
+      mp@thin <- as.integer(thin(mp) + 2)
+      nStarts(mp) <- nStarts(mp) + 1
+      next()
+    }
+    mod.list <- mod.list[ no_label_swap ]
+    mod.list <- mod.list[ selectModels(mod.list) ]
+    
+    mlist <- mcmcList(mod.list)
+    neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
+    if(is.null(neff)) neff <- 0
+    r <- gelman_rubin(mlist, hp)
+    message("     Gelman-Rubin: ", round(r$mpsrf, 2))
+    message("     eff size (median): ", round(min(neff), 1))
+    message("     eff size (mean): ", round(mean(neff), 1))
+    if((mean(neff) > min_effsize) && r$mpsrf < MIN_GR) break()
+    burnin(mp) <- as.integer(burnin(mp) * 2)
+    mp@thin <- as.integer(thin(mp) + 2)
+    nStarts(mp) <- nStarts(mp) + 1
+    ##mp@thin <- as.integer(thin(mp) * 2)
+  }
+  
+  model <- combine_batchTrios(mod.list, batches)
+  meets_conditions <- (mean(neff) > min_effsize) &&
+    r$mpsrf < MIN_GR &&
+    !label_switch(model)
+  if(meets_conditions){
+    ## Commented by Rob for now
+    model <- compute_marginal_lik(model)
+  }
+  model
+}
+
+gibbs_trios_K3 <- function(hp,
+                           mp,
+                           k_range=c(1, 4),
+                           dat,
+                           batches,
+                           maplabel,
+                           mprob,
+                           max_burnin=32000,
+                           reduce_size=TRUE,
+                           min_effsize=500, 
+                           theta.feed, par.feed){
+  K <- seq(k_range[1], k_range[2])
+  hp.list <- map(K, updateK, hp)
+  model.list <- map(hp.list,
+                    .gibbs_trios_mcmc3,
+                    mp=mp,
+                    dat=dat,
+                    batches=batches,
+                    maplabel=maplabel,
+                    mprob=mprob,
+                    max_burnin=max_burnin,
+                    min_effsize=min_effsize,
+                    theta.feed=theta.feed,
+                    par.feed=par.feed)
+  names(model.list) <- paste0("TBM", map_dbl(model.list, k))
+  ## sort by marginal likelihood
+  ##
+  ## if(reduce_size) TODO:  remove z chain, keep y in one object
+  ##
+  ix <- order(map_dbl(model.list, marginal_lik), decreasing=TRUE)
+  models <- model.list[ix]
+}
+
+gibbs_trios3 <- function(model="TBM",
+                         dat,
+                         mp,
+                         hp.list,
+                         batches,
+                         k_range=c(1, 4),
+                         max_burnin=32e3,
+                         top=2,
+                         df=100,
+                         min_effsize=500, 
+                         theta.feed,
+                         par.feed){
+  #model <- unique(model)
+  max_burnin <- max(max_burnin, burnin(mp)) + 1
+  if(missing(hp.list)){
+    #note this line will have to be incorporated in gibbs.R when generalised
+    hp.list <- hpList(df=df)[["TBM"]]
+  }
+  message("Fitting TBM models")
+  tbm <- gibbs_trios_K3(hp.list,
+                        k_range=k_range,
+                        mp=mp,
+                        dat=dat,
+                        batches=rep(1L, length(dat)),
+                        maplabel=maplabel,
+                        mprob=mprob,
+                        max_burnin=max_burnin,
+                        min_effsize=min_effsize,
+                        theta.feed=theta.feed,
+                        par.feed=par.feed)
+}
+
 
 gMendelian.multi <- function(tau=c(0.5, 0.5, 0.5)){
   tau1 <- tau[1]
@@ -902,6 +1061,7 @@ component_stats <- function(tbl){
   tbl
 }
 
+# this function ensures the simulation generates the requisite number of components regardless of MAF parameter (p)
 simulate_data_multi2 <- function(params, N, batches, error=0, mendelian.probs, maplabel){
   tbl <- .simulate_data_multi2(params, N, mendelian.probs, maplabel)
   
@@ -926,6 +1086,36 @@ simulate_data_multi2 <- function(params, N, batches, error=0, mendelian.probs, m
     tbl3 <- as_tibble(tbl2)
     stats <- component_stats(tbl3)
   }
+  
+  p <- stats %>% group_by(copy_number) %>% summarize(p=mean(p))
+  sd <- stats %>% group_by(copy_number) %>% summarize(sd=mean(sd))
+  mean <- stats %>% group_by(copy_number) %>% summarize(mean=mean(mean))
+  params$p <- p$p
+  params$sigma2 <- (sd$sd)^2
+  params$theta <- mean$mean
+  komponent <- frank(tbl$copy_number, ties.method=c("dense"))
+  loglik <- sum(dnorm(tbl$log_ratio, params$theta[komponent],
+                      sqrt(params$sigma2[komponent]), log=TRUE))
+  truth <- list(data=tbl3, params=params, loglik=loglik)
+  truth
+}
+
+simulate_data_multi3 <- function(params, N, batches, error=0, mendelian.probs, maplabel){
+  tbl <- .simulate_data_multi2(params, N, mendelian.probs, maplabel)
+  
+  # append batch info (assumes ordering by trios and id)
+  if(missing(batches)) {
+    batches <- rep(1L, 3*N)
+  } else {
+    batches <- as.integer(factor(batches))
+  }
+  batches <- sort(batches)
+  tbl2 <- cbind(tbl, batches)
+  tbl3 <- as_tibble(tbl2)
+  ##
+  ## update parameters to be same as empirical values
+  ##
+  stats <- component_stats(tbl3)
   
   p <- stats %>% group_by(copy_number) %>% summarize(p=mean(p))
   sd <- stats %>% group_by(copy_number) %>% summarize(sd=mean(sd))
