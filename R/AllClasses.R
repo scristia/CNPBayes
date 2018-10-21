@@ -82,6 +82,12 @@ setClass("McmcChains", representation(theta="matrix",
                                       loglik="numeric",
                                       zfreq="matrix"))
 
+setClass("McmcChains2", contains="McmcChains",
+         representation(k="integer",
+                        iter="integer",
+                        batch="integer"))
+
+
 #' An object to specify MCMC options for a later simulation
 #'
 #' @slot thin A one length numeric to specify thinning. A value of n indicates that every nth sample should be saved. Thinning helps to reduce autocorrelation.

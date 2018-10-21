@@ -15,6 +15,21 @@ initialize_mcmc <- function(K, S, B){
       zfreq=matrix(as.integer(NA), S, K))
 }
 
+## pooled
+initialize_mcmcP <- function(K, S, B){
+  new("McmcChains",
+      theta=matrix(numeric(), S, K*B),
+      sigma2=matrix(numeric(), S, B),
+      pi=matrix(numeric(), S, K),
+      mu=matrix(numeric(), S, K),
+      tau2=matrix(numeric(), S, K),
+      nu.0=numeric(S),
+      sigma2.0=numeric(S),
+      logprior=numeric(S),
+      loglik=numeric(S),
+      zfreq=matrix(as.integer(NA), S, K))
+}
+
 .initializeMcmc <- function(object){
   ## add 1 for starting values (either the last run from the burnin,
   ## or default values if no burnin
@@ -255,4 +270,83 @@ setReplaceMethod("logPrior", "McmcChains", function(object, value) {
 setReplaceMethod("zFreq", "McmcChains", function(object, value){
   object@zfreq <- value
   object
+})
+
+McmcChains2 <- function(mc, iter, k, batch){
+  new("McmcChains2",
+      iter=iter,
+      k=k,
+      batch=batch,
+      theta=theta(mc),
+      sigma2=sigma2(mc),
+      pi=p(mc),
+      mu=mu(mc),
+      tau2=tau2(mc),
+      nu.0=nu.0(mc),
+      sigma2.0=sigma2.0(mc),
+      logprior=logPrior(mc),
+      loglik=log_lik(mc),
+      zfreq=zFreq(mc))
+}
+
+longFormatKB <- function(x, K, B){
+  col_names <- rep(seq_len(B), B) %>%
+    paste(rep(seq_len(K), each=K), sep=",")
+  x <- x %>%
+    as.tibble %>%
+    set_colnames(col_names) %>%
+    mutate(s=seq_len(nrow(.))) %>%
+    gather("bk", "value", -s) %>%
+    mutate(b=sapply(strsplit(bk, ","), "[", 1),
+           k=sapply(strsplit(bk, ","), "[", 2)) %>%
+    mutate(b=factor(paste("batch", b)),
+           k=factor(paste("k", k))) %>%
+    select(-bk)
+  x
+}
+
+longFormatK <- function(x, K){
+  col_names <- seq_len(K) %>%
+    as.character
+  x <- x %>%
+    as.tibble %>%
+    set_colnames(col_names) %>%
+    mutate(s=seq_len(nrow(.))) %>%
+    gather("k", "value", -s) %>%
+    mutate(k=factor(paste("k ", k)))
+  x
+}
+
+setAs("McmcChains2", "list", function(from){
+  K <- from@k
+  B <- from@batch
+  S <- from@iter
+  theta <- longFormatKB(theta(from), K, B)
+  sigma2 <- longFormatKB(sigma2(from), K, B)
+  p <- longFormatK(p(from), K)
+  mu <- longFormatK(mu(from), K)
+  tau2 <- longFormatK(tau2(from), K)
+  zfreq <- longFormatK(zFreq(from), K)
+  params <- tibble(s=seq_len(S),
+                   nu.0=nu.0(from),
+                   sigma2.0=sigma2.0(from),
+                   logprior=logPrior(from),
+                   loglik=log_lik(from)) %>%
+    gather("parameter", "value", -s)
+  list(theta=theta,
+       sigma2=sigma2,
+       p=p,
+       mu=mu,
+       tau2=tau2,
+       zfreq=zfreq,
+       scalars=params)
+})
+
+setMethod("listChains", "MultiBatch", function(object){
+  ch.list <- McmcChains2(mc=chains(object),
+                     iter=iter(object),
+                     k=k(object),
+                     batch=nBatch(object)) %>%
+    as("list")
+  ch.list
 })

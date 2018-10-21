@@ -21,6 +21,8 @@ setClass("MultiBatch", representation(data="tbl_df",
                                       summaries="list",
                                       flags="list"))
 
+
+
 setValidity("MultiBatch", function(object){
   msg <- TRUE
   if(length(u(object)) != length(down_sample(object))){
@@ -56,7 +58,6 @@ setValidity("MultiBatch", function(object){
   }
   msg
 })
-
 
 model_spec <- function(model, data, down_sample) {
   if(missing(down_sample)) down_sample <- seq_len(nrow(data))
@@ -118,7 +119,13 @@ MultiBatch <- function(model="MB3",
                        current_values=modelValues2(specs, data[down_sample, ], hp),
                        summaries=modelSummaries(specs),
                        flags=modelFlags()){
-
+  ##
+  ## When there are multiple batches in data, but the model specification is one of SB[X]
+  ##
+  is_SB <- substr(model, 1, 2) == "SB"
+  if(nrow(data) > 0 && is_SB){
+    data$batch <- 1L
+  }
   model <- new("MultiBatch",
                data=data,
                down_sample=down_sample,
@@ -136,6 +143,8 @@ setMethod("show", "MultiBatch", function(object){
   cls <- class(object)
   n.mcmc <- iter(object) * thin(object)
   saved.mcmc <- iter(object)
+  ml <- marginal_lik(object)
+  include_ml <- length(ml) > 0 && !is.na(ml)
   cat(paste0("An object of class ", cls), "\n")
   cat("     n. obs              :", nrow(assays(object)), "\n")
   cat("     n. sampled          :", nrow(downSampledData(object)), "\n")
@@ -144,8 +153,9 @@ setMethod("show", "MultiBatch", function(object){
   cat("     nobs/batch          :", table(batch(object)), "\n")
   cat("     saved mcmc          :", saved.mcmc, "\n")
   cat("     log lik (s)         :", round(log_lik(object), 1), "\n")
-  cat("     log prior (s)       :", round(logPrior(object), 1), "\n")
-  cat("     log marginal lik (s):", round(marginal_lik(object), 1), "\n")
+  ##cat("     log prior (s)       :", round(logPrior(object), 1), "\n")
+  if(include_ml)
+    cat("     log marginal lik    :", round(ml, 1), "\n")
 })
 
 setClass("MultiBatchPooled2", contains="MultiBatch")
@@ -157,8 +167,6 @@ setClass("GenotypePooled", contains="MultiBatch",
          representation(mapping="character"))
 
 
-setGeneric("specs", function(object) standardGeneric("specs"))
-setGeneric("specs<-", function(object, value) standardGeneric("specs<-"))
 
 setMethod("specs", "MultiBatch", function(object) object@specs)
 
@@ -206,12 +214,28 @@ extractParameters <- function(old){
 }
 
 modelValues2 <- function(specs, data, hp){
+  if(nrow(data) == 0){
+    K <- specs$k
+    vals <- list(theta=matrix(nrow=0, ncol=K),
+                 sigma2=matrix(nrow=0, ncol=K),
+                 nu.0=numeric(),
+                 sigma2.0=numeric(),
+                 p=numeric(K),
+                 mu=numeric(K),
+                 tau2=numeric(K),
+                 u=numeric(),
+                 z=numeric(),
+                 logprior=numeric(),
+                 loglik=numeric(),
+                 probz=matrix(nrow=0, ncol=K))
+    return(vals)
+  }
   n.sampled <- specs$number_sampled
   B <- specs$number_batches
   K <- specs$k
-
-  mu <- sort(rnorm(k(hp), mu.0(hp), sqrt(tau2.0(hp))))
-  tau2 <- 1/rgamma(k(hp), 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
+  alpha(hp) <- rep(1, K)
+  mu <- sort(rnorm(K, mu.0(hp), sqrt(tau2.0(hp))))
+  tau2 <- 1/rgamma(K, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
   p <- rdirichlet(1, alpha(hp))[1, ]
   sim_theta <- function(mu, tau, B) sort(rnorm(B, mu, tau))
   . <- NULL
@@ -222,10 +246,10 @@ modelValues2 <- function(specs, data, hp){
   if(K == 1) theta <- t(theta)
   nu.0 <- 3.5
   sigma2.0 <- 0.25
-  sigma2 <- 1/rgamma(k(hp) * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
+  sigma2 <- 1/rgamma(K * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
     matrix(B, K)
-  u <- rchisq(n.sampled, hp@dfr)
-  z <- sample(seq_len(k(hp)), prob=p, replace=TRUE, size=n.sampled)
+  u <- rchisq(n.sampled, dfr(hp))
+  z <- sample(seq_len(K), prob=p, replace=TRUE, size=n.sampled)
   logprior <- numeric()
   loglik <- numeric()
   probz <- matrix(nrow=n.sampled, ncol=K)
@@ -347,6 +371,7 @@ setAs("MultiBatchModel", "MultiBatch", function(from){
   summaries <- extractSummaries(from)
   down_sample <- seq_len(nrow(data))
   specs <- model_spec(modelName(from), data, down_sample)
+  modal.ordinates <- modes(from)
   mb <- MultiBatch(data=data,
                    ## By default, assume no downsampling
                    down_sample=down_sample,
@@ -356,6 +381,15 @@ setAs("MultiBatchModel", "MultiBatch", function(from){
                    current_values=values,
                    summaries=summaries,
                    flags=flags)
+  if(length(modal.ordinates) > 0 ){
+    ix <- match(c("nu0", "mixprob"), names(modal.ordinates))
+    names(modal.ordinates)[ix] <- c("nu.0", "p")
+    modal.ordinates$z <- map_z(from)
+    modal.ordinates$probz <- probz(from)
+    modal.ordinates$u <- u(from)
+    m <- modal.ordinates[names(values(mb))]
+    modes(mb) <- m
+  }
   mb
 })
 
@@ -687,7 +721,16 @@ setReplaceMethod("assays", c("MultiBatch", "tbl_df"), function(x, value){
   x
 })
 
-setGeneric("downSampledData<-", function(x, value) standardGeneric("downSampledData<-"))
+setMethod("down_sample", "MultiBatch", function(object) object@down_sample)
+
+setReplaceMethod("down_sample", "MultiBatch", function(object, value){
+  object@down_sample <- value
+  object
+})
+
+setMethod("downSampledData", "MultiBatch", function(object){
+  assays(object)[down_sample(object), ]
+})
 
 setReplaceMethod("downSampledData", c("MultiBatch", "tbl_df"), function(x, value){
   x@data <- value
@@ -814,7 +857,7 @@ setMethod("computeModes", "MultiBatch", function(object){
   pz <- probz(object)
   modes <- list(theta=thetamax,
                 sigma2=sigma2max,
-                nu0=nu.0(mc)[i],
+                nu.0=nu.0(mc)[i],
                 sigma2.0=sigma2.0(mc)[i],
                 p=pmax,
                 mu=mumax,
@@ -863,6 +906,14 @@ setMethod("computePrec", "MultiBatch", function(object){
   m
 })
 
+setMethod("setModes", "MultiBatch", function(object){
+  modal.ordinates <- modes(object)
+  values(object) <- modal.ordinates
+  object
+})
+
+setMethod("modes", "MultiBatch", function(object) summaries(object)[["modes"]])
+
 summarizeModel <- function(object){
   stats <- list(modes=computeModes(object),
                 data.mean=computeMeans(object),
@@ -881,14 +932,6 @@ collectFlags <- function(model.list){
                 .internal.constraint=n.internal.constraint,
                 .internal.counter=n.internal.counter)
 }
-
-setGeneric("setModes", function(object) standardGeneric("setModes"))
-
-setMethod("setModes", "MultiBatch", function(object){
-  modal.ordinates <- modes(object)
-})
-
-setMethod("modes", "MultiBatch", function(object) summaries(object)[["modes"]])
 
 combineChains <- function(model.list){
   ch.list <- map(model.list, chains)
@@ -922,6 +965,8 @@ combineModels <- function(model.list){
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   nStarts(mp) <- length(model.list)
+  iter(mp) <- iter(mp) * nStarts(mp)
+  nStarts(mp) <- 1
   tib <- tibble(oned=y(model.list[[1]])) %>%
     mutate(id=seq_along(oned),
            id=as.character(id),
@@ -945,88 +990,6 @@ combineModels <- function(model.list){
 ##
 ## Markov chain Monte Carlo
 ##
-setGeneric("mcmc2", function(object) standardGeneric("mcmc2"))
-
-
-setMethod("isOrdered", "MultiBatch", function(object){
-  thetas <- theta(object)
-  checkOrder <- function(theta) identical(order(theta), seq_along(theta))
-  is_ordered <- apply(thetas, 1, checkOrder)
-  all(is_ordered)
-})
-
-setMethod("sortComponentLabels", "MultiBatch", function(model){
-  is_ordered <- isOrdered(model)
-  if(is_ordered) return(model)
-  ## thetas are not all ordered
-  thetas <- theta(model)
-  s2s <- sigma2(model)
-  K <- k(model)
-  ix <- order(thetas[1, ])
-  B <- specs(model)$number_batches
-  . <- NULL
-  tab <- tibble(z_orig=z(model),
-                z=z(model),
-                batch=batch(model)) %>%
-    mutate(index=seq_len(nrow(.)))
-  z_relabel <- NULL
-  for(i in seq_len(B)){
-    ix.next <- order(thetas[i, ])
-    thetas[i, ] <- thetas[i, ix.next]
-    s2s[i, ] <- s2s[i, ix]
-    index <- which(tab$batch == i)
-    tab2 <- tab[index, ] %>%
-      mutate(z_relabel=factor(z, levels=ix.next)) %>%
-      mutate(z_relabel=as.integer(z_relabel))
-    tab$z[index] <- tab2$z_relabel
-  }
-  ps <- p(model)[ix]
-  mu(model) <- mu(model)[ix]
-  tau2(model) <- tau2(model)[ix]
-  sigma2(model) <- s2s
-  theta(model) <- thetas
-  p(model) <- ps
-  z(model) <- tab$z
-  model
-})
-
-setMethod("posteriorSimulation", "list", function(object, k){
-  ind.starts <- object
-  for(i in seq_along(ind.starts)){
-    ind.starts[[i]] <- posteriorSimulation(ind.starts[[i]])
-  }
-  no_label_swap <- !map_lgl(ind.starts, label_switch)
-  ind.starts <- ind.starts[ no_label_swap ]
-  ind.starts <- ind.starts[ selectModels(ind.starts) ]
-  mlist <- mcmcList(ind.starts)
-  neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-  if(is.null(neff)){
-    neff <- 0
-  } else {
-    ## remove parameters that were not updated
-    neff <- neff[ neff > 0 ]
-  }
-  hp <- hyperParams(ind.starts[[1]])
-  mp <- mcmcParams(ind.starts[[1]])
-  gr <- gelman_rubin(mlist, hp)
-  message("     Gelman-Rubin: ", round(gr$mpsrf, 2))
-  message("     eff size (median): ", round(median(neff), 1))
-  message("     eff size (mean): ", round(mean(neff), 1))
-  if((mean(neff) > min_effsize(mp)) && r$mpsrf < min_GR(mp)) {
-    convergence.flag <- FALSE
-  } else {
-    convergence.flag <- TRUE
-  }
-  mb <- combineModels(ind.starts)
-  summaries(mb)[["GR"]] <- gr
-  summaries(mb)[["effsize"]] <- mean(neff)
-  flags(mb)[["convergence"]] <- convergence.flag
-  ##
-  ## Compute summary statistics
-  ##
-  mb
-})
-
 continueMcmc <- function(mp){
   burnin(mp) <- as.integer(burnin(mp) * 2)
   mp@thin <- as.integer(thin(mp) + 2)
@@ -1037,11 +1000,12 @@ continueMcmc <- function(mp){
 setMethod("mcmc2", "MultiBatch", function(object){
   mb <- object
   mp <- mcmcParams(mb)
+  K <- specs(object)$k
   if(iter(mp) < 500)
     warning("Very few Monte Carlo simulations specified")
   maxb <- max_burnin(mp)
   while(burnin(mp) < maxb && thin(mp) < 100){
-    message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
+    message("  k: ", K, ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mcmcParams(object) <- mp
     mod.list <- as(mb, "list")
     mb <- posteriorSimulation(mod.list)
@@ -1054,36 +1018,24 @@ setMethod("mcmc2", "MultiBatch", function(object){
   mb
 })
 
-setGeneric("down_sample", function(object) standardGeneric("down_sample"))
-setGeneric("down_sample<-", function(object, value) standardGeneric("down_sample<-"))
-
-setGeneric("downSampledData", function(object) standardGeneric("downSampledData"))
-
-setMethod("down_sample", "MultiBatch", function(object) object@down_sample)
-
-setMethod("downSampledData", "MultiBatch", function(object){
-  assays(object)[down_sample(object), ]
-})
-
-setReplaceMethod("down_sample", "MultiBatch", function(object, value){
-  object@down_sample <- value
-  object
-})
-
-downSampleModel <- function(object, N=1000){
-  if(N >= nrow(assays(object))){
-    return(object)
+setMethod("downSampleModel", "MultiBatch", function(object, N=1000, i){
+  if(!missing(N)){
+    if(N >= nrow(assays(object))){
+      return(object)
+    }
   }
   ## by sorting, batches are guaranteed to be ordered
-  ix <- sort(sample(seq_len(nrow(object)), N, replace=TRUE))
-  b <- assays(object)$batch[ix]
+  if(missing(i)){
+    i <- sort(sample(seq_len(nrow(object)), N, replace=TRUE))
+  }
+  b <- assays(object)$batch[i]
   current.vals <- values(object)
-  current.vals[["u"]] <- current.vals[["u"]][ix]
-  current.vals[["z"]] <- current.vals[["z"]][ix]
-  current.vals[["probz"]] <- current.vals[["probz"]][ix, , drop=FALSE]
+  current.vals[["u"]] <- current.vals[["u"]][i]
+  current.vals[["z"]] <- current.vals[["z"]][i]
+  current.vals[["probz"]] <- current.vals[["probz"]][i, , drop=FALSE]
   mb <- MultiBatch(model=modelName(object),
                    data=assays(object),
-                   down_sample=ix,
+                   down_sample=i,
                    parameters=parameters(object),
                    current_values=current.vals,
                    chains=mcmc_chains( specs(object), parameters(object) ))
@@ -1091,4 +1043,59 @@ downSampleModel <- function(object, N=1000){
   dataPrec(mb) <- computePrec(mb)
   zFreq(mb) <- as.integer(table(z(mb)))
   mb
-}
+})
+
+setMethod("probability_z", "MultiBatch", function(object){
+  thetas <- theta(object)
+  sigmas <- sigma(object)
+  p.comp <- p(object)
+  df <- dfr(object)
+  K <- seq_len(k(object))
+  B <- specs(object)$number_batches %>%
+                   seq
+  N <- specs(object)$number_obs
+  pz <- matrix(NA, N, max(K))
+  dat <- assays(object)
+  batches <- dat$batch
+  for(b in B){
+    j <- which(batches == b)
+    m <- thetas[b, ]
+    ss <- sigmas[b, ]
+    yy <- dat$oned[j]
+    for(k in K){
+      temp <- p.comp[k] * dst(yy, df=df, mu=m[k], sigma=ss[k])
+      pz[j, k] <- temp
+    }
+  }
+  pz2 <- pz/rowSums(pz)
+  ## the probz slot expects a frequency
+  freq <- pz2 * (iter(object) - 1)
+  freq2 <- matrix(as.integer(freq), nrow=nrow(freq), ncol=ncol(freq))
+  freq2
+})
+
+setMethod("dfr", "MultiBatch", function(object){
+  df <- dfr(hyperParams(object))
+  df
+})
+
+setMethod("upsample_z", "MultiBatch", function(object){
+  down_sample(object) <- seq_len(specs(object)$number_obs)
+  object@specs$number_sampled <- specs(object)$number_obs
+  values(object)[["u"]] <- rchisq(specs(object)$number_obs, dfr(object))
+  mbm <- as(object, "MultiBatchModel")
+  zz <- update_z(mbm)
+  zz
+})
+
+setMethod("upSampleModel", "MultiBatch", function(object){
+  ds <- down_sample(object)
+  N <- specs(object)$number_obs
+  us <- seq_len(N)
+  if(identical(ds, us)) return(object)
+  object <- setModes(object)
+  values(object)[["u_up"]] <- rchisq(N, dfr(object))
+  values(object)[["probz_up"]] <- probability_z(object)
+  values(object)[["z_up"]] <- upsample_z(object)
+  object
+})
