@@ -4,7 +4,7 @@ test_that("test_probz", {
     set.seed(1)
     truth <- simulateData(N = 2500, p = rep(1/3, 3), theta = c(-1, 
         0, 1), sds = rep(0.1, 3))
-    mp <- McmcParams(iter = 500, burnin = 500, nStarts=0)
+    mp <- McmcParams(iter = 500, burnin = 500, nStarts=1)
     set.seed(123)
     model <- SingleBatchModel2(dat = y(truth), mp = mp,
                                hp=hpList(k=3)[["SB"]])

@@ -50,6 +50,7 @@ Collate:
     'Defunct-classes.R'
     'MultiBatch.R'
     'MultiBatchList.R'
+    'MultiBatchP.R'
     'RcppExports.R'
     'augment.R'
     'coerce-methods.R'
