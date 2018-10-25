@@ -25,6 +25,10 @@ setClass("MultiBatch", representation(data="tbl_df",
 
 setValidity("MultiBatch", function(object){
   msg <- TRUE
+  if(iter(object) != iter(chains(object))){
+    msg <- "Number of iterations not the same between MultiBatch model and chains"
+    return(msg)
+  }
   if(length(u(object)) != length(down_sample(object))){
     msg <- "Incorrect length of u-vector"
     return(msg)
@@ -56,6 +60,14 @@ setValidity("MultiBatch", function(object){
     msg <- "down sample index must be in batch order"
     return(msg)
   }
+##  if(nrow(assays(object)) != length(down_sample(object))){
+##    msg <- "down sample index must be the same length as the number of rows in assay"
+##    return(msg)
+##  }
+  if(!identical(dim(zstar(object)), dim(predictive(object)))){
+    msg <- "z* and predictive matrices in MCMC chains should be the same dimension"
+    return(msg)
+  }
   msg
 })
 
@@ -77,8 +89,8 @@ model_spec <- function(model, data, down_sample) {
   number_obs <- nrow(data)
   tab <- tibble(model=model,
                 k=k,
-                number_batches=number_batches,
-                number_obs=number_obs,
+                number_batches=as.integer(number_batches),
+                number_obs=as.integer(number_obs),
                 number_sampled=length(down_sample))
   tab
 }
@@ -157,6 +169,8 @@ setMethod("show", "MultiBatch", function(object){
   if(include_ml)
     cat("     log marginal lik    :", round(ml, 1), "\n")
 })
+
+setMethod("numBatch", "MultiBatch", function(object) as.integer(specs(object)$number_batches[[1]]))
 
 setClass("MultiBatchPooled2", contains="MultiBatch")
 
@@ -333,16 +347,19 @@ extractSummaries <- function(old){
 
 modelFlags <- function(.internal.constraint=5e-4,
                        .internal.counter=0L,
-                       label_switch=FALSE){
+                       label_switch=FALSE,
+                       warn=FALSE){
   list(.internal.constraint=.internal.constraint,
        .internal.counter=.internal.counter,
-       label_switch=label_switch)
+       label_switch=label_switch,
+       warn=warn)
 }
 
 extractFlags <- function(old){
   list(.internal.constraint=old@.internal.constraint,
        .internal.counter=old@.internal.counter,
-       label_switch=label_switch(old))
+       label_switch=label_switch(old),
+       warn=FALSE)
 }
 
 modelData <- function(id=character(),
@@ -426,6 +443,16 @@ setAs("MultiBatch", "MultiBatchModel", function(from){
              marginal_lik=marginal_lik(from),
              .internal.constraint=flag1,
              .internal.counter=flag2)
+  modal.ordinates <- modes(from)
+  if(length(modal.ordinates) > 0 ){
+    ix <- match(c("nu.0", "p"), names(modal.ordinates))
+    names(modal.ordinates)[ix] <- c("nu0", "mixprob")
+    modal.ordinates$z <- map_z(from)
+    modal.ordinates$probz <- probz(from)
+    modal.ordinates$u <- u(from)
+    modes(obj) <- modal.ordinates
+  }
+  obj
 })
 
 setAs("MultiBatch", "list", function(from){
@@ -623,13 +650,13 @@ setReplaceMethod("mcmcParams", c("MultiBatch", "McmcParams"), function(object, v
     if(iter(value) > iter(object)){
       parameters(object)[["mp"]] <- value
       ## create a new chain
-      mcmc_chains <- chains(object)
+      ch <- mcmc_chains(specs(object), parameters(object))
     } else {
       parameters(object)[["mp"]] <- value
       index <- seq_len(iter(value))
-      mcmc_chains <- chains(object)[index, ]
+      ch <- chains(object)[index, ]
     }
-    chains(object) <- mcmc_chains
+    chains(object) <- ch
     return(object)
   }
   ## if we've got to this point, it must be safe to update mcmc.params
@@ -669,6 +696,7 @@ setReplaceMethod("iter", c("MultiBatch", "numeric"),
                    mp <- mcmcParams(object)
                    iter(mp) <- value
                    mcmcParams(object) <- mp
+                   iter(chains(object)) <- as.integer(value)
                    object
                  })
 
@@ -912,6 +940,9 @@ setMethod("setModes", "MultiBatch", function(object){
   object
 })
 
+setMethod("useModes", "MultiBatch", function(object) setModes(object))
+
+
 setMethod("modes", "MultiBatch", function(object) summaries(object)[["modes"]])
 
 summarizeModel <- function(object){
@@ -927,7 +958,9 @@ collectFlags <- function(model.list){
   getCounter <- function(model) model@.internal.counter
   nlabel_swap <- sum(map_lgl(model.list, label_switch))
   n.internal.constraint <- sum(map_dbl(model.list, getConstraint))
-  n.internal.counter <- sum(map_dbl(model.list, getCounter))
+  n.internal.counter <- map(model.list, getCounter) %>%
+    unlist %>%
+    sum
   flags <- list(label_switch=nlabel_swap > 0,
                 .internal.constraint=n.internal.constraint,
                 .internal.counter=n.internal.counter)
@@ -945,6 +978,8 @@ combineChains <- function(model.list){
   .mu <- map(ch.list, mu) %>% do.call(rbind, .)
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
+  pred <- map(ch.list, predictive) %>% do.call(rbind, .)
+  zz <- map(ch.list, zstar) %>% do.call(rbind, .)
   mc <- new("McmcChains",
             theta=th,
             sigma2=s2,
@@ -955,17 +990,26 @@ combineChains <- function(model.list){
             sigma2.0=s2.0,
             zfreq=zfreq,
             logprior=logp,
-            loglik=ll)
+            loglik=ll,
+            predictive=pred,
+            zstar=zz,
+            iter=nrow(th),
+            k=k(model.list[[1]]),
+            B=numBatch(model.list[[1]]))
   mc
 }
 
 ## update the current values with the posterior means across all chains
 combineModels <- function(model.list){
   mc <- combineChains(model.list)
+  pz.list <- lapply(model.list, probz)
+  pz <- Reduce("+", pz.list) %>%
+    "/"(rowSums(.))
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
-  nStarts(mp) <- length(model.list)
-  iter(mp) <- iter(mp) * nStarts(mp)
+  ##nStarts(mp) <- length(model.list)
+  nStarts(mp) <- 1L
+  iter(mp) <- iter(mp) * length(model.list)
   nStarts(mp) <- 1
   tib <- tibble(oned=y(model.list[[1]])) %>%
     mutate(id=seq_along(oned),
@@ -976,6 +1020,7 @@ combineModels <- function(model.list){
                    data=tib,
                    parameters=param.list,
                    chains=mc)
+  values(mb)[["probz"]] <- pz
   summaries(mb) <- summarizeModel(mb)
   flags(mb) <- collectFlags(model.list)
   ##
@@ -997,26 +1042,77 @@ continueMcmc <- function(mp){
   mp
 }
 
+setFlags <- function(mb.list){
+  mb1 <- mb.list[[1]]
+  mp <- mcmcParams(mb1)
+  hp <- hyperParams(mb1)
+  mcmc_list <- mcmcList(mb.list)
+  r <- gelman_rubin(mcmc_list, hp)
+  mb <- combineModels(mb.list)
+  modes(mb) <- computeModes(mb)
+  flags(mb)[["fails_GR"]] <- r$mpsrf > min_GR(mp)
+  neff <- tryCatch(effectiveSize(mcmc_list), error=function(e) NULL)
+  if(is.null(neff)){
+    neff <- 0
+  }else {
+    neff <- neff[ neff > 0 ]
+  }
+  flags(mb)[["small_effsize"]] <- mean(neff) < min_effsize(mp)
+  mb
+}
+
+convergence <- function(mb){
+  !flags(mb)$label_switch && !flags(mb)[["fails_GR"]] && !flags(mb)[["small_effsize"]]
+}
+
 setMethod("mcmc2", "MultiBatch", function(object){
   mb <- object
   mp <- mcmcParams(mb)
   K <- specs(object)$k
   if(iter(mp) < 500)
-    warning("Very few Monte Carlo simulations specified")
-  maxb <- max_burnin(mp)
-  while(burnin(mp) < maxb && thin(mp) < 100){
+    if(flags(object)$warn) warning("Very few Monte Carlo simulations specified")
+  maxb <- max(max_burnin(mp), burnin(mp))
+  while(burnin(mp) <= maxb && thin(mp) < 100){
     message("  k: ", K, ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    mcmcParams(object) <- mp
-    mod.list <- as(mb, "list")
-    mb <- posteriorSimulation(mod.list)
-    if(! flags(mb)[["convergence"]]) break()
+    mcmcParams(mb) <- mp
+    mb.list <- as(mb, "list")
+    mb.list <- posteriorSimulation(mb.list)
+    mb <- setFlags(mb.list)
+    ## if no flags, move on
+    if( convergence(mb) ) break()
     mp <- continueMcmc(mp)
   }
-  if(! flags(mb)[["convergence"]]) {
+  if( convergence(mb) ) {
+    mb <- setModes(mb)
     mb <- compute_marginal_lik(mb)
   }
   mb
 })
+
+setMethod("compute_marginal_lik", "MultiBatch", function(object, params){
+  if(missing(params)){
+    params <- mlParams(root=1/2,
+                       reject.threshold=exp(-100),
+                       prop.threshold=0.5,
+                       prop.effective.size=0)
+  }
+  mbm <- as(object, "MultiBatchModel")
+  ml <- tryCatch(marginalLikelihood(mbm, params), warning=function(w) NULL)
+  if(!is.null(ml)){
+    summaries(object)[["marginal_lik"]] <- ml
+    message("     marginal likelihood: ", round(ml, 2))
+  } else {
+    ##warning("Unable to compute marginal likelihood")
+    message("Unable to compute marginal likelihood")
+  }
+  object
+})
+
+##setMethod("marginalLikelihood", "MultiBatch", function(model, params){
+##  mb <- as(model, "MultiBatchModel")
+##  ml <- marginalLikelihood(mb, params)
+##  ml
+##})
 
 setMethod("downSampleModel", "MultiBatch", function(object, N=1000, i){
   if(!missing(N)){
@@ -1099,3 +1195,10 @@ setMethod("upSampleModel", "MultiBatch", function(object){
   values(object)[["z_up"]] <- upsample_z(object)
   object
 })
+
+singleBatchGuided <- function(model, sb){
+  modes(sb) <- computeModes(sb)
+  sb <- setModes(sb)
+  sp <- specs(model)
+  vals <- values(sb)
+}

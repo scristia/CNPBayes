@@ -228,6 +228,7 @@ setGeneric("theta", function(object) standardGeneric("theta"))
 #' @docType methods
 #' @rdname sigma2-method
 setGeneric("sigma2", function(object) standardGeneric("sigma2"))
+setGeneric("sigma", function(object) standardGeneric("sigma"))
 
 #' Retrieve the probability of latent variable membership by observation.
 #'
@@ -736,11 +737,7 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #' @export
 #' @docType methods
 #' @rdname marginalLikelihood-method
-setGeneric("marginalLikelihood",
-           function(model, params=mlParams()) {
-               standardGeneric("marginalLikelihood")
-           }
-)
+setGeneric("marginalLikelihood", function(model, params=mlParams()) standardGeneric("marginalLikelihood"))
 
 #' Extract character vector of sequence names
 #'
@@ -970,3 +967,12 @@ setGeneric("specs<-", function(object, value) standardGeneric("specs<-"))
 setGeneric("downSampleModel", function(object, N, i) standardGeneric("downSampleModel") )
 setGeneric("upSampleModel", function(object) standardGeneric("upSampleModel"))
 setGeneric("listChains", function(object) standardGeneric("listChains"))
+setGeneric("predictive", function(object) standardGeneric("predictive"))
+setGeneric("zstar", function(object) standardGeneric("zstar"))
+setGeneric("predictive<-", function(object, value) standardGeneric("predictive<-"))
+setGeneric("revertBack", function(object, mbm) standardGeneric("revertBack"))
+setGeneric("numBatch", function(object) standardGeneric("numBatch"))
+setGeneric("numBatch<-", function(object, value) standardGeneric("numBatch<-"))
+setGeneric("max_burnin<-", function(object, value) standardGeneric("max_burnin<-"))
+setGeneric("useModes", function(object) standardGeneric("useModes"))
+setGeneric("compute_marginal_lik", function(object, params) standardGeneric("compute_marginal_lik"))

@@ -261,3 +261,11 @@ setMethod("sigma", "MultiBatchCopyNumberPooled", function(object){
   names(s2) <- uniqueBatch(object)
   sqrt(s2)
 })
+
+setMethod("updateObject", "MultiBatchPooled", function(object){
+  chains(object) <- updateObject(chains(object),
+                                 k=k(object),
+                                 iter=iter(object),
+                                 B=nBatch(object))
+  object
+})

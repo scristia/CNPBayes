@@ -100,6 +100,7 @@ combine_batch <- function(model.list, batches){
   .mu <- map(ch.list, mu) %>% do.call(rbind, .)
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
+  pred <- map(ch.list, predictive) %>% do.call(rbind, .)
   mc <- new("McmcChains",
             theta=th,
             sigma2=s2,
@@ -110,7 +111,11 @@ combine_batch <- function(model.list, batches){
             sigma2.0=s2.0,
             zfreq=zfreq,
             logprior=logp,
-            loglik=ll)  
+            loglik=ll,
+            iter=nrow(th),
+            predictive=pred,
+            k=k(model.list[[1]]),
+            B=length(unique(batches)))  
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   iter(mp) <- nrow(th)
@@ -140,6 +145,9 @@ combine_batch <- function(model.list, batches){
     ml <- as.numeric(NA)
   } else ml <- mean(ml, na.rm=TRUE)
   nbatch <- as.integer(table(batch(model.list[[1]])))
+  ## mp should now reflect the total number of MCMC samples
+  iter(mp) <- iter(mc)
+  nStarts(mp) <- 1L ## treat as single start
   model <- new(class(model.list[[1]]),
                k=k(hp),
                hyperparams=hp,
@@ -234,26 +242,7 @@ harmonizeU <- function(model.list){
   model.list
 }
 
-compute_marginal_lik <- function(model, params){
-  ##
-  ## evaluate marginal likelihood. Relax default conditions
-  ##
-  if(missing(params)){
-    params <- mlParams(root=1/2,
-                       reject.threshold=exp(-100),
-                       prop.threshold=0.5,
-                       prop.effective.size=0)
-  }
-  ml <- tryCatch(marginalLikelihood(model, params), warning=function(w) NULL)
-  if(!is.null(ml)){
-    marginal_lik(model) <- ml
-    message("     marginal likelihood: ", round(marginal_lik(model), 2))
-  } else {
-    ##warning("Unable to compute marginal likelihood")
-    message("Unable to compute marginal likelihood")
-  }
-  model
-}
+
 
 gibbs_batch <- function(hp, mp, dat, max_burnin=32000,
                         batches,

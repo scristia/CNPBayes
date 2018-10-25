@@ -1,9 +1,26 @@
 #include "miscfunctions.h" // for rdirichlet
 #include <Rmath.h>
-#include <Rcpp.h>
 
 using namespace Rcpp ;
 
+//[[Rcpp::export]]
+Rcpp::IntegerVector sample_components(Rcpp::IntegerVector x, int size, Rcpp::NumericVector prob){
+  int n = x.size() ;
+  Rcpp::IntegerVector z = clone(x);
+  for(int i=0; i < n; i++){
+    //initialize accumulator ;
+    double accept = 0 ;
+    Rcpp::NumericVector u=runif(1);
+    for(int j = 0; j < n; j++){
+      accept += prob[j] ;
+      if( u[0] < accept ) {
+        z[i] = x[j] ;
+        break ;
+      }
+    }
+  }
+  return(z);
+}
 
 // [[Rcpp::export]]
 Rcpp::NumericVector compute_loglik(Rcpp::S4 xmod){
@@ -569,7 +586,6 @@ Rcpp::NumericMatrix update_sigma2(Rcpp::S4 xmod){
             if (batch[i] != ub[b]) {
                 continue;
             }
-
             for (int k = 0; k < K; ++k){
                 if(z[i] == k+1 & batch[i] == b+1){
                     ss(b, k) += u[i] * pow(x[i] - theta(b, k), 2);
@@ -597,9 +613,57 @@ Rcpp::NumericMatrix update_sigma2(Rcpp::S4 xmod){
             sigma2_(b, k) = 1.0 / sigma2_tilde(b, k);
         }
     }
-
     return sigma2_;
 }
+
+//[[Rcpp::export]]
+Rcpp::S4 update_predictive(Rcpp::S4 xmod){
+  Rcpp::RNGScope scope;
+  Rcpp::S4 model(clone(xmod)) ;
+  Rcpp::NumericMatrix theta = model.slot("theta");
+  Rcpp::NumericMatrix sigma2 = model.slot("sigma2");
+  Rcpp::NumericVector prob = model.slot("pi");
+  Rcpp::IntegerVector batch = model.slot("batch") ;
+  Rcpp::IntegerVector ub = uniqueBatch(batch);
+  int K = theta.ncol();
+  int nb = theta.nrow();
+  int B = ub.size() ;
+  Rcpp::IntegerVector components=seq_len(K);
+  double df = getDf(model.slot("hyperparams")) ;
+  Rcpp::IntegerVector z(nb);
+  Rcpp::NumericMatrix sigma(B, K) ;
+  Rcpp::NumericMatrix ystar(B, K) ;
+  Rcpp::IntegerMatrix zstar(B, K) ;
+  for(int b = 0; b < B; ++b){
+    for(int k = 0; k < K; ++k){
+      sigma(b, k) = sqrt(sigma2(b, k)) ;
+    }
+  }
+  Rcpp::NumericVector u=Rcpp::rchisq(K*B, df) ;;
+  int n=1;
+  int j=0;
+  // sample components according to mixture probabilities
+  // mixture probabilities are assumed to be the same for each batch
+  z=sample_components(components, K, prob);
+  z=z-1;  // Need to subtract 1 for this to index the right column
+  Rcpp::NumericVector thetas(K);
+  Rcpp::NumericVector sigmas(K);
+  for(int b = 0; b < B; b++){
+    for(int k=0; k < K; k++){
+      int index = z[k];
+      zstar(b, k) = index ;
+      ystar(b, k) = (rlocScale_t(n, theta(b, index), sigma(b, index), df, u[j]))[0];
+      j=j+1;
+    }
+  }
+  // // //    yhat[b] = rst(K, df=df, mean=mu[z], sigma=(s[b, ])[z]);
+  // // //  }
+  model.slot("predictive") = as<Rcpp::NumericVector>(ystar) ;
+  model.slot("zstar") = as<Rcpp::IntegerVector>(zstar) ;
+  //return(ystar) ;
+  return model ;
+}
+
 
 // From stackoverflow http://stackoverflow.com/questions/21609934/ordering-permutation-in-rcpp-i-e-baseorder
 
@@ -723,6 +787,8 @@ Rcpp::S4 cpp_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericVector sigma2_0 = chain.slot("sigma2.0") ;
   NumericVector loglik_ = chain.slot("loglik") ;
   NumericVector logprior_ = chain.slot("logprior") ;
+  NumericMatrix predictive_ = chain.slot("predictive") ;
+  IntegerMatrix zstar_ = chain.slot("zstar") ;
   //NumericVector th(K) ;
   //NumericVector s2(K) ;
   NumericVector p(K) ;
@@ -748,6 +814,8 @@ Rcpp::S4 cpp_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   u = model.slot("u") ;
   ll = model.slot("loglik") ;
   lp = model.slot("logprior") ;
+  Rcpp::NumericVector ystar = NumericVector(B*K);
+  Rcpp::IntegerVector zstar = IntegerVector(B*K);
   // Record initial values in chains
   mu(0, _) = m ;
   nu0[0] = n0[0] ;
@@ -759,7 +827,6 @@ Rcpp::S4 cpp_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   sigma2c(0, _) = as<Rcpp::NumericVector>(model.slot("sigma2")) ;
   pmix(0, _) = p ;
   zfreq(0, _) = zf ;
-
   // Is accessing a slot in an object expensive?
   // Currently, there is no alternative as the current values are
   // stored in the object.  Hence, the entire object has to be passed
@@ -773,6 +840,11 @@ Rcpp::S4 cpp_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   //up[2] = 0;
   //up[1] = 0;
   //up[0] = 0;
+  model = update_predictive(model);
+  ystar = model.slot("predictive");
+  zstar = model.slot("zstar");
+  predictive_(0, _) = ystar ;
+  zstar_(0, _) = zstar ;
   for(int s = 1; s < S; ++s){
     if(up[7] > 0){
       z = update_z(model) ;
@@ -837,6 +909,15 @@ Rcpp::S4 cpp_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     model.slot("logprior") = lp ;
     u = Rcpp::rchisq(N, df) ;
     model.slot("u") = u;
+    //
+    // posterior predictive
+    //  - for each simulation, simulate ystar from current values in chain
+    //
+    model = update_predictive(model);
+    ystar = model.slot("predictive");
+    zstar = model.slot("zstar");
+    predictive_(s, _) = ystar ;
+    zstar_(s, _) = zstar ;
     // Thinning
     for(int t = 0; t < T; ++t){
       if(up[7] > 0){

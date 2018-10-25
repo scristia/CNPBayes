@@ -15,6 +15,10 @@ setValidity("MixtureModel", function(object){
     msg <- "u-vector must be same length as data"
     return(msg)
   }
+  if(iter(object) != iter(chains(object))){
+    msg <- "number of iterations not the same between chains and model"
+    return(msg)
+  }
   msg
 })
 
@@ -584,6 +588,8 @@ setMethod("thin", "MixtureModel", function(object) thin(mcmcParams(object)))
 #' @aliases burnin,MixtureModel-method
 setMethod("burnin", "MixtureModel", function(object) burnin(mcmcParams(object)))
 
+setMethod("numBatch", "MixtureModel", function(object) numBatch(chains(object)))
+
 #' @rdname burnin-method
 #' @aliases burnin<-,MixtureModel-method
 setReplaceMethod("burnin", "MixtureModel", function(object, value){
@@ -595,8 +601,9 @@ setReplaceMethod("burnin", "MixtureModel", function(object, value){
 #' @aliases iter<-,MixtureModel-method
 setReplaceMethod("iter", "MixtureModel", function(object, value){
   mp <- mcmcParams(object)
-  iter(mp) <- value
+  iter(mp) <- as.integer(value)
   mcmcParams(object) <- mp
+  iter(chains(object)) <- as.integer(value)
   object
 })
 
@@ -621,16 +628,21 @@ sigma20c <- function(object) sigma2.0(chains(object))
 #' @rdname mcmcParams-method
 #' @aliases mcmcParams,MixtureModel-method
 setReplaceMethod("mcmcParams", "MixtureModel", function(object, value){
-  it <- iter(object)
-  if(it != iter(value)){
-    if(iter(value) > iter(object)){
+  S <- iter(value)
+  B <- numBatch(object)
+  K <- k(object)
+  if(iter(object) != S){
+    if(S > iter(object)){
       object@mcmc.params <- value
       ## create a new chain
-      mcmc_chains <- McmcChains(object)
+      mcmc_chains <- initialize_mcmc(K, S, B)
     } else {
       object@mcmc.params <- value
-      index <- seq_len(iter(value))
+      index <- seq_len(S)
       mcmc_chains <- chains(object)[index, ]
+      mcmc_chains@iter <- S
+      mcmc_chains@B <- B
+      mcmc_chains@k <- K
     }
     chains(object) <- mcmc_chains
     return(object)
@@ -912,3 +924,43 @@ setMethod("[", c("MixtureModel", "numeric"),
             x@batchElements <- as.integer(table(batch(x)))
             return(x)
           })
+
+setMethod("useModes", "MixtureModel", function(object){
+  m2 <- object
+  theta(m2) <- modes(object)[["theta"]]
+  sigma2(m2) <- modes(object)[["sigma2"]]
+  tau2(m2) <- modes(object)[["tau2"]]
+  nu.0(m2) <- modes(object)[["nu0"]]
+  sigma2.0(m2) <- modes(object)[["sigma2.0"]]
+  p(m2) <- modes(object)[["mixprob"]]
+  zFreq(m2) <- as.integer(modes(object)[["zfreq"]])
+  log_lik(m2) <- modes(object)[["loglik"]]
+  logPrior(m2) <- modes(object)[["logprior"]]
+  ##
+  ## update z using the modal values from above
+  ##
+  z(m2) <- updateZ(m2)
+  m2
+})
+
+setMethod("compute_marginal_lik", "MixtureModel", function(object, params){
+  ##
+  ## evaluate marginal likelihood. Relax default conditions
+  ##
+  if(missing(params)){
+    params <- mlParams(root=1/2,
+                       reject.threshold=exp(-100),
+                       prop.threshold=0.5,
+                       prop.effective.size=0)
+  }
+  ml <- tryCatch(marginalLikelihood(object, params),
+                 warning=function(w) NULL)
+  if(!is.null(ml)){
+    marginal_lik(object) <- ml
+    message("     marginal likelihood: ", round(marginal_lik(object), 2))
+  } else {
+    ##warning("Unable to compute marginal likelihood")
+    message("Unable to compute marginal likelihood")
+  }
+  object
+})

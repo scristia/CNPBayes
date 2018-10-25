@@ -2,6 +2,9 @@
 ## number MCMC (S)
 ## number batches (B)
 initialize_mcmc <- function(K, S, B){
+  K <- as.integer(K)
+  B <- as.integer(B)
+  S <- as.integer(S)
   new("McmcChains",
       theta=matrix(numeric(), S, K*B),
       sigma2=matrix(numeric(), S, K*B),
@@ -12,11 +15,19 @@ initialize_mcmc <- function(K, S, B){
       sigma2.0=numeric(S),
       logprior=numeric(S),
       loglik=numeric(S),
-      zfreq=matrix(as.integer(NA), S, K))
+      zfreq=matrix(as.integer(NA), S, K),
+      predictive=matrix(as.numeric(NA), S, K*B),
+      zstar=matrix(as.integer(NA), S, K*B),
+      iter=S,
+      k=K,
+      B=B)
 }
 
 ## pooled
 initialize_mcmcP <- function(K, S, B){
+  K <- as.integer(K)
+  B <- as.integer(B)
+  S <- as.integer(S)
   new("McmcChains",
       theta=matrix(numeric(), S, K*B),
       sigma2=matrix(numeric(), S, B),
@@ -27,7 +38,12 @@ initialize_mcmcP <- function(K, S, B){
       sigma2.0=numeric(S),
       logprior=numeric(S),
       loglik=numeric(S),
-      zfreq=matrix(as.integer(NA), S, K))
+      zfreq=matrix(as.integer(NA), S, K),
+      predictive=matrix(as.numeric(NA), S, K*B),
+      zstar=matrix(as.integer(NA), S, K*B),
+      iter=S,
+      k=K,
+      B=B)
 }
 
 .initializeMcmc <- function(object){
@@ -48,7 +64,12 @@ initialize_mcmcP <- function(K, S, B){
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati)
+      zfreq=mati,
+      predictive=matrix(as.numeric(NA), nr, K*1),
+      zstar=matrix(as.integer(NA), nr, K*1),
+      iter=iter(mcmc.params),
+      k=k(object),
+      B=nBatch(object))
 }
 
 .initializeMcmcPooledVar <- function(object){
@@ -69,16 +90,39 @@ initialize_mcmcP <- function(K, S, B){
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati)
+      zfreq=mati,
+      predictive=matrix(as.numeric(NA), nr, K),
+      zstar=matrix(as.integer(NA), nr, K),
+      iter=iter(mcmc.params),
+      k=k(object),
+      B=nBatch(object))
 }
 
 setMethod("McmcChains", "missing", function(object){
-  new("McmcChains", theta=matrix(), sigma2=matrix(),
-      pi=matrix(), mu=numeric(), tau2=numeric(),
-      nu.0=numeric(), sigma2.0=numeric(),
+  new("McmcChains",
+      theta=matrix(),
+      sigma2=matrix(),
+      pi=matrix(),
+      mu=numeric(),
+      tau2=numeric(),
+      nu.0=numeric(),
+      sigma2.0=numeric(),
       zfreq=matrix(),
       logprior=numeric(),
-      loglik=numeric())
+      loglik=numeric(),
+      predictive=matrix(),
+      zstar=matrix(),
+      iter=integer(),
+      k=integer(),
+      B=integer())
+})
+
+setValidity("McmcChains", function(object){
+  msg <- TRUE
+  if(iter(object) != nrow(predictive(object))){
+    msg <- "predictive slot has incorrect dimension"
+  }
+  msg
 })
 
 
@@ -109,7 +153,12 @@ setMethod("McmcChains", "SingleBatchPooled", function(object){
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati)
+      zfreq=mati,
+      predictive=matrix(as.numeric(NA), nr, K*B),
+      zstar=matrix(as.integer(NA), nr, K*B),
+      iter=iter(object),
+      k=k(object),
+      B=nBatch(object))
 }
 
 
@@ -134,7 +183,12 @@ chains_mb <- function(object){
       sigma2.0=numeric(nr),
       logprior=numeric(nr),
       loglik=numeric(nr),
-      zfreq=mati)
+      zfreq=mati,
+      predictive=matrix(as.numeric(NA), nr, K*B),
+      zstar=matrix(as.integer(NA), nr, K*B),
+      iter=iter(object),
+      k=k(object),
+      B=nBatch(object))
 }
 
 setMethod("McmcChains", "MultiBatchPooled", function(object){
@@ -184,7 +238,10 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@logprior <- x@logprior[i]
     x@loglik <- x@loglik[i]
     x@zfreq <- x@zfreq[i, , drop=FALSE]
+    x@predictive <- x@predictive[i, , drop=FALSE]
+    x@zstar <- x@zstar[i, , drop=FALSE]
   }
+  x@iter <- nrow(x@theta)
   x
 })
 
@@ -272,26 +329,27 @@ setReplaceMethod("zFreq", "McmcChains", function(object, value){
   object
 })
 
-McmcChains2 <- function(mc, iter, k, batch){
-  new("McmcChains2",
-      iter=iter,
-      k=k,
-      batch=batch,
-      theta=theta(mc),
-      sigma2=sigma2(mc),
-      pi=p(mc),
-      mu=mu(mc),
-      tau2=tau2(mc),
-      nu.0=nu.0(mc),
-      sigma2.0=sigma2.0(mc),
-      logprior=logPrior(mc),
-      loglik=log_lik(mc),
-      zfreq=zFreq(mc))
-}
-
 longFormatKB <- function(x, K, B){
   col_names <- rep(seq_len(B), B) %>%
     paste(rep(seq_len(K), each=K), sep=",")
+  col_names <- col_names[ !duplicated(col_names) ]
+  x <- x %>%
+    as.tibble %>%
+    set_colnames(col_names) %>%
+    mutate(s=seq_len(nrow(.))) %>%
+    gather("bk", "value", -s) %>%
+    mutate(b=sapply(strsplit(bk, ","), "[", 1),
+           k=sapply(strsplit(bk, ","), "[", 2)) %>%
+    mutate(b=factor(paste("batch", b)),
+           k=factor(paste("k", k))) %>%
+    select(-bk)
+  x
+}
+
+longFormatKB2 <- function(x, K, B){
+  col_names <- rep(seq_len(B), B) %>%
+    paste(rep(seq_len(K), each=K), sep=",")
+  col_names <- col_names[ !duplicated(col_names) ]
   x <- x %>%
     as.tibble %>%
     set_colnames(col_names) %>%
@@ -317,10 +375,27 @@ longFormatK <- function(x, K){
   x
 }
 
-setAs("McmcChains2", "list", function(from){
-  K <- from@k
-  B <- from@batch
-  S <- from@iter
+setMethod("k", "McmcChains",  function(object) object@k)
+setMethod("iter", "McmcChains",  function(object) object@iter)
+setReplaceMethod("iter", "McmcChains",  function(object, value){
+  object@iter <- value
+  object
+})
+setReplaceMethod("k", "McmcChains",  function(object, value){
+  object@k <- value
+  object
+})
+setMethod("numBatch", "McmcChains",  function(object) object@B)
+setReplaceMethod("numBatch", "McmcChains",  function(object, value){
+  object@B <- value
+})
+
+##setMethod("nBatch", "McmcChains",  function(object) object@nBatch)
+
+setAs("McmcChains", "list", function(from){
+  K <- k(from)
+  B <- from@B
+  S <- iter(from)
   theta <- longFormatKB(theta(from), K, B)
   sigma2 <- longFormatKB(sigma2(from), K, B)
   p <- longFormatK(p(from), K)
@@ -342,11 +417,43 @@ setAs("McmcChains2", "list", function(from){
        scalars=params)
 })
 
-setMethod("listChains", "MultiBatch", function(object){
-  ch.list <- McmcChains2(mc=chains(object),
-                     iter=iter(object),
-                     k=k(object),
-                     batch=nBatch(object)) %>%
-    as("list")
-  ch.list
+##setMethod("listChains", "MultiBatch", function(object){
+##  ch.list <- McmcChains2(mc=chains(object),
+##                         iter=iter(object),
+##                         k=k(object),
+##                         batch=nBatch(object)) %>%
+##  chains(object) %>%
+##    as("list")
+##  ch.list
+##})
+
+setMethod("predictive", "McmcChains", function(object) object@predictive)
+setMethod("zstar", "McmcChains", function(object) object@zstar)
+setMethod("predictive", "MultiBatchModel", function(object) predictive(chains(object)))
+setMethod("zstar", "MultiBatchModel", function(object) zstar(chains(object)))
+setMethod("predictive", "MultiBatch", function(object) predictive(chains(object)))
+setMethod("zstar", "MultiBatch", function(object) zstar(chains(object)))
+
+setReplaceMethod("predictive", c("McmcChains", "matrix"), function(object, value) {
+  object@predictive <- value
+  object
+})
+
+
+setMethod("updateObject", "McmcChains",
+          function(object, verbose=FALSE){
+            object <- callNextMethod(object)
+            K <- k(object)
+            S <- iter(object)
+            B <- numBatch(object)
+            predictive(object) <- matrix(as.numeric(NA),
+                                         nrow=S,
+                                         ncol=K*B)
+            object@zstar <- matrix(as.integer(NA),
+                                   nrow=S,
+                                   ncol=K*B)
+            object@k <- K
+            object@iter <- S
+            object@B <- B
+            object
 })

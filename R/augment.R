@@ -37,3 +37,52 @@ augmentData <- function(full.data){
   }
   current
 }
+
+setGeneric("augmentData2", function(object) standardGeneric("augmentData2"))
+
+##
+## - only makes sense to do this if multibatch models with 3 or 4 components are
+##   included in the list
+##
+setMethod("augmentData2", "MultiBatchList", function(object){
+  sp <- specs(object) %>%
+    filter(k == 3 & substr(model, 1, 2) == "MB")
+  object2 <- object[ specs(object)$model %in% sp$model ]
+  ix <- order(specs(object2)$k, decreasing=FALSE)
+  ## order models by number of components.
+  object2 <- object2[ix]
+  SB <- object2[[1]]
+  assays(SB)$batch <- 1L
+  SB <- posteriorSimulation(SB)
+  mn.sd <- c(theta(SB)[1], sigma(SB)[1])
+  limits <- mn.sd[1] + c(-1, 1)*2*mn.sd[2]
+  ## record number of observations in each batch that are within 2sds of the mean
+  freq.del <- assays(object) %>%
+    group_by(batch) %>%
+    summarize(n = sum(oned < limits[[2]]))
+  nzero <- sum(freq.del$n == 0)
+  if(nzero == 0 || nzero == nrow(freq.del)){
+    return(object)
+  }
+  ## else:  some of the batches are likely missing observations in the first component
+  ## Augment data with 10 observations to allow fitting this data
+  ##
+  ## - sample a minimum of 10 observations (with replacement) from the posterior predictive distribution of the other batches
+  ##
+  zerobatch <- freq.del$batch[ freq.del$n == 0 ]
+  dat <- downSampledData(object2[[1]])
+  expected_homdel <- modes(SB)[["p"]][1] * table(dat$batch)
+  expected_homdel <- ceiling(expected_homdel [ unique(dat$batch) %in% zerobatch ])
+  nsample <- pmax(10L, expected_homdel)
+  pred <- predictiveTibble(SB) %>%
+    filter(!(batch %in% zerobatch)  & component == 0) %>%
+    "["(sample(seq_len(nrow(.)), sum(nsample), replace=TRUE), ) %>%
+    select(oned) %>%
+    mutate(batch=rep(zerobatch, nsample),
+           id=paste0("augment_", seq_len(nrow(.)))) %>%
+    select(c(id, oned, batch))
+  newdat <- bind_rows(assays(object), pred)
+  mbl <- MultiBatchList(data=newdat,
+                        parameters=parameters(object))
+  mbl
+})

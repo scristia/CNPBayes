@@ -120,8 +120,6 @@ setMethod("runMcmc", "MultiBatch", function(object){
   mb
 })
 
-setGeneric("revertBack", function(object, mbm) standardGeneric("revertBack"))
-
 setMethod("revertBack", "MultiBatch", function(object, mbm){
   mb <- as(mbm, "MultiBatch")
   ## do not use replacement method
@@ -208,5 +206,13 @@ setMethod("posteriorSimulation", "MultiBatchList", function(object){
   for(i in seq_along(object)){
     object[[i]] <- posteriorSimulation(object[[i]])
   }
+  object
+})
+
+setMethod("posteriorSimulation", "list", function(object){
+  for(i in seq_along(object)){
+    object[[i]] <- posteriorSimulation(object[[i]])
+  }
+
   object
 })

@@ -1,7 +1,8 @@
 .empty_batch_model <- function(hp, mp){
   K <- k(hp)
-  B <- 0
-  N <- 0
+  B <- 0L
+  S <- iter(mp)
+  ch <- initialize_mcmc(K, S, B)
   obj <- new("MultiBatchModel",
              k=as.integer(K),
              hyperparams=hp,
@@ -12,15 +13,17 @@
              nu.0=numeric(1),
              sigma2.0=numeric(1),
              pi=numeric(K),
+             predictive=numeric(K*B),
+             zstar=integer(K*B),
              data=numeric(0),
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
              z=integer(0),
              zfreq=integer(K),
-             probz=matrix(0, N, K),
+             probz=matrix(0, S, K),
              logprior=numeric(1),
              loglik=numeric(1),
-             mcmc.chains=McmcChains(),
+             mcmc.chains=ch,
              mcmc.params=mp,
              batch=integer(0),
              batchElements=integer(0),
@@ -113,6 +116,8 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
   sigma2s <- 1/rgamma(k(hp) * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
     matrix(B, k(hp))
   u <- rchisq(length(dat), hp@dfr)
+  S <- iter(mp)
+  ch <- initialize_mcmc(K, S, B)
   obj <- new("MultiBatchModel",
              k=as.integer(K),
              hyperparams=hp,
@@ -123,6 +128,8 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
              nu.0=nu.0,
              sigma2.0=sigma2.0,
              pi=p,
+             predictive=numeric(K*B),
+             zstar=integer(K*B),
              data=dat,
              u=u,
              data.mean=matrix(NA, B, K),
@@ -132,7 +139,7 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
              probz=matrix(0, N, K),
              logprior=numeric(1),
              loglik=numeric(1),
-             mcmc.chains=McmcChains(),
+             mcmc.chains=ch,
              mcmc.params=mp,
              batch=batches,
              batchElements=nbatch,
@@ -534,4 +541,10 @@ setMethod("computeLoglik", "MultiBatchModel", function(object){
 
 setMethod("updateZ", "MultiBatchModel", function(object){
   update_z(object)
+})
+
+setMethod("updateObject", "MultiBatchModel", function(object){
+  chains(object) <- updateObject(chains(object))
+  object <- callNextMethod(object)
+  object
 })

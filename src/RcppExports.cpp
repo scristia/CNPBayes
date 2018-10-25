@@ -88,16 +88,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // rlocScale_t
-Rcpp::NumericVector rlocScale_t(NumericVector n, double df, double mu, double sigma);
-RcppExport SEXP _CNPBayes_rlocScale_t(SEXP nSEXP, SEXP dfSEXP, SEXP muSEXP, SEXP sigmaSEXP) {
+Rcpp::NumericVector rlocScale_t(int n, double mu, double sigma, double df, double u);
+RcppExport SEXP _CNPBayes_rlocScale_t(SEXP nSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP dfSEXP, SEXP uSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type n(nSEXP);
-    Rcpp::traits::input_parameter< double >::type df(dfSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< double >::type mu(muSEXP);
     Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
-    rcpp_result_gen = Rcpp::wrap(rlocScale_t(n, df, mu, sigma));
+    Rcpp::traits::input_parameter< double >::type df(dfSEXP);
+    Rcpp::traits::input_parameter< double >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(rlocScale_t(n, mu, sigma, df, u));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -176,6 +177,30 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x_(x_SEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type alpha_(alpha_SEXP);
     rcpp_result_gen = Rcpp::wrap(log_ddirichlet_(x_, alpha_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_componentsP
+Rcpp::IntegerVector sample_componentsP(Rcpp::IntegerVector x, int size, Rcpp::NumericVector prob);
+RcppExport SEXP _CNPBayes_sample_componentsP(SEXP xSEXP, SEXP sizeSEXP, SEXP probSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type prob(probSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_componentsP(x, size, prob));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_predictiveP
+Rcpp::NumericMatrix update_predictiveP(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_predictiveP(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_predictiveP(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -450,6 +475,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sample_components
+Rcpp::IntegerVector sample_components(Rcpp::IntegerVector x, int size, Rcpp::NumericVector prob);
+RcppExport SEXP _CNPBayes_sample_components(SEXP xSEXP, SEXP sizeSEXP, SEXP probSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type prob(probSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_components(x, size, prob));
+    return rcpp_result_gen;
+END_RCPP
+}
 // compute_loglik
 Rcpp::NumericVector compute_loglik(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_compute_loglik(SEXP xmodSEXP) {
@@ -615,6 +653,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// update_predictive
+Rcpp::S4 update_predictive(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_predictive(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_predictive(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // update_probz
 Rcpp::IntegerMatrix update_probz(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_update_probz(SEXP xmodSEXP) {
@@ -772,7 +821,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_tableBatchZ", (DL_FUNC) &_CNPBayes_tableBatchZ, 1},
     {"_CNPBayes_rMultinom", (DL_FUNC) &_CNPBayes_rMultinom, 2},
     {"_CNPBayes_dlocScale_t", (DL_FUNC) &_CNPBayes_dlocScale_t, 4},
-    {"_CNPBayes_rlocScale_t", (DL_FUNC) &_CNPBayes_rlocScale_t, 4},
+    {"_CNPBayes_rlocScale_t", (DL_FUNC) &_CNPBayes_rlocScale_t, 5},
     {"_CNPBayes_compute_u_sums", (DL_FUNC) &_CNPBayes_compute_u_sums, 1},
     {"_CNPBayes_compute_heavy_sums", (DL_FUNC) &_CNPBayes_compute_heavy_sums, 1},
     {"_CNPBayes_compute_heavy_means", (DL_FUNC) &_CNPBayes_compute_heavy_means, 1},
@@ -780,6 +829,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_compute_heavy_sums_batch", (DL_FUNC) &_CNPBayes_compute_heavy_sums_batch, 1},
     {"_CNPBayes_compute_heavy_means_batch", (DL_FUNC) &_CNPBayes_compute_heavy_means_batch, 1},
     {"_CNPBayes_log_ddirichlet_", (DL_FUNC) &_CNPBayes_log_ddirichlet_, 2},
+    {"_CNPBayes_sample_componentsP", (DL_FUNC) &_CNPBayes_sample_componentsP, 3},
+    {"_CNPBayes_update_predictiveP", (DL_FUNC) &_CNPBayes_update_predictiveP, 1},
     {"_CNPBayes_loglik_multibatch_pvar", (DL_FUNC) &_CNPBayes_loglik_multibatch_pvar, 1},
     {"_CNPBayes_sigma20_multibatch_pvar", (DL_FUNC) &_CNPBayes_sigma20_multibatch_pvar, 1},
     {"_CNPBayes_nu0_multibatch_pvar", (DL_FUNC) &_CNPBayes_nu0_multibatch_pvar, 1},
@@ -804,6 +855,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_reduced_nu0_batch", (DL_FUNC) &_CNPBayes_reduced_nu0_batch, 1},
     {"_CNPBayes_log_prob_s20", (DL_FUNC) &_CNPBayes_log_prob_s20, 1},
     {"_CNPBayes_reduced_s20_batch", (DL_FUNC) &_CNPBayes_reduced_s20_batch, 1},
+    {"_CNPBayes_sample_components", (DL_FUNC) &_CNPBayes_sample_components, 3},
     {"_CNPBayes_compute_loglik", (DL_FUNC) &_CNPBayes_compute_loglik, 1},
     {"_CNPBayes_update_mu", (DL_FUNC) &_CNPBayes_update_mu, 1},
     {"_CNPBayes_update_tau2", (DL_FUNC) &_CNPBayes_update_tau2, 1},
@@ -819,6 +871,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_stageTwoLogLikBatch", (DL_FUNC) &_CNPBayes_stageTwoLogLikBatch, 1},
     {"_CNPBayes_update_theta", (DL_FUNC) &_CNPBayes_update_theta, 1},
     {"_CNPBayes_update_sigma2", (DL_FUNC) &_CNPBayes_update_sigma2, 1},
+    {"_CNPBayes_update_predictive", (DL_FUNC) &_CNPBayes_update_predictive, 1},
     {"_CNPBayes_update_probz", (DL_FUNC) &_CNPBayes_update_probz, 1},
     {"_CNPBayes_cpp_burnin", (DL_FUNC) &_CNPBayes_cpp_burnin, 2},
     {"_CNPBayes_cpp_mcmc", (DL_FUNC) &_CNPBayes_cpp_mcmc, 2},

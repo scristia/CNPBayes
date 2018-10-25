@@ -71,6 +71,11 @@ setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 #' @slot logprior log likelihood of prior.
 #' @slot loglik log likelihood.
 #' @slot zfreq table of z.
+#' @slot predictive posterior predictive distribution
+#' @slot zstar needed for plotting posterior predictive distribution
+#' @slot k integer specifying number of components
+#' @slot iter integer specifying number of MCMC simulations
+#' @slot B integer specifying number of batches
 setClass("McmcChains", representation(theta="matrix",
                                       sigma2="matrix",
                                       pi="matrix",
@@ -80,13 +85,12 @@ setClass("McmcChains", representation(theta="matrix",
                                       sigma2.0="numeric",
                                       logprior="numeric",
                                       loglik="numeric",
-                                      zfreq="matrix"))
-
-setClass("McmcChains2", contains="McmcChains",
-         representation(k="integer",
-                        iter="integer",
-                        batch="integer"))
-
+                                      zfreq="matrix",
+                                      predictive="matrix",
+                                      zstar="matrix",
+                                      k="integer",
+                                      iter="integer",
+                                      B="integer"))
 
 #' An object to specify MCMC options for a later simulation
 #'
@@ -156,6 +160,8 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         pi="numeric",
                                         mu="numericOrMatrix",
                                         tau2="numericOrMatrix",
+                                        predictive="numeric",
+                                        zstar="numeric",
                                         data="numeric",
                                         data.mean="numericOrMatrix",
                                         data.prec="numericOrMatrix",

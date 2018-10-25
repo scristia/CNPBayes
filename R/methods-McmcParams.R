@@ -47,6 +47,11 @@ setMethod("min_chains", "McmcParams", function(object)  object@min_chains)
 #' @aliases max_burnin,McmcParams-method
 setMethod("max_burnin", "McmcParams", function(object)  object@max_burnin)
 
+setReplaceMethod("max_burnin", "McmcParams", function(object, value){
+  object@max_burnin <- as.integer(value)
+  object
+})
+
 #' @rdname min_effsize-method
 #' @aliases min_effsize,McmcParams-method
 setMethod("min_effsize", "McmcParams", function(object)  object@min_effsize)
@@ -126,4 +131,13 @@ setReplaceMethod("paramUpdates", "McmcParams", function(x, value){
 setReplaceMethod("iter", "McmcParams", function(object, value){
   object@iter <- value
   object
+})
+
+setMethod("updateObject", "McmcParams", function(object){
+  obj <- callNextMethod(object)
+  obj@max_burnin <- 32000L
+  obj@min_chains <- 1L
+  obj@min_effsize <- round(1/3 * iter(object), 0)
+  obj@min_GR <- 1.2
+  obj
 })

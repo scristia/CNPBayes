@@ -43,7 +43,7 @@ setMethod("specs", "MultiBatchList", function(object){
 ##
 ## Subsetting
 ##
-setMethod("[[", "MultiBatchList", function(x, i){
+setMethod("[[", c("MultiBatchList", "numeric"), function(x, i){
   ## return MultiBatch instance
   model <- specs(x)$model[i]
   hp <- hyperParams(x)
@@ -61,6 +61,11 @@ setMethod("[[", "MultiBatchList", function(x, i){
                    summaries=summaries(x)[[i]],
                    flags=flags(x)[[i]])
   mb
+})
+
+setMethod("[[", c("MultiBatchList", "character"), function(x, i){
+  j <- match(i, names(x))
+  x[[j]]
 })
 
 setMethod("[", "MultiBatchList", function(x, i, j, ...){
@@ -140,16 +145,21 @@ setReplaceMethod("chains", c("MultiBatchList", "list"), function(object, value){
   object
 })
 
+setMethod("numBatch", "MultiBatchList", function(object) as.integer(specs(object)$number_batches[[1]]))
+
 setReplaceMethod("mcmcParams", c("MultiBatchList", "McmcParams"), function(object, value){
-  it <- iter(object)
-  if(it != iter(value)){
-    if(iter(value) > iter(object)){
+  mp <- value
+  S <- iter(mp)
+  B <- numBatch(object)
+  K <- k(object)
+  if(iter(object) != S){
+    if(S > iter(object)){
       parameters(object)[["mp"]] <- value
       ## create a new chain
-      chains(object) <- listChains2(specs(object), parameters)
+      chains(object) <- listChains2(specs(object), parameters(object))
     } else {
       parameters(object)[["mp"]] <- value
-      index <- seq_len(iter(value))
+      index <- seq_len(S)
       chains(object) <- lapply(chains(object), "[", index)
     }
     return(object)
@@ -357,13 +367,15 @@ MultiBatchList <- function(models,
                            specs=modelSpecs(models, K, data,
                                             down_sample),
                            num_models=nrow(specs),
+                           burnin=1000L,
                            iter=1000L,
                            thin=1L,
                            nStarts=4L,
                            hp=Hyperparameters(),
                            mp=McmcParams(iter=iter,
                                          thin=thin,
-                                         nStarts=nStarts),
+                                         nStarts=nStarts,
+                                         burnin=burnin),
                            parameters=modelParameters(hp=hp, mp=mp),
                            chains=listChains2(specs, parameters),
                            current_values,
@@ -446,4 +458,41 @@ setAs("MultiBatch", "MultiBatchList", function(from){
 setAs("MultiBatchList", "MultiBatch", function(from){
   from[[1]]
 })
+
+setMethod("mcmc2", "MultiBatchList", function(object){n
+  for(i in seq_along(object)){
+    object[[i]] <- mcmc2(object[[i]])
+  }
+  ml <- marginal_lik(object)
+  object <- object[ !is.na(ml) ]
+  ml <- ml [ !is.na(ml) ]
+  object <- object[ order(ml, decreasing=TRUE) ]
+  object
+})
+
+##setMethod("sapply", "MultiBatchList",
+##          function(X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE){
+##
+##          })
+
+setMethod("names", "MultiBatchList", function(x){
+  specs(x)$model
+})
+
+setMethod("marginal_lik", "MultiBatchList", function(object){
+  ml <- sapply(summaries(object), "[[", "marginal_lik")
+  names(ml) <- names(object)
+  ml
+})
+
+
+
+##fitSingleBatch <- function(model.list){
+##  nms <- names(model.list)
+##  sb.model <- paste0("SB", k(model.list)[1])
+##  ix <- match(sb.model, nms)
+##  SB <- models[[sb.model]]
+##  SB2 <- mcmc2(SB)
+##  SB2
+##}
 

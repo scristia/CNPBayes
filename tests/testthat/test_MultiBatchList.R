@@ -12,11 +12,14 @@ test_that("revised_constructors", {
   mp <- McmcParams(iter=10, burnin=1, nStarts=4)
   data(SingleBatchModelExample)
   sb <- SingleBatchModelExample
-  mcmcParams(sb) <- mp
-  mb2 <- as(sb, "MultiBatch")
-  posteriorSimulation(mb2)
-  expect_true(validObject(mb2))
 
+  ##sb <- updateObject(sb)
+  mcmcParams(sb) <- mp
+  expect_true(validObject(sb))
+  mb2 <- as(sb, "MultiBatch")
+  mb2 <- posteriorSimulation(mb2)
+  expect_true(validObject(mb2))
+  m <- computeModes(mb2)
   dat <- assays(mb2)
   tmp <- MultiBatch("SB3",
                     data=dat,
@@ -141,7 +144,8 @@ test_that("revised_constructors", {
   oned(mb2)
   batch(mb2)
   oned(mb2) <- oned(mb2)
-  assays(mb2) <- assays(mb2)
+  ##assays(mb2) <- assays(mb2)
+  ##expect_true(validObject(mb2))
 })
 
 test_that("starting_values", {
@@ -163,7 +167,7 @@ test_that("starting_values", {
 
 test_that("findSurrogates", {
   data(SingleBatchModelExample)
-  sb <- SingleBatchModelExample
+  sb <- updateObject(SingleBatchModelExample)
   mb <- as(sb, "MultiBatch")
   assays(mb)[["provisional_batch"]] <- sample(letters[1:15], nrow(mb),
                                               replace=TRUE)
@@ -171,6 +175,7 @@ test_that("findSurrogates", {
   ## starting values from modelValues2 are unlikely to be very good
   ##
   mb2 <- findSurrogates(mb)
+  expect_true(validObject(mb2))
   iter(mb2) <- 100
   burnin(mb2) <- 50
   thin(mb2) <- 2
@@ -306,22 +311,83 @@ test_that("Pooled model", {
 })
 
 test_that("Plotting", {
+  library(tidyverse)
   data(MultiBatchModelExample)
-  mb <- as(MultiBatchModelExample, "MultiBatch")
-  ch2 <- McmcChains2(mc=chains(mb),
-                     iter=iter(mb),
-                     k=k(mb),
-                     batch=nBatch(mb)) %>%
-    as("list")
-
-  ch.list <- listChains(mb)
-  expect_identical(ch2, ch.list)
+  mbe <- MultiBatchModelExample
+  mb <- as(mbe, "MultiBatch")
+  ch <- chains(mb)
+  ch.list <- as(ch, "list")
   if(FALSE){
-    ggplot(ch2[["theta"]], aes(s, theta, group=b)) +
-      geom_line() +
+    ggplot(ch.list[["theta"]], aes(s, value, group=b)) +
+      geom_line(aes(color=b)) +
       facet_wrap(~k)
   }
 })
+
+test_that("predictive", {
+  library(tidyverse)
+  library(magrittr)
+  data(MultiBatchModelExample)
+  mbe <- MultiBatchModelExample
+  prob <- p(mbe)
+  z <- seq_len(k(mbe))
+  set.seed(123)
+  sample(z, replace=TRUE, size=3, prob=prob)
+  set.seed(123)
+  tmp=replicate(1000, sample_components(z, 3, prob)) %>%
+    as.numeric
+  phat <- table(tmp)/length(tmp)
+  phat <- as.numeric(phat)
+  expect_equal(phat, prob, tolerance=0.01)
+
+  set.seed(123)
+  update_predictive(mbe)
+  ## simulate from rst
+  uu <- u(mbe)
+  x <- rst(1)
+
+  set.seed(123)
+  tmp <- rlocScale_t(1000, 0, 1, 100, uu[1])
+  set.seed(123)
+  tmp2 <- rst(1000, uu[1], 100, 0, 1)
+  expect_identical(tmp, tmp2)
+
+  ch <- chains(mbe)
+  predictive(ch) <- matrix(as.numeric(NA),
+                           nrow=iter(mbe),
+                           ncol=k(mbe)*nBatch(mbe))
+  ##
+  ## infrastructure set up, but values not quite right
+  ##
+  ## shouldn't yhat be the same dimension as y?
+  ##  i.e., the probability a value is simulated from batch y depends on the representation of the batches.
+  chains(mbe) <- ch
+  set.seed(123)
+  tmp <- cpp_mcmc(mbe, mcmcParams(mbe))
+  ystar <- predictive(tmp)
+  ##ystar2 <- posteriorPredictive(mbe)
+  ##qqplot(as.numeric(ystar), ystar2$y)
+
+  mbe2 <- posteriorSimulation(mbe)
+  pmeans <- colMeans(p(chains(mbe2)))
+  ystar <- predictive(mbe2)
+
+  mbp <- MultiBatchPooledExample
+  mbp2 <- updateObject(mbp)
+  expect_true(validObject(mbp2))
+  expect_identical(ncol(sigma(chains(mbp2))), nBatch(mbp2))
+  expect_identical(ncol(theta(chains(mbp2))), nBatch(mbp2)*k(mbp2))
+
+  tmp <- update_predictiveP(mbp2)
+  mbp3 <- posteriorSimulation(mbp2)
+  pred <- predictive(mbp3)
+  hist(pred, breaks=500)
+  hist(y(mbp3), breaks=200)
+  p1 <- mean(y(mbp3) < -1)
+  p2 <- mean(pred < -1)
+  expect_equal(p1, p2, tolerance=0.01)
+})
+
 
 test_that("Empty MBL", {
   specs <- modelSpecs()
@@ -352,8 +418,6 @@ test_that("MBL with data", {
                                burnin=200,
                                nStarts=4)
   mb1 <- as(sb, "MultiBatch")
-  options(warn=2, error=recover)
-
   data <- assays(mb1)
   down_sample <- seq_len(nrow(data))
   specs <- modelSpecs(data=data,
@@ -401,6 +465,7 @@ test_that("MBL with data", {
   expect_identical(seq_along(mbl), 1:15)
 })
 
+## posteriorSimulation now works for MBL models
 test_that("posterior simulation with MBL", {
   data(MultiBatchModelExample)
   mb <- MultiBatchModelExample
@@ -411,6 +476,7 @@ test_that("posterior simulation with MBL", {
                                 thin=1L,
                                 burnin=5L,
                                 nStarts=3L)
+  expect_true(validObject(mbl))
   ## no code for pooled models yet
   is_pooled <- substr(specs(mbl)$model, 3, 3) == "P"
   mbl <- mbl[ !is_pooled ]
@@ -437,4 +503,191 @@ test_that("posterior simulation with MBL", {
   pz <- values(mbl5)[[1]][["probz_up"]]
   expect_identical(nrow(pz), specs(mbl5)$number_obs[1])
   expect_false(any(is.na(pz)))
+})
+
+## this is a much simpler replacement for gibbs
+test_that("mcmc2 for MultiBatch", {
+  data(MultiBatchModelExample)
+  mb <- MultiBatchModelExample
+  set.seed(123)
+  mb2 <- as(mb, "MultiBatch")
+  mb3 <- mcmc2(mb2)
+  expect_equal(-341, marginal_lik(mb3)[[1]], tolerance=1)
+})
+
+test_that("mcmc2 for MultiBatchList", {
+  library(SummarizedExperiment)
+  data(MultiBatchModelExample)
+  mb <- as(MultiBatchModelExample, "MultiBatch")
+  mbl <- MultiBatchList(data=assays(mb))
+  mp <- McmcParams(burnin=50, iter=100, nStarts=4,
+                   max_burnin=100)
+  mcmcParams(mbl) <- mp
+  set.seed(123)
+  mbl2 <- mcmc2(mbl)
+  ml <- marginal_lik(mbl2)
+  expect_true(all(diff(ml) <= 0))
+})
+
+test_that("augment data for MultiBatch", {
+  library(SummarizedExperiment)
+  data(MultiBatchModelExample)
+  mb <- MultiBatchModelExample
+  mb <- as(MultiBatchModelExample, "MultiBatch")
+  mb <- posteriorSimulation(mb)
+  if(FALSE){
+    ch.list <- as(chains(mb), "list")
+    ggplot(ch.list[["theta"]], aes(s, value, group=b)) +
+      geom_line(aes(color=b)) +
+      facet_wrap(~k)
+  }
+  filter <- dplyr::filter
+  ## remove homozygous deletions from batch 3
+  ## - not a very realistic example because this is not a rare deletion
+  dat <- assays(mb) %>%
+    filter(! (batch == 3 & oned < -0.5) )
+  ## we have problems with this because one batch has only 2 components
+  mb1 <- MultiBatch(data=dat)
+  mb1 <- posteriorSimulation(mb1)
+  ## this looks terrible!
+  if(FALSE) ggMixture(mb1)
+  mbl <- MultiBatchList(data=assays(mb1))
+  burnin(mbl) <- 200
+
+  ##
+  ## - check for batches with few observations
+  ## - augment data if needed
+  ## - fit as per usual
+  ##
+  mbl2 <- augmentData2(mbl)
+  expect_true(validObject(mbl2))
+  ## 10 observations added
+  expect_identical(nrow(mbl2), 1454L)
+  mb3 <- mbl2[[ which(specs(mbl2)$model == "MB3") ]]
+  expect_identical(seq_len(nrow(mb3)), down_sample(mb3))
+  mb3 <- posteriorSimulation(mb3)
+  if(FALSE) ggMixture(mb3)
+})
+
+test_that("fix probz in mcmc2", {
+  library(SummarizedExperiment)
+  data(MultiBatchModelExample)
+  mb <- as(MultiBatchModelExample, "MultiBatch")
+  iter(mb) <- 100
+  burnin(mb) <- 50
+  nStarts(mb) <- 4
+  mb2 <- mcmc2(mb)
+  expect_true(!any(is.na(probz(mb2))))
+
+  ## try mcmc2 for multibatch list
+  mbl <- MultiBatchList(data=assays(mb2))
+  mbl <- mbl[1:4]
+  mcmcParams(mbl) <- mcmcParams(mb2)
+  mbl2 <- mcmc2(mbl)
+  ## This FAILS
+  expect_true(!any(is.na(probz(mbl2[[1]]))))
+})
+
+test_that("Smarter MCMC for MultiBatchList", {
+  library(SummarizedExperiment)
+  data(MultiBatchModelExample)
+  mb <- as(MultiBatchModelExample, "MultiBatch")
+  ##
+  ## beginning of mcmc2
+  ##
+  object <- MultiBatchList(data=assays(mb), burnin=250L)
+  expect_identical(250L, burnin(object))
+  N <- nrow(object)
+  object2 <- augmentData2(object)
+  mp <- mcmcParams(object2)
+  max_burnin(mp) <- 100
+  iter(mp) <- 250
+  mcmcParams(object2) <- mp
+  ## no data should be added -- this is a common deletion
+  expect_identical(N, nrow(object2))
+  sp <- specs(object2)
+  object2.list <- split(object2, sp$k)
+  ##
+  ## reverse the order so that model with largest number of components is first
+  ##
+  object2.list <- rev(object2.list)
+  ##
+  ## For models with k > 1, fit the SB model first.
+  ##
+  ## If label switching occurs, do not fit the other models.
+  ##
+  ##
+  model.nms <- sapply(object2.list, k) %>%
+    sapply("[", 1) %>%
+    paste0("SB", .)
+  for(i in seq_along(object2.list)){
+    model.list <- object2.list[[i]]
+    sb <- model.list[[1]]
+    mod.list <- model.list[-1]
+    sb2 <- mcmc2( sb )
+    if( convergence(sb2) ){
+      for(j in seq_along(mod.list)){
+        ##singleBatchGuided
+        ##mod.list[[j]] <- fitModel(mod.list[[j]], sb2)
+      }
+    } else {
+      ## only keep the single-batch model
+      model.list <- model.list[1]
+    }
+    object2.list[[i]] <- model.list
+  }
+
+
+    object2.list[[i]][[sb.model]] <- SB2
+    if( convergence(SB2) ){
+      ## evaluate other models in this list
+      ## simulate starting values from modal values
+
+    } else{
+      object2.list[[i]] <- object2.list[[i]][ sb.model ]
+    }
+  }
+
+
+
+    pred <- predictive(object)
+    pred2 <- pred %>%
+      longFormatKB(K=k(object), B=numBatch(object)) %>%
+      set_colnames(c("s", "oned", "batch", "component")) %>%
+      mutate(model=modelName(object)) %>%
+      mutate(batch=as.character(batch),
+             batch=gsub("batch ", "", batch)) %>%
+      select(-component) ## component labels are wrong
+    zz <- zstar(object) %>%
+      longFormatKB(K=k(object), B=numBatch(object)) %>%
+      mutate(component=factor(value))
+    pred2$component <- zz$component
+    ##
+    ## if not converged, skip remaining models in this category
+    ##
+  }
+
+  ix <- order(sp$k, decreasing=TRUE)
+  object2 <- object2[ix]
+
+  for(i in seq_along(object)){
+    object[[i]] <- mcmc2(object[[i]])
+  }
+  ml <- marginal_lik(object)
+  object <- object[ !is.na(ml) ]
+  ml <- ml [ !is.na(ml) ]
+  object <- object[ order(ml, decreasing=TRUE) ]
+  object
+})
+
+test_that("augment data and down sample for MultiBatchList", {
+
+})
+
+test_that("genotype mixture components MultiBatch", {
+
+})
+
+test_that("genotype mixture components MultiBatchList", {
+
 })
