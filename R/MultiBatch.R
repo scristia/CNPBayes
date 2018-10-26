@@ -267,7 +267,7 @@ modelValues2 <- function(specs, data, hp){
   z <- sample(seq_len(K), prob=p, replace=TRUE, size=n.sampled)
   logprior <- numeric()
   loglik <- numeric()
-  probz <- matrix(nrow=n.sampled, ncol=K)
+  probz <- matrix(0L, nrow=n.sampled, ncol=K)
   list(theta=theta,
        sigma2=sigma2,
        nu.0=nu.0,
@@ -1001,6 +1001,7 @@ combineChains <- function(model.list){
 }
 
 ## update the current values with the posterior means across all chains
+
 combineModels <- function(model.list){
   mc <- combineChains(model.list)
   pz.list <- lapply(model.list, probz)
@@ -1017,12 +1018,19 @@ combineModels <- function(model.list){
            id=as.character(id),
            batch=batch(model.list[[1]]))
   param.list <- list(mp=mp, hp=hp)
-  mb <- MultiBatch(modelName(model.list[[1]]),
-                   data=tib,
-                   parameters=param.list,
-                   chains=mc)
-  values(mb)[["probz"]] <- pz
+  if(is(model.list[[1]], "MultiBatchPooled")){
+    mb <- MultiBatchP(modelName(model.list[[1]]),
+                      data=tib,
+                      parameters=param.list,
+                      chains=mc)
+  } else {
+    mb <- MultiBatch(modelName(model.list[[1]]),
+                     data=tib,
+                     parameters=param.list,
+                     chains=mc)
+  }
   summaries(mb) <- summarizeModel(mb)
+  values(mb)[["probz"]] <- pz
   flags(mb) <- collectFlags(model.list)
   ##
   ## Set current values to the modal ordinates
@@ -1087,6 +1095,7 @@ setMethod("mcmc2", "MultiBatch", function(object){
     mb <- setModes(mb)
     mb <- compute_marginal_lik(mb)
   }
+  stopifnot(validObject(mb))
   mb
 })
 
@@ -1203,3 +1212,12 @@ singleBatchGuided <- function(model, sb){
   sp <- specs(model)
   vals <- values(sb)
 }
+
+setMethod("modelName", "MultiBatch", function(object) specs(object)$model)
+
+setReplaceMethod("max_burnin", "MultiBatch", function(object, value){
+  mp <- mcmcParams(object)
+  max_burnin(mp) <- as.integer(value)
+  mcmcParams(object) <- mp
+  object
+})
