@@ -194,7 +194,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // update_predictiveP
-Rcpp::NumericMatrix update_predictiveP(Rcpp::S4 xmod);
+Rcpp::S4 update_predictiveP(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_update_predictiveP(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

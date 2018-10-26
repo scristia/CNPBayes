@@ -587,7 +587,7 @@ Rcpp::NumericMatrix update_sigma2(Rcpp::S4 xmod){
                 continue;
             }
             for (int k = 0; k < K; ++k){
-                if(z[i] == k+1 & batch[i] == b+1){
+              if((z[i] == k+1) && (batch[i] == b+1)){
                     ss(b, k) += u[i] * pow(x[i] - theta(b, k), 2);
                     //ss(b, k) += pow(x[i] - theta(b, k), 2);
                 }
