@@ -20,10 +20,11 @@ modelSpecs <- function(models, K, data, down_sample) {
   for(i in seq_along(models)){
     model.list[[i]] <- model_spec(models[i], data, down_sample)
   }
-  tab <- do.call(rbind, model.list)
-  if("SB1" %in% tab$model && "MB1" %in% tab$model){
-    tab <- filter(tab, model != "MB1")
-  }
+  tab <- do.call(rbind, model.list) %>%
+    filter(! model %in% c("SBP1", "MBP1"))
+  ##  if("SB1" %in% tab$model && "MB1" %in% tab$model){
+  ##    tab <- filter(tab, model != "MB1")
+  ##  }
   if(all(tab$number_batches == 1)){
     ## keep only single batch models
     tab <- filter(tab, substr(model, 1, 2) == "SB")
@@ -52,11 +53,24 @@ setMethod("[[", c("MultiBatchList", "numeric"), function(x, i){
   if(specs(x)$number_batches[i] == 1){
     assays(x)$batch <- 1L
   }
+  if(substr(model, 1, 3) == "SBP"){
+    mb <- MultiBatchP(model=model,
+                      data=assays(x),
+                      down_sample=down_sample(x),
+                      specs=specs(x)[i, ],
+                      parameters=parameters(x),
+                      current_values=values(x)[[i]],
+                      chains=chains(x)[[i]],
+                      summaries=summaries(x)[[i]],
+                      flags=flags(x)[[i]])
+    return(mb)
+  }
   mb <- MultiBatch(model=model,
                    data=assays(x),
                    down_sample=down_sample(x),
                    specs=specs(x)[i, ],
                    parameters=parameters(x),
+                   current_values=values(x)[[i]],
                    chains=chains(x)[[i]],
                    summaries=summaries(x)[[i]],
                    flags=flags(x)[[i]])
@@ -325,7 +339,12 @@ listChains2 <- function(model_specs, parameters){
   K <- model_specs$k
   mc.list <- vector("list", nrow(model_specs))
   for(i in seq_along(mc.list)){
-    mc.list[[i]] <- initialize_mcmc(K[i], S, B[i])
+    nm <- substr(model_specs$model[i], 1, 3)
+    if(nm == "SBP"){
+      mc.list[[i]] <- initialize_mcmcP(K[i], S, B[i])
+    } else {
+      mc.list[[i]] <- initialize_mcmc(K[i], S, B[i])
+    }
   }
   names(mc.list) <- model_specs$model
   mc.list
@@ -334,7 +353,12 @@ listChains2 <- function(model_specs, parameters){
 listValues <- function(model_specs, data, hp){
   values.list <- vector("list", nrow(model_specs))
   for(i in seq_along(values.list)){
-    values.list[[i]] <- modelValues2(model_specs[i, ], data, hp)
+    nm <- substr(model_specs$model[i], 1, 3)
+    if(nm == "SBP"){
+      values.list[[i]] <- modelValuesP(model_specs[i, ], data, hp)
+    } else {
+      values.list[[i]] <- modelValues2(model_specs[i, ], data, hp)
+    }
   }
   names(values.list) <- model_specs$model
   values.list
@@ -347,7 +371,12 @@ hyperParamList <- function(k){
 listSummaries <- function(model_specs){
   sum.list <- vector("list", nrow(model_specs))
   for(i in seq_along(sum.list)){
-    sum.list[[i]] <- modelSummaries(model_specs[i, ])
+    nm <- substr(model_specs$model[i], 1, 3)
+    if(nm == "SBP"){
+      sum.list[[i]] <- modelSummariesP(model_specs[i, ])
+    } else {
+      sum.list[[i]] <- modelSummaries(model_specs[i, ])
+    }
   }
   names(sum.list) <- model_specs$model
   sum.list
@@ -459,9 +488,11 @@ setAs("MultiBatchList", "MultiBatch", function(from){
   from[[1]]
 })
 
-setMethod("mcmc2", "MultiBatchList", function(object){n
+setMethod("mcmc2", "MultiBatchList", function(object){
   for(i in seq_along(object)){
-    object[[i]] <- mcmc2(object[[i]])
+    tmp <- mcmc2(object[[i]])
+    object[[i]] <- tmp
+    stopifnot(validObject(object[[i]]))
   }
   ml <- marginal_lik(object)
   object <- object[ !is.na(ml) ]
@@ -486,6 +517,21 @@ setMethod("marginal_lik", "MultiBatchList", function(object){
 })
 
 
+setMethod("lapply", "MultiBatchList", function(X, FUN, ...){
+  result <- vector("list", length(X))
+  for(i in seq_along(X)){
+    result[[i]] <- FUN(X[[i]], ...)
+  }
+  result
+})
+
+setMethod("sapply", "MultiBatchList", function(X, FUN, ..., simplify=TRUE, USE.NAMES=TRUE){
+  result <- lapply(X, FUN, ...)
+  if(simplify){
+    result <- unlist(result)
+  }
+  result
+})
 
 ##fitSingleBatch <- function(model.list){
 ##  nms <- names(model.list)
@@ -496,3 +542,6 @@ setMethod("marginal_lik", "MultiBatchList", function(object){
 ##  SB2
 ##}
 
+setMethod("modelName", "MultiBatchList", function(object){
+  specs(object)$model
+})

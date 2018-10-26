@@ -515,7 +515,7 @@ argMax <- function(object){
     return(1)
   }
   maxp <- max(p)
-  which(p == maxp)
+  which(p == maxp)[1]
 }
 
 setMethod("isSB", "SingleBatchModel", function(object) TRUE)

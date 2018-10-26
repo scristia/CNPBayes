@@ -161,7 +161,8 @@ test_that("starting_values", {
 
   mb <- MultiBatch(data=dat)
   mb2 <- MultiBatch(data=dat,
-                    down_sample=sort(sample(seq_len(nrow(dat)), 500, replace=TRUE)))
+                    down_sample=sort(sample(seq_len(nrow(dat)),
+                                            500, replace=TRUE)))
   expect_true(validObject(mb2))
 })
 
@@ -310,6 +311,60 @@ test_that("Pooled model", {
   log_lik(chains(mp3))
 })
 
+test_that("mcmc2 for pooled model", {
+  ## with data
+  library(SummarizedExperiment); library(tidyverse)
+  data(MultiBatchModelExample)
+  mb <- as(MultiBatchModelExample, "MultiBatch")
+  ##
+  ## These models should fit the data very well
+  ## non-random starts, pooled model
+  ## WORKS
+  mb1 <- as(mb, "MultiBatchP")
+  expect_true(validObject(mb1))
+  mb1 <- posteriorSimulation(mb1)
+  expect_equal(theta(mb1), theta(mb), tolerance=0.02)
+  expect_true(all(rowSums(probz(mb1))== 0))
+  ll <- log_lik(chains(mb1))
+  expect_identical(length(unique(ll)), iter(mb1))
+  mb1 <- posteriorSimulation(mb1)
+
+
+
+
+  ##
+  ## random starts, pooled model
+  ## ## FAILS
+  mb2 <- MultiBatchP(data=assays(mb))
+  iter(mb2) <- iter(mb1)
+  burnin(mb2) <- burnin(mb1)
+  mb2 <- posteriorSimulation(mb2)
+  expect_equal(theta(mb2), theta(mb), tolerance=0.02)
+
+
+
+
+  iter(mb1) <- 100L
+  burnin(mb1) <- 50L
+  nStarts(mb1) <- 2L
+  max_burnin(mb1) <- 50L
+  mb2 <- mcmc2(mb1)
+  expect_is(mb2, "MultiBatchP")
+
+  iter(mb2) <- 500L
+  burnin(mb2) <- 1000L
+  thin(mb2) <- 2
+  mb3 <- posteriorSimulation(mb2)
+  if(FALSE) ggMixture(mb3)
+
+  ## this works
+  data(MultiBatchModelExample)
+  mb <- as(MultiBatchModelExample, "MultiBatchPooled")
+  mb2 <- posteriorSimulation(mb)
+  ggMixture(mb2)
+  tmp <- ggChains(mb2)
+})
+
 test_that("Plotting", {
   library(tidyverse)
   data(MultiBatchModelExample)
@@ -418,19 +473,6 @@ test_that("MBL with data", {
                                burnin=200,
                                nStarts=4)
   mb1 <- as(sb, "MultiBatch")
-  data <- assays(mb1)
-  down_sample <- seq_len(nrow(data))
-  specs <- modelSpecs(data=data,
-                      down_sample=down_sample)
-  num_models <- nrow(specs)
-  expect_identical(num_models, 8L)
-  iter=1000L; thin=1L; nStarts=4L
-  hp=Hyperparameters()
-  mp=McmcParams(iter=iter, thin=thin, nStarts=nStarts)
-  parameters=modelParameters(hp=hp, mp=mp)
-  tmp <- listChains2(specs, parameters)
-  tmp <- listValues(specs, data[down_sample, , drop=FALSE], hp)
-  tmp <- listSummaries(specs)
   ## When a single model is not specified,
   ## generate all available models
   mbl <- MultiBatchList(data=assays(mb1))
@@ -583,9 +625,9 @@ test_that("fix probz in mcmc2", {
   mbl <- MultiBatchList(data=assays(mb2))
   mbl <- mbl[1:4]
   mcmcParams(mbl) <- mcmcParams(mb2)
+  set.seed(123)
   mbl2 <- mcmc2(mbl)
-  ## This FAILS
-  expect_true(!any(is.na(probz(mbl2[[1]]))))
+  expect_true(all(rowSums(probz(mbl2[[1]])) == 1))
 })
 
 test_that("Smarter MCMC for MultiBatchList", {
@@ -596,6 +638,9 @@ test_that("Smarter MCMC for MultiBatchList", {
   ## beginning of mcmc2
   ##
   object <- MultiBatchList(data=assays(mb), burnin=250L)
+  x <- object[["SBP3"]]
+  expect_is(x, "MultiBatchP")
+  expect_true(validObject(x))
   expect_identical(250L, burnin(object))
   N <- nrow(object)
   object2 <- augmentData2(object)
@@ -624,11 +669,15 @@ test_that("Smarter MCMC for MultiBatchList", {
     model.list <- object2.list[[i]]
     sb <- model.list[[1]]
     mod.list <- model.list[-1]
+    ##
+    ## only fit multibatch models for given k if the corresponding single-batch model converges
+    ##
     sb2 <- mcmc2( sb )
     if( convergence(sb2) ){
       for(j in seq_along(mod.list)){
-        ##singleBatchGuided
-        ##mod.list[[j]] <- fitModel(mod.list[[j]], sb2)
+        ##singleBatchGuided(mod.list[[j]], sb2)
+        x <- mod.list[[j]]
+        expect_is(x, "MultiBatchP")
       }
     } else {
       ## only keep the single-batch model
@@ -650,7 +699,7 @@ test_that("Smarter MCMC for MultiBatchList", {
 
 
 
-    pred <- predictive(object)
+
     pred2 <- pred %>%
       longFormatKB(K=k(object), B=numBatch(object)) %>%
       set_colnames(c("s", "oned", "batch", "component")) %>%
@@ -665,7 +714,7 @@ test_that("Smarter MCMC for MultiBatchList", {
     ##
     ## if not converged, skip remaining models in this category
     ##
-  }
+##  }
 
   ix <- order(sp$k, decreasing=TRUE)
   object2 <- object2[ix]
@@ -689,5 +738,8 @@ test_that("genotype mixture components MultiBatch", {
 })
 
 test_that("genotype mixture components MultiBatchList", {
+
+test_that("mcmc2 with MBL", {
+  
 
 })

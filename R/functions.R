@@ -642,13 +642,13 @@ rst <- function (n, u, df = 100, mean = 0, sigma = 1){
 
 #' Abbreviated model name
 #'
-#' @param model a SingleBatchModel, MultiBatchModel, etc.
+#' @param object a SingleBatchModel, MultiBatchModel, etc.
 #' @examples
 #' modelName(SingleBatchModelExample)
 #' @export
-modelName <- function(model){
+setMethod("modelName", "MixtureModel", function(object){
   . <- NULL
-  model.name <- class(model) %>%
+  model.name <- class(object) %>%
     gsub("CopyNumber", "", .) %>%
     gsub("SingleBatchPooled", "SBP", .) %>%
     gsub("SingleBatchModel", "SB", .) %>%
@@ -656,13 +656,13 @@ modelName <- function(model){
     gsub("MultiBatchCopyNumber", "MB", .) %>%
     gsub("MultiBatchPooled", "MBP", .) %>%
     gsub("MultiBatch", "MB", .)
-  L <- length(unique(batch(model)))
+  L <- length(unique(batch(object)))
   if(L == 1){
     model.name <- gsub("MB", "SB", model.name)
   }
-  model.name <- paste0(model.name, k(model))
+  model.name <- paste0(model.name, k(object))
   model.name
-}
+})
 
 freeParams <- function(model){
   ## K: number of free parameters to be estimated

@@ -110,6 +110,42 @@ setMethod("downSampleModel", "MultiBatchP", function(object, N=1000, i){
   mb
 })
 
+setAs("MultiBatch", "MultiBatchP", function(from){
+  vals <- values(from)
+  vals[["sigma2"]] <- matrix(rowMeans(vals[["sigma2"]]),
+                             numBatch(from),
+                             1)
+  s <- summaries(from)
+  m <- s$modes
+  if(length(m) > 0){
+    m[["sigma2"]] <- matrix(rowMeans(m[["sigma2"]]),
+                            numBatch(from),
+                            1)
+    s$modes <- m
+  }
+  if(!all(is.na(s$data.prec))){
+    s$data.prec <- matrix(rowMeans(s[["data.prec"]]),
+                          numBatch(from),
+                          1)
+  }
+  ch <- chains(from)
+  sigma2(ch) <- matrix(as.numeric(NA),
+                       iter(from),
+                       1)
+  if(numBatch(from) > 1){
+    specs(from)$model <- "MBP"
+  }else specs(from)$model <- "SBP"
+  model <- new("MultiBatchP",
+               data=assays(from),
+               down_sample=down_sample(from),
+               specs=specs(from),
+               parameters=parameters(from),
+               chains=ch,
+               current_values=vals,
+               summaries=s,
+               flags=flags(from))
+})
+
 
 setAs("MultiBatchP", "MultiBatchPooled", function(from){
   flag1 <- as.integer(flags(from)[[".internal.constraint"]])
@@ -177,4 +213,31 @@ setAs("MultiBatchPooled", "MultiBatchP", function(from){
     modes(mb) <- m
   }
   mb
+})
+
+
+setAs("MultiBatchP", "list", function(from){
+  ns <- nStarts(from)
+  mb.list <- replicate(ns, as(from, "MultiBatchPooled"))
+  mb.list <- lapply(mb.list, function(x) {nStarts(x) <- 1; return(x)})
+  mb.list
+})
+
+
+setMethod("compute_marginal_lik", "MultiBatchP", function(object, params){
+  if(missing(params)){
+    params <- mlParams(root=1/2,
+                       reject.threshold=exp(-100),
+                       prop.threshold=0.5,
+                       prop.effective.size=0)
+  }
+  mbm <- as(object, "MultiBatchPooled")
+  ml <- tryCatch(marginalLikelihood(mbm, params), warning=function(w) NULL)
+  if(!is.null(ml)){
+    summaries(object)[["marginal_lik"]] <- ml
+    message("     marginal likelihood: ", round(ml, 2))
+  } else {
+    message("Unable to compute marginal likelihood")
+  }
+  object
 })

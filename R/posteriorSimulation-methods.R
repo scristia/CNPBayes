@@ -78,22 +78,6 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
   .posteriorSimulation2(object)
 })
 
-#' @rdname posteriorSimulation-method
-#' @aliases posteriorSimulation,SingleBatchModel-method
-setMethod("posteriorSimulation", "SingleBatchModel", function(object){
-  object <- as(object, "MultiBatchModel")
-  .posteriorSimulation2(object)
-})
-
-#' @rdname posteriorSimulation-method
-#' @aliases posteriorSimulation,SingleBatchPooled-method
-setMethod("posteriorSimulation", "SingleBatchPooled", function(object){
-  object <- as(object, "MultiBatchPooled")
-  .posteriorSimulation2(object)
-})
-
-
-
 setMethod("runBurnin", "MultiBatchModel", function(object){
   cpp_burnin(object, mcmcParams(object))
 })
@@ -109,12 +93,6 @@ setMethod("runBurnin", "MultiBatch", function(object){
 
 setMethod("runMcmc", "MultiBatch", function(object){
   mbm <- as(object, "MultiBatchModel")
-##  mp <- mcmcParams(mbm)
-##  up <- .param_updates(mp)
-##  up[ ] <- 0L
-##  up[ c("theta", "sigma2") ] <- 1L
-##  mp@param_updates <- up
-##  mcmcParams(mbm) <- mp
   mbm <- runMcmc(mbm)
   mb <- revertBack(object, mbm)
   mb
@@ -173,6 +151,7 @@ setMethod("posteriorSimulation", "MultiBatch", function(object){
 
 setMethod("posteriorSimulation", "MultiBatchP", function(object){
   mbm <- as(object, "MultiBatchPooled")
+  browser()
   mbm <- runBurnin(mbm)
   if(!isOrdered(mbm)) label_switch(mbm) <- TRUE
   mbm <- sortComponentLabels(mbm)
@@ -213,6 +192,5 @@ setMethod("posteriorSimulation", "list", function(object){
   for(i in seq_along(object)){
     object[[i]] <- posteriorSimulation(object[[i]])
   }
-
   object
 })

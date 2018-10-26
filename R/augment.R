@@ -53,6 +53,10 @@ setMethod("augmentData2", "MultiBatchList", function(object){
   object2 <- object2[ix]
   SB <- object2[[1]]
   assays(SB)$batch <- 1L
+  ##
+  ## Running MCMC for SingleBatch model to find posterior predictive distribution
+  ##
+  message("Checking whether possible homozygous deletions occur in only a subset of batches...")
   SB <- posteriorSimulation(SB)
   mn.sd <- c(theta(SB)[1], sigma(SB)[1])
   limits <- mn.sd[1] + c(-1, 1)*2*mn.sd[2]
