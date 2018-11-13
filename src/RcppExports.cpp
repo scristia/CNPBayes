@@ -676,26 +676,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_burnin
-Rcpp::S4 cpp_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp);
-RcppExport SEXP _CNPBayes_cpp_burnin(SEXP objectSEXP, SEXP mcmcpSEXP) {
+Rcpp::S4 cpp_burnin(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_cpp_burnin(SEXP objectSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_burnin(object, mcmcp));
+    rcpp_result_gen = Rcpp::wrap(cpp_burnin(object));
     return rcpp_result_gen;
 END_RCPP
 }
 // cpp_mcmc
-Rcpp::S4 cpp_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp);
-RcppExport SEXP _CNPBayes_cpp_mcmc(SEXP objectSEXP, SEXP mcmcpSEXP) {
+Rcpp::S4 cpp_mcmc(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_cpp_mcmc(SEXP objectSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type mcmcp(mcmcpSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_mcmc(object, mcmcp));
+    rcpp_result_gen = Rcpp::wrap(cpp_mcmc(object));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -873,8 +871,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_update_sigma2", (DL_FUNC) &_CNPBayes_update_sigma2, 1},
     {"_CNPBayes_update_predictive", (DL_FUNC) &_CNPBayes_update_predictive, 1},
     {"_CNPBayes_update_probz", (DL_FUNC) &_CNPBayes_update_probz, 1},
-    {"_CNPBayes_cpp_burnin", (DL_FUNC) &_CNPBayes_cpp_burnin, 2},
-    {"_CNPBayes_cpp_mcmc", (DL_FUNC) &_CNPBayes_cpp_mcmc, 2},
+    {"_CNPBayes_cpp_burnin", (DL_FUNC) &_CNPBayes_cpp_burnin, 1},
+    {"_CNPBayes_cpp_mcmc", (DL_FUNC) &_CNPBayes_cpp_mcmc, 1},
     {"_CNPBayes_log_prob_thetap", (DL_FUNC) &_CNPBayes_log_prob_thetap, 2},
     {"_CNPBayes_marginal_theta_pooled", (DL_FUNC) &_CNPBayes_marginal_theta_pooled, 1},
     {"_CNPBayes_log_prob_sigmap", (DL_FUNC) &_CNPBayes_log_prob_sigmap, 2},

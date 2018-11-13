@@ -11,5 +11,6 @@ Rcpp::NumericMatrix theta_multibatch_pvar(Rcpp::S4 xmod);
 Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod);
 Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
 Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp);
+Rcpp::S4 update_predictiveP(Rcpp::S4 xmod);
 
 #endif
