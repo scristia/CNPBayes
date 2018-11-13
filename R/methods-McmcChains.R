@@ -119,8 +119,11 @@ setMethod("McmcChains", "missing", function(object){
 
 setValidity("McmcChains", function(object){
   msg <- TRUE
-  if(iter(object) != nrow(predictive(object))){
-    msg <- "predictive slot has incorrect dimension"
+  if(length(iter(object)) > 0){
+    if(iter(object) != nrow(predictive(object))){
+      msg <- "predictive slot has incorrect dimension"
+      return(msg)
+    }
   }
   msg
 })
@@ -210,6 +213,9 @@ setMethod("theta", "McmcChains", function(object) object@theta)
 #' @rdname sigma2-method
 #' @aliases sigma2,missing-method
 setMethod("sigma2", "McmcChains", function(object) object@sigma2)
+#' @rdname sigma_-method
+#' @aliases sigma2,missing-method
+setMethod("sigma_", "McmcChains", function(object) sqrt(object@sigma2))
 
 setMethod("show", "McmcChains", function(object){
   cat("An object of class 'McmcChains'\n")
@@ -397,7 +403,11 @@ setAs("McmcChains", "list", function(from){
   B <- from@B
   S <- iter(from)
   theta <- longFormatKB(theta(from), K, B)
-  sigma2 <- longFormatKB(sigma2(from), K, B)
+  if(ncol(sigma2(from)) == K*B){
+    sigma2 <- longFormatKB(sigma2(from), K, B)
+  } else {
+    sigma2 <- longFormatK(sigma2(from), K)
+  }
   p <- longFormatK(p(from), K)
   mu <- longFormatK(mu(from), K)
   tau2 <- longFormatK(tau2(from), K)
@@ -431,8 +441,9 @@ setMethod("predictive", "McmcChains", function(object) object@predictive)
 setMethod("zstar", "McmcChains", function(object) object@zstar)
 setMethod("predictive", "MultiBatchModel", function(object) predictive(chains(object)))
 setMethod("zstar", "MultiBatchModel", function(object) zstar(chains(object)))
-setMethod("predictive", "MultiBatch", function(object) predictive(chains(object)))
-setMethod("zstar", "MultiBatch", function(object) zstar(chains(object)))
+setMethod("predictive", "MultiBatchPooled", function(object) predictive(chains(object)))
+setMethod("zstar", "MultiBatchPooled", function(object) zstar(chains(object)))
+
 
 setReplaceMethod("predictive", c("McmcChains", "matrix"), function(object, value) {
   object@predictive <- value

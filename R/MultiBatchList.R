@@ -32,9 +32,9 @@ modelSpecs <- function(models, K, data, down_sample) {
   tab
 }
 
-setMethod("values", "MultiBatchList", function(x, ...){
+setMethod("current_values", "MultiBatchList", function(object){
   ## a list
-  x@current_values
+  object@current_values
 })
 
 setMethod("specs", "MultiBatchList", function(object){
@@ -59,7 +59,7 @@ setMethod("[[", c("MultiBatchList", "numeric"), function(x, i){
                       down_sample=down_sample(x),
                       specs=specs(x)[i, ],
                       parameters=parameters(x),
-                      current_values=values(x)[[i]],
+                      current_values=current_values(x)[[i]],
                       chains=chains(x)[[i]],
                       summaries=summaries(x)[[i]],
                       flags=flags(x)[[i]])
@@ -70,7 +70,7 @@ setMethod("[[", c("MultiBatchList", "numeric"), function(x, i){
                    down_sample=down_sample(x),
                    specs=specs(x)[i, ],
                    parameters=parameters(x),
-                   current_values=values(x)[[i]],
+                   current_values=current_values(x)[[i]],
                    chains=chains(x)[[i]],
                    summaries=summaries(x)[[i]],
                    flags=flags(x)[[i]])
@@ -88,7 +88,7 @@ setMethod("[", "MultiBatchList", function(x, i, j, ...){
                  down_sample=down_sample(x),
                  specs=specs(x)[i, ],
                  parameters=parameters(x),
-                 current_values=values(x)[i],
+                 current_values=current_values(x)[i],
                  summaries=summaries(x)[i],
                  chains=chains(x)[i],
                  flags=flags(x)[i])
@@ -99,7 +99,7 @@ setMethod("[", "MultiBatchList", function(x, i, j, ...){
 setReplaceMethod("[[", "MultiBatchList", function(x, i, value){
   ## return MultiBatchList instance
   down_sample(x) <- down_sample(value)
-  values(x)[[i]] <- values(value)
+  current_values(x)[[i]] <- current_values(value)
   summaries(x)[[i]] <- summaries(value)
   flags(x)[[i]] <- flags(value)
   chains(x)[[i]] <- chains(value)
@@ -109,7 +109,7 @@ setReplaceMethod("[[", "MultiBatchList", function(x, i, value){
 ## value is a MultiBatchList
 setReplaceMethod("[", "MultiBatchList", function(x, i, j, value){
   if(length(value) != length(i)) stop("Length of replacement and i must be the same")
-  values(x)[i] <- values(value)
+  current_values(x)[i] <- current_values(value)
   summaries(x)[i] <- summaries(value)
   flags(x)[i] <- flags(value)
   chains(x)[i] <- chains(value)
@@ -119,7 +119,7 @@ setReplaceMethod("[", "MultiBatchList", function(x, i, j, value){
 
 setMethod("setModes", "MultiBatchList", function(object){
   modal.ordinates <- modes(object)
-  values(object) <- modal.ordinates
+  current_values(object) <- modal.ordinates
   object
 })
 
@@ -129,7 +129,7 @@ setMethod("modes", "MultiBatchList", function(object){
   mode.list
 })
 
-setReplaceMethod("values", c("MultiBatchList", "list"),
+setReplaceMethod("current_values", c("MultiBatchList", "list"),
                  function(object, value){
                    object@current_values <- value
                    object
@@ -400,11 +400,13 @@ MultiBatchList <- function(models,
                            iter=1000L,
                            thin=1L,
                            nStarts=4L,
+                           max_burnin=32000L,
                            hp=Hyperparameters(),
                            mp=McmcParams(iter=iter,
                                          thin=thin,
                                          nStarts=nStarts,
-                                         burnin=burnin),
+                                         burnin=burnin,
+                                         max_burnin=max_burnin),
                            parameters=modelParameters(hp=hp, mp=mp),
                            chains=listChains2(specs, parameters),
                            current_values,
@@ -438,7 +440,7 @@ setMethod("downSampleModel", "MultiBatchList", function(object, N=1000, i){
     i <- sort(sample(seq_len(nrow(object)), N, replace=TRUE))
   }
   b <- assays(object)$batch[i]
-  current.vals <- values(object)
+  current.vals <- current_values(object)
   replaceVec <- function(x, nm, i){
     x[[nm]] <- x[[nm]][i]
     x
@@ -450,7 +452,7 @@ setMethod("downSampleModel", "MultiBatchList", function(object, N=1000, i){
   current.vals <- lapply(current.vals, replaceVec, "u", i)
   current.vals <- lapply(current.vals, replaceVec, "z", i)
   current.vals <- lapply(current.vals, replaceMat, "probz", i)
-  values(object) <- current.vals
+  current_values(object) <- current.vals
   down_sample(object) <- i
   object@specs$number_sampled <- length(i)
   object
@@ -478,7 +480,7 @@ setAs("MultiBatch", "MultiBatchList", function(from){
                  down_sample=down_sample(from),
                  specs=specs(from),
                  parameters=parameters(from),
-                 current_values=list(values(from)),
+                 current_values=list(current_values(from)),
                  summaries=list(summaries(from)),
                  chains=list(chains(from)),
                  flags=list(flags(from)))
@@ -488,7 +490,27 @@ setAs("MultiBatchList", "MultiBatch", function(from){
   from[[1]]
 })
 
-setMethod("mcmc2", "MultiBatchList", function(object){
+setAs("list", "MultiBatchList", function(from){
+  browser()
+  it <- sapply(from, iter)
+  if(length(unique(it)) > 1){
+    stop("models can not be combined")
+  }
+  models <- sapply(from, modelName)
+  specs <- modelSpecs(models, k(from[[1]]),
+                      assays(from[[1]]),
+                      down_sample(from[[1]]))
+  MultiBatchList(models=sapply(from, modelName),
+                 data=assays(from[[1]]),
+                 down_sample=down_sample(from[[1]]),
+                 parameters=parameters(from[[1]]),
+                 current_values=lapply(from, current_values),
+                 summaries=lapply(from, summaries),
+                 chains=lapply(from, chains),
+                 flags=lapply(from, flags))
+})
+
+setMethod("mcmc2", "MultiBatchList", function(object, guide){
   for(i in seq_along(object)){
     tmp <- mcmc2(object[[i]])
     object[[i]] <- tmp
@@ -508,6 +530,10 @@ setMethod("mcmc2", "MultiBatchList", function(object){
 
 setMethod("names", "MultiBatchList", function(x){
   specs(x)$model
+})
+
+setMethod("max_burnin", "MultiBatchList", function(object){
+  max_burnin(mcmcParams(object))
 })
 
 setMethod("marginal_lik", "MultiBatchList", function(object){
@@ -545,3 +571,28 @@ setMethod("sapply", "MultiBatchList", function(X, FUN, ..., simplify=TRUE, USE.N
 setMethod("modelName", "MultiBatchList", function(object){
   specs(object)$model
 })
+
+setReplaceMethod("max_burnin", "MultiBatchList", function(object, value){
+  mp <- mcmcParams(object)
+  max_burnin(mp) <- as.integer(value)
+  mcmcParams(object) <- mp
+  object
+})
+
+#' Use values from SingleBatch model to simulate reasonable starting values for the SingleBatch-pooled and MultiBatch models of the same number of components
+#'
+setMethod("singleBatchGuided", c("MultiBatchList", "MultiBatch"),
+          function(x, guide){
+            modes(guide) <- computeModes(guide)
+            if(any(k(x) != k(guide))){
+              stop("models 'x' and 'guide' must have same number of components")
+            }
+            ns <- nStarts(x)
+            mod.list <- vector("list", length(x))
+            for(j in seq_along(x)){
+              mod.list[[j]] <- replicate(ns, singleBatchGuided(x[[j]], guide))
+            }
+            names(mod.list) <- modelName(x)
+            mod.list
+          })
+

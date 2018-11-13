@@ -237,12 +237,12 @@ update_probz <- function(xmod) {
     .Call('_CNPBayes_update_probz', PACKAGE = 'CNPBayes', xmod)
 }
 
-cpp_burnin <- function(object, mcmcp) {
-    .Call('_CNPBayes_cpp_burnin', PACKAGE = 'CNPBayes', object, mcmcp)
+cpp_burnin <- function(object) {
+    .Call('_CNPBayes_cpp_burnin', PACKAGE = 'CNPBayes', object)
 }
 
-cpp_mcmc <- function(object, mcmcp) {
-    .Call('_CNPBayes_cpp_mcmc', PACKAGE = 'CNPBayes', object, mcmcp)
+cpp_mcmc <- function(object) {
+    .Call('_CNPBayes_cpp_mcmc', PACKAGE = 'CNPBayes', object)
 }
 
 log_prob_thetap <- function(xmod, thetastar) {

@@ -2,11 +2,11 @@
 NULL
 
 setMethod("runBurnin", "MultiBatchModel", function(object){
-  cpp_burnin(object, mcmcParams(object))
+  cpp_burnin(object)
 })
 
 setMethod("runMcmc", "MultiBatchModel", function(object){
-  cpp_mcmc(object, mcmcParams(object))
+  cpp_mcmc(object)
 })
 
 setMethod("runBurnin", "MultiBatchPooled", function(object){
@@ -14,7 +14,8 @@ setMethod("runBurnin", "MultiBatchPooled", function(object){
 })
 
 setMethod("runMcmc", "MultiBatchPooled", function(object){
-  mcmc_multibatch_pvar(object, mcmcParams(object))
+  tmp <- mcmc_multibatch_pvar(object, mcmcParams(object))
+  tmp
 })
 
 .posteriorSimulation2 <- function(post, params=psParams()){
@@ -79,7 +80,7 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
 })
 
 setMethod("runBurnin", "MultiBatchModel", function(object){
-  cpp_burnin(object, mcmcParams(object))
+  cpp_burnin(object)
 })
 
 setMethod("runBurnin", "MultiBatch", function(object){
@@ -151,7 +152,6 @@ setMethod("posteriorSimulation", "MultiBatch", function(object){
 
 setMethod("posteriorSimulation", "MultiBatchP", function(object){
   mbm <- as(object, "MultiBatchPooled")
-  browser()
   mbm <- runBurnin(mbm)
   if(!isOrdered(mbm)) label_switch(mbm) <- TRUE
   mbm <- sortComponentLabels(mbm)

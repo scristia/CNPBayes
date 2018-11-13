@@ -1,6 +1,33 @@
 #' @include methods-MultiBatchModel.R
 NULL
 
+setValidity("MultiBatchPooled", function(object){
+  msg <- TRUE
+  if(length(p(object)) != k(object)){
+    msg <- "Mixture probability vector must be the same length as k"
+    return(msg)
+  }
+  if(k(object)!=k(hyperParams(object))){
+    msg <- "disagreement of k in hyperparams and model"
+    return(msg)
+  }
+  if(length(y(object))!=length(u(object))){
+    msg <- "u-vector must be same length as data"
+    return(msg)
+  }
+  if(iter(object) != iter(chains(object))){
+    msg <- "number of iterations not the same between chains and model"
+    return(msg)
+  }
+  th.len <- prod(dim(theta(object)))
+  pr.len <- length(object@predictive)
+  if(th.len != pr.len){
+    msg <- "predictive slot in current values should have length K x B"
+    return(msg)
+  }
+  msg
+})
+
 reorderMultiBatchPooled <- function(model){
   is_ordered <- .ordered_thetas_multibatch(model)
   if(is_ordered) return(model)
@@ -178,6 +205,8 @@ combine_multibatch_pooled <- function(model.list, batches){
   .mu <- map(ch.list, mu) %>% do.call(rbind, .)
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
+  pred <- map(ch.list, predictive) %>% do.call(rbind, .)
+  zz <- map(ch.list, zstar) %>% do.call(rbind, .)
   mc <- new("McmcChains",
             theta=th,
             sigma2=s2,
@@ -188,7 +217,12 @@ combine_multibatch_pooled <- function(model.list, batches){
             sigma2.0=s2.0,
             zfreq=zfreq,
             logprior=logp,
-            loglik=ll)
+            loglik=ll,
+            predictive=pred,
+            zstar=zz,
+            iter=nrow(pred),
+            k=ncol(.mu),
+            B=length(unique(batches)))
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   iter(mp) <- nrow(th)
@@ -234,6 +268,8 @@ combine_multibatch_pooled <- function(model.list, batches){
                z=zz,
                zfreq=zfreq,
                probz=pz,
+               predictive=predictive(mc)[nrow(th), ],
+               zstar=zstar(mc)[nrow(th), ],
                logprior=numeric(1),
                loglik=numeric(1),
                mcmc.chains=mc,
@@ -256,16 +292,16 @@ combine_multibatch_pooled <- function(model.list, batches){
 
 #' @aliases sigma,MultiBatchCopyNumberPooled-method
 #' @rdname sigma2-method
-setMethod("sigma", "MultiBatchCopyNumberPooled", function(object){
+setMethod("sigma_", "MultiBatchCopyNumberPooled", function(object){
   s2 <- object@sigma2
   names(s2) <- uniqueBatch(object)
   sqrt(s2)
 })
 
-setMethod("updateObject", "MultiBatchPooled", function(object){
-  chains(object) <- updateObject(chains(object),
-                                 k=k(object),
-                                 iter=iter(object),
-                                 B=nBatch(object))
-  object
-})
+##setMethod("updateObject", "MultiBatchPooled", function(object){
+##  chains(object) <- updateObject(chains(object),
+##                                 k=k(object),
+##                                 iter=iter(object),
+##                                 B=nBatch(object))
+##  object
+##})

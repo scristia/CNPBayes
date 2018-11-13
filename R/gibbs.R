@@ -101,6 +101,7 @@ combine_batch <- function(model.list, batches){
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
   pred <- map(ch.list, predictive) %>% do.call(rbind, .)
+  zz <- map(ch.list, zstar) %>% do.call(rbind, .)
   mc <- new("McmcChains",
             theta=th,
             sigma2=s2,
@@ -114,6 +115,7 @@ combine_batch <- function(model.list, batches){
             loglik=ll,
             iter=nrow(th),
             predictive=pred,
+            zstar=zz,
             k=k(model.list[[1]]),
             B=length(unique(batches)))  
   hp <- hyperParams(model.list[[1]])
@@ -165,6 +167,8 @@ combine_batch <- function(model.list, batches){
                z=zz,
                zfreq=zfreq,
                probz=pz,
+               predictive=predictive(mc)[nrow(th), ],
+               zstar=zstar(mc)[nrow(th), ],
                logprior=numeric(1),
                loglik=numeric(1),
                mcmc.chains=mc,

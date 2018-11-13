@@ -211,6 +211,7 @@ MultiBatchModel2 <- function(dat=numeric(),
   mb2 <- sortComponentLabels(mb)
   mcmcParams(mb2) <- mp
   chains(mb2) <- McmcChains(mb2)
+  probz(mb2)[,] <- 0
   mb2
 }
 

@@ -228,7 +228,7 @@ setGeneric("theta", function(object) standardGeneric("theta"))
 #' @docType methods
 #' @rdname sigma2-method
 setGeneric("sigma2", function(object) standardGeneric("sigma2"))
-setGeneric("sigma", function(object) standardGeneric("sigma"))
+setGeneric("sigma_", function(object) standardGeneric("sigma_"))
 
 #' Retrieve the probability of latent variable membership by observation.
 #'
@@ -939,11 +939,12 @@ setGeneric("u", function(object) standardGeneric("u"))
 
 setGeneric("p", function(object) standardGeneric("p"))
 
-setGeneric("sigma<-", function(object, value) standardGeneric("sigma<-"))
+setGeneric("sigma_<-", function(object, value) standardGeneric("sigma_<-"))
 
 setGeneric("flags", function(object) standardGeneric("flags"))
 setGeneric("flags<-", function(object, value) standardGeneric("flags<-"))
-setGeneric("values<-", function(object, value) standardGeneric("values<-"))
+setGeneric("current_values<-", function(object, value) standardGeneric("current_values<-"))
+setGeneric("current_values", function(object, value) standardGeneric("current_values"))
 setGeneric("u<-", function(object, value) standardGeneric("u<-"))
 setGeneric("parameters", function(object) standardGeneric("parameters"))
 setGeneric("parameters<-", function(object, value) standardGeneric("parameters<-"))
@@ -959,7 +960,7 @@ setGeneric("down_sample<-", function(object, value) standardGeneric("down_sample
 setGeneric("downSampledData", function(object) standardGeneric("downSampledData"))
 setGeneric("downSampledData<-", function(x, value) standardGeneric("downSampledData<-"))
 setGeneric("probability_z", function(object) standardGeneric("probability_z"))
-setGeneric("mcmc2", function(object) standardGeneric("mcmc2"))
+setGeneric("mcmc2", function(object, guide) standardGeneric("mcmc2"))
 setGeneric("setModes", function(object) standardGeneric("setModes"))
 setGeneric("upsample_z", function(object) standardGeneric("upsample_z"))
 setGeneric("specs", function(object) standardGeneric("specs"))
@@ -977,3 +978,4 @@ setGeneric("max_burnin<-", function(object, value) standardGeneric("max_burnin<-
 setGeneric("useModes", function(object) standardGeneric("useModes"))
 setGeneric("compute_marginal_lik", function(object, params) standardGeneric("compute_marginal_lik"))
 setGeneric("modelName", function(object) standardGeneric("modelName"))
+setGeneric("singleBatchGuided", function(x, guide) standardGeneric("singleBatchGuided"))

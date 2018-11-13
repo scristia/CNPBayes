@@ -14,19 +14,19 @@ Simulating from the posterior predictive distribution can be helpful for assessi
 }
 \examples{
 
- model <- SingleBatchModelExample
- mp <- McmcParams(iter=200, burnin=50)
- mcmcParams(model) <- mp
- model <- posteriorSimulation(model)
- pd <- posteriorPredictive(model)
- if(FALSE) qqplot(pd, y(model))
-
 \dontrun{
-    bmodel <- MultiBatchModelExample
-    mp <- McmcParams(iter=500, burnin=150, nStarts=20)
-    mcmcParams(bmodel) <- mp
-    bmodel <- posteriorSimulation(bmodel)
-    batchy <- posteriorPredictive(bmodel)
+   model <- SingleBatchModelExample
+   mp <- McmcParams(iter=200, burnin=50)
+   mcmcParams(model) <- mp
+   model <- posteriorSimulation(model)
+   pd <- posteriorPredictive(model)
+   if(FALSE) qqplot(pd, y(model))
+
+   bmodel <- MultiBatchModelExample
+   mp <- McmcParams(iter=500, burnin=150, nStarts=20)
+   mcmcParams(bmodel) <- mp
+   bmodel <- posteriorSimulation(bmodel)
+   batchy <- posteriorPredictive(bmodel)
 }
 
 }

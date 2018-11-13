@@ -19,6 +19,12 @@ setValidity("MixtureModel", function(object){
     msg <- "number of iterations not the same between chains and model"
     return(msg)
   }
+  th.len <- prod(dim(theta(object)))
+  pr.len <- length(object@predictive)
+  if(th.len != pr.len){
+    msg <- "predictive slot in current values should have length K x B"
+    return(msg)
+  }
   msg
 })
 
@@ -235,8 +241,11 @@ setReplaceMethod("probz", "MixtureModel", function(object, value){
 #' @rdname probz-method
 #' @aliases probz,MixtureModel-method
 setMethod("probz", "MixtureModel", function(object) {
-  ## because first iteration not saved
-  object@probz/(iter(object)-1)
+  if(iter(object) > 0){
+    pz <- object@probz/iter(object)
+    return(pz)
+  }
+  object@probz
 })
 
 

@@ -194,7 +194,7 @@ harmonizeDimensions <- function(object){
   }
   nr <- nrow(theta(object))
   if(L != nr){
-    values(object) <- modelValues2( spec, downSampledData(object), hyperParams(object) )
+    current_values(object) <- modelValues2( spec, downSampledData(object), hyperParams(object) )
   }
   ncols1 <- k( object ) * L
   ncols2 <- ncol(theta(chains(object)))
@@ -249,7 +249,7 @@ modelValues2 <- function(specs, data, hp){
   B <- specs$number_batches
   K <- specs$k
   alpha(hp) <- rep(1, K)
-  mu <- sort(rnorm(K, mu.0(hp), sqrt(tau2.0(hp))))
+  mu <- sort(rnorm(K, mu.0(hp), 3))
   tau2 <- 1/rgamma(K, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
   p <- rdirichlet(1, alpha(hp))[1, ]
   sim_theta <- function(mu, tau, B) sort(rnorm(B, mu, tau))
@@ -339,11 +339,27 @@ modelSummaries <- function(specs){
 }
 
 extractSummaries <- function(old){
-  list(data.mean=dataMean(old),
-       data.prec=dataPrec(old),
-       zfreq=zFreq(old),
-       marginal_lik=marginal_lik(old),
-       modes=modes(old))
+  s.list <- list(data.mean=dataMean(old),
+                 data.prec=dataPrec(old),
+                 zfreq=zFreq(old),
+                 marginal_lik=marginal_lik(old),
+                 modes=modes(old))
+  x <- s.list[["data.mean"]]
+  if(!is.numeric(x[, 1])){
+    x <- matrix(as.numeric(x),
+                nrow(x),
+                ncol(x))
+    ix <- order(x[1, ], decreasing=FALSE)
+    x <- x[, ix, drop=FALSE]
+    s.list[["data.mean"]] <- x
+    x <- s.list[["data.prec"]]
+    x <- matrix(as.numeric(x),
+                nrow(x),
+                ncol(x))
+    if(ncol(x) > 1) x <- x[, ix, drop=FALSE]
+    s.list[["data.prec"]] <- x
+  }
+  s.list
 }
 
 modelFlags <- function(.internal.constraint=5e-4,
@@ -405,7 +421,7 @@ setAs("MultiBatchModel", "MultiBatch", function(from){
     modal.ordinates$z <- map_z(from)
     modal.ordinates$probz <- probz(from)
     modal.ordinates$u <- u(from)
-    m <- modal.ordinates[names(values(mb))]
+    m <- modal.ordinates[names(current_values(mb))]
     modes(mb) <- m
   }
   mb
@@ -417,6 +433,7 @@ setAs("MultiBatch", "MultiBatchModel", function(from){
   be <- as.integer(table(batch(from)))
   names(be) <- unique(batch(from))
   dat <- downSampledData(from)
+  KB <- prod(dim(theta(from)))
   obj <- new("MultiBatchModel",
              k=k(from),
              hyperparams=hyperParams(from),
@@ -434,6 +451,8 @@ setAs("MultiBatch", "MultiBatchModel", function(from){
              u=u(from),
              zfreq=zFreq(from),
              probz=probz(from),
+             predictive=numeric(KB),
+             zstar=integer(KB),
              logprior=logPrior(from),
              loglik=log_lik(from),
              mcmc.chains=chains(from),
@@ -458,7 +477,16 @@ setAs("MultiBatch", "MultiBatchModel", function(from){
 
 setAs("MultiBatch", "list", function(from){
   ns <- nStarts(from)
-  mb.list <- replicate(ns, as(from, "MultiBatchModel"))
+  ##
+  ## This initializes a list of models each with starting values simulated independently from the hyperparameters
+  ##
+  mb.list <- replicate(ns, MultiBatch(model=modelName(from),
+                                      data=assays(from),
+                                      down_sample=down_sample(from),
+                                      mp=mcmcParams(from),
+                                      hp=hyperParams(from),
+                                      chains=chains(from)))
+  mb.list <- lapply(mb.list, as, "MultiBatchModel")
   mb.list <- lapply(mb.list, function(x) {nStarts(x) <- 1; return(x)})
   mb.list
 })
@@ -473,18 +501,18 @@ setAs("MultiBatch", "list", function(from){
 ##
 ## Accessors
 ##
-setMethod("values", "MultiBatch", function(x, ...){
-  x@current_values
+setMethod("current_values", "MultiBatch", function(object){
+  object@current_values
 })
 
 setMethod("theta", "MultiBatch", function(object){
-  th <- values(object)[["theta"]]
+  th <- current_values(object)[["theta"]]
   th
 })
 
 
 
-setReplaceMethod("values", c("MultiBatch", "list"),
+setReplaceMethod("current_values", c("MultiBatch", "list"),
                  function(object, value){
   object@current_values <- value
   object
@@ -492,102 +520,102 @@ setReplaceMethod("values", c("MultiBatch", "list"),
 
 setReplaceMethod("theta", c("MultiBatch", "matrix"),
                  function(object, value){
-                   values(object)[["theta"]] <- value
+                   current_values(object)[["theta"]] <- value
                    object
                  })
 
 setMethod("sigma2", "MultiBatch", function(object){
-  values(object)[["sigma2"]]
+  current_values(object)[["sigma2"]]
 })
 
 setReplaceMethod("sigma2", c("MultiBatch", "matrix"),
                  function(object, value){
-                   values(object)[["sigma2"]] <- value
+                   current_values(object)[["sigma2"]] <- value
                    object
                  })
 
-setMethod("sigma", "MultiBatch", function(object){
+setMethod("sigma_", "MultiBatch", function(object){
   sqrt(sigma2(object))
 })
 
-setReplaceMethod("sigma", c("MultiBatch", "matrix"),
+setReplaceMethod("sigma_", c("MultiBatch", "matrix"),
                  function(object, value){
                    sigma2(object) <- value^2
                    object
                  })
 
 setMethod("p", "MultiBatch", function(object){
-  values(object)[["p"]]
+  current_values(object)[["p"]]
 })
 
 setReplaceMethod("p", c("MultiBatch", "numeric"),
                  function(object, value){
-                   values(object)[["p"]] <- value
+                   current_values(object)[["p"]] <- value
                    object
                  })
 
 setMethod("nu.0", "MultiBatch", function(object){
-  values(object)[["nu.0"]]
+  current_values(object)[["nu.0"]]
 })
 
 setReplaceMethod("nu.0", c("MultiBatch", "numeric"),
                  function(object, value){
-                   values(object)[["nu.0"]] <- value
+                   current_values(object)[["nu.0"]] <- value
                    object
                  })
 
 setMethod("sigma2.0", "MultiBatch", function(object){
-  values(object)[["sigma2.0"]]
+  current_values(object)[["sigma2.0"]]
 })
 
 setReplaceMethod("sigma2.0", c("MultiBatch", "numeric"),
                  function(object, value){
-                   values(object)[["sigma2.0"]] <- value
+                   current_values(object)[["sigma2.0"]] <- value
                    object
                  })
 
 setMethod("mu", "MultiBatch", function(object){
-  values(object)[["mu"]]
+  current_values(object)[["mu"]]
 })
 
 setReplaceMethod("mu", c("MultiBatch", "numeric"),
                  function(object, value){
-                   values(object)[["mu"]] <- value
+                   current_values(object)[["mu"]] <- value
                    object
                  })
 
 setMethod("tau2", "MultiBatch", function(object){
-  values(object)[["tau2"]]
+  current_values(object)[["tau2"]]
 })
 
 setReplaceMethod("tau2", c("MultiBatch", "numeric"),
                  function(object, value){
-                   values(object)[["tau2"]] <- value
+                   current_values(object)[["tau2"]] <- value
                    object
                  })
 
 setMethod("log_lik", "MultiBatch", function(object){
-  values(object)[["loglik"]]
+  current_values(object)[["loglik"]]
 })
 
 setReplaceMethod("log_lik", c("MultiBatch", "numeric"),
                  function(object, value){
-                   values(object)[["loglik"]] <- value
+                   current_values(object)[["loglik"]] <- value
                    object
                  })
 
 setMethod("logPrior", "MultiBatch", function(object){
-  values(object)[["logprior"]]
+  current_values(object)[["logprior"]]
 })
 
 setReplaceMethod("logPrior", c("MultiBatch", "numeric"),
                  function(object, value){
-                   values(object)[["logprior"]] <- value
+                   current_values(object)[["logprior"]] <- value
                    object
                  })
 
 setMethod("probz", "MultiBatch", function(object){
-  values(object)[["probz"]]
+  current_values(object)[["probz"]]
 })
 
 zProb <- function(object){
@@ -596,30 +624,30 @@ zProb <- function(object){
 
 setReplaceMethod("probz", c("MultiBatch", "matrix"),
                  function(object, value){
-                   values(object)[["probz"]] <- value
+                   current_values(object)[["probz"]] <- value
                    object
                  })
 
 setMethod("z", "MultiBatch", function(object){
-  values(object)[["z"]]
+  current_values(object)[["z"]]
 })
 
 setReplaceMethod("z", c("MultiBatch", "numeric"),
                  function(object, value){
-                   values(object)[["z"]] <- value
+                   current_values(object)[["z"]] <- value
                    object
                  })
 
 
 setMethod("u", "MultiBatch", function(object){
-  values(object)[["u"]]
+  current_values(object)[["u"]]
 })
 
 setMethod("nrow", "MultiBatch", function(x) nrow(assays(x)))
 
 setReplaceMethod("u", c("MultiBatch", "numeric"),
                  function(object, value){
-                   values(object)[["u"]] <- value
+                   current_values(object)[["u"]] <- value
                    object
                  })
 
@@ -937,7 +965,7 @@ setMethod("computePrec", "MultiBatch", function(object){
 
 setMethod("setModes", "MultiBatch", function(object){
   modal.ordinates <- modes(object)
-  values(object) <- modal.ordinates
+  current_values(object) <- modal.ordinates
   object
 })
 
@@ -1029,14 +1057,16 @@ combineModels <- function(model.list){
                      parameters=param.list,
                      chains=mc)
   }
+  probz(mb) <- pz
   summaries(mb) <- summarizeModel(mb)
-  values(mb)[["probz"]] <- pz
+  current_values(mb)[["probz"]] <- pz
   flags(mb) <- collectFlags(model.list)
   ##
   ## Set current values to the modal ordinates
   ##  (except for u which is not stored)
   ##  ( for z, we use the map estimate)
-  values(mb) <- computeModes(mb)
+  ##current_values(mb) <- computeModes(mb)
+  current_values(mb) <- summaries(mb)[["modes"]]
   mb
 }
 
@@ -1058,7 +1088,8 @@ setFlags <- function(mb.list){
   mcmc_list <- mcmcList(mb.list)
   r <- gelman_rubin(mcmc_list, hp)
   mb <- combineModels(mb.list)
-  modes(mb) <- computeModes(mb)
+  tmp <- tryCatch(validObject(mb), error=function(e) NULL)
+  if(is.null(tmp)) browser()
   flags(mb)[["fails_GR"]] <- r$mpsrf > min_GR(mp)
   neff <- tryCatch(effectiveSize(mcmc_list), error=function(e) NULL)
   if(is.null(neff)){
@@ -1074,7 +1105,42 @@ convergence <- function(mb){
   !flags(mb)$label_switch && !flags(mb)[["fails_GR"]] && !flags(mb)[["small_effsize"]]
 }
 
-setMethod("mcmc2", "MultiBatch", function(object){
+setMethod("max_burnin", "MultiBatch", function(object) {
+  max_burnin(mcmcParams(object))
+})
+
+##
+## burnin 100 iterations and choose the top nStart models by log lik
+##
+startingValues2 <- function(object){
+  object2 <- object
+  ns <- nStarts(object)
+  burnin(object2) <- 100L
+  iter(object2) <- 0L
+  nStarts(object2) <- ns*2
+  obj.list <- as(object2, "list")
+  obj.list2 <- posteriorSimulation(obj.list)
+  ll <- sapply(obj.list2, log_lik)
+  obj.list2 <- obj.list2[ is.finite(ll) ]
+  ll <- ll[ is.finite(ll) ]
+  ix <- order(ll, decreasing=TRUE)
+  if(length(ix) >= ns) {
+    ix <- ix[ seq_len(ns) ] ## top ns models
+    obj.list3 <- obj.list2[ix]
+    obj.list3 <- lapply(obj.list3, function(x, i) {
+      iter(x) <- i
+      x
+    }, i=iter(object))
+    obj.list3 <- lapply(obj.list3, function(x, i) {
+      burnin(x) <- i
+      x
+    }, i=burnin(object))
+    return(obj.list3)
+  }
+  stop("problem identifying starting values")
+}
+
+setMethod("mcmc2", "MultiBatch", function(object, guide){
   mb <- object
   mp <- mcmcParams(mb)
   K <- specs(object)$k
@@ -1084,7 +1150,22 @@ setMethod("mcmc2", "MultiBatch", function(object){
   while(burnin(mp) <= maxb && thin(mp) < 100){
     message("  k: ", K, ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mcmcParams(mb) <- mp
-    mb.list <- as(mb, "list")
+    ##
+    ## Convert to list of MultiBatchModels with independent starting values
+    ##
+    if(missing(guide)){
+      mb.list <- startingValues2(mb)
+    } else {
+      mb.list <- replicate(nStarts(mb), singleBatchGuided(mb, guide))
+      if(class(mb.list[[1]]) == "MultiBatchP"){
+        mb.list <- lapply(mb.list, as, "MultiBatchPooled")        
+      } else {
+        mb.list <- lapply(mb.list, as, "MultiBatchModel")
+      }
+    }
+    ##
+    ## Run posterior simulation on each
+    ##
     mb.list <- posteriorSimulation(mb.list)
     mb <- setFlags(mb.list)
     ## if no flags, move on
@@ -1135,7 +1216,7 @@ setMethod("downSampleModel", "MultiBatch", function(object, N=1000, i){
     i <- sort(sample(seq_len(nrow(object)), N, replace=TRUE))
   }
   b <- assays(object)$batch[i]
-  current.vals <- values(object)
+  current.vals <- current_values(object)
   current.vals[["u"]] <- current.vals[["u"]][i]
   current.vals[["z"]] <- current.vals[["z"]][i]
   current.vals[["probz"]] <- current.vals[["probz"]][i, , drop=FALSE]
@@ -1188,7 +1269,7 @@ setMethod("dfr", "MultiBatch", function(object){
 setMethod("upsample_z", "MultiBatch", function(object){
   down_sample(object) <- seq_len(specs(object)$number_obs)
   object@specs$number_sampled <- specs(object)$number_obs
-  values(object)[["u"]] <- rchisq(specs(object)$number_obs, dfr(object))
+  current_values(object)[["u"]] <- rchisq(specs(object)$number_obs, dfr(object))
   mbm <- as(object, "MultiBatchModel")
   zz <- update_z(mbm)
   zz
@@ -1200,18 +1281,18 @@ setMethod("upSampleModel", "MultiBatch", function(object){
   us <- seq_len(N)
   if(identical(ds, us)) return(object)
   object <- setModes(object)
-  values(object)[["u_up"]] <- rchisq(N, dfr(object))
-  values(object)[["probz_up"]] <- probability_z(object)
-  values(object)[["z_up"]] <- upsample_z(object)
+  current_values(object)[["u_up"]] <- rchisq(N, dfr(object))
+  current_values(object)[["probz_up"]] <- probability_z(object)
+  current_values(object)[["z_up"]] <- upsample_z(object)
   object
 })
 
-singleBatchGuided <- function(model, sb){
-  modes(sb) <- computeModes(sb)
-  sb <- setModes(sb)
-  sp <- specs(model)
-  vals <- values(sb)
-}
+##singleBatchGuided <- function(model, sb){
+##  modes(sb) <- computeModes(sb)
+##  sb <- setModes(sb)
+##  sp <- specs(model)
+##  vals <- current_values(sb)
+##}
 
 setMethod("modelName", "MultiBatch", function(object) specs(object)$model)
 
@@ -1221,3 +1302,49 @@ setReplaceMethod("max_burnin", "MultiBatch", function(object, value){
   mcmcParams(object) <- mp
   object
 })
+
+setMethod("predictive", "MultiBatch", function(object) predictive(chains(object)))
+setMethod("zstar", "MultiBatch", function(object) zstar(chains(object)))
+
+setMethod("singleBatchGuided", c("MultiBatch", "MultiBatch"), function(x, guide){
+  stopifnot(k(x) == k(guide))
+  means <- theta(guide)[1, ]
+  sds <- sqrt(sigma2(guide))[1, ]
+  ##
+  ## number of means to simulate depends on the model
+  ##
+  mu(x) <- mu(guide)
+  tau2(x) <- tau2(guide)
+  B <- numBatch(x)
+  K <- k(x)
+  th <- theta(x)
+  if(FALSE){
+    ## Is prior to informative for these not to give reasonable values of theta?
+    ##
+    ## -- tau seems much too big -- is prior driving tau to larger values
+    ## -- simulated values of theta too disperse
+    for(j in seq_len(K)){
+      th[, j] <- rnorm(B, mu(guide)[j], tau(guide)[j])
+    }
+  }
+  for(j in seq_len(K)){
+    th[, j] <- rnorm(B, theta(guide)[, j], sds[j]/2)
+  }
+  theta(x) <- th
+  nu.0(x) <- nu.0(guide)
+  sigma2.0(x) <- sigma2.0(guide)
+  ## 1/sigma2 ~gamma
+  ## sigma2 is invgamma
+  NC <- ncol(sigma2(x))
+  if(NC == 1){
+    w <- as.numeric(table(z(guide)))
+    sigma2(x) <- matrix((sum((w * sds)/sum(w)))^2, B, 1)
+  } else{
+    sigma2(x) <- matrix(sds/2, B, K, byrow=TRUE)
+  }
+  nStarts(x) <- 1L
+  ##
+  ## shouldn't have to initialize z since z is the first update of the gibbs sampler (and its update would be conditional on the above values)
+  x
+})
+

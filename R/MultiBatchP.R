@@ -1,5 +1,27 @@
 setClass("MultiBatchP", contains="MultiBatch")
 
+setValidity("MultiBatchP", function(object){
+  msg <- TRUE
+  if(nrow(dataMean(object) > 0)){
+    vals <- dataMean(object)[, 1]
+    if(!is(vals, "numeric")){
+      msg <- "data.mean is not numeric"
+      return(msg)
+    }
+  }
+  if(nrow(dataPrec(object)) > 0){
+    vals <- dataPrec(object)[, 1]
+    if(!is(vals, "numeric")){
+      msg <- "data.prec is not numeric"
+      return(msg)
+    }
+  }
+  if(!identical(ncol(sigma2(object)), 1L)){
+    msg <- "sigma2 matrix should have a single column"
+    return(msg)
+  }
+  msg
+})
 
 mcmc_chainsP <- function(specs, parameters){
   B <- specs$number_batches
@@ -24,8 +46,8 @@ modelValuesP <- function(specs, data, hp){
 modelSummariesP <- function(specs){
   B <- specs$number_batches
   K <- specs$k
-  data.mean <- matrix(nrow=B, ncol=K)
-  data.prec <- matrix(nrow=B, ncol=1)
+  data.mean <- matrix(as.numeric(NA), nrow=B, ncol=K)
+  data.prec <- matrix(as.numeric(NA), nrow=B, ncol=1)
   zfreq <- integer(K)
   marginal_lik <- as.numeric(NA)
   modes <- list()
@@ -94,7 +116,7 @@ setMethod("downSampleModel", "MultiBatchP", function(object, N=1000, i){
     i <- sort(sample(seq_len(nrow(object)), N, replace=TRUE))
   }
   b <- assays(object)$batch[i]
-  current.vals <- values(object)
+  current.vals <- current_values(object)
   current.vals[["u"]] <- current.vals[["u"]][i]
   current.vals[["z"]] <- current.vals[["z"]][i]
   current.vals[["probz"]] <- current.vals[["probz"]][i, , drop=FALSE]
@@ -111,7 +133,7 @@ setMethod("downSampleModel", "MultiBatchP", function(object, N=1000, i){
 })
 
 setAs("MultiBatch", "MultiBatchP", function(from){
-  vals <- values(from)
+  vals <- current_values(from)
   vals[["sigma2"]] <- matrix(rowMeans(vals[["sigma2"]]),
                              numBatch(from),
                              1)
@@ -131,7 +153,7 @@ setAs("MultiBatch", "MultiBatchP", function(from){
   ch <- chains(from)
   sigma2(ch) <- matrix(as.numeric(NA),
                        iter(from),
-                       1)
+                       numBatch(from))
   if(numBatch(from) > 1){
     specs(from)$model <- "MBP"
   }else specs(from)$model <- "SBP"
@@ -153,6 +175,10 @@ setAs("MultiBatchP", "MultiBatchPooled", function(from){
   be <- as.integer(table(batch(from)))
   names(be) <- unique(batch(from))
   dat <- downSampledData(from)
+  th <- theta(from)
+  KB <- nrow(th) * ncol(th)
+  pred <- numeric(KB)
+  zs <- integer(KB)
   obj <- new("MultiBatchPooled",
              k=k(from),
              hyperparams=hyperParams(from),
@@ -165,7 +191,9 @@ setAs("MultiBatchP", "MultiBatchPooled", function(from){
              pi=p(from),
              data=dat$oned,
              data.mean=dataMean(from),
-             data.prec=dataPrec(from),
+             data.prec=dataPrec(from)[, 1],
+             predictive=pred,
+             zstar=zs,
              z=z(from),
              u=u(from),
              zfreq=zFreq(from),
@@ -180,6 +208,17 @@ setAs("MultiBatchP", "MultiBatchPooled", function(from){
              marginal_lik=marginal_lik(from),
              .internal.constraint=flag1,
              .internal.counter=flag2)
+  m <- modes(from)
+  if(length(m) == 0){
+    m <- computeModes(from)
+  }
+  ix <- match(c("nu.0", "p"), names(m))
+  if(length(ix) == 2){
+    names(m)[ix] <- c("nu0", "mixprob")
+  }
+  m$zfreq <- table(map_z(obj))
+  modes(obj) <- m
+  obj
 })
 
 setAs("MultiBatchPooled", "MultiBatchP", function(from){
@@ -190,7 +229,7 @@ setAs("MultiBatchPooled", "MultiBatchP", function(from){
   params <- extractParameters(from)
   summaries <- extractSummaries(from)
   summaries[["data.prec"]] <- matrix(summaries[["data.prec"]],
-                                     nBatch(from), 1)
+                                     numBatch(from), 1)
   down_sample <- seq_len(nrow(data))
   specs <- model_spec(modelName(from), data, down_sample)
   modal.ordinates <- modes(from)
@@ -209,7 +248,9 @@ setAs("MultiBatchPooled", "MultiBatchP", function(from){
     modal.ordinates$z <- map_z(from)
     modal.ordinates$probz <- probz(from)
     modal.ordinates$u <- u(from)
-    m <- modal.ordinates[names(values(mb))]
+    modal.ordinates$sigma2 <- matrix(modes(from)[["sigma2"]],
+                                     numBatch(from), 1)
+    m <- modal.ordinates[names(current_values(mb))]
     modes(mb) <- m
   }
   mb
@@ -232,7 +273,7 @@ setMethod("compute_marginal_lik", "MultiBatchP", function(object, params){
                        prop.effective.size=0)
   }
   mbm <- as(object, "MultiBatchPooled")
-  ml <- tryCatch(marginalLikelihood(mbm, params), warning=function(w) NULL)
+  ml <- tryCatch(marginalLikelihood(mbm, params), warning=function(w) NULL, error=function(e) NULL)
   if(!is.null(ml)){
     summaries(object)[["marginal_lik"]] <- ml
     message("     marginal likelihood: ", round(ml, 2))
@@ -240,4 +281,14 @@ setMethod("compute_marginal_lik", "MultiBatchP", function(object, params){
     message("Unable to compute marginal likelihood")
   }
   object
+})
+
+setMethod("computeModes", "MultiBatchP", function(object){
+  modes <- callNextMethod(object)
+  i <- argMax(object)[1]
+  mc <- chains(object)
+  B <- specs(object)$number_batches
+  sigma2max <- matrix(sigma2(mc)[i, ], B, 1)
+  modes[["sigma2"]] <- sigma2max
+  modes
 })

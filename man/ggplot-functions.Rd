@@ -7,6 +7,7 @@
 \alias{ggMixture,MultiBatchCopyNumber-method}
 \alias{ggMixture,MultiBatchCopyNumberPooled-method}
 \alias{ggMixture,MultiBatchModel-method}
+\alias{ggMixture,MultiBatch-method}
 \alias{ggMixture,MultiBatchPooled-method}
 \alias{ggChains,MultiBatchModel-method}
 \alias{ggChains,MultiBatchPooled-method}
@@ -21,6 +22,8 @@ ggMixture(model, bins = 100)
 \S4method{ggMixture}{MultiBatchCopyNumberPooled}(model, bins = 100)
 
 \S4method{ggMixture}{MultiBatchModel}(model, bins = 100)
+
+\S4method{ggMixture}{MultiBatch}(model, bins = 100)
 
 \S4method{ggMixture}{MultiBatchPooled}(model, bins = 100)
 

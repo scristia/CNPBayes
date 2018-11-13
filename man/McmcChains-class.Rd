@@ -32,6 +32,8 @@ An object of this class holds estimates of each parameter at each iteration of t
 
 \item{\code{predictive}}{posterior predictive distribution}
 
+\item{\code{zstar}}{needed for plotting posterior predictive distribution}
+
 \item{\code{k}}{integer specifying number of components}
 
 \item{\code{iter}}{integer specifying number of MCMC simulations}

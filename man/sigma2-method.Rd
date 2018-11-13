@@ -9,6 +9,7 @@
 \alias{sigma2,MixtureModel-method}
 \alias{sigma2,MultiBatchPooled-method}
 \alias{sigma2,MultiBatchCopyNumberPooled-method}
+\alias{sigma_,MultiBatchCopyNumberPooled-method}
 \alias{sigma,MultiBatchCopyNumberPooled-method}
 \title{Retrieve the variances of each component and batch distribution}
 \usage{
@@ -22,7 +23,7 @@ sigma2(object)
 
 \S4method{sigma2}{MultiBatchCopyNumberPooled}(object)
 
-\S4method{sigma}{MultiBatchCopyNumberPooled}(object)
+\S4method{sigma_}{MultiBatchCopyNumberPooled}(object)
 }
 \arguments{
 \item{object}{see \code{showMethods(sigma2)}}
