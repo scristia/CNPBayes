@@ -641,36 +641,42 @@ test_that("what is wrong with pooled-variance models", {
   if(FALSE) ggMixture(model)
 
   mb <- as(m, "MultiBatchP")
-  iter(mb) <- 1000L
   mb2 <- posteriorSimulation(mb)
   expect_equal(sigma(mb2)[, 1], 0.05, tolerance=0.02)
   expect_equal(theta(mb2)[1, ], theta(truth)[1, ], tolerance=0.1)
   if(FALSE) ggMixture(mb2)
 
+  ## pooled model with 3 batches
   set.seed(1438)
   library(SummarizedExperiment)
   data(MultiBatchModelExample)
   sbp <- as(MultiBatchModelExample, "MultiBatchPooled")
-  batch(sbp) <- rep(1L, length(y(sbp)))
-  sbp2 <- 
+  expect_identical(length(sigma(sbp)), 3L)
 
+  mb <- as(MultiBatchModelExample, "MultiBatchP")
+  expect_identical(dim(sigma(mb)), c(3L, 1L))
+  nStarts(mb) <- 1L
+  mb2 <- posteriorSimulation(mb)
+  if(FALSE) ggMixture(mb2)
 
-  mb <- as(MultiBatchModelExample, "MultiBatch")
+  ## Try guided function
   mbl <- MultiBatchList(data=assays(mb), burnin=200L,
                         iter=300L)
   mbl <- mbl[ k(mbl) == 3 ]
   max_burnin(mbl) <- 200L
   sb <- mcmc2(mbl[[ "SB3" ]])
+  expect_true( convergence(sb) )
   x <- mbl[ modelName(mbl) != "SB3" ]
   ##
   ## Something is wrong with the pooled-variance models
-  ##
+  ## With guided approach, we first fit SB3 (above).
+  ## Since SB3 converged, we then fit SBP3, MB3, and MBP3 models
+  ## with starting values near the SB3 parameters
   xx <- singleBatchGuided(x, sb)
   sbp <- xx[["SBP3"]][[1]]
   iter(sbp) <- 250L
   burnin(sbp) <- 100L
   sbp <- posteriorSimulation(sbp)
-  pred <- predictive(sbp)
   th <- theta(sbp) %>%
     as.numeric
   expect_equal(th, theta(sb)[1, ], tolerance=0.05)
@@ -678,21 +684,18 @@ test_that("what is wrong with pooled-variance models", {
   ##
   ## MultiBatch
   ##
-  mb <- xx[[2]][[1]]
+  mb <- xx[["MB3"]][[1]]
   mcmcParams(mb) <- mcmcParams(sbp)
+  ## This should be faster because we are already in region of high posterior probability
   mb <- posteriorSimulation(mb)
   if(FALSE) ggMixture(mb)
   expect_equal(colMeans(theta(mb)), theta(sb)[1, ],
                tolerance=0.05)
-
   ##
   ## Guided MCMC2
-  ##
-  mb <- mbl[[ "MB3" ]]
-  ## This should be faster because we are already in region of high posterior probability
-  mb2 <- mcmc2(mb, guide=sb)
-  expect_equal(colMeans(theta(mb2)), theta(sb)[1, ],
-               tolerance=0.05)
+  ## Now we try the guided version of mcmc2, which basically implements the above steps
+  ##mbl <- mbl[ names(mbl) != "SB3" ]
+  ##mbl2 <- mcmc2(mbl, sb)
 })
 
 test_that("MultiBatchP <-> MultiBatchPooled", {
@@ -704,7 +707,7 @@ test_that("MultiBatchP <-> MultiBatchPooled", {
 
 .test_that <- function(nm, expr) NULL
 
-.test_that("Smarter MCMC for MultiBatchList", {
+test_that("Smarter MCMC for MultiBatchList", {
   library(SummarizedExperiment)
   data(MultiBatchModelExample)
   mb <- as(MultiBatchModelExample, "MultiBatch")
@@ -713,53 +716,34 @@ test_that("MultiBatchP <-> MultiBatchPooled", {
   ##
   object <- MultiBatchList(data=assays(mb), burnin=100L,
                            iter=300L, max_burnin=100L)
+  expect_identical(length(unique(batch(object[["SB3"]]))), 1L)
+  expect_identical(length(unique(batch(object[["MB3"]]))), 3L)
+  sb <- object[["SBP3"]]
+  s <- sigma(sb)
+  expect_identical(dim(s), c(1L, 1L))
+  sb <- object[["MBP3"]]
+  expect_is(sb, "MultiBatchP")
+  s <- sigma(sb)
+  ch <- sigma(chains(sb))
+  expect_identical(dim(s), c(3L, 1L))
+  expect_identical(dim(summaries(sb)[["data.prec"]]), c(3L, 1L))
+  expect_identical(dim(ch), c(iter(sb), nBatch(sb)))
+
   x <- object[["SBP3"]]
   expect_is(x, "MultiBatchP")
   expect_true(validObject(x))
-  N <- nrow(object)
-  object2 <- augmentData2(object)
-  expect_true(identical(mcmcParams(object2), mcmcParams(object)))
-  ## no data should be added -- this is a common deletion
-  expect_identical(N, nrow(object2))
-  sp <- specs(object2)
-  object2.list <- split(object2, sp$k)
-  ##
-  ## reverse the order so that model with largest number of components is first
-  ##
-  object2.list <- rev(object2.list)
-  ##
-  ## For models with k > 1, fit the SB model first.
-  ##
-  ## If label switching occurs, do not fit the other models.
-  ##
-  ##
-  model.nms <- sapply(object2.list, k) %>%
-    sapply("[", 1) %>%
-    paste0("SB", .)
-  converged <- rep(NA, length(object2.list))
-  for(i in seq_along(object2.list)){
-    model.list <- object2.list[[i]]
-    sb <- model.list[[1]]
-    mod.list <- model.list[-1]
-    mod.list2 <- vector("list", length(mod.list))
-    ##
-    ## only fit multibatch models for given k if the corresponding single-batch model converges
-    ##
-    sb2 <- mcmc2( sb )
-    if( convergence(sb2) ){
-      for(j in seq_along(mod.list)){
-        tmp <- mcmc2(mod.list[[j]], guide=sb2)
-        mod.list2[[j]] <- tmp
-      }
-      mod.list2 <- as(mod.list2, "MultiBatchList")
-    } else {
-      ## only keep the single-batch model
-      mod.list2 <- as(sb2, "MultiBatchList")
-    }
+  x <- object[["MBP3"]]
+  expect_is(x, "MultiBatchP")
+  expect_true(validObject(x))
 
-    converged[i] <- any(sapply(mod.list2, function(m) convergence(m)))
-    object2.list[[i]] <- mod.list
-  }
+  mlist <- listModelsByDecreasingK(object)
+  s <- sigma(mlist[["3"]][["MBP3"]])
+  expect_identical(dim(s), c(3L, 1L))
+  ##k4 <- fitModelK(mlist[[1]])
+  k3 <- fitModelK(mlist[[2]])
+  ##k2 <- fitModelK(mlist[[3]])
+  ##k1 <- fitModelK(mlist[[4]])
+  expect_true(all(convergence(k3)))
 })
 
 test_that("Data not in batch-order", {
@@ -793,9 +777,4 @@ test_that("Data not in batch-order", {
 })
 
 .test_that("genotype mixture components MultiBatchList", {
-})
-
-.test_that("mcmc2 with MBL", {
-
-
 })

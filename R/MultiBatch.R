@@ -1101,9 +1101,15 @@ setFlags <- function(mb.list){
   mb
 }
 
-convergence <- function(mb){
-  !flags(mb)$label_switch && !flags(mb)[["fails_GR"]] && !flags(mb)[["small_effsize"]]
-}
+
+
+setMethod("convergence", "MultiBatch", function(object){
+  !flags(object)$label_switch && !flags(object)[["fails_GR"]] && !flags(object)[["small_effsize"]]
+})
+
+setMethod("convergence", "MultiBatchList", function(object){
+  sapply(object, convergence)
+})
 
 setMethod("max_burnin", "MultiBatch", function(object) {
   max_burnin(mcmcParams(object))
@@ -1348,3 +1354,11 @@ setMethod("singleBatchGuided", c("MultiBatch", "MultiBatch"), function(x, guide)
   x
 })
 
+listModelsByDecreasingK <- function(object){
+  N <- nrow(object)
+  object2 <- augmentData2(object)
+  sp <- specs(object2)
+  object2.list <- split(object2, sp$k)
+  object2.list <- rev(object2.list)
+  object2.list
+}

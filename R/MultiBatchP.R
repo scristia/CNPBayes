@@ -20,6 +20,10 @@ setValidity("MultiBatchP", function(object){
     msg <- "sigma2 matrix should have a single column"
     return(msg)
   }
+  if(!identical(ncol(sigma2(chains(object))), nBatch(object))){
+    msg <- "chains for sigma2 does not have the correct dimension"
+    return(msg)
+  }
   msg
 })
 
@@ -125,7 +129,7 @@ setMethod("downSampleModel", "MultiBatchP", function(object, N=1000, i){
                     down_sample=i,
                     parameters=parameters(object),
                     current_values=current.vals,
-                    chains=mcmc_chains( specs(object), parameters(object) ))
+                    chains=mcmc_chainsP( specs(object), parameters(object) ))
   dataMean(mb) <- computeMeans(mb)
   dataPrec(mb) <- computePrec(mb)
   zFreq(mb) <- as.integer(table(z(mb)))
@@ -168,6 +172,11 @@ setAs("MultiBatch", "MultiBatchP", function(from){
                flags=flags(from))
 })
 
+setAs("MultiBatchModel", "MultiBatchP", function(from){
+  mb <- as(from, "MultiBatch")
+  mbp <- as(mb, "MultiBatchP")
+  mbp
+})
 
 setAs("MultiBatchP", "MultiBatchPooled", function(from){
   flag1 <- as.integer(flags(from)[[".internal.constraint"]])

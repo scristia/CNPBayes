@@ -11,10 +11,12 @@ setClass("MultiBatchList", representation(data="tbl_df",
                                           flags="list"))
 
 modelSpecs <- function(models, K, data, down_sample) {
-  if(missing(models)) models <- c("SB", "SBP", "MB", "MBP")
-  if(missing(K)) K <- 1:4
-  models <- lapply(models, paste0, 1:4) %>%
-    unlist
+  if(missing(models)){
+    models <- c("SB", "SBP", "MB", "MBP")
+    if(missing(K)) K <- 1:4
+    models <- lapply(models, paste0, 1:4) %>%
+      unlist
+  }
   if(missing(data)) data <- modelData()
   model.list <- vector("list", length(models))
   for(i in seq_along(models)){
@@ -31,6 +33,15 @@ modelSpecs <- function(models, K, data, down_sample) {
   }
   tab
 }
+
+setValidity("MultiBatchList", function(object){
+  msg <- TRUE
+  if(any(diff(batch(object)) < 0)){
+    msg <- "not in batch order"
+    return(msg)
+  }
+  msg
+})
 
 setMethod("current_values", "MultiBatchList", function(object){
   ## a list
@@ -53,7 +64,8 @@ setMethod("[[", c("MultiBatchList", "numeric"), function(x, i){
   if(specs(x)$number_batches[i] == 1){
     assays(x)$batch <- 1L
   }
-  if(substr(model, 1, 3) == "SBP"){
+  nm <- substr(model, 1, 3)
+  if(nm == "SBP" || nm == "MBP"){
     mb <- MultiBatchP(model=model,
                       data=assays(x),
                       down_sample=down_sample(x),
@@ -340,7 +352,7 @@ listChains2 <- function(model_specs, parameters){
   mc.list <- vector("list", nrow(model_specs))
   for(i in seq_along(mc.list)){
     nm <- substr(model_specs$model[i], 1, 3)
-    if(nm == "SBP"){
+    if(nm == "SBP" || nm == "MBP"){
       mc.list[[i]] <- initialize_mcmcP(K[i], S, B[i])
     } else {
       mc.list[[i]] <- initialize_mcmc(K[i], S, B[i])
@@ -354,7 +366,7 @@ listValues <- function(model_specs, data, hp){
   values.list <- vector("list", nrow(model_specs))
   for(i in seq_along(values.list)){
     nm <- substr(model_specs$model[i], 1, 3)
-    if(nm == "SBP"){
+    if(nm == "SBP" || nm == "MBP"){
       values.list[[i]] <- modelValuesP(model_specs[i, ], data, hp)
     } else {
       values.list[[i]] <- modelValues2(model_specs[i, ], data, hp)
@@ -372,7 +384,7 @@ listSummaries <- function(model_specs){
   sum.list <- vector("list", nrow(model_specs))
   for(i in seq_along(sum.list)){
     nm <- substr(model_specs$model[i], 1, 3)
-    if(nm == "SBP"){
+    if(nm == "SBP" || nm == "MBP"){
       sum.list[[i]] <- modelSummariesP(model_specs[i, ])
     } else {
       sum.list[[i]] <- modelSummaries(model_specs[i, ])
@@ -491,17 +503,22 @@ setAs("MultiBatchList", "MultiBatch", function(from){
 })
 
 setAs("list", "MultiBatchList", function(from){
-  browser()
   it <- sapply(from, iter)
   if(length(unique(it)) > 1){
     stop("models can not be combined")
   }
   models <- sapply(from, modelName)
-  specs <- modelSpecs(models, k(from[[1]]),
-                      assays(from[[1]]),
-                      down_sample(from[[1]]))
+  ##
+  ## pass data from MultiBatch model, if any
+  ##
+  ix <- grep("MB", models)[1]
+  dat <- assays(from[[ix]])
+  specs <- modelSpecs(models,
+                      sapply(from, k),
+                      data=dat,
+                      down_sample=down_sample(from[[1]]))
   MultiBatchList(models=sapply(from, modelName),
-                 data=assays(from[[1]]),
+                 data=dat,
                  down_sample=down_sample(from[[1]]),
                  parameters=parameters(from[[1]]),
                  current_values=lapply(from, current_values),
@@ -510,17 +527,42 @@ setAs("list", "MultiBatchList", function(from){
                  flags=lapply(from, flags))
 })
 
-setMethod("mcmc2", "MultiBatchList", function(object, guide){
-  for(i in seq_along(object)){
-    tmp <- mcmc2(object[[i]])
-    object[[i]] <- tmp
-    stopifnot(validObject(object[[i]]))
+fitModelK <- function(model.list){
+  sb <- model.list[[1]]
+  mod.list <- model.list[-1]
+  mod.list2 <- vector("list", length(mod.list))
+  ##
+  ## only fit multibatch models for given k if the
+  ## corresponding single-batch model converges
+  ##
+  sb2 <- mcmc2( sb )
+  if( convergence(sb2) ){
+    for(j in seq_along(mod.list)){
+      tmp <- mcmc2(mod.list[[j]], guide=sb2)
+      mod.list2[[j]] <- tmp
+    }
+    mod.list3 <- c(sb2, mod.list2)
+    names(mod.list3) <- sapply(mod.list3, modelName)
+    converged <- sapply(mod.list3, convergence)
+    mod.list3 <- mod.list3[ converged ]
+    ix <- order(sapply(mod.list3, marginal_lik), decreasing=TRUE)
+    mod.list3 <- mod.list3[ix]
+    if(length(mod.list3) >= 1){
+      result <- as(mod.list3, "MultiBatchList")
+    }
+  } else {
+    result <- sb2
   }
-  ml <- marginal_lik(object)
-  object <- object[ !is.na(ml) ]
-  ml <- ml [ !is.na(ml) ]
-  object <- object[ order(ml, decreasing=TRUE) ]
-  object
+  result
+}
+
+setMethod("mcmc2", "MultiBatchList", function(object, guide){
+  mlist <- listModelsByDecreasingK(object)
+  k4 <- fitModelK(mlist[[1]])
+  k3 <- fitModelK(mlist[[2]])
+  k2 <- fitModelK(mlist[[3]])
+  k1 <- fitModelK(mlist[[4]])
+  list(k4, k3, k2, k1)
 })
 
 ##setMethod("sapply", "MultiBatchList",

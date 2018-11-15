@@ -979,3 +979,5 @@ setGeneric("useModes", function(object) standardGeneric("useModes"))
 setGeneric("compute_marginal_lik", function(object, params) standardGeneric("compute_marginal_lik"))
 setGeneric("modelName", function(object) standardGeneric("modelName"))
 setGeneric("singleBatchGuided", function(x, guide) standardGeneric("singleBatchGuided"))
+
+setGeneric("convergence", function(object) standardGeneric("convergence"))
