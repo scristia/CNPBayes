@@ -58,7 +58,6 @@ initialize_mcmcP <- function(K, S, B){
       theta=matrix(NA, nr, K),
       sigma2=matrix(NA, nr, K),
       pi=matrix(NA, nr, K),
-      pi_parents=matrix(NA, nr, K),
       mu=numeric(nr),
       tau2=numeric(nr),
       nu.0=numeric(nr),
@@ -151,7 +150,6 @@ setMethod("McmcChains", "SingleBatchPooled", function(object){
       theta=matrix(NA, nr, K*B),
       sigma2=matrix(NA, nr, K*B),
       pi=matrix(NA, nr, K),
-      pi_parents=matrix(NA, nr, K),
       mu=matrix(NA, nr, K),
       tau2=matrix(NA, nr, K),
       nu.0=numeric(nr),
@@ -240,7 +238,6 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
     x@theta <- x@theta[i, , drop=FALSE]
     x@sigma2 <- x@sigma2[i, , drop=FALSE]
     x@pi <- x@pi[i, , drop=FALSE]
-    x@pi_parents <- x@pi_parents[i, , drop=FALSE]
     if(is.matrix(x@mu)){
       x@mu <- x@mu[i, , drop=FALSE]
     } else x@mu <- x@mu[i]
@@ -490,4 +487,3 @@ setMethod("updateObject", "McmcChains",
             object@B <- B
             object
 })
->>>>>>> upstream/trios

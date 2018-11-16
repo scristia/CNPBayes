@@ -94,7 +94,6 @@ setClass("HyperparametersTrios", contains="Hyperparameters")
 setClass("McmcChains", representation(theta="matrix",
                                       sigma2="matrix",
                                       pi="matrix",
-                                      pi_parents="matrix",
                                       mu="numericOrMatrix",
                                       tau2="numericOrMatrix",
                                       nu.0="numeric",
