@@ -6,8 +6,10 @@
 \alias{nStarts}
 \alias{nStarts<-}
 \alias{nStarts,McmcParams-method}
+\alias{nStarts<-,McmcParams,ANY-method}
 \alias{nStarts<-,McmcParams-method}
 \alias{nStarts,MixtureModel-method}
+\alias{nStarts<-,MixtureModel,ANY-method}
 \alias{nStarts<-,MixtureModel-method}
 \title{Number of MCMC chains.}
 \usage{
@@ -17,11 +19,11 @@ nStarts(object) <- value
 
 \S4method{nStarts}{McmcParams}(object)
 
-\S4method{nStarts}{McmcParams}(object) <- value
+\S4method{nStarts}{McmcParams,ANY}(object) <- value
 
 \S4method{nStarts}{MixtureModel}(object)
 
-\S4method{nStarts}{MixtureModel}(object) <- value
+\S4method{nStarts}{MixtureModel,ANY}(object) <- value
 }
 \arguments{
 \item{object}{see \code{showMethods(nStarts)}}

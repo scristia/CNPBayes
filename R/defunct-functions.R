@@ -18,7 +18,6 @@ findModes <- function(quantiles, x){ ##quantiles, density
 #' For large datasets (several thousand subjects), the computational burden for fitting Bayesian mixture models can be high.  Downsampling can reduce the computational burden with little effect on inference.  The function tileMedians is useful for putting the median log R ratios for each subject in a bucket. The observations in each bucket are averaged.  This is done independently for each batch and the range of median log R ratios within each bucket is guaranteed to be less than 0.05.  Note this function requires specification of a batch variable. If the study was small enough such that all the samples were processed in a single batch, then downsampling would not be needed.  By summarizing the observations in each bucket by batch, the SingleBatchModels (SB or SBP) and MultiBatchModels (MB or MBP) will be fit to the same data and are still comparable by marginal likelihoods or Bayes Factors.
 #'
 #' @param y vector containing data
-
 #' @param nt the number of observations per batch
 #' @param batch a vector containing the labels from which batch each observation came from.
 #' @return A tibble with a tile assigned to each log R ratio

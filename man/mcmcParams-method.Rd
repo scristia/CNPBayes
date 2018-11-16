@@ -5,31 +5,30 @@
 \alias{mcmcParams}
 \alias{mcmcParams<-}
 \alias{mcmcParams,MixtureModel-method}
-\alias{mcmcParams<-,MixtureModel-method}
-\alias{mcmcParams,MixtureModel-method}
-\alias{mcmcParams<-,list-method}
+\alias{mcmcParams<-,MixtureModel,ANY-method}
+\alias{mcmcParams<-,list,ANY-method}
 \alias{mcmcParams,list-method}
 \alias{mcmcParams,list-method}
 \title{Retrieve MCMC parameters from model.}
 \usage{
 mcmcParams(object)
 
-mcmcParams(object, force = FALSE) <- value
+mcmcParams(object) <- value
 
 \S4method{mcmcParams}{MixtureModel}(object)
 
-\S4method{mcmcParams}{MixtureModel}(object, force = TRUE) <- value
+\S4method{mcmcParams}{MixtureModel,ANY}(object) <- value
 
-\S4method{mcmcParams}{list}(object, force = TRUE) <- value
+\S4method{mcmcParams}{list,ANY}(object) <- value
 
 \S4method{mcmcParams}{list}(object)
 }
 \arguments{
 \item{object}{see \code{showMethods(mcmcParams)}}
 
-\item{force}{logical value. If false (default) the update will not proceed.}
-
 \item{value}{an object of class 'McmcParams' containing the new number of iterations, etc.}
+
+\item{force}{logical value. If false (default) the update will not proceed.}
 }
 \value{
 An object of class 'McmcParams'

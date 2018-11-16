@@ -1,3 +1,19 @@
+predictiveTibble <- function(object){
+  pred <- predictive(object)
+  pred2 <- pred %>%
+    longFormatKB(K=k(object), B=numBatch(object)) %>%
+    set_colnames(c("s", "oned", "batch", "component")) %>%
+    mutate(model=modelName(object)) %>%
+    mutate(batch=as.character(batch),
+           batch=gsub("batch ", "", batch)) %>%
+    select(-component) ## component labels are wrong
+  zz <- zstar(object) %>%
+    longFormatKB(K=k(object), B=numBatch(object)) %>%
+    mutate(component=factor(value))
+  pred2$component <- zz$component
+  pred2
+}
+
 .meltMultiBatchChains <- function(model){
   ch <- chains(model)
   th <- as.data.frame(theta(ch))
@@ -319,22 +335,21 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
   list(theta=p.theta, sigma=p.sigma, comp=p.comp, single=p.single)
 }
 
-.gg_multibatch <- function(model, bins){
+.gg_multibatch <- function(model, bins=100){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
-  predictive <- posteriorPredictive(model) %>%
-    mutate(component=factor(component))
-  predictive.summary <- predictive %>%
+  pred <- predictiveTibble(model)
+  predictive.summary <- pred %>%
     group_by(model, batch) %>%
     summarize(n=n())
-  predictive <- left_join(predictive, predictive.summary,
-                          by=c("model", "batch")) %>%
-    mutate(batch=paste("Batch", batch))
+  pred <- left_join(pred, predictive.summary,
+                    by=c("model", "batch")) %>%
+    mutate(batch=factor(paste("Batch", batch)))
   colors <- colors[seq_len(k(model))]
   ##df <- multiBatchDensities(model)
-  full.data <- tibble(y=y(model),
+  full.data <- tibble(oned=oned(model),
                       batch=batch(model)) %>%
-    mutate(batch=paste("Batch", batch)) %>%
+    mutate(batch=factor(paste("Batch", batch))) %>%
     mutate(model=modelName(model))
   ##xlimit <- c(-5, 1)
   batch.data <- full.data %>%
@@ -345,15 +360,16 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
   n_facet <- NULL
   ..density.. <- NULL
   x <- NULL
-  fig <- ggplot(predictive, aes(x=y, n_facet=n,
-                                y=..count../n_facet,
-                                fill=component)) +
-    geom_histogram(data=full.data, aes(y, ..density..),
+  fig <- ggplot(pred, aes(x=oned, n_facet=n,
+                          y=..count../n_facet,
+                          fill=component)) +
+    geom_histogram(data=full.data, aes(oned, ..density..),
                    bins=bins,
                    inherit.aes=FALSE,
                    color="gray70",
                    fill="gray70",
                    alpha=0.1) +
+    facet_wrap(~batch, ncol=1, strip.position="right") +
     geom_density(adjust=1, alpha=0.4, size=0.75, color="gray30") +
     geom_text(data=batch.data, aes(x=x, y=y, label=paste0("  n=", n)),
               hjust="inward", vjust="inward",
@@ -365,7 +381,6 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
           legend.position="bottom",
           legend.direction="horizontal") +
     ##facet_grid(batch~model,
-    facet_wrap(~batch, ncol=1, strip.position="right") +
     ##labeller=labeller(model=ml)) +
     scale_y_sqrt() +
     scale_color_manual(values=colors) +
@@ -375,32 +390,6 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
     ##coord_cartesian(xlim=xlimit) +
     guides(color=FALSE) ##+
   return(fig)
-##    ggtitle(cnp.id)
-  ##df <- multiBatchDensities(model)
-##  dat <- dnorm_poly_multibatch(model)
-##  nb <- nBatch(model)
-##  df.observed <- tibble(y=observed(model),
-##                        batch=paste0("batch: ", batch(model)))
-##  if(missing(bins))
-##    bins <- nrow(df.observed)/2
-##  component <- y <- ..density.. <- x <- y <- NULL
-##  dat <- as.tibble(dat)
-##  ##
-##  ## Replace histogram with geom_polygon.  Need x and y
-##  ##  -
-##  ggplot(dat, aes(x, y, group=component)) +
-##    ##geom_density() +
-##    ##facet_wrap(~batch, nrow=nb) +
-##    geom_histogram(data=df.observed, aes(y, ..density..),
-##                   bins=bins,
-##                   inherit.aes=FALSE) +
-##    geom_polygon(aes(fill=component, color=component), alpha=0.4) +
-##    xlab("quantiles") + ylab("density") +
-##    scale_color_manual(values=colors) +
-##    scale_fill_manual(values=colors) +
-##    scale_y_sqrt() +
-##    guides(fill=guide_legend(""), color=guide_legend("")) +
-##    facet_wrap(~batch, nrow=nb)
 }
 
 mb_pred_data <- function(model, predict){
@@ -442,37 +431,6 @@ mb_predictive <- function(model, predict, adjust=1/3){
   dat
 }
 
-## #' Create a tibble of posterior predictive distributions for a list of models
-## #'
-## #' @param models list of models
-## #' @examples
-## #'     sb <- SingleBatchModelExample
-## #'     mcmcParams(sb) <- McmcParams(iter=500, burnin=50)
-## #'     sb <- posteriorSimulation(sb)
-## #'     models <- list(MultiBatchModelExample, sb)
-## #'     tab <- predictiveDataTable(models)
-## #'     \dontrun{
-## #'     library(ggplot2)
-## #'     ggplot(tab, aes(y, fill=predictive)) +
-## #'       geom_density(alpha=0.4, adjust=1/2) +
-## #'       facet_grid(model~batch) +
-## #'       guides(fill=guide_legend(title="")) +
-## #'       theme(panel.background=element_rect(fill="white"))
-## #'     }
-## #' @export
-## predictiveDataTable <- function(models){
-##   tab.list <- vector("list", length(models))
-##   for(i in seq_along(models)){
-##     pred <- posteriorPredictive(models[[i]])
-##     tab.list[[i]] <- .predictiveDataTable(models[[i]], pred)
-##   }
-##   tab <- do.call(rbind, tab.list)
-##   ## assume models were ordered by marginal likelihood
-##   mod.names <- sapply(models, modelName)
-##   tab$model <- factor(tab$model, levels=mod.names)
-##   tab
-## }
-
 sb_pred_data <- function(model, predict){
   dat <- tibble(y=y(model), predictive="empirical")
   ##browser()
@@ -498,24 +456,6 @@ sb_predictive <- function(model, predict, adjust=1/3){
   fig
 }
 
-## #' Compare the posterior predictive distribution to the empirical data
-## #'
-## #' @param model a SB, MB, SBP, or MBP model
-## #' @param predict a \code{tibble} of the posterior predictive values, batch (only for MB and MBP models), and mixture component assignments
-## #' @param adjust a length-one numeric vector passed to \code{geom_density} -- controls the smoothness of the kernal density
-## #' @examples
-## #'   bmodel <- MultiBatchModelExample
-## #'   fig <- ggMixture(MultiBatchModelExample)
-## #' @export
-## #' @return a `gg` object
-## ggPredictive <- function(model, predict, adjust=1/3){
-##   if(!isSB(model)){
-##     fig <- mb_predictive(model, predict, adjust)
-##   } else {
-##     fig <- sb_predictive(model, predict, adjust)
-##   }
-##   fig
-## }
 
 multibatch_figure <- function(theoretical, empirical, model){
   nb <- nBatch(model)
@@ -526,7 +466,8 @@ multibatch_figure <- function(theoretical, empirical, model){
   scale_y <- scale_y_sqrt()
   lrr <- NULL
   ..count.. <- NULL
-  ghist <- geom_histogram(data=empirical, aes(lrr, ..count..), binwidth=0.01, inherit.aes=FALSE)
+  ghist <- geom_histogram(data=empirical, aes(lrr, ..count..),
+                          binwidth=0.01, inherit.aes=FALSE)
   gobj <- ggplot() + ghist + facet_wrap(~batch)
   gb <- ggplot_build(gobj)
   ylimit <- gb$layout$panel_ranges[[1]][["y.range"]]
@@ -555,17 +496,24 @@ multibatch_figure <- function(theoretical, empirical, model){
 .gg_multibatch_copynumber <- function(model, bins=400){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
-  predictive <- posteriorPredictive(model) %>%
-    mutate(component=factor(component))
-  predictive.summary <- predictive %>%
+  pred <- predictive(model) %>%
+    longFormatKB(K=k(model), B=numBatch(model)) %>%
+    set_colnames(c("s", "y", "batch", "component")) %>%
+    mutate(model=modelName(model),
+           batch=as.character(batch),
+           batch=gsub("batch ", "", batch),
+           component=factor(component))
+  ##  predictive <- posteriorPredictive(model) %>%
+  ##    mutate(component=factor(component))
+  predictive.summary <- pred %>%
     group_by(model, batch) %>%
     summarize(n=n())
-  predictive <- left_join(predictive, predictive.summary,
+  predictive <- left_join(pred, predictive.summary,
                           by=c("model", "batch")) %>%
     mutate(batch=paste("Batch", batch))
   zz <- map_z(model)
   comp_labels <- mapping(model)
-  predictive$copynumber <- comp_labels[predictive$component]
+  pred$copynumber <- comp_labels[pred$component]
   colors <- colors[seq_along(comp_labels)]
   ##df <- multiBatchDensities(model)
   full.data <- tibble(y=y(model),
@@ -582,8 +530,8 @@ multibatch_figure <- function(theoretical, empirical, model){
   ..density.. <- NULL
   x <- NULL
   copynumber <- NULL
-  fig <- ggplot(predictive, aes(x=y, n_facet=n,
-                                y=..count../n_facet,
+  fig <- ggplot(pred, aes(x=y, n_facet=n,
+                          y=..count../n_facet,
                                 fill=copynumber)) +
     geom_histogram(data=full.data, aes(y, ..density..),
                    bins=bins,
@@ -668,6 +616,13 @@ setMethod("ggMixture", "MultiBatchCopyNumberPooled", function(model, bins=100){
 #' @rdname ggplot-functions
 #' @aliases ggMixture,MultiBatchModel-method
 setMethod("ggMixture", "MultiBatchModel", function(model, bins=100){
+  .gg_multibatch(model, bins=bins)
+})
+
+#' @export
+#' @rdname ggplot-functions
+#' @aliases ggMixture,MultiBatchModel-method
+setMethod("ggMixture", "MultiBatch", function(model, bins=100){
   .gg_multibatch(model, bins=bins)
 })
 

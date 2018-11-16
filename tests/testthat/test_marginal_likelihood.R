@@ -2,7 +2,7 @@ context("Marginal likelihood")
 
 .test_that <- function(nm, expr) NULL
 
-test_that("overfit model", {
+.test_that("overfit model", {
   ## dataset is small  -- priors are more influential
   ## -- default priors set for CNP data are less effective for the galaxy data
   ##    namely, the prior on tau2

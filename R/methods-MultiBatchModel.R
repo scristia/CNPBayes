@@ -1,7 +1,8 @@
 .empty_batch_model <- function(hp, mp){
   K <- k(hp)
-  B <- 0
-  N <- 0
+  B <- 0L
+  S <- iter(mp)
+  ch <- initialize_mcmc(K, S, B)
   obj <- new("MultiBatchModel",
              k=as.integer(K),
              hyperparams=hp,
@@ -12,15 +13,17 @@
              nu.0=numeric(1),
              sigma2.0=numeric(1),
              pi=numeric(K),
+             predictive=numeric(K*B),
+             zstar=integer(K*B),
              data=numeric(0),
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
              z=integer(0),
              zfreq=integer(K),
-             probz=matrix(0, N, K),
+             probz=matrix(0, S, K),
              logprior=numeric(1),
              loglik=numeric(1),
-             mcmc.chains=McmcChains(),
+             mcmc.chains=ch,
              mcmc.params=mp,
              batch=integer(0),
              batchElements=integer(0),
@@ -32,7 +35,7 @@
   obj
 }
 
-.ordered_thetas_multibatch<- function(model){
+.ordered_thetas_multibatch <- function(model){
   thetas <- theta(model)
   checkOrder <- function(theta) identical(order(theta), seq_along(theta))
   is_ordered <- apply(thetas, 1, checkOrder)
@@ -113,6 +116,8 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
   sigma2s <- 1/rgamma(k(hp) * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
     matrix(B, k(hp))
   u <- rchisq(length(dat), hp@dfr)
+  S <- iter(mp)
+  ch <- initialize_mcmc(K, S, B)
   obj <- new("MultiBatchModel",
              k=as.integer(K),
              hyperparams=hp,
@@ -123,6 +128,8 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
              nu.0=nu.0,
              sigma2.0=sigma2.0,
              pi=p,
+             predictive=numeric(K*B),
+             zstar=integer(K*B),
              data=dat,
              u=u,
              data.mean=matrix(NA, B, K),
@@ -132,7 +139,7 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
              probz=matrix(0, N, K),
              logprior=numeric(1),
              loglik=numeric(1),
-             mcmc.chains=McmcChains(),
+             mcmc.chains=ch,
              mcmc.params=mp,
              batch=batches,
              batchElements=nbatch,
@@ -205,6 +212,7 @@ MultiBatchModel2 <- function(dat=numeric(),
   mb2 <- sortComponentLabels(mb)
   mcmcParams(mb2) <- mp
   chains(mb2) <- McmcChains(mb2)
+  probz(mb2)[,] <- 0
   mb2
 }
 
@@ -538,147 +546,6 @@ setMethod("tablez", "MixtureModel", function(object){
 
 uniqueBatch <- function(object) unique(batch(object))
 
-
-## Create a data.frame of the component densities for each batch
-##
-## @param object an object of class \code{BatchModel}
-## @return a \code{{data.frame}}
-## @export
-## @examples
-##    nbatch <- 3
-##    k <- 3
-##    means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
-##        0, 0.05), nbatch, k, byrow = FALSE)
-##    sds <- matrix(0.15, nbatch, k)
-##    sds[, 1] <- 0.3
-##    N <- 1000
-##    truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
-##                                                  length.out = N),
-##                               p = c(1/10, 1/5, 1 - 0.1 - 0.2), theta = means,
-##                               sds = sds)
-##    mcmcp <- McmcParams(iter = 1000, burnin = 500, thin = 1,
-##                        nStarts = 10)
-##
-##    ## this parameter setting for m2.0 allows a lot of varation of the thetas
-##    ## between batch
-##    hypp <- CNPBayes:::HyperparametersMultiBatch(m2.0 = 1/60, eta.0 = 1800,
-##                                            k = 3, a = 1/6, b = 180)
-##    model <- BatchModel(data = y(truth), batch = batch(truth),
-##                        k = 3, mcmc.params = mcmcp, hypp = hypp)
-##    model <- posteriorSimulation(model)
-##    df <- multiBatchDensities(model)
-##    df.observed <- data.frame(y=observed(model), batch=batch(model))
-##    library(ggplot2)
-##    ggplot(df, aes(x, d)) +
-##    geom_histogram(data=df.observed,
-##                   aes(y, ..density..),
-##                   bins=300, inherit.aes=FALSE) +
-##    geom_area(stat="identity", aes(color=name, fill=name),
-##              alpha=0.4) +
-##    xlab("quantiles") + ylab("density") +
-##    scale_color_manual(values=colors) +
-##    scale_fill_manual(values=colors) +
-##    guides(fill=guide_legend(""), color=guide_legend("")) +
-##    facet_wrap(~batch, nrow=2)
-##multiBatchDensities <- function(object){
-##  probs <- p(object)
-##  thetas <- theta(object)
-##  sigmas <- sigma(object)
-##  P <- matrix(probs, nrow(thetas), ncol(thetas), byrow=TRUE)
-##  rownames(P) <- uniqueBatch(object)
-##  avglrrs <- observed(object)
-##  quantiles <- seq(min(avglrrs), max(avglrrs), length.out=500)
-##  batchPr <- table(batch(object))/length(y(object))
-##  dens.list <- batchDensities(quantiles, uniqueBatch(object), 
-##                              thetas, sigmas, P, batchPr)
-##  ##component <- lapply(dens.list, rowSums)
-##  ##overall <- rowSums(do.call(cbind, component))
-##  ix <- order(thetas[1, ])
-##  d <- do.call(rbind, dens.list[ix])
-##  K <- ncol(thetas)
-##  NB <- nBatch(object)
-##  over <- Reduce("+", dens.list)
-##  batches.overall <- rep(1:2, each=nrow(over))
-##  quantile.overall <- rep(quantiles, 2)
-##  overall <- as.numeric(over)
-##
-##  d.vec <- as.numeric(d, overall)
-##  d.vec <- c(d.vec, overall)
-##  batches <- c(rep(uniqueBatch(object), each=nrow(d)),
-##               batches.overall)
-##  K <- seq_len(ncol(thetas))
-##  name <- paste0("cn", K-1)
-##  name <- rep(rep(name, elementNROWS(dens.list)), 2)
-##  name <- c(name, rep("overall", length(overall)))
-##  x <- rep(rep(quantiles, length(dens.list)), 2)
-##  x <- c(x, quantile.overall)
-##  df <- data.frame(x=x, d=d.vec, name=name, batch=batches)
-##  df$batch <- factor(df$batch, uniqueBatch(object))
-##  df$name <- factor(df$name, levels=c("overall", paste0("cn", K-1)))
-##  df
-##}
-
-##newBatchModel <- function(object){
-##  mp <- mcmcParams(object)
-##  object2 <- MultiBatchModel(y(object), batch=batch(object),
-##                        k=k(object), mcmc.params=mp,
-##                        hypp=hyperParams(object))
-##  theta(object2) <- theta(object)
-##  sigma2(object2) <- sigma2(object)
-##  p(object2) <- p(object)
-##  z(object2) <- z(object)
-##  nu.0(object2) <- nu.0(object)
-##  mu(object2) <- mu(object)
-##  tau2(object2) <- tau2(object)
-##  zFreq(object2) <- zFreq(object)
-##  probz(object2) <- probz(object)
-##  sigma2.0(object2) <- sigma2.0(object)
-##  dataMean(object2) <- dataMean(object)
-##  dataPrec(object2) <- dataPrec(object)
-##  log_lik(object2) <- log_lik(object)
-##  logPrior(object2) <- logPrior(object)
-##  modes(object2) <- modes(object)
-##  object2
-##}
-##
-##newMultiBatchModel <- function(object){
-##  mp <- mcmcParams(object)
-##  object2 <- MultiBatchModel(y(object), batch=batch(object),
-##                        k=k(object), mcmc.params=mp,
-##                        hypp=hyperParams(object))
-##  theta(object2) <- theta(object)
-##  sigma2(object2) <- sigma2(object)
-##  p(object2) <- p(object)
-##  z(object2) <- z(object)
-##  nu.0(object2) <- nu.0(object)
-##  mu(object2) <- mu(object)
-##  tau2(object2) <- tau2(object)
-##  zFreq(object2) <- zFreq(object)
-##  probz(object2) <- probz(object)
-##  sigma2.0(object2) <- sigma2.0(object)
-##  dataMean(object2) <- dataMean(object)
-##  dataPrec(object2) <- dataPrec(object)
-##  log_lik(object2) <- log_lik(object)
-##  logPrior(object2) <- logPrior(object)
-##  modes(object2) <- modes(object)
-##  object2
-##}
-
-##setMethod("relabel", "MultiBatchModel", function(object, zindex){
-##  object <- newMultiBatchModel(object)
-##  if(identical(zindex, seq_len(k(object)))) return(object)
-##  ##
-##  ## Permute only the latent variables
-##  ##
-##  zz <- factor(z(object), levels=zindex)
-##  zz <- as.integer(zz)
-##  z(object) <- zz
-##  zFreq(object) <- as.integer(table(zz))
-##  dataMean(object) <- dataMean(object)[, zindex, drop=FALSE]
-##  dataPrec(object) <- dataPrec(object)[, zindex, drop=FALSE]
-##  object
-##})
-
 setMethod("updateMultinomialProb", "MultiBatchModel", function(object){
   update_multinomialPr(object)
 })
@@ -690,4 +557,10 @@ setMethod("computeLoglik", "MultiBatchModel", function(object){
 
 setMethod("updateZ", "MultiBatchModel", function(object){
   update_z(object)
+})
+
+setMethod("updateObject", "MultiBatchModel", function(object){
+  chains(object) <- updateObject(chains(object))
+  object <- callNextMethod(object)
+  object
 })

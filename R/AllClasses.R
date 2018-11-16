@@ -86,6 +86,11 @@ setClass("HyperparametersTrios", contains="Hyperparameters")
 #' @slot logprior log likelihood of prior.
 #' @slot loglik log likelihood.
 #' @slot zfreq table of z.
+#' @slot predictive posterior predictive distribution
+#' @slot zstar needed for plotting posterior predictive distribution
+#' @slot k integer specifying number of components
+#' @slot iter integer specifying number of MCMC simulations
+#' @slot B integer specifying number of batches
 setClass("McmcChains", representation(theta="matrix",
                                       sigma2="matrix",
                                       pi="matrix",
@@ -97,7 +102,11 @@ setClass("McmcChains", representation(theta="matrix",
                                       logprior="numeric",
                                       loglik="numeric",
                                       zfreq="matrix",
-                                      zfreq_parents="matrix"))
+                                      predictive="matrix",
+                                      zstar="matrix",
+                                      k="integer",
+                                      iter="integer",
+                                      B="integer"))
 
 #' An object to specify MCMC options for a later simulation
 #'
@@ -106,6 +115,10 @@ setClass("McmcChains", representation(theta="matrix",
 #' @slot burnin A one length numeric to specify burnin. The first $n$ samples will be discarded.
 #' @slot nstarts A one length numeric to specify the number of chains in a simulation.
 #' @slot param_updates Indicates whether each parameter should be updated (1) or fixed (0).
+#' @slot min_GR minimum value of multivariate Gelman Rubin statistic for diagnosing convergence. Default is 1.2.
+#' @slot min_effsize  the minimum mean effective size of the chains. Default is 1/3 * iter.
+#' @slot max_burnin The maximum number of burnin iterations before we give up and return the existing model.
+#' @slot min_chains minimum number of independence MCMC chains used for assessing convergence. Default is 3.
 #' @examples
 #' McmcParams()
 #' McmcParams(iter=1000)
@@ -116,7 +129,11 @@ setClass("McmcParams", representation(thin="numeric",
                                       iter="numeric",
                                       burnin="numeric",
                                       nstarts="numeric",
-                                      param_updates="integer"))
+                                      param_updates="integer",
+                                      min_GR="numeric",
+                                      min_effsize="numeric",
+                                      max_burnin="numeric",
+                                      min_chains="numeric"))
 
 #' An object for running MCMC simulations.
 #'
@@ -160,6 +177,8 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         pi="numeric",
                                         mu="numericOrMatrix",
                                         tau2="numericOrMatrix",
+                                        predictive="numeric",
+                                        zstar="numeric",
                                         data="numeric",
                                         data.mean="numericOrMatrix",
                                         data.prec="numericOrMatrix",
@@ -178,7 +197,6 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         marginal_lik="numeric",
                                         .internal.constraint="numeric",
                                         .internal.counter="integer"))
-
 
 #' An object for running MCMC simulations.
 #'

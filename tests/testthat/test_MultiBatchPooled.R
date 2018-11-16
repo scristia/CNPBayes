@@ -9,6 +9,16 @@ test_that("MultiBatchPooled", {
   expect_equivalent(sigma(model), numeric())
   mp <- McmcParams(iter=50, burnin=5)
   model <- MultiBatchPooledExample
+##  ch <- chains(model)
+##  ch <- updateObject(ch)
+##  ch@zstar <- matrix(as.integer(NA), nrow=nrow(predictive(ch)), ncol=ncol(predictive(ch)))
+##  chains(model) <- ch
+##  model2 <- updateObject(model)
+##  model2@predictive <- as.numeric(matrix(as.numeric(NA), numBatch(model2), k(model2)))
+##  model2@zstar <- as.integer(matrix(as.integer(NA), numBatch(model2), k(model2)))
+##  MultiBatchPooledExample <- model2
+##  save(MultiBatchPooledExample, file="MultiBatchPooledExample.rda", compression_level=9)
+##  model <- MultiBatchPooledExample
   mcmcParams(model) <- mp
   expect_warning(model <- posteriorSimulation(model))
   model2 <- as(model, "MultiBatchCopyNumberPooled")
@@ -38,16 +48,23 @@ test_that("MultiBatchPooled", {
                hp=hp,
                batches=batch(truth),
                mp=mp)
+  tmp <- posteriorSimulation(model)
+  expect_is(model@predictive, "numeric")
+  tmp <- update_predictiveP(model)
+  expect_is(tmp@predictive, "numeric")
+  expect_is(tmp@zstar, "integer")
+  expect_true(validObject(tmp))
   u1 <- u(model)
   model <- posteriorSimulation(model)
   u2 <- u(model)
   expect_true(!identical(u1, u2))
-
-  expect_true(validObject(model))
   if(FALSE){
     MultiBatchPooledExample <- model
     save(MultiBatchPooledExample, file="data/MultiBatchPooledExample.rda")
   }
+  iter(model) <- 300
+  burnin(model) <- 200
+  model <- posteriorSimulation(model)
   expect_is(sigma(model), "numeric")
   expect_identical(length(sigma(model)), 3L)
 })
@@ -92,7 +109,7 @@ test_that("MultiBatchPooled MCMC", {
 .test_that <- function(nm, expr) NULL
 
 
-test_that("Marginal likelihood for MultiBatchPooled", {
+.test_that("Marginal likelihood for MultiBatchPooled", {
   library(magrittr)
   library(tibble)
   data("MultiBatchPooledExample")
@@ -136,9 +153,10 @@ test_that("MultiBatchPooled model selection", {
   ## running too few iterations for this to be very useful
   expect_warning(
     model <- gibbs_multibatch_pooled(hp,
-                                     mp=McmcParams(iter=100, burnin=100, nStart=4),
+                                     mp=McmcParams(iter=1000, burnin=100, nStart=4),
                                      y(truth),
-                                     batches=batch(truth))
+                                     batches=batch(truth),
+                                     min)
   )
   if(FALSE){
     figs <- ggChains(model)
@@ -158,9 +176,9 @@ test_that("MultiBatchPooled model selection", {
                                    batches=batch(truth))
     model <- mlist[[1]]
     ggMixture(model)
-    tab <- posteriorPredictive(model)
-    ggPredictive(model, tab)
-    expect_identical(k(model), 3L)
+    ##tab <- posteriorPredictive(model)
+    ##ggPredictive(model, tab)
+    ##expect_identical(k(model), 3L)
   }
   if(FALSE){
     mlist <- gibbs("MBP",

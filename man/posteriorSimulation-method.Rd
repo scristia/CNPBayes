@@ -4,20 +4,11 @@
 \name{posteriorSimulation}
 \alias{posteriorSimulation}
 \alias{posteriorSimulation,MixtureModel-method}
-\alias{posteriorSimulation,SingleBatchModel-method}
-\alias{posteriorSimulation,SingleBatchPooled-method}
-\alias{posteriorSimulation,TrioBatchModel-method}
 \title{Run MCMC simulation.}
 \usage{
 posteriorSimulation(object, k)
 
 \S4method{posteriorSimulation}{MixtureModel}(object)
-
-\S4method{posteriorSimulation}{SingleBatchModel}(object)
-
-\S4method{posteriorSimulation}{SingleBatchPooled}(object)
-
-\S4method{posteriorSimulation}{TrioBatchModel}(object)
 }
 \arguments{
 \item{object}{see showMethods(posteriorSimulation)}

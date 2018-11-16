@@ -3,6 +3,10 @@ set_param_names <- function(x, nm){
   set_colnames(x, paste0(nm, K))
 }
 
+##
+## divides each chain into halves
+## 
+##
 mcmcList <- function(model.list){
   if(!is(model.list, "list")){
     model.list <- list(model.list)
@@ -81,6 +85,8 @@ diagnostics <- function(model.list){
   list(neff=neff, r=r)
 }
 
+## we shouldn't define an aggregate method for class list, but we could do this for a MultiBatchList class
+##
 combine_batch <- function(model.list, batches){
   . <- NULL
   ch.list <- map(model.list, chains)
@@ -94,6 +100,8 @@ combine_batch <- function(model.list, batches){
   .mu <- map(ch.list, mu) %>% do.call(rbind, .)
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
+  pred <- map(ch.list, predictive) %>% do.call(rbind, .)
+  zz <- map(ch.list, zstar) %>% do.call(rbind, .)
   mc <- new("McmcChains",
             theta=th,
             sigma2=s2,
@@ -104,7 +112,12 @@ combine_batch <- function(model.list, batches){
             sigma2.0=s2.0,
             zfreq=zfreq,
             logprior=logp,
-            loglik=ll)
+            loglik=ll,
+            iter=nrow(th),
+            predictive=pred,
+            zstar=zz,
+            k=k(model.list[[1]]),
+            B=length(unique(batches)))  
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   iter(mp) <- nrow(th)
@@ -134,6 +147,9 @@ combine_batch <- function(model.list, batches){
     ml <- as.numeric(NA)
   } else ml <- mean(ml, na.rm=TRUE)
   nbatch <- as.integer(table(batch(model.list[[1]])))
+  ## mp should now reflect the total number of MCMC samples
+  iter(mp) <- iter(mc)
+  nStarts(mp) <- 1L ## treat as single start
   model <- new(class(model.list[[1]]),
                k=k(hp),
                hyperparams=hp,
@@ -151,6 +167,8 @@ combine_batch <- function(model.list, batches){
                z=zz,
                zfreq=zfreq,
                probz=pz,
+               predictive=predictive(mc)[nrow(th), ],
+               zstar=zstar(mc)[nrow(th), ],
                logprior=numeric(1),
                loglik=numeric(1),
                mcmc.chains=mc,
@@ -167,6 +185,7 @@ combine_batch <- function(model.list, batches){
   logPrior(model) <- computePrior(model)
   model
 }
+
 
 selectModels <- function(model.list){
   ll <- sapply(model.list, log_lik)
@@ -227,28 +246,12 @@ harmonizeU <- function(model.list){
   model.list
 }
 
-compute_marginal_lik <- function(model, params){
-  ##
-  ## evaluate marginal likelihood. Relax default conditions
-  ##
-  if(missing(params)){
-    params <- mlParams(root=1/2,
-                       reject.threshold=exp(-100),
-                       prop.threshold=0.5,
-                       prop.effective.size=0)
-  }
-  ml <- tryCatch(marginalLikelihood(model, params), warning=function(w) NULL)
-  if(!is.null(ml)){
-    marginal_lik(model) <- ml
-    message("     marginal likelihood: ", round(marginal_lik(model), 2))
-  } else {
-    ##warning("Unable to compute marginal likelihood")
-    message("Unable to compute marginal likelihood")
-  }
-  model
-}
 
-gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500){
+
+gibbs_batch <- function(hp, mp, dat, max_burnin=32000,
+                        batches,
+                        min_GR=1.2,
+                        min_effsize=500){
   nchains <- nStarts(mp)
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
   if(iter(mp) < 500){
@@ -256,7 +259,7 @@ gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500)
     MIN_EFF <- ceiling(iter(mp) * 0.5)
   } else MIN_EFF <- min_effsize
   MIN_CHAINS <- 3
-  MIN_GR <- 1.2
+  MIN_GR <- min_GR
   neff <- 0; r <- 2
   while(burnin(mp) < max_burnin && thin(mp) < 100){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
@@ -276,7 +279,11 @@ gibbs_batch <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500)
     mod.list <- mod.list[ selectModels(mod.list) ]
     mlist <- mcmcList(mod.list)
     neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-    if(is.null(neff)) neff <- 0
+    if(is.null(neff)){
+      neff <- 0
+    }else {
+      neff <- neff[ neff > 0 ]
+    }
     r <- gelman_rubin(mlist, hp)
     message("     Gelman-Rubin: ", round(r$mpsrf, 2))
     message("     eff size (median): ", round(min(neff), 1))
@@ -309,6 +316,7 @@ gibbs_batch_K <- function(hp,
                           batches,
                           max_burnin=32000,
                           reduce_size=TRUE,
+                          min_GR=1.2,
                           min_effsize=500){
   K <- seq(k_range[1], k_range[2])
   hp.list <- map(K, updateK, hp)
@@ -318,6 +326,7 @@ gibbs_batch_K <- function(hp,
                     dat=dat,
                     batches=batches,
                     max_burnin=max_burnin,
+                    min_GR=min_GR,
                     min_effsize=min_effsize)
   ##names(model.list) <- paste0("MB", map_dbl(model.list, k))
   names(model.list) <- sapply(model.list, modelName)
@@ -350,6 +359,7 @@ gibbs_batch_K <- function(hp,
 #' @param top a length-one numeric vector indicating how many of the top
 #'   models to return.
 #' @param df length-1 numeric vector for t-distribution degrees of freedom
+#' @param min_GR length-1 numeric vector specifying the maximum Gelman-Rubin (GR) statistic.  If the GR statistic is above this value, the marginal likelihood will not be estimated.
 #' @param min_effsize length-1 numeric vector specifying the minimum effective size of the MCMC simulations.  If below this value, the marginal likelihood will not be estimated.
 #'
 #' @details For each model specified, a Gibbs sampler will be initiated
@@ -357,7 +367,7 @@ gibbs_batch_K <- function(hp,
 #\code{nStarts > 2}).  The burnin, number of iterations after burnin,
 #and the thin parameters are specified in the \code{mp} argument.    If
 #the effective number of independent MCMC draws for any of the parameter
-#chains is less than \code{min_effsize} or if the multivariate Gelman Rubin convergence #diagnostic is less than 1.2, the thin and the burnin will be doubled and we start over -- new chains are initalized independently and the Gibbs sampler is restarted. This process is repeated until the effective sample size is greater than 500 and the Gelman Rubin #convergence diagnostic is less than 1.2.
+#chains is less than \code{min_effsize} or if the multivariate Gelman Rubin convergence #diagnostic is less than 1.2 (default), the thin and the burnin will be doubled and we start over -- new chains are initalized independently and the Gibbs sampler is restarted. This process is repeated until the effective sample size is greater than 500 and the Gelman Rubin #convergence diagnostic is less than 1.2.
 #'
 #' The number of mixture models fit depends on \code{k_range} and
 #\code{model}. For example, if \code{model=c("SBP", "MBP")} and
@@ -393,6 +403,7 @@ gibbs_batch_K <- function(hp,
 #'         batches=batch(truth),
 #'         k_range=c(1, 4),
 #'         max_burnin=max_burnin,
+#'         min_GR=1.2,
 #'         top=2,
 #'         df=100))
 #'
@@ -431,6 +442,7 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP", "TBM"),
                         dat=dat,
                         batches=rep(1L, length(dat)),
                         max_burnin=max_burnin,
+                        min_GR=min_GR,
                         min_effsize=min_effsize)
   } else sb <- NULL
   if("MB" %in% model){
@@ -441,6 +453,7 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP", "TBM"),
                         dat=dat,
                         batches=batches,
                         max_burnin=max_burnin,
+                        min_GR=min_GR,
                         min_effsize=min_effsize)
   } else mb <- NULL
   if("SBP" %in% model){
@@ -451,6 +464,7 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP", "TBM"),
                                  dat=dat,
                                  batches=rep(1L, length(dat)),
                                  max_burnin=max_burnin,
+                                 min_GR=min_GR,
                                  min_effsize=min_effsize)
   } else sbp <- NULL
   if("MBP" %in% model){
@@ -461,6 +475,7 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP", "TBM"),
                                  dat=dat,
                                  batches=batches,
                                  max_burnin=max_burnin,
+                                 min_GR=min_GR,
                                  min_effsize=min_effsize)
   } else mbp <- NULL
   if("TBM" %in% model){
@@ -483,4 +498,152 @@ gibbs <- function(model=c("SB", "MB", "SBP", "MBP", "TBM"),
   models <- models[ix]
   names(models) <- sapply(models, modelName)
   models
+}
+
+## gPar <- function(model=c("SB", "MB", "SBP", "MBP"),
+##                  df=100, iter=1000, burnin=1000, thin=1,
+##                  max_burnin=32e3, top=2,
+##                  min_effsize=500,
+##                  min_GR=1.2,
+##                  hp=hpList(df=100)){
+##   list(model=model,
+##        hp.list=hp,
+##        mp=mcmcParams(iter=iter, burnin=burnin, thin=thin),
+##        k_range=c(1, 4),
+##        max_burnin=32e3,
+##        df=df,
+##        min_GR=min_GR,
+##        min_effsize=min_effsize)
+## }
+## 
+## #' @param dat a tibble containing id, oned summary, and batch
+## #' @param gp a list of parameters for the Bayesian model and MCMC
+## gibbs2 <- function(dat, gp=gPar(df=100)){
+##   if(!"id" %in% colnames(dat)) stop("dat must have an id field")
+##   dat2 <- dat %>%
+##     arrange(batch_index)
+##   models <- gibbs(model=gpar[["model"]],
+##                   dat=dat2$oned,
+##                   batches=dat2$batch_index,
+##                   mp=gp$mp,
+##                   hp.list=gp$hp,
+##                   k_range=gp$k_range,
+##                   top=gp$top,
+##                   df=gp$df,
+##                   min_effsize=gp$min_effsize,
+##                   max_burnin=gp$max_burnin)
+##   list(models=models, data=dat2)
+## }
+
+gibbs_multibatch_pooled <- function(hp, mp, dat,
+                                    max_burnin=32000,
+                                    batches,
+                                    min_GR=1.2,
+                                    min_effsize=500){
+  nchains <- nStarts(mp)
+  nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
+  if(iter(mp) < 500){
+    warning("Require at least 500 Monte Carlo simulations")
+    MIN_EFF <- ceiling(iter(mp) * 0.5)
+  } else MIN_EFF <- min_effsize
+  while(burnin(mp) < max_burnin && thin(mp) < 100){
+    message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
+    mod.list <- replicate(nchains, MultiBatchPooled(dat=dat,
+                                                    hp=hp,
+                                                    mp=mp,
+                                                    batches=batches))
+    mod.list <- suppressWarnings(map(mod.list, .posteriorSimulation2))
+    label_swapping <- map_lgl(mod.list, label_switch)
+    nswap <- sum(label_swapping)
+    if(nswap > 0){
+      mp@thin <- as.integer(thin(mp) * 2)
+      if(thin(mp) > 100){
+        mlist <- mcmcList(mod.list)
+        neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
+        if(is.null(neff)){
+          neff <- 0
+        }else {
+          neff <- neff[ neff > 0 ]
+        }
+        r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
+        if(is.null(r)) r <- list(mpsrf=10)
+        break()
+      }
+      message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
+      mod.list2 <- replicate(nswap,
+                             MultiBatchPooled(dat=dat,
+                                              mp=mp,
+                                              hp=hp,
+                                              batches=batches))
+      mod.list2 <- suppressWarnings(map(mod.list2, .posteriorSimulation2))
+      mod.list[ label_swapping ] <- mod.list2
+      label_swapping <- map_lgl(mod.list, label_switch)
+      if(any(label_swapping)){
+        message("  Label switching detected")
+        mlist <- mcmcList(mod.list)
+        neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
+        if(is.null(neff)){
+          neff <- 0
+        }else {
+          neff <- neff[ neff > 0 ]
+        }
+        r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
+        if(is.null(r)) r <- list(mpsrf=10)
+        break()
+      }
+    }
+    mod.list <- mod.list[ selectModels(mod.list) ]
+    mlist <- mcmcList(mod.list)
+    neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
+    if(is.null(neff)){
+      neff <- 0
+    }else {
+      neff <- neff[ neff > 0 ]
+    }
+    r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
+    if(is.null(r)) r <- list(mpsrf=10)
+    message("     r: ", round(r$mpsrf, 2))
+    message("     eff size (minimum): ", round(min(neff), 1))
+    message("     eff size (median): ", round(median(neff), 1))
+    if(mean(neff) > MIN_EFF && r$mpsrf < min_GR) break()
+    burnin(mp) <- as.integer(burnin(mp) * 2)
+    mp@thin <- as.integer(thin(mp) * 2)
+  }
+  model <- combine_multibatch_pooled(mod.list, batches)
+  meets_conditions <- all(neff > MIN_EFF) &&
+    r$mpsrf < 2 && !label_switch(model)
+  if(meets_conditions){
+    testing <- tryCatch(compute_marginal_lik(model), error=function(e) NULL)
+    if(is.null(testing)) return(testing)
+    model <- testing
+  }
+  model
+}
+
+gibbsMultiBatchPooled <- function(hp,
+                                  mp,
+                                  k_range=c(1, 4),
+                                  dat,
+                                  batches,
+                                  max_burnin=32000,
+                                  reduce_size=TRUE,
+                                  min_GR=1.2,
+                                  min_effsize=500){
+  K <- seq(k_range[1], k_range[2])
+  hp.list <- map(K, updateK, hp)
+  model.list <- map(hp.list,
+                    gibbs_multibatch_pooled,
+                    mp=mp,
+                    dat=dat,
+                    batches=batches,
+                    max_burnin=max_burnin,
+                    min_GR=min_GR,
+                    min_effsize=min_effsize)
+  names(model.list) <- paste0("MBP", map_dbl(model.list, k))
+  ## sort by marginal likelihood
+  ##
+  ## if(reduce_size) TODO:  remove z chain, keep y in one object
+  ##
+  ix <- order(map_dbl(model.list, marginal_lik), decreasing=TRUE)
+  models <- model.list[ix]
 }

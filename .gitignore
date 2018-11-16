@@ -24,5 +24,5 @@ inst/unitTests
 /vignettes/Overview.md
 /R/methods-BatchModel.R
 /R/methods-MarginalModel.R
-/src/symbols.rds
-/vignettes/Overview.tex
+/man/combineSurrogates.Rd
+/R/.unison.methods-SummarizedExperiment.R.51d06c18e4462e2c3ef5597ef0084e65.unison.tmp

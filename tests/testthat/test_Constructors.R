@@ -1,5 +1,6 @@
 context("Constructors")
 
+
 test_that("test_constructor", {
     mcmc.params <- McmcParams()
     expect_true(validObject(mcmc.params))
@@ -23,15 +24,13 @@ test_that("test_constructor", {
     mmod <- SingleBatchModel2(dat=y(truth))
     expect_true(validObject(mmod))
     iter(mmod) <- 1000L
-    expect_error(iter(mmod) <- 1001)
-    iter(mmod, force = TRUE) <- 1001L
     burnin(mmod) <- 1001L
-    expect_true(iter(mmod) == 1001L)
-    expect_true(nrow(thetac(mmod)) == 1001)
+    expect_true(iter(mmod) == 1000L)
+    expect_true(nrow(thetac(mmod)) == 1000)
     mp <- McmcParams(iter = 10L, thin = 10L, burnin = 100L)
     mcmcParams(mmod) <- mp
     expect_true(nrow(thetac(mmod)) == 10)
-    iter(mmod, force = TRUE) <- 1000L
+    iter(mmod) <- 1000L
     expect_true(nrow(thetac(mmod)) == 1000)
     bmod <- MultiBatchModel2()
     expect_true(validObject(bmod))
@@ -52,9 +51,9 @@ test_that("test_constructor", {
     expect_equal(batch(bmod), batch(truth))
     expect_error(MultiBatchModel2(dat=y(truth),
                                   batches=rep(1:3, each=2), k=3))
-    iter(bmod, force = TRUE) <- 10L
+    iter(bmod) <- 10L
     expect_true(nrow(thetac(bmod)) == 10)
-    iter(mmod, force = TRUE) <- 5L
+    iter(mmod) <- 5L
     burnin(mmod) <- 0L
     mmod2 <- posteriorSimulation(mmod)
     expect_false(identical(thetac(mmod), thetac(mmod2)))
