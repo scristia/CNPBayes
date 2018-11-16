@@ -1,55 +1,46 @@
 context("Down sampling")
-
-## For large datasets, downsample observations. This makes it easier to run a
-## large number of MCMC simulations for big datasets.
-
-.test_that <- function(name, expr) NULL
-
-.test_that("downsample", {
-  ##meds <- colMedians(xx)
-  dat <- readLocalHapmap()
-  mp <- McmcParams(iter=1000, burnin=1000,
-                   nStarts=4, thin=10)
-  batches <- collapseBatch(dat, names(dat), THR=0.05) %>%
-    factor %>% as.integer
-
-  tiles <- tileMedians(dat, 250, batch=batches)
-  tile.sum <- tileSummaries(tiles)
-
-  hp.list <- hpList(k=5)
-  set.seed(123)
-  sb <- SingleBatchPooled(dat=dat, hp=hp.list[["SBP"]], mp=mp)
-  sb <- posteriorSimulation(sb)
-  ggMixture(sb)
-
-  ##
-  ## downsample
-  ##
-  ds <- downSampleEachBatch(dat, 200, batch=batches)
-  sb2 <- SingleBatchPooled(dat=ds$y, hp=hp.list[["SBP"]], mp=mp)
-  sb2 <- posteriorSimulation(sb2)
-  ggMixture(sb2)
-
-  sb3 <- upSample(sb2, ds)
-  expect_identical(sort(y(sb)), sort(y(sb3)))
-  pz <- probz(sb3)
-  expect_equal(range(pz), c(0, 1))
-  expect_identical(nrow(pz), length(y(sb)))
-  if(FALSE){
-    ggMixture(sb3)
+test_that("down sampling", {
+  library(tidyverse)
+  set.seed(1)
+  truth <- simulateData(N = 5000,
+                        p = rep(1/3, 3),
+                        theta = c(-1, 0, 1),
+                        sds = rep(0.1, 3),
+                        df=100)
+  mp <- McmcParams(iter = 100, burnin = 100)
+  model <- SingleBatchModel2(dat = y(truth),
+                             hp=hpList(k=3)[["SB"]],
+                             mp = mp)
+  ## simulate 50 provisional batch labels
+  plates <- expand.grid(letters[1:26], letters[1:26]) %>%
+    apply(1, paste0, collapse="") %>%
+    unique %>%
+    "["(1:50)
+  plates <- sample(plates, 5000, replace=TRUE)
+  plate.index <- as.numeric(factor(plates))
+  full.data <- tibble(medians=y(truth),
+                      provisional_batch=plates) %>%
+    mutate(provisional.index=plate.index) %>%
+    mutate(batch=collapseBatch(medians, plate.index, 0.05))
+  full.data2 <- full.data %>%
+    mutate(batch_orig=factor(as.integer(factor(batch)))) %>%
+    mutate(batch_orig=as.character(batch_orig))
+  ## Downsample to 750 observations
+  partial.data <- downSample(full.data2,
+                             size=750,
+                             min.batchsize=50)
+  ## check that all batches were sampled
+  iter <- 0
+  L1 <- length(unique(partial.data$provisional_batch))
+  L2 <- length(unique(full.data2$provisional_batch))
+  size <- 750
+  while(L1 < L2 && iter < 3){
+    partial.data <- downSample(full.data2, size=size)
+    L1 <- length(unique(partial.data$provisional_batch))
+    iter <- iter+1
   }
-  ##
-  ## pseudocode
-  ##
-  if(FALSE){
-    model.fulldata <- SingleBatchModel(data)
-    model.partdata <- downSample(model.fulldata)
-    model.partdata <- posteriorSimulation(model.partdata)
-    model.fulldata1 <- upSample(model.partdata)
-    model.fulldata2 <- posteriorSimulation(model.fulldata)
-    ## compare z's
-    ## compare thetas
-    ## compare likelihood
-    identical(model.fulldata1, model.fulldata2)
-  }
+  partial.data
+  expect_identical(nrow(partial.data), 750L)
+  ## since no batch effect was simulated, expect few batches in the downsampled data
+  expect_true(length(unique(partial.data$batch)) < 3)
 })

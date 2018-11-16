@@ -5,8 +5,9 @@
 \title{Create an object of class 'HyperparametersSingleBatch' for the
 single batch mixture model}
 \usage{
-HyperparametersSingleBatch(k = 0L, mu.0 = 0, tau2.0 = 0.4, eta.0 = 32,
-  m2.0 = 0.5, alpha, beta = 0.1, a = 1.8, b = 6, dfr = 100)
+HyperparametersSingleBatch(k = 0L, mu.0 = 0, tau2.0 = 0.4,
+  eta.0 = 32, m2.0 = 0.5, alpha, beta = 0.1, a = 1.8, b = 6,
+  dfr = 100)
 }
 \arguments{
 \item{k}{length-one integer vector specifying number of components
@@ -44,6 +45,8 @@ variances)}
 Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
 the Inverse Gamma sampling distribution for the component-specific
 variances)}
+
+\item{dfr}{length-one numeric vector for t-distribution degrees of freedom}
 }
 \value{
 An object of class HyperparametersSingleBatch

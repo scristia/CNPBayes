@@ -3,14 +3,22 @@
 %   R/methods-SingleBatchPooled.R
 \name{SingleBatchModel2}
 \alias{SingleBatchModel2}
+\alias{SB}
 \alias{SingleBatchPooled}
+\alias{SBP}
 \title{Constructors for SB and SBP models}
 \usage{
 SingleBatchModel2(dat = numeric(), hp = Hyperparameters(),
   mp = McmcParams(iter = 1000, burnin = 1000, thin = 10, nStarts = 4))
 
+SB(dat = numeric(), hp = Hyperparameters(), mp = McmcParams(iter =
+  1000, burnin = 1000, thin = 10, nStarts = 4))
+
 SingleBatchPooled(dat = numeric(), hp = Hyperparameters(),
   mp = McmcParams(iter = 1000, burnin = 1000, thin = 10, nStarts = 4))
+
+SBP(dat = numeric(), hp = Hyperparameters(), mp = McmcParams(iter =
+  1000, burnin = 1000, thin = 10, nStarts = 4))
 }
 \arguments{
 \item{dat}{numeric vector of average log R ratios}
@@ -21,15 +29,22 @@ SingleBatchPooled(dat = numeric(), hp = Hyperparameters(),
 }
 \value{
 An instance of \code{MultiBatchModel}
+
+An instance of \code{MultiBatchModel}
 }
 \description{
-Create objects of class SingleBatchModel or SingleBatchPooled
+This creates a MultiBatchModel object with a single batch.
 }
 \examples{
-SingleBatchModel2()
-SingleBatchModel2(dat=rnorm(100), hpList(k=2)[["SB"]])
+SB()
+SB(dat=rnorm(100), hpList(k=2)[["SB"]])
+## pooled variance model
 SingleBatchPooled()
+## or, equivalently
+SBP()
 }
 \seealso{
+\code{\link{MultiBatchModel2}}
+
 \code{\link{MultiBatchModel2}}
 }

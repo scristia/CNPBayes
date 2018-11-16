@@ -3,21 +3,18 @@
 \docType{methods}
 \name{posteriorSimulation}
 \alias{posteriorSimulation}
-\alias{posteriorSimulation,MixtureModel,ANY-method}
 \alias{posteriorSimulation,MixtureModel-method}
-\alias{posteriorSimulation,SingleBatchModel,ANY-method}
 \alias{posteriorSimulation,SingleBatchModel-method}
-\alias{posteriorSimulation,SingleBatchPooled,ANY-method}
 \alias{posteriorSimulation,SingleBatchPooled-method}
 \title{Run MCMC simulation.}
 \usage{
 posteriorSimulation(object, k)
 
-\S4method{posteriorSimulation}{MixtureModel,ANY}(object)
+\S4method{posteriorSimulation}{MixtureModel}(object)
 
-\S4method{posteriorSimulation}{SingleBatchModel,ANY}(object)
+\S4method{posteriorSimulation}{SingleBatchModel}(object)
 
-\S4method{posteriorSimulation}{SingleBatchPooled,ANY}(object)
+\S4method{posteriorSimulation}{SingleBatchPooled}(object)
 }
 \arguments{
 \item{object}{see showMethods(posteriorSimulation)}

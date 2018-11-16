@@ -16,5 +16,5 @@ A vector of length the number of components
 Retrieve mixture proportions.
 }
 \examples{
-     p(MarginalModelExample)
+     p(SingleBatchModelExample)
 }

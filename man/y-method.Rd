@@ -20,5 +20,5 @@ A vector containing the data
 Retrieve data.
 }
 \examples{
-     y(SingleBatchModelExample)
+     head(y(SingleBatchModelExample))
 }

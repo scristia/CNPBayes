@@ -48,10 +48,12 @@ reorderMultiBatch <- function(model){
   K <- k(model)
   ix <- order(thetas[1, ])
   B <- nBatch(model)
+  . <- NULL
   tab <- tibble(z_orig=z(model),
                 z=z(model),
                 batch=batch(model)) %>%
     mutate(index=seq_len(nrow(.)))
+  z_relabel <- NULL
   for(i in seq_len(B)){
     ix.next <- order(thetas[i, ])
     thetas[i, ] <- thetas[i, ix.next]
@@ -165,7 +167,7 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
 #'                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
 #'                              theta = means,
 #'                              sds = sds)
-#' 
+#'
 #'     truth <- simulateBatchData(N = 2500,
 #'                                batch = rep(letters[1:3], length.out = 2500),
 #'                                theta = means, sds = sds,
@@ -206,6 +208,32 @@ MultiBatchModel2 <- function(dat=numeric(),
   mb2
 }
 
+#' Constructor for MultiBatchModel
+#'
+#' Initializes a MultiBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
+#'
+#' @param dat the data for the simulation.
+#' @param batches an integer-vector of the different batches
+#' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @param mp An object of class 'McmcParams'
+#' @return An object of class `MultiBatchModel`
+#' @examples
+#'   model <- MultiBatchModel2(rnorm(10), batch=rep(1:2, each=5))
+#'   set.seed(100)
+#'   nbatch <- 3
+#'   k <- 3
+#'   means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+#'       0, 0.05), nbatch, k, byrow = FALSE)
+#'   sds <- matrix(0.15, nbatch, k)
+#'   sds[, 1] <- 0.3
+#'   N <- 1000
+#'   truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+#'                                                 length.out = N),
+#'                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+#'                              theta = means,
+#'                              sds = sds)
+#'     MB(dat=y(truth), batches=batch(truth),
+#'        hp=hpList(k=3)[["MB"]])
 #' @export
 #' @rdname MultiBatchModel
 MB <- MultiBatchModel2
@@ -493,12 +521,13 @@ setMethod("show", "MultiBatchModel", function(object){
   ##callNextMethod()
   cls <- class(object)
   cat(paste0("An object of class ", cls), "\n")
-  cat("     n. obs      :", length(y(object)), "\n")
-  cat("     n. batches  :", nBatch(object), "\n")
-  cat("     k           :", k(object), "\n")
-  cat("     nobs/batch  :", table(batch(object)), "\n")
-  cat("     loglik (s)  :", round(log_lik(object), 1), "\n")
-  cat("     logprior (s):", round(logPrior(object), 1), "\n")
+  cat("     n. obs              :", length(y(object)), "\n")
+  cat("     n. batches          :", nBatch(object), "\n")
+  cat("     k                   :", k(object), "\n")
+  cat("     nobs/batch          :", table(batch(object)), "\n")
+  cat("     log lik (s)         :", round(log_lik(object), 1), "\n")
+  cat("     log prior (s)       :", round(logPrior(object), 1), "\n")
+  cat("     log marginal lik (s):", round(marginal_lik(object), 1), "\n")
 })
 
 setMethod("tablez", "MixtureModel", function(object){
@@ -589,66 +618,66 @@ uniqueBatch <- function(object) unique(batch(object))
 ##  df
 ##}
 
-newBatchModel <- function(object){
-  mp <- mcmcParams(object)
-  object2 <- MultiBatchModel(y(object), batch=batch(object),
-                        k=k(object), mcmc.params=mp,
-                        hypp=hyperParams(object))
-  theta(object2) <- theta(object)
-  sigma2(object2) <- sigma2(object)
-  p(object2) <- p(object)
-  z(object2) <- z(object)
-  nu.0(object2) <- nu.0(object)
-  mu(object2) <- mu(object)
-  tau2(object2) <- tau2(object)
-  zFreq(object2) <- zFreq(object)
-  probz(object2) <- probz(object)
-  sigma2.0(object2) <- sigma2.0(object)
-  dataMean(object2) <- dataMean(object)
-  dataPrec(object2) <- dataPrec(object)
-  log_lik(object2) <- log_lik(object)
-  logPrior(object2) <- logPrior(object)
-  modes(object2) <- modes(object)
-  object2
-}
+##newBatchModel <- function(object){
+##  mp <- mcmcParams(object)
+##  object2 <- MultiBatchModel(y(object), batch=batch(object),
+##                        k=k(object), mcmc.params=mp,
+##                        hypp=hyperParams(object))
+##  theta(object2) <- theta(object)
+##  sigma2(object2) <- sigma2(object)
+##  p(object2) <- p(object)
+##  z(object2) <- z(object)
+##  nu.0(object2) <- nu.0(object)
+##  mu(object2) <- mu(object)
+##  tau2(object2) <- tau2(object)
+##  zFreq(object2) <- zFreq(object)
+##  probz(object2) <- probz(object)
+##  sigma2.0(object2) <- sigma2.0(object)
+##  dataMean(object2) <- dataMean(object)
+##  dataPrec(object2) <- dataPrec(object)
+##  log_lik(object2) <- log_lik(object)
+##  logPrior(object2) <- logPrior(object)
+##  modes(object2) <- modes(object)
+##  object2
+##}
+##
+##newMultiBatchModel <- function(object){
+##  mp <- mcmcParams(object)
+##  object2 <- MultiBatchModel(y(object), batch=batch(object),
+##                        k=k(object), mcmc.params=mp,
+##                        hypp=hyperParams(object))
+##  theta(object2) <- theta(object)
+##  sigma2(object2) <- sigma2(object)
+##  p(object2) <- p(object)
+##  z(object2) <- z(object)
+##  nu.0(object2) <- nu.0(object)
+##  mu(object2) <- mu(object)
+##  tau2(object2) <- tau2(object)
+##  zFreq(object2) <- zFreq(object)
+##  probz(object2) <- probz(object)
+##  sigma2.0(object2) <- sigma2.0(object)
+##  dataMean(object2) <- dataMean(object)
+##  dataPrec(object2) <- dataPrec(object)
+##  log_lik(object2) <- log_lik(object)
+##  logPrior(object2) <- logPrior(object)
+##  modes(object2) <- modes(object)
+##  object2
+##}
 
-newMultiBatchModel <- function(object){
-  mp <- mcmcParams(object)
-  object2 <- MultiBatchModel(y(object), batch=batch(object),
-                        k=k(object), mcmc.params=mp,
-                        hypp=hyperParams(object))
-  theta(object2) <- theta(object)
-  sigma2(object2) <- sigma2(object)
-  p(object2) <- p(object)
-  z(object2) <- z(object)
-  nu.0(object2) <- nu.0(object)
-  mu(object2) <- mu(object)
-  tau2(object2) <- tau2(object)
-  zFreq(object2) <- zFreq(object)
-  probz(object2) <- probz(object)
-  sigma2.0(object2) <- sigma2.0(object)
-  dataMean(object2) <- dataMean(object)
-  dataPrec(object2) <- dataPrec(object)
-  log_lik(object2) <- log_lik(object)
-  logPrior(object2) <- logPrior(object)
-  modes(object2) <- modes(object)
-  object2
-}
-
-setMethod("relabel", "MultiBatchModel", function(object, zindex){
-  object <- newMultiBatchModel(object)
-  if(identical(zindex, seq_len(k(object)))) return(object)
-  ##
-  ## Permute only the latent variables
-  ##
-  zz <- factor(z(object), levels=zindex)
-  zz <- as.integer(zz)
-  z(object) <- zz
-  zFreq(object) <- as.integer(table(zz))
-  dataMean(object) <- dataMean(object)[, zindex, drop=FALSE]
-  dataPrec(object) <- dataPrec(object)[, zindex, drop=FALSE]
-  object
-})
+##setMethod("relabel", "MultiBatchModel", function(object, zindex){
+##  object <- newMultiBatchModel(object)
+##  if(identical(zindex, seq_len(k(object)))) return(object)
+##  ##
+##  ## Permute only the latent variables
+##  ##
+##  zz <- factor(z(object), levels=zindex)
+##  zz <- as.integer(zz)
+##  z(object) <- zz
+##  zFreq(object) <- as.integer(table(zz))
+##  dataMean(object) <- dataMean(object)[, zindex, drop=FALSE]
+##  dataPrec(object) <- dataPrec(object)[, zindex, drop=FALSE]
+##  object
+##})
 
 setMethod("updateMultinomialProb", "MultiBatchModel", function(object){
   update_multinomialPr(object)

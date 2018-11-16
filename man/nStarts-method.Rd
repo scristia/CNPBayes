@@ -33,8 +33,6 @@ An integer of the number of different starts.
 }
 \description{
 This function retrieves the number of chains used for an MCMC simulation.
-
-Reset number of starting values
 }
 \details{
 Simulating starting values from the priors makes it imperative to

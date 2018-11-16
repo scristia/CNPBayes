@@ -20,5 +20,5 @@ A vector the length of the data
 Retrieves the simulated latent variable assignments of each observation at each MCMC simulation.
 }
 \examples{
-     z(SingleBatchModelExample)
+     head(z(SingleBatchModelExample))
 }

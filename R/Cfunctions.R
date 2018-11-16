@@ -1,62 +1,62 @@
 ## R functions for checking C code
 
 ## R version of marginal_theta
-r_marginal_theta <- function(model){
-  model2 <- useModes(model)
-  thetastar <- theta(model2)
-  S <- nrow(theta(chains(model)))
-  Z <- z(chains(model))
-  ##U <- u(chains(model))
-  K <- k(model)
-  N <- length(y(model))
-  df <- dfr(model)
-  tau2c <- tau2(chains(model))
-  sigma2 <- sigma2(chains(model))
-  muc <- mu(chains(model))
-  p_theta <- rep(NA, S)
-  for(s in seq_len(S)){
-    zz <- Z[s, ]
-    ##zz = Z(s, _) ;
-    ##uu = U(s, _) ;
-    ##uu <-  rchisq(N, df) ;
-    ##uu <- U[s, ]
-    z(model) <- zz
-    model@u <- uu
-    ##model.slot("z") = zz ;
-    ##model.slot("u") = uu ;
-    counts <- tableZ(K, zz) ;
-    ##NumericVector data_mean =  compute_heavy_means(xmod) ;
-    data_mean <- compute_heavy_means(model)/df
-    ##data_mean =  data_mean/df ;
-    ##NumericVector sumu = compute_u_sums(xmod) ;
-    ##sumu <- compute_u_sums(model)/df
-    ##sumu = sumu/df ;
-    ##nn = as<NumericVector>(counts) * sumu ;
-    nn <- counts
-    ##nn <- counts*sumu
-    nn <- sumu
-    tau2_tilde = 1/tau2c[s]
-    ##CHECK: length-k vector?
-    s2 <- sigma2[s, ]
-    ##sigma2_tilde = 1.0/sigma2[s, ] ;
-    ##CHECK: length-k vector?
-    sigma2_tilde <- 1.0/s2
-    ##tmp = dnorm(thetastar, muc[s], tauc[s]) ;
-    ##double prod = 1.0;
-    prod <- 1.0
-    ##for(int k = 0; k < K; ++k) {
-    for(k in seq_len(K)){
-      post_prec <- tau2_tilde + sigma2_tilde[k] * nn[k];
-      tau_n = sqrt(1/post_prec);
-      w1 = tau2_tilde/post_prec;
-      w2 = nn[k]*sigma2_tilde[k]/post_prec;
-      mu_n = w1*muc[s] + w2*data_mean[k];
-      tmp = dnorm(thetastar[k], mu_n, tau_n) ;
-      prod = prod * tmp[1] ;
-    }
-    p_theta[s] = prod ;
-  }
-}
+## r_marginal_theta <- function(model){
+##   model2 <- useModes(model)
+##   thetastar <- theta(model2)
+##   S <- nrow(theta(chains(model)))
+##   Z <- z(chains(model))
+##   ##U <- u(chains(model))
+##   K <- k(model)
+##   N <- length(y(model))
+##   df <- dfr(model)
+##   tau2c <- tau2(chains(model))
+##   sigma2 <- sigma2(chains(model))
+##   muc <- mu(chains(model))
+##   p_theta <- rep(NA, S)
+##   for(s in seq_len(S)){
+##     zz <- Z[s, ]
+##     ##zz = Z(s, _) ;
+##     ##uu = U(s, _) ;
+##     uu <-  rchisq(N, df) ;
+##     ##uu <- U[s, ]
+##     z(model) <- zz
+##     model@u <- uu
+##     ##model.slot("z") = zz ;
+##     ##model.slot("u") = uu ;
+##     counts <- tableZ(K, zz) ;
+##     ##NumericVector data_mean =  compute_heavy_means(xmod) ;
+##     data_mean <- compute_heavy_means(model)/df
+##     ##data_mean =  data_mean/df ;
+##     ##NumericVector sumu = compute_u_sums(xmod) ;
+##     sumu <- compute_u_sums(model)/df
+##     sumu = sumu/df ;
+##     ##nn = as<NumericVector>(counts) * sumu ;
+##     nn <- counts
+##     ##nn <- counts*sumu
+##     nn <- sumu
+##     tau2_tilde = 1/tau2c[s]
+##     ##CHECK: length-k vector?
+##     s2 <- sigma2[s, ]
+##     ##sigma2_tilde = 1.0/sigma2[s, ] ;
+##     ##CHECK: length-k vector?
+##     sigma2_tilde <- 1.0/s2
+##     ##tmp = dnorm(thetastar, muc[s], tauc[s]) ;
+##     ##double prod = 1.0;
+##     prod <- 1.0
+##     ##for(int k = 0; k < K; ++k) {
+##     for(k in seq_len(K)){
+##       post_prec <- tau2_tilde + sigma2_tilde[k] * nn[k];
+##       tau_n = sqrt(1/post_prec);
+##       w1 = tau2_tilde/post_prec;
+##       w2 = nn[k]*sigma2_tilde[k]/post_prec;
+##       mu_n = w1*muc[s] + w2*data_mean[k];
+##       tmp = dnorm(thetastar[k], mu_n, tau_n) ;
+##       prod = prod * tmp[1] ;
+##     }
+##     p_theta[s] = prod ;
+##   }
+## }
 
 ##p_theta_batch2 <- function(model, thetastar){
 ##  prod <- 1.0
@@ -159,48 +159,49 @@ r_marginal_theta <- function(model){
 ##  return p_theta;
 ##}
 
-probSigma2 <- function(model, sigma2star){
-  prec <- 1/sigma2star
-  B <- batch(model)
-  K <- k(model)
-  ub <- unique(b)
-  zz <- z(model)
-  uu <- u(model)
-  ss <- matrix(NA, nrow(prec), ncol(prec))
-  thetastar <- modes(model)[["theta"]]
-  yy <- y(model)
-  for(b in seq_along(ub)){
-    for(k in seq_len(K)){
-      index <- B == ub[b] & zz == k
-      ss[b, k] <- sum(uu[index] * (yy[index] - thetastar[b, k])^2)
-    }
-  }
-  nn <- matrix(NA, nrow(thetastar), ncol(thetastar))
-  nn <- tableBatchZ(model)
-  nu0 <- nu.0(model)
-  s20 <- sigma2.0(model)
-  df <- dfr(model)
-  total <- 0
-  for(b in seq_along(ub)){
-    for(k in seq_len(K)){
-      ## calculate nu_n and sigma2_n
-      nu_n = nu0 + nn[b, k];
-      sigma2_n = 1.0 / nu_n * (nu0 * s20 + ss[b, k]/df);
-      ## calculate shape and rate
-      shape = 0.5 * nu_n;
-      rate = shape * sigma2_n;
-      ## calculate probability
-      prec_typed = prec[b, k];
-      ##tmp = Rcpp::dgamma(prec_typed, shape, 1/rate, TRUE);
-      tmp <- dgamma(prec_typed, shape=shape, rate=rate, log=TRUE)
-      ##tmp2 <- rgamma(1000, shape=shape, rate=rate)
-      ##hist(tmp2, breaks=250)
-      ##abline(v=prec[1])
-      total <- total+tmp;
-    }
-  }
-  total
-}
+
+##probSigma2 <- function(model, sigma2star){
+##  prec <- 1/sigma2star
+##  B <- batch(model)
+##  K <- k(model)
+##  ub <- unique(b)
+##  zz <- z(model)
+##  uu <- u(model)
+##  ss <- matrix(NA, nrow(prec), ncol(prec))
+##  thetastar <- modes(model)[["theta"]]
+##  yy <- y(model)
+##  for(b in seq_along(ub)){
+##    for(k in seq_len(K)){
+##      index <- B == ub[i] & zz == k
+##      ss[b, k] <- sum(uu[index] * (yy[index] - thetastar[b, k])^2)
+##    }
+##  }
+##  nn <- matrix(NA, nrow(thetastar), ncol(thetastar))
+##  nn <- tableBatchZ(model)
+##  nu0 <- nu.0(model)
+##  s20 <- sigma2.0(model)
+##  df <- dfr(model)
+##  total <- 0
+##  for(b in seq_along(ub)){
+##    for(k in seq_len(K)){
+##      ## calculate nu_n and sigma2_n
+##      nu_n = nu0 + nn[b, k];
+##      sigma2_n = 1.0 / nu_n * (nu0 * s20 + ss[b, k]/df);
+##      ## calculate shape and rate
+##      shape = 0.5 * nu_n;
+##      rate = shape * sigma2_n;
+##      ## calculate probability
+##      prec_typed = prec[b, k];
+##      ##tmp = Rcpp::dgamma(prec_typed, shape, 1/rate, TRUE);
+##      tmp <- dgamma(prec_typed, shape=shape, rate=rate, log=TRUE)
+##      ##tmp2 <- rgamma(1000, shape=shape, rate=rate)
+##      ##hist(tmp2, breaks=250)
+##      ##abline(v=prec[1])
+##      total <- total+tmp;
+##    }
+##  }
+##  total
+##}
 
 probTheta <- function(model){
   thetastar <- modes(model)[["theta"]]
@@ -291,33 +292,33 @@ updateThetaBatch <- function(model){
   theta_new
 }
 
-updateZbatch <- function(model) {
-  K = k(model)
-  x = y(model)
-  nn <- length(x)
-  theta <- theta(model)
-  batch=batch(model)
-  B = nrow(theta)
-  p <- matrix(NA, nn, K)
-  p = update_multinomialPr_batch(model) ;
-  u = runif(nn) ;
-  zz=rep(NA, length(nn))
-  freq <- matrix(0, B, K)
-  for (i in seq_len(nn)){
-    ##initialize accumulator ;
-    acc = 0 ;
-    for(k in seq_len(K)){
-      acc = acc + p[i, k] ;
-      if( u[i] < acc ) {
-        zz[i] = k + 1 ;
-        b = batch[i] ;
-        freq[b, k] = freq[b, k] + 1 ;
-        break ;
-      }
-    }
-  }
-  if(all(freq > 1)){
-    return (zz) ;
-  }
-  return(z(model))
-}
+## updateZbatch <- function(model) {
+##   K = k(model)
+##   x = y(model)
+##   nn <- length(x)
+##   theta <- theta(model)
+##   batch=batch(model)
+##   B = nrow(theta)
+##   p <- matrix(NA, nn, K)
+##   p = update_multinomialPr_batch(model) ;
+##   u = runif(nn) ;
+##   zz=rep(NA, length(nn))
+##   freq <- matrix(0, B, K)
+##   for (i in seq_len(nn)){
+##     ##initialize accumulator ;
+##     acc = 0 ;
+##     for(k in seq_len(K)){
+##       acc = acc + p[i, k] ;
+##       if( u[i] < acc ) {
+##         zz[i] = k + 1 ;
+##         b = batch[i] ;
+##         freq[b, k] = freq[b, k] + 1 ;
+##         break ;
+##       }
+##     }
+##   }
+##   if(all(freq > 1)){
+##     return (zz) ;
+##   }
+##   return(z(model))
+## }

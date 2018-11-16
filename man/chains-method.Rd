@@ -24,13 +24,8 @@ is called in conjunction with an accessor for one of these
 parameters.
 }
 \examples{
-sb <- SingleBatchModelExample
-iter(sb, force=TRUE) <- 10
-burnin(sb) <- 50
-sb <- posteriorSimulation(sb)
-theta(chains(sb))
-\dontrun{
-  plot.ts(theta.chain, plot.type="single",
-          col=seq_len(k(SingleBatchModelExample)))
-}
+    theta.chain <- theta(chains(MultiBatchModelExample))
+    dim(theta.chain)
+    plot.ts(theta.chain, plot.type="single",
+            col=seq_len(k(SingleBatchModelExample)))
 }

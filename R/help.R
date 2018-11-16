@@ -16,7 +16,8 @@
 #' @importFrom matrixStats colSds colVars colMedians rowProds colMaxs
 #' @importFrom BiocGenerics unlist
 #' @importFrom graphics lines par
-#' @importFrom stats dnorm qnorm kmeans ks.test plot.ts qgamma rbeta rgamma rgeom rnorm runif setNames rpois rchisq dgamma
+#' @importFrom stats dnorm qnorm kmeans ks.test plot.ts qgamma rbeta rgamma dbeta
+#' @importFrom stats rgeom rnorm runif setNames rpois rchisq dgamma df
 #' @importFrom coda effectiveSize mcmc.list gelman.diag mcmc as.mcmc.list
 #' @importFrom mclust Mclust mclustBIC
 #' @importFrom reshape2 melt
@@ -25,7 +26,7 @@
 #' @importFrom magrittr set_colnames "%>%"
 #' @importFrom purrr map map2 map_lgl map_dbl map_chr
 #' @importFrom tidyr gather spread
-#' @importFrom dplyr mutate bind_rows group_by summarize arrange filter n left_join
+#' @importFrom dplyr mutate bind_rows group_by summarize arrange filter n left_join select
 #' @importFrom tibble as.tibble tibble
 #' @useDynLib CNPBayes
 NULL

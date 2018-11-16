@@ -237,75 +237,6 @@ permnK <- function(k, maxperm){
   kperm
 }
 
-#' Create tile labels for each observation
-#'
-#' For large datasets (several thousand subjects), the computational burden for fitting Bayesian mixture models can be high.  Downsampling can reduce the computational burden with little effect on inference.  The function tileMedians is useful for putting the median log R ratios for each subject in a bucket. The observations in each bucket are averaged.  This is done independently for each batch and the range of median log R ratios within each bucket is guaranteed to be less than 0.05.  Note this function requires specification of a batch variable. If the study was small enough such that all the samples were processed in a single batch, then downsampling would not be needed.  By summarizing the observations in each bucket by batch, the SingleBatchModels (SB or SBP) and MultiBatchModels (MB or MBP) will be fit to the same data and are still comparable by marginal likelihoods or Bayes Factors.
-#'
-#' @param y vector containing data
-#' @param nt the number of observations per batch
-#' @param batch a vector containing the labels from which batch each observation came from.
-#' @return A tibble with a tile assigned to each log R ratio
-#' @seealso \code{\link[dplyr]{ntile}}
-#' @export
-#' @examples
-#'   mb <- MultiBatchModelExample
-#'   tiled.medians <- tileMedians(y(mb), 200, batch(mb))
-#'   tile.summaries <- tileSummaries(tiled.medians)
-#'   mp <- McmcParams(iter=50, burnin=100)
-#'   mb <- MultiBatchModel2(dat=tile.summaries$avgLRR,
-#'                          batches=tile.summaries$batch, mp=mp)
-#'   mb <- posteriorSimulation(mb)
-#'   ggMixture(mb)
-#'   mb2 <- upSample(mb, tiled.medians)
-#'   ggMixture(mb2)
-#' @rdname tile-functions
-tileMedians <- function(y, nt, batch){
-  .Deprecated("See downSample")
-  if(any(is.na(y))) stop("NAs found in y-vector")
-  yy <- y
-  logratio <- x <- obs.index <- NULL
-  ##
-  ## split observations by batch
-  ##
-  yb <- split(y, batch)
-  indices <- split(seq_along(y), batch)
-  S <- vector("list", length(yb))
-  MAX_TILE <- 0
-  for (i in seq_along(yb)) {
-    x <- yb[[i]]
-    batch.id <- names(yb)[i]
-    obs.index <- indices[[i]]
-    ##
-    ## observations can be quite different within a tile (e.g., homozygous deletions)
-    ##
-    tiles <- ntile(x, nt) %>% as.tibble %>%
-      mutate(x=x, obs.index) %>%
-      set_colnames(c("tile", "logratio", "obs.index"))
-    tiles2 <- tiles %>%
-      group_by(tile) %>%
-      summarize(spread=abs(diff(range(logratio))),
-                n=n()) %>%
-      arrange(-spread)
-    ## Split tiles with large spread into multiple tiles
-    tiles.keep <- tiles2 %>%
-      filter(spread < 0.01)
-    tiles.drop <- tiles2 %>%
-      filter(spread >= 0.01)
-    newtiles <- tiles %>% filter(tile %in% tiles.drop$tile)
-    newtiles$tile <- seq_len(nrow(newtiles)) + max(tiles$tile)
-    tiles3 <- filter(tiles, tile %in% tiles.keep$tile) %>%
-      bind_rows(newtiles) %>%
-      mutate(tile=tile + MAX_TILE)
-    tiles3$batch.var <- batch.id
-    ##tiles3$tile <- paste(batch.id, tiles3$tile, sep="_")
-    S[[i]] <- tiles3
-    MAX_TILE <- max(tiles3$tile)
-  }
-  tiles <- do.call(bind_rows, S)
-  tiles$batch <- as.integer(factor(tiles$batch.var))
-  tiles
-}
-
 #' @param tiles a tibble as constructed by \code{tileMedians}
 #' @rdname tile-functions
 #' @export
@@ -328,10 +259,12 @@ ntile <- function(x, n) {
 #' Calculate posterior proportion of cases by component
 #'
 #' @examples
+#' \dontrun{
 #'      # generate random case control status
-#'      case_control <- rbinom(length(y(MarginalModelExample)), 1, 0.5)
-#'      case_control_posterior <- posterior_cases(MarginalModelExample,
+#'      case_control <- rbinom(length(y(SingleBatchModelExample)), 1, 0.5)
+#'      case_control_posterior <- posterior_cases(SingleBatchModelExample,
 #'                                                case_control)
+#' }
 #' @param model An instance of a \code{MixtureModel}-derived class.
 #' @param case_control A vector of 1's and 0's where a 1 indicates a case and a 0 a control
 #' @param alpha prior alpha for the beta
@@ -616,6 +549,7 @@ missingBatch <- function(dat, ix){
 #' @export
 #' @examples
 #' ## TODO: this is more complicated than it needs to be
+#' library(dplyr)
 #' mb <- MultiBatchModelExample
 #' mapping <- tibble(plate=letters[1:10],
 #'                   batch_orig=sample(c("1", "2", "3"), 10, replace=TRUE))
@@ -629,15 +563,17 @@ missingBatch <- function(dat, ix){
 #'   group_by(plate) %>%
 #'   summarize(batch_index=unique(batch_index))
 #' mp <- McmcParams(iter=50, burnin=100)
-#' mb2 <- MultiBatchModel2(dat=ds$medians,
-#'                         batches=ds$batch_index, mp=mp)
-#' mb2 <- posteriorSimulation(mb2)
-#' if(FALSE) ggMixture(mb2)
-#' full.dat2 <- full.data %>%
-#'   left_join(mapping, by="plate")
-#' ## compute probabilities for the full dataset
-#' mb.up <- upSample2(full.dat2, mb2)
-#' if(FALSE) ggMixture(mb2)
+#' \dontrun{
+#'     mb2 <- MultiBatchModel2(dat=ds$medians,
+#'                             batches=ds$batch_index, mp=mp)
+#'     mb2 <- posteriorSimulation(mb2)
+#'     if(FALSE) ggMixture(mb2)
+#'     full.dat2 <- full.data %>%
+#'       left_join(mapping, by="plate")
+#'     ## compute probabilities for the full dataset
+#'     mb.up <- upSample2(full.dat2, mb2)
+#'     if(FALSE) ggMixture(mb2)
+#' }
 #' @rdname downSample
 downSample <- function(dat,
                        size=1000,
@@ -669,6 +605,9 @@ downSample <- function(dat,
   . <- NULL
   batch_New <- NULL
   select <- dplyr::select
+  . <- medians <- largebatch <- other <- batch_orig <- NULL
+  batch_new <- NULL
+  b
   batch.sum <- dat.sub %>%
     group_by(batch_orig) %>%
     summarize(mean=mean(medians),
@@ -719,7 +658,8 @@ downSample <- function(dat,
   }
   tab2 <- left_join(dat.sub, batch.sum3, by="batch_orig") %>%
     select(-c(mean, n)) %>%
-    mutate(batch_index=as.integer(factor(batch_new, levels=unique(batch_new))))
+    mutate(batch_index=as.integer(factor(batch_new,
+                                         levels=unique(batch_new))))
   tab2
 }
 
@@ -749,13 +689,81 @@ modelName <- function(model){
     gsub("SingleBatchPooled", "SBP", .) %>%
     gsub("SingleBatchModel", "SB", .) %>%
     gsub("MultiBatchModel", "MB", .) %>%
-    gsub("MultiBatchPooled", "MBP", .) %>%
-    gsub("CopyNumber", "", .) %>%
-    gsub("MultiBatch", "MB", .)
+    gsub("MultiBatchCopyNumber", "MB", .) %>%
+    gsub("MultiBatchPooled", "MBP", .)
   L <- length(unique(batch(model)))
   if(L == 1){
     model.name <- gsub("MB", "SB", model.name)
   }
   model.name <- paste0(model.name, k(model))
   model.name
+}
+
+freeParams <- function(model){
+  ## K: number of free parameters to be estimated
+  ##   - component and batch-specific parameters:  theta, sigma2  ( k(model) * nBatch(model))
+  ##   - mixing probabilities: (k-1)*nBatch
+  ##   - component-specific parameters: mu, tau2                 2 x k(model)
+  ##   - length-one parameters: sigma2.0, nu.0                   +2
+  nBatch <- function(model) length(unique(batch(model)))
+  nm <- substr(modelName(model), 1, 2)
+  nsigma <- ncol(sigma(model))
+  ntheta <- k(model)
+  if(is.null(nsigma)) nsigma <- length(sigma(model))
+  K <- (ntheta + nsigma)*nBatch(model) + (k(model)-1) + 2*k(model) + 2
+  K
+}
+
+#' Compute the Bayes factor
+#'
+#' Calculated as log(ML1) - log(ML2) + log prior odds
+#' where ML1 is the marginal likelihood of the model with the most free parameters
+#'
+#' @param model.list list of models from \code{gibbs}
+#' @param prior.odds scalar
+#' @export
+bayesFactor <- function(model.list, prior.odds=1){
+  ## set null model to be the model with the fewest free parameters
+  free.params <- sapply(model.list, freeParams)
+  ix <- order(free.params, decreasing=TRUE)
+  model.list2 <- model.list[ix]
+  model.names <- sapply(model.list2, modelName)
+  nm <- paste(model.names, collapse="-")
+  ##p2 <- p[ix]
+  ## log marginal likelihood
+  log.mlik <- sapply(model.list2, marginal_lik)
+  bf <- log.mlik[1] - log.mlik[2] + log(prior.odds)
+  names(bf) <- nm
+  bf
+}
+
+#' Order models by Bayes factor
+#'
+#' @param models list of \code{MixtureModel}-derived objects
+#' @param bf.thr scalar: minimal bayes factor for selecting a model with more parameters over a more parsimonious model
+#'
+#' @export
+orderModels <- function(models, bf.thr=10){
+  mliks <- sapply(models, marginal_lik)
+  if(!any(is.na(mliks))){
+    ml <- marginalLik(models)
+    bf <- bayesFactor(models, prior.odds=1)
+    model.order <- strsplit(names(bf), "-")[[1]]
+    if(bf < bf.thr) model.order <- rev(model.order)
+    models <- models[ model.order ]
+  }
+  models
+}
+
+#' Extract marginal likelihoods from a list of models
+#'
+#' @param models list of models
+#' @export
+marginalLik <- function(models){
+  ml <- sapply(models, marginal_lik) %>%
+  round(1)
+  names(ml) <- sapply(models, modelName)
+  ml2 <- paste0(names(ml), ": ", ml)
+  names(ml2) <- names(ml)
+  ml2
 }

@@ -18,7 +18,7 @@ For an EM-implementation of Gaussian mixture models for CNPs, see the Bioconduct
 
 The key distinction of this package is an emphasis on exploring models that account for batch effects -- differences between groups of samples that were processed at different times and/or by different labs.  For smaller studies, the more standard ``SingleBatchModel` may be reasonable.  This package provides an infrastructure for fitting all of these models and then comparing these models by marginal likelihoods or Bayes factors.  The main applications we envision these models for are in studies of germline diseases containing thousands of samples and several hundred CNPs.  We suggest parallelizing by CNP (e.g., devoting a single core to each CNP), though leave the details on parallelization to the user.
 
-```{r lib} 
+```{r lib, message=FALSE} 
 library(CNPBayes)
 library(ggplot2)
 ```
@@ -245,7 +245,7 @@ ggMixture(cn.model2)
 Differences in the one-dimensional summaries between groups of samples can arise due to technical sources of variation referred to as *batch effects*. For example, date, temperature, machine calibration, and lab technician are all potentially important technical sources of variation [@batch-effect]. Batch effects can vary by locus, with some loci more susceptible to technical factors that may affect measurement. The 96 well chemistry plate on which the samples were processed is often a useful surrogate for batch effects since this tends to capture samples that were processed (e.g., PCR amplification) and scanned at approximately the same time. However, in large studies involving potentially hundreds of chemistry plates, it is not computationally feasible to fit fully Bayesian plate-specific mixture models. Because chemistry plates are often processed at similar times and may be comparable in terms of the distribution of a statistic of interest, it may be more useful (and computationally scalable) to *batch* the chemistry plates. Here, we implement a simple two-sample Kolmogorov-Smirnov (KS) test for each pairwise combination of chemistry plates in the function `collapseBatch`. The two-sample KS test is applied recursively until no two combinations of grouped plates can be combined. We illustrate with a trivial example.
 
 
-```{r collapseBatch}
+```{r collapseBatch, eval=FALSE}
 k <- 3
 nbatch <- 3
 means <- matrix(c(-1.2, -1.0, -1.0,

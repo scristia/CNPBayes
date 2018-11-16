@@ -4,9 +4,10 @@
 \alias{mlParams}
 \title{Parameters for evaluating marginal likelihood}
 \usage{
-mlParams(root = 1/10, reject.threshold = exp(-10), prop.threshold = 0.5,
-  prop.effective.size = 0.05, ignore.effective.size = FALSE,
-  ignore.small.pstar = FALSE, warnings = TRUE)
+mlParams(root = 1/10, reject.threshold = exp(-10),
+  prop.threshold = 0.5, prop.effective.size = 0.05,
+  ignore.effective.size = FALSE, ignore.small.pstar = FALSE,
+  warnings = TRUE)
 }
 \arguments{
 \item{root}{length-one numeric vector. We exponentiate \code{p(theta* | ...)}
