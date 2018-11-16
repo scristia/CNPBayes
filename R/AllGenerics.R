@@ -87,6 +87,9 @@ setGeneric("tau2", function(object) standardGeneric("tau2"))
 setGeneric("tau2<-", function(object, value) standardGeneric("tau2<-"))
 setGeneric("nu.0<-", function(object, value) standardGeneric("nu.0<-"))
 setGeneric("sigma2.0<-", function(object, value) standardGeneric("sigma2.0<-"))
+
+setGeneric("dataMean", function(object) standardGeneric("dataMean"))
+setGeneric("dataPrec", function(object) standardGeneric("dataPrec"))
 setGeneric("dataMean<-", function(object, value) standardGeneric("dataMean<-"))
 setGeneric("dataPrec<-", function(object, value) standardGeneric("dataPrec<-"))
 
@@ -233,6 +236,7 @@ setGeneric("theta<-", function(object, value) standardGeneric("theta<-"))
 #' @docType methods
 #' @rdname sigma2-method
 setGeneric("sigma2", function(object) standardGeneric("sigma2"))
+setGeneric("sigma_", function(object) standardGeneric("sigma_"))
 
 #' Retrieve the probability of latent variable membership by observation.
 #'
@@ -294,6 +298,8 @@ setGeneric("y<-", function(object, value) standardGeneric("y<-"))
 #' @rdname oned-method
 #' @export
 setGeneric("oned", function(object) standardGeneric("oned"))
+
+setGeneric("oned<-", function(object, value) standardGeneric("oned<-"))
 
 #' Retrieve latent variable assignments.
 #'
@@ -372,8 +378,8 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 
 ## Combine batches if distribution of one-dimensional summary is similar by Kolmogorov-Smirnov test statistic
 ##
-#' Estimate batch from a collection of chemistry plates or some other
-#' variable that captures the time in which the arrays were processed.
+
+#' Estimate batch from any sample-level surrogate variables that capture aspects of sample processing, such as the PCR experiment (e.g., the 96 well chemistry plate), laboratory, DNA source, or DNA extraction method.
 #'
 #' In high-throughput assays, low-level summaries of copy number at
 #' copy number polymorphic loci (e.g., the mean log R ratio for each
@@ -397,7 +403,8 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #' \code{ks.test} implemented in the \code{stats} package that
 #' compares all pairwise combinations of plates.  The \code{ks.test}
 #' is performed recursively on the batch variables defined for a given
-#' CNP until no batches can be combined.
+#' CNP until no batches can be combined. For smaller values of THR, plates are more likely to be judged as similar and combined.
+#'
 #' @examples
 #' mb.ex <- MultiBatchModelExample
 #' batches <- batch(mb.ex)
@@ -410,12 +417,13 @@ setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 #'             mp=mcmcParams(mb.ex))
 #' @param object see \code{showMethods(collapseBatch)}
 #' @param provisional_batch a vector labelling from which batch each observation came from.
-#' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
+#' @param THR p-value threshold below which the null hypothesis should be rejected and batches are collapsed
+#' @param nchar integer specifying the maximum number of characters in the batch labels
 #' @return The new batch value.
 #' @export
 #' @docType methods
 #' @rdname collapseBatch-method
-setGeneric("collapseBatch", function(object, provisional_batch, THR=0.1) standardGeneric("collapseBatch"))
+setGeneric("collapseBatch", function(object, provisional_batch, THR=0.1, nchar=8) standardGeneric("collapseBatch"))
 
 
 
@@ -535,6 +543,11 @@ setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 #' @rdname burnin-method
 setGeneric("burnin", function(object) standardGeneric("burnin"))
 
+setGeneric("min_GR", function(object) standardGeneric("min_GR"))
+setGeneric("min_effsize", function(object) standardGeneric("min_effsize"))
+setGeneric("max_burnin", function(object) standardGeneric("max_burnin"))
+setGeneric("min_chains", function(object) standardGeneric("min_chains"))
+
 #' Reset number of burnin iterations.
 #'
 #' This function changes the number of burnin simulations to be discarded.
@@ -552,7 +565,7 @@ setGeneric("burnin<-", function(object, value) standardGeneric("burnin<-"))
 #' @export
 #' @docType methods
 #' @rdname iter-method
-setGeneric("iter<-", function(object, force=FALSE, value) standardGeneric("iter<-"))
+setGeneric("iter<-", function(object, value) standardGeneric("iter<-"))
 
 #' Number of MCMC iterations.
 #'
@@ -673,7 +686,7 @@ setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
 #' @export
 #' @docType methods
 #' @rdname mcmcParams-method
-setGeneric("mcmcParams<-", function(object, force=FALSE, value) standardGeneric("mcmcParams<-"))
+setGeneric("mcmcParams<-", function(object, value) standardGeneric("mcmcParams<-"))
 
 #' Calculate log likelihood of prior for model
 #'
@@ -732,11 +745,7 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #' @export
 #' @docType methods
 #' @rdname marginalLikelihood-method
-setGeneric("marginalLikelihood",
-           function(model, params=mlParams()) {
-               standardGeneric("marginalLikelihood")
-           }
-)
+setGeneric("marginalLikelihood", function(model, params=mlParams()) standardGeneric("marginalLikelihood"))
 
 #' Extract character vector of sequence names
 #'
@@ -810,7 +819,7 @@ setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
 #' @export
 #' @examples
 #'   sb <- SingleBatchModelExample
-#'   iter(sb, force=TRUE) <- 1000
+#'   iter(sb) <- 1000
 #'   burnin(sb) <- 100
 #'   sb <- posteriorSimulation(sb)
 #'   fig.chains <- ggChains(sb)
@@ -935,3 +944,48 @@ setGeneric("dfr", function(object) standardGeneric("dfr"))
 setGeneric("dfr<-", function(object, value) standardGeneric("dfr<-"))
 
 setGeneric("u", function(object) standardGeneric("u"))
+
+setGeneric("p", function(object) standardGeneric("p"))
+
+setGeneric("sigma_<-", function(object, value) standardGeneric("sigma_<-"))
+
+setGeneric("flags", function(object) standardGeneric("flags"))
+setGeneric("flags<-", function(object, value) standardGeneric("flags<-"))
+setGeneric("current_values<-", function(object, value) standardGeneric("current_values<-"))
+setGeneric("current_values", function(object, value) standardGeneric("current_values"))
+setGeneric("u<-", function(object, value) standardGeneric("u<-"))
+setGeneric("parameters", function(object) standardGeneric("parameters"))
+setGeneric("parameters<-", function(object, value) standardGeneric("parameters<-"))
+setGeneric("summaries", function(object) standardGeneric("summaries"))
+setGeneric("summaries<-", function(object, value) standardGeneric("summaries<-"))
+setGeneric("dataSd", function(object) standardGeneric("dataSd"))
+
+#' @export
+setGeneric("findSurrogates", function(object, THR=0.1) standardGeneric("findSurrogates"))
+setGeneric("isSampled", function(object, THR=0.1) standardGeneric("isSampled"))
+setGeneric("down_sample", function(object) standardGeneric("down_sample"))
+setGeneric("down_sample<-", function(object, value) standardGeneric("down_sample<-"))
+setGeneric("downSampledData", function(object) standardGeneric("downSampledData"))
+setGeneric("downSampledData<-", function(x, value) standardGeneric("downSampledData<-"))
+setGeneric("probability_z", function(object) standardGeneric("probability_z"))
+setGeneric("mcmc2", function(object, guide) standardGeneric("mcmc2"))
+setGeneric("setModes", function(object) standardGeneric("setModes"))
+setGeneric("upsample_z", function(object) standardGeneric("upsample_z"))
+setGeneric("specs", function(object) standardGeneric("specs"))
+setGeneric("specs<-", function(object, value) standardGeneric("specs<-"))
+setGeneric("downSampleModel", function(object, N, i) standardGeneric("downSampleModel") )
+setGeneric("upSampleModel", function(object) standardGeneric("upSampleModel"))
+setGeneric("listChains", function(object) standardGeneric("listChains"))
+setGeneric("predictive", function(object) standardGeneric("predictive"))
+setGeneric("zstar", function(object) standardGeneric("zstar"))
+setGeneric("predictive<-", function(object, value) standardGeneric("predictive<-"))
+setGeneric("revertBack", function(object, mbm) standardGeneric("revertBack"))
+setGeneric("numBatch", function(object) standardGeneric("numBatch"))
+setGeneric("numBatch<-", function(object, value) standardGeneric("numBatch<-"))
+setGeneric("max_burnin<-", function(object, value) standardGeneric("max_burnin<-"))
+setGeneric("useModes", function(object) standardGeneric("useModes"))
+setGeneric("compute_marginal_lik", function(object, params) standardGeneric("compute_marginal_lik"))
+setGeneric("modelName", function(object) standardGeneric("modelName"))
+setGeneric("singleBatchGuided", function(x, guide) standardGeneric("singleBatchGuided"))
+
+setGeneric("convergence", function(object) standardGeneric("convergence"))

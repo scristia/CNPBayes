@@ -1,6 +1,33 @@
 #' @include methods-MultiBatchModel.R
 NULL
 
+setValidity("MultiBatchPooled", function(object){
+  msg <- TRUE
+  if(length(p(object)) != k(object)){
+    msg <- "Mixture probability vector must be the same length as k"
+    return(msg)
+  }
+  if(k(object)!=k(hyperParams(object))){
+    msg <- "disagreement of k in hyperparams and model"
+    return(msg)
+  }
+  if(length(y(object))!=length(u(object))){
+    msg <- "u-vector must be same length as data"
+    return(msg)
+  }
+  if(iter(object) != iter(chains(object))){
+    msg <- "number of iterations not the same between chains and model"
+    return(msg)
+  }
+  th.len <- prod(dim(theta(object)))
+  pr.len <- length(object@predictive)
+  if(th.len != pr.len){
+    msg <- "predictive slot in current values should have length K x B"
+    return(msg)
+  }
+  msg
+})
+
 reorderMultiBatchPooled <- function(model){
   is_ordered <- .ordered_thetas_multibatch(model)
   if(is_ordered) return(model)
@@ -209,6 +236,8 @@ combine_multibatch_pooled <- function(model.list, batches){
   .mu <- map(ch.list, mu) %>% do.call(rbind, .)
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
+  pred <- map(ch.list, predictive) %>% do.call(rbind, .)
+  zz <- map(ch.list, zstar) %>% do.call(rbind, .)
   mc <- new("McmcChains",
             theta=th,
             sigma2=s2,
@@ -219,7 +248,12 @@ combine_multibatch_pooled <- function(model.list, batches){
             sigma2.0=s2.0,
             zfreq=zfreq,
             logprior=logp,
-            loglik=ll)
+            loglik=ll,
+            predictive=pred,
+            zstar=zz,
+            iter=nrow(pred),
+            k=ncol(.mu),
+            B=length(unique(batches)))
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   iter(mp) <- nrow(th)
@@ -265,6 +299,8 @@ combine_multibatch_pooled <- function(model.list, batches){
                z=zz,
                zfreq=zfreq,
                probz=pz,
+               predictive=predictive(mc)[nrow(th), ],
+               zstar=zstar(mc)[nrow(th), ],
                logprior=numeric(1),
                loglik=numeric(1),
                mcmc.chains=mc,
@@ -283,135 +319,20 @@ combine_multibatch_pooled <- function(model.list, batches){
 }
 
 
-gibbs_multibatch_pooled <- function(hp, mp, dat,
-                                    max_burnin=32000, batches, min_effsize=500){
-  nchains <- nStarts(mp)
-  nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
-  if(iter(mp) < 500){
-    warning("Require at least 500 Monte Carlo simulations")
-    MIN_EFF <- ceiling(iter(mp) * 0.5)
-  } else MIN_EFF <- min_effsize
-  while(burnin(mp) < max_burnin && thin(mp) < 100){
-    message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    mod.list <- replicate(nchains, MultiBatchPooled(dat=dat,
-                                                    hp=hp,
-                                                    mp=mp,
-                                                    batches=batches))
-    mod.list <- suppressWarnings(map(mod.list, .posteriorSimulation2))
-    label_swapping <- map_lgl(mod.list, label_switch)
-    nswap <- sum(label_swapping)
-    if(nswap > 0){
-      mp@thin <- as.integer(thin(mp) * 2)
-      if(thin(mp) > 100){
-        mlist <- mcmcList(mod.list)
-        neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-        if(is.null(neff)) neff <- 0
-        r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
-        if(is.null(r)) r <- list(mpsrf=10)
-        break()
-      }
-      message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-      mod.list2 <- replicate(nswap,
-                             MultiBatchPooled(dat=dat,
-                                              mp=mp,
-                                              hp=hp,
-                                              batches=batches))
-      mod.list2 <- suppressWarnings(map(mod.list2, .posteriorSimulation2))
-      mod.list[ label_swapping ] <- mod.list2
-      label_swapping <- map_lgl(mod.list, label_switch)
-      if(any(label_swapping)){
-        message("  Label switching detected")
-        mlist <- mcmcList(mod.list)
-        neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-        if(is.null(neff)) neff <- 0
-        r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
-        if(is.null(r)) r <- list(mpsrf=10)
-        break()
-      }
-    }
-    mod.list <- mod.list[ selectModels(mod.list) ]
-    mlist <- mcmcList(mod.list)
-    neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-    if(is.null(neff)) neff <- 0
-    r <- tryCatch(gelman_rubin(mlist, hp), error=function(e) NULL)
-    if(is.null(r)) r <- list(mpsrf=10)
-    message("     r: ", round(r$mpsrf, 2))
-    message("     eff size (minimum): ", round(min(neff), 1))
-    message("     eff size (median): ", round(median(neff), 1))
-    if(all(neff > MIN_EFF) && r$mpsrf < 1.2) break()
-    burnin(mp) <- as.integer(burnin(mp) * 2)
-    mp@thin <- as.integer(thin(mp) * 2)
-  }
-  model <- combine_multibatch_pooled(mod.list, batches)
-  meets_conditions <- all(neff > MIN_EFF) &&
-    r$mpsrf < 2 && !label_switch(model)
-  if(meets_conditions){
-    testing <- tryCatch(compute_marginal_lik(model), error=function(e) NULL)
-    if(is.null(testing)) return(testing)
-  }
-  model
-}
-
-gibbsMultiBatchPooled <- function(hp,
-                                  mp,
-                                  k_range=c(1, 4),
-                                  dat,
-                                  batches,
-                                  max_burnin=32000,
-                                  reduce_size=TRUE,
-                                  min_effsize=500){
-  K <- seq(k_range[1], k_range[2])
-  hp.list <- map(K, updateK, hp)
-  model.list <- map(hp.list,
-                    gibbs_multibatch_pooled,
-                    mp=mp,
-                    dat=dat,
-                    batches=batches,
-                    max_burnin=max_burnin,
-                    min_effsize=min_effsize)
-  names(model.list) <- paste0("MBP", map_dbl(model.list, k))
-  ## sort by marginal likelihood
-  ##
-  ## if(reduce_size) TODO:  remove z chain, keep y in one object
-  ##
-  ix <- order(map_dbl(model.list, marginal_lik), decreasing=TRUE)
-  models <- model.list[ix]
-}
-
-## gibbsPooled <- function(hp.list,
-##                         mp,
-##                         dat,
-##                         batches,
-##                         k_range=c(1, 4),
-##                         max_burnin=32000,
-##                         top=3){
-##   message("Fitting multi-batch models K=", min(k_range), " to K=", max(k_range))
-##   mb.models <- gibbsMultiBatchPooled(hp.list[["multi_batch"]],
-##                                      k_range=k_range,
-##                                      mp=mp,
-##                                      dat=dat,
-##                                      batches=batches,
-##                                      max_burnin=max_burnin)
-##   message("Fitting single-batch models K=", min(k_range), " to K=", max(k_range))
-##   sb.models <- gibbs_K(hp.list[["single_batch"]],
-##                        k_range=k_range,
-##                        mp=mp,
-##                        dat=dat,
-##                        max_burnin=max_burnin)
-##   models <- c(mb.models, sb.models)
-##   ml <- map_dbl(models, marginal_lik)
-##   ix <- head(order(ml, decreasing=TRUE), top)
-##   models <- models[ix]
-##   models
-## }
-
-
 
 
 #' @aliases sigma,MultiBatchCopyNumberPooled-method
 #' @rdname sigma2-method
-setMethod("sigma", "MultiBatchCopyNumberPooled", function(object){
+setMethod("sigma_", "MultiBatchCopyNumberPooled", function(object){
   s2 <- object@sigma2
   names(s2) <- uniqueBatch(object)
   sqrt(s2)
 })
+
+##setMethod("updateObject", "MultiBatchPooled", function(object){
+##  chains(object) <- updateObject(chains(object),
+##                                 k=k(object),
+##                                 iter=iter(object),
+##                                 B=nBatch(object))
+##  object
+##})

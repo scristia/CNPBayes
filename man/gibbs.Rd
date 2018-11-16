@@ -6,7 +6,7 @@
 \usage{
 gibbs(model = c("SB", "MB", "SBP", "MBP"), dat, mp, hp.list, batches,
   k_range = c(1, 4), max_burnin = 32000, top = 2, df = 100,
-  min_effsize = 500)
+  min_effsize = 500, min_GR = 1.2)
 }
 \arguments{
 \item{model}{a character vector indicating which models to fit (any combination of 'SB', 'MB', 'SBP', and 'MBP')}
@@ -30,6 +30,8 @@ models to return.}
 \item{df}{length-1 numeric vector for t-distribution degrees of freedom}
 
 \item{min_effsize}{length-1 numeric vector specifying the minimum effective size of the MCMC simulations.  If below this value, the marginal likelihood will not be estimated.}
+
+\item{min_GR}{length-1 numeric vector specifying the maximum Gelman-Rubin (GR) statistic.  If the GR statistic is above this value, the marginal likelihood will not be estimated.}
 }
 \value{
 A list of models of length \code{top} sorted by decreasing
@@ -71,6 +73,7 @@ The number of mixture models fit depends on \code{k_range} and
         batches=batch(truth),
         k_range=c(1, 4),
         max_burnin=max_burnin,
+        min_GR=1.2,
         top=2,
         df=100))
 

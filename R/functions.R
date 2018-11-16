@@ -349,19 +349,19 @@ mclustMeans <- function(y, batch){
 #'
 #' @examples
 #'
-#'  model <- SingleBatchModelExample
-#'  mp <- McmcParams(iter=200, burnin=50)
-#'  mcmcParams(model) <- mp
-#'  model <- posteriorSimulation(model)
-#'  pd <- posteriorPredictive(model)
-#'  if(FALSE) qqplot(pd, y(model))
-#'
 #' \dontrun{
-#'     bmodel <- MultiBatchModelExample
-#'     mp <- McmcParams(iter=500, burnin=150, nStarts=20)
-#'     mcmcParams(bmodel) <- mp
-#'     bmodel <- posteriorSimulation(bmodel)
-#'     batchy <- posteriorPredictive(bmodel)
+#'    model <- SingleBatchModelExample
+#'    mp <- McmcParams(iter=200, burnin=50)
+#'    mcmcParams(model) <- mp
+#'    model <- posteriorSimulation(model)
+#'    pd <- posteriorPredictive(model)
+#'    if(FALSE) qqplot(pd, y(model))
+#'
+#'    bmodel <- MultiBatchModelExample
+#'    mp <- McmcParams(iter=500, burnin=150, nStarts=20)
+#'    mcmcParams(bmodel) <- mp
+#'    bmodel <- posteriorSimulation(bmodel)
+#'    batchy <- posteriorPredictive(bmodel)
 #' }
 #'
 #' @param model a SingleBatchModel or MultiBatchModel
@@ -441,7 +441,6 @@ posteriorPredictive <- function(model){
   alpha <- p(ch)
   thetas <- theta(ch)
   sigmas <- sigma(ch)
-  tab <- table(batch(model))
   nb <- nrow(theta(model))
   K <- k(model)
   nn <- K * nb
@@ -452,6 +451,9 @@ posteriorPredictive <- function(model){
   tab.list <- vector("list", mcmc.iter)
   df <- dfr(hyperParams(model))
   batches <- sort(rep(unique(batch(model)), each=K))
+  ##
+  ## we could just sample B observations from each MCMC
+  ##
   for(i in seq_len(mcmc.iter)){
     ## same p assumed for each batch
     a <- alpha[i, ]
@@ -511,23 +513,7 @@ posteriorPredictive <- function(model){
   tab
 }
 
-useModes <- function(object){
-  m2 <- object
-  theta(m2) <- modes(object)[["theta"]]
-  sigma2(m2) <- modes(object)[["sigma2"]]
-  tau2(m2) <- modes(object)[["tau2"]]
-  nu.0(m2) <- modes(object)[["nu0"]]
-  sigma2.0(m2) <- modes(object)[["sigma2.0"]]
-  p(m2) <- modes(object)[["mixprob"]]
-  zFreq(m2) <- as.integer(modes(object)[["zfreq"]])
-  log_lik(m2) <- modes(object)[["loglik"]]
-  logPrior(m2) <- modes(object)[["logprior"]]
-  ##
-  ## update z using the modal values from above
-  ##
-  z(m2) <- updateZ(m2)
-  m2
-}
+
 
 missingBatch <- function(dat, ix){
   batches <- dat$provisional_batch
@@ -664,40 +650,43 @@ downSample <- function(dat,
 }
 
 
-rst <- function (n, df = 100, mean = 0, sigma = 1){
+rst <- function (n, u, df = 100, mean = 0, sigma = 1){
   if (any(sigma <= 0))
     stop("The sigma parameter must be positive.")
   if (any(df <= 0))
     stop("The df parameter must be positive.")
   n <- ceiling(n)
   y <- rnorm(n)
-  z <- rchisq(n, df=df)
-  x <- mean + sigma * y * sqrt(df/z)
+  if(missing(u)){
+    u <- rchisq(n, df=df)
+  }
+  x <- mean + sigma * y * sqrt(df/u)
   return(x)
 }
 
 #' Abbreviated model name
 #'
-#' @param model a SingleBatchModel, MultiBatchModel, etc.
+#' @param object a SingleBatchModel, MultiBatchModel, etc.
 #' @examples
 #' modelName(SingleBatchModelExample)
 #' @export
-modelName <- function(model){
+setMethod("modelName", "MixtureModel", function(object){
   . <- NULL
-  model.name <- class(model) %>%
+  model.name <- class(object) %>%
     gsub("CopyNumber", "", .) %>%
     gsub("SingleBatchPooled", "SBP", .) %>%
     gsub("SingleBatchModel", "SB", .) %>%
     gsub("MultiBatchModel", "MB", .) %>%
     gsub("MultiBatchCopyNumber", "MB", .) %>%
-    gsub("MultiBatchPooled", "MBP", .)
-  L <- length(unique(batch(model)))
+    gsub("MultiBatchPooled", "MBP", .) %>%
+    gsub("MultiBatch", "MB", .)
+  L <- length(unique(batch(object)))
   if(L == 1){
     model.name <- gsub("MB", "SB", model.name)
   }
-  model.name <- paste0(model.name, k(model))
+  model.name <- paste0(model.name, k(object))
   model.name
-}
+})
 
 freeParams <- function(model){
   ## K: number of free parameters to be estimated

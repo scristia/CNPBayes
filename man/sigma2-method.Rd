@@ -13,6 +13,7 @@
 \alias{sigma2<-,MultiBatchPooled-method}
 \alias{sigma2<-,MultiBatchCopyNumberPooled-method}
 \alias{sigma2,MultiBatchCopyNumberPooled-method}
+\alias{sigma_,MultiBatchCopyNumberPooled-method}
 \alias{sigma,MultiBatchCopyNumberPooled-method}
 \alias{sigma2<-,MultiBatchCopyNumberPooled-method}
 \alias{sigma2,MultiBatchCopyNumberPooled-method}
@@ -37,13 +38,7 @@ sigma2(object)
 
 \S4method{sigma2}{MultiBatchCopyNumberPooled}(object)
 
-\S4method{sigma}{MultiBatchCopyNumberPooled}(object)
-
-\S4method{sigma2}{MultiBatchCopyNumberPooled}(object) <- value
-
-\S4method{sigma}{MultiBatchCopyNumberPooled}(object) <- value
-
-\S4method{sigma}{MultiBatchCopyNumberPooled}(object)
+\S4method{sigma_}{MultiBatchCopyNumberPooled}(object)
 }
 \arguments{
 \item{object}{see \code{showMethods(sigma2)}}

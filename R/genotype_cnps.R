@@ -130,18 +130,14 @@ d4 <- function(x, p.b){
   )
 }
 
-mixtureProbs <- function(snpdat, cn.model, min_heterozygosity=0.05){
-  pz <- probCopyNumber(cn.model) %>%
-    as.tibble %>%
-    set_colnames(paste0("prob_cn", unique(mapping(cn.model)))) %>%
-    mutate(id=colnames(snpdat))
-
+#' @param snpdat SummarizedExperiment with gt and baf assays
+#' @param cn.model a CopyNumberModel
+mixtureProbs <- function(snpdat, cn.model){
   snpdat2 <- snpdat
-  select_cols <- unique(mapping(cn.model))
   p.b <- p_b(genotypes(snpdat2))
   B <- bafs(snpdat2)
   keep <- rowMeans(is.na(B)) < 0.1
-  B <- B[keep, ]
+  B <- B[keep, , drop=FALSE]
   p.b <- p.b[ keep ]
   baf <- NULL
   B <- B %>%
@@ -152,10 +148,9 @@ mixtureProbs <- function(snpdat, cn.model, min_heterozygosity=0.05){
            p1=d1(baf, p.b),
            p2=d2(baf, p.b),
            p3=d3(baf, p.b),
-           p4=d4(baf, p.b))
-  B2 <- filter(B, !is.na(baf)) %>%
-    left_join(pz, by="id")
-  B2
+           p4=d4(baf, p.b)) %>%
+    filter(!is.na(baf))
+  B
 }
 
 pBaf <- function(snpdat, cn.model){
@@ -333,6 +328,12 @@ ccmap <- function(model){
 #' @export
 #' @return a list. The first element is the log likeihood and the second element is the copy number model that maximized the likelihood.
 bafLikelihood <- function(cn.model, snpdata){
+  g <- genotypes(snpdat) %>%
+    as.integer
+  g <- g[!is.na(g)]
+  if(!all(g %in% 1:3)){
+    stop("Genotypes are assumed to be integers with values 1, 2, or 3.")
+  }
   model.list <- candidateModels(cn.model)
   if(length(model.list) > 1){
     logprobs <- sapply(model.list, modelProb,

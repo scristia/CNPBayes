@@ -29,8 +29,8 @@ dlocScale_t <- function(x, df, mu, sigma) {
     .Call('_CNPBayes_dlocScale_t', PACKAGE = 'CNPBayes', x, df, mu, sigma)
 }
 
-rlocScale_t <- function(n, df, mu, sigma) {
-    .Call('_CNPBayes_rlocScale_t', PACKAGE = 'CNPBayes', n, df, mu, sigma)
+rlocScale_t <- function(n, mu, sigma, df, u) {
+    .Call('_CNPBayes_rlocScale_t', PACKAGE = 'CNPBayes', n, mu, sigma, df, u)
 }
 
 compute_u_sums <- function(xmod) {
@@ -59,6 +59,14 @@ compute_heavy_means_batch <- function(xmod) {
 
 log_ddirichlet_ <- function(x_, alpha_) {
     .Call('_CNPBayes_log_ddirichlet_', PACKAGE = 'CNPBayes', x_, alpha_)
+}
+
+sample_componentsP <- function(x, size, prob) {
+    .Call('_CNPBayes_sample_componentsP', PACKAGE = 'CNPBayes', x, size, prob)
+}
+
+update_predictiveP <- function(xmod) {
+    .Call('_CNPBayes_update_predictiveP', PACKAGE = 'CNPBayes', xmod)
 }
 
 loglik_multibatch_pvar <- function(xmod) {
@@ -157,6 +165,10 @@ reduced_s20_batch <- function(xmod) {
     .Call('_CNPBayes_reduced_s20_batch', PACKAGE = 'CNPBayes', xmod)
 }
 
+sample_components <- function(x, size, prob) {
+    .Call('_CNPBayes_sample_components', PACKAGE = 'CNPBayes', x, size, prob)
+}
+
 compute_loglik <- function(xmod) {
     .Call('_CNPBayes_compute_loglik', PACKAGE = 'CNPBayes', xmod)
 }
@@ -217,16 +229,20 @@ update_sigma2 <- function(xmod) {
     .Call('_CNPBayes_update_sigma2', PACKAGE = 'CNPBayes', xmod)
 }
 
+update_predictive <- function(xmod) {
+    .Call('_CNPBayes_update_predictive', PACKAGE = 'CNPBayes', xmod)
+}
+
 update_probz <- function(xmod) {
     .Call('_CNPBayes_update_probz', PACKAGE = 'CNPBayes', xmod)
 }
 
-cpp_burnin <- function(object, mcmcp) {
-    .Call('_CNPBayes_cpp_burnin', PACKAGE = 'CNPBayes', object, mcmcp)
+cpp_burnin <- function(object) {
+    .Call('_CNPBayes_cpp_burnin', PACKAGE = 'CNPBayes', object)
 }
 
-cpp_mcmc <- function(object, mcmcp) {
-    .Call('_CNPBayes_cpp_mcmc', PACKAGE = 'CNPBayes', object, mcmcp)
+cpp_mcmc <- function(object) {
+    .Call('_CNPBayes_cpp_mcmc', PACKAGE = 'CNPBayes', object)
 }
 
 log_prob_thetap <- function(xmod, thetastar) {

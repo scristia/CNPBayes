@@ -29,5 +29,15 @@ An object of this class holds estimates of each parameter at each iteration of t
 \item{\code{loglik}}{log likelihood.}
 
 \item{\code{zfreq}}{table of z.}
+
+\item{\code{predictive}}{posterior predictive distribution}
+
+\item{\code{zstar}}{needed for plotting posterior predictive distribution}
+
+\item{\code{k}}{integer specifying number of components}
+
+\item{\code{iter}}{integer specifying number of MCMC simulations}
+
+\item{\code{B}}{integer specifying number of batches}
 }}
 

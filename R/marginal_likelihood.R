@@ -196,35 +196,18 @@ effectiveSizeWarning <- function(model){
 }
 
 .ml_batchmodel <- function(model, params=mlParams()){
-  ## calculate effective size of thetas and check against threshold
-##  warnings <- params$warnings
-##  if (failEffectiveSize(model, params)) {
-##    if(warnings) warning(effectiveSizeWarning(model))
-##    naresult <- setNames(NA, paste0("MB", k(model)))
-##    if(!params$ignore.effective.size)
-##      return(naresult)
-##  }
-  ## get parameters from list params
   niter <- iter(model)
   root <- params$root
   reject.threshold <- params$reject.threshold
   prop.threshold <- params$prop.threshold
-
   ## calculate p(x|theta)
   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
   model2 <- useModes(model)
-
   ## calculate log p(theta)
   logPrior <- modes(model)[["logprior"]]
-
   mp <- McmcParams(iter=niter)
   red_gibbs <- .blockUpdatesBatch(model2, params)
   pstar <- blockUpdates(red_gibbs, root)
-  ##  if(failEffectiveSize(model, params)){
-  ##    ## this can fail because the model is mixing beteen components
-  ##    ## and the correction factor is not needed
-  ##    correction.factor <- 0
-  ##  } else
   correction.factor <- log(factorial(k(model)))
   ## calculate p(x|model)
   m.y <- logLik + logPrior - sum(pstar) +
