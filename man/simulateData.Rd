@@ -14,6 +14,8 @@ simulateData(N, p, theta, sds, df = 10)
 \item{theta}{a vector of means, one per component}
 
 \item{sds}{a vector of standard deviations, one per component}
+
+\item{df}{length-1 numeric vector for the t-distribution degrees of freedom}
 }
 \value{
 An object of class 'SingleBatchModel'

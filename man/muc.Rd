@@ -17,5 +17,5 @@ number of observations and B is the number of unique batches.
 Retrieve overall mean at each iteration of the MCMC.
 }
 \examples{
-     muc(SingleBatchModelExample)
+     head(muc(SingleBatchModelExample))
 }

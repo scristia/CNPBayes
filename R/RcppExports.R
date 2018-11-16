@@ -281,34 +281,6 @@ update_trioPr <- function(xmod) {
     .Call('_CNPBayes_update_trioPr', PACKAGE = 'CNPBayes', xmod)
 }
 
-tableBatchZpar <- function(xmod) {
-    .Call('_CNPBayes_tableBatchZpar', PACKAGE = 'CNPBayes', xmod)
-}
-
-tableBatchZchd <- function(xmod) {
-    .Call('_CNPBayes_tableBatchZchd', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_mupar <- function(xmod) {
-    .Call('_CNPBayes_update_mupar', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_muchd <- function(xmod) {
-    .Call('_CNPBayes_update_muchd', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_tau2chd <- function(xmod) {
-    .Call('_CNPBayes_update_tau2chd', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_sigma20chd <- function(xmod) {
-    .Call('_CNPBayes_update_sigma20chd', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_nu0chd <- function(xmod) {
-    .Call('_CNPBayes_update_nu0chd', PACKAGE = 'CNPBayes', xmod)
-}
-
 update_multinomialPrPar <- function(xmod) {
     .Call('_CNPBayes_update_multinomialPrPar', PACKAGE = 'CNPBayes', xmod)
 }
@@ -325,16 +297,28 @@ tableZpar <- function(xmod) {
     .Call('_CNPBayes_tableZpar', PACKAGE = 'CNPBayes', xmod)
 }
 
-tableZchd <- function(xmod) {
-    .Call('_CNPBayes_tableZchd', PACKAGE = 'CNPBayes', xmod)
+tableBatchZpar <- function(xmod) {
+    .Call('_CNPBayes_tableBatchZpar', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_pp <- function(xmod) {
     .Call('_CNPBayes_update_pp', PACKAGE = 'CNPBayes', xmod)
 }
 
-update_pc <- function(xmod) {
-    .Call('_CNPBayes_update_pc', PACKAGE = 'CNPBayes', xmod)
+mendelprobs <- function(xmod, father, mother, offspring, trioprob) {
+    .Call('_CNPBayes_mendelprobs', PACKAGE = 'CNPBayes', xmod, father, mother, offspring, trioprob)
+}
+
+update_mendelPr <- function(xmod) {
+    .Call('_CNPBayes_update_mendelPr', PACKAGE = 'CNPBayes', xmod)
+}
+
+mendelprobs2 <- function(xmod, father, mother, offspring) {
+    .Call('_CNPBayes_mendelprobs2', PACKAGE = 'CNPBayes', xmod, father, mother, offspring)
+}
+
+update_mendelPr2 <- function(xmod) {
+    .Call('_CNPBayes_update_mendelPr2', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_multinomialPrChild <- function(xmod) {
@@ -349,36 +333,8 @@ update_zchild <- function(xmod) {
     .Call('_CNPBayes_update_zchild', PACKAGE = 'CNPBayes', xmod)
 }
 
-compute_u_sums_batchpar <- function(xmod) {
-    .Call('_CNPBayes_compute_u_sums_batchpar', PACKAGE = 'CNPBayes', xmod)
-}
-
-compute_heavy_sums_batchpar <- function(object) {
-    .Call('_CNPBayes_compute_heavy_sums_batchpar', PACKAGE = 'CNPBayes', object)
-}
-
-update_thetapar <- function(xmod) {
-    .Call('_CNPBayes_update_thetapar', PACKAGE = 'CNPBayes', xmod)
-}
-
-compute_u_sums_batchchd <- function(xmod) {
-    .Call('_CNPBayes_compute_u_sums_batchchd', PACKAGE = 'CNPBayes', xmod)
-}
-
-compute_heavy_sums_batchchd <- function(object) {
-    .Call('_CNPBayes_compute_heavy_sums_batchchd', PACKAGE = 'CNPBayes', object)
-}
-
-update_thetachd <- function(xmod) {
-    .Call('_CNPBayes_update_thetachd', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_sigma2par <- function(xmod) {
-    .Call('_CNPBayes_update_sigma2par', PACKAGE = 'CNPBayes', xmod)
-}
-
-update_sigma2chd <- function(xmod) {
-    .Call('_CNPBayes_update_sigma2chd', PACKAGE = 'CNPBayes', xmod)
+update_mu2 <- function(xmod) {
+    .Call('_CNPBayes_update_mu2', PACKAGE = 'CNPBayes', xmod)
 }
 
 compute_vars2 <- function(xmod) {
@@ -393,8 +349,8 @@ update_probzpar <- function(xmod) {
     .Call('_CNPBayes_update_probzpar', PACKAGE = 'CNPBayes', xmod)
 }
 
-update_probzchd <- function(xmod) {
-    .Call('_CNPBayes_update_probzchd', PACKAGE = 'CNPBayes', xmod)
+update_sigma22 <- function(xmod) {
+    .Call('_CNPBayes_update_sigma22', PACKAGE = 'CNPBayes', xmod)
 }
 
 trios_burnin <- function(object, mcmcp) {

@@ -18,6 +18,8 @@ marginal_lik(object) <- value
 }
 \arguments{
 \item{object}{a SB, SBP, MB, or MBP model}
+
+\item{value}{scalar for marginal likelihood}
 }
 \description{
 The marginal likelihood is computed by Chib's estimator (JASA, Volume 90 (435), 1995).

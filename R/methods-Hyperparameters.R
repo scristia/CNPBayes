@@ -122,7 +122,7 @@ HyperparametersTrios <- function(k=3,
 #' Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
 #' the Inverse Gamma sampling distribution for the component-specific
 #' variances)
-#' @param dfr length-one numeric vector setting degrees of freedom for t-distributions
+#' @param dfr length-one numeric vector for t-distribution degrees of freedom
 #' @return An object of class HyperparametersBatch
 #' @examples
 #' HyperparametersMultiBatch(k=3)
@@ -184,6 +184,7 @@ HyperparametersMultiBatch <- function(k=3L,
 #' Gamma prior used for sigma2.0 (sigma2.0 is the rate parameter of
 #' the Inverse Gamma sampling distribution for the component-specific
 #' variances)
+#' @param dfr length-one numeric vector for t-distribution degrees of freedom
 #'
 #' @return An object of class HyperparametersSingleBatch
 #' @examples
@@ -331,5 +332,14 @@ hpList <- function(...){
        TBM=tbm)
 }
 
+#' @rdname dfr-method
 #' @aliases dfr,Hyperparameters-method
 setMethod("dfr", "Hyperparameters", function(object) object@dfr)
+
+#' @aliases dfr<-,Hyperparameters,numeric-method
+#' @rdname dfr-method
+setReplaceMethod("dfr", c("Hyperparameters", "numeric"),
+                 function(object, value){
+                   object@dfr <- value
+                   object
+                 })

@@ -11,13 +11,15 @@ simulateBatchData(N = 2500, p, theta, sds, batch, zz, df = 10)
 
 \item{p}{a vector indicating probability of membership to each component}
 
-\item{theta}{a vector of means, one per component/batch}
+\item{theta}{a matrix of means.  Columns are components and rows are batches.}
 
-\item{sds}{a vector of standard deviations, one per component/batch}
+\item{sds}{a matrix of standard deviations.  Columns are components and rows are batches.}
 
 \item{batch}{a vector of labels indication from which batch each simulation should come from}
 
 \item{zz}{a vector indicating latent variable membership. Can be omitted.}
+
+\item{df}{length-1 numeric vector for the t-distribution degrees of freedom}
 }
 \value{
 An object of class 'MultiBatchModel'

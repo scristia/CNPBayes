@@ -31,9 +31,7 @@ Accessor for Hyperparameters object for a MixtureModel-derived object
 Replace the hyperparameters for a \code{MixtureModel}-derived object
 }
 \examples{
-\dontrun{
     hyperParams(SingleBatchModelExample)
-}
 hypp <- Hyperparameters(type="marginal",
                         k=k(SingleBatchModelExample),
                         alpha=c(9, 9, 10))

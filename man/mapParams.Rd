@@ -41,6 +41,3 @@ Parameters for mapping mixture components to distinct copy number states
 \examples{
 mapParams()
 }
-\seealso{
-\code{\link{mapComponents}}
-}

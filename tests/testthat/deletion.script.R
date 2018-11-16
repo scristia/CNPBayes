@@ -122,11 +122,15 @@ params <- params.all[,1:3]
   
   # this is for the MB model comparison
   results.mb <- z2cn(mb2[[1]], maplabel)
+  results.mb.parent <- results.mb@z[!is_offspring]
+  results.mb.child <- results.mb@z[is_offspring]
   #cn.truth2 <- as.factor(cn.truth)
   #results.mb2 <- as.factor(results.mb@z)
   #cn.compare.overall.mb <- table(results.mb2, cn.truth2)
   
   prop.true.overall.mb <- sum(cn.truth == results.mb@z) / length(cn.truth)
+  prop.true.parent.mb <- sum(cn.truth.parent == results.mb.parent) / length(cn.truth.parent)
+  prop.true.child.mb <- sum(cn.truth.child == results.mb.child) / length(cn.truth.child)
   
   #sens.spec.mb <- modified.sens.spec.calc(cn.compare.overall.mb,cn.type="DEL")
   #sens.mb <- sens.spec.mb$sensitivity
@@ -146,6 +150,8 @@ params <- params.all[,1:3]
                           AccuracyParents = prop.true.parent,
                           AccuracyChild = prop.true.child,
                           AccuracyMB = prop.true.overall.mb,
+                          AccuracyMBParents = prop.true.parent.mb,
+                          AccuracyMBChild = prop.true.child.mb,
                           ModelPi = model[[1]]@pi,
                           ModelParentPi = parent.pi,
                           ModelChildPi = child.pi,

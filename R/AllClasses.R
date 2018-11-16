@@ -87,24 +87,17 @@ setClass("HyperparametersTrios", contains="Hyperparameters")
 #' @slot loglik log likelihood.
 #' @slot zfreq table of z.
 setClass("McmcChains", representation(theta="matrix",
-                                      theta_chd="matrix",
                                       sigma2="matrix",
-                                      sigma2_chd="matrix",
                                       pi="matrix",
-                                      pi_chd="matrix",
+                                      pi_parents="matrix",
                                       mu="numericOrMatrix",
-                                      mu_chd="numericOrMatrix",
                                       tau2="numericOrMatrix",
-                                      tau2_chd="numericOrMatrix",
                                       nu.0="numeric",
-                                      nu.0chd="numeric",
                                       sigma2.0="numeric",
-                                      sigma2.0_chd="numeric",
                                       logprior="numeric",
                                       loglik="numeric",
                                       zfreq="matrix",
-                                      zfreq_parents="matrix",
-                                      zfreq_chd="matrix"))
+                                      zfreq_parents="matrix"))
 
 #' An object to specify MCMC options for a later simulation
 #'
@@ -155,6 +148,7 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot marginal_lik the marginal likelihood of the model
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 #' @slot .internal.counter For internal use only.
+#' @slot marginal_lik scalar for marginal likelihood
 #' @export
 setClass("MixtureModel", representation("VIRTUAL",
                                         k = "integer",
@@ -219,10 +213,8 @@ setClass("MultiBatchModel", contains="MixtureModel")
 setClass("TrioBatchModel", contains="MultiBatchModel",
          slots=c(triodata="list", mprob="matrix",
                  father="numeric", mother="numeric", 
-                 maplabel="numeric", theta_chd="matrix", sigma2_chd="matrix", sigma2.0_chd="numeric",
-                 pi_chd="numeric", mu_chd="numeric", tau2_chd="numeric",
-                 nu.0chd="numeric", zfreq_parents="integer",
-                 zfreq_chd="integer", probz_par="matrix", probz_chd="matrix"))
+                 maplabel="numeric", pi_parents="numeric",
+                 zfreq_parents="integer", probz_par="matrix"))
                  ##family_member="character"))
 
 #' The 'SingleBatchModel' class
@@ -270,15 +262,25 @@ setClass("MultiBatchPooled", contains="MultiBatchModel")
 
 setClass("UnivariateBatchModel", contains="MultiBatchModel")
 
+#' Mixture model container where mixture components have been genotyped
+#'
+#' The components in a mixture model need not correspond to distinct copy number states. For example, when batch or copy number does not explain skewness or heavy-tails.
+#'
+#' @slot mapping character string vector indicating the copy number states.  Typically '0', '1', '2', '3', or '4'.
+#'
+#' @details Suppose a mixture model with four components is selected, where the 3rd and 4th components both correspond to the diploid state.  The mapping slot will be the vector "0", "1", "2", and "2".
+#' @rdname CopyNumber-classes
 #' @export
 #' @rdname SingleBatchModel-class
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
          representation(mapping="character"))
 
+#' @rdname CopyNumber-classes
 #' @export
 setClass("MultiBatchCopyNumber", contains="MultiBatchModel",
          representation(mapping="character"))
 
+#' @rdname CopyNumber-classes
 #' @export
 setClass("MultiBatchCopyNumberPooled", contains="MultiBatchModel",
          representation(mapping="character"))

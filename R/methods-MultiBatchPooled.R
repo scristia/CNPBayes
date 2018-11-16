@@ -8,10 +8,12 @@ reorderMultiBatchPooled <- function(model){
   K <- k(model)
   ix <- order(thetas[1, ])
   B <- nBatch(model)
+  . <- NULL
   tab <- tibble(z_orig=z(model),
                 z=z(model),
                 batch=batch(model)) %>%
     mutate(index=seq_len(nrow(.)))
+  z_relabel <- NULL
   for(i in seq_len(B)){
     ix.next <- order(thetas[i, ])
     thetas[i, ] <- thetas[i, ix.next]
@@ -57,7 +59,33 @@ MultiBatchPooled <- function(dat=numeric(),
   mbp
 }
 
+#' Constructor for MultiBatchPooled model
+#'
+#' Initializes a MultiBatchPooled model, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means. The variance is assumed to be the same for all components, but allowed to differ by batch.
+#'
+#' @param dat the data for the simulation.
+#' @param batches an integer-vector of the different batches
+#' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @param mp An object of class 'McmcParams'
+#' @return An object of class `MultiBatchPooled`
 #' @export
+#' @examples
+#'   model <- MBP(rnorm(10), batch=rep(1L, 10))
+#'   set.seed(100)
+#'   nbatch <- 3
+#'   k <- 3
+#'   means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+#'       0, 0.05), nbatch, k, byrow = FALSE)
+#'   sds <- matrix(0.15, nbatch, k)
+#'   sds[, 1] <- 0.3
+#'   N <- 1000
+#'   truth <- simulateBatchData(N = 2500,
+#'                              batch = rep(letters[1:3],
+#'                              length.out = 2500),
+#'                              theta = means, sds = sds,
+#'                              p = c(1/5, 1/3, 1 - 1/3 - 1/5))
+#'   MBP(dat=y(truth), batches=batch(truth),
+#'       hp=hpList(k=3)[["MB"]])
 MBP <- MultiBatchPooled
 
 ## MBP
@@ -255,7 +283,8 @@ combine_multibatch_pooled <- function(model.list, batches){
 }
 
 
-gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches, min_effsize=500){
+gibbs_multibatch_pooled <- function(hp, mp, dat,
+                                    max_burnin=32000, batches, min_effsize=500){
   nchains <- nStarts(mp)
   nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
   if(iter(mp) < 500){
@@ -314,11 +343,11 @@ gibbs_multibatch_pooled <- function(hp, mp, dat, max_burnin=32000, batches, min_
     mp@thin <- as.integer(thin(mp) * 2)
   }
   model <- combine_multibatch_pooled(mod.list, batches)
-  meets_conditions <- all(neff > MIN_EFF) && r$mpsrf < 2 && !label_switch(model)
+  meets_conditions <- all(neff > MIN_EFF) &&
+    r$mpsrf < 2 && !label_switch(model)
   if(meets_conditions){
     testing <- tryCatch(compute_marginal_lik(model), error=function(e) NULL)
-    if(is.null(testing)) return(model)
-    model <- testing
+    if(is.null(testing)) return(testing)
   }
   model
 }
@@ -349,35 +378,32 @@ gibbsMultiBatchPooled <- function(hp,
   models <- model.list[ix]
 }
 
-##gibbsPooled <- function(hp.list,
-##                        mp,
-##                        dat,
-##                        batches,
-##                        k_range=c(1, 4),
-##                        max_burnin=32000,
-##                        top=3){
-##  message("Fitting multi-batch models K=", min(k_range), " to K=", max(k_range))
-##  mb.models <- gibbsMultiBatchPooled(hp.list[["multi_batch"]],
-##                                     k_range=k_range,
-##                                     mp=mp,
-##                                     dat=dat,
-##                                     batches=batches,
-##                                     max_burnin=max_burnin)
-##  message("Fitting single-batch models K=", min(k_range), " to K=", max(k_range))
-##  sb.models <- gibbs_K(hp.list[["single_batch"]],
-##                       k_range=k_range,
-##                       mp=mp,
-##                       dat=dat,
-##                       max_burnin=max_burnin)
-##  models <- c(mb.models, sb.models)
-##  ml <- map_dbl(models, marginal_lik)
-##  ix <- head(order(ml, decreasing=TRUE), top)
-##  models <- models[ix]
-##  models
-##}
-
-
-
+## gibbsPooled <- function(hp.list,
+##                         mp,
+##                         dat,
+##                         batches,
+##                         k_range=c(1, 4),
+##                         max_burnin=32000,
+##                         top=3){
+##   message("Fitting multi-batch models K=", min(k_range), " to K=", max(k_range))
+##   mb.models <- gibbsMultiBatchPooled(hp.list[["multi_batch"]],
+##                                      k_range=k_range,
+##                                      mp=mp,
+##                                      dat=dat,
+##                                      batches=batches,
+##                                      max_burnin=max_burnin)
+##   message("Fitting single-batch models K=", min(k_range), " to K=", max(k_range))
+##   sb.models <- gibbs_K(hp.list[["single_batch"]],
+##                        k_range=k_range,
+##                        mp=mp,
+##                        dat=dat,
+##                        max_burnin=max_burnin)
+##   models <- c(mb.models, sb.models)
+##   ml <- map_dbl(models, marginal_lik)
+##   ix <- head(order(ml, decreasing=TRUE), top)
+##   models <- models[ix]
+##   models
+## }
 
 #' @aliases sigma,MultiBatchCopyNumberPooled-method
 #' @rdname sigma2-method
