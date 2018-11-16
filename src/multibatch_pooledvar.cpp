@@ -33,7 +33,7 @@ Rcpp::S4 update_predictiveP(Rcpp::S4 xmod){
   Rcpp::NumericVector sigma2 = model.slot("sigma2");
   Rcpp::NumericVector prob = model.slot("pi");
   Rcpp::IntegerVector batch = model.slot("batch") ;
-  Rcpp::IntegerVector ub = uniqueBatch(batch);
+  Rcpp::IntegerVector ub = unique_batch(batch);
   int K = theta.ncol();
   int nb = theta.nrow();
   int B = ub.size() ;
