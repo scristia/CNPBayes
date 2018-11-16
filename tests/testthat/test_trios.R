@@ -620,25 +620,16 @@ test_that("gibbs implement", {
                                 error=0, mprob, maplabel)
   true.cn <- as.integer(truth$data$copy_number)
   true.component <- true.cn + 1L
-  
-  mp2 <- McmcParams(iter=4000, burnin=2000, thin=3)
-  model2 <- MB(dat=truth$data$log_ratio,
-               hp=hp,
-               mp=mp2,
-               batches=rep(1L, nrow(truth$data)))
+
+  mp2 <- McmcParams(iter=1000, burnin=1000, thin=3)
   mb <- gibbs(model=c("SB", "SBP"), k_range=c(3, 3),
               dat=truth$data$log_ratio,
               mp=mp2, max_burnin=2000)
-  
-  mp <- McmcParams(iter=1000, burnin=1000, thin=1)
-  mb2 <- gibbs(model="MB", dat=truth$data$log_ratio,
-               batches=truth$data$batches,
-               mp=mp, k_range=c(3, 3), max_burnin=2000)
-  
-  
+
   tbm1 <- gibbs_trios(model="TBM", dat=as.tibble(truth$data),
                batches=truth$data$batches,
                mp=mp2, k_range=c(3, 3), max_burnin=2000)
+
   
   if(FALSE){
     ggMixture(mb[[1]])
