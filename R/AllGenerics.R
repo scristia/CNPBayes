@@ -142,6 +142,9 @@ setGeneric("hyperParams<-", function(object,value) standardGeneric("hyperParams<
 
 setGeneric("McmcChains", function(object) standardGeneric("McmcChains"))
 
+setGeneric("McmcChainsTrios", function(object) standardGeneric("McmcChainsTrios"))
+
+
 setGeneric("hist")
 
 

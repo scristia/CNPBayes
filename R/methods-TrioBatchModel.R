@@ -1,7 +1,8 @@
 .empty_trio_model <- function(hp, mp){
   K <- k(hp)
-  B <- 0
-  N <- 0
+  B <- 0L
+  S <- iter(mp)
+  ch <- initialize_mcmcT(K, S, B)
   obj <- new("TrioBatchModel",
              k=as.integer(K),
              hyperparams=hp,
@@ -17,17 +18,19 @@
              triodata=as_tibble(0),
              mprob=matrix(NA, 0, 0),
              #maplabel=numeric(K),
+             predictive=numeric(K*B),
+             zstar=integer(K*B),
              data.mean=matrix(NA, B, K),
              data.prec=matrix(NA, B, K),
              z=integer(0),
              zfreq=integer(K),
              zfreq_parents=integer(K),
-             probz=matrix(0, N, K),
+             probz=matrix(0, S, K),
              # note this assumes parents are 2/3 of N
-             probz_par=matrix(0, 2/3*N, K),
+             probz_par=matrix(0, 2/3*S, K),
              logprior=numeric(1),
              loglik=numeric(1),
-             mcmc.chains=McmcChains(),
+             mcmc.chains=ch,
              mcmc.params=mp,
              batch=integer(0),
              batchElements=integer(0),
@@ -35,7 +38,7 @@
              marginal_lik=as.numeric(NA),
              .internal.constraint=5e-4,
              .internal.counter=0L)
-  chains(obj) <- McmcChains(obj)
+  chains(obj) <- McmcChainsTrios(obj)
   obj
 }
 
@@ -79,6 +82,8 @@
   sigma2s <- 1/rgamma(k(hp) * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
     matrix(B, k(hp))
   u <- rchisq(nrow(triodata), hp@dfr)
+  S <- iter(mp)
+  ch <- initialize_mcmcT(K, S, B)
   index <- match(c("father", "mother"), colnames(mprob))
   mprob2 <- mprob[, -index]
   father <- mprob[, "father"]
@@ -105,6 +110,8 @@
              mprob=mprob2,
              maplabel=maplabel,
              u=u,
+             predictive=numeric(K*B),
+             zstar=integer(K*B),
              data.mean=matrix(0, B, K),
              data.prec=matrix(0, B, K),
              z=sample(seq_len(K), N, replace=TRUE),
@@ -115,7 +122,7 @@
              probz_par=matrix(0, 2/3*N, K),
              logprior=numeric(1),
              loglik=numeric(1),
-             mcmc.chains=McmcChains(),
+             mcmc.chains=ch,
              mcmc.params=mp,
              batchElements=nbatch,
              label_switch=FALSE,
@@ -165,7 +172,9 @@ combine_batchTrios <- function(model.list, batches){
   .tau2 <- map(ch.list, tau2) %>% do.call(rbind, .)
   zfreq <- map(ch.list, zFreq) %>% do.call(rbind, .)
   zfreqpar <- map(ch.list, zFreqPar) %>% do.call(rbind, .)
-  mc <- new("McmcChains",
+  pred <- map(ch.list, predictive) %>% do.call(rbind, .)
+  zsta <- map(ch.list, zstar) %>% do.call(rbind, .)
+  mc <- new("McmcChainsTrios",
             theta=data.matrix(th),
             sigma2=data.matrix(s2),
             pi=data.matrix(ppi),
@@ -177,7 +186,12 @@ combine_batchTrios <- function(model.list, batches){
             zfreq=zfreq,
             zfreq_parents=zfreqpar,
             logprior=logp,
-            loglik=ll)
+            loglik=ll,
+            iter=nrow(th),
+            predictive=pred,
+            zstar=zsta,
+            k=k(model.list[[1]]),
+            B=length(unique(batches)))
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   triodata <- model.list[[1]]@triodata
@@ -245,6 +259,8 @@ combine_batchTrios <- function(model.list, batches){
                zfreq_parents=zfreq_parents,
                probz=pz,
                probz_par=pzpar,
+               predictive=predictive(mc)[nrow(th), ],
+               zstar=zstar(mc)[nrow(th), ],
                logprior=numeric(1),
                loglik=numeric(1),
                mcmc.chains=mc,
@@ -301,7 +317,7 @@ TrioBatchModel <- function(triodata=tibble(),
   }
   tbm2 <- sortComponentLabels(tbm)
   mcmcParams(tbm2) <- mp
-  chains(tbm2) <- McmcChains(tbm2)
+  chains(tbm2) <- McmcChainsTrios(tbm2)
   tbm2
 }
 
