@@ -8,6 +8,9 @@
 \alias{burnin,McmcParams-method}
 \alias{burnin<-,McmcParams,ANY-method}
 \alias{burnin<-,McmcParams-method}
+\alias{burnin,McmcParamsTrios-method}
+\alias{burnin<-,McmcParamsTrios,ANY-method}
+\alias{burnin<-,McmcParamsTrios-method}
 \alias{burnin,MixtureModel-method}
 \alias{burnin<-,MixtureModel,ANY-method}
 \alias{burnin<-,MixtureModel-method}
@@ -20,6 +23,10 @@ burnin(object) <- value
 \S4method{burnin}{McmcParams}(object)
 
 \S4method{burnin}{McmcParams,ANY}(object) <- value
+
+\S4method{burnin}{McmcParamsTrios}(object)
+
+\S4method{burnin}{McmcParamsTrios,ANY}(object) <- value
 
 \S4method{burnin}{MixtureModel}(object)
 

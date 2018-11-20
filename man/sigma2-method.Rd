@@ -10,16 +10,13 @@
 \alias{sigma2,MixtureModel-method}
 \alias{sigma,MixtureModel-method}
 \alias{sigma2,MultiBatchPooled-method}
-\alias{sigma2<-,MultiBatchPooled-method}
+\alias{sigma2<-,MultiBatchPooled,ANY-method}
 \alias{sigma2<-,MultiBatchCopyNumberPooled-method}
 \alias{sigma2,MultiBatchCopyNumberPooled-method}
-\alias{sigma_,MultiBatchCopyNumberPooled-method}
 \alias{sigma,MultiBatchCopyNumberPooled-method}
-\alias{sigma2<-,MultiBatchCopyNumberPooled-method}
-\alias{sigma2,MultiBatchCopyNumberPooled-method}
+\alias{sigma2<-,MultiBatchCopyNumberPooled,ANY-method}
 \alias{sigma<-,MultiBatchCopyNumberPooled-method}
-\alias{sigma,MultiBatchCopyNumberPooled-method}
-\alias{sigma,MultiBatchCopyNumberPooled-method}
+\alias{sigma_,MultiBatchCopyNumberPooled-method}
 \title{Retrieve the variances of each component and batch distribution}
 \usage{
 sigma(object) <- value
@@ -34,9 +31,15 @@ sigma2(object)
 
 \S4method{sigma2}{MultiBatchPooled}(object)
 
-\S4method{sigma2}{MultiBatchPooled}(object) <- value
+\S4method{sigma2}{MultiBatchPooled,ANY}(object) <- value
 
 \S4method{sigma2}{MultiBatchCopyNumberPooled}(object)
+
+\S4method{sigma}{MultiBatchCopyNumberPooled}(object)
+
+\S4method{sigma2}{MultiBatchCopyNumberPooled,ANY}(object) <- value
+
+\S4method{sigma}{MultiBatchCopyNumberPooled}(object) <- value
 
 \S4method{sigma_}{MultiBatchCopyNumberPooled}(object)
 }
