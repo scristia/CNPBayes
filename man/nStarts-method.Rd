@@ -8,9 +8,6 @@
 \alias{nStarts,McmcParams-method}
 \alias{nStarts<-,McmcParams,ANY-method}
 \alias{nStarts<-,McmcParams-method}
-\alias{nStarts,McmcParamsTrios-method}
-\alias{nStarts<-,McmcParamsTrios,ANY-method}
-\alias{nStarts<-,McmcParamsTrios-method}
 \alias{nStarts,MixtureModel-method}
 \alias{nStarts<-,MixtureModel,ANY-method}
 \alias{nStarts<-,MixtureModel-method}
@@ -23,10 +20,6 @@ nStarts(object) <- value
 \S4method{nStarts}{McmcParams}(object)
 
 \S4method{nStarts}{McmcParams,ANY}(object) <- value
-
-\S4method{nStarts}{McmcParamsTrios}(object)
-
-\S4method{nStarts}{McmcParamsTrios,ANY}(object) <- value
 
 \S4method{nStarts}{MixtureModel}(object)
 

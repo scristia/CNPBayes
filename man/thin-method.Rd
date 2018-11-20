@@ -6,7 +6,6 @@
 \alias{thin}
 \alias{thin<-}
 \alias{thin,McmcParams-method}
-\alias{thin,McmcParamsTrios-method}
 \alias{thin,MixtureModel-method}
 \alias{thin<-,MixtureModel,numeric-method}
 \title{Get or set the number of thinning intervals.}
@@ -16,8 +15,6 @@ thin(object)
 thin(object) <- value
 
 \S4method{thin}{McmcParams}(object)
-
-\S4method{thin}{McmcParamsTrios}(object)
 
 \S4method{thin}{MixtureModel}(object)
 

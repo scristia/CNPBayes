@@ -351,9 +351,7 @@ TBM <- TrioBatchModel
       next()
     }
     mod.list <- mod.list[ no_label_swap ]
-    ## MC:  check what selectModels does?
     mod.list <- mod.list[ selectModels(mod.list) ]
-    ## MC:  need mcmcList method defined for this class, or new function
     mlist <- mcmcList(mod.list)
     neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
     if(is.null(neff)) neff <- 0
@@ -412,6 +410,8 @@ gibbs_trios_K <- function(hp,
 gibbs_trios <- function(model="TBM",
                         dat,
                         mp,
+                        mprob,
+                        maplabel,
                         hp.list,
                         batches,
                         k_range=c(1, 4),

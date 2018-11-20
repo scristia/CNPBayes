@@ -139,7 +139,7 @@ setClass("McmcParams", representation(thin="numeric",
                                       min_effsize="numeric",
                                       max_burnin="numeric",
                                       min_chains="numeric"))
-setClass("McmcParamsTrios", contains="McmcParams")
+
 #' An object for running MCMC simulations.
 #'
 #' BatchModel and MarginalModel both inherit from this class.
