@@ -339,6 +339,34 @@ test_that("Pooled model", {
   mp3 <- posteriorSimulation(mp2)
   log_lik(chains(mp3))
   expect_true(validObject(mp3))
+
+  set.seed(321)
+  ##
+  ## These models should fit the data well because
+  ## we are starting from region with high posterior probability
+  mb1 <- as(mb, "MultiBatchP")
+  mbp <- as(mb1, "MultiBatchPooled")
+  tmp <- posteriorSimulation(mbp)
+  expect_equal(theta(tmp), theta(mb), tolerance=0.02)
+  mb1 <- as(mbp, "MultiBatchP")
+  tmp <- posteriorSimulation(mb1)
+  expect_equal(theta(tmp), theta(mb), tolerance=0.02)
+  ##
+  ## Random starts
+  ##
+  mb1 <- MultiBatch(data=assays(mb1),
+                    iter=300,
+                    burnin=200)
+  ## moves to region of high posterior probability quickly
+  tmp <- posteriorSimulation(mb1)
+  expect_equal(theta(tmp), theta(mb), tolerance=0.02)
+  ## pooled model does not move to region of high posterior prob.
+  mb1 <- MultiBatchP(data=assays(mb1),
+                     iter=300,
+                     burnin=200)
+  ## does NOT move to region of high posterior probability quickly
+  tmp <- posteriorSimulation(mb1)
+  ##expect_false(all.equal(theta(tmp), theta(mb), tolerance=0.02))
 })
 
 test_that("Plotting", {

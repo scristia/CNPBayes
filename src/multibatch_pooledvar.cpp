@@ -415,7 +415,7 @@ Rcpp::NumericVector sigma2_multibatch_pvar(Rcpp::S4 xmod){
           continue;
         }
         for (int k = 0; k < K; ++k){
-          if (z[i] == k+1){
+          if ((z[i] == k+1) && (batch[i] == b+1)){
             //ss(b, k) += pow(x[i] - theta(b, k), 2);
             ss[b] += u[i] * pow(x[i] - theta(b, k), 2);
           }
@@ -544,7 +544,7 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     th = as<Rcpp::NumericVector>(theta_multibatch_pvar(model));
     model.slot("theta") = th ;
     theta(s, _) = th ;
-    s2 = as<Rcpp::NumericVector>(sigma2_multibatch_pvar(model));
+    s2 = sigma2_multibatch_pvar(model);
     model.slot("sigma2") = s2 ;
     sigma2(s, _) = s2 ;
     p = update_p(model) ;
