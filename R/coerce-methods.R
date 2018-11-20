@@ -35,6 +35,7 @@ setAs("MultiBatchPooled", "MultiBatchCopyNumberPooled", function(from, to){
       z=z(from),
       zfreq=zFreq(from),
       probz=from@probz,
+      predictive=from@predictive,
       logprior=logPrior(from),
       loglik=log_lik(from),
       mcmc.chains=chains(from),

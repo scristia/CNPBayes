@@ -533,7 +533,7 @@ gibbs_multibatch_pooled <- function(hp, mp, dat,
     warning("Require at least 500 Monte Carlo simulations")
     MIN_EFF <- ceiling(iter(mp) * 0.5)
   } else MIN_EFF <- min_effsize
-  while(burnin(mp) < max_burnin && thin(mp) < 100){
+  while(burnin(mp) <= max_burnin && thin(mp) <= 100){
     message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mod.list <- replicate(nchains, MultiBatchPooled(dat=dat,
                                                     hp=hp,

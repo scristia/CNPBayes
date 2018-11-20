@@ -32,9 +32,7 @@ test_that("gibbs", {
   lrr <- c(rnorm(100, -0.5, sd=0.1), rnorm(100, 0, sd=0.1))
   mp <- McmcParams(iter=50, burnin=10, nStarts=4)
   model <- SBP(dat=lrr, mp=mp, hp=hpList(k=2)[["SBP"]])
-  model2 <- posteriorSimulation(model)
-  expect_equal(marginalLikelihood(model2)[[1]], 37.3, tolerance=0.1)
-  expect_equal(log_prob_thetap(model2, theta(model2)), 6.8, tolerance=0.1)
+  expect_warning(model2 <- posteriorSimulation(model))
   expect_warning(sbp <- gibbs_multibatch_pooled(hp=hpList(k=2)[["MBP"]],
                                                 mp=mp,
                                                 dat=lrr,

@@ -2,6 +2,7 @@ context("MultiBatch pooled variances")
 
 ## constructor
 test_that("MultiBatchPooled", {
+  set.seed(13)
   model <- MB()
   expect_is(model, "MultiBatchModel")
   model <- MBP()
@@ -20,7 +21,7 @@ test_that("MultiBatchPooled", {
 ##  save(MultiBatchPooledExample, file="MultiBatchPooledExample.rda", compression_level=9)
 ##  model <- MultiBatchPooledExample
   mcmcParams(model) <- mp
-  expect_warning(model <- posteriorSimulation(model))
+  model <- posteriorSimulation(model)
   model2 <- as(model, "MultiBatchCopyNumberPooled")
   expect_true(validObject(model2))
   model3 <- useModes(model2)
@@ -153,10 +154,10 @@ test_that("MultiBatchPooled model selection", {
   ## running too few iterations for this to be very useful
   expect_warning(
     model <- gibbs_multibatch_pooled(hp,
-                                     mp=McmcParams(iter=1000, burnin=100, nStart=4),
+                                     mp=McmcParams(iter=200, burnin=100, nStart=4),
                                      y(truth),
                                      batches=batch(truth),
-                                     min)
+                                     max_burnin=100)
   )
   if(FALSE){
     figs <- ggChains(model)
@@ -173,7 +174,8 @@ test_that("MultiBatchPooled model selection", {
                                    mp=mp,
                                    k_range=c(3, 3),
                                    dat=y(truth),
-                                   batches=batch(truth))
+                                   batches=batch(truth),
+                                   max_burnin=100)
     model <- mlist[[1]]
     ggMixture(model)
     ##tab <- posteriorPredictive(model)
