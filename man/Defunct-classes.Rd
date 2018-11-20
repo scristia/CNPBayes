@@ -6,16 +6,9 @@
 \alias{DensityBatchModel-class}
 \alias{MarginalModel-class}
 \alias{BatchModel-class}
-\alias{DensityBatchModel-class}
-\alias{BatchModel-class}
-\alias{MarginalModel-class}
 \title{Defunct classes in CNPBayes}
 \description{
 The following classes in CNPBayes are deprecated and are provided only for compatability.
-
-Run hierarchical MCMC for batch model.
-
-Run marginal MCMC simulation
 }
 \section{Slots}{
 

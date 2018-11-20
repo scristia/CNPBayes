@@ -90,11 +90,11 @@ setValidity("McmcParams", function(object){
     msg <- "thin, burnin, and iter vectors must be the same length"
     return(msg)
   }
-  up <- paramUpdates(object)
-  if(!identical(names(up), names(.param_updates()))){
-    msg <- "vector for slot param_updates should have same names as .param_updates()"
-    return(msg)
-  }
+  #up <- paramUpdates(object)
+  #if(!identical(names(up), names(.param_updates()))){
+  #  msg <- "vector for slot param_updates should have same names as .param_updates()"
+  #  return(msg)
+  #}
   if(nStarts(object) < min_chains(object)){
     msg <- "number of independent starts is less than the mininum number required for assessing convergence"
   }
@@ -134,6 +134,141 @@ setReplaceMethod("iter", "McmcParams", function(object, value){
 })
 
 setMethod("updateObject", "McmcParams", function(object){
+  obj <- callNextMethod(object)
+  obj@max_burnin <- 32000L
+  obj@min_chains <- 1L
+  obj@min_effsize <- round(1/3 * iter(object), 0)
+  obj@min_GR <- 1.2
+  obj
+})
+
+###
+###create analogous for McmcParamsTrios
+###
+
+.param_updates2 <- function(x){
+  x <- setNames(rep(1L, 10),
+                c("theta", "sigma2", "pi", "mu", "tau2", "nu.0", "sigma2.0", "z.parents", "z.offspring", "pi.parents"))
+  x
+}
+
+setMethod("paramUpdates", "McmcParamsTrios", function(x){
+  x@param_updates
+})
+
+
+setReplaceMethod("paramUpdates", "McmcParamsTrios", function(x, value){
+  x@param_updates <- value
+  x
+})
+
+
+#' Create an object of class 'McmcParamsTrios' to specify iterations, burnin, etc.
+#'
+#' @examples
+#'      mp <- McmcParams(iter=100, burnin=10)
+#' @param iter number of iterations
+#' @param burnin number of burnin iterations
+#' @param thin thinning interval
+#' @param nStarts number of chains to run
+#' @param param_updates labeled vector specifying whether each parameter is to be updated (1) or not (0).
+#' @return An object of class 'McmcParams'
+#' @export
+McmcParamsTrios <- function(iter=1000L,
+                       burnin=0L,
+                       thin=1L,
+                       nStarts=1L,
+                       param_updates=.param_updates2(),
+                       min_GR=1.2,
+                       min_effsize=round(1/3*iter, 0),
+                       max_burnin=32000,
+                       min_chains=1){
+  if(missing(thin)) thin <- rep(1L, length(iter))
+  new("McmcParamsTrios", iter=as.integer(iter),
+      burnin=as.integer(burnin),
+      thin=as.integer(thin),
+      nstarts=as.integer(nStarts),
+      param_updates=param_updates,
+      min_GR=min_GR,
+      min_effsize=min_effsize,
+      max_burnin=max_burnin,
+      min_chains=min_chains)
+}
+
+
+#' @rdname burnin-method
+#' @aliases burnin,McmcParamsTrios-method
+setMethod("burnin", "McmcParamsTrios", function(object)  object@burnin)
+
+#' @rdname min_GR-method
+#' @aliases min_GR,McmcParamsTrios-method
+setMethod("min_GR", "McmcParamsTrios", function(object)  object@min_GR)
+
+#' @rdname min_chains-method
+#' @aliases min_chains,McmcParamsTrios-method
+setMethod("min_chains", "McmcParamsTrios", function(object)  object@min_chains)
+
+#' @rdname max_burnin-method
+#' @aliases max_burnin,McmcParamsTrios-method
+setMethod("max_burnin", "McmcParamsTrios", function(object)  object@max_burnin)
+
+setReplaceMethod("max_burnin", "McmcParamsTrios", function(object, value){
+  object@max_burnin <- as.integer(value)
+  object
+})
+
+#' @rdname min_effsize-method
+#' @aliases min_effsize,McmcParamsTrios-method
+setMethod("min_effsize", "McmcParamsTrios", function(object)  object@min_effsize)
+
+#' @rdname burnin-method
+#' @aliases burnin<-,McmcParamsTrios-method
+setReplaceMethod("burnin", "McmcParamsTrios", function(object,value){
+  object@burnin <- value
+  object
+})
+
+#' @rdname thin-method
+#' @aliases thin,McmcParamsTrios-method
+setMethod("thin", "McmcParamsTrios", function(object) object@thin)
+
+setReplaceMethod("thin", c("McmcParamsTrios", "numeric"), function(object, value){
+  object@thin <- value
+  object
+})
+
+#' @rdname iter-method
+#' @aliases iter,McmcParamsTrios-method
+setMethod("iter", "McmcParamsTrios", function(object) object@iter)
+
+setMethod("show", "McmcParamsTrios", function(object){
+  cat("An object of class 'McmcParamsTrios'\n")
+  cat("   iterations:", paste(iter(object), collapse=","), "\n")
+  cat("   burnin    :", paste(burnin(object), collapse=","),  "\n")
+  cat("   thin      :", paste(thin(object), collapse=","), "\n")
+  cat("   n starts  :", nStarts(object), "\n")
+})
+
+#' @rdname nStarts-method
+#' @aliases nStarts,McmcParamsTrios-method
+setMethod("nStarts", "McmcParamsTrios", function(object) object@nstarts)
+
+#' @rdname nStarts-method
+#' @aliases nStarts<-,McmcParamsTrios-method
+setReplaceMethod("nStarts", "McmcParamsTrios", function(object, value){
+  object@nstarts <- as.integer(value)
+  object
+})
+
+
+#' @rdname iter-method
+#' @aliases iter<-,McmcParamsTrios-method
+setReplaceMethod("iter", "McmcParamsTrios", function(object, value){
+  object@iter <- value
+  object
+})
+
+setMethod("updateObject", "McmcParamsTrios", function(object){
   obj <- callNextMethod(object)
   obj@max_burnin <- 32000L
   obj@min_chains <- 1L

@@ -22,8 +22,6 @@ An object of class HyperparametersMarginal or HyperparametersBatch
 a list of hyperparameter objects
 }
 \description{
-Create an object of class 'Hyperparameters'
-
 The elements of the list are named by the type of model (SB, MB, SBP, MBP).
 }
 \details{

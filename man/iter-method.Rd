@@ -8,6 +8,9 @@
 \alias{iter,McmcParams-method}
 \alias{iter<-,McmcParams,ANY-method}
 \alias{iter<-,McmcParams-method}
+\alias{iter,McmcParamsTrios-method}
+\alias{iter<-,McmcParamsTrios,ANY-method}
+\alias{iter<-,McmcParamsTrios-method}
 \alias{iter,MixtureModel-method}
 \alias{iter<-,MixtureModel,ANY-method}
 \alias{iter<-,MixtureModel-method}
@@ -20,6 +23,10 @@ iter(object)
 \S4method{iter}{McmcParams}(object)
 
 \S4method{iter}{McmcParams,ANY}(object) <- value
+
+\S4method{iter}{McmcParamsTrios}(object)
+
+\S4method{iter}{McmcParamsTrios,ANY}(object) <- value
 
 \S4method{iter}{MixtureModel}(object)
 
