@@ -89,7 +89,7 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
                 batches=integer()){
   ## If the data is not ordered by batch,
   ## its a little harder to sort component labels
-  dat2 <- tibble(y=dat, batch=batches)
+  ##dat2 <- tibble(y=dat, batch=batches)
   ub <- unique(batches)
   nbatch <- setNames(as.integer(table(batches)), ub)
   B <- length(ub)
@@ -204,7 +204,7 @@ MultiBatchModel2 <- function(dat=numeric(),
     tabz2 <- table(z(mb))
     validZ <- length(tabz2) == k(hp) && all(tabz1 > 1)
     iter <- iter + 1
-    if(iter == 50) {
+    if(iter == 100) {
       message("Trouble initializing a valid model. The number of components is likely too large")
       return(NULL)
     }

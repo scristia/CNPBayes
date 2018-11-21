@@ -91,7 +91,8 @@ Rcpp::NumericVector update_mu(Rcpp::S4 xmod){
   NumericVector tau2_tilde = 1/tau2 ;
   IntegerVector z = model.slot("z") ;
   NumericMatrix theta = model.slot("theta") ;
-  IntegerVector nn = model.slot("zfreq") ;
+  // below line not referenced anywhere in function
+  // IntegerVector nn = model.slot("zfreq") ;
 
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = unique_batch(batch) ;
@@ -310,7 +311,7 @@ Rcpp::NumericVector update_p(Rcpp::S4 xmod) {
   Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
-  IntegerVector z = model.slot("z") ;  
+  // IntegerVector z = model.slot("z") ;  
   IntegerVector nn = model.slot("zfreq");
   IntegerVector alpha = hypp.slot("alpha") ;
   NumericVector alpha_n(K) ;  // really an integer vector, but rdirichlet expects numeric
@@ -379,7 +380,8 @@ Rcpp::NumericMatrix compute_means(Rcpp::S4 xmod) {
   IntegerVector z = model.slot("z") ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
-  IntegerVector nn = model.slot("zfreq") ;
+  // line below not referenced here
+  // IntegerVector nn = model.slot("zfreq") ;
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = unique_batch(batch) ;
   int B = ub.size() ;
@@ -411,7 +413,8 @@ Rcpp::NumericMatrix compute_vars(Rcpp::S4 xmod) {
   IntegerVector z = model.slot("z") ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
-  IntegerVector nn = model.slot("zfreq") ;
+  // line below not referenced anywhere here
+  // IntegerVector nn = model.slot("zfreq") ;
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = unique_batch(batch) ;
   int B = ub.size() ;

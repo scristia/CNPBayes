@@ -6,6 +6,9 @@
 \alias{[,McmcChains,ANY,ANY,ANY-method}
 \alias{[,McmcChains-method}
 \alias{[,McmcChains,ANY-method}
+\alias{[,McmcChainsTrios,ANY,ANY,ANY-method}
+\alias{[,McmcChainsTrios-method}
+\alias{[,McmcChainsTrios,ANY-method}
 \alias{extract}
 \alias{[,MultiBatchModel-method}
 \alias{[,MultiBatchModel,ANY-method}
@@ -14,6 +17,8 @@
 \title{extract estimated parameters at particular iteration of simulation.}
 \usage{
 \S4method{[}{McmcChains,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
+
+\S4method{[}{McmcChainsTrios,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
 \S4method{[}{MultiBatchModel,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 }
@@ -31,9 +36,13 @@
 \value{
 An object of class 'McmcChains'
 
+An object of class 'McmcChainsTrios'
+
 An object of class 'MultiBatchModel'
 }
 \description{
+extract estimated parameters at particular iteration of simulation.
+
 extract estimated parameters at particular iteration of simulation.
 
 extract data, latent variable, and batch for given observation

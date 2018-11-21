@@ -531,7 +531,7 @@ multibatch_figure <- function(theoretical, empirical, model){
   x <- NULL
   copynumber <- NULL
   fig <- ggplot(pred, aes(x=y, n_facet=n,
-                                y=..count../n_facet,
+                          y=..count../n_facet,
                                 fill=copynumber)) +
     geom_histogram(data=full.data, aes(y, ..density..),
                    bins=bins,

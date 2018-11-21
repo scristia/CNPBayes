@@ -46,6 +46,32 @@ initialize_mcmcP <- function(K, S, B){
       B=B)
 }
 
+# trios
+initialize_mcmcT <- function(K, S, B){
+  K <- as.integer(K)
+  B <- as.integer(B)
+  S <- as.integer(S)
+  new("McmcChainsTrios",
+      theta=matrix(numeric(), S, K*B),
+      sigma2=matrix(numeric(), S, K*B),
+      pi=matrix(numeric(), S, K),
+      pi_parents=matrix(numeric(), S, K),
+      mu=matrix(numeric(), S, K),
+      tau2=matrix(numeric(), S, K),
+      nu.0=numeric(S),
+      sigma2.0=numeric(S),
+      logprior=numeric(S),
+      loglik=numeric(S),
+      zfreq=matrix(as.integer(NA), S, K),
+      zfreq_parents=matrix(as.integer(NA), S, K),
+      predictive=matrix(as.numeric(NA), S, K*B),
+      zstar=matrix(as.integer(NA), S, K*B),
+      iter=S,
+      k=K,
+      B=B)
+}
+
+
 .initializeMcmc <- function(object){
   ## add 1 for starting values (either the last run from the burnin,
   ## or default values if no burnin
@@ -117,6 +143,27 @@ setMethod("McmcChains", "missing", function(object){
       B=integer())
 })
 
+setMethod("McmcChainsTrios", "missing", function(object){
+  new("McmcChainsTrios",
+      theta=matrix(),
+      sigma2=matrix(),
+      pi=matrix(),
+      pi_parents=matrix(),
+      mu=numeric(),
+      tau2=numeric(),
+      nu.0=numeric(),
+      sigma2.0=numeric(),
+      zfreq=matrix(),
+      zfreq_parents=matrix(),
+      logprior=numeric(),
+      loglik=numeric(),
+      predictive=matrix(),
+      zstar=matrix(),
+      iter=integer(),
+      k=integer(),
+      B=integer())
+})
+
 setValidity("McmcChains", function(object){
   msg <- TRUE
   if(length(iter(object)) > 0){
@@ -162,11 +209,44 @@ setMethod("McmcChains", "SingleBatchPooled", function(object){
       iter=iter(object),
       k=k(object),
       B=nBatch(object))
+
 }
 
 
 setMethod("McmcChains", "MultiBatchModel", function(object){
   .initializeMcmcBatch(object)
+})
+
+.initializeMcmcTrios <- function(object){
+  mcmc.params <- mcmcParams(object)
+  nr <- iter(mcmc.params)[1]
+  ns <- length(y(object))
+  K <- k(object)
+  B <- nBatch(object)
+  mati <- matrix(as.integer(NA), nr, K)
+  new("McmcChainsTrios",
+      theta=matrix(NA, nr, K*B),
+      sigma2=matrix(NA, nr, K*B),
+      pi=matrix(NA, nr, K),
+      pi_parents=matrix(NA, nr, K),
+      mu=matrix(NA, nr, K),
+      tau2=matrix(NA, nr, K),
+      nu.0=numeric(nr),
+      sigma2.0=numeric(nr),
+      logprior=numeric(nr),
+      loglik=numeric(nr),
+      zfreq=mati,
+      zfreq_parents=mati,
+      predictive=matrix(as.numeric(NA), nr, K*B),
+      zstar=matrix(as.integer(NA), nr, K*B),
+      iter=iter(object),
+      k=k(object),
+      B=nBatch(object))
+  
+}
+
+setMethod("McmcChainsTrios", "TrioBatchModel", function(object){
+  .initializeMcmcTrios(object)
 })
 
 chains_mb <- function(object){
@@ -251,6 +331,36 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+#' extract estimated parameters at particular iteration of simulation.
+#' @aliases [,McmcChainsTrios-method [,McmcChainsTrios,ANY-method
+#' @return An object of class 'McmcChainsTrios'
+#' @docType methods
+#' @rdname extract-methods
+setMethod("[", "McmcChainsTrios", function(x, i, j, ..., drop=FALSE){
+  if(!missing(i)){
+    x@theta <- x@theta[i, , drop=FALSE]
+    x@sigma2 <- x@sigma2[i, , drop=FALSE]
+    x@pi <- x@pi[i, , drop=FALSE]
+    x@pi_parents <- x@pi_parents[i, , drop=FALSE]
+    if(is.matrix(x@mu)){
+      x@mu <- x@mu[i, , drop=FALSE]
+    } else x@mu <- x@mu[i]
+    if(is.matrix(x@tau2)){
+      x@tau2 <- x@tau2[i, , drop=FALSE]
+    } else  x@tau2 <- x@tau2[i]
+    x@nu.0 <- x@nu.0[i]
+    x@sigma2.0 <- x@sigma2.0[i]
+    x@logprior <- x@logprior[i]
+    x@loglik <- x@loglik[i]
+    x@zfreq <- x@zfreq[i, , drop=FALSE]
+    x@zfreq_parents <- x@zfreq_parents[i, , drop=FALSE]
+    x@predictive <- x@predictive[i, , drop=FALSE]
+    x@zstar <- x@zstar[i, , drop=FALSE]
+  }
+  x@iter <- nrow(x@theta)
+  x
+})
+
 #' @rdname nu.0-method
 #' @aliases nu.0,McmcChains-method
 setMethod("nu.0", "McmcChains", function(object) object@nu.0)
@@ -258,6 +368,11 @@ setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 #' @rdname sigma2.0-method
 #' @aliases sigma2.0,McmcChains-method
 setMethod("sigma2.0", "McmcChains", function(object) object@sigma2.0)
+
+setReplaceMethod("pp", "McmcChains", function(object, value){
+  object@pi_parents <- value
+  object
+})
 
 setReplaceMethod("theta", "McmcChains", function(object, value){
   object@theta <- value
@@ -321,6 +436,10 @@ setMethod("names", "McmcChains", function(x) slotNames(x))
 #' @aliases zfreq,McmcChains-method
 setMethod("zFreq", "McmcChains", function(object) object@zfreq )
 
+#' @rdname zfreqpar-method
+#' @aliases zfreqpar,McmcChains-method
+setMethod("zFreqPar", "McmcChains", function(object) object@zfreq_parents )
+
 #' @rdname logPrior-method
 #' @aliases logPrior,McmcChains-method
 setMethod("logPrior", "McmcChains", function(object) object@logprior)
@@ -334,6 +453,11 @@ setReplaceMethod("zFreq", "McmcChains", function(object, value){
   object@zfreq <- value
   object
 })
+
+##setReplaceMethod("zFreqPar", "McmcChains", function(object, value){
+##  object@zfreq_parents <- value
+##  object
+##})
 
 longFormatKB <- function(x, K, B){
   col_names <- rep(seq_len(B), B) %>%
@@ -439,13 +563,22 @@ setAs("McmcChains", "list", function(from){
 
 setMethod("predictive", "McmcChains", function(object) object@predictive)
 setMethod("zstar", "McmcChains", function(object) object@zstar)
+setMethod("predictive", "McmcChainsTrios", function(object) object@predictive)
+setMethod("zstar", "McmcChainsTrios", function(object) object@zstar)
 setMethod("predictive", "MultiBatchModel", function(object) predictive(chains(object)))
 setMethod("zstar", "MultiBatchModel", function(object) zstar(chains(object)))
+setMethod("predictive", "TrioBatchModel", function(object) predictive(chains(object)))
+setMethod("zstar", "TrioBatchModel", function(object) zstar(chains(object)))
 setMethod("predictive", "MultiBatchPooled", function(object) predictive(chains(object)))
 setMethod("zstar", "MultiBatchPooled", function(object) zstar(chains(object)))
 
 
 setReplaceMethod("predictive", c("McmcChains", "matrix"), function(object, value) {
+  object@predictive <- value
+  object
+})
+
+setReplaceMethod("predictive", c("McmcChainsTrios", "matrix"), function(object, value) {
   object@predictive <- value
   object
 })

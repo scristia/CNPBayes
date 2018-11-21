@@ -385,6 +385,9 @@ posteriorPredictive <- function(model){
   if(class(model) == "MultiBatchCopyNumberPooled"){
     tab <- .posterior_predictive_mbp(model)
   }
+  if(class(model) == "TrioBatchModel"){
+    tab <- .posterior_predictive_trio(model)
+  }
   tab <- tab[, c("y", "component", "batch")]
   tab$model <- modelName(model)
   return(tab)
@@ -433,6 +436,42 @@ posteriorPredictive <- function(model){
   }
   tab <- do.call(bind_rows, tab.list)
   tab$batch <- "1"
+  tab
+}
+
+.posterior_predictive_trio <- function(model){
+  ch <- chains(model)
+  alpha <- p(ch)
+  thetas <- theta(ch)
+  sigmas <- sigma(ch)
+  tab <- table(batch(model))
+  nb <- nrow(theta(model))
+  K <- k(model)
+  nn <- K * nb
+  Y <- matrix(NA, nrow(alpha), nn)
+  ylist <- list()
+  components <- seq_len(K)
+  mcmc.iter <- iter(model)
+  tab.list <- vector("list", mcmc.iter)
+  df <- dfr(hyperParams(model))
+  batches <- sort(rep(unique(batch(model)), each=K))
+  for(i in seq_len(mcmc.iter)){
+    ## same p assumed for each batch
+    a <- alpha[i, ]
+    mu <- matrix(thetas[i, ], nb, K)
+    s <- matrix(sigmas[i, ], nb, K)
+    ## for each batch, sample K observations with
+    ## mixture probabilities alpha
+    ## MC: should sample zz for offspring from mendelian probabilities
+    zz <- sample(components, K, prob=a, replace=TRUE)
+    for(b in seq_len(nb)){
+      ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=(s[b, ])[zz])
+    }
+    y <- unlist(ylist)
+    tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
+  }
+  tab <- do.call(bind_rows, tab.list)
+  tab$batch <- as.character(tab$batch)
   tab
 }
 

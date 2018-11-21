@@ -179,6 +179,7 @@ isPooled <- function(model){
                       "SingleBatchCopyNumberPooled",
                       "MultiBatchCopyNumberPooled")
 }
+
 #' @export
 #' @rdname CopyNumber-methods
 SingleBatchCopyNumber <- function(model){

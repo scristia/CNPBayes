@@ -159,7 +159,6 @@
 ##  return p_theta;
 ##}
 
-
 ##probSigma2 <- function(model, sigma2star){
 ##  prec <- 1/sigma2star
 ##  B <- batch(model)

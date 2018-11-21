@@ -39,6 +39,7 @@ setGeneric("theta<-", function(object, value) standardGeneric("theta<-"))
 
 setGeneric("sigma2<-", function(object, value) standardGeneric("sigma2<-"))
 setGeneric("p<-", function(object, value) standardGeneric("p<-"))
+setGeneric("pp<-", function(object, value) standardGeneric("pp<-"))
 
 #' @export
 #' @rdname sigma2-method
@@ -140,6 +141,9 @@ setGeneric("hyperParams", function(object) standardGeneric("hyperParams"))
 setGeneric("hyperParams<-", function(object,value) standardGeneric("hyperParams<-"))
 
 setGeneric("McmcChains", function(object) standardGeneric("McmcChains"))
+
+setGeneric("McmcChainsTrios", function(object) standardGeneric("McmcChainsTrios"))
+
 
 setGeneric("hist")
 
@@ -666,6 +670,29 @@ setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"
 setGeneric("zFreq", function(object) standardGeneric("zFreq"))
 setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 
+#' Calculates a frequency table of latent variable assigments for parents by observation.
+#' 
+#' @examples
+#'      zfreqpar(TrioBatchModelExample)
+#' @param object see \code{showMethods(zfreqpar)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname zfreqpar-method
+setGeneric("zFreqPar", function(object) standardGeneric("zFreqPar"))
+setGeneric("zFreqPar<-", function(object,value) standardGeneric("zFreqPar<-"))
+
+#' Retrieves intensity data from trios
+#' 
+#' @examples
+#'      triodata_lrr(TrioBatchModelExample)
+#' @param object see \code{showMethods(triodata_lrr)}
+#' @return An integer vector of length the number of components
+#' @export
+#' @docType methods
+#' @rdname triodata_lrr-method
+setGeneric("triodata_lrr", function(object) standardGeneric("triodata_lrr"))
+
 #' Retrieve MCMC parameters from model.
 #'
 #' View number of iterations, burnin, etc.
@@ -944,6 +971,20 @@ setGeneric("dfr", function(object) standardGeneric("dfr"))
 setGeneric("dfr<-", function(object, value) standardGeneric("dfr<-"))
 
 setGeneric("u", function(object) standardGeneric("u"))
+
+
+#' Retrieve the probability of latent variable membership by observation for parents.
+#'
+#' @examples
+#'      probzpar(TrioBatchModelExample)
+#' @param object see \code{showMethods(probzpar)}
+#' @return A matrix of size number of observations x number of components
+#' @export
+#' @docType methods
+#' @rdname probzpar-method
+setGeneric("probzpar", function(object) standardGeneric("probzpar"))
+
+setGeneric("probzpar<-", function(object, value) standardGeneric("probzpar<-"))
 
 setGeneric("p", function(object) standardGeneric("p"))
 

@@ -58,6 +58,21 @@ setClass("HyperparametersSingleBatch", contains="Hyperparameters")
 #' @slot dfr positive number for t-distribution degrees of freedom
 setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 
+#' An object to specify the hyperparameters of a model with additional parameters for trios
+#' 
+#' This class inherits from the hyperparameters class. 
+#' @slot k Number of components
+#' @slot mu.0 Prior mean for mu.
+#' @slot tau2.0 prior variance on mu
+#' @slot eta.0 rate paramater for tau2
+#' @slot m2.0 shape parameter for tau2
+#' @slot alpha mixture probabilities
+#' @slot beta parameter for nu.0 distribution
+#' @slot a shape for sigma2.0
+#' @slot b rate for sigma2.0
+#' @slot dfr positive number for t-distribution degrees of freedom
+setClass("HyperparametersTrios", contains="Hyperparameters")
+
 #' An object to hold estimated paraeters.
 #'
 #' An object of this class holds estimates of each parameter at each iteration of the MCMC simulation.
@@ -91,6 +106,12 @@ setClass("McmcChains", representation(theta="matrix",
                                       k="integer",
                                       iter="integer",
                                       B="integer"))
+
+setClass("McmcChainsTrios", contains="McmcChains",
+         slots=c(pi_parents="matrix",
+                 zfreq_parents="matrix"))
+##family_member="character"))
+
 
 #' An object to specify MCMC options for a later simulation
 #'
@@ -212,8 +233,12 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @export
 setClass("MultiBatchModel", contains="MixtureModel")
 
-
-setClass("TrioBatchModel", contains="MultiBatchModel", slots=c(triodata="tbl_df"))
+setClass("TrioBatchModel", contains="MultiBatchModel",
+         slots=c(triodata="list", mprob="matrix",
+                 father="numeric", mother="numeric", 
+                 maplabel="numeric", pi_parents="numeric",
+                 zfreq_parents="integer", probz_par="matrix"))
+                 ##family_member="character"))
 
 #' The 'SingleBatchModel' class
 #'

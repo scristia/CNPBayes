@@ -5,9 +5,18 @@ setMethod("runBurnin", "MultiBatchModel", function(object){
   cpp_burnin(object)
 })
 
+setMethod("runBurnin", "TrioBatchModel", function(object){
+  trios_burnin(object, mcmcParams(object))
+})
+
 setMethod("runMcmc", "MultiBatchModel", function(object){
   cpp_mcmc(object)
 })
+
+setMethod("runMcmc", "TrioBatchModel", function(object){
+  trios_mcmc(object, mcmcParams(object))
+})
+
 
 setMethod("runBurnin", "MultiBatchPooled", function(object){
   burnin_multibatch_pvar(object, mcmcParams(object))
@@ -193,4 +202,10 @@ setMethod("posteriorSimulation", "list", function(object){
     object[[i]] <- posteriorSimulation(object[[i]])
   }
   object
+})
+
+#' @rdname posteriorSimulation-method
+#' @aliases posteriorSimulation,TrioBatchModel-method
+setMethod("posteriorSimulation", "TrioBatchModel", function(object){
+  .posteriorSimulation2(object)
 })

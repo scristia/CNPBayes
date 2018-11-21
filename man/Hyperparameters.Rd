@@ -33,5 +33,5 @@ hp.list <- hpList(k=3)
 hp.list[["SB"]]
 }
 \seealso{
-\code{\link{HyperparametersMultiBatch}} \code{\link{Hyperparameters}}
+\code{\link{HyperparametersMultiBatch}} \code{\link{Hyperparameters}} \code{\link{HyperparametersTrios}}
 }

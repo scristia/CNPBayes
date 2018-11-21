@@ -138,7 +138,6 @@ mlParams <- function(root=1/10,
        warnings=warnings)
 }
 
-
 ## used for debugging
 ## computeML <- function(model, params=mlParams()){
 ##   ## calculate p(x|theta)

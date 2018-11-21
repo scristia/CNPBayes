@@ -319,8 +319,6 @@ combine_multibatch_pooled <- function(model.list, batches){
 }
 
 
-
-
 #' @aliases sigma,MultiBatchCopyNumberPooled-method
 #' @rdname sigma2-method
 setMethod("sigma_", "MultiBatchCopyNumberPooled", function(object){
