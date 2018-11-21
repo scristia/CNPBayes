@@ -234,11 +234,14 @@ setClass("MixtureModel", representation("VIRTUAL",
 setClass("MultiBatchModel", contains="MixtureModel")
 
 setClass("TrioBatchModel", contains="MultiBatchModel",
-         slots=c(triodata="list", mprob="matrix",
-                 father="numeric", mother="numeric", 
-                 maplabel="numeric", pi_parents="numeric",
-                 zfreq_parents="integer", probz_par="matrix"))
-                 ##family_member="character"))
+         slots=c(triodata="list",
+                 mprob="matrix",
+                 father="numeric",
+                 mother="numeric",
+                 maplabel="numeric",
+                 pi_parents="numeric",
+                 zfreq_parents="integer",
+                 probz_par="matrix"))
 
 #' The 'SingleBatchModel' class
 #'

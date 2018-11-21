@@ -754,38 +754,20 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
   double df = getDf(model.slot("hyperparams")) ;
-  if( S < 1 ){
-    return model ;
-  }
-  for(int s = 0; s < S; ++s){
-    if(up[7] > 0){
-      model.slot("z") = update_z(model) ;
-      model.slot("zfreq_parents") = tableZpar(model) ;
-      //model.slot("zfreq_parents") = tableZ(K, model.slot("z")) ;
-    }
-    if(up[1] > 0)
-      model.slot("sigma2") = update_sigma2(model) ;
-    if(up[5] > 0)
-      model.slot("nu.0") = update_nu0(model) ;
-    if(up[6] > 0)
-      model.slot("sigma2.0") = update_sigma20(model) ;
-    if(up[8] > 0){
-      model.slot("z") = update_zchild(model) ;
-      //model.slot("zfreq") = tableZpar(model) ;
-      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-    }
-    if(up[0] > 0){
-      model.slot("theta") = update_theta(model) ;
-    }
-    if(up[3] > 0)
-      model.slot("mu") = update_mu(model) ;
-    if(up[4] > 0)
-      model.slot("tau2") = update_tau2(model) ;
-      if(up[9] > 0)
-        model.slot("pi_parents") = update_pp(model) ;
-      if(up[2] > 0)
-        model.slot("pi") = update_p(model) ;
-      model.slot("u") = Rcpp::rchisq(N, df) ;
+  for(int s = 1; s < S; ++s){
+    model.slot("z") = update_z(model) ;
+    model.slot("zfreq_parents") = tableZpar(model) ;
+    model.slot("sigma2") = update_sigma2(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("sigma2.0") = update_sigma20(model) ;
+    model.slot("z") = update_zchild(model) ;
+    model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    model.slot("theta") = update_theta(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("pi_parents") = update_pp(model) ;
+    model.slot("pi") = update_p(model) ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   NumericVector lls2(1);
   NumericVector ll(1);
@@ -795,7 +777,6 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   model.slot("loglik") = ll;
   model.slot("logprior") = compute_logprior(model) ;
   return model ;
-  // return vars ;
 }
 
 // [[Rcpp::export]]
@@ -809,7 +790,8 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   int K = getK(hypp) ;
   int T = params.slot("thin") ;
   int S = params.slot("iter") ;
-  if( S < 1 ) return model ;
+  S = S - 1;
+  T = T - 1;
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
   double df = getDf(model.slot("hyperparams")) ;
@@ -844,109 +826,43 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   IntegerVector tmp(K) ;
   IntegerVector zf(K) ;
   IntegerVector zp(K) ;
-  // Initial values
-  p = model.slot("pi") ;
-  pp = model.slot("pi_parents") ;
-  m = model.slot("mu") ;
-  t2 = model.slot("tau2") ;
-  n0 = model.slot("nu.0") ;
-  s20 = model.slot("sigma2.0") ;
-  zf = model.slot("zfreq") ;
-  zp = model.slot("zfreq_parents") ;
-  z = model.slot("z") ;
-  u = model.slot("u") ;
-  ll = model.slot("loglik") ;
-  lp = model.slot("logprior") ;
-  // Record initial values in chains
-  mu(0, _) = m ;
-  nu0[0] = n0[0] ;
-  sigma2_0[0] = s20[0] ;
-  loglik_[0] = ll[0] ;
-  logprior_[0] = lp[0] ;
-  thetac(0, _) = as<Rcpp::NumericVector>(model.slot("theta")) ;
-  tau2(0, _) = t2 ;
-  sigma2c(0, _) = as<Rcpp::NumericVector>(model.slot("sigma2")) ;
-  pmix(0, _) = p ;
-  pmix_parents (0, _) = pp ;
-  zfreq(0, _) = zf ;
-  zfreq_parents(0, _) = zp ;
-  for(int s = 1; s < S; ++s){
-    if(up[7] > 0){
-      z = update_z(model) ;
-      model.slot("z") = z ;
-      tmp = tableZpar(model) ;
-      //tmp = tableZ(K, model.slot("z")) ;
-      model.slot("probz_par") = update_probzpar(model) ;
-      model.slot("zfreq_parents") = tmp ;
-    } else {
-      z = model.slot("z") ;
-      tmp = model.slot("zfreq_parents") ;
-    }
+  for(int s = 0; s < (S + 1); ++s){
+    z = update_z(model) ;
+    model.slot("z") = z ;
+    tmp = tableZpar(model) ;
+    //tmp = tableZ(K, model.slot("z")) ;
+    model.slot("probz_par") = update_probzpar(model) ;
+    model.slot("zfreq_parents") = tmp ;
     zfreq_parents(s, _) = tmp ;
-    if(up[1] > 0){
-      model.slot("sigma2") = update_sigma2(model) ;
-    }
+    model.slot("sigma2") = update_sigma2(model) ;
     sigma2c(s, _) = as<Rcpp::NumericVector>(model.slot("sigma2"));
-    if(up[5] > 0){
-      n0 = update_nu0(model) ;
-      model.slot("nu.0") = n0 ;
-    } else {
-      n0 = model.slot("nu.0") ;
-    }
+    n0 = update_nu0(model) ;
+    model.slot("nu.0") = n0 ;
     nu0[s] = n0[0] ;
-    if(up[6] > 0){
-      s20 = update_sigma20(model) ;
-      model.slot("sigma2.0") = s20 ;
-    } else {
-      s20 = model.slot("sigma2.0") ;
-    }
+    s20 = update_sigma20(model) ;
+    model.slot("sigma2.0") = s20 ;
     sigma2_0[s] = s20[0] ;
-      if(up[8] > 0){
-      z = update_zchild(model) ;
-      model.slot("z") = z ;
-      //tmp = tableZpar(model) ;
-      tmp = tableZ(K, model.slot("z")) ;
-      model.slot("probz") = update_probz(model) ;
-      model.slot("zfreq") = tmp ;
-    } else {
-      z = model.slot("z") ;
-      tmp = model.slot("zfreq") ;
-    }
+    z = update_zchild(model) ;
+    model.slot("z") = z ;
+    tmp = tableZ(K, model.slot("z")) ;
+    model.slot("probz") = update_probz(model) ;
+    model.slot("zfreq") = tmp ;
     zfreq(s, _) = tmp ;
-    //model.slot("probz") = update_probz(model) ;
-    if(up[0] > 0) {
-      model.slot("theta") = update_theta(model) ;
-    }
+    model.slot("theta") = update_theta(model) ;
     thetac(s, _) = as<Rcpp::NumericVector>(model.slot("theta")) ;
-    if(up[4] > 0){
-      t2 = update_tau2(model) ;
-      model.slot("tau2") = t2 ;
-    } else {
-      t2 = model.slot("tau2") ;
-    }
+    t2 = update_tau2(model) ;
+    model.slot("tau2") = t2 ;
     tau2(s, _) = t2 ;
-    if(up[3] > 0){
-      m = update_mu(model) ;
-      model.slot("mu") = m ;
-    } else {
-      m = model.slot("mu") ;
-    }
+    m = update_mu(model) ;
+    model.slot("mu") = m ;
     mu(s, _) = m ;
-    if(up[9] > 0){
-      pp = update_pp(model) ;
-      model.slot("pi_parents") = pp ;
-    } else {
-      pp = model.slot("pi_parents") ;
-    }
+    pp = update_pp(model) ;
+    model.slot("pi_parents") = pp ;
     pmix_parents(s, _) = pp ;
-    if(up[2] > 0){
-      p = update_p(model) ;
-      model.slot("pi") = p ;
-    } else {
-      p = model.slot("pi") ;
-    }
+    p = update_p(model) ;
+    model.slot("pi") = p ;
     pmix(s, _) = p ;
-     ll = compute_loglik(model) ;
+    ll = compute_loglik(model) ;
     lls2 = stageTwoLogLikBatch(model) ;
     ll = ll + lls2 ;
     loglik_[s] = ll[0] ;
@@ -958,32 +874,18 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     model.slot("u") = u;
     // Thinning
     for(int t = 0; t < T; ++t){
-      if(up[7] > 0){
-        model.slot("z") = update_z(model) ;
-        model.slot("zfreq_parents") = tableZpar(model) ;
-        //model.slot("zfreq_parents") = tableZ(K, model.slot("z")) ;
-      }
-      if(up[1] > 0)
-        model.slot("sigma2") = update_sigma2(model) ;
-      if(up[5] > 0)
-        model.slot("nu.0") = update_nu0(model) ;
-      if(up[6] > 0)
-        model.slot("sigma2.0") = update_sigma20(model) ;
-      if(up[8] > 0){
-        model.slot("z") = update_zchild(model) ;
-        //model.slot("zfreq") = tableZpar(model) ;
-        model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-      }
-      if(up[0] > 0)
-        model.slot("theta") = update_theta(model) ;
-      if(up[4] > 0)
-        model.slot("tau2") = update_tau2(model) ;
-      if(up[3] > 0)
-        model.slot("mu") = update_mu(model) ;
-      if(up[9] > 0)
-        model.slot("pi_parents") = update_pp(model) ;
-      if(up[2] > 0)
-        model.slot("pi") = update_p(model) ;
+      model.slot("z") = update_z(model) ;
+      model.slot("zfreq_parents") = tableZpar(model) ;
+      model.slot("sigma2") = update_sigma2(model) ;
+      model.slot("nu.0") = update_nu0(model) ;
+      model.slot("sigma2.0") = update_sigma20(model) ;
+      model.slot("z") = update_zchild(model) ;
+      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+      model.slot("theta") = update_theta(model) ;
+      model.slot("tau2") = update_tau2(model) ;
+      model.slot("mu") = update_mu(model) ;
+      model.slot("pi_parents") = update_pp(model) ;
+      model.slot("pi") = update_p(model) ;
       model.slot("u") = Rcpp::rchisq(N, df) ;
     }
   }

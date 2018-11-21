@@ -370,8 +370,7 @@ test_that("full example", {
   mean(z(model)[index] == true.component)
   mean(z(mb)[!index] == truth.par)
   mean(z(model)[!index] == truth.par)
-  
-  })
+})
 
 test_that("gibbs implement", {
   set.seed(123)
@@ -392,15 +391,18 @@ test_that("gibbs implement", {
   true.cn <- as.integer(truth$data$copy_number)
   true.component <- true.cn + 1L
 
-  mp <- McmcParams(iter=1000, burnin=1000, thin=1, nStarts=3)
+  mp <- McmcParams(iter=200, burnin=100, thin=1, nStarts=3)
   tbm1 <- gibbs_trios(model="TBM", dat=as.tibble(truth$data),
                       batches=truth$data$batches,
-                      mp=mp, mprob=mprob, maplabel=maplabel, 
-                      k_range=c(3, 3), max_burnin=1000)
-  mp2 <- McmcParams(iter=1000, burnin=1000, thin=1)
+                      mp=mp, mprob=mprob, maplabel=maplabel,
+                      k_range=c(3, 3), max_burnin=100)[[1]]
+  th <- theta(tbm1)[1, ]
+  expect_equal(th, truth$params$theta, tolerance=0.05)
+
+  mp2 <- McmcParams(iter=200, burnin=100, thin=1)
   mb2 <- gibbs(model="MB", dat=truth$data$log_ratio,
                batches=batch(tbm1[[1]]),
-               mp=mp2, k_range=c(3, 3), max_burnin=1000)
+               mp=mp2, k_range=c(3, 3), max_burnin=100)g
 
 
   if(FALSE){
