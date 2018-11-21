@@ -47,7 +47,7 @@ initialize_mcmcP <- function(K, S, B){
 }
 
 # trios
-initialize_mcmcT <- function(K, S, B){
+initialize_mcmcT <- function(K, S, B, T){
   K <- as.integer(K)
   B <- as.integer(B)
   S <- as.integer(S)
@@ -66,6 +66,7 @@ initialize_mcmcT <- function(K, S, B){
       zfreq_parents=matrix(as.integer(NA), S, K),
       predictive=matrix(as.numeric(NA), S, K*B),
       zstar=matrix(as.integer(NA), S, K*B),
+      is_mendelian=integer(T),
       iter=S,
       k=K,
       B=B)
@@ -242,11 +243,14 @@ setMethod("McmcChains", "MultiBatchModel", function(object){
       iter=iter(object),
       k=k(object),
       B=nBatch(object))
-  
 }
 
 setMethod("McmcChainsTrios", "TrioBatchModel", function(object){
-  .initializeMcmcTrios(object)
+  K <- k(object)
+  S <- iter(object)
+  B <- numBatch(object)
+  T <- nTrios(object)
+  initialize_mcmcT(K, S, B, T)
 })
 
 chains_mb <- function(object){
@@ -601,3 +605,5 @@ setMethod("updateObject", "McmcChains",
             object@B <- B
             object
 })
+
+setMethod("isMendelian", "McmcChains", function(object) object@is_mendelian)

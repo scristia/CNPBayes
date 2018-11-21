@@ -109,7 +109,8 @@ setClass("McmcChains", representation(theta="matrix",
 
 setClass("McmcChainsTrios", contains="McmcChains",
          slots=c(pi_parents="matrix",
-                 zfreq_parents="matrix"))
+                 zfreq_parents="matrix",
+                 is_mendelian="integer"))
 ##family_member="character"))
 
 
@@ -229,19 +230,21 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot mcmc.params An object of class 'McmcParams'
+#' @slot is_mendelian integer vector equal in length to the number of trios
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 #' @export
 setClass("MultiBatchModel", contains="MixtureModel")
 
 setClass("TrioBatchModel", contains="MultiBatchModel",
-         slots=c(triodata="list",
+         slots=c(triodata="tbl_df",
                  mprob="matrix",
                  father="numeric",
                  mother="numeric",
                  maplabel="numeric",
                  pi_parents="numeric",
                  zfreq_parents="integer",
-                 probz_par="matrix"))
+                 probz_par="matrix",
+                 is_mendelian="integer"))
 
 #' The 'SingleBatchModel' class
 #'

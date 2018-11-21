@@ -83,11 +83,13 @@
     matrix(B, k(hp))
   u <- rchisq(nrow(triodata), hp@dfr)
   S <- iter(mp)
-  ch <- initialize_mcmcT(K, S, B)
+  T <- length(unique(triodata$id))
+  ch <- initialize_mcmcT(K, S, B, T)
   index <- match(c("father", "mother"), colnames(mprob))
   mprob2 <- mprob[, -index]
   father <- mprob[, "father"]
   mother <- mprob[, "mother"]
+  is_mendel <- rep(1L, T)
   ##zamp <- sample(seq_len(K), N, replace=TRUE)
   ##is_offspring <- model@triodata$family_member=="o"
   # write R update z module
@@ -129,6 +131,7 @@
              marginal_lik=as.numeric(NA),
              father=as.integer(father),
              mother=as.integer(mother),
+             is_mendelian=is_mendel,
              .internal.constraint=5e-4,
              .internal.counter=0L)
   obj
@@ -136,8 +139,8 @@
 
 triodata <- function(object){
   dat <- object@triodata
-  dat$log_ratio <- y(object)
-  dat$batches <- batch(object)
+  ##dat$log_ratio <- y(object)
+  ##dat$batches <- batch(object)
   dat
 }
 
@@ -324,118 +327,8 @@ TrioBatchModel <- function(triodata=tibble(),
 #' @export
 TBM <- TrioBatchModel
 
-.gibbs_trios_mcmc <- function(hp, mp, dat, mprob, maplabel, max_burnin=32000, batches, min_effsize=500){
-  nchains <- nStarts(mp)
-  nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
-  if(iter(mp) < 500){
-    warning("Require at least 500 Monte Carlo simulations")
-    MIN_EFF <- ceiling(iter(mp) * 0.5)
-  } else MIN_EFF <- min_effsize
-  MIN_CHAINS <- 3
-  MIN_GR <- 1.2
-  neff <- 0; r <- 2
-  while(burnin(mp) < max_burnin && thin(mp) < 100){
-    message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    mod.list <- replicate(nchains, TBM(triodata=dat,
-                                       hp=hp,
-                                       mp=mp,
-                                       mprob=mprob,
-                                       maplabel=maplabel))
 
-    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
-    no_label_swap <- !map_lgl(mod.list, label_switch)
-    if(sum(no_label_swap) < MIN_CHAINS){
-      burnin(mp) <- as.integer(burnin(mp) * 2)
-      mp@thin <- as.integer(thin(mp) + 2)
-      nStarts(mp) <- nStarts(mp) + 1
-      next()
-    }
-    mod.list <- mod.list[ no_label_swap ]
-    mod.list <- mod.list[ selectModels(mod.list) ]
-    mlist <- mcmcList(mod.list)
-    neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-    if(is.null(neff)) neff <- 0
-    r <- gelman_rubin(mlist, hp)
-    message("     Gelman-Rubin: ", round(r$mpsrf, 2))
-    message("     eff size (median): ", round(min(neff), 1))
-    message("     eff size (mean): ", round(mean(neff), 1))
-    if((mean(neff) > min_effsize) && r$mpsrf < MIN_GR) break()
-    burnin(mp) <- as.integer(burnin(mp) * 2)
-    mp@thin <- as.integer(thin(mp) + 2)
-    nStarts(mp) <- nStarts(mp) + 1
-    ##mp@thin <- as.integer(thin(mp) * 2)
-  }
 
-  model <- combine_batchTrios(mod.list, batches)
-  meets_conditions <- (mean(neff) > min_effsize) &&
-    r$mpsrf < MIN_GR &&
-    !label_switch(model)
-  if(meets_conditions){
-    ## Commented by Rob for now
-    model <- compute_marginal_lik(model)
-  }
-  model
-}
-
-gibbs_trios_K <- function(hp,
-                          mp,
-                          k_range=c(1, 4),
-                          dat,
-                          batches,
-                          maplabel,
-                          mprob,
-                          max_burnin=32000,
-                          reduce_size=TRUE,
-                          min_effsize=500){
-  K <- seq(k_range[1], k_range[2])
-  hp.list <- map(K, updateK, hp)
-  model.list <- map(hp.list,
-                    .gibbs_trios_mcmc,
-                    mp=mp,
-                    dat=dat,
-                    batches=batches,
-                    maplabel=maplabel,
-                    mprob=mprob,
-                    max_burnin=max_burnin,
-                    min_effsize=min_effsize)
-  names(model.list) <- paste0("TBM", map_dbl(model.list, k))
-  ## sort by marginal likelihood
-  ##
-  ## if(reduce_size) TODO:  remove z chain, keep y in one object
-  ##
-  ix <- order(map_dbl(model.list, marginal_lik), decreasing=TRUE)
-  models <- model.list[ix]
-}
-
-gibbs_trios <- function(model="TBM",
-                        dat,
-                        mp,
-                        mprob,
-                        maplabel,
-                        hp.list,
-                        batches,
-                        k_range=c(1, 4),
-                        max_burnin=32e3,
-                        top=2,
-                        df=100,
-                        min_effsize=500){
-  #model <- unique(model)
-  max_burnin <- max(max_burnin, burnin(mp)) + 1
-  if(missing(hp.list)){
-    #note this line will have to be incorporated in gibbs.R when generalised
-    hp.list <- hpList(df=df)[["TBM"]]
-  }
-  message("Fitting TBM models")
-  tbm <- gibbs_trios_K(hp.list,
-                      k_range=k_range,
-                      mp=mp,
-                      dat=dat,
-                      batches=rep(1L, length(dat)),
-                      maplabel=maplabel,
-                      mprob=mprob,
-                      max_burnin=max_burnin,
-                      min_effsize=min_effsize)
-}
 
 theta.fix <- function(model, values) {
   # values is in the form of a [1,K] matrix
@@ -466,89 +359,7 @@ pi.fix <- function(model){
   model
 }
 
-.gibbs_trios_mcmc2 <- function(hp, mp, dat, mprob, maplabel, max_burnin=32000, batches, min_effsize=500, theta.feed){
-  nchains <- nStarts(mp)
-  nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
-  if(iter(mp) < 500){
-    warning("Require at least 500 Monte Carlo simulations")
-    MIN_EFF <- ceiling(iter(mp) * 0.5)
-  } else MIN_EFF <- min_effsize
-  MIN_CHAINS <- 3
-  MIN_GR <- 1.2
-  neff <- 0; r <- 2
-  while(burnin(mp) < max_burnin && thin(mp) < 100){
-    message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    mod.list <- replicate(nchains, TBM(triodata=dat,
-                                       hp=hp,
-                                       mp=mp,
-                                       mprob=mprob,
-                                       maplabel=maplabel))
-    mod.list <- map(mod.list, theta.fix, theta.feed)
-    mp2 <- mp
-    up <- rep(1L, 10)
-    names(up) <- c("theta", "sigma2",
-                   "pi", "mu",
-                   "tau2",
-                   "nu.0",
-                   "sigma2.0",
-                   "z.parents",
-                   "z.offspring",
-                   "pi.parents")
-    up["theta"] <- 0L
-    mp2@param_updates <- up
-    mod.list <- map(mod.list, mp.fix, mp2)
-    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
-    mod.list <- map(mod.list, sigma2.fix)
-    up["sigma2"] <- 0L
-    mp2@param_updates <- up
-    mod.list <- map(mod.list, mp.fix, mp2)
-    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
-    mod.list <- map(mod.list, pi.fix)
-    up["pi"] <- 0L
-    up["theta"] <- 1L
-    mp2@param_updates <- up
-    mod.list <- map(mod.list, mp.fix, mp2)
-    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
-    mod.list <- map(mod.list, theta.fix2)
-    up["theta"] <- 0L
-    mp2@param_updates <- up
-    mod.list <- map(mod.list, mp.fix, mp2)
-    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
-    
-    no_label_swap <- !map_lgl(mod.list, label_switch)
-    if(sum(no_label_swap) < MIN_CHAINS){
-      burnin(mp) <- as.integer(burnin(mp) * 2)
-      mp@thin <- as.integer(thin(mp) + 2)
-      nStarts(mp) <- nStarts(mp) + 1
-      next()
-    }
-    mod.list <- mod.list[ no_label_swap ]
-    mod.list <- mod.list[ selectModels(mod.list) ]
-    
-    mlist <- mcmcList(mod.list)
-    neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-    if(is.null(neff)) neff <- 0
-    r <- gelman_rubin(mlist, hp)
-    message("     Gelman-Rubin: ", round(r$mpsrf, 2))
-    message("     eff size (median): ", round(min(neff), 1))
-    message("     eff size (mean): ", round(mean(neff), 1))
-    if((mean(neff) > min_effsize) && r$mpsrf < MIN_GR) break()
-    burnin(mp) <- as.integer(burnin(mp) * 2)
-    mp@thin <- as.integer(thin(mp) + 2)
-    nStarts(mp) <- nStarts(mp) + 1
-    ##mp@thin <- as.integer(thin(mp) * 2)
-  }
-  
-  model <- combine_batchTrios(mod.list, batches)
-  meets_conditions <- (mean(neff) > min_effsize) &&
-    r$mpsrf < MIN_GR &&
-    !label_switch(model)
-  if(meets_conditions){
-    ## Commented by Rob for now
-    model <- compute_marginal_lik(model)
-  }
-  model
-}
+
 
 gibbs_trios_K2 <- function(hp,
                           mp,
@@ -618,93 +429,6 @@ par.fix <- function(model, values) {
   model
 }
 
-.gibbs_trios_mcmc3 <- function(hp, mp, dat, mprob, maplabel, max_burnin=32000, batches, min_effsize=500, theta.feed, par.feed){
-  nchains <- nStarts(mp)
-  nStarts(mp) <- 1L ## because posteriorsimulation uses nStarts in a different way
-  if(iter(mp) < 500){
-    warning("Require at least 500 Monte Carlo simulations")
-    MIN_EFF <- ceiling(iter(mp) * 0.5)
-  } else MIN_EFF <- min_effsize
-  MIN_CHAINS <- 3
-  MIN_GR <- 1.2
-  neff <- 0; r <- 2
-  while(burnin(mp) < max_burnin && thin(mp) < 100){
-    message("  k: ", k(hp), ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    mod.list <- replicate(nchains, TBM(triodata=dat,
-                                       hp=hp,
-                                       mp=mp,
-                                       mprob=mprob,
-                                       maplabel=maplabel))
-    mod.list <- map(mod.list, theta.fix, theta.feed)
-    mod.list <- map(mod.list, par.fix, par.feed)
-    mp2 <- mp
-    up <- rep(1L, 10)
-    names(up) <- c("theta", "sigma2",
-                   "pi", "mu",
-                   "tau2",
-                   "nu.0",
-                   "sigma2.0",
-                   "z.parents",
-                   "z.offspring",
-                   "pi.parents")
-    #up["theta"] <- 0L
-    #up["z.parents"] <- 0L
-    #mp2@param_updates <- up
-    #mod.list <- map(mod.list, mp.fix, mp2)
-    #mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
-    #mod.list <- map(mod.list, sigma2.fix)
-    up["sigma2"] <- 0L
-    mp2@param_updates <- up
-    mod.list <- map(mod.list, mp.fix, mp2)
-    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
-    #mod.list <- map(mod.list, pi.fix)
-    up["pi"] <- 0L
-    
-    #up["theta"] <- 1L
-    mp2@param_updates <- up
-    mod.list <- map(mod.list, mp.fix, mp2)
-    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
-    mod.list <- map(mod.list, theta.fix2)
-    up["theta"] <- 0L
-    
-    mp2@param_updates <- up
-    mod.list <- map(mod.list, mp.fix, mp2)
-    mod.list <- suppressWarnings(map(mod.list, posteriorSimulation))
-    
-    no_label_swap <- !map_lgl(mod.list, label_switch)
-    if(sum(no_label_swap) < MIN_CHAINS){
-      burnin(mp) <- as.integer(burnin(mp) * 2)
-      mp@thin <- as.integer(thin(mp) + 2)
-      nStarts(mp) <- nStarts(mp) + 1
-      next()
-    }
-    mod.list <- mod.list[ no_label_swap ]
-    mod.list <- mod.list[ selectModels(mod.list) ]
-    
-    mlist <- mcmcList(mod.list)
-    neff <- tryCatch(effectiveSize(mlist), error=function(e) NULL)
-    if(is.null(neff)) neff <- 0
-    r <- gelman_rubin(mlist, hp)
-    message("     Gelman-Rubin: ", round(r$mpsrf, 2))
-    message("     eff size (median): ", round(min(neff), 1))
-    message("     eff size (mean): ", round(mean(neff), 1))
-    if((mean(neff) > min_effsize) && r$mpsrf < MIN_GR) break()
-    burnin(mp) <- as.integer(burnin(mp) * 2)
-    mp@thin <- as.integer(thin(mp) + 2)
-    nStarts(mp) <- nStarts(mp) + 1
-    ##mp@thin <- as.integer(thin(mp) * 2)
-  }
-  
-  model <- combine_batchTrios(mod.list, batches)
-  meets_conditions <- (mean(neff) > min_effsize) &&
-    r$mpsrf < MIN_GR &&
-    !label_switch(model)
-  if(meets_conditions){
-    ## Commented by Rob for now
-    model <- compute_marginal_lik(model)
-  }
-  model
-}
 
 gibbs_trios_K3 <- function(hp,
                            mp,
@@ -1319,4 +1043,11 @@ ci95.wrap <- function(vector) {
   test <- t.test(vector)
   ci95 <- test$conf.int
   ci95
+}
+
+setMethod("isMendelian", "TrioBatchModel", function(object) object@is_mendelian)
+
+nTrios <- function(object) {
+  dat <- triodata(object)
+  length(unique(dat$id))
 }

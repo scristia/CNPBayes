@@ -369,6 +369,14 @@ update_sigma22 <- function(xmod) {
     .Call('_CNPBayes_update_sigma22', PACKAGE = 'CNPBayes', xmod)
 }
 
+sample_trio_components <- function(x, size, prob) {
+    .Call('_CNPBayes_sample_trio_components', PACKAGE = 'CNPBayes', x, size, prob)
+}
+
+predictive_trios <- function(xmod) {
+    .Call('_CNPBayes_predictive_trios', PACKAGE = 'CNPBayes', xmod)
+}
+
 trios_burnin <- function(object, mcmcp) {
     .Call('_CNPBayes_trios_burnin', PACKAGE = 'CNPBayes', object, mcmcp)
 }

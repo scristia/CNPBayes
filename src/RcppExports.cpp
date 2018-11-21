@@ -1050,6 +1050,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sample_trio_components
+Rcpp::IntegerVector sample_trio_components(Rcpp::IntegerVector x, int size, Rcpp::NumericVector prob);
+RcppExport SEXP _CNPBayes_sample_trio_components(SEXP xSEXP, SEXP sizeSEXP, SEXP probSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type prob(probSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_trio_components(x, size, prob));
+    return rcpp_result_gen;
+END_RCPP
+}
+// predictive_trios
+Rcpp::S4 predictive_trios(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_predictive_trios(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(predictive_trios(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // trios_burnin
 Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp);
 RcppExport SEXP _CNPBayes_trios_burnin(SEXP objectSEXP, SEXP mcmcpSEXP) {
@@ -1180,6 +1204,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_compute_prec2", (DL_FUNC) &_CNPBayes_compute_prec2, 1},
     {"_CNPBayes_update_probzpar", (DL_FUNC) &_CNPBayes_update_probzpar, 1},
     {"_CNPBayes_update_sigma22", (DL_FUNC) &_CNPBayes_update_sigma22, 1},
+    {"_CNPBayes_sample_trio_components", (DL_FUNC) &_CNPBayes_sample_trio_components, 3},
+    {"_CNPBayes_predictive_trios", (DL_FUNC) &_CNPBayes_predictive_trios, 1},
     {"_CNPBayes_trios_burnin", (DL_FUNC) &_CNPBayes_trios_burnin, 2},
     {"_CNPBayes_trios_mcmc", (DL_FUNC) &_CNPBayes_trios_mcmc, 2},
     {"_CNPBayes_z2cn", (DL_FUNC) &_CNPBayes_z2cn, 2},

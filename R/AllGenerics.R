@@ -1030,3 +1030,4 @@ setGeneric("modelName", function(object) standardGeneric("modelName"))
 setGeneric("singleBatchGuided", function(x, guide) standardGeneric("singleBatchGuided"))
 
 setGeneric("convergence", function(object) standardGeneric("convergence"))
+setGeneric("isMendelian", function(object) standardGeneric("isMendelian"))
