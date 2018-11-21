@@ -742,6 +742,66 @@ Rcpp::NumericMatrix update_sigma22(Rcpp::S4 xmod){
   return sigma2_;
 }
 
+//[[Rcpp::export]]
+Rcpp::IntegerVector sample_trio_components(Rcpp::IntegerVector x, int size, Rcpp::NumericVector prob){
+  int n = x.size() ;
+  Rcpp::IntegerVector z = clone(x);
+  for(int i=0; i < n; i++){
+    //initialize accumulator ;
+    double accept = 0 ;
+    Rcpp::NumericVector u=runif(1);
+    for(int j = 0; j < n; j++){
+      accept += prob[j] ;
+      if( u[0] < accept ) {
+        z[i] = x[j] ;
+        break ;
+      }
+    }
+  }
+  return(z);
+}
+
+//[[Rcpp::export]]
+Rcpp::S4 predictive_trios(Rcpp::S4 xmod){
+  Rcpp::RNGScope scope;
+  Rcpp::S4 model(clone(xmod)) ;
+  Rcpp::NumericMatrix theta = model.slot("theta");
+  Rcpp::NumericMatrix sigma2 = model.slot("sigma2");
+  Rcpp::NumericVector prob = model.slot("pi");
+  Rcpp::IntegerVector batch = model.slot("batch") ;
+  int K = theta.ncol();
+  int B = theta.nrow();
+  Rcpp::IntegerVector components=seq_len(K);
+  double df = getDf(model.slot("hyperparams")) ;
+  Rcpp::IntegerVector z(K);
+  Rcpp::NumericMatrix ystar(B, K) ;
+  Rcpp::IntegerMatrix zstar(B, K) ;
+  Rcpp::NumericVector u=Rcpp::rchisq(K*B, df) ;;
+  // sample components according to mixture probabilities
+  // mixture probabilities are assumed to be the same for each batch
+  z=sample_trio_components(components, K, prob);
+  z=z-1;  // Need to subtract 1 for this to index the right column
+  Rcpp::NumericVector yy(K*B);
+  Rcpp::IntegerVector zz(K*B);
+  double sigma;
+  int index;
+  int j=0;
+  for(int k=0; k < K; ++k){
+    for(int b = 0; b < B; b++){
+      index = z[k];
+      sigma = sqrt(sigma2(b, index)) ;
+      zstar(b, k) = index ;
+      ystar(b, k) = (rlocScale_t(1, theta(b, index), sigma, df, u[j]))[0];
+      yy[j] = ystar(b, k);
+      zz[j] = zstar(b, k);
+      j++;
+    }
+  }
+  model.slot("predictive") = yy;
+  model.slot("zstar") = zz ;
+  return model ;
+}
+
 // [[Rcpp::export]]
 Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   RNGScope scope ;
@@ -810,6 +870,8 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   NumericVector sigma2_0 = chain.slot("sigma2.0") ;
   NumericVector loglik_ = chain.slot("loglik") ;
   NumericVector logprior_ = chain.slot("logprior") ;
+  NumericMatrix predictive_ = chain.slot("predictive") ;
+  IntegerMatrix zstar_ = chain.slot("zstar") ;
   //NumericVector th(K) ;
   //NumericVector s2(K) ;
   NumericVector p(K) ;
@@ -826,6 +888,8 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   IntegerVector tmp(K) ;
   IntegerVector zf(K) ;
   IntegerVector zp(K) ;
+  NumericVector ystar = NumericVector(B*K);
+  IntegerVector zstar = IntegerVector(B*K);
   for(int s = 0; s < (S + 1); ++s){
     z = update_z(model) ;
     model.slot("z") = z ;
@@ -872,6 +936,11 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     model.slot("logprior") = lp ;
     u = Rcpp::rchisq(N, df) ;
     model.slot("u") = u;
+    model = predictive_trios(model);
+    ystar = model.slot("predictive");
+    zstar = model.slot("zstar");
+    predictive_(s, _) = ystar ;
+    zstar_(s, _) = zstar ;
     // Thinning
     for(int t = 0; t < T; ++t){
       model.slot("z") = update_z(model) ;
