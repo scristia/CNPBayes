@@ -464,14 +464,20 @@ test_that("posterior probability for mendelian inheritance", {
   expect_identical(ptrio[1, ], p(m))
   mendel <- update_mendelian(m)
 
+  ##
+  ## When all offspring were simulated under Mendelian model, the posterior
+  ## probabilities for the Mendelian indicator should all be high
+  ##
   ix <- which(mendel==0)
   not.mendel <- dat[ix, ]
   m1 <- runBurnin(m)
   m1 <- posteriorSimulation(m1)
-  iter(m1) <- 1000L
+  iter(m1) <- 300L
   m1 <- posteriorSimulation(m1)
   zz <- map_z(m1)
   expect_identical(zz, true_z)
+  pm <- isMendelian(chains(m1))/iter(m1)
+  expect_true(all(pm > 0.75))
 
   if(FALSE) ggMixture(m1)
   ##
@@ -516,17 +522,5 @@ test_that("posterior probability for mendelian inheritance", {
   z.m <- zz[ix.m]
   expect_identical(z.f, 3L)
   expect_identical(z.m, 2L)
-  ##m1@is_mendelian[ ] <- 1L
-  tmp <- lookup_mprobs(m1, z.f, z.m)
-  expect_identical(tmp, c(0, 0.5, 0.5))
-  p <- update_trioPr2(m1)[ix, ]
-  expect_identical(p, tmp)
-
-  p = update_multinomialPrChild(m1)[ix, ]
-  expect_equal(p[1], 0)
-
-  zo <- update_offspring(m1)
-  expect_identical(zo[ix], 2L)
-  expect_identical(nrow(p), 300L)
 })
 
