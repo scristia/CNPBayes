@@ -4,30 +4,6 @@ context("Trio models")
 
 .test_that <- function(nm, expr) NULL
 
-simulateTrioData <- function(maplabel=c(0,1,2)){
-  set.seed(123)
-  p <- c(0.24, 0.43, 0.33)
-  theta <- c(-1.2, 0.3, 1.7)
-  sigma2 <- c(0.05, 0.05, 0.05)
-  params <- data.frame(cbind(p, theta, sigma2))
-  mp <- McmcParams(iter=50, burnin=5)
-
-  nbatch <- 1
-  N <- 300
-  maplabel <- c(0,1,2)
-  mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel, error=0.001)
-  dat2 <- simulate_data_multi2(params, N=N,
-                               batches = rep(c(1:nbatch),
-                                             length.out = 3*N),
-                               error=0, mprob, maplabel)
-  hp <- HyperparametersTrios(k = 3)
-  model <- TBM(triodata=dat2$data,
-               hp=hp,
-               mp=mp,
-               mprob=mprob,
-               maplabel=maplabel)
-}
-
 test_that("mprob matrix", {
   # the default full deletion matrix
   maplabel <- c(0,1,2) ## 0, 0, 2   2,2,2   ## k  [0,1,2]  [1, 2, 3], [2, 3, 4], [0,0,2], [2,2,2], [1, 2, 2]
@@ -44,7 +20,7 @@ test_that("mprob matrix", {
   mprob.check4 <- (mprob.check3)/(rowSums(mprob.check3))
   expect_equal(mprob[,1], mprob.check4[,1])
   expect_equal(mprob[,2], mprob.check4[,2])
-  
+
   # deletion example with repeat labels
   maplabel <- c(0,1,1)
   mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel, error=0)
@@ -123,7 +99,8 @@ test_that("constructor", {
   triodat <- tibble(log_ratio=rnorm(300, mean=mns[comp]),
                     family_member=rep(c("f", "m", "o"), 100),
                     batches=1L,
-                    copy_number=comp-1)
+                    copy_number=comp-1,
+                    id=paste0("trio_", rep(1:100, each=3)))
   test <- TBM(triodata=triodat,
               mprob=mendel,
               maplabel=maplabel)
@@ -191,11 +168,17 @@ test_that("burnin", {
 test_that("posterior predictive", {
   set.seed(123)
   library(tidyverse)
-  model <- simulateTrioData()
+  model <- simulateTrioData()[["model"]]
   #model <- runBurnin(model)
   u1 <- u(model)
   model <- runBurnin(model)
   model <- posteriorSimulation(model)
+  th <- theta(model)[1, ]
+  true.theta <- c(-1.2, 0.3, 1.7)
+  expect_equal(th, true.theta, tolerance=0.03)
+  phat <- p(model)
+  true.p <- c(0.24, 0.43, 0.33)
+  expect_equal(phat, true.p, tolerance=0.1)
   p <- ggMixture(model)
   expect_is(p, "gg")
   if(FALSE){
@@ -218,41 +201,38 @@ mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel, error=0.001)
 test_that("update_zparent and update_zchild", {
   set.seed(123)
   library(tidyverse)
-  
+
   p <- c(0.25, 0.5, 0.25)
   theta <- c(-2, 0.3, 1.7)
   sigma2 <- c(0.3, 0.3, 0.3)
   params <- data.frame(cbind(p, theta, sigma2))
-  
+
   nbatch <- 1
   N <- 300
   maplabel <- c(0,1,2)
   mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel, error=0.001)
-  
-  
+
   truth <- simulate_data_multi2(params=params, N=N,
                                 batches = rep(c(1:nbatch), length.out = 3*N),
-                                error=0, 
-                                mendelian.probs=mprob, 
+                                error=0,
+                                mendelian.probs=mprob,
                                 maplabel=maplabel)
   hp <- HyperparametersTrios(k = 3)
-  mp <- McmcParams(iter=500, burnin=500, thin=1, nStarts=4)
-  
-  model <- gibbs_trios(model="TBM", dat=as.tibble(truth$data), hp.list = hp,
-                       batches=truth$data$batches,
-                       mp=mp, mprob=mprob, maplabel=maplabel, 
-                       k_range=c(2, 3), max_burnin=500)
-  
+  mp <- McmcParams(iter=200, burnin=100, thin=1, nStarts=4)
+  expect_warning(model <- gibbs_trios(model="TBM", dat=as.tibble(truth$data), hp.list = hp,
+                                      batches=truth$data$batches,
+                                      mp=mp, mprob=mprob, maplabel=maplabel,
+                                      k_range=c(2, 3), max_burnin=100))
+  ## MC: These are peculiar tests that are not evaluated
   # this set should be divisible by 3 (only updating child)
   which(model[[1]]@z != update_zchild(model[[1]]))/3
-  
   # this set should all not be divisible by 3 (updating parents)
   which(model[[1]]@z != update_zparents(model[[1]]))/3
 })
 
 test_that("full example", {
   set.seed(123)
-  model <- simulateTrioData()
+  model <- simulateTrioData()[["model"]]
   u1 <- u(model)
   model <- posteriorSimulation(model)
   u2 <- u(model)
@@ -263,12 +243,6 @@ test_that("full example", {
   sigma2 <- c(0.05, 0.05, 0.05)
   params <- data.frame(cbind(p, theta, sigma2))
   maplabel <- c(0,1,2)
-
-  #p <- c(0.11, 0.26, 0.37, 0.26)
-  #theta <- c(-4,-1.2, 1.5, 3)
-  #sigma2 <- c(0.05, 0.05, 0.05, 0.05)
-  #params <- data.frame(cbind(p, theta, sigma2))
-  #maplabel <- c(0,1,2,3)
 
   p <- c(0.25, 0.5, 0.25)
   theta <- c(-2, 0.3, 1.7)
@@ -284,56 +258,46 @@ test_that("full example", {
                                              length.out = 3*N),
                                error=0, mprob, maplabel)
   hp <- HyperparametersTrios(k = 3)
-  mp <- McmcParams(iter=2000, burnin=2000, thin=1, nStarts=3)
-  
-  #model <- TBM(triodata=truth$data,
-  #             hp=hp,
-  #             mp=mp,
-  #             mprob=mprob,
-  #             maplabel=maplabel)
-  
-  model <- gibbs_trios(model="TBM", dat=as.tibble(truth$data), hp.list = hp,
-                      batches=truth$data$batches,
-                      mp=mp, mprob=mprob, maplabel=maplabel, 
-                      k_range=c(3, 3), max_burnin=2000)
-
+  ##mp <- McmcParams(iter=2000, burnin=2000, thin=1, nStarts=3)
+  mp <- McmcParams(iter=200, burnin=100, thin=1, nStarts=3)
+  ## warning with small MCMC
+  expect_warning(model <- gibbs_trios(model="TBM", dat=as.tibble(truth$data), hp.list = hp,
+                                      batches=truth$data$batches,
+                                      mp=mp, mprob=mprob, maplabel=maplabel,
+                                      k_range=c(3, 3), max_burnin=100))
   truth_sum <- component_stats(truth$data)
-
   index <- model[[1]]@triodata$family_member=="o"
   cn <- model[[1]]@triodata$copy_number
-
   # fix children z
   #model@z[index] <- as.integer(cn[index] + 1)
-
   #fix parental z. remember to reset model
   #model@z[!index] <- as.integer(cn[!index] + 1)
-
-  mcmcParams(model) <- mp
-  model <- posteriorSimulation(model)
-  ggMixture(model[[1]])
-  ggChains(model[[1]])
-
-  mp2 <- McmcParams(iter=2000, burnin=2000, thin=1)
-  ##mb <- MB(dat=y(model), batches=batch(model))
-  mb2 <- gibbs(model="MB", dat=truth$data$log_ratio,
-               batches=batch(model[[1]]),
-               mp=mp2, k_range=c(3, 3), max_burnin=2000)
-
-  #model <- MultiBatchModel2(dat=y(truth), batches=batch(truth),
-  #                         hp=hpList(k=3)[["MB"]])
-
-  ggMixture(mb2[[1]])
-  ggChains(mb2[[1]])
-
-  #model <- startAtTrueValues2(model, truth_sum, truth)
-  #expect_identical(truth$data$batches, batch(model))
-  #expect_identical(truth$params$theta, apply(theta(model), 2, mean))
-  #expect_equal(truth$params$sigma2, apply(sigma2(model), 2, mean), tolerance = 0.1)
-  #expect_identical(truth$params$p, p(model))
-  #expect_identical(as.integer(truth$data$copy_number), z(model))
-  #model <- posteriorSimulation(model)
-
-  # check z are three components and that they are non-specific components
+  ##mcmcParams(model) <- mp
+  ##model <- posteriorSimulation(model)
+  if(FALSE){
+    ggMixture(model[[1]])
+    ggChains(model[[1]])
+  }
+  ##mp2 <- McmcParams(iter=2000, burnin=2000, thin=1)
+  mp2 <- McmcParams(iter=100, burnin=200, thin=1)
+  expect_warning(mb2 <- gibbs(model="MB",
+                              dat=truth$data$log_ratio,
+                              batches=batch(model[[1]]),
+                              mp=mp2,
+                              k_range=c(3, 3),
+                              max_burnin=100))
+  if(FALSE){
+    ggMixture(mb2[[1]])
+    ggChains(mb2[[1]])
+  }
+##  #model <- startAtTrueValues2(model, truth_sum, truth)
+##  #expect_identical(truth$data$batches, batch(model))
+##  #expect_identical(truth$params$theta, apply(theta(model), 2, mean))
+##  #expect_equal(truth$params$sigma2, apply(sigma2(model), 2, mean), tolerance = 0.1)
+##  #expect_identical(truth$params$p, p(model))
+##  #expect_identical(as.integer(truth$data$copy_number), z(model))
+##  #model <- posteriorSimulation(model)
+## check z are three components and that they are non-specific components
   model <- model[[1]]
   zs <- unique(model@z)
   zs <- zs[!is.na(zs)]
@@ -342,20 +306,21 @@ test_that("full example", {
 
   # check parameters similar
   # model.theta.means <- apply(theta(model),2, mean)
-  expect_equal(as.numeric(model@modes$theta), truth$params$theta,
-               scale=0.01, tolerance=1.5)
+  expect_equal(as.numeric(sort(model@modes$theta)), truth$params$theta,
+               tolerance=1)
   #model.sigma2.means <- apply(sigma2(model),2, mean)
   expect_equal(as.numeric(model@modes$sigma2), truth$params$sigma2,
-               scale=0.01, tolerance=1.5)
+               tolerance=1.5)
   expect_equal(model@pi, truth$params$p,
-               scale=0.01, tolerance=0.6)
+               ##scale=0.01,
+               tolerance=0.6)
 
   # apply maplabel conversion
   results <- z2cn(model, maplabel)
   results.mb <- z2cn(mb2[[1]], maplabel)
 
   # this unit test specific to maplabel c(0,1,2) - change accordingly
-   expect_equal(model@z-1, results@z)
+  expect_equal(model@z-1, results@z)
   expect_equal(mb2[[1]]@z-1, results.mb@z)
 
   expect_equal(sort(unique(results@z)), sort(unique(maplabel)))
@@ -392,19 +357,19 @@ test_that("gibbs implement", {
   true.component <- true.cn + 1L
 
   mp <- McmcParams(iter=200, burnin=100, thin=1, nStarts=3)
-  tbm1 <- gibbs_trios(model="TBM", dat=as.tibble(truth$data),
-                      batches=truth$data$batches,
-                      mp=mp, mprob=mprob, maplabel=maplabel,
-                      k_range=c(3, 3), max_burnin=100)[[1]]
+  expect_warning(tbm1 <- gibbs_trios(model="TBM", dat=as.tibble(truth$data),
+                                     batches=truth$data$batches,
+                                     mp=mp, mprob=mprob, maplabel=maplabel,
+                                     k_range=c(3, 3),
+                                     max_burnin=100)[[1]])
   th <- theta(tbm1)[1, ]
   expect_equal(th, truth$params$theta, tolerance=0.05)
-
-  mp2 <- McmcParams(iter=200, burnin=100, thin=1)
-  mb2 <- gibbs(model="MB", dat=truth$data$log_ratio,
-               batches=batch(tbm1[[1]]),
-               mp=mp2, k_range=c(3, 3), max_burnin=100)g
-
-
+  expect_warning(mb2 <- gibbs(model="MB",
+                              dat=truth$data$log_ratio,
+                              batches=batch(tbm1),
+                              mp=mp,
+                              k_range=c(3, 3),
+                              max_burnin=100))
   if(FALSE){
     ggMixture(mb[[1]])
     ggMixture(mb[[2]])
@@ -418,5 +383,150 @@ test_that("gibbs implement", {
   expect_true(mean(z(mb2[[1]]) == true.component) > 0.9)
   #expect_true(mean(z(mb[[2]]) == true.component) > 0.9)
   #expect_true(mean(z(mb2[[1]]) == true.component) > 0.9)
-  expect_true(mean(z(tbm1[[1]]) == true.component) > 0.9)
+  expect_true(mean(z(tbm1) == true.component) > 0.9)
 })
+
+test_that("triodata accessor", {
+  m <- simulateTrioData()[["model"]]
+  expect_is(chains(m), "McmcChainsTrios")
+  dat2 <- triodata(m, TRUE) 
+  expect_identical(nTrios(m), nrow(triodata(m, TRUE)))
+
+  expect_is(chains(m), "McmcChainsTrios")
+  chains(m) <- chains(m)
+  expect_is(chains(m), "McmcChainsTrios")
+
+  iter(chains(m)) <- 1000L
+  expect_is(chains(m), "McmcChainsTrios")
+
+  mp <- mcmcParams(m)
+  iter(mp) <- 1000L
+  mcmcParams(m) <- mp
+  expect_is(chains(m), "McmcChainsTrios")
+
+  iter(m) <- 1000L
+  burnin(m) <- 1000L
+  expect_is(chains(m), "McmcChainsTrios")
+
+  zf <- z(m)[is_father(m)]
+  zm <- z(m)[is_mother(m)]
+  zo <- z(m)[is_child(m)]
+  expect_identical(zf, dat2$f)
+  expect_identical(zm, dat2$m)
+  expect_identical(zo, dat2$o)
+})
+
+test_that("posterior probability for mendelian inheritance", {
+  library(tidyverse)
+  N = 300
+  nbatch <- 1
+  p <- c(0.01, 0.18, 0.81)
+  theta <- c(-4,-1.5, 0.5)
+  sigma2 <- c(0.1, 0.1, 0.1)
+  params <- data.frame(cbind(p, theta, sigma2))
+  maplabel <- c(0,1,2)
+  hp <- HyperparametersTrios(k = 3)
+  mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel, error=0.001)
+  model <- simulate_data_multi2(params, N=N,
+                                batches = rep(c(1:nbatch),
+                                              length.out = 3*N),
+                                error=0.001, mprob,
+                                maplabel)
+  zz <- model$data$copy_number
+  truth <- maplabel [ zz ]
+  expect_true(validObject(model))
+  truth <- model
+  mp <- McmcParams(iter=50, burnin=5)
+  model <- TBM(triodata=truth$data,
+               hp=hp,
+               mp=mp,
+               mprob=mprob,
+               maplabel=maplabel)
+  m <- isMendelian(model)
+  expect_identical(length(m), nrow(triodata(model, TRUE)))
+
+  m <- isMendelian(chains(model))
+  expect_identical(length(m), nTrios(model))
+
+  ## easy example
+  set.seed(123)
+  m <- simulateTrioData(theta=c(-3, 0.3, 1.7))
+  true_z <- m[["true_z"]]
+  m <- m[["model"]]
+  m@is_mendelian <- rep(1L, nTrios(m))
+  ptrio <- update_trioPr2(m)
+  ptrio2 <- update_trioPr(m)
+  ## since indicator variable initialized to 1, these should be identical
+  expect_identical(ptrio, ptrio2)
+  m@is_mendelian[1] <- 0L
+  ptrio <- update_trioPr2(m)
+  expect_true(!identical(ptrio[1, ], ptrio2[1, ]))
+  expect_identical(ptrio[1, ], p(m))
+  mendel <- update_mendelian(m)
+
+  ix <- which(mendel==0)
+  not.mendel <- dat[ix, ]
+  m1 <- runBurnin(m)
+  m1 <- posteriorSimulation(m1)
+  iter(m1) <- 1000L
+  m1 <- posteriorSimulation(m1)
+  zz <- map_z(m1)
+  expect_identical(zz, true_z)
+
+  if(FALSE) ggMixture(m1)
+  ##
+  ## simulate an observation where inheritance should favor non-mendelian
+  ##
+  dat <- triodata(m, TRUE)
+  ix <- which(dat$m==2 & dat$f == 3 & dat$o == 2)[1]
+  tmp <- dat[ix, ]
+  dat.long <- triodata(m)
+  ix2 <- which(dat.long$id==tmp$id & dat.long$family_member=="o")
+  ix.f2 <- which(dat.long$id==tmp$id & dat.long$family_member=="f")
+  ix.m <- which(dat.long$id==tmp$id & dat.long$family_member=="m")
+  ix.f <- which(dat.long$id==tmp$id & dat.long$family_member=="f")
+  ## change log r of offspring to number consistent with homozygous deletion
+  ## and therefore inconsistent with Mendelian model
+  m@data[ix2] <- -3
+  m@data[ix.f2] <- 1.7
+  expect_identical(y(m)[ix2], -3)
+  expect_identical(y(m)[ix.f2], 1.7)
+
+  iter(m) <- 250
+  burnin(m) <- 200
+  m1 <- posteriorSimulation(m)
+  dat <- triodata(m1)
+  z(m1)[ix2]
+  expect_identical(isMendelian(m1)[ix], 0L)
+  prob.mendelian <- isMendelian(chains(m1))/iter(m1)
+  if(FALSE){
+    dat <- tibble(prob=prob.mendelian, iter=seq_along(prob.mendelian))
+    ggplot(dat, aes(iter, prob)) +
+      geom_point() +
+      xlab("Index for trio") +
+      ylab("Prob transmission is Mendelian")
+    ggsave("prob_mendelian.pdf", width=8, height=5)
+  }
+  expect_true(prob.mendelian[ix] < 0.1)
+
+  zz <- map_z(m1)
+  expect_identical(zz[ix2], 1L)
+  z.o <- zz[ix2]
+  z.f <- zz[ix.f]
+  z.m <- zz[ix.m]
+  expect_identical(z.f, 3L)
+  expect_identical(z.m, 2L)
+  ##m1@is_mendelian[ ] <- 1L
+  tmp <- lookup_mprobs(m1, z.f, z.m)
+  expect_identical(tmp, c(0, 0.5, 0.5))
+  p <- update_trioPr2(m1)[ix, ]
+  expect_identical(p, tmp)
+
+  p = update_multinomialPrChild(m1)[ix, ]
+  expect_equal(p[1], 0)
+
+  zo <- update_offspring(m1)
+  expect_identical(zo[ix], 2L)
+  expect_identical(nrow(p), 300L)
+})
+

@@ -56,6 +56,8 @@ Run hierarchical MCMC for batch model.
 
 \item{\code{mcmc.params}}{An object of class 'McmcParams'}
 
+\item{\code{is_mendelian}}{integer vector equal in length to the number of trios}
+
 \item{\code{.internal.constraint}}{Constraint on parameters. For internal use only.}
 }}
 

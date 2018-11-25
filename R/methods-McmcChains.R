@@ -145,24 +145,7 @@ setMethod("McmcChains", "missing", function(object){
 })
 
 setMethod("McmcChainsTrios", "missing", function(object){
-  new("McmcChainsTrios",
-      theta=matrix(),
-      sigma2=matrix(),
-      pi=matrix(),
-      pi_parents=matrix(),
-      mu=numeric(),
-      tau2=numeric(),
-      nu.0=numeric(),
-      sigma2.0=numeric(),
-      zfreq=matrix(),
-      zfreq_parents=matrix(),
-      logprior=numeric(),
-      loglik=numeric(),
-      predictive=matrix(),
-      zstar=matrix(),
-      iter=integer(),
-      k=integer(),
-      B=integer())
+  initialize_mcmcT(0, 0, 0, 0)
 })
 
 setValidity("McmcChains", function(object){
@@ -220,29 +203,31 @@ setMethod("McmcChains", "MultiBatchModel", function(object){
 
 .initializeMcmcTrios <- function(object){
   mcmc.params <- mcmcParams(object)
-  nr <- iter(mcmc.params)[1]
+  S <- iter(mcmc.params)[1]
   ns <- length(y(object))
   K <- k(object)
   B <- nBatch(object)
-  mati <- matrix(as.integer(NA), nr, K)
-  new("McmcChainsTrios",
-      theta=matrix(NA, nr, K*B),
-      sigma2=matrix(NA, nr, K*B),
-      pi=matrix(NA, nr, K),
-      pi_parents=matrix(NA, nr, K),
-      mu=matrix(NA, nr, K),
-      tau2=matrix(NA, nr, K),
-      nu.0=numeric(nr),
-      sigma2.0=numeric(nr),
-      logprior=numeric(nr),
-      loglik=numeric(nr),
-      zfreq=mati,
-      zfreq_parents=mati,
-      predictive=matrix(as.numeric(NA), nr, K*B),
-      zstar=matrix(as.integer(NA), nr, K*B),
-      iter=iter(object),
-      k=k(object),
-      B=nBatch(object))
+  dat <- triodata(object)
+  T <- length(unique(dat$id))
+  initialize_mcmcT(K, S, B, T)
+##  new("McmcChainsTrios",
+##      theta=matrix(NA, nr, K*B),
+##      sigma2=matrix(NA, nr, K*B),
+##      pi=matrix(NA, nr, K),
+##      pi_parents=matrix(NA, nr, K),
+##      mu=matrix(NA, nr, K),
+##      tau2=matrix(NA, nr, K),
+##      nu.0=numeric(nr),
+##      sigma2.0=numeric(nr),
+##      logprior=numeric(nr),
+##      loglik=numeric(nr),
+##      zfreq=mati,
+##      zfreq_parents=mati,
+##      predictive=matrix(as.numeric(NA), nr, K*B),
+##      zstar=matrix(as.integer(NA), nr, K*B),
+##      iter=iter(object),
+##      k=k(object),
+##      B=nBatch(object))
 }
 
 setMethod("McmcChainsTrios", "TrioBatchModel", function(object){

@@ -2,7 +2,7 @@
   K <- k(hp)
   B <- 0L
   S <- iter(mp)
-  ch <- initialize_mcmcT(K, S, B)
+  ch <- initialize_mcmcT(K, S, B, 0)
   obj <- new("TrioBatchModel",
              k=as.integer(K),
              hyperparams=hp,
@@ -137,10 +137,31 @@
   obj
 }
 
-triodata <- function(object){
+triodata <- function(object, wide=FALSE, map=FALSE){
   dat <- object@triodata
-  ##dat$log_ratio <- y(object)
-  ##dat$batches <- batch(object)
+  if(map){
+    dat$z <- map_z(object)
+  } else {
+    dat$z <- z(object)
+  }
+  dat$is_mendelian <- isMendelian(object)
+  dat$log_ratio <- y(object)
+  dat$batch <- batch(object)
+  if(wide){
+    dat2 <- dat %>%
+      select(c("id", "family_member", "z")) %>%
+      spread("family_member", "z")
+    dat3 <- dat %>%
+      select(c("id", "family_member", "log_ratio")) %>%
+      spread("family_member", "log_ratio") %>%
+      set_colnames(c("id", paste0("logr_", c("m", "f", "o"))))
+    ## assumes that family members in a trio were processed in same batch
+    dat4 <- group_by(dat, id) %>%
+      summarize(batch=unique(batch))
+    dat5 <- left_join(dat2, dat3, by="id") %>%
+      left_join(dat4, by="id")
+    dat <- dat5
+  }
   dat
 }
 
@@ -759,7 +780,6 @@ component_stats <- function(tbl){
 
 # deprecate the following simulation functions:
 .simulate_data_multi2 <- function(params, n, mprob, maplabel){
-  
   K <- nrow(params)
   p <- params$p
   theta <- params$theta
@@ -767,13 +787,10 @@ component_stats <- function(tbl){
   sigma <- sqrt(sigma2)
   c_mk <- sample(1:K, size = n, replace = TRUE, prob = p)
   c_fk <- sample(1:K, size = n, replace = TRUE, prob = p)
-  
   c_m <- maplabel[c_mk]
   c_f <- maplabel[c_fk]
-  
   c_ok <- rep(NA, length = n)
   C <- ncol(mprob)
-  
   for(i in 1:n){
     cn_ms <- c_m[i]
     cn_fs <- c_f[i]
@@ -783,7 +800,6 @@ component_stats <- function(tbl){
     c_ok[i] <- sample(1:K, size = 1, prob = mprob3)
   }
   c_o <- maplabel[c_ok]
-
   id.index <- formatC(seq_len(n), flag="0", width=3)
   logr.tbl <- tibble(m=rnorm(n, mean = theta[c_mk], sd = sigma[c_mk]),
                      f=rnorm(n, mean = theta[c_fk], sd = sigma[c_fk]),
@@ -802,9 +818,10 @@ component_stats <- function(tbl){
 }
 
 # this function ensures the simulation generates the requisite number of components regardless of MAF parameter (p)
-simulate_data_multi2 <- function(params, N, batches, error=0, mendelian.probs, maplabel){
+simulate_data_multi2 <- function(params, N, batches,
+                                 error=0, mendelian.probs,
+                                 maplabel){
   tbl <- .simulate_data_multi2(params, N, mendelian.probs, maplabel)
-  
   # append batch info (assumes ordering by trios and id)
   if(missing(batches)) {
     batches <- rep(1L, 3*N)
@@ -818,7 +835,6 @@ simulate_data_multi2 <- function(params, N, batches, error=0, mendelian.probs, m
   ## update parameters to be same as empirical values
   ##
   stats <- component_stats(tbl3)
-  
   while(nrow(stats)!=length(maplabel)){
     tbl <- .simulate_data_multi2(params, N, mendelian.probs, maplabel)
     batches <- sort(batches)
@@ -826,7 +842,6 @@ simulate_data_multi2 <- function(params, N, batches, error=0, mendelian.probs, m
     tbl3 <- as_tibble(tbl2)
     stats <- component_stats(tbl3)
   }
-  
   p <- stats %>% group_by(copy_number) %>% summarize(p=mean(p))
   sd <- stats %>% group_by(copy_number) %>% summarize(sd=mean(sd))
   mean <- stats %>% group_by(copy_number) %>% summarize(mean=mean(mean))
@@ -870,7 +885,7 @@ simulate_data_multi3 <- function(params, N, batches, error=0, mendelian.probs, m
   truth
 }
 
-# 
+#
 startAtTrueValues2 <- function(model, truth_stats, data){
   rows <- length(unique(truth_stats$batches))
   cols <- length(unique(truth_stats$copy_number))
@@ -1045,9 +1060,68 @@ ci95.wrap <- function(vector) {
   ci95
 }
 
-setMethod("isMendelian", "TrioBatchModel", function(object) object@is_mendelian)
+setMethod("isMendelian", "TrioBatchModel", function(object) {
+  object@is_mendelian
+})
 
 nTrios <- function(object) {
   dat <- triodata(object)
   length(unique(dat$id))
 }
+
+simulateTrioData <- function(theta=c(-1.2, 0.3, 1.7), maplabel=c(0,1,2),
+                             error=0){
+  set.seed(123)
+  p <- c(0.24, 0.43, 0.33)
+  sigma2 <- c(0.05, 0.05, 0.05)
+  params <- data.frame(cbind(p, theta, sigma2))
+  mp <- McmcParams(iter=50, burnin=5)
+
+  nbatch <- 1
+  N <- 300
+  maplabel <- c(0,1,2)
+  mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel, error=error)
+  dat2 <- simulate_data_multi2(params,
+                               N=N,
+                               batches = rep(c(1:nbatch),
+                                             length.out = 3*N),
+                               error=0, mprob, maplabel)
+  hp <- HyperparametersTrios(k = 3)
+  model <- TBM(triodata=dat2$data,
+                hp=hp,
+                mp=mp,
+                mprob=mprob,
+               maplabel=maplabel)
+  dat <- dat2$data
+  list(model=model, true_z=as.integer(dat$copy_number) + 1L)
+}
+
+
+#' @rdname mcmcParams-method
+#' @aliases mcmcParams,MixtureModel-method
+setReplaceMethod("mcmcParams", "TrioBatchModel", function(object, value){
+  S <- iter(value)
+  B <- numBatch(object)
+  K <- k(object)
+  T <- nTrios(object)
+  if(iter(object) != S){
+    if(S > iter(object)){
+      object@mcmc.params <- value
+      ## create a new chain
+      mcmc_chains <- initialize_mcmcT(K, S, B, T)
+    } else {
+      object@mcmc.params <- value
+      index <- seq_len(S)
+      mcmc_chains <- chains(object)[index, ]
+      mcmc_chains@iter <- S
+      mcmc_chains@B <- B
+      mcmc_chains@k <- K
+    }
+    chains(object) <- mcmc_chains
+    return(object)
+  }
+  ## if we've got to this point, it must be safe to update mcmc.params
+  ## (i.e., size of chains is not effected)
+  object@mcmc.params <- value
+  object
+})

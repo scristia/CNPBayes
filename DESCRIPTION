@@ -1,7 +1,7 @@
 Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
-Version: 1.11.14
+Version: 1.11.15
 Maintainer: Jacob Carey <jcarey15@jhu.edu>
 Description: Bayesian hierarchical mixture models for batch effects and copy number.
 Date: Tue Jan 20 20:41:00 EST 2015
@@ -88,4 +88,4 @@ URL: https://github.com/scristia/CNPBayes
 BugReports: https://github.com/scristia/CNPBayes/issues
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1

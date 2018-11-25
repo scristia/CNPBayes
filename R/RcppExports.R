@@ -297,6 +297,26 @@ update_trioPr <- function(xmod) {
     .Call('_CNPBayes_update_trioPr', PACKAGE = 'CNPBayes', xmod)
 }
 
+is_father <- function(xmod) {
+    .Call('_CNPBayes_is_father', PACKAGE = 'CNPBayes', xmod)
+}
+
+is_mother <- function(xmod) {
+    .Call('_CNPBayes_is_mother', PACKAGE = 'CNPBayes', xmod)
+}
+
+is_child <- function(xmod) {
+    .Call('_CNPBayes_is_child', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_trioPr2 <- function(xmod) {
+    .Call('_CNPBayes_update_trioPr2', PACKAGE = 'CNPBayes', xmod)
+}
+
+update_mendelian <- function(xmod) {
+    .Call('_CNPBayes_update_mendelian', PACKAGE = 'CNPBayes', xmod)
+}
+
 update_multinomialPrPar <- function(xmod) {
     .Call('_CNPBayes_update_multinomialPrPar', PACKAGE = 'CNPBayes', xmod)
 }
@@ -319,22 +339,6 @@ tableBatchZpar <- function(xmod) {
 
 update_pp <- function(xmod) {
     .Call('_CNPBayes_update_pp', PACKAGE = 'CNPBayes', xmod)
-}
-
-mendelprobs <- function(xmod, father, mother, offspring, trioprob) {
-    .Call('_CNPBayes_mendelprobs', PACKAGE = 'CNPBayes', xmod, father, mother, offspring, trioprob)
-}
-
-update_mendelPr <- function(xmod) {
-    .Call('_CNPBayes_update_mendelPr', PACKAGE = 'CNPBayes', xmod)
-}
-
-mendelprobs2 <- function(xmod, father, mother, offspring) {
-    .Call('_CNPBayes_mendelprobs2', PACKAGE = 'CNPBayes', xmod, father, mother, offspring)
-}
-
-update_mendelPr2 <- function(xmod) {
-    .Call('_CNPBayes_update_mendelPr2', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_multinomialPrChild <- function(xmod) {
@@ -379,6 +383,10 @@ predictive_trios <- function(xmod) {
 
 trios_burnin <- function(object, mcmcp) {
     .Call('_CNPBayes_trios_burnin', PACKAGE = 'CNPBayes', object, mcmcp)
+}
+
+test_trio <- function(object) {
+    .Call('_CNPBayes_test_trio', PACKAGE = 'CNPBayes', object)
 }
 
 trios_mcmc <- function(object, mcmcp) {

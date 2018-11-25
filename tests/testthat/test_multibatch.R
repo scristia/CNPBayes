@@ -21,6 +21,7 @@ test_that("initial values", {
 })
 
 .test_that("MultiBatchModel", {
+  library(purrr)
   set.seed(100)
   nbatch <- 3
   k <- 3
@@ -51,8 +52,8 @@ test_that("initial values", {
                            batches=batch(truth))
   expect_true(validObject(model))
 
-  library(purrr)
-  mp <- McmcParams(iter = 1000, burnin = 1000, nStarts = 1, thin=1)
+
+  mp <- McmcParams(iter = 200, burnin = 100, nStarts = 1, thin=1)
   m <- MB(dat=y(truth),
                         mp=mp, hp=hp,
                         batches=batch(truth))
