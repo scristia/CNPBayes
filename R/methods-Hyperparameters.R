@@ -56,6 +56,37 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
   list(quantiles=x, eta.0=eta.0, m2.0=m2.0, mean=mn, sd=sd)
 }
 
+#' Create an object of class 'Hyperparameters' with additional parameters for Trios
+#' 
+#' @return An object of class HyperparameterTrios
+#' @examples 
+#'     hyp.trio <- HyperparameterTrios(k=3)
+#'     
+#' @export
+HyperparametersTrios <- function(k=3,
+                                 mu.0=0,
+                                 tau2.0=0.4,
+                                 eta.0=32,
+                                 m2.0=0.5,
+                                 alpha,
+                                 beta=0.1, ## mean is 1/10
+                                 a=1.8,
+                                 b=6,
+                                 dfr=100){
+  if(missing(alpha)) alpha <- rep(1, k)
+  new("HyperparametersTrios",
+      k=as.integer(k),
+      mu.0=mu.0,
+      tau2.0=tau2.0,
+      eta.0=eta.0,
+      m2.0=m2.0,
+      alpha=alpha,
+      beta=beta,
+      a=a,
+      b=b,
+      dfr=dfr)
+}
+
 #' Create an object of class 'HyperparametersMultiBatch' for the
 #' batch mixture model
 #'
@@ -99,15 +130,15 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 #' @export
 #' @seealso \code{\link{hpList}}
 HyperparametersMultiBatch <- function(k=3L,
-                                 mu.0=0,
-                                 tau2.0=0.4,
-                                 eta.0=32,
-                                 m2.0=0.5,
-                                 alpha,
-                                 beta=0.1, ## mean is 1/10
-                                 a=1.8,
-                                 b=6,
-                                 dfr=100){
+                                      mu.0=0,
+                                      tau2.0=0.4,
+                                      eta.0=32,
+                                      m2.0=0.5,
+                                      alpha,
+                                      beta=0.1, ## mean is 1/10
+                                      a=1.8,
+                                      b=6,
+                                      dfr=100){
   if(missing(alpha)) alpha <- rep(1, k)
   new("HyperparametersMultiBatch",
       k=as.integer(k),
@@ -210,11 +241,20 @@ setValidity("Hyperparameters", function(object){
 Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="marginal") return(HyperparametersSingleBatch(k, ...))
   if(type=="batch") return(HyperparametersMultiBatch(k, ...))
+  if(type=="trios") return(HyperparametersTrios(k, ...))
 }
 
 #' @rdname k-method
-#' @aliases k<-,Hyperparemeters-method
+#' @aliases k<-,Hyperparameters-method
 setReplaceMethod("k", "Hyperparameters", function(object, value){
+  object@k <- as.integer(value)
+  object@alpha <- rep(1L, value)
+  object
+})
+
+#' @rdname k-method
+#' @aliases k<-,HyperparametersTrios-method
+setReplaceMethod("k", "HyperparametersTrios", function(object, value){
   object@k <- as.integer(value)
   object@alpha <- rep(1L, value)
   object
@@ -280,14 +320,16 @@ setMethod("show", "Hyperparameters", function(object){
 #' hp.list <- hpList(k=3)
 #' hp.list[["SB"]]
 #' @rdname Hyperparameters
-#' @seealso \code{\link{HyperparametersMultiBatch}} \code{\link{Hyperparameters}}
+#' @seealso \code{\link{HyperparametersMultiBatch}} \code{\link{Hyperparameters}} \code{\link{HyperparametersTrios}}
 hpList <- function(...){
   sbp <- sb <- Hyperparameters(...)
   mb <- mbp <- HyperparametersMultiBatch(...)
+  tbm <- HyperparametersTrios(...)
   list(SB=sb,
        MB=mb,
        SBP=sbp,
-       MBP=mbp)
+       MBP=mbp,
+       TBM=tbm)
 }
 
 #' @rdname dfr-method

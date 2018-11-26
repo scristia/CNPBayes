@@ -1,11 +1,11 @@
 Package: CNPBayes
 Type: Package
 Title: Bayesian mixture models for copy number polymorphisms
-Version: 1.13.0
+Version: 1.13.1
 Maintainer: Jacob Carey <jcarey15@jhu.edu>
 Description: Bayesian hierarchical mixture models for batch effects and copy number.
 Date: Tue Jan 20 20:41:00 EST 2015
-Author: Stephen Cristiano, Robert Scharpf, and Jacob Carey
+Author: Stephen Cristiano, Jacob Carey, and Rob Scharpf
 Depends:
     R (>= 3.4.0),
     IRanges,
@@ -32,7 +32,9 @@ Imports:
     tidyr,
     dplyr,
     tibble,
-    scales
+    scales,
+    data.table,
+    RcppArmadillo
 Suggests:
     testthat,
     knitr,
@@ -48,7 +50,11 @@ Collate:
     'AllClasses.R'
     'Cfunctions.R'
     'Defunct-classes.R'
+    'MultiBatch.R'
+    'MultiBatchList.R'
+    'MultiBatchP.R'
     'RcppExports.R'
+    'augment.R'
     'coerce-methods.R'
     'copynumber-models.R'
     'data.R'
@@ -64,9 +70,9 @@ Collate:
     'methods-MultiBatchModel.R'
     'methods-MultiBatchPooled.R'
     'methods-SingleBatchModel.R'
-    'methods-SBPt.R'
     'methods-SingleBatchPooled.R'
     'methods-SummarizedExperiment.R'
+    'methods-TrioBatchModel.R'
     'model_initialization.R'
     'plot-functions.R'
     'posteriorSimulation-methods.R'
@@ -82,4 +88,4 @@ URL: https://github.com/scristia/CNPBayes
 BugReports: https://github.com/scristia/CNPBayes/issues
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1

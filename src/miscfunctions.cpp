@@ -19,7 +19,7 @@ double getDf(Rcpp::S4 hyperparams) {
 }
 
 // [[Rcpp::export]]
-Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x) {
+Rcpp::IntegerVector unique_batch(Rcpp::IntegerVector x) {
   IntegerVector tmp = unique(x) ;
   IntegerVector b = clone(tmp) ;
   std::sort(b.begin(), b.end()) ;
@@ -41,7 +41,7 @@ Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod){
   Rcpp::S4 model(xmod) ;
   int K = getK(model.slot("hyperparams")) ;
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
+  IntegerVector ub = unique_batch(batch) ;
   int B = ub.size() ;
   IntegerVector z = model.slot("z") ;
   NumericMatrix nn(B, K) ;
@@ -320,25 +320,21 @@ Rcpp::NumericVector dlocScale_t(NumericVector x, double df, double mu, double si
     double coef = tgamma((df + 1.0)/2.0)/(sigma*sqrt(df*PI)*tgamma(df/2.0));
     NumericVector d = coef*pow(1 + pow((x - mu)/sigma, 2.0)/df, -(df+1.0)/2.0);
     return d;
+
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector rlocScale_t(NumericVector n, double df, double mu, double sigma) {
-  NumericVector means(n[0]) ;
-  NumericVector sigmas(n[0]) ;
-  for(int i = 0; i < n[0]; ++i){
+Rcpp::NumericVector rlocScale_t(int n, double mu, double sigma, double df, double u) {
+  NumericVector means(n) ;
+  NumericVector sigmas(n) ;
+  for(int i = 0; i < n; ++i){
     means[i] = mu;
     sigmas[i] = sigma;
   }
-  NumericVector y(n[0]) ;
-  NumericVector z(n[0]) ;
-  NumericVector x(n[0]) ;
-  y = rnorm(n[0]) ;
-  z = rchisq(n[0], df) ;
-  x = means + sigmas * y * sqrt(df/z) ;
-  //double coef = tgamma((df + 1.0)/2.0)/(sigma*sqrt(df*PI)*tgamma(df/2.0));
-  //NumericVector d = coef*pow(1 + pow((x - mu)/sigma, 2.0)/df, -(df+1.0)/2.0);
-  //return d;
+  NumericVector y(n) ;
+  NumericVector x(n) ;
+  y = rnorm(n) ;
+  x = means + sigmas * y * pow(df/u, 0.5) ;
   return x;
 }
 
@@ -419,7 +415,7 @@ Rcpp::NumericMatrix compute_u_sums_batch(Rcpp::S4 xmod) {
   int n = u.size() ;
 
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
+  IntegerVector ub = unique_batch(batch) ;
   int B = ub.size() ;
   NumericMatrix sums(B, K) ;
   for(int i = 0; i < n; i++){
@@ -449,7 +445,7 @@ Rcpp::NumericMatrix compute_heavy_sums_batch(Rcpp::S4 object) {
   int K = getK(hypp) ;
 
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
+  IntegerVector ub = unique_batch(batch) ;
   int B = ub.size() ;
   // IntegerVector nn = model.slot("zfreq") ;
   NumericMatrix sums(B, K) ;
@@ -476,7 +472,7 @@ Rcpp::NumericMatrix compute_heavy_means_batch(Rcpp::S4 xmod) {
   int K = getK(hypp) ;
 
   IntegerVector batch = model.slot("batch") ;
-  IntegerVector ub = uniqueBatch(batch) ;
+  IntegerVector ub = unique_batch(batch) ;
   int B = ub.size() ;
   NumericMatrix nn = tableBatchZ(xmod) ;
   NumericMatrix means = compute_heavy_sums_batch(xmod) ;

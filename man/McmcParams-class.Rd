@@ -20,6 +20,14 @@ An object to specify MCMC options for a later simulation
 \item{\code{nstarts}}{A one length numeric to specify the number of chains in a simulation.}
 
 \item{\code{param_updates}}{Indicates whether each parameter should be updated (1) or fixed (0).}
+
+\item{\code{min_GR}}{minimum value of multivariate Gelman Rubin statistic for diagnosing convergence. Default is 1.2.}
+
+\item{\code{min_effsize}}{the minimum mean effective size of the chains. Default is 1/3 * iter.}
+
+\item{\code{max_burnin}}{The maximum number of burnin iterations before we give up and return the existing model.}
+
+\item{\code{min_chains}}{minimum number of independence MCMC chains used for assessing convergence. Default is 3.}
 }}
 
 \examples{

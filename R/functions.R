@@ -349,19 +349,19 @@ mclustMeans <- function(y, batch){
 #'
 #' @examples
 #'
-#'  model <- SingleBatchModelExample
-#'  mp <- McmcParams(iter=200, burnin=50)
-#'  mcmcParams(model) <- mp
-#'  model <- posteriorSimulation(model)
-#'  pd <- posteriorPredictive(model)
-#'  if(FALSE) qqplot(pd, y(model))
-#'
 #' \dontrun{
-#'     bmodel <- MultiBatchModelExample
-#'     mp <- McmcParams(iter=500, burnin=150, nStarts=20)
-#'     mcmcParams(bmodel) <- mp
-#'     bmodel <- posteriorSimulation(bmodel)
-#'     batchy <- posteriorPredictive(bmodel)
+#'    model <- SingleBatchModelExample
+#'    mp <- McmcParams(iter=200, burnin=50)
+#'    mcmcParams(model) <- mp
+#'    model <- posteriorSimulation(model)
+#'    pd <- posteriorPredictive(model)
+#'    if(FALSE) qqplot(pd, y(model))
+#'
+#'    bmodel <- MultiBatchModelExample
+#'    mp <- McmcParams(iter=500, burnin=150, nStarts=20)
+#'    mcmcParams(bmodel) <- mp
+#'    bmodel <- posteriorSimulation(bmodel)
+#'    batchy <- posteriorPredictive(bmodel)
 #' }
 #'
 #' @param model a SingleBatchModel or MultiBatchModel
@@ -381,6 +381,12 @@ posteriorPredictive <- function(model){
   }
   if(class(model) == "MultiBatchPooled"){
     tab <- .posterior_predictive_mbp(model)
+  }
+  if(class(model) == "MultiBatchCopyNumberPooled"){
+    tab <- .posterior_predictive_mbp(model)
+  }
+  if(class(model) == "TrioBatchModel"){
+    tab <- .posterior_predictive_trio(model)
   }
   tab <- tab[, c("y", "component", "batch")]
   tab$model <- modelName(model)
@@ -433,7 +439,7 @@ posteriorPredictive <- function(model){
   tab
 }
 
-.posterior_predictive_mb <- function(model){
+.posterior_predictive_trio <- function(model){
   ch <- chains(model)
   alpha <- p(ch)
   thetas <- theta(ch)
@@ -454,15 +460,52 @@ posteriorPredictive <- function(model){
     a <- alpha[i, ]
     mu <- matrix(thetas[i, ], nb, K)
     s <- matrix(sigmas[i, ], nb, K)
-    ## for each batch, sample K observations with mixture probabilities alpha
+    ## for each batch, sample K observations with
+    ## mixture probabilities alpha
+    ## MC: should sample zz for offspring from mendelian probabilities
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
-      ##ylist[[b]] <- rnorm(K, (mu[b, ])[zz], (s[b, ])[zz])
       ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=(s[b, ])[zz])
     }
     y <- unlist(ylist)
     tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
-    ##Y[i, ] <- y
+  }
+  tab <- do.call(bind_rows, tab.list)
+  tab$batch <- as.character(tab$batch)
+  tab
+}
+
+.posterior_predictive_mb <- function(model){
+  ch <- chains(model)
+  alpha <- p(ch)
+  thetas <- theta(ch)
+  sigmas <- sigma(ch)
+  nb <- nrow(theta(model))
+  K <- k(model)
+  nn <- K * nb
+  Y <- matrix(NA, nrow(alpha), nn)
+  ylist <- list()
+  components <- seq_len(K)
+  mcmc.iter <- iter(model)
+  tab.list <- vector("list", mcmc.iter)
+  df <- dfr(hyperParams(model))
+  batches <- sort(rep(unique(batch(model)), each=K))
+  ##
+  ## we could just sample B observations from each MCMC
+  ##
+  for(i in seq_len(mcmc.iter)){
+    ## same p assumed for each batch
+    a <- alpha[i, ]
+    mu <- matrix(thetas[i, ], nb, K)
+    s <- matrix(sigmas[i, ], nb, K)
+    ## for each batch, sample K observations with
+    ## mixture probabilities alpha
+    zz <- sample(components, K, prob=a, replace=TRUE)
+    for(b in seq_len(nb)){
+      ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=(s[b, ])[zz])
+    }
+    y <- unlist(ylist)
+    tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
   }
   tab <- do.call(bind_rows, tab.list)
   tab$batch <- as.character(tab$batch)
@@ -484,8 +527,12 @@ posteriorPredictive <- function(model){
   components <- seq_len(K)
   mcmc.iter <- iter(model)
   tab.list <- vector("list", mcmc.iter)
-  batches <- rep(unique(batch(model)), each=K)
+  ##batches <- rep(unique(batch(model)), each=K)
+  batches <- sort(rep(unique(batch(model)), each=K))
   df <- dfr(hyperParams(model))
+  ##  bb <- rownames(theta(model))
+  ##  ix <- match(as.character(seq_along(bb)), bb)
+  ##browser()
   for(i in seq_len(mcmc.iter)){
     ## same p assumed for each batch
     a <- alpha[i, ]
@@ -495,34 +542,25 @@ posteriorPredictive <- function(model){
     zz <- sample(components, K, prob=a, replace=TRUE)
     for(b in seq_len(nb)){
       ## sigma is batch-specific but indpendent of z
-      ##ylist[[b]] <- rnorm(K, (mu[b, ])[zz], s[b])
       ylist[[b]] <- rst(K, df=df, mean=(mu[b, ])[zz], sigma=s[b])
     }
     y <- unlist(ylist)
     tab.list[[i]] <- tibble(y=y, batch=batches, component=rep(zz, nb))
-    ##Y[i, ] <- y
   }
   tab <- do.call(bind_rows, tab.list)
   tab$batch <- as.character(tab$batch)
   tab
 }
 
-useModes <- function(object){
-  m2 <- object
-  theta(m2) <- modes(object)[["theta"]]
-  sigma2(m2) <- modes(object)[["sigma2"]]
-  tau2(m2) <- modes(object)[["tau2"]]
-  nu.0(m2) <- modes(object)[["nu0"]]
-  sigma2.0(m2) <- modes(object)[["sigma2.0"]]
-  p(m2) <- modes(object)[["mixprob"]]
-  zFreq(m2) <- as.integer(modes(object)[["zfreq"]])
-  log_lik(m2) <- modes(object)[["loglik"]]
-  logPrior(m2) <- modes(object)[["logprior"]]
-  ##
-  ## update z using the modal values from above
-  ##
-  z(m2) <- updateZ(m2)
-  m2
+
+
+missingBatch <- function(dat, ix){
+  batches <- dat$provisional_batch
+  batches.sub <- batches[ix]
+  u.batch <- unique(batches)
+  u.batch.sub <- unique(batches.sub)
+  missing.batch <- u.batch[ !u.batch %in% u.batch.sub ]
+  missing.batch
 }
 
 #' Down sample the observations in a mixture
@@ -569,11 +607,15 @@ downSample <- function(dat,
   size <- min(size, N)
   ##dat <- tiles$logratio
   ix <- sample(seq_len(N), size, replace=TRUE)
+  missing.batch <- missingBatch(dat, ix)
+  if(length(missing.batch) > 0){
+    ix2 <- which(dat$provisional_batch %in% missing.batch)
+    ix <- c(ix, ix2)
+  }
   dat.sub <- dat[ix, ]
   ## tricky part:
   ##
-  ## - if we down sample, there may not be enough observations to estimate the
-  ##   mixture densities for batches with few samples
+  ## - if we down sample, there may not be enough observations to estimate the mixture densities for batches with few samples
   ##
   ##tab <- tibble(medians=dat.sub,
   ##              batch.var=batches[ix]) %>%
@@ -581,6 +623,12 @@ downSample <- function(dat,
   ##
   ## combine batches with too few observations based on the location (not scale)
   ##
+  batch_orig <- NULL
+  medians <- NULL
+  largebatch <- NULL
+  other <- NULL
+  . <- NULL
+  batch_New <- NULL
   select <- dplyr::select
   . <- medians <- largebatch <- other <- batch_orig <- NULL
   batch_new <- NULL
@@ -589,6 +637,7 @@ downSample <- function(dat,
     group_by(batch_orig) %>%
     summarize(mean=mean(medians),
               n=n())
+
   small.batch <- batch.sum %>%
     filter(n < min.batchsize) %>%
     mutate(largebatch="")
@@ -640,40 +689,43 @@ downSample <- function(dat,
 }
 
 
-rst <- function (n, df = 100, mean = 0, sigma = 1){
+rst <- function (n, u, df = 100, mean = 0, sigma = 1){
   if (any(sigma <= 0))
     stop("The sigma parameter must be positive.")
   if (any(df <= 0))
     stop("The df parameter must be positive.")
   n <- ceiling(n)
   y <- rnorm(n)
-  z <- rchisq(n, df=df)
-  x <- mean + sigma * y * sqrt(df/z)
+  if(missing(u)){
+    u <- rchisq(n, df=df)
+  }
+  x <- mean + sigma * y * sqrt(df/u)
   return(x)
 }
 
 #' Abbreviated model name
 #'
-#' @param model a SingleBatchModel, MultiBatchModel, etc.
+#' @param object a SingleBatchModel, MultiBatchModel, etc.
 #' @examples
 #' modelName(SingleBatchModelExample)
 #' @export
-modelName <- function(model){
+setMethod("modelName", "MixtureModel", function(object){
   . <- NULL
-  model.name <- class(model) %>%
+  model.name <- class(object) %>%
     gsub("CopyNumber", "", .) %>%
     gsub("SingleBatchPooled", "SBP", .) %>%
     gsub("SingleBatchModel", "SB", .) %>%
     gsub("MultiBatchModel", "MB", .) %>%
     gsub("MultiBatchCopyNumber", "MB", .) %>%
-    gsub("MultiBatchPooled", "MBP", .)
-  L <- length(unique(batch(model)))
+    gsub("MultiBatchPooled", "MBP", .) %>%
+    gsub("MultiBatch", "MB", .)
+  L <- length(unique(batch(object)))
   if(L == 1){
     model.name <- gsub("MB", "SB", model.name)
   }
-  model.name <- paste0(model.name, k(model))
+  model.name <- paste0(model.name, k(object))
   model.name
-}
+})
 
 freeParams <- function(model){
   ## K: number of free parameters to be estimated

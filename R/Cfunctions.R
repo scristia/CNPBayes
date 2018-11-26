@@ -217,6 +217,7 @@ probTheta <- function(model){
   invs2 = 1.0 / sigma2;    ##this is a vector of length B
   sigma2_tilde = matrix(invs2, nrow=1)
   total = 0.0;
+  df <- dfr(model)
   for (k in seq_len(K)) {
     for (b in seq_len(nrow(thetastar))) {
       heavyn = sumu[b, k] / df;

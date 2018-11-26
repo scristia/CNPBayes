@@ -2,19 +2,29 @@
 NULL
 
 setMethod("runBurnin", "MultiBatchModel", function(object){
-  cpp_burnin(object, mcmcParams(object))
+  cpp_burnin(object)
+})
+
+setMethod("runBurnin", "TrioBatchModel", function(object){
+  trios_burnin(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "MultiBatchModel", function(object){
-  cpp_mcmc(object, mcmcParams(object))
+  cpp_mcmc(object)
 })
+
+setMethod("runMcmc", "TrioBatchModel", function(object){
+  trios_mcmc(object, mcmcParams(object))
+})
+
 
 setMethod("runBurnin", "MultiBatchPooled", function(object){
   burnin_multibatch_pvar(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "MultiBatchPooled", function(object){
-  mcmc_multibatch_pvar(object, mcmcParams(object))
+  tmp <- mcmc_multibatch_pvar(object, mcmcParams(object))
+  tmp
 })
 
 .posteriorSimulation2 <- function(post, params=psParams()){
@@ -78,16 +88,124 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
   .posteriorSimulation2(object)
 })
 
-#' @rdname posteriorSimulation-method
-#' @aliases posteriorSimulation,SingleBatchModel-method
-setMethod("posteriorSimulation", "SingleBatchModel", function(object){
-  object <- as(object, "MultiBatchModel")
-  .posteriorSimulation2(object)
+setMethod("runBurnin", "MultiBatchModel", function(object){
+  cpp_burnin(object)
+})
+
+setMethod("runBurnin", "MultiBatch", function(object){
+  mbm <- as(object, "MultiBatchModel")
+  mbm <- runBurnin(mbm, mcmcParams(mbm))
+  ## The MBM model does not have the original data
+  mb <- as(mbm, "MultiBatch")
+  mb <- revertBack(object, mbm)
+  mb
+})
+
+setMethod("runMcmc", "MultiBatch", function(object){
+  mbm <- as(object, "MultiBatchModel")
+  mbm <- runMcmc(mbm)
+  mb <- revertBack(object, mbm)
+  mb
+})
+
+setMethod("revertBack", "MultiBatch", function(object, mbm){
+  mb <- as(mbm, "MultiBatch")
+  ## do not use replacement method
+  mb@data <- assays(object)
+  ## using specs replacement method has side effects
+  mb@specs$number_obs <- nrow(assays(object))
+  down_sample(mb) <- down_sample(object)
+  mb
+})
+
+setMethod("revertBack", "MultiBatchP", function(object, mbm){
+  mb <- as(mbm, "MultiBatchP")
+  ## do not use replacement method
+  mb@data <- assays(object)
+  ## using specs replacement method has side effects
+  mb@specs$number_obs <- nrow(assays(object))
+  down_sample(mb) <- down_sample(object)
+  mb
+})
+
+setMethod("posteriorSimulation", "MultiBatch", function(object){
+  mbm <- as(object, "MultiBatchModel")
+  mbm <- runBurnin(mbm)
+  if(!isOrdered(mbm)) label_switch(mbm) <- TRUE
+  mbm <- sortComponentLabels(mbm)
+  if( iter(mbm) < 1 ) return(mbm)
+  mbm <- runMcmc(mbm)
+  modes(mbm) <- computeModes(mbm)
+  if(isOrdered(mbm)){
+    label_switch(mbm) <- FALSE
+    mb <- revertBack(object, mbm)
+    return(mb)
+  }
+  ## not ordered: try additional MCMC simulations
+  label_switch(mbm) <- TRUE
+  mbm <- sortComponentLabels(mbm)
+  ## reset counter for posterior probabilities
+  mbm@probz[] <- 0
+  mbm <- runMcmc(mbm)
+  modes(mbm) <- computeModes(mbm)
+  if(isOrdered(mbm)){
+    label_switch(mbm) <- FALSE
+    mb <- revertBack(object, mbm)
+    return(mb)
+  }
+  label_switch(mbm) <- TRUE
+  mbm <- sortComponentLabels(mbm)
+  mb <- revertBack(object, mbm)
+  mb
+})
+
+setMethod("posteriorSimulation", "MultiBatchP", function(object){
+  mbm <- as(object, "MultiBatchPooled")
+  mbm <- runBurnin(mbm)
+  if(!isOrdered(mbm)) label_switch(mbm) <- TRUE
+  mbm <- sortComponentLabels(mbm)
+  if( iter(mbm) < 1 ) return(mbm)
+  mbm <- runMcmc(mbm)
+  modes(mbm) <- computeModes(mbm)
+  if(isOrdered(mbm)){
+    label_switch(mbm) <- FALSE
+    mb <- revertBack(object, mbm)
+    return(mb)
+  }
+  ## not ordered: try additional MCMC simulations
+  label_switch(mbm) <- TRUE
+  mbm <- sortComponentLabels(mbm)
+  ## reset counter for posterior probabilities
+  mbm@probz[] <- 0
+  mbm <- runMcmc(mbm)
+  modes(mbm) <- computeModes(mbm)
+  if(isOrdered(mbm)){
+    label_switch(mbm) <- FALSE
+    mb <- revertBack(object, mbm)
+    return(mb)
+  }
+  label_switch(mbm) <- TRUE
+  mbm <- sortComponentLabels(mbm)
+  mb <- revertBack(object, mbm)
+  mb
+})
+
+setMethod("posteriorSimulation", "MultiBatchList", function(object){
+  for(i in seq_along(object)){
+    object[[i]] <- posteriorSimulation(object[[i]])
+  }
+  object
+})
+
+setMethod("posteriorSimulation", "list", function(object){
+  for(i in seq_along(object)){
+    object[[i]] <- posteriorSimulation(object[[i]])
+  }
+  object
 })
 
 #' @rdname posteriorSimulation-method
-#' @aliases posteriorSimulation,SingleBatchPooled-method
-setMethod("posteriorSimulation", "SingleBatchPooled", function(object){
-  object <- as(object, "MultiBatchPooled")
+#' @aliases posteriorSimulation,TrioBatchModel-method
+setMethod("posteriorSimulation", "TrioBatchModel", function(object){
   .posteriorSimulation2(object)
 })

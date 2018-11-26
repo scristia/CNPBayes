@@ -1,7 +1,11 @@
 #ifndef _multibatch_H
 #define _multibatch_H
 
+
+Rcpp::IntegerVector sample_components(Rcpp::IntegerVector x, Rcpp::IntegerVector size,Rcpp::NumericVector prob) ;
+
 //Rcpp::IntegerVector uniqueBatch(Rcpp::IntegerVector x);
+
 //Rcpp::NumericMatrix tableBatchZ(Rcpp::S4 xmod);
 Rcpp::NumericVector compute_loglik(Rcpp::S4 xmod);
 
@@ -29,5 +33,6 @@ Rcpp::IntegerMatrix update_probz(Rcpp::S4 xmod);
 
 Rcpp::S4 cpp_burnin(Rcpp::S4 xmod, Rcpp::S4 mcmcp);
 Rcpp::S4 cpp_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp);
+Rcpp::S4 update_predictive(Rcpp::S4 xmod);
 
 #endif

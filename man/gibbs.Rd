@@ -4,9 +4,9 @@
 \alias{gibbs}
 \title{Run a Gibbs sampler on one or multiple types of Bayesian Gaussian mixture models}
 \usage{
-gibbs(model = c("SB", "MB", "SBP", "MBP"), dat, mp, hp.list, batches,
-  k_range = c(1, 4), max_burnin = 32000, top = 2, df = 100,
-  min_effsize = 500)
+gibbs(model = c("SB", "MB", "SBP", "MBP", "TBM"), dat, mp, hp.list,
+  batches, k_range = c(1, 4), max_burnin = 32000, min_GR = 1.2,
+  top = 2, df = 100, min_effsize = 500, maplabel, mprob)
 }
 \arguments{
 \item{model}{a character vector indicating which models to fit (any combination of 'SB', 'MB', 'SBP', and 'MBP')}
@@ -23,6 +23,8 @@ gibbs(model = c("SB", "MB", "SBP", "MBP"), dat, mp, hp.list, batches,
 
 \item{max_burnin}{the maximum number of burnin iterations. See
 details.}
+
+\item{min_GR}{length-1 numeric vector specifying the maximum Gelman-Rubin (GR) statistic.  If the GR statistic is above this value, the marginal likelihood will not be estimated.}
 
 \item{top}{a length-one numeric vector indicating how many of the top
 models to return.}
@@ -71,6 +73,7 @@ The number of mixture models fit depends on \code{k_range} and
         batches=batch(truth),
         k_range=c(1, 4),
         max_burnin=max_burnin,
+        min_GR=1.2,
         top=2,
         df=100))
 

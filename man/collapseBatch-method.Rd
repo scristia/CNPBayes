@@ -7,24 +7,26 @@
 \alias{collapseBatch,MultiBatchModel-method}
 \alias{collapseBatch,SummarizedExperiment-method}
 \alias{collapseBatch,numeric-method}
-\title{Estimate batch from a collection of chemistry plates or some other
-variable that captures the time in which the arrays were processed.}
+\title{Estimate batch from any sample-level surrogate variables that capture aspects of sample processing, such as the PCR experiment (e.g., the 96 well chemistry plate), laboratory, DNA source, or DNA extraction method.}
 \usage{
-collapseBatch(object, provisional_batch, THR = 0.1)
+collapseBatch(object, provisional_batch, THR = 0.1, nchar = 8)
 
 \S4method{collapseBatch}{MultiBatchModel}(object)
 
 \S4method{collapseBatch}{SummarizedExperiment}(object, provisional_batch,
   THR = 0.1)
 
-\S4method{collapseBatch}{numeric}(object, provisional_batch, THR = 0.1)
+\S4method{collapseBatch}{numeric}(object, provisional_batch, THR = 0.1,
+  nchar = 8)
 }
 \arguments{
 \item{object}{see \code{showMethods(collapseBatch)}}
 
 \item{provisional_batch}{a vector labelling from which batch each observation came from.}
 
-\item{THR}{threshold below which the null hypothesis should be rejected and batches are collapsed.}
+\item{THR}{p-value threshold below which the null hypothesis should be rejected and batches are collapsed}
+
+\item{nchar}{integer specifying the maximum number of characters in the batch labels}
 }
 \value{
 The new batch value.
@@ -52,7 +54,7 @@ in a study.  The \code{collapseBatch} function is a wrapper to the
 \code{ks.test} implemented in the \code{stats} package that
 compares all pairwise combinations of plates.  The \code{ks.test}
 is performed recursively on the batch variables defined for a given
-CNP until no batches can be combined.
+CNP until no batches can be combined. For smaller values of THR, plates are more likely to be judged as similar and combined.
 }
 \examples{
 mb.ex <- MultiBatchModelExample

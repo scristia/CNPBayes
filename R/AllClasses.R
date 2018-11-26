@@ -58,6 +58,21 @@ setClass("HyperparametersSingleBatch", contains="Hyperparameters")
 #' @slot dfr positive number for t-distribution degrees of freedom
 setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 
+#' An object to specify the hyperparameters of a model with additional parameters for trios
+#' 
+#' This class inherits from the hyperparameters class. 
+#' @slot k Number of components
+#' @slot mu.0 Prior mean for mu.
+#' @slot tau2.0 prior variance on mu
+#' @slot eta.0 rate paramater for tau2
+#' @slot m2.0 shape parameter for tau2
+#' @slot alpha mixture probabilities
+#' @slot beta parameter for nu.0 distribution
+#' @slot a shape for sigma2.0
+#' @slot b rate for sigma2.0
+#' @slot dfr positive number for t-distribution degrees of freedom
+setClass("HyperparametersTrios", contains="Hyperparameters")
+
 #' An object to hold estimated paraeters.
 #'
 #' An object of this class holds estimates of each parameter at each iteration of the MCMC simulation.
@@ -71,6 +86,11 @@ setClass("HyperparametersMultiBatch",  contains="Hyperparameters")
 #' @slot logprior log likelihood of prior.
 #' @slot loglik log likelihood.
 #' @slot zfreq table of z.
+#' @slot predictive posterior predictive distribution
+#' @slot zstar needed for plotting posterior predictive distribution
+#' @slot k integer specifying number of components
+#' @slot iter integer specifying number of MCMC simulations
+#' @slot B integer specifying number of batches
 setClass("McmcChains", representation(theta="matrix",
                                       sigma2="matrix",
                                       pi="matrix",
@@ -80,7 +100,19 @@ setClass("McmcChains", representation(theta="matrix",
                                       sigma2.0="numeric",
                                       logprior="numeric",
                                       loglik="numeric",
-                                      zfreq="matrix"))
+                                      zfreq="matrix",
+                                      predictive="matrix",
+                                      zstar="matrix",
+                                      k="integer",
+                                      iter="integer",
+                                      B="integer"))
+
+setClass("McmcChainsTrios", contains="McmcChains",
+         slots=c(pi_parents="matrix",
+                 zfreq_parents="matrix",
+                 is_mendelian="integer"))
+##family_member="character"))
+
 
 #' An object to specify MCMC options for a later simulation
 #'
@@ -89,6 +121,10 @@ setClass("McmcChains", representation(theta="matrix",
 #' @slot burnin A one length numeric to specify burnin. The first $n$ samples will be discarded.
 #' @slot nstarts A one length numeric to specify the number of chains in a simulation.
 #' @slot param_updates Indicates whether each parameter should be updated (1) or fixed (0).
+#' @slot min_GR minimum value of multivariate Gelman Rubin statistic for diagnosing convergence. Default is 1.2.
+#' @slot min_effsize  the minimum mean effective size of the chains. Default is 1/3 * iter.
+#' @slot max_burnin The maximum number of burnin iterations before we give up and return the existing model.
+#' @slot min_chains minimum number of independence MCMC chains used for assessing convergence. Default is 3.
 #' @examples
 #' McmcParams()
 #' McmcParams(iter=1000)
@@ -99,7 +135,11 @@ setClass("McmcParams", representation(thin="numeric",
                                       iter="numeric",
                                       burnin="numeric",
                                       nstarts="numeric",
-                                      param_updates="integer"))
+                                      param_updates="integer",
+                                      min_GR="numeric",
+                                      min_effsize="numeric",
+                                      max_burnin="numeric",
+                                      min_chains="numeric"))
 
 #' An object for running MCMC simulations.
 #'
@@ -128,6 +168,7 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot label_switch length-one logical indicating problems with label switching
+#' @slot marginal_lik the marginal likelihood of the model
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 #' @slot .internal.counter For internal use only.
 #' @slot marginal_lik scalar for marginal likelihood
@@ -142,6 +183,8 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         pi="numeric",
                                         mu="numericOrMatrix",
                                         tau2="numericOrMatrix",
+                                        predictive="numeric",
+                                        zstar="numeric",
                                         data="numeric",
                                         data.mean="numericOrMatrix",
                                         data.prec="numericOrMatrix",
@@ -160,7 +203,6 @@ setClass("MixtureModel", representation("VIRTUAL",
                                         marginal_lik="numeric",
                                         .internal.constraint="numeric",
                                         .internal.counter="integer"))
-
 
 #' An object for running MCMC simulations.
 #'
@@ -188,10 +230,21 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot modes the values of parameters from the iteration which maximizes log likelihood and log prior
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot mcmc.params An object of class 'McmcParams'
+#' @slot is_mendelian integer vector equal in length to the number of trios
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 #' @export
 setClass("MultiBatchModel", contains="MixtureModel")
 
+setClass("TrioBatchModel", contains="MultiBatchModel",
+         slots=c(triodata="tbl_df",
+                 mprob="matrix",
+                 father="numeric",
+                 mother="numeric",
+                 maplabel="numeric",
+                 pi_parents="numeric",
+                 zfreq_parents="integer",
+                 probz_par="matrix",
+                 is_mendelian="integer"))
 
 #' The 'SingleBatchModel' class
 #'
@@ -222,6 +275,7 @@ setClass("MultiBatchModel", contains="MixtureModel")
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 #' @export
+#' @rdname SingleBatchModel-class
 setClass("SingleBatchModel", contains="MixtureModel")
 
 
@@ -246,6 +300,7 @@ setClass("UnivariateBatchModel", contains="MultiBatchModel")
 #' @details Suppose a mixture model with four components is selected, where the 3rd and 4th components both correspond to the diploid state.  The mapping slot will be the vector "0", "1", "2", and "2".
 #' @rdname CopyNumber-classes
 #' @export
+#' @rdname SingleBatchModel-class
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
          representation(mapping="character"))
 

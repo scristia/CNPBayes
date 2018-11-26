@@ -117,7 +117,7 @@ double log_prob_sigmap(Rcpp::S4 xmod, Rcpp::NumericVector sigma2star) {
   Rcpp::NumericMatrix thetastar = clone(theta_);
   Rcpp::NumericVector x = model.slot("data");
   Rcpp::IntegerVector batch = model.slot("batch") ;
-  Rcpp::IntegerVector ub = uniqueBatch(batch) ;
+  Rcpp::IntegerVector ub = unique_batch(batch) ;
   int n = x.size();
   int K = thetastar.ncol();
   int B = thetastar.nrow();
@@ -393,7 +393,7 @@ double log_prob_s20p(Rcpp::S4 xmod) {
   Rcpp::S4 hypp = model.slot("hyperparams");
   Rcpp::List modes = model.slot("modes");
   Rcpp::IntegerVector batch = model.slot("batch");
-  Rcpp::IntegerVector ub = uniqueBatch(batch);
+  Rcpp::IntegerVector ub = unique_batch(batch);
   int B = ub.size();
   // get ordinal modes.
   Rcpp::IntegerVector nu0_ = Rcpp::as<Rcpp::IntegerVector>(modes["nu0"]);

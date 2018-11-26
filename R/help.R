@@ -3,7 +3,7 @@
 #' @docType package
 #' @name CNPBayes
 #' @import methods
-#' @importFrom gtools rdirichlet ddirichlet
+#' @importFrom gtools rdirichlet ddirichlet permutations smartbind
 #' @importFrom GenomeInfoDb seqinfo seqlevels<- seqlevels seqinfo<- seqnames
 #' @import IRanges
 #' @importFrom utils capture.output
@@ -21,12 +21,13 @@
 #' @importFrom coda effectiveSize mcmc.list gelman.diag mcmc as.mcmc.list
 #' @importFrom mclust Mclust mclustBIC
 #' @importFrom reshape2 melt
-#' @importMethodsFrom SummarizedExperiment assays SummarizedExperiment
+#' @importMethodsFrom SummarizedExperiment assays SummarizedExperiment assays<-
 #' @import ggplot2
 #' @importFrom magrittr set_colnames "%>%"
 #' @importFrom purrr map map2 map_lgl map_dbl map_chr
 #' @importFrom tidyr gather spread
-#' @importFrom dplyr mutate bind_rows group_by summarize arrange filter n left_join select
-#' @importFrom tibble as.tibble tibble
+#' @importFrom data.table setDT tstrsplit frank
+#' @importFrom dplyr mutate bind_rows group_by summarize arrange filter n left_join select ungroup
+#' @import tibble
 #' @useDynLib CNPBayes
 NULL

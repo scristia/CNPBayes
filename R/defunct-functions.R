@@ -70,3 +70,4 @@ tileMedians <- function(y, nt, batch){
   tiles$batch <- as.integer(factor(tiles$batch.var))
   tiles
 }
+

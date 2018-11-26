@@ -2,9 +2,14 @@
 % Please edit documentation in R/methods-MultiBatchModel.R
 \name{MultiBatchModel2}
 \alias{MultiBatchModel2}
+\alias{MB}
 \title{Constructor for MultiBatchModel}
 \usage{
 MultiBatchModel2(dat = numeric(), hp = HyperparametersMultiBatch(),
+  mp = McmcParams(iter = 1000, thin = 10, burnin = 1000, nStarts = 4),
+  batches = integer())
+
+MB(dat = numeric(), hp = HyperparametersMultiBatch(),
   mp = McmcParams(iter = 1000, thin = 10, burnin = 1000, nStarts = 4),
   batches = integer())
 }
@@ -16,11 +21,23 @@ MultiBatchModel2(dat = numeric(), hp = HyperparametersMultiBatch(),
 \item{mp}{An object of class 'McmcParams'}
 
 \item{batches}{an integer-vector of the different batches}
+
+\item{dat}{the data for the simulation.}
+
+\item{batches}{an integer-vector of the different batches}
+
+\item{hp}{An object of class `Hyperparameters` used to specify the hyperparameters of the model.}
+
+\item{mp}{An object of class 'McmcParams'}
 }
 \value{
 An object of class `MultiBatchModel`
+
+An object of class `MultiBatchModel`
 }
 \description{
+Initializes a MultiBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
+
 Initializes a MultiBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
 }
 \examples{
@@ -45,4 +62,20 @@ Initializes a MultiBatchModel, a container for storing data, parameters, and MCM
                                p = c(1/5, 1/3, 1 - 1/3 - 1/5))
     MultiBatchModel2(dat=y(truth), batches=batch(truth),
                      hp=hpList(k=3)[["MB"]])
+  model <- MultiBatchModel2(rnorm(10), batch=rep(1:2, each=5))
+  set.seed(100)
+  nbatch <- 3
+  k <- 3
+  means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+      0, 0.05), nbatch, k, byrow = FALSE)
+  sds <- matrix(0.15, nbatch, k)
+  sds[, 1] <- 0.3
+  N <- 1000
+  truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+                                                length.out = N),
+                             p = c(1/10, 1/5, 1 - 0.1 - 0.2),
+                             theta = means,
+                             sds = sds)
+    MB(dat=y(truth), batches=batch(truth),
+       hp=hpList(k=3)[["MB"]])
 }

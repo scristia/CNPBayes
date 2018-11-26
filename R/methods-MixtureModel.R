@@ -1,4 +1,4 @@
-""#' @include AllGenerics.R
+#' @include AllGenerics.R
 NULL
 
 setValidity("MixtureModel", function(object){
@@ -13,6 +13,16 @@ setValidity("MixtureModel", function(object){
   }
   if(length(y(object))!=length(u(object))){
     msg <- "u-vector must be same length as data"
+    return(msg)
+  }
+  if(iter(object) != iter(chains(object))){
+    msg <- "number of iterations not the same between chains and model"
+    return(msg)
+  }
+  th.len <- prod(dim(theta(object)))
+  pr.len <- length(object@predictive)
+  if(th.len != pr.len){
+    msg <- "predictive slot in current values should have length K x B"
     return(msg)
   }
   msg
@@ -68,6 +78,7 @@ sigma.0 <- function(object) sqrt(sigma2.0(object))
 
 
 
+
 #' Retrieve mixture proportions.
 #'
 #' @examples
@@ -75,12 +86,19 @@ sigma.0 <- function(object) sqrt(sigma2.0(object))
 #' @param object an object of class MarginalModel or BatchModel
 #' @return A vector of length the number of components
 #' @export
-p <- function(object) object@pi
+setMethod("p", "MixtureModel", function(object){
+  object@pi
+})
 
 nComp <- function(object) length(p(object))
-dataMean <- function(object) object@data.mean
-dataPrec <- function(object) object@data.prec
-dataSd <- function(object) sqrt(1/dataPrec(object))
+
+setMethod("dataMean", "MixtureModel", function(object) object@data.mean)
+setMethod("dataPrec", "MixtureModel", function(object) object@data.prec)
+setMethod("dataSd", "MixtureModel", function(object) sqrt(1/dataPrec(object)))
+
+##dataMean <- function(object) object@data.mean
+##dataPrec <- function(object) object@data.prec
+##dataSd <- function(object) sqrt(1/dataPrec(object))
 
 #' @rdname k-method
 #' @aliases k,MixtureModel-method
@@ -123,8 +141,6 @@ setReplaceMethod("p", "MixtureModel", function(object, value){
   object@pi <- value
   object
 })
-
-
 
 setReplaceMethod("nu.0", "MixtureModel", function(object, value){
   object@nu.0 <- value
@@ -223,8 +239,11 @@ setReplaceMethod("probz", "MixtureModel", function(object, value){
 #' @rdname probz-method
 #' @aliases probz,MixtureModel-method
 setMethod("probz", "MixtureModel", function(object) {
-  ## because first iteration not saved
-  object@probz/(iter(object)-1)
+  if(iter(object) > 0){
+    pz <- object@probz/iter(object)
+    return(pz)
+  }
+  object@probz
 })
 
 
@@ -369,10 +388,10 @@ setReplaceMethod("m2.0", "Hyperparameters", function(object, value){
 ##
 ## the batch names tend to be much too long
 ##
-makeUnique <- function(x){
+makeUnique <- function(x, nchar=8){
   ub <- unique(x)
   ##names(ub) <- ub
-  maxchar <- pmin(nchar(ub), 8)
+  maxchar <- pmin(nchar(ub), nchar)
   abbrv <- setNames(make.unique(substr(ub, 1, maxchar)), ub)
   as.character(abbrv[x])
 }
@@ -503,7 +522,7 @@ argMax <- function(object){
     return(1)
   }
   maxp <- max(p)
-  which(p == maxp)
+  which(p == maxp)[1]
 }
 
 setMethod("isSB", "SingleBatchModel", function(object) TRUE)
@@ -576,6 +595,8 @@ setMethod("thin", "MixtureModel", function(object) thin(mcmcParams(object)))
 #' @aliases burnin,MixtureModel-method
 setMethod("burnin", "MixtureModel", function(object) burnin(mcmcParams(object)))
 
+setMethod("numBatch", "MixtureModel", function(object) numBatch(chains(object)))
+
 #' @rdname burnin-method
 #' @aliases burnin<-,MixtureModel-method
 setReplaceMethod("burnin", "MixtureModel", function(object, value){
@@ -585,10 +606,11 @@ setReplaceMethod("burnin", "MixtureModel", function(object, value){
 
 #' @rdname iter-method
 #' @aliases iter<-,MixtureModel-method
-setReplaceMethod("iter", "MixtureModel", function(object, force=FALSE, value){
+setReplaceMethod("iter", "MixtureModel", function(object, value){
   mp <- mcmcParams(object)
-  iter(mp) <- value
-  mcmcParams(object, force=force) <- mp
+  iter(mp) <- as.integer(value)
+  mcmcParams(object) <- mp
+  iter(chains(object)) <- as.integer(value)
   object
 })
 
@@ -612,27 +634,25 @@ sigma20c <- function(object) sigma2.0(chains(object))
 
 #' @rdname mcmcParams-method
 #' @aliases mcmcParams,MixtureModel-method
-setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=TRUE, value){
-  it <- iter(object)
-  if(it != iter(value)){
-    if(!force){
-      msg <- "Replacement will change the size of the elements in mcmc.chains slot."
-      msg2 <- "Force=TRUE will allow the replacement"
-      stop(paste(msg, msg2, sep="\n"))
+setReplaceMethod("mcmcParams", "MixtureModel", function(object, value){
+  S <- iter(value)
+  B <- numBatch(object)
+  K <- k(object)
+  if(iter(object) != S){
+    if(S > iter(object)){
+      object@mcmc.params <- value
+      ## create a new chain
+      mcmc_chains <- initialize_mcmc(K, S, B)
     } else {
-      ## force is TRUE
-      if(iter(value) > iter(object)){
-        object@mcmc.params <- value
-        ## create a new chain
-        mcmc_chains <- McmcChains(object)
-      } else {
-        object@mcmc.params <- value
-        index <- seq_len(iter(value))
-        mcmc_chains <- chains(object)[index, ]
-      }
-      chains(object) <- mcmc_chains
-      return(object)
+      object@mcmc.params <- value
+      index <- seq_len(S)
+      mcmc_chains <- chains(object)[index, ]
+      mcmc_chains@iter <- S
+      mcmc_chains@B <- B
+      mcmc_chains@k <- K
     }
+    chains(object) <- mcmc_chains
+    return(object)
   }
   ## if we've got to this point, it must be safe to update mcmc.params
   ## (i.e., size of chains is not effected)
@@ -643,9 +663,9 @@ setReplaceMethod("mcmcParams", "MixtureModel", function(object, force=TRUE, valu
 #' @rdname mcmcParams-method
 #' @aliases mcmcParams,list-method
 setReplaceMethod("mcmcParams", "list",
-                 function(object, force=TRUE, value){
+                 function(object, value){
                    for(i in seq_along(object)){
-                     mcmcParams(object[[i]], force=force) <- value
+                     mcmcParams(object[[i]]) <- value
                    }
                    object
                  })
@@ -802,9 +822,11 @@ upSample2 <- function(orig.data,
                       up_sample=TRUE){
   model2 <- useModes(model)
   ## if we do not upSample, we should be able to recover the original probabilities
+  ##orig.data$ix <- seq_len(nrow(orig.data))
+  ##orig.data <- orig.data[order(orig.data$batch_index), ]
   if(up_sample){
     y(model2) <- orig.data$medians
-    if(length(unique(batch(model))) > 1) {
+    if(length(unique_batch(batch(model))) > 1) {
       batch(model2) <- orig.data$batch_index
     } else batch(model2) <- rep(1L, nrow(orig.data))
     model2@u <- rchisq(length(y(model2)), df=dfr(model))
@@ -820,7 +842,7 @@ upSample2 <- function(orig.data,
   pooled <- class(model) %in% c("SingleBatchPooled", "MultiBatchPooled")
   K <- seq_len(k(model2))
   ##B <- unique(orig.data$batch_index)
-  B <- unique(batch(model2))
+  B <- unique_batch(batch(model2))
   pz <- matrix(NA, length(y(model2)), max(K))
   for(b in B){
     j <- which(batch(model2) == b)
@@ -888,3 +910,66 @@ setReplaceMethod("dfr", c("MixtureModel", "numeric"),
                    object@u <- rchisq(length(y(object)), value)
                    object
                  })
+
+## i can be logical or numeric
+setMethod("[", c("MixtureModel", "logical"),
+          function(x, i, j, ..., drop=TRUE){
+            x@data <- oned(x)[i]
+            x@z <- z(x)[i]
+            x@probz <- x@probz[i, , drop=FALSE]
+            x@zfreq <- as.integer(table(z(x)))
+            x@batch <- batch(x)[i]
+            x@batchElements <- as.integer(table(batch(x)))
+            return(x)
+})
+
+setMethod("[", c("MixtureModel", "numeric"),
+          function(x, i, j, ..., drop=TRUE){
+            x@data <- oned(x)[i]
+            x@z <- z(x)[i]
+            x@probz <- x@probz[i, , drop=FALSE]
+            x@zfreq <- as.integer(table(z(x)))
+            x@batch <- batch(x)[i]
+            x@batchElements <- as.integer(table(batch(x)))
+            return(x)
+          })
+
+setMethod("useModes", "MixtureModel", function(object){
+  m2 <- object
+  theta(m2) <- modes(object)[["theta"]]
+  sigma2(m2) <- modes(object)[["sigma2"]]
+  tau2(m2) <- modes(object)[["tau2"]]
+  nu.0(m2) <- modes(object)[["nu0"]]
+  sigma2.0(m2) <- modes(object)[["sigma2.0"]]
+  p(m2) <- modes(object)[["mixprob"]]
+  zFreq(m2) <- as.integer(modes(object)[["zfreq"]])
+  log_lik(m2) <- modes(object)[["loglik"]]
+  logPrior(m2) <- modes(object)[["logprior"]]
+  ##
+  ## update z using the modal values from above
+  ##
+  z(m2) <- updateZ(m2)
+  m2
+})
+
+setMethod("compute_marginal_lik", "MixtureModel", function(object, params){
+  ##
+  ## evaluate marginal likelihood. Relax default conditions
+  ##
+  if(missing(params)){
+    params <- mlParams(root=1/2,
+                       reject.threshold=exp(-100),
+                       prop.threshold=0.5,
+                       prop.effective.size=0)
+  }
+  ml <- tryCatch(marginalLikelihood(object, params),
+                 warning=function(w) NULL)
+  if(!is.null(ml)){
+    marginal_lik(object) <- ml
+    message("     marginal likelihood: ", round(marginal_lik(object), 2))
+  } else {
+    ##warning("Unable to compute marginal likelihood")
+    message("Unable to compute marginal likelihood")
+  }
+  object
+})
