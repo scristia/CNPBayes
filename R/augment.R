@@ -38,8 +38,6 @@ augmentData <- function(full.data){
   current
 }
 
-setGeneric("augmentData2", function(object) standardGeneric("augmentData2"))
-
 ##
 ## - only makes sense to do this if multibatch models with 3 or 4 components are
 ##   included in the list

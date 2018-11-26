@@ -449,9 +449,10 @@ setReplaceMethod("zFreq", "McmcChains", function(object, value){
 ##})
 
 longFormatKB <- function(x, K, B){
-  col_names <- rep(seq_len(B), B) %>%
-    paste(rep(seq_len(K), each=K), sep=",")
-  col_names <- col_names[ !duplicated(col_names) ]
+  col_names <- expand.grid(seq_len(B), seq_len(K)) %>%
+    mutate(col_names=paste(Var1, Var2, sep=",")) %$%
+    col_names
+  ##col_names <- col_names[ !duplicated(col_names) ]
   x <- x %>%
     as.tibble %>%
     set_colnames(col_names) %>%
