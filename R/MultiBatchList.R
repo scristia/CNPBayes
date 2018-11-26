@@ -534,18 +534,40 @@ setAs("list", "MultiBatchList", function(from){
   ##
   ix <- grep("MB", models)[1]
   dat <- assays(from[[ix]])
-  specs <- modelSpecs(models,
-                      sapply(from, k),
-                      data=dat,
-                      down_sample=down_sample(from[[1]]))
-  MultiBatchList(models=sapply(from, modelName),
-                 data=dat,
-                 down_sample=down_sample(from[[1]]),
-                 parameters=parameters(from[[1]]),
-                 current_values=lapply(from, current_values),
-                 summaries=lapply(from, summaries),
-                 chains=lapply(from, chains),
-                 flags=lapply(from, flags))
+  if(is(models, "list")){
+    ## object from is a list of MultiBatchList objects
+    models2 <- unlist(models)
+    k <- sapply(from, k) %>%
+      map_chr(unique)
+    specs <- modelSpecs(models2,
+                        sapply(from, k),
+                        data=dat,
+                        down_sample=down_sample(from[[1]]))
+    current_vals <- extractFromModelList(from, current_values)
+    summary.list <- extractFromModelList(from, summaries)
+    chains.list <- extractFromModelList(from, chains)
+    flag.list <- extractFromModelList(from, flags)
+  } else {
+    specs <- modelSpecs(models,
+                        sapply(from, k),
+                        data=dat,
+                        down_sample=down_sample(from[[1]]))
+    current_vals <- lapply(from, current_values)
+    summary.list <- lapply(from, summaries)
+    chains.list <- lapply(from, chains)
+    flag.list <- lapply(from, flags)
+  }
+  params <- parameters(from[[1]])
+  mb <- MultiBatchList(models=models,
+                       data=dat,
+                       specs=specs,
+                       ##down_sample=down_sample(from[[1]]),
+                       parameters=params,
+                       current_values=current_vals,
+                       summaries=summary.list,
+                       chains=chains.list,
+                       flags=flag.list)
+  mb
 })
 
 fitModelK <- function(model.list){
