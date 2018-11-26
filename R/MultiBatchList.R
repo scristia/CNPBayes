@@ -603,9 +603,27 @@ setMethod("mcmc2", "MultiBatchList", function(object, guide){
   mlist <- listModelsByDecreasingK(object)
   k4 <- fitModelK(mlist[[1]])
   k3 <- fitModelK(mlist[[2]])
+  if(all(convergence(k4))){
+    mlist <- list(k4, k3)
+    mlist2 <- as(mlist, "MultiBatchList")
+    ix <- order(marginal_lik(mlist2), decreasing=TRUE)
+    mlist2 <- mlist2[ix]
+    return(mlist2)
+  }
   k2 <- fitModelK(mlist[[3]])
+  if(all(convergence(k3))){
+    mlist <- list(k4, k3, k2)
+    mlist2 <- as(mlist, "MultiBatchList")
+    ix <- order(marginal_lik(mlist2), decreasing=TRUE)
+    mlist2 <- mlist2[ix]
+    return(mlist2)
+  }
   k1 <- fitModelK(mlist[[4]])
-  list(k4, k3, k2, k1)
+  mlist <- list(k4, k3, k2, k1)
+  mlist2 <- as(mlist, "MultiBatchList")
+  ix <- order(marginal_lik(mlist2), decreasing=TRUE)
+  mlist2 <- mlist2[ix]
+  return(mlist2)
 })
 
 ##setMethod("sapply", "MultiBatchList",
