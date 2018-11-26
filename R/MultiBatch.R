@@ -21,6 +21,8 @@ setClass("MultiBatch", representation(data="tbl_df",
                                       summaries="list",
                                       flags="list"))
 
+setClass("CnList", contains="MultiBatch")
+
 
 
 setValidity("MultiBatch", function(object){
@@ -34,7 +36,7 @@ setValidity("MultiBatch", function(object){
     return(msg)
   }
   nb <- length(unique(batch(object)))
-  if(nb != specs(object)$number_batches ){
+  if(nb != specs(object)$number_batches[1] ){
     msg <- "Number of batches in model specs differs from number of batches in data"
     return(msg)
   }
@@ -64,6 +66,51 @@ setValidity("MultiBatch", function(object){
 ##    msg <- "down sample index must be the same length as the number of rows in assay"
 ##    return(msg)
 ##  }
+  if(!identical(dim(zstar(object)), dim(predictive(object)))){
+    msg <- "z* and predictive matrices in MCMC chains should be the same dimension"
+    return(msg)
+  }
+  msg
+})
+
+
+setValidity("CnList", function(object){
+  msg <- TRUE
+  if(iter(object) != iter(chains(object))){
+    msg <- "Number of iterations not the same between MultiBatch model and chains"
+    return(msg)
+  }
+  if(length(u(object)) != length(down_sample(object))){
+    msg <- "Incorrect length of u-vector"
+    return(msg)
+  }
+  nb <- length(unique(batch(object)))
+  if(nb != specs(object)$number_batches[1] ){
+    msg <- "Number of batches in model specs differs from number of batches in data"
+    return(msg)
+  }
+  nr <- nrow(theta(object))
+  if(nr != nb){
+    msg <- "Number of batches in current values differs from number of batches in model specs"
+    return(msg)
+  }
+  nr <- nrow(dataMean(object))
+  if(nr != nb){
+    msg <- "Number of batches in model summaries differs from number of batches in model specs"
+    return(msg)
+  }
+  S <- iter(object)
+  th <- theta(chains(object))
+  if( S != nrow(th) || ncol(th) != nr * k(object) ) {
+    msg <- "Dimension of chain parameters is not consistent with model specs"
+    return(msg)
+  }
+  B <- batch(object)
+  is.sorted <- all(diff(B) >= 0)
+  if(!is.sorted) {
+    msg <- "down sample index must be in batch order"
+    return(msg)
+  }
   if(!identical(dim(zstar(object)), dim(predictive(object)))){
     msg <- "z* and predictive matrices in MCMC chains should be the same dimension"
     return(msg)
@@ -171,6 +218,15 @@ setMethod("show", "MultiBatch", function(object){
   ##cat("     log prior (s)       :", round(logPrior(object), 1), "\n")
   if(include_ml)
     cat("   log marginal lik    :", round(ml, 1), "\n")
+})
+
+setMethod("length", "CnList", function(x)  nrow(specs(x)))
+
+setMethod("show", "CnList", function(object){
+  ##callNextMethod()
+  cls <- class(object)
+  L <- length(object)
+  cat(L, "candidate genotypes for model", modelName(object)[1], "\n")
 })
 
 setMethod("numBatch", "MultiBatch", function(object) as.integer(specs(object)$number_batches[[1]]))
@@ -333,12 +389,30 @@ modelSummaries <- function(specs){
   zfreq <- integer(K)
   marginal_lik <- as.numeric(NA)
   modes <- list()
+  mapping <- seq_len(K)
   list(data.mean=data.mean,
        data.prec=data.prec,
        zfreq=zfreq,
        marginal_lik=marginal_lik,
-       modes=modes)
+       modes=modes,
+       mapping=mapping)
 }
+
+setMethod("mapping", "MultiBatch", function(object){
+  summaries(object)$mapping
+})
+
+setReplaceMethod("mapping", "MultiBatch", function(object, value){
+  summaries(object)$mapping <- value
+  object
+})
+
+setMethod("copyNumber", "MultiBatch", function(object){
+  component_labels <- mapping(object)
+  zz <- map_z(object)
+  cn <- component_labels[zz]
+  cn
+})
 
 extractSummaries <- function(old){
   s.list <- list(data.mean=dataMean(old),
