@@ -502,6 +502,27 @@ setAs("MultiBatchList", "MultiBatch", function(from){
   from[[1]]
 })
 
+extractFromModelList <- function(from, FUN){
+  models <- sapply(from, modelName)
+  nmodels <- elementNROWS(models)
+  cv <- vector("list", sum(nmodels))
+  k <- 1
+  for(i in seq_along(models)){
+    m <- from[[i]]
+    if(length(models[[i]]) == 1){
+      cv[[k]] <- FUN(m)
+      k <- k+1
+      next()
+    }
+    for(j in seq_along(m)){
+      cv[[k]] <- FUN(m[[j]])
+      k <- k+1
+    }
+  }
+  names(cv) <- unlist(models)
+  cv
+}
+
 setAs("list", "MultiBatchList", function(from){
   it <- sapply(from, iter)
   if(length(unique(it)) > 1){

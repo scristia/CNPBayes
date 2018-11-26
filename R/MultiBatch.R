@@ -171,10 +171,12 @@ MultiBatch <- function(model="MB3",
                        burnin=200L,
                        thin=1L,
                        nStarts=4L,
+                       max_burnin=burnin,
                        hp=Hyperparameters(k=specs$k),
                        mp=McmcParams(iter=iter, thin=thin,
                                      burnin=burnin,
-                                     nStarts=nStarts),
+                                     nStarts=nStarts,
+                                     max_burnin=max_burnin),
                        parameters=modelParameters(mp=mp, hp=hp),
                        chains=mcmc_chains(specs, parameters),
                        current_values=modelValues2(specs, data[down_sample, ], hp),
@@ -1055,7 +1057,8 @@ summarizeModel <- function(object){
                 data.mean=computeMeans(object),
                 data.prec=computePrec(object),
                 zfreq=as.integer(table(z(object))),
-                marginal_lik=marginal_lik(object))
+                marginal_lik=marginal_lik(object),
+                mapping=seq_len(k(object)))
 }
 
 collectFlags <- function(model.list){
