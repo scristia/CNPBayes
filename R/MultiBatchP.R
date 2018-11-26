@@ -55,11 +55,13 @@ modelSummariesP <- function(specs){
   zfreq <- integer(K)
   marginal_lik <- as.numeric(NA)
   modes <- list()
+  mapping <- seq_len(K)
   list(data.mean=data.mean,
        data.prec=data.prec,
        zfreq=zfreq,
        marginal_lik=marginal_lik,
-       modes=modes)
+       modes=modes,
+       mapping=mapping)
 }
 
 ##

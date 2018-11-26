@@ -10,6 +10,7 @@ setClass("MultiBatchList", representation(data="tbl_df",
                                           summaries="list",
                                           flags="list"))
 
+
 modelSpecs <- function(models, K, data, down_sample) {
   if(missing(models)){
     models <- c("SB", "SBP", "MB", "MBP")
@@ -698,4 +699,3 @@ setMethod("singleBatchGuided", c("MultiBatchList", "MultiBatch"),
             names(mod.list) <- modelName(x)
             mod.list
           })
-
