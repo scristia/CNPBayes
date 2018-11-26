@@ -469,7 +469,6 @@ test_that("posterior probability for mendelian inheritance", {
   ## probabilities for the Mendelian indicator should all be high
   ##
   ix <- which(mendel==0)
-  not.mendel <- dat[ix, ]
   m1 <- runBurnin(m)
   m1 <- posteriorSimulation(m1)
   iter(m1) <- 300L
