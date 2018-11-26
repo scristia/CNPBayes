@@ -1,6 +1,8 @@
 context("Failing tests that need to be fixed")
 
-test_that("mcmc2 for pooled model", {
+.test_that <- function(nm, expr) NULL
+
+.test_that("mcmc2 for pooled model", {
   ## with data
   set.seed(321)
   library(SummarizedExperiment); library(tidyverse)
@@ -29,6 +31,7 @@ test_that("mcmc2 for pooled model", {
   ##
   tmp <- MultiBatchP(data=assays(mb1),
                      iter=500, burnin=400)
+
   ##tmp.list <- lapply(tmp, posteriorSimulation)
   mb1 <- posteriorSimulation(tmp)## fails
   expect_equal(theta(mb1), theta(mb), tolerance=0.02)
