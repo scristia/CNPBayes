@@ -55,7 +55,7 @@ setMethod("runMcmc", "MultiBatchPooled", function(object){
     ##
     ## at this point, we've tried to run the twice after burnin and we still
     ## have mixing. Most likely, we are fitting a model with k too big
-    warning("label switching: model k=", k(post))
+    ##warning("label switching: model k=", k(post))
   }
   post <- sortComponentLabels(post)
   post

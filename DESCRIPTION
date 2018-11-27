@@ -34,7 +34,8 @@ Imports:
     tibble,
     scales,
     data.table,
-    RcppArmadillo
+    RcppArmadillo,
+    stringr
 Suggests:
     testthat,
     knitr,

@@ -217,53 +217,73 @@ simulateBatchEffect <- function(hap.list,
                                 experiment){
   scale <- experiment$scale[[1]]
   shift <- experiment$batch.effect[[1]]
-
-  lrr.batch <- hap.list[["lrr.batch"]]
-  avg.lrr <- hap.list[["avg.lrr"]]
-  true.z <- hap.list[["true.z"]]
-  batch.id <- hap.list[["batch.id"]]
-  medians <-  sapply(split(avg.lrr, true.z), median)
-  sds <- sapply(split(avg.lrr, true.z), sd)
-  signal <- diff(medians)
-  snr <- diff(medians)/sds[1:2]
+  r <- hap.list[["r"]] %>%
+    group_by(plate, id) %>%
+    summarize(oned=mean(lrr, na.rm=TRUE)) %>%
+    left_join(hap.list[["truth"]], by="id")
+  cn.stats <- ungroup(r) %>%
+    group_by(cn) %>%
+    summarize(mu=median(oned),
+              sd=sd(oned))
+  snr <- diff(cn.stats$mu)/cn.stats$sd[1:2]
   ## the first component is ~9 sds from componenent 2
-  ## the second component is ~7 (6 for cnp57) sds from component 3
-  ##
-  ##
-
+  ## the second component is ~6 sds from component 3
   ##
   ## Batch effect
   ##
-  number.plates <- sum(batch.id == 0)
-  n.plate <- sapply(lrr.batch, ncol)
-  plates <- factor(rep(names(lrr.batch), n.plate),
-                   levels=names(lrr.batch))
-  z.list <- split(true.z, plates)
-  medians2 <- medians[true.z + 1]
-  medians.list <- split(medians2, plates)
-  delta <- ifelse(batch.id == 0, shift, 0)
-  lrr.sim <- lrr.batch
+  nplates <- length(unique(r$plate))
+  batches <- tibble(plate=unique(r$plate),
+                    batch=sample(c(0, 1),
+                                 nplates,
+                                 replace=TRUE,
+                                 prob=c(0.5, 0.5)))
+  r2 <- left_join(r, batches, by="plate") %>%
+    ungroup() %>%
+    mutate(mu=cn.stats$mu[ as.integer(cn)] ,
+           delta=ifelse(batch==0, 0, shift),
+           centered=oned-mu) %>%
+    mutate(rescaled=centered*scale + mu,
+           raw=oned,
+           oned=rescaled + rnorm(nrow(.), delta, 0.02)) %>%
+    select(c(plate, id, oned, raw, cn, batch))
+  b <- hap.list[["b"]] %>%
+    select(-probe)
+  g <- hap.list[["g"]] %>%
+    select(-probe)
+  r3 <- left_join(r2, b, by=c("id", "plate")) %>%
+    left_join(g, by=c("id", "plate"))
+  r3
+}
+  ##number.plates <- sum(batches == 0)
+  ##  n.plate <- sapply(lrr.batch, ncol)
+  ##  plates <- factor(rep(names(lrr.batch), n.plate),
+  ##                   levels=names(lrr.batch))
+  ##  z.list <- split(true.z, plates)
+  ##medians2 <- medians[true.z + 1]
+  ##medians.list <- split(medians2, plates)
+  ##delta <- ifelse(batch.id == 0, shift, 0)
+  ##lrr.sim <- lrr.batch
   ##
   ##  Below is the random part of the simulation -- adding shift and scale
   ##
-  for(j in seq_along(batch.id)){
-    r <- lrr.batch[[j]]
-    ## centering by z.meds will not remove copy number effect
-    z.meds <- matrix(medians.list[[j]],
-                     nrow(r), ncol(r), byrow=TRUE)
-    centered <- r - z.meds
-    rr <- (centered)*scale + z.meds
-    if(batch.id[j] == 0) {
-      ##
-      ## On average, each observation is shifted by amount [shift]
-      ##
-      ##rr <- rr + rnorm(nrow(rr) * ncol(rr), shift, 0.01)
-      rr <- rr + shift
-    }
-    lrr.sim[[j]] <- rr
-  }
-  lrr.sim
-}
+##  for(j in seq_along(batch.id)){
+##    r <- lrr.batch[[j]]
+##    ## centering by z.meds will not remove copy number effect
+##    z.meds <- matrix(medians.list[[j]],
+##                     nrow(r), ncol(r), byrow=TRUE)
+##    centered <- r - z.meds
+##    rr <- (centered)*scale + z.meds
+##    if(batch.id[j] == 0) {
+##      ##
+##      ## On average, each observation is shifted by amount [shift]
+##      ##
+##      ##rr <- rr + rnorm(nrow(rr) * ncol(rr), shift, 0.01)
+##      rr <- rr + shift
+##    }
+##    lrr.sim[[j]] <- rr
+##  }
+##  lrr.sim
+
 
 
 getHapmapIds <- function(hap.list){
@@ -327,37 +347,6 @@ hapmapSimulation2 <- function(hapmap.data,
                               shift, scale,
                               simulate_truth=FALSE,
                               thr=0.01, min_plate=0){
-  ##
-  ## HapMap data (Region ? / source ?)
-  ##
-  ##hapmap.dir <- system.file("extdata/hapmap", package="PancCnvsData2")
-  ##hapmap.dir <- "PancCnvsData2/inst/extdata/hapmap"
-  ##lrr.batch <- readRDS(file.path(hapmap.dir, "lrr_roi_1.rds"))
-  ##cnp_57 <- readRDS(file.path(hapmap.dir, "cnp_57.rds"))
-##  cnp_57 <- hapmap.data
-##  matFun <- function(x) as.matrix(x[, -c(1, 2)])
-##  plates <- rep(names(cnp_57[["r"]]), sapply(cnp_57[["r"]], ncol)-2)
-##  np <- table(plates)
-##  np <- np[ np > min_plate ]
-##  lrr.batch <- cnp_57[["r"]][names(np)] %>%
-##    lapply(matFun)
-##  ##lrr.batch <- lapply(lrr.batch, function(x) x/1000)
-##  ##
-##  ## Simulate batches
-##  ##
-##  ##batch.id <- c(rep(0,8), rep(1, 8))
-##  batch.id <- sample(c(0, 1), length(lrr.batch), replace=TRUE,
-##                     prob=c(0.5, 0.5))
-##  avg.lrr <- unlist(lapply(lrr.batch, colMeans, na.rm=TRUE))
-  ## truth stays same for all simulations
-##  true.z <- hapmapTruth(avg.lrr, simulate_truth=simulate_truth)
-  ## when scale is large, components 2 and 3 are not distinguishable
-##  lrr.sim <- simulateBatchEffect(lrr.batch,
-##                                 avg.lrr,
-##                                 true.z,
-##                                 batch.id,
-##                                 shift,
-##                                 scale)
   avglrrs <- unlist(lapply(lrr.sim, colMeans, na.rm=TRUE))
   ncols <- sapply(lrr.batch, ncol)
   plates <- rep(names(lrr.batch), ncols)
@@ -371,19 +360,6 @@ hapmapSimulation2 <- function(hapmap.data,
                 provisional_batch=plate.index,
                 batch=1L,
                 true_batch=true_batch)
-##  mb <- MultiBatch(data=dat)
-##  mb2 <- findSurrogates(mb, THR=0.0001)
-  ##  full.data <- tibble(medians=avglrrs, plate=plates) %>%
-  ##    mutate(plate.index=plate.index) %>%
-  ##    mutate(batch=combineSurrogates(medians, plate.index, thr)) %>%
-  ##    mutate(batch_index=as.integer(factor(batch)),
-  ##           true_batch=true_batch)
-  ##  true_batch_labels <- group_by(full.data, true_batch) %>%
-  ##    summarize(true_batch_labels=paste(unique(plate.index), collapse=","))
-  ##  full.data2 <- left_join(full.data, true_batch_labels,
-  ##                          by="true_batch")
-  ##  list(full.data=full.data2, lrr.sim=lrr.sim)
-  ##  mb2
   dat
 }
 
@@ -392,6 +368,8 @@ hapmapData <- function(cnp_57, true.z, experiment){
   hap.list[["true.z"]] <- true.z
   lrr.list <- simulateBatchEffect(hap.list, experiment)
   avglrrs <- unlist(lapply(lrr.list, colMeans, na.rm=TRUE))
+  ids <- strsplit(names(avglrrs), "\\.") %>%
+    sapply("[", 2)
   lrr.batch <- hap.list[["lrr.batch"]]
   batch.id <- hap.list[["batch.id"]]
   ncols <- sapply(lrr.batch, ncol)
@@ -401,7 +379,7 @@ hapmapData <- function(cnp_57, true.z, experiment){
     as.integer
   true_batch <- rep(batch.id, sapply(lrr.batch, ncol)) %>%
     as.character
-  dat <- tibble(id=seq_along(avglrrs),
+  dat <- tibble(id=ids,
                 oned=avglrrs,
                 provisional_batch=plate.index,
                 batch=1L,
@@ -409,11 +387,10 @@ hapmapData <- function(cnp_57, true.z, experiment){
   dat
 }
 
-hapmapSummarizedExperiment <- function(cnp57){
+hapmapSummarizedExperiment <- function(cnp57, cnp_se){
   B <- cnp57[["b"]] %>%
-    lapply(function(x) as.matrix(x[, -c(1, 2)])) %>%{
-      do.call(cbind, .)
-    }
+    lapply(function(x) as.matrix(x[, -c(1, 2)])) %>%
+    do.call(cbind, .)
   rownames(B) <- cnp57$b[[1]]$probeset_id
   G <- cnp57[["g"]] %>%
     lapply(function(x) as.matrix(x[, -c(1, 2)])) %>%{
@@ -427,4 +404,17 @@ hapmapSummarizedExperiment <- function(cnp57){
                                                    GT=G),
                                  rowRanges=rr)
   snpdat
+}
+
+hapmapExperiment <- function(){
+  batch.effect <- seq(0, 0.5, by=0.1)
+  sep <- batch.effect
+  scale <- seq(1, 2, by=0.25)
+  paramgrid <- expand.grid(batch.effect, scale)
+  nseeds <- 10
+  experiment <- tibble(batch.effect=rep(paramgrid[, 1], each=nseeds),
+                       scale=rep(paramgrid[, 2], each=nseeds)) %>%
+    mutate(seed=as.integer(round(runif(nrow(.), 1, 100000), 0))) %>%
+    mutate(id = str_pad(seq_len(nrow(.)), 3, pad="0"))
+  experiment
 }

@@ -65,13 +65,17 @@ setMethod("[[", c("MultiBatchList", "numeric"), function(x, i){
   if(specs(x)$number_batches[i] == 1){
     assays(x)$batch <- 1L
   }
+  it <- nrow(theta(chains(x)[[i]]))
   nm <- substr(model, 1, 3)
+  mp <- mcmcParams(x)
+  iter(mp) <- it
+  params <- list(mp=mp, hp=hp)
   if(nm == "SBP" || nm == "MBP"){
     mb <- MultiBatchP(model=model,
                       data=assays(x),
                       down_sample=down_sample(x),
                       specs=specs(x)[i, ],
-                      parameters=parameters(x),
+                      parameters=params,
                       current_values=current_values(x)[[i]],
                       chains=chains(x)[[i]],
                       summaries=summaries(x)[[i]],
@@ -82,7 +86,7 @@ setMethod("[[", c("MultiBatchList", "numeric"), function(x, i){
                    data=assays(x),
                    down_sample=down_sample(x),
                    specs=specs(x)[i, ],
-                   parameters=parameters(x),
+                   parameters=params,
                    current_values=current_values(x)[[i]],
                    chains=chains(x)[[i]],
                    summaries=summaries(x)[[i]],
@@ -526,9 +530,9 @@ extractFromModelList <- function(from, FUN){
 
 setAs("list", "MultiBatchList", function(from){
   it <- sapply(from, iter)
-  if(length(unique(it)) > 1){
-    stop("models can not be combined")
-  }
+  ##  if(length(unique(it)) > 1){
+  ##    stop("Number of iterations differs between models. Models can not be combined")
+  ##  }
   models <- sapply(from, modelName)
   ##
   ## pass data from MultiBatch model, if any
@@ -699,3 +703,7 @@ setMethod("singleBatchGuided", c("MultiBatchList", "MultiBatch"),
             names(mod.list) <- modelName(x)
             mod.list
           })
+
+setMethod("convergence", "MultiBatchList", function(object){
+  sapply(object, convergence)
+})

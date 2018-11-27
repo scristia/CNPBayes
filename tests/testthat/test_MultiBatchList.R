@@ -765,13 +765,31 @@ test_that("Smarter MCMC for MultiBatchList", {
   expect_true(validObject(x))
 
   mlist <- listModelsByDecreasingK(object)
+  expect_identical(names(mlist), as.character(4:1))
   s <- sigma(mlist[["3"]][["MBP3"]])
   expect_identical(dim(s), c(3L, 1L))
   ##k4 <- fitModelK(mlist[[1]])
   k3 <- fitModelK(mlist[[2]])
-  ##k2 <- fitModelK(mlist[[3]])
-  ##k1 <- fitModelK(mlist[[4]])
+  expect_is(k3, "MultiBatchList")
+  ## models in list ordered by marginal likelihood
   expect_true(all(convergence(k3)))
+  expect_true(all(diff(marginal_lik(k3)) < 0))
+  k2 <- fitModelK(mlist[[3]])
+  expect_false(convergence(k2))
+
+  mlist <- list(k3, k2)
+  mlist2 <- as(mlist, "MultiBatchList")
+  ix <- order(marginal_lik(mlist2), decreasing=TRUE)
+  mlist2 <- mlist2[ix]
+  expect_identical(modelName(mlist2)[1], "MB3")
+
+  ##k1 <- fitModelK(mlist[[4]])
+  burnin(object) <- 50
+  iter(object) <- 100
+  max_burnin(object) <- 50
+  mlist <- mcmc2(object)
+  expect_is(mlist, "MultiBatchList")
+  expect_identical(modelName(mlist2)[1], "MB3")
 })
 
 test_that("Data not in batch-order", {
@@ -800,9 +818,112 @@ test_that("Data not in batch-order", {
 
 })
 
-.test_that("genotype mixture components MultiBatch", {
-
+test_that("Generate a list of candidate copy number models", {
+  mb <- MultiBatchModelExample
+  mb <- as(mb, "MultiBatch")
+  mapping(mb) <- seq_len(k(mb))
+  expect_identical(mapping(mb), seq_len(k(mb)))
+  clist <- CnList(mb)
+  expect_is(clist, "CnList")
+  mb <- clist[[1]]
+  expect_is(mb, "MultiBatch")
+  expect_identical(mapping(mb), c("0", "1", "2"))
+  expect_identical(cmap(mb), "012")
 })
 
-.test_that("genotype mixture components MultiBatchList", {
+test_that("Compute BAF likelihood for each candidate model", {
+  skip("uses external data")
+  library(SummarizedExperiment)
+  mb <- MultiBatchModelExample
+  mb <- as(mb, "MultiBatch")
+  mapping(mb) <- seq_len(k(mb))
+  clist <- CnList(mb)
+  data(cnp_se, package="PancCnvsData2")
+
+  hapmap.dir <- system.file("extdata/hapmap", package="PancCnvsData2")
+  cnp_57 <- readRDS(file.path(hapmap.dir, "cnp_57.rds"))
+  r <- cnp_57[["r"]]
+  tidyData <- function(x, value.col){
+    probes <- x[[1]]$probeset_id
+    x2 <- x %>%
+      do.call(cbind, .) %>%
+      mutate(probe=probes)
+    ix <- c(grep("probeset_id", colnames(x2)),
+            grep("plate", colnames(x2)))
+    separate <- tidyr::separate
+    x3 <- x2[, -ix] %>%
+      gather("plate.id", value.col, -probe) %>%
+      separate("plate.id", c("plate", "id"), sep="\\.") %>%
+      as.tibble
+    colnames(x3)[4] <- value.col
+    x3
+  }
+  true.z <- readRDS(file.path(hapmap.dir, "cnp57_truth.rds"))
+  truth <- tibble(cn=factor(true.z),
+                  id=unique(dat.list[["g"]]$id))
+  dat.list <- list(r=tidyData(r, "lrr"),
+                   b=tidyData(cnp_57[["b"]], "baf"),
+                   g=tidyData(cnp_57[["g"]], "genotype"),
+                   truth=truth)
+  if(FALSE){
+    ## sanity check
+    dat <- left_join(dat.list[["b"]], truth, by="id")
+    ggplot(dat, aes(cn, baf)) +
+      geom_jitter(width=0.1)
+  }
+  set.seed(132)
+  experiment <- hapmapExperiment()
+  trace(simulateBatchEffect, browser)
+  set.seed(experiment$seed[1])
+  hdat <- simulateBatchEffect(dat.list, experiment[1, ])
+  snpdat <- hapmapSummarizedExperiment(cnp_57, cnp_se)
+  expect_identical(colnames(snpdat), hdat$id)
+  if(FALSE){
+    ## sanity check
+    ggplot(hdat, aes(cn, baf)) +
+      geom_jitter(width=0.1)
+  }
+  colnames(hdat)[1] <- "provisional_batch"
+  colnames(hdat)[6] <- "true_batch"
+  mb <- MultiBatch(data=hdat, burnin=150L,
+                   iter=200L, max_burnin=150L) %>%
+    findSurrogates(0.001)
+  snpdat2 <- snpdat[, id(mb)]
+  expect_identical(id(mb), colnames(snpdat2))
+  mb <- MultiBatchList(data=assays(mb),
+                       mp=mcmcParams(mb),
+                       iter=100L,
+                       burnin=100L,
+                       max_burnin=150L)
+  mlist <- mcmc2(mb)
+  expect_identical(assays(mlist), assays(mb))
+  if(FALSE){
+    ggMixture(mlist[[1]])
+  }
+  mb3 <- mlist[[1]]
+  expect_identical(modelName(mb3), "MB3")
+  clist <- CnList(mb3)
+  if(FALSE){
+    dat <- tibble(g=genotypes(snpdat)[1, ],
+                  b=bafs(snpdat)[1, ],
+                  cn=copyNumber(clist[[1]]),
+                  true.cn=true.z) %>%
+      mutate(cn=factor(cn))
+    ggplot(dat, aes(cn, b)) +
+      geom_jitter(width=0.1)
+    ggplot(dat, aes(true.cn, b)) +
+      geom_jitter(width=0.1)
+  }
+  blik <- modelProb(clist[[1]], snpdat2)
+  expect_true(blik > -20)
+  stats <- baf_loglik(clist, snpdat2)
+  ## model fit looks good, but mapping by baf_loglik does not
+  expect_identical(stats$cn.model[1], "0,1,2")
+  mb3 <- mlist[[1]]
+  mapping(mb3) <- strsplit(stats$cn.model[1], ",")[[1]]
+  cn <- factor(copyNumber(mb3))
+  pstats <- PancCnvs::performanceStats(assays(mb3)$cn, cn)
 })
+
+
+

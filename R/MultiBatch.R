@@ -90,15 +90,15 @@ setValidity("CnList", function(object){
     return(msg)
   }
   nr <- nrow(theta(object))
-  if(nr != nb){
-    msg <- "Number of batches in current values differs from number of batches in model specs"
-    return(msg)
-  }
-  nr <- nrow(dataMean(object))
-  if(nr != nb){
-    msg <- "Number of batches in model summaries differs from number of batches in model specs"
-    return(msg)
-  }
+##  if(nr != nb){
+##    msg <- "Number of batches in current values differs from number of batches in model specs"
+##    return(msg)
+##  }
+##  nr <- nrow(dataMean(object))
+##  if(nr != nb){
+##    msg <- "Number of batches in model summaries differs from number of batches in model specs"
+##    return(msg)
+##  }
   S <- iter(object)
   th <- theta(chains(object))
   if( S != nrow(th) || ncol(th) != nr * k(object) ) {
@@ -189,6 +189,7 @@ MultiBatch <- function(model="MB3",
   if(nrow(data) > 0 && is_SB){
     data$batch <- 1L
   }
+  if(!"batch" %in% colnames(data)) data$batch <- 1L
   model <- new("MultiBatch",
                data=data,
                down_sample=down_sample,
@@ -1186,10 +1187,6 @@ setMethod("convergence", "MultiBatch", function(object){
   !flags(object)$label_switch && !flags(object)[["fails_GR"]] && !flags(object)[["small_effsize"]]
 })
 
-setMethod("convergence", "MultiBatchList", function(object){
-  sapply(object, convergence)
-})
-
 setMethod("max_burnin", "MultiBatch", function(object) {
   max_burnin(mcmcParams(object))
 })
@@ -1253,6 +1250,7 @@ setMethod("mcmc2", "MultiBatch", function(object, guide){
     ##
     mb.list <- posteriorSimulation(mb.list)
     mb <- setFlags(mb.list)
+    assays(mb) <- assays(object)
     ## if no flags, move on
     if( convergence(mb) ) break()
     mp <- continueMcmc(mp)
@@ -1545,6 +1543,7 @@ find_surrogates <- function(dat, THR=0.1, min_oned=-1){
 setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
   dat <- downSampledData(object) %>%
     select(c(id, provisional_batch, oned))
+  message("Putting rows of data in batch order")
   dat2 <- find_surrogates(dat, THR) %>%
     mutate(batch=factor(batch, levels=unique(batch)),
            batch_labels=as.character(batch),
@@ -1579,7 +1578,7 @@ setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
                              c(1, 2, 3, 3)) %>%
       lapply(as.character)
   }
-  if(k(cn.model) == 3){
+  if(k(model) == 3){
     candidate_models <- list(c(0, 1, 2),
                              ## hemizygous component can not be
                              ## distinguished
@@ -1592,14 +1591,14 @@ setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
                              c(2, 3, 3)) %>%
       lapply(as.character)
   }
-  if(k(cn.model) == 2){
+  if(k(model) == 2){
     candidate_models <- list(c(0, 2),
                              c(1, 2),
                              c(2, 3),
                              c(2, 2)) %>%
       lapply(as.character)
   }
-  if(k(cn.model) == 1){
+  if(k(model) == 1){
     candidate_models <- list("2")
   }
   tibble(model=modelName(model),
@@ -1643,6 +1642,11 @@ CnList <- function(mb){
            number_batches=numBatch(mb),
            number_obs=nrow(assays(mb)),
            number_sampled=length(down_sample(mb)))
+  ##sum.list <- replicate(nrow(cn.specs), summaries(mb),
+  ##simplify=FALSE)
+  ##for(i in seq_along(sum.list)){
+  ##  sum.list[[i]]$mapping <- strsplit(cn.specs$cn.model, ",")[[1]]
+  ##}
   clist <- new("CnList",
                data=assays(mb),
                down_sample=down_sample(mb),
@@ -1654,6 +1658,44 @@ CnList <- function(mb){
                flags=flags(mb))
 }
 
-selectMethod("probCopyNumber", "MultiBatch", function(model){
+setMethod("probCopyNumber", "MultiBatch", function(model){
   .prob_copynumber(model)
 })
+
+setMethod("baf_loglik", "CnList", function(object, snpdat){
+  clist <- object
+  blik <- sapply(clist, modelProb, snpdata=snpdat)
+  sp <- select(specs(clist), c("model", "cn.model", "k")) %>%
+    mutate(baf_loglik=blik)
+  ix <- order(sp$baf_loglik, decreasing=TRUE)
+  sp[ix, ]
+})
+
+setMethod("lapply", "CnList", function(X, FUN, ...){
+  result <- vector("list", length(X))
+  for(i in seq_along(X)){
+    result[[i]] <- FUN(X[[i]], ...)
+  }
+  result
+})
+
+setMethod("sapply", "CnList",
+          function(X, FUN, ..., simplify=TRUE, USE.NAMES=TRUE){
+  result <- lapply(X, FUN, ...)
+  if(simplify){
+    result <- unlist(result)
+  }
+  result
+})
+
+setMethod("numberStates", "MultiBatch", function(model){
+  length(unique(mapping(model)))
+})
+
+setMethod("numberObs", "MultiBatch", function(model) {
+  specs(model)$number_obs[1]
+})
+
+setGeneric("id", function(object) standardGeneric("id"))
+setMethod("id", "MultiBatch", function(object) assays(object)$id)
+setMethod("id", "MultiBatchList", function(object) assays(object)$id)
