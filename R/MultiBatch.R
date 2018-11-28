@@ -10,10 +10,8 @@ NULL
 #' @slot current_values current value of each chain
 #' @slot summaries list of empirical data and model summaries
 #' @slot flags list of model flags
-#' @slot down_sample integer vector for downsampling the full data
 #' @export
 setClass("MultiBatch", representation(data="tbl_df",
-                                      down_sample="integer",
                                       specs="tbl_df",
                                       parameters="list",
                                       chains="McmcChains",
@@ -31,7 +29,7 @@ setValidity("MultiBatch", function(object){
     msg <- "Number of iterations not the same between MultiBatch model and chains"
     return(msg)
   }
-  if(length(u(object)) != length(down_sample(object))){
+  if(length(u(object)) != nrow(assays(object))){
     msg <- "Incorrect length of u-vector"
     return(msg)
   }
@@ -59,13 +57,9 @@ setValidity("MultiBatch", function(object){
   B <- batch(object)
   is.sorted <- all(diff(B) >= 0)
   if(!is.sorted) {
-    msg <- "down sample index must be in batch order"
+    msg <- "sample index must be in batch order"
     return(msg)
   }
-##  if(nrow(assays(object)) != length(down_sample(object))){
-##    msg <- "down sample index must be the same length as the number of rows in assay"
-##    return(msg)
-##  }
   if(!identical(dim(zstar(object)), dim(predictive(object)))){
     msg <- "z* and predictive matrices in MCMC chains should be the same dimension"
     return(msg)
@@ -80,7 +74,7 @@ setValidity("CnList", function(object){
     msg <- "Number of iterations not the same between MultiBatch model and chains"
     return(msg)
   }
-  if(length(u(object)) != length(down_sample(object))){
+  if(length(u(object)) != nrow(assays(object))){
     msg <- "Incorrect length of u-vector"
     return(msg)
   }
@@ -90,15 +84,15 @@ setValidity("CnList", function(object){
     return(msg)
   }
   nr <- nrow(theta(object))
-##  if(nr != nb){
-##    msg <- "Number of batches in current values differs from number of batches in model specs"
-##    return(msg)
-##  }
-##  nr <- nrow(dataMean(object))
-##  if(nr != nb){
-##    msg <- "Number of batches in model summaries differs from number of batches in model specs"
-##    return(msg)
-##  }
+  if(nr != nb){
+    msg <- "Number of batches in current values differs from number of batche in model specs"
+    return(msg)
+  }
+  ##  nr <- nrow(dataMean(object))
+  ##  if(nr != nb){
+  ##    msg <- "Number of batches in model summaries differs from number of batches in model specs"
+  ##    return(msg)
+  ##  }
   S <- iter(object)
   th <- theta(chains(object))
   if( S != nrow(th) || ncol(th) != nr * k(object) ) {
@@ -108,7 +102,7 @@ setValidity("CnList", function(object){
   B <- batch(object)
   is.sorted <- all(diff(B) >= 0)
   if(!is.sorted) {
-    msg <- "down sample index must be in batch order"
+    msg <- "sample index must be in batch order"
     return(msg)
   }
   if(!identical(dim(zstar(object)), dim(predictive(object)))){
@@ -118,8 +112,7 @@ setValidity("CnList", function(object){
   msg
 })
 
-model_spec <- function(model, data, down_sample) {
-  if(missing(down_sample)) down_sample <- seq_len(nrow(data))
+model_spec <- function(model, data) {
   models <- c("SB", "SBP", "MB", "MBP")
   K <- 1:5
   avail.models <- lapply(models, paste0, K) %>%
@@ -137,8 +130,7 @@ model_spec <- function(model, data, down_sample) {
   tab <- tibble(model=model,
                 k=k,
                 number_batches=as.integer(number_batches),
-                number_obs=as.integer(number_obs),
-                number_sampled=length(down_sample))
+                number_obs=as.integer(number_obs))
   tab
 }
 
@@ -165,8 +157,7 @@ mcmc_chains <- function(specs, parameters){
 MultiBatch <- function(model="MB3",
                        data=modelData(),
                        ## by default, assume no downsampling
-                       down_sample=seq_len(nrow(data)),
-                       specs=model_spec(model, data, down_sample),
+                       specs=model_spec(model, data),
                        iter=1000L,
                        burnin=200L,
                        thin=1L,
@@ -179,12 +170,9 @@ MultiBatch <- function(model="MB3",
                                      max_burnin=max_burnin),
                        parameters=modelParameters(mp=mp, hp=hp),
                        chains=mcmc_chains(specs, parameters),
-                       current_values=modelValues2(specs, data[down_sample, ], hp),
+                       current_values=modelValues2(specs, data, hp),
                        summaries=modelSummaries(specs),
                        flags=modelFlags()){
-  ##
-  ## When there are multiple batches in data, but the model specification is one of SB[X]
-  ##
   is_SB <- substr(model, 1, 2) == "SB"
   if(nrow(data) > 0 && is_SB){
     data$batch <- 1L
@@ -192,7 +180,6 @@ MultiBatch <- function(model="MB3",
   if(!"batch" %in% colnames(data)) data$batch <- 1L
   model <- new("MultiBatch",
                data=data,
-               down_sample=down_sample,
                specs=specs,
                parameters=parameters,
                chains=chains,
@@ -212,7 +199,6 @@ setMethod("show", "MultiBatch", function(object){
   ##cat(paste0("An object of class ", cls), "\n")
   cat("Model name:", modelName(object), "\n")
   cat("   n. obs              :", nrow(assays(object)), "\n")
-  cat("   n. sampled          :", nrow(downSampledData(object)), "\n")
   cat("   n. batches          :", nBatch(object), "\n")
   cat("   k                   :", k(object), "\n")
   cat("   nobs/batch          :", table(batch(object)), "\n")
@@ -255,7 +241,8 @@ harmonizeDimensions <- function(object){
   }
   nr <- nrow(theta(object))
   if(L != nr){
-    current_values(object) <- modelValues2( spec, downSampledData(object), hyperParams(object) )
+    current_values(object) <- modelValues2( spec, assays(object),
+                                           hyperParams(object) )
   }
   ncols1 <- k( object ) * L
   ncols2 <- ncol(theta(chains(object)))
@@ -306,7 +293,7 @@ modelValues2 <- function(specs, data, hp){
                  probz=matrix(nrow=0, ncol=K))
     return(vals)
   }
-  n.sampled <- specs$number_sampled
+  n.sampled <- specs$number_obs
   B <- specs$number_batches
   K <- specs$k
   alpha(hp) <- rep(1, K)
@@ -482,12 +469,9 @@ setAs("MultiBatchModel", "MultiBatch", function(from){
   data <- extractData(from)
   params <- extractParameters(from)
   summaries <- extractSummaries(from)
-  down_sample <- seq_len(nrow(data))
-  specs <- model_spec(modelName(from), data, down_sample)
+  specs <- model_spec(modelName(from), data)
   modal.ordinates <- modes(from)
   mb <- MultiBatch(data=data,
-                   ## By default, assume no downsampling
-                   down_sample=down_sample,
                    specs=specs,
                    parameters=params,
                    chains=chains(from),
@@ -511,7 +495,7 @@ setAs("MultiBatch", "MultiBatchModel", function(from){
   flag2 <- as.integer(flags(from)[[".internal.counter"]])
   be <- as.integer(table(batch(from)))
   names(be) <- unique(batch(from))
-  dat <- downSampledData(from)
+  dat <- assays(from)
   KB <- prod(dim(theta(from)))
   obj <- new("MultiBatchModel",
              k=k(from),
@@ -561,7 +545,6 @@ setAs("MultiBatch", "list", function(from){
   ##
   mb.list <- replicate(ns, MultiBatch(model=modelName(from),
                                       data=assays(from),
-                                      down_sample=down_sample(from),
                                       mp=mcmcParams(from),
                                       hp=hyperParams(from),
                                       chains=chains(from)))
@@ -593,9 +576,9 @@ setMethod("theta", "MultiBatch", function(object){
 
 setReplaceMethod("current_values", c("MultiBatch", "list"),
                  function(object, value){
-  object@current_values <- value
-  object
-})
+                   object@current_values <- value
+                   object
+                 })
 
 setReplaceMethod("theta", c("MultiBatch", "matrix"),
                  function(object, value){
@@ -791,7 +774,7 @@ setReplaceMethod("burnin", c("MultiBatch", "numeric"),
                  function(object, value){
                    burnin(mcmcParams(object)) <- as.numeric(value)
                    object
-})
+                 })
 
 setMethod("iter", "MultiBatch", function(object){
   iter(mcmcParams(object))
@@ -857,36 +840,20 @@ setReplaceMethod("assays", c("MultiBatch", "tbl_df"), function(x, value){
   x
 })
 
-setMethod("down_sample", "MultiBatch", function(object) object@down_sample)
-
-setReplaceMethod("down_sample", "MultiBatch", function(object, value){
-  object@down_sample <- value
-  object
-})
-
-setMethod("downSampledData", "MultiBatch", function(object){
-  assays(object)[down_sample(object), ]
-})
-
-setReplaceMethod("downSampledData", c("MultiBatch", "tbl_df"), function(x, value){
-  x@data <- value
-  x
-})
-
 ##
 ## Data accessors
 ##
 setMethod("batch", "MultiBatch", function(object){
-  downSampledData(object)[["batch"]]
+  assays(object)[["batch"]]
 })
 
 setReplaceMethod("oned", c("MultiBatch", "numeric"), function(object, value){
-  downSampledData(object)[["oned"]] <- value
+  assays(object)[["oned"]] <- value
   object
 })
 
 setMethod("oned", "MultiBatch", function(object){
-  downSampledData(object)[["oned"]]
+  assays(object)[["oned"]]
 })
 
 setMethod("zFreq", "MultiBatch", function(object){
@@ -901,7 +868,7 @@ setReplaceMethod("zFreq", "MultiBatch", function(object, value){
 
 
 setReplaceMethod("batch", c("MultiBatch", "numeric"), function(object, value){
-  downSampledData(object)[["batch"]] <- as.integer(value)
+  assays(object)[["batch"]] <- as.integer(value)
   L <- length(unique(batch(object)))
   if( L != specs(object)$number_batches ){
     spec(object)$number_batches <- L
@@ -1012,7 +979,7 @@ setReplaceMethod("modes", "MultiBatch", function(object, value){
 
 setMethod("computeMeans", "MultiBatch", function(object){
   z(object) <- map_z(object)
-  tib <- downSampledData(object) %>%
+  tib <- assays(object) %>%
     mutate(z=z(object)) %>%
     group_by(batch, z) %>%
     summarize(mean=mean(oned))
@@ -1028,7 +995,7 @@ setMethod("computeMeans", "MultiBatch", function(object){
 
 setMethod("computePrec", "MultiBatch", function(object){
   z(object) <- map_z(object)
-  tib <- downSampledData(object) %>%
+  tib <- assays(object) %>%
     mutate(z=z(object)) %>%
     group_by(batch, z) %>%
     summarize(prec=1/var(oned))
@@ -1288,32 +1255,36 @@ setMethod("compute_marginal_lik", "MultiBatch", function(object, params){
 ##  ml
 ##})
 
-setMethod("downSampleModel", "MultiBatch", function(object, N=1000, i){
-  if(!missing(N)){
-    if(N >= nrow(assays(object))){
-      return(object)
-    }
-  }
-  ## by sorting, batches are guaranteed to be ordered
-  if(missing(i)){
-    i <- sort(sample(seq_len(nrow(object)), N, replace=TRUE))
-  }
-  b <- assays(object)$batch[i]
-  current.vals <- current_values(object)
-  current.vals[["u"]] <- current.vals[["u"]][i]
-  current.vals[["z"]] <- current.vals[["z"]][i]
-  current.vals[["probz"]] <- current.vals[["probz"]][i, , drop=FALSE]
-  mb <- MultiBatch(model=modelName(object),
-                   data=assays(object),
-                   down_sample=i,
-                   parameters=parameters(object),
-                   current_values=current.vals,
-                   chains=mcmc_chains( specs(object), parameters(object) ))
-  dataMean(mb) <- computeMeans(mb)
-  dataPrec(mb) <- computePrec(mb)
-  zFreq(mb) <- as.integer(table(z(mb)))
-  mb
-})
+##setMethod("downSampleModel", "MultiBatch", function(object, N=1000, i){
+##  if(!missing(N)){
+##    if(N >= nrow(assays(object))){
+##      return(object)
+##    }
+##  }
+##  ## by sorting, batches are guaranteed to be ordered
+##  nr <- nrow(assays(object))
+##  if(missing(i)){
+##    i <- sort(sample(seq_len(nr), N, replace=FALSE))
+##  }
+##  down_sample <- rep(FALSE, nr)
+##  down_sample[i] <- TRUE
+##  assays(object)$down_sample <- down_sample
+##
+##  b <- assays(object)$batch[i]
+##  current.vals <- current_values(object)
+##  current.vals[["u"]] <- current.vals[["u"]][i]
+##  current.vals[["z"]] <- current.vals[["z"]][i]
+##  current.vals[["probz"]] <- current.vals[["probz"]][i, , drop=FALSE]
+##  mb <- MultiBatch(model=modelName(object),
+##                   data=assays(object),
+##                   parameters=parameters(object),
+##                   current_values=current.vals,
+##                   chains=mcmc_chains( specs(object), parameters(object) ))
+##  dataMean(mb) <- computeMeans(mb)
+##  dataPrec(mb) <- computePrec(mb)
+##  zFreq(mb) <- as.integer(table(z(mb)))
+##  mb
+##})
 
 setMethod("probability_z", "MultiBatch", function(object){
   thetas <- theta(object)
@@ -1350,7 +1321,7 @@ setMethod("dfr", "MultiBatch", function(object){
 })
 
 setMethod("upsample_z", "MultiBatch", function(object){
-  down_sample(object) <- seq_len(specs(object)$number_obs)
+  ##down_sample(object) <- rep(TRUE, specs(object)$number_obs)
   object@specs$number_sampled <- specs(object)$number_obs
   current_values(object)[["u"]] <- rchisq(specs(object)$number_obs, dfr(object))
   mbm <- as(object, "MultiBatchModel")
@@ -1358,17 +1329,25 @@ setMethod("upsample_z", "MultiBatch", function(object){
   zz
 })
 
-setMethod("upSampleModel", "MultiBatch", function(object){
-  ds <- down_sample(object)
-  N <- specs(object)$number_obs
-  us <- seq_len(N)
-  if(identical(ds, us)) return(object)
-  object <- setModes(object)
-  current_values(object)[["u_up"]] <- rchisq(N, dfr(object))
-  current_values(object)[["probz_up"]] <- probability_z(object)
-  current_values(object)[["z_up"]] <- upsample_z(object)
-  object
-})
+setMethod("upSampleModel", "MultiBatch",
+          function(downsampled.model, full.model){
+            dat.ds <- assays(downsampled.model)
+            dat.full <- assays(full.model)
+            m <- modes(downsampled.model)
+            m[["u"]] <- modes(full.model)[["u"]]
+            m[["z"]] <- modes(full.model)[["z"]]
+            m[["probz"]] <- modes(full.model)[["probz"]]
+            modes(full.model) <- m
+
+            cv <- current_values(downsampled.model)
+            cv[["u"]] <- current_values(full.model)[["u"]]
+            cv[["z"]] <- current_values(full.model)[["z"]]
+            cv[["probz"]] <- current_values(full.model)[["probz"]]
+            current_values(full.model) <- cv
+            burnin(full.model) <- 0L
+            full.model <- posteriorSimulation(full.model)
+            full.model
+          })
 
 ##singleBatchGuided <- function(model, sb){
 ##  modes(sb) <- computeModes(sb)
@@ -1541,7 +1520,7 @@ find_surrogates <- function(dat, THR=0.1, min_oned=-1){
 #' @details All pairwise comparisons of batches are performed.  The two most similar batches are combined if the p-value exceeds THR.  The process is repeated recursively until no two batches can be combined.
 #' @return MultiBatch object
 setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
-  dat <- downSampledData(object) %>%
+  dat <- assays(object) %>%
     select(c(id, provisional_batch, oned))
   message("Putting rows of data in batch order")
   dat2 <- find_surrogates(dat, THR) %>%
@@ -1550,7 +1529,8 @@ setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
            batch=as.integer(batch)) %>%
     filter(!duplicated(id)) %>%
     arrange(batch) %>%
-    select(c(provisional_batch, batch, batch_labels))
+    select(c(provisional_batch, batch, batch_labels))  %>%
+    filter(!duplicated(provisional_batch))
   ##
   ## There is a many to one mapping from provisional_batch to batch
   ## Since each sample belongs to a single plate, samples in the downsampled data will only belong to a single batch
@@ -1558,7 +1538,7 @@ setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
   full.data2 <- full.data %>%
     select(-batch) %>%
     left_join(dat2, by="provisional_batch") %>%
-    filter(!duplicated(id)) %>%
+    ##filter(!duplicated(id)) %>%
     arrange(batch)
   assays(object) <- full.data2
   L <- length(unique(full.data2$batch))
@@ -1613,7 +1593,6 @@ setMethod("[[", c("CnList", "numeric"), function(x, i){
   if(nm == "SBP" || nm == "MBP"){
     mb <- MultiBatchP(model=model,
                       data=assays(x),
-                      down_sample=down_sample(x),
                       specs=specs(x),
                       parameters=parameters(x),
                       current_values=current_values(x),
@@ -1623,7 +1602,6 @@ setMethod("[[", c("CnList", "numeric"), function(x, i){
   } else {
     mb <- MultiBatch(model=model,
                      data=assays(x),
-                     down_sample=down_sample(x),
                      specs=specs,
                      parameters=parameters(x),
                      current_values=current_values(x),
@@ -1636,20 +1614,22 @@ setMethod("[[", c("CnList", "numeric"), function(x, i){
   mb
 })
 
+isAugmented <- function(model){
+  ix <- grep("augment_", id(model))
+  if(length(ix) == 0){
+    return(rep(FALSE, nrow(model)))
+  }
+  seq_len(nrow(model)) %in% ix
+}
+
 CnList <- function(mb){
+  mb <- mb[ !isAugmented(mb) ]
   cn.specs <- .candidate_mapping(mb) %>%
     mutate(k=k(mb),
            number_batches=numBatch(mb),
-           number_obs=nrow(assays(mb)),
-           number_sampled=length(down_sample(mb)))
-  ##sum.list <- replicate(nrow(cn.specs), summaries(mb),
-  ##simplify=FALSE)
-  ##for(i in seq_along(sum.list)){
-  ##  sum.list[[i]]$mapping <- strsplit(cn.specs$cn.model, ",")[[1]]
-  ##}
+           number_obs=nrow(assays(mb)))
   clist <- new("CnList",
                data=assays(mb),
-               down_sample=down_sample(mb),
                specs=cn.specs,
                parameters=parameters(mb),
                chains=chains(mb),
@@ -1699,3 +1679,18 @@ setMethod("numberObs", "MultiBatch", function(model) {
 setGeneric("id", function(object) standardGeneric("id"))
 setMethod("id", "MultiBatch", function(object) assays(object)$id)
 setMethod("id", "MultiBatchList", function(object) assays(object)$id)
+
+setMethod("[", "MultiBatch", function(x, i, j, ..., drop=FALSE){
+  x@data <- x@data[i, , drop=FALSE]
+  cv <- current_values(x)
+  cv$probz <- cv$probz[i, , drop=FALSE]
+  cv$u <- cv$u[i]
+  cv$z <- cv$z[i]
+  x@current_values <- cv
+  m <- summaries(x)$modes
+  m$probz <- m$probz[i, , drop=FALSE]
+  m$u <- m$u[i]
+  m$z <- m$z[i]
+  summaries(x)$modes <- m
+  x
+})

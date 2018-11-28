@@ -69,9 +69,7 @@ modelSummariesP <- function(specs){
 ##
 MultiBatchP <- function(model="MBP3",
                         data=modelData(),
-                        ## by default, assume no downsampling
-                        down_sample=seq_len(nrow(data)),
-                        specs=model_spec(model, data, down_sample),
+                        specs=model_spec(model, data),
                         iter=1000L,
                         burnin=500L,
                         thin=1L,
@@ -82,7 +80,7 @@ MultiBatchP <- function(model="MBP3",
                                       nStarts=nStarts),
                         parameters=modelParameters(mp=mp, hp=hp),
                         chains=mcmc_chainsP(specs, parameters),
-                        current_values=modelValuesP(specs, data[down_sample, ], hp),
+                        current_values=modelValuesP(specs, data, hp),
                         summaries=modelSummariesP(specs),
                         flags=modelFlags()){
   ##
@@ -94,7 +92,6 @@ MultiBatchP <- function(model="MBP3",
   }
   model <- new("MultiBatchP",
                data=data,
-               down_sample=down_sample,
                specs=specs,
                parameters=parameters,
                chains=chains,
@@ -106,39 +103,39 @@ MultiBatchP <- function(model="MBP3",
 
 setMethod("computePrec", "MultiBatchP", function(object){
   z(object) <- map_z(object)
-  tib <- downSampledData(object) %>%
+  tib <- assays(object) %>%
     mutate(z=z(object)) %>%
     group_by(batch) %>%
     summarize(prec=1/var(oned))
   matrix(tib$prec, nrow=nrow(tib))
 })
 
-setMethod("downSampleModel", "MultiBatchP", function(object, N=1000, i){
-  if(!missing(N)){
-    if(N >= nrow(assays(object))){
-      return(object)
-    }
-  }
-  ## by sorting, batches are guaranteed to be ordered
-  if(missing(i)){
-    i <- sort(sample(seq_len(nrow(object)), N, replace=TRUE))
-  }
-  b <- assays(object)$batch[i]
-  current.vals <- current_values(object)
-  current.vals[["u"]] <- current.vals[["u"]][i]
-  current.vals[["z"]] <- current.vals[["z"]][i]
-  current.vals[["probz"]] <- current.vals[["probz"]][i, , drop=FALSE]
-  mb <- MultiBatchP(model=modelName(object),
-                    data=assays(object),
-                    down_sample=i,
-                    parameters=parameters(object),
-                    current_values=current.vals,
-                    chains=mcmc_chainsP( specs(object), parameters(object) ))
-  dataMean(mb) <- computeMeans(mb)
-  dataPrec(mb) <- computePrec(mb)
-  zFreq(mb) <- as.integer(table(z(mb)))
-  mb
-})
+## setMethod("downSampleModel", "MultiBatchP", function(object, N=1000, i){
+##   if(!missing(N)){
+##     if(N >= nrow(assays(object))){
+##       return(object)
+##     }
+##   }
+##   ## by sorting, batches are guaranteed to be ordered
+##   if(missing(i)){
+##     i <- sort(sample(seq_len(nrow(object)), N, replace=TRUE))
+##   }
+##   b <- assays(object)$batch[i]
+##   current.vals <- current_values(object)
+##   current.vals[["u"]] <- current.vals[["u"]][i]
+##   current.vals[["z"]] <- current.vals[["z"]][i]
+##   current.vals[["probz"]] <- current.vals[["probz"]][i, , drop=FALSE]
+##   mb <- MultiBatchP(model=modelName(object),
+##                     data=assays(object),
+##                     ##down_sample=i,
+##                     parameters=parameters(object),
+##                     current_values=current.vals,
+##                     chains=mcmc_chainsP( specs(object), parameters(object) ))
+##   dataMean(mb) <- computeMeans(mb)
+##   dataPrec(mb) <- computePrec(mb)
+##   zFreq(mb) <- as.integer(table(z(mb)))
+##   mb
+## })
 
 setAs("MultiBatch", "MultiBatchP", function(from){
   vals <- current_values(from)
@@ -167,7 +164,6 @@ setAs("MultiBatch", "MultiBatchP", function(from){
   }else specs(from)$model <- "SBP"
   model <- new("MultiBatchP",
                data=assays(from),
-               down_sample=down_sample(from),
                specs=specs(from),
                parameters=parameters(from),
                chains=ch,
@@ -187,7 +183,7 @@ setAs("MultiBatchP", "MultiBatchPooled", function(from){
   flag2 <- as.integer(flags(from)[[".internal.counter"]])
   be <- as.integer(table(batch(from)))
   names(be) <- unique(batch(from))
-  dat <- downSampledData(from)
+  dat <- assays(from)
   th <- theta(from)
   KB <- nrow(th) * ncol(th)
   pred <- numeric(KB)
@@ -243,12 +239,9 @@ setAs("MultiBatchPooled", "MultiBatchP", function(from){
   summaries <- extractSummaries(from)
   summaries[["data.prec"]] <- matrix(summaries[["data.prec"]],
                                      numBatch(from), 1)
-  down_sample <- seq_len(nrow(data))
-  specs <- model_spec(modelName(from), data, down_sample)
+  specs <- model_spec(modelName(from), data)
   modal.ordinates <- modes(from)
   mb <- MultiBatchP(data=data,
-                    ## By default, assume no downsampling
-                    down_sample=down_sample,
                     specs=specs,
                     parameters=params,
                     chains=chains(from),

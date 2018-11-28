@@ -72,7 +72,7 @@ setMethod("augmentData2", "MultiBatchList", function(object){
   ## - sample a minimum of 10 observations (with replacement) from the posterior predictive distribution of the other batches
   ##
   zerobatch <- freq.del$batch[ freq.del$n == 0 ]
-  dat <- downSampledData(object2[[1]])
+  dat <- assays(object2[[1]])
   expected_homdel <- modes(SB)[["p"]][1] * table(dat$batch)
   expected_homdel <- ceiling(expected_homdel [ unique(dat$batch) %in% zerobatch ])
   nsample <- pmax(10L, expected_homdel)
@@ -83,7 +83,8 @@ setMethod("augmentData2", "MultiBatchList", function(object){
     mutate(batch=rep(zerobatch, nsample),
            id=paste0("augment_", seq_len(nrow(.)))) %>%
     select(c(id, oned, batch))
-  newdat <- bind_rows(assays(object), pred)
+  newdat <- bind_rows(assays(object), pred) %>%
+    arrange(batch)
   mbl <- MultiBatchList(data=newdat,
                         parameters=parameters(object))
   mbl

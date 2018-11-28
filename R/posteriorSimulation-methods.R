@@ -114,7 +114,6 @@ setMethod("revertBack", "MultiBatch", function(object, mbm){
   mb@data <- assays(object)
   ## using specs replacement method has side effects
   mb@specs$number_obs <- nrow(assays(object))
-  down_sample(mb) <- down_sample(object)
   mb
 })
 
@@ -124,7 +123,6 @@ setMethod("revertBack", "MultiBatchP", function(object, mbm){
   mb@data <- assays(object)
   ## using specs replacement method has side effects
   mb@specs$number_obs <- nrow(assays(object))
-  down_sample(mb) <- down_sample(object)
   mb
 })
 

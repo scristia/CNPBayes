@@ -387,22 +387,33 @@ hapmapData <- function(cnp_57, true.z, experiment){
   dat
 }
 
-hapmapSummarizedExperiment <- function(cnp57, cnp_se){
-  B <- cnp57[["b"]] %>%
-    lapply(function(x) as.matrix(x[, -c(1, 2)])) %>%
-    do.call(cbind, .)
-  rownames(B) <- cnp57$b[[1]]$probeset_id
-  G <- cnp57[["g"]] %>%
-    lapply(function(x) as.matrix(x[, -c(1, 2)])) %>%{
-      do.call(cbind, .)
-    }
-  G[ !G %in% 1:3 ] <- NA
-  rownames(G) <- rownames(B)
-  rr <- rowRanges(cnp_se)["CNP_057"]
-  names(rr) <- cnp57$b[[1]]$probeset_id
-  snpdat <- SummarizedExperiment(assays=SimpleList(baf=B,
-                                                   GT=G),
-                                 rowRanges=rr)
+hapmapSummarizedExperiment <- function(hapmap, gr){
+  B <- hapmap[["b"]] 
+  B2 <- select(B, c(id, baf)) %>%
+    spread("id", "baf") %>%
+    as.matrix
+  rownames(B2) <- unique(B$probe)
+  ##  B <- cnp57[["b"]] %>%
+  ##    lapply(function(x) as.matrix(x[, -c(1, 2)])) %>%
+  ##    do.call(cbind, .)
+  ##rownames(B) <- cnp57$b[[1]]$probeset_id
+  G <- hapmap[["g"]]
+  G2 <- select(G, c(id, genotype)) %>%
+    spread("id", "genotype") %>%
+    as.matrix
+  rownames(G2) <- unique(G$probe)
+  ##  G <- cnp57[["g"]] %>%
+  ##    lapply(function(x) as.matrix(x[, -c(1, 2)])) %>%{
+  ##      do.call(cbind, .)
+  ##    }
+  ##  G[ !G %in% 1:3 ] <- NA
+  ##  rownames(G) <- rownames(B)
+  ##rr <- rowRanges(cnp_se)["CNP_057"]
+  ##names(gr) <- cnp57$b[[1]]$probeset_id
+  names(gr) <- rownames(B2)
+  snpdat <- SummarizedExperiment(assays=SimpleList(baf=B2,
+                                                   GT=G2),
+                                 rowRanges=gr)
   snpdat
 }
 
@@ -417,4 +428,22 @@ hapmapExperiment <- function(){
     mutate(seed=as.integer(round(runif(nrow(.), 1, 100000), 0))) %>%
     mutate(id = str_pad(seq_len(nrow(.)), 3, pad="0"))
   experiment
+}
+
+performanceStats <- function(truth, cn){
+  k <- length(table(cn))
+  tib <- tibble(truth=truth, cn=cn)
+  stats <- tib %>%
+    group_by(truth) %>%
+    summarize(n=n(),
+              correct=sum(cn == truth, na.rm=TRUE),
+              incorrect=sum(cn != truth, na.rm=TRUE)) %>%
+    mutate(number_components=k)
+  TP <- sum(stats$correct[1:2])
+  P <- sum(stats$n[1:2])
+  N <- stats$n[3]
+  TN <- stats$correct[3]
+  sensitivity <- TP/P
+  specificity <- TN/N
+  list(stats, sensitivity, specificity)
 }
