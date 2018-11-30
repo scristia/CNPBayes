@@ -342,6 +342,25 @@ test_that("Smarter MCMC for MultiBatchList", {
   expect_identical(modelName(mlist2)[1], "MB3")
 })
 
+test_that("augment data from pooled model", {
+  data(MultiBatchModelExample)
+  mb <- as(MultiBatchModelExample, "MultiBatch")
+  mbl <- MultiBatchList(data=assays(mb), burnin=100L,
+                        iter=300L, max_burnin=100L)
+  mbp <- mbl[specs(mbl)$model == "MBP3"]
+  mbp2 <- toSingleBatch(mbp[[1]])
+  expect_true(validObject(mbp2))
+  mb <- mbl[specs(mbl)$model == "MB3"]
+  mb2 <- toSingleBatch(mb[[1]])
+  expect_true(validObject(mb2))
+  ##
+  ## We need to be able to create a model with a single batch in order to assess whether there are homozygous deletions in the marginal distribution
+  ##
+  ##  - to do this, various aspects of the model must be reparameterized to have the appropriate dimensions
+  ##
+  mbp2 <- augmentData2(mbp)
+})
+
 test_that("Data not in batch-order", {
   library(SummarizedExperiment)
   data(MultiBatchModelExample)

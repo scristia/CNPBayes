@@ -467,7 +467,7 @@ setReplaceMethod("sigma", "MixtureModel", function(object, value){
 setMethod("sigma2", "MixtureModel", function(object) {
   s2 <- object@sigma2
   ##s2 <- matrix(s2, nBatch(object), k(object))
-  rownames(s2) <- uniqueBatch(object)
+  ##rownames(s2) <- uniqueBatch(object)
   s2
 })
 
@@ -507,7 +507,7 @@ setReplaceMethod("tau2", "MultiBatchModel", function(object, value){
 setMethod("theta", "MixtureModel", function(object) {
   b <- object@theta
   ##b <- matrix(b, nBatch(object), k(object))
-  rownames(b) <- uniqueBatch(object)
+  ##rownames(b) <- uniqueBatch(object)
   b
 })
 

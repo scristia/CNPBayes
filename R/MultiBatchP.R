@@ -187,6 +187,7 @@ setAs("MultiBatchP", "MultiBatchPooled", function(from){
   th <- theta(from)
   KB <- nrow(th) * ncol(th)
   pred <- numeric(KB)
+  ##pred <- predictive(from)
   zs <- integer(KB)
   obj <- new("MultiBatchPooled",
              k=k(from),

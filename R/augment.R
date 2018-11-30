@@ -38,19 +38,19 @@ augmentData <- function(full.data){
   current
 }
 
-##
-## - only makes sense to do this if multibatch models with 3 or 4 components are
-##   included in the list
-##
+
 setMethod("augmentData2", "MultiBatchList", function(object){
+  ##
+  ## - only makes sense to do this if multibatch models with 3 or 4 components are included in the list
+  ##
   sp <- specs(object) %>%
     filter(k == 3 & substr(model, 1, 2) == "MB")
+  if(nrow(sp) == 0) return(object)
   object2 <- object[ specs(object)$model %in% sp$model ]
   ix <- order(specs(object2)$k, decreasing=FALSE)
   ## order models by number of components.
   object2 <- object2[ix]
-  SB <- object2[[1]]
-  assays(SB)$batch <- 1L
+  SB <- toSingleBatch(object2[[1]])
   ##
   ## Running MCMC for SingleBatch model to find posterior predictive distribution
   ##

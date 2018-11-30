@@ -616,6 +616,16 @@ setMethod("mcmc2", "MultiBatchList", function(object, guide){
   return(mlist2)
 })
 
+mcmc3 <- function(mlist){
+  for(i in seq_along(mlist)){
+    m <- mlist[[i]]
+    flags(m)$warn <- FALSE
+    m2 <- mcmc2(m, m)
+    mlist[[i]] <- m2
+  }
+  mlist
+}
+
 ##setMethod("sapply", "MultiBatchList",
 ##          function(X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE){
 ##

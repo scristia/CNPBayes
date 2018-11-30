@@ -29,6 +29,20 @@ test_that("revised_constructors", {
   identical(parameters(mb2), parameters(tmp))
 })
 
+test_that("list of models with independent starting values", {
+  mb <- SingleBatchModelExample %>%
+    as("MultiBatch")
+  mb.list <- replicateMultiBatch(mb)
+
+  replicateMultiBatch <- function(object){
+
+
+  }
+  mb <- MultiBatchModel2()
+  mcmcParams(mb) <- McmcParams(iter=iter(mb), thin=thin(mb),
+                               burnin=burnin(mb))
+})
+
 test_that("no downsampling", {
   mb <- SingleBatchModelExample %>%
     as("MultiBatch")

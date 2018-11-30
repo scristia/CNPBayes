@@ -233,31 +233,31 @@ setClass("GenotypePooled", contains="MultiBatch",
 setMethod("specs", "MultiBatch", function(object) object@specs)
 
 harmonizeDimensions <- function(object){
-  L <- length(unique(batch(object)))
-  spec <- specs(object)
-  if(L != spec$number_batches){
-    spec$number_batches <- L
-    object@specs <- spec
-  }
-  nr <- nrow(theta(object))
-  if(L != nr){
-    current_values(object) <- modelValues2( spec, assays(object),
-                                           hyperParams(object) )
-  }
-  ncols1 <- k( object ) * L
-  ncols2 <- ncol(theta(chains(object)))
-  if( ncols1 != ncols2 ){
-    chains(object) <- mcmc_chains( spec, parameters(object) )
-  }
-  if( nrow(dataMean(object)) != L){
-    summaries(object) <- modelSummaries( spec )
-  }
-  object
+   L <- length(unique(batch(object)))
+   spec <- specs(object)
+   if(L != spec$number_batches){
+     spec$number_batches <- L
+     object@specs <- spec
+   }
+   nr <- nrow(theta(object))
+   if(L != nr){
+     current_values(object) <- modelValues2( spec, assays(object),
+                                            hyperParams(object) )
+   }
+   ncols1 <- k( object ) * L
+   ncols2 <- ncol(theta(chains(object)))
+   if( ncols1 != ncols2 ){
+     chains(object) <- mcmc_chains( spec, parameters(object) )
+   }
+   if( nrow(dataMean(object)) != L){
+     summaries(object) <- modelSummaries( spec )
+   }
+   object
 }
 
 setReplaceMethod("specs", "MultiBatch", function(object, value){
   object@specs <- value
-  object <- harmonizeDimensions(object)
+  ##object <- harmonizeDimensions(object)
   object
 })
 
@@ -834,9 +834,9 @@ setReplaceMethod("label_switch", c("MultiBatch", "logical"),
 
 setMethod("assays", "MultiBatch", function(x, ..., withDimnames) x@data)
 
-setReplaceMethod("assays", c("MultiBatch", "tbl_df"), function(x, value){
+setReplaceMethod("assays", "MultiBatch", function(x, value){
   x@data <- value
-  x <- harmonizeDimensions(x)
+  ##x <- harmonizeDimensions(x)
   x
 })
 
@@ -1133,8 +1133,11 @@ setFlags <- function(mb.list){
   mp <- mcmcParams(mb1)
   hp <- hyperParams(mb1)
   mcmc_list <- mcmcList(mb.list)
-  r <- gelman_rubin(mcmc_list, hp)
+  r <- tryCatch(gelman_rubin(mcmc_list, hp), error=function(e) NULL)
   mb <- combineModels(mb.list)
+  if(is.null(r)){
+    flags(mb)[["fails_GR"]]
+  }
   tmp <- tryCatch(validObject(mb), error=function(e) NULL)
   if(is.null(tmp)) browser()
   flags(mb)[["fails_GR"]] <- r$mpsrf > min_GR(mp)
@@ -1189,7 +1192,7 @@ startingValues2 <- function(object){
   stop("problem identifying starting values")
 }
 
-setMethod("mcmc2", "MultiBatch", function(object, guide){
+setMethod("mcmc2", c("MultiBatch", "missing"), function(object, guide){
   mb <- object
   mp <- mcmcParams(mb)
   K <- specs(object)$k
@@ -1202,19 +1205,37 @@ setMethod("mcmc2", "MultiBatch", function(object, guide){
     ##
     ## Convert to list of MultiBatchModels with independent starting values
     ##
-    if(missing(guide)){
-      mb.list <- startingValues2(mb)
-    } else {
-      mb.list <- replicate(nStarts(mb), singleBatchGuided(mb, guide))
-      if(class(mb.list[[1]]) == "MultiBatchP"){
-        mb.list <- lapply(mb.list, as, "MultiBatchPooled")        
-      } else {
-        mb.list <- lapply(mb.list, as, "MultiBatchModel")
-      }
-    }
+    mb.list <- as(mb, "list")
     ##
     ## Run posterior simulation on each
     ##
+    mb.list <- posteriorSimulation(mb.list)
+    mb <- setFlags(mb.list)
+    assays(mb) <- assays(object)
+    ## if no flags, move on
+    if( convergence(mb) ) break()
+    mp <- continueMcmc(mp)
+  }
+  if( convergence(mb) ) {
+    mb <- setModes(mb)
+    mb <- compute_marginal_lik(mb)
+  }
+  stopifnot(validObject(mb))
+  mb
+})
+
+
+setMethod("mcmc2", c("MultiBatch", "MultiBatch"), function(object, guide){
+  mb <- object
+  mp <- mcmcParams(mb)
+  K <- specs(object)$k
+  if(iter(mp) < 500)
+    if(flags(object)$warn) warning("Very few Monte Carlo simulations specified")
+  maxb <- max(max_burnin(mp), burnin(mp))
+  while(burnin(mp) <= maxb && thin(mp) < 100){
+    message("  k: ", K, ", burnin: ", burnin(mp), ", thin: ", thin(mp))
+    mcmcParams(mb) <- mp
+    mb.list <- replicate(nStarts(mb), singleBatchGuided(mb, guide))
     mb.list <- posteriorSimulation(mb.list)
     mb <- setFlags(mb.list)
     assays(mb) <- assays(object)
@@ -1368,7 +1389,7 @@ setReplaceMethod("max_burnin", "MultiBatch", function(object, value){
 setMethod("predictive", "MultiBatch", function(object) predictive(chains(object)))
 setMethod("zstar", "MultiBatch", function(object) zstar(chains(object)))
 
-setMethod("singleBatchGuided", c("MultiBatch", "MultiBatch"), function(x, guide){
+setMethod("singleBatchGuided", c("MultiBatchP", "MultiBatch"), function(x, guide){
   stopifnot(k(x) == k(guide))
   means <- theta(guide)[1, ]
   sds <- sqrt(sigma2(guide))[1, ]
@@ -1405,8 +1426,106 @@ setMethod("singleBatchGuided", c("MultiBatch", "MultiBatch"), function(x, guide)
     sigma2(x) <- matrix(sds/2, B, K, byrow=TRUE)
   }
   nStarts(x) <- 1L
+  x <- as(x, "MultiBatchPooled")
   ##
   ## shouldn't have to initialize z since z is the first update of the gibbs sampler (and its update would be conditional on the above values)
+  x
+})
+
+setMethod("singleBatchGuided", c("MultiBatchP", "MultiBatchP"), function(x, guide){
+  stopifnot(k(x) == k(guide))
+  ##means <- theta(guide)[1, ]
+  means <- colMeans(theta(guide))
+  sds <- median(sigma(guide)[, 1])
+  mu(x) <- mu(guide)
+  tau2(x) <- tau2(guide)
+  B <- numBatch(x)
+  K <- k(x)
+  th <- t(replicate(B, rnorm(k(x), means, sds)))
+  theta(x) <- th
+  nu.0(x) <- nu.0(guide)
+  sigma2.0(x) <- sigma2.0(guide)
+  sigma2(x)[, 1] <- 2*sigma2(guide) ## start at more diffuse value
+  nStarts(x) <- 1L
+  x <- as(x, "MultiBatchPooled")
+  x
+})
+
+setMethod("singleBatchGuided", c("MultiBatch", "MultiBatchP"), function(x, guide){
+  stopifnot(k(x) == k(guide))
+  means <- theta(guide)[1, ]
+  sds <- sqrt(sigma2(guide))[1, ]
+  ##
+  ## number of means to simulate depends on the model
+  ##
+  mu(x) <- mu(guide)
+  tau2(x) <- tau2(guide)
+  B <- numBatch(x)
+  K <- k(x)
+  th <- theta(x)
+  if(FALSE){
+    ## Is prior to informative for these not to give reasonable values of theta?
+    ##
+    ## -- tau seems much too big -- is prior driving tau to larger values
+    ## -- simulated values of theta too disperse
+    for(j in seq_len(K)){
+      th[, j] <- rnorm(B, mu(guide)[j], tau(guide)[j])
+    }
+  }
+  for(j in seq_len(K)){
+    th[, j] <- rnorm(B, theta(guide)[, j], sds[j]/2)
+  }
+  theta(x) <- th
+  nu.0(x) <- nu.0(guide)
+  sigma2.0(x) <- sigma2.0(guide)
+  ## 1/sigma2 ~gamma
+  ## sigma2 is invgamma
+  NC <- ncol(sigma2(x))
+  if(NC == 1){
+    w <- as.numeric(table(z(guide)))
+    sigma2(x) <- matrix((sum((w * sds)/sum(w)))^2, B, 1)
+  } else{
+    sigma2(x) <- matrix(sds/2, B, K, byrow=TRUE)
+  }
+  nStarts(x) <- 1L
+  x <- as(x, "MultiBatchModel")
+  ##
+  ## shouldn't have to initialize z since z is the first update of the gibbs sampler (and its update would be conditional on the above values)
+  x
+})
+
+
+setMethod("singleBatchGuided", c("MultiBatch", "MultiBatch"), function(x, guide){
+  stopifnot(k(x) == k(guide))
+  means <- theta(guide)[1, ]
+  sds <- sqrt(sigma2(guide))[1, ]
+  ##
+  ## number of means to simulate depends on the model
+  ##
+  mu(x) <- mu(guide)
+  tau2(x) <- tau2(guide)
+  B <- numBatch(x)
+  K <- k(x)
+  th <- theta(x)
+  for(j in seq_len(K)){
+    th[, j] <- rnorm(B, theta(guide)[, j], sds[j]/2)
+  }
+  theta(x) <- th
+  nu.0(x) <- nu.0(guide)
+  sigma2.0(x) <- sigma2.0(guide)
+  ## 1/sigma2 ~gamma
+  ## sigma2 is invgamma
+  NC <- ncol(sigma2(x))
+  if(NC == 1){
+    w <- as.numeric(table(z(guide)))
+    sigma2(x) <- matrix((sum((w * sds)/sum(w)))^2, B, 1)
+  } else{
+    sigma2(x) <- matrix(sds/2, B, K, byrow=TRUE)
+  }
+  nStarts(x) <- 1L
+  ##
+  ## shouldn't have to initialize z since z is the first update of the gibbs sampler (and its update would be conditional on the above values)
+  x <- as(x, "MultiBatchModel")
   x
 })
 
@@ -1693,4 +1812,37 @@ setMethod("[", "MultiBatch", function(x, i, j, ..., drop=FALSE){
   m$z <- m$z[i]
   summaries(x)$modes <- m
   x
+})
+
+
+setMethod("toSingleBatch", "MultiBatchP", function(object){
+  mbp <- object
+  B <- numBatch(mbp)
+  if(B == 1) return(mbp)
+  sp <- specs(mbp)
+  sp$number_batches <- 1L
+  model <- gsub("MBP", "SBP", modelName(mbp))
+  dat <- assays(mbp)
+  dat$batch <- 1L
+  mbp2 <- MultiBatchP(model,
+                      specs=sp,
+                      data=dat,
+                      parameters=parameters(mbp))
+  mbp2
+})
+
+setMethod("toSingleBatch", "MultiBatch", function(object){
+  mb <- object
+  B <- numBatch(mb)
+  if(B == 1) return(mb)
+  sp <- specs(mb)
+  sp$number_batches <- 1L
+  model <- gsub("MB", "SB", modelName(mb))
+  dat <- assays(mb)
+  dat$batch <- 1L
+  mb2 <- MultiBatch(model,
+                    specs=sp,
+                    data=dat,
+                    parameters=parameters(mb))
+  mb2
 })
