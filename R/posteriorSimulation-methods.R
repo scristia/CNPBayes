@@ -6,7 +6,7 @@ setMethod("runBurnin", "MultiBatchModel", function(object){
 })
 
 setMethod("runBurnin", "TrioBatchModel", function(object){
-  trios_burnin(object)
+  trios_burnin(object, mcmcParams(object))
 })
 
 setMethod("runMcmc", "MultiBatchModel", function(object){
@@ -14,7 +14,7 @@ setMethod("runMcmc", "MultiBatchModel", function(object){
 })
 
 setMethod("runMcmc", "TrioBatchModel", function(object){
-  trios_mcmc(object)
+  trios_mcmc(object, mcmcParams(object))
 })
 
 
@@ -243,9 +243,9 @@ setMethod("posteriorSimulation", "list", function(object){
 #' @aliases posteriorSimulation,TrioBatchModel-method
 setMethod("posteriorSimulation", "TrioBatchModel", function(object){
   chains(object)@is_mendelian[] <- 0L
-  m <- trios_burnin(object)
-  m <- trios_mcmc(object)
-  if(!isOrdered(m)) labels_switch(m) <- TRUE
+  m <- trios_burnin(object, mcmcParams(object))
+  m <- trios_mcmc(object, mcmcParams(object))
+  if(!isOrdered(m)) label_switch(m) <- TRUE
   m <- sortComponentLabels(m)
   m
 })
