@@ -1158,3 +1158,46 @@ setReplaceMethod("mcmcParams", "TrioBatchModel", function(object, value){
   object@mcmc.params <- value
   object
 })
+
+probMendelian <- function(model){
+  isMendelian(chains(model))/(iter(model))
+}
+
+setMethod("sortComponentLabels", "TrioBatchModel", function(model){
+  is_ordered <- .ordered_thetas_multibatch(model)
+  if(is_ordered) return(model)
+  ## thetas are not all ordered
+  thetas <- theta(model)
+  s2s <- sigma2(model)
+  K <- k(model)
+  ix <- order(thetas[1, ])
+  B <- nBatch(model)
+  . <- NULL
+  tab <- tibble(z_orig=z(model),
+                z=z(model),
+                batch=batch(model)) %>%
+    mutate(index=seq_len(nrow(.)))
+  z_relabel <- NULL
+  for(i in seq_len(B)){
+    ix.next <- order(thetas[i, ])
+    thetas[i, ] <- thetas[i, ix.next]
+    s2s[i, ] <- s2s[i, ix]
+    index <- which(tab$batch == i)
+    tab2 <- tab[index, ] %>%
+      mutate(z_relabel=factor(z, levels=ix.next)) %>%
+      mutate(z_relabel=as.integer(z_relabel))
+    tab$z[index] <- tab2$z_relabel
+  }
+  ps <- p(model)[ix]
+  mu(model) <- mu(model)[ix]
+  tau2(model) <- tau2(model)[ix]
+  model@pi_parents <- model@pi_parents[ix]
+  model@zfreq_parents <- model@zfreq_parents[ix]
+  model@probz_par <- model@probz_par[, ix, drop=FALSE]
+  sigma2(model) <- s2s
+  theta(model) <- thetas
+  p(model) <- ps
+  z(model) <- tab$z
+  log_lik(model) <- computeLoglik(model)
+  model
+})
