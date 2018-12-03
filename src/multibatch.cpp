@@ -592,12 +592,10 @@ Rcpp::NumericMatrix update_sigma2(Rcpp::S4 xmod){
             for (int k = 0; k < K; ++k){
               if((z[i] == k+1) && (batch[i] == b+1)){
                     ss(b, k) += u[i] * pow(x[i] - theta(b, k), 2);
-                    //ss(b, k) += pow(x[i] - theta(b, k), 2);
                 }
             }
         }
     }
-
     //NumericMatrix sigma2_nh(B, K);
     double shape;
     double rate;
@@ -609,7 +607,6 @@ Rcpp::NumericMatrix update_sigma2(Rcpp::S4 xmod){
         for (int k = 0; k < K; ++k) {
             nu_n = nu_0 + tabz(b, k);
             sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k)/df);
-           // sigma2_nh = 1.0/nu_n*(nu_0*sigma2_0 + ss(b, k));
             shape = 0.5 * nu_n;
             rate = shape * sigma2_nh;
             sigma2_tilde(b, k) = Rcpp::as<double>(rgamma(1, shape, 1.0/rate));
