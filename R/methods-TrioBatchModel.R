@@ -308,6 +308,7 @@ combine_batchTrios <- function(model.list, batches){
   logPrior(model) <- computePrior(model)
   model
 }
+
 #' Constructor for TrioBatchModel
 #'
 #' Initializes a TrioBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
@@ -317,8 +318,7 @@ combine_batchTrios <- function(model.list, batches){
 #' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @param mp An object of class 'McmcParams'
 #' @return An object of class `TrioBatchModel`
-#' @export
-TrioBatchModel <- function(triodata=tibble(),
+..TrioBatchModel <- function(triodata=tibble(),
                            hp=HyperparametersTrios(),
                            mp=McmcParams(iter=1000, thin=10,
                                          burnin=1000, nStarts=4),
@@ -350,6 +350,32 @@ TrioBatchModel <- function(triodata=tibble(),
   mcmcParams(tbm2) <- mp
   chains(tbm2) <- McmcChainsTrios(tbm2)
   tbm2
+}
+
+
+#'
+#' Initializes a TrioBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
+#'
+#' @param triodata the data for the simulation.
+#' @param batches an integer-vector of the different batches
+#' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @param mp An object of class 'McmcParams'
+#' @return An object of class `TrioBatchModel`
+#' @export
+TrioBatchModel <- function(triodata=tibble(),
+                           hp=HyperparametersTrios(),
+                           mp=McmcParams(iter=1000, thin=10,
+                                         burnin=1000, nStarts=4),
+                           mprob=mprob,
+                           maplabel=maplabel
+                           ){
+  if(length(triodata) == 0){
+    return(.empty_trio_model(hp, mp))
+  }
+  tbm <- .TBM(triodata, hp, mp, mprob, maplabel)
+  z(tbm) <- update_z(tbm)
+  chains(tbm) <- McmcChainsTrios(tbm)
+  tbm
 }
 
 #' @export
