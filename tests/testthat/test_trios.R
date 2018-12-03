@@ -495,7 +495,7 @@ test_that("posterior probability for mendelian inheritance", {
   m@data[ix2] <- -3
   m@data[ix.f2] <- 1.7
   expect_identical(y(m)[ix2], -3)
-  expect_identical(y(m)[ix.f2], 1.7)
+  expect_equal(y(m)[ix.m], 1.36, tolerance=0.01)
 
   iter(m) <- 250
   burnin(m) <- 200
