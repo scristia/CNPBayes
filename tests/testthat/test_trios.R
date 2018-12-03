@@ -447,7 +447,9 @@ test_that("posterior probability for mendelian inheritance", {
 
   m <- isMendelian(chains(model))
   expect_identical(length(m), nTrios(model))
+})
 
+test_that("easy mendelian example", {
   ## easy example
   set.seed(123)
   m <- simulateTrioData(theta=c(-3, 0.3, 1.7))
@@ -477,7 +479,6 @@ test_that("posterior probability for mendelian inheritance", {
   expect_identical(zz, true_z)
   pm <- isMendelian(chains(m1))/iter(m1)
   expect_true(all(pm > 0.75))
-
   if(FALSE) ggMixture(m1)
   ##
   ## simulate an observation where inheritance should favor non-mendelian
@@ -504,6 +505,7 @@ test_that("posterior probability for mendelian inheritance", {
   z(m1)[ix2]
   expect_identical(isMendelian(m1)[ix], 0L)
   prob.mendelian <- isMendelian(chains(m1))/iter(m1)
+  expect_true(prob.mendelian[ix] < 0.1)
   if(FALSE){
     dat <- tibble(prob=prob.mendelian, iter=seq_along(prob.mendelian))
     ggplot(dat, aes(iter, prob)) +
@@ -512,7 +514,6 @@ test_that("posterior probability for mendelian inheritance", {
       ylab("Prob transmission is Mendelian")
     ggsave("prob_mendelian.pdf", width=8, height=5)
   }
-  expect_true(prob.mendelian[ix] < 0.1)
 
   zz <- map_z(m1)
   expect_identical(zz[ix2], 1L)
@@ -522,4 +523,3 @@ test_that("posterior probability for mendelian inheritance", {
   expect_identical(z.f, 3L)
   expect_identical(z.m, 2L)
 })
-
