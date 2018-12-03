@@ -198,6 +198,7 @@ combine_batchTrios <- function(model.list, batches){
   zfreqpar <- map(ch.list, zFreqPar) %>% do.call(rbind, .)
   pred <- map(ch.list, predictive) %>% do.call(rbind, .)
   zsta <- map(ch.list, zstar) %>% do.call(rbind, .)
+  ismendel <- map(ch.list, isMendelian) %>% Reduce("+", .)
   mc <- new("McmcChainsTrios",
             theta=data.matrix(th),
             sigma2=data.matrix(s2),
@@ -215,7 +216,8 @@ combine_batchTrios <- function(model.list, batches){
             predictive=pred,
             zstar=zsta,
             k=k(model.list[[1]]),
-            B=length(unique(batches)))
+            B=length(unique(batches)),
+            is_mendelian=ismendel)
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   triodata <- model.list[[1]]@triodata
@@ -237,6 +239,7 @@ combine_batchTrios <- function(model.list, batches){
   pz <- map(model.list, probz) %>% Reduce("+", .)
   pz <- pz/length(model.list)
   ## the accessor divides by number of iterations, so rescale
+  ## RS: this is super confusing
   pz <- pz * (iter(mp) - 1)
   zz <- max.col(pz)
   yy <- y(model.list[[1]])
@@ -258,6 +261,9 @@ combine_batchTrios <- function(model.list, batches){
     ml <- as.numeric(NA)
   } else ml <- mean(ml, na.rm=TRUE)
   nbatch <- as.integer(table(batch(model.list[[1]])))
+  N <- sapply(model.list, iter) %>% sum
+  prob.mendel <- ismendel/N
+  is_mendel <- rbinom(1000, 1, prob.mendel)
   model <- new(class(model.list[[1]]),
                triodata=triodata,
                mprob=mprob,
@@ -294,6 +300,7 @@ combine_batchTrios <- function(model.list, batches){
                mcmc.params=mp,
                label_switch=any_label_swap,
                marginal_lik=ml,
+               is_mendelian=is_mendel,
                .internal.constraint=5e-4,
                .internal.counter=0L)
   modes(model) <- computeModes(model)
