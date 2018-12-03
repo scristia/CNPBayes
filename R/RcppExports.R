@@ -305,12 +305,20 @@ is_mother <- function(xmod) {
     .Call('_CNPBayes_is_mother', PACKAGE = 'CNPBayes', xmod)
 }
 
+is_parent <- function(xmod) {
+    .Call('_CNPBayes_is_parent', PACKAGE = 'CNPBayes', xmod)
+}
+
 is_child <- function(xmod) {
     .Call('_CNPBayes_is_child', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_trioPr2 <- function(xmod) {
     .Call('_CNPBayes_update_trioPr2', PACKAGE = 'CNPBayes', xmod)
+}
+
+prob_mendelian <- function(xmod) {
+    .Call('_CNPBayes_prob_mendelian', PACKAGE = 'CNPBayes', xmod)
 }
 
 update_mendelian <- function(xmod) {
@@ -381,19 +389,27 @@ predictive_trios <- function(xmod) {
     .Call('_CNPBayes_predictive_trios', PACKAGE = 'CNPBayes', xmod)
 }
 
-trios_burnin <- function(object, mcmcp) {
-    .Call('_CNPBayes_trios_burnin', PACKAGE = 'CNPBayes', object, mcmcp)
+trios_burnin <- function(object) {
+    .Call('_CNPBayes_trios_burnin', PACKAGE = 'CNPBayes', object)
 }
 
 test_trio <- function(object) {
     .Call('_CNPBayes_test_trio', PACKAGE = 'CNPBayes', object)
 }
 
-trios_mcmc <- function(object, mcmcp) {
-    .Call('_CNPBayes_trios_mcmc', PACKAGE = 'CNPBayes', object, mcmcp)
+trios_mcmc <- function(object) {
+    .Call('_CNPBayes_trios_mcmc', PACKAGE = 'CNPBayes', object)
 }
 
 z2cn <- function(xmod, map) {
     .Call('_CNPBayes_z2cn', PACKAGE = 'CNPBayes', xmod, map)
+}
+
+burnin_nomendelian_update <- function(object) {
+    .Call('_CNPBayes_burnin_nomendelian_update', PACKAGE = 'CNPBayes', object)
+}
+
+mcmc_nomendelian_update <- function(object) {
+    .Call('_CNPBayes_mcmc_nomendelian_update', PACKAGE = 'CNPBayes', object)
 }
 

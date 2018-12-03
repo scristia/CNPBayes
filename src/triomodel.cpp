@@ -32,30 +32,20 @@ Rcpp::CharacterVector family_member(Rcpp::S4 object){
 // [[Rcpp::export]]
 Rcpp::NumericVector lookup_mprobs(Rcpp::S4 model, int father, int mother){
   Rcpp::NumericMatrix mprob = model.slot("mprob");
+  father = father - 1;
+  mother = mother - 1;
   IntegerVector f = model.slot("father");
   IntegerVector m = model.slot("mother");
-  IntegerVector map = model.slot("maplabel");
-  int fat2 = father - 1;
-  int mot2 = mother - 1;
-  int f2 = map[fat2];
-  int m2 = map[mot2];
-  Rcpp::LogicalVector ind(m.size());
-  Rcpp::LogicalVector ind2(f.size());
-  ind = f == f2;
-  ind2 = m == m2;
-  Rcpp::LogicalVector is_parental_cn(ind.size());
-  is_parental_cn = (ind==TRUE) & (ind2==TRUE) ;
-  int nr=f.size();
-  int j = 0;
+  int nr = f.size();
+  Rcpp::LogicalVector is_row(nr) ;
+  is_row = f == father & m == mother ;
+  Rcpp::NumericVector prob(mprob.ncol());
   for(int i = 0; i < nr; i++){
-    if(is_parental_cn[i] == TRUE){
-      j = i ;
-      break;
-    }
+    if(!is_row[i]) continue ;
+    prob=mprob(i, _) ;
+    break;
   }
-  Rcpp::NumericVector result(mprob.ncol());
-  result=mprob(j, _);
-  return result;
+  return prob;
 }
 
 //
@@ -114,11 +104,22 @@ Rcpp::LogicalVector is_mother(Rcpp::S4 xmod){
   Rcpp::S4 model(clone(xmod)) ;
   CharacterVector fam = family_member(model);
   int N = fam.size() ;
-  LogicalVector is_f(N) ;
+  LogicalVector is_m(N) ;
   for (int i = 0; i < N; i++){
-    is_f[i] = (fam[i] == "m");
+    is_m[i] = (fam[i] == "m");
   }
-  return is_f ;
+  return is_m ;
+}
+
+// [[Rcpp::export]]
+Rcpp::LogicalVector is_parent(Rcpp::S4 xmod){
+  RNGScope scope ;
+  Rcpp::S4 model(clone(xmod)) ;
+  CharacterVector fam = family_member(model);
+  int N = fam.size() ;
+  LogicalVector is_p(N) ;
+  is_p = is_father(model) | is_mother(model);
+  return is_p ;
 }
 
 // [[Rcpp::export]]
@@ -127,11 +128,11 @@ Rcpp::LogicalVector is_child(Rcpp::S4 xmod){
   Rcpp::S4 model(clone(xmod)) ;
   CharacterVector fam = family_member(model);
   int N = fam.size() ;
-  LogicalVector is_f(N) ;
+  LogicalVector is_o(N) ;
   for (int i = 0; i < N; i++){
-    is_f[i] = (fam[i] == "o");
+    is_o[i] = (fam[i] == "o");
   }
-  return is_f ;
+  return is_o ;
 }
 
 // [[Rcpp::export]]
@@ -167,6 +168,35 @@ Rcpp::NumericMatrix update_trioPr2(Rcpp::S4 xmod){
 }
 
 // [[Rcpp::export]]
+Rcpp::NumericVector prob_mendelian(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(clone(xmod)) ;
+  IntegerVector z = model.slot("z");
+  CharacterVector fam = family_member(model);
+  Rcpp::LogicalVector is_o=is_child(model);
+  //Rcpp::LogicalVector is_f=is_father(model);
+  //Rcpp::LogicalVector is_m=is_mother(model);
+  Rcpp::IntegerVector zo = z[is_o];
+  // TODO: prior probability for mendelian indicator
+  double m_prior = 0.9 ;
+  double numer;
+  double denom;
+  NumericMatrix ptrio = update_trioPr(model) ;
+  NumericVector p = model.slot("pi_parents") ;
+  int T=zo.size() ;
+  NumericVector prob_mendel(T);
+  int cn;
+  for(int i=0; i < T; ++i){
+    cn = zo[i] - 1;
+    numer=ptrio(i, cn) * m_prior;
+    denom=numer + p[ cn ] * (1-m_prior) ;
+    prob_mendel[i] = numer/denom ;
+  }
+  return prob_mendel ;
+}
+
+
+// [[Rcpp::export]]
 Rcpp::IntegerVector update_mendelian(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(clone(xmod)) ;
@@ -196,7 +226,7 @@ Rcpp::IntegerVector update_mendelian(Rcpp::S4 xmod) {
   //                       p(z_0 | M=0)P(M=0))
   for(int i=0; i < T; ++i){
     cn = zo[i] - 1;
-    numer=ptrio(i, _)[ cn ] * m_prior;
+    numer=ptrio(i, cn) * m_prior;
     denom=numer + p[ cn ] * (1-m_prior) ;
     prob_mendel = numer/denom ;
     u = runif(1) ;
@@ -279,15 +309,10 @@ Rcpp::IntegerVector update_parents(Rcpp::S4 xmod){
   int parents_size = zp.size();
   NumericMatrix p(parents_size, K);
   p = update_multinomialPrPar(xmod) ;  // number trios x K
-  
-  //NumericMatrix cumP(n, K) ;
-  //  Make more efficient
-  //return cumP ;
   NumericVector upar = runif(parents_size) ;
   IntegerVector zpar_(parents_size) ;
   IntegerVector zpar = clone(zpar_) ;
   IntegerMatrix freq(B, K) ;
-  
   int b ;
   for(int i=0; i < parents_size; i++){
     //initialize accumulator ;
@@ -307,23 +332,19 @@ Rcpp::IntegerVector update_parents(Rcpp::S4 xmod){
   } else{
     return zp ;
   }
-}  
+}
 
 // [[Rcpp::export]]
 Rcpp::IntegerVector update_zparents(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(clone(xmod)) ;
   Rcpp::IntegerVector ztrio = model.slot("z");
-  
-  //Rcpp::CharacterVector family_member=triodat["family_member"];
-  // Rcpp::LogicalVector is_offspring;
   CharacterVector fam = family_member(xmod);
   Rcpp::LogicalVector child_ind(fam.size());
   for (int i = 0; i < fam.size(); i++){
     child_ind[i] = (fam[i] == "o");
   }
   // return child_ind;
-  
   IntegerVector zz_parents;
   zz_parents = update_parents(model); 
   int n = ztrio.size() ;
@@ -511,10 +532,8 @@ Rcpp::NumericMatrix update_multinomialPrChild(Rcpp::S4 xmod) {
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = unique_batch(batch) ;
   // Mendelian transmission probability matrix
-  NumericMatrix ptrio = update_trioPr2(xmod) ;
+  NumericMatrix ptrio = update_trioPr2(model) ;
   NumericVector p = model.slot("pi") ;
-  // commented by RS: pp is not unused
-  //NumericVector pp = model.slot("pi_parents") ;
   NumericMatrix sigma2 = model.slot("sigma2") ;
   NumericMatrix theta = model.slot("theta") ;
   int B = sigma2.nrow() ;
@@ -523,8 +542,6 @@ Rcpp::NumericMatrix update_multinomialPrChild(Rcpp::S4 xmod) {
   double df = getDf(hypp) ;
   CharacterVector fam = family_member(xmod);
   Rcpp::LogicalVector child_ind(fam.size());
-  // TODO:
-  double p_mendel=0.9;
   // TODO: we do this with each MCMC iteration
   for (int i = 0; i < fam.size(); i++){
     child_ind[i] = (fam[i] == "o");
@@ -537,19 +554,13 @@ Rcpp::NumericMatrix update_multinomialPrChild(Rcpp::S4 xmod) {
   NumericVector tmp(M) ;
   NumericVector tmp2(M) ;
   NumericVector rowtotal(M) ;
-  // MC:  why do we multiply ptrio by p[k]?
   for(int k = 0; k < K; ++k){
     NumericVector dens(M) ;
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
-      //tmp = p[k] * ptrio(_,k) *
-      //      dlocScale_t(xo, df, theta(b, k), sigma) * this_batch ;
       double sigma = sqrt(sigma2(b, k));
       NumericVector phi=dlocScale_t(xo, df, theta(b, k), sigma);
       tmp = ptrio(_, k) * phi * this_batch ;
-      //tmp = ptrio(_, k) * phi * this_batch * (1 - p_mendel) ;
-      //tmp2 = p[k] * phi * this_batch * p_mendel ;
-      //tmp = tmp + tmp2 ;
       dens += tmp ;
     }
     lik(_, k) = dens;
@@ -573,28 +584,28 @@ Rcpp::IntegerVector update_offspring(Rcpp::S4 xmod){
   NumericMatrix theta = model.slot("theta") ;
   IntegerVector batch = model.slot("batch") ;
   int B = theta.nrow() ;
-  CharacterVector fam = family_member(xmod);
-  Rcpp::LogicalVector child_ind(fam.size());
+  CharacterVector fam = family_member(model);
+  Rcpp::LogicalVector is_child(fam.size());
   // TODO: This is unchanging, yet we do it with each MCMC iteration
   for (int i = 0; i < fam.size(); i++){
-    child_ind[i] = (fam[i] == "o");
+    is_child[i] = (fam[i] == "o");
   }
   IntegerVector z = model.slot("z");
-  Rcpp::IntegerVector zo = z[child_ind];
-  int child_size = zo.size();
-  NumericMatrix p(child_size, K);
-  p = update_multinomialPrChild(xmod) ;
-  NumericVector uc = runif(child_size) ;
-  IntegerVector zc_(child_size) ;
+  Rcpp::IntegerVector zo = z[is_child];
+  int n_children = zo.size();
+  NumericMatrix p(n_children, K);
+  p = update_multinomialPrChild(model) ;
+  NumericVector u = runif(n_children) ;
+  IntegerVector zc_(n_children) ;
   IntegerVector zc = clone(zc_) ;
   IntegerMatrix freq(B, K) ;
   int b ;
-  for(int i=0; i < child_size; i++){
+  for(int i=0; i < n_children; i++){
     //initialize accumulator ;
     double acc = 0 ;
     for(int k = 0; k < K; k++){
       acc += p(i, k) ;
-      if( uc[i] < acc ) {
+      if( u[i] < acc ) {
         zc[i] = k + 1 ;
         b = batch[i] - 1 ;
         freq(b, k) += 1 ;
@@ -616,18 +627,19 @@ Rcpp::IntegerVector update_zchild(Rcpp::S4 xmod) {
   S4 model(clone(xmod)) ;
   IntegerVector ztrio = model.slot("z");
   IntegerVector zz_offspring ;
-  CharacterVector fam = family_member(xmod);
-  LogicalVector child_ind(fam.size());
+  CharacterVector fam = family_member(model);
+  LogicalVector is_child(fam.size());
   // TODO:  This is unchanging, yet we do it every MCMC iteration
   for (int i = 0; i < fam.size(); i++){
-     child_ind[i] = (fam[i] == "o");
+     is_child[i] = (fam[i] == "o");
   }
   //
   zz_offspring = update_offspring(model); // length 300
   int n = ztrio.size() ;
   int j = 0;
+  // Only updates the elements of the z-vector that correspond to the child
   for(int i = 0; i < n; i++){
-    if(child_ind[i] == TRUE){
+    if(is_child[i] == TRUE){
       ztrio[i] = zz_offspring[j];
       ++j;
     }
@@ -872,6 +884,10 @@ Rcpp::IntegerVector sample_trio_components(Rcpp::IntegerVector x, int size, Rcpp
   return(z);
 }
 
+// this samples z's (irrespective of parent/offspring status) according to mixture probs
+// so this is not quite the posterior predictive distribution
+// the sampling for the offspring should be conditional on the mendelian indicator
+
 //[[Rcpp::export]]
 Rcpp::S4 predictive_trios(Rcpp::S4 xmod){
   Rcpp::RNGScope scope;
@@ -914,9 +930,10 @@ Rcpp::S4 predictive_trios(Rcpp::S4 xmod){
 }
 
 // [[Rcpp::export]]
-Rcpp::S4 trios_burnin(Rcpp::S4 object, Rcpp::S4 mcmcp) {
+Rcpp::S4 trios_burnin(Rcpp::S4 object) {
   RNGScope scope ;
   Rcpp::S4 model(clone(object)) ;
+  Rcpp::S4 mcmcp(model.slot("mcmc.params")) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
   Rcpp::S4 params(mcmcp) ;
@@ -963,9 +980,220 @@ Rcpp::IntegerVector test_trio(Rcpp::S4 object) {
 }
 
 // [[Rcpp::export]]
-Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
+Rcpp::S4 trios_mcmc(Rcpp::S4 object) {
   RNGScope scope ;
   Rcpp::S4 model(clone(object)) ;
+  Rcpp::S4 mcmcp(model.slot("mcmc.params")) ;
+  Rcpp::S4 chain(model.slot("mcmc.chains")) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  Rcpp::S4 params(mcmcp) ;
+  IntegerVector up = params.slot("param_updates") ;
+  int K = getK(hypp) ;
+  int T = params.slot("thin") ;
+  int S = params.slot("iter") ;
+  S = S - 1;
+  T = T - 1;
+  NumericVector x = model.slot("data") ;
+  int N = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
+  NumericMatrix thetac = chain.slot("theta") ;
+  NumericMatrix sigma2c = chain.slot("sigma2") ;
+  NumericMatrix th = model.slot("theta");
+  int B = th.nrow();
+  NumericMatrix s2(B, K);
+  NumericMatrix pmix = chain.slot("pi") ;
+  NumericMatrix pmix_parents = chain.slot("pi_parents") ;
+  NumericMatrix zfreq = chain.slot("zfreq") ;
+  NumericMatrix zfreq_parents = chain.slot("zfreq_parents") ;
+  NumericMatrix mu = chain.slot("mu") ;
+  NumericMatrix tau2 = chain.slot("tau2") ;
+  NumericVector nu0 = chain.slot("nu.0") ;
+  NumericVector sigma2_0 = chain.slot("sigma2.0") ;
+  NumericVector loglik_ = chain.slot("loglik") ;
+  NumericVector logprior_ = chain.slot("logprior") ;
+  NumericMatrix predictive_ = chain.slot("predictive") ;
+  IntegerMatrix zstar_ = chain.slot("zstar") ;
+  IntegerVector mendelian_ = chain.slot("is_mendelian") ;
+  NumericVector p(K) ;
+  NumericVector pp(K) ;
+  NumericVector m(K) ; //mu
+  NumericVector t2(K) ;//tau2
+  NumericVector n0(1) ;//nu0
+  IntegerVector z(N) ;
+  NumericVector u(N) ;
+  NumericVector s20(1) ; //sigma2_0
+  NumericVector lls2(1) ;  // stage 2 log lik
+  NumericVector ll(1) ;
+  NumericVector lp(1) ;
+  IntegerVector tmp(K) ;
+  int ntrio = mendelian_.size();
+  IntegerVector temp( ntrio ) ;
+  IntegerVector zf(K) ;
+  IntegerVector zp(K) ;
+  NumericVector ystar = NumericVector(B*K);
+  IntegerVector zstar = IntegerVector(B*K);
+  for(int s = 0; s < (S + 1); ++s){
+    // update z for every one (independence)
+    z = update_z(model) ;
+    model.slot("z") = z ;
+    // z frequency of parents
+    tmp = tableZpar(model) ;
+    model.slot("zfreq_parents") = tmp ;
+    zfreq_parents(s, _) = tmp ;
+    // updates integer matrix of slot probz for only the parents
+    model.slot("probz_par") = update_probzpar(model) ;
+    // updates elements of z vector only for the offspring
+    z = update_zchild(model) ;
+    model.slot("z") = z ;
+    model.slot("probz") = update_probz(model) ;
+    tmp = tableZ(K, model.slot("z")) ;
+    // updates integer matrix of slot probz for all individuals
+    model.slot("zfreq") = tmp ;
+    zfreq(s, _) = tmp ;
+    temp = update_mendelian(model) ;
+    model.slot("is_mendelian") = temp ;
+    mendelian_ = mendelian_ + temp ;
+
+    model.slot("sigma2") = update_sigma2(model) ;
+    sigma2c(s, _) = as<Rcpp::NumericVector>(model.slot("sigma2"));
+    n0 = update_nu0(model) ;
+    model.slot("nu.0") = n0 ;
+    nu0[s] = n0[0] ;
+    s20 = update_sigma20(model) ;
+    model.slot("sigma2.0") = s20 ;
+    sigma2_0[s] = s20[0] ;
+    model.slot("theta") = update_theta(model) ;
+    thetac(s, _) = as<Rcpp::NumericVector>(model.slot("theta")) ;
+    t2 = update_tau2(model) ;
+    model.slot("tau2") = t2 ;
+    tau2(s, _) = t2 ;
+    m = update_mu(model) ;
+    model.slot("mu") = m ;
+    mu(s, _) = m ;
+    pp = update_pp(model) ;
+    model.slot("pi_parents") = pp ;
+    pmix_parents(s, _) = pp ;
+    p = update_p(model) ;
+    model.slot("pi") = p ;
+    pmix(s, _) = p ;
+    ll = compute_loglik(model) ;
+    lls2 = stageTwoLogLikBatch(model) ;
+    ll = ll + lls2 ;
+    loglik_[s] = ll[0] ;
+    model.slot("loglik") = ll ;
+    lp = compute_logprior(model) ;
+    logprior_[s] = lp[0] ;
+    model.slot("logprior") = lp ;
+    u = Rcpp::rchisq(N, df) ;
+    model.slot("u") = u;
+    // posterior predictive
+    model = predictive_trios(model);
+    ystar = model.slot("predictive");
+    zstar = model.slot("zstar");
+    predictive_(s, _) = ystar ;
+    zstar_(s, _) = zstar ;
+    // Thinning
+    for(int t = 0; t < T; ++t){
+      model.slot("z") = update_z(model) ;
+      model.slot("zfreq_parents") = tableZpar(model) ;
+      model.slot("sigma2") = update_sigma2(model) ;
+      model.slot("nu.0") = update_nu0(model) ;
+      model.slot("sigma2.0") = update_sigma20(model) ;
+      model.slot("z") = update_zchild(model) ;
+      model.slot("is_mendelian") = update_mendelian(model) ;
+      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+      model.slot("theta") = update_theta(model) ;
+      model.slot("tau2") = update_tau2(model) ;
+      model.slot("mu") = update_mu(model) ;
+      model.slot("pi_parents") = update_pp(model) ;
+      model.slot("pi") = update_p(model) ;
+      model.slot("u") = Rcpp::rchisq(N, df) ;
+    }
+  }
+  //
+  // assign chains back to object
+  //
+  chain.slot("theta") = thetac ;
+  chain.slot("sigma2") = sigma2c ;
+  chain.slot("pi") = pmix ;
+  chain.slot("pi_parents") = pmix_parents ;
+  chain.slot("mu") = mu ;
+  chain.slot("tau2") = tau2 ;
+  chain.slot("nu.0") = nu0 ;
+  chain.slot("sigma2.0") = sigma2_0 ;
+  chain.slot("zfreq") = zfreq ;
+  chain.slot("zfreq_parents") = zfreq_parents ;
+  chain.slot("loglik") = loglik_ ;
+  chain.slot("logprior") = logprior_ ;
+  chain.slot("is_mendelian") = mendelian_ ;
+  model.slot("mcmc.chains") = chain ;
+  return model ;
+}
+
+// [[Rcpp::export]]
+Rcpp::S4  z2cn(Rcpp::S4 xmod, Rcpp::IntegerVector map){
+  Rcpp::S4 model(clone(xmod)) ;
+  Rcpp::IntegerVector ztrio = model.slot("z");
+  //Rcpp::IntegerVector map = model.slot("maplabel");
+  //Rcpp::IntegerVector map2 = map.sort();
+  // map2.erase(std::unique(map2.begin(), map2.end()), map2.end());
+  //int map2_max = max(map);
+  for (int i = 0; i < ztrio.size(); i++){
+    int zind = ztrio[i] - 1;
+    int maplab = map[zind];
+    ztrio[i] = maplab;
+  }
+  model.slot("z") = ztrio ;
+  return model;
+}
+
+
+// [[Rcpp::export]]
+Rcpp::S4 burnin_nomendelian_update(Rcpp::S4 object) {
+  RNGScope scope ;
+  Rcpp::S4 model(clone(object)) ;
+  Rcpp::S4 mcmcp(model.slot("mcmc.params"));
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  Rcpp::S4 params(mcmcp) ;
+  IntegerVector up = params.slot("param_updates") ;
+  int S = params.slot("burnin") ;
+  NumericVector x = model.slot("data") ;
+  int N = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
+  for(int s = 1; s < S; ++s){
+    model.slot("z") = update_z(model) ;
+    model.slot("z") = update_zchild(model) ;
+    model.slot("zfreq_parents") = tableZpar(model) ;
+    model.slot("sigma2") = update_sigma2(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("sigma2.0") = update_sigma20(model) ;
+    model.slot("z") = update_zchild(model) ;
+    //model.slot("is_mendelian") = update_mendelian(model) ;
+    model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    model.slot("theta") = update_theta(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("pi_parents") = update_pp(model) ;
+    model.slot("pi") = update_p(model) ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
+  }
+  NumericVector lls2(1);
+  NumericVector ll(1);
+  lls2 = stageTwoLogLikBatch(model);
+  ll = compute_loglik(model);
+  ll = ll + lls2;
+  model.slot("loglik") = ll;
+  model.slot("logprior") = compute_logprior(model) ;
+  return model ;
+}
+
+
+// [[Rcpp::export]]
+Rcpp::S4 mcmc_nomendelian_update(Rcpp::S4 object) {
+  RNGScope scope ;
+  Rcpp::S4 model(clone(object)) ;
+  Rcpp::S4 mcmcp(model.slot("mcmc.params"));
   Rcpp::S4 chain(model.slot("mcmc.chains")) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   Rcpp::S4 params(mcmcp) ;
@@ -1032,9 +1260,9 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     // updates integer matrix of slot probz for all individuals
     model.slot("zfreq") = tmp ;
     zfreq(s, _) = tmp ;
-    temp = update_mendelian(model) ;
-    model.slot("is_mendelian") = temp ;
-    mendelian_ = mendelian_ + temp ;
+    //temp = update_mendelian(model) ;
+    //model.slot("is_mendelian") = temp ;
+    //mendelian_ = mendelian_ + temp ;
 
     model.slot("sigma2") = update_sigma2(model) ;
     sigma2c(s, _) = as<Rcpp::NumericVector>(model.slot("sigma2"));
@@ -1081,7 +1309,7 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("nu.0") = update_nu0(model) ;
       model.slot("sigma2.0") = update_sigma20(model) ;
       model.slot("z") = update_zchild(model) ;
-      model.slot("is_mendelian") = update_mendelian(model) ;
+      //model.slot("is_mendelian") = update_mendelian(model) ;
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       model.slot("theta") = update_theta(model) ;
       model.slot("tau2") = update_tau2(model) ;
@@ -1109,21 +1337,4 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   chain.slot("is_mendelian") = mendelian_ ;
   model.slot("mcmc.chains") = chain ;
   return model ;
-}
-
-// [[Rcpp::export]]
-Rcpp::S4  z2cn(Rcpp::S4 xmod, Rcpp::IntegerVector map){
-  Rcpp::S4 model(clone(xmod)) ;
-  Rcpp::IntegerVector ztrio = model.slot("z");
-  //Rcpp::IntegerVector map = model.slot("maplabel");
-  //Rcpp::IntegerVector map2 = map.sort();
-  // map2.erase(std::unique(map2.begin(), map2.end()), map2.end());
-  //int map2_max = max(map);
-  for (int i = 0; i < ztrio.size(); i++){
-    int zind = ztrio[i] - 1;
-    int maplab = map[zind];
-    ztrio[i] = maplab;
-  }
-  model.slot("z") = ztrio ;
-  return model;
 }
