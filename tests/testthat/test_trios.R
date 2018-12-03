@@ -520,6 +520,6 @@ test_that("posterior probability for mendelian inheritance", {
   z.f <- zz[ix.f]
   z.m <- zz[ix.m]
   expect_identical(z.f, 3L)
-  expect_identical(z.m, 2L)
+  expect_identical(z.m, 3L)
 })
 
