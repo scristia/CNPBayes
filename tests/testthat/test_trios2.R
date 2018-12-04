@@ -10,6 +10,8 @@ test_that("Michael's example", {
   p <- c(0.09, 0.42, 0.49)
   theta <- c(-3, 0.15, 1.2)
   sigma2 <- c(0.2, 0.2, 0.2)
+  ##sigma2 <- c(0.1, 0.1, 0.1)
+  ##sigma2 <- c(0.05, 0.05, 0.05)
   N <- 1000
   params <- data.frame(cbind(p, theta, sigma2))
   seed <- 4990917
@@ -45,14 +47,29 @@ test_that("Michael's example", {
   is_offspr <- is_child(base)
   expect_identical(z1[ !is_offspr], zz[!is_offspr])
   expect_true(!identical(z1[ is_offspr], zz[is_offspr]))
+
+  m <- posteriorSimulation(base)
+  if(FALSE){
+    ggMixture(m)
+    prob.mendelian <- probMendelian(m)
+    dat <- tibble(prob=prob.mendelian, iter=seq_along(prob.mendelian))
+    ggplot(dat, aes(iter, prob)) +
+      geom_point() +
+      xlab("Index for trio") +
+      ylab("Prob transmission is Mendelian") +
+      ylim(c(0, 1)) +
+      geom_hline(yintercept=0.9)
+  }
+
+
   model <- base
   ptrio <- update_trioPr2(model)
   expect_identical(dim(ptrio), c(1000L, 3L))
   expect_true(all(rowSums(ptrio) == 1))
   expect_identical(is_father(model), triodata(model)$family_member=="f")
   expect_identical(is_mother(model), triodata(model)$family_member=="m")
-  p <- update_multinomialPrChild(model)
-  expect_equal(rowSums(p), rep(1, 1000))
+  p2 <- update_multinomialPrChild(model)
+  expect_equal(rowSums(p2), rep(1, 1000))
   zo <- update_offspring(model)
   expect_true(all(zo > 0))
   zz <- update_zchild(model)

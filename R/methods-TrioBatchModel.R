@@ -198,6 +198,7 @@ combine_batchTrios <- function(model.list, batches){
   zfreqpar <- map(ch.list, zFreqPar) %>% do.call(rbind, .)
   pred <- map(ch.list, predictive) %>% do.call(rbind, .)
   zsta <- map(ch.list, zstar) %>% do.call(rbind, .)
+  ismendel <- map(ch.list, isMendelian) %>% Reduce("+", .)
   mc <- new("McmcChainsTrios",
             theta=data.matrix(th),
             sigma2=data.matrix(s2),
@@ -215,7 +216,8 @@ combine_batchTrios <- function(model.list, batches){
             predictive=pred,
             zstar=zsta,
             k=k(model.list[[1]]),
-            B=length(unique(batches)))
+            B=length(unique(batches)),
+            is_mendelian=ismendel)
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   triodata <- model.list[[1]]@triodata
@@ -237,6 +239,7 @@ combine_batchTrios <- function(model.list, batches){
   pz <- map(model.list, probz) %>% Reduce("+", .)
   pz <- pz/length(model.list)
   ## the accessor divides by number of iterations, so rescale
+  ## RS: this is super confusing
   pz <- pz * (iter(mp) - 1)
   zz <- max.col(pz)
   yy <- y(model.list[[1]])
@@ -258,6 +261,9 @@ combine_batchTrios <- function(model.list, batches){
     ml <- as.numeric(NA)
   } else ml <- mean(ml, na.rm=TRUE)
   nbatch <- as.integer(table(batch(model.list[[1]])))
+  N <- sapply(model.list, iter) %>% sum
+  prob.mendel <- ismendel/N
+  is_mendel <- rbinom(1000, 1, prob.mendel)
   model <- new(class(model.list[[1]]),
                triodata=triodata,
                mprob=mprob,
@@ -294,6 +300,7 @@ combine_batchTrios <- function(model.list, batches){
                mcmc.params=mp,
                label_switch=any_label_swap,
                marginal_lik=ml,
+               is_mendelian=is_mendel,
                .internal.constraint=5e-4,
                .internal.counter=0L)
   modes(model) <- computeModes(model)
@@ -301,6 +308,7 @@ combine_batchTrios <- function(model.list, batches){
   logPrior(model) <- computePrior(model)
   model
 }
+
 #' Constructor for TrioBatchModel
 #'
 #' Initializes a TrioBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
@@ -310,8 +318,7 @@ combine_batchTrios <- function(model.list, batches){
 #' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @param mp An object of class 'McmcParams'
 #' @return An object of class `TrioBatchModel`
-#' @export
-TrioBatchModel <- function(triodata=tibble(),
+..TrioBatchModel <- function(triodata=tibble(),
                            hp=HyperparametersTrios(),
                            mp=McmcParams(iter=1000, thin=10,
                                          burnin=1000, nStarts=4),
@@ -343,6 +350,32 @@ TrioBatchModel <- function(triodata=tibble(),
   mcmcParams(tbm2) <- mp
   chains(tbm2) <- McmcChainsTrios(tbm2)
   tbm2
+}
+
+
+#'
+#' Initializes a TrioBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
+#'
+#' @param triodata the data for the simulation.
+#' @param batches an integer-vector of the different batches
+#' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
+#' @param mp An object of class 'McmcParams'
+#' @return An object of class `TrioBatchModel`
+#' @export
+TrioBatchModel <- function(triodata=tibble(),
+                           hp=HyperparametersTrios(),
+                           mp=McmcParams(iter=1000, thin=10,
+                                         burnin=1000, nStarts=4),
+                           mprob=mprob,
+                           maplabel=maplabel
+                           ){
+  if(length(triodata) == 0){
+    return(.empty_trio_model(hp, mp))
+  }
+  tbm <- .TBM(triodata, hp, mp, mprob, maplabel)
+  z(tbm) <- update_z(tbm)
+  chains(tbm) <- McmcChainsTrios(tbm)
+  tbm
 }
 
 #' @export
@@ -1124,4 +1157,47 @@ setReplaceMethod("mcmcParams", "TrioBatchModel", function(object, value){
   ## (i.e., size of chains is not effected)
   object@mcmc.params <- value
   object
+})
+
+probMendelian <- function(model){
+  isMendelian(chains(model))/(iter(model))
+}
+
+setMethod("sortComponentLabels", "TrioBatchModel", function(model){
+  is_ordered <- .ordered_thetas_multibatch(model)
+  if(is_ordered) return(model)
+  ## thetas are not all ordered
+  thetas <- theta(model)
+  s2s <- sigma2(model)
+  K <- k(model)
+  ix <- order(thetas[1, ])
+  B <- nBatch(model)
+  . <- NULL
+  tab <- tibble(z_orig=z(model),
+                z=z(model),
+                batch=batch(model)) %>%
+    mutate(index=seq_len(nrow(.)))
+  z_relabel <- NULL
+  for(i in seq_len(B)){
+    ix.next <- order(thetas[i, ])
+    thetas[i, ] <- thetas[i, ix.next]
+    s2s[i, ] <- s2s[i, ix]
+    index <- which(tab$batch == i)
+    tab2 <- tab[index, ] %>%
+      mutate(z_relabel=factor(z, levels=ix.next)) %>%
+      mutate(z_relabel=as.integer(z_relabel))
+    tab$z[index] <- tab2$z_relabel
+  }
+  ps <- p(model)[ix]
+  mu(model) <- mu(model)[ix]
+  tau2(model) <- tau2(model)[ix]
+  model@pi_parents <- model@pi_parents[ix]
+  model@zfreq_parents <- model@zfreq_parents[ix]
+  model@probz_par <- model@probz_par[, ix, drop=FALSE]
+  sigma2(model) <- s2s
+  theta(model) <- thetas
+  p(model) <- ps
+  z(model) <- tab$z
+  log_lik(model) <- computeLoglik(model)
+  model
 })

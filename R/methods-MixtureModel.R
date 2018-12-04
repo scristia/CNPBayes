@@ -25,6 +25,16 @@ setValidity("MixtureModel", function(object){
     msg <- "predictive slot in current values should have length K x B"
     return(msg)
   }
+  zz <- z(object)
+  if(any(is.na(zz))){
+    msg <- "NAs in z slot"
+    return(msg)
+  }
+  ## z is an index -- it must be greater than 0
+  if(min(zz) < 1){
+    msg <- "The minimum z-value must be 1"
+    return(msg)
+  }
   msg
 })
 

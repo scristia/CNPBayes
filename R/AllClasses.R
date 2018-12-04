@@ -313,3 +313,28 @@ setClass("MultiBatchCopyNumber", contains="MultiBatchModel",
 #' @export
 setClass("MultiBatchCopyNumberPooled", contains="MultiBatchModel",
          representation(mapping="character"))
+
+
+#' An object for running MCMC simulations.
+#'
+#' BatchModel and MarginalModel both inherit from this class.
+#' @slot data a tibble with one-dimensional summaries (oned), id, and batch
+#' @slot parameters list of parameters
+#' @slot chains object of class McmcChains
+#' @slot current_values current value of each chain
+#' @slot summaries list of empirical data and model summaries
+#' @slot flags list of model flags
+#' @export
+setClass("MultiBatch", representation(data="tbl_df",
+                                      specs="tbl_df",
+                                      parameters="list",
+                                      chains="McmcChains",
+                                      current_values="list",
+                                      summaries="list",
+                                      flags="list"))
+
+setClass("CnList", contains="MultiBatch")
+
+setClass("MultiBatchP", contains="MultiBatch")
+
+setClass("Trios", contains="MultiBatch")

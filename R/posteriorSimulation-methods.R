@@ -6,7 +6,7 @@ setMethod("runBurnin", "MultiBatchModel", function(object){
 })
 
 setMethod("runBurnin", "TrioBatchModel", function(object){
-  trios_burnin(object, mcmcParams(object))
+  trios_burnin(object)
 })
 
 setMethod("runMcmc", "MultiBatchModel", function(object){
@@ -14,7 +14,7 @@ setMethod("runMcmc", "MultiBatchModel", function(object){
 })
 
 setMethod("runMcmc", "TrioBatchModel", function(object){
-  trios_mcmc(object, mcmcParams(object))
+  trios_mcmc(object)
 })
 
 
@@ -26,6 +26,43 @@ setMethod("runMcmc", "MultiBatchPooled", function(object){
   tmp <- mcmc_multibatch_pvar(object, mcmcParams(object))
   tmp
 })
+
+
+posteriorSimulationNoMendel <- function(object){
+  chains(object)@is_mendelian[] <- 0L
+  post <- burnin_nomendelian_update(object)
+  if(!isOrdered(post)) label_switch(post) <- TRUE
+  post <- sortComponentLabels(post)
+  if( iter(post) < 1 ) return(post)
+  post <- mcmc_nomendelian_update(post)
+  modes(post) <- computeModes(post)
+  if(isOrdered(post)){
+    label_switch(post) <- FALSE
+    return(post)
+  }
+  ## not ordered: try additional MCMC simulations
+  label_switch(post) <- TRUE
+  post <- sortComponentLabels(post)
+  ## reset counter for posterior probabilities
+  post@probz[] <- 0
+  chains(post)@is_mendelian[] <- 0L
+  post <- mcmc_nomendelian_update(post)
+  modes(post) <- computeModes(post)
+  ##mcmcParams(post) <- mp.orig
+  if(isOrdered(post)){
+    label_switch(post) <- FALSE
+    return(post)
+  }
+  label_switch(post) <- TRUE
+  if(params[["warnings"]]) {
+    ##
+    ## at this point, we've tried to run the twice after burnin and we still
+    ## have mixing. Most likely, we are fitting a model with k too big
+    ##warning("label switching: model k=", k(post))
+  }
+  post <- sortComponentLabels(post)
+  post
+}
 
 .posteriorSimulation2 <- function(post, params=psParams()){
   post <- runBurnin(post)
@@ -205,5 +242,13 @@ setMethod("posteriorSimulation", "list", function(object){
 #' @rdname posteriorSimulation-method
 #' @aliases posteriorSimulation,TrioBatchModel-method
 setMethod("posteriorSimulation", "TrioBatchModel", function(object){
-  .posteriorSimulation2(object)
+  chains(object)@is_mendelian[] <- 0L
+  object <- runBurnin(object)
+  if(!isOrdered(object)) label_switch(object) <- TRUE
+  object <- sortComponentLabels(object)
+  object <- runMcmc(object)
+  object
 })
+
+
+

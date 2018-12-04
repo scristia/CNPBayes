@@ -1,4 +1,5 @@
-setClass("MultiBatchP", contains="MultiBatch")
+#' @include MultiBatch.R
+NULL
 
 setValidity("MultiBatchP", function(object){
   msg <- TRUE
