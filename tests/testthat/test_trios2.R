@@ -10,7 +10,8 @@ test_that("Michael's example", {
   p <- c(0.09, 0.42, 0.49)
   theta <- c(-3, 0.15, 1.2)
   sigma2 <- c(0.2, 0.2, 0.2)
-  sigma2 <- c(0.1, 0.1, 0.1)
+  ##sigma2 <- c(0.1, 0.1, 0.1)
+  ##sigma2 <- c(0.05, 0.05, 0.05)
   N <- 1000
   params <- data.frame(cbind(p, theta, sigma2))
   seed <- 4990917
@@ -56,7 +57,8 @@ test_that("Michael's example", {
       geom_point() +
       xlab("Index for trio") +
       ylab("Prob transmission is Mendelian") +
-      ylim(c(0, 1))
+      ylim(c(0, 1)) +
+      geom_hline(yintercept=0.9)
   }
 
 

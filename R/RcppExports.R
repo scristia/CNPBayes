@@ -321,6 +321,10 @@ prob_mendelian <- function(xmod) {
     .Call('_CNPBayes_prob_mendelian', PACKAGE = 'CNPBayes', xmod)
 }
 
+update_mendel_prob <- function(xmod) {
+    .Call('_CNPBayes_update_mendel_prob', PACKAGE = 'CNPBayes', xmod)
+}
+
 update_mendelian <- function(xmod) {
     .Call('_CNPBayes_update_mendelian', PACKAGE = 'CNPBayes', xmod)
 }

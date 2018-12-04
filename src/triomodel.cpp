@@ -195,6 +195,25 @@ Rcpp::NumericVector prob_mendelian(Rcpp::S4 xmod) {
   return prob_mendel ;
 }
 
+// [[Rcpp::export]]
+Rcpp::NumericVector update_mendel_prob(Rcpp::S4 xmod) {
+  RNGScope scope ;
+  Rcpp::S4 model(clone(xmod)) ;
+  IntegerVector eta(2);
+  // uniform prior
+  eta[0]=1;
+  eta[1]=1;
+  IntegerVector eta_n(2);
+  IntegerVector is_mendel=model.slot("is_mendelian");
+  // number successes
+  eta_n[0]=sum(is_mendel) + eta[0];
+  // number failures
+  eta_n[1]=sum(is_mendel==0) + eta[1];
+  NumericVector p(1);
+  p=rbeta(1, eta_n[0], eta_n[1]);
+  return p;
+}
+
 
 // [[Rcpp::export]]
 Rcpp::IntegerVector update_mendelian(Rcpp::S4 xmod) {
@@ -211,7 +230,9 @@ Rcpp::IntegerVector update_mendelian(Rcpp::S4 xmod) {
   }
   Rcpp::IntegerVector zo = z[child_ind];
   // TODO: prior probability for mendelian indicator
-  double m_prior = 0.9 ;
+  //double m_prior = 0.9 ;
+  //double m_prior = 0.5 ;
+  double mprob = update_mendel_prob(model)[0];
   double numer;
   double denom;
   NumericMatrix ptrio = update_trioPr(model) ;
@@ -226,8 +247,8 @@ Rcpp::IntegerVector update_mendelian(Rcpp::S4 xmod) {
   //                       p(z_0 | M=0)P(M=0))
   for(int i=0; i < T; ++i){
     cn = zo[i] - 1;
-    numer=ptrio(i, cn) * m_prior;
-    denom=numer + p[ cn ] * (1-m_prior) ;
+    numer=ptrio(i, cn) * mprob;
+    denom=numer + p[ cn ] * (1-mprob) ;
     prob_mendel = numer/denom ;
     u = runif(1) ;
     if(u[0] <= prob_mendel){
@@ -411,7 +432,7 @@ Rcpp::NumericVector update_pp(Rcpp::S4 xmod) {
   Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
-  // IntegerVector z = model.slot("z") ;  
+  // IntegerVector z = model.slot("z") ;
   IntegerVector nn = model.slot("zfreq_parents");
   IntegerVector alpha = hypp.slot("alpha") ;
   NumericVector alpha_n(K) ;  // really an integer vector, but rdirichlet expects numeric
@@ -944,14 +965,14 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object) {
   double df = getDf(model.slot("hyperparams")) ;
   for(int s = 1; s < S; ++s){
     model.slot("z") = update_z(model) ;
+    model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    model.slot("theta") = update_theta(model) ;
     model.slot("zfreq_parents") = tableZpar(model) ;
     model.slot("sigma2") = update_sigma2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma20(model) ;
     model.slot("z") = update_zchild(model) ;
     model.slot("is_mendelian") = update_mendelian(model) ;
-    model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-    model.slot("theta") = update_theta(model) ;
     model.slot("mu") = update_mu(model) ;
     model.slot("tau2") = update_tau2(model) ;
     model.slot("pi_parents") = update_pp(model) ;
