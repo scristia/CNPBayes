@@ -6,7 +6,7 @@ setMethod("runBurnin", "MultiBatchModel", function(object){
 })
 
 setMethod("runBurnin", "TrioBatchModel", function(object){
-  trios_burnin(object, mcmcParams(object))
+  trios_burnin(object)
 })
 
 setMethod("runMcmc", "MultiBatchModel", function(object){
@@ -14,7 +14,7 @@ setMethod("runMcmc", "MultiBatchModel", function(object){
 })
 
 setMethod("runMcmc", "TrioBatchModel", function(object){
-  trios_mcmc(object, mcmcParams(object))
+  trios_mcmc(object)
 })
 
 
