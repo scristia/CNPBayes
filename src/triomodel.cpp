@@ -359,24 +359,14 @@ Rcpp::IntegerVector update_parents(Rcpp::S4 xmod){
 Rcpp::IntegerVector update_zparents(Rcpp::S4 xmod) {
   RNGScope scope ;
   Rcpp::S4 model(clone(xmod)) ;
-  Rcpp::IntegerVector ztrio = model.slot("z");
-  CharacterVector fam = family_member(xmod);
-  Rcpp::LogicalVector child_ind(fam.size());
-  for (int i = 0; i < fam.size(); i++){
-    child_ind[i] = (fam[i] == "o");
+  LogicalVector is_p = is_parent(model);
+  int N = is_p.size() ;
+  IntegerVector zz = model.slot("z");
+  IntegerVector z = update_z(model);
+  for (int i = 0; i < N; i++){
+    if(is_p[i]) zz[i] = z[i];
   }
-  // return child_ind;
-  IntegerVector zz_parents;
-  zz_parents = update_parents(model); 
-  int n = ztrio.size() ;
-  int j = 0;
-  for(int i = 0; i < n; i++){
-    if(child_ind[i] == FALSE){
-      ztrio[i] = zz_parents[j];
-      j++;
-    }
-  }
-  return ztrio;
+  return zz;
 }
 
 // [[Rcpp::export]]
@@ -385,17 +375,18 @@ Rcpp::IntegerVector tableZpar(Rcpp::S4 xmod){
   Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
-  CharacterVector fam = family_member(xmod);
-  Rcpp::LogicalVector child_ind(fam.size());
-  for (int i = 0; i < fam.size(); i++){
-    child_ind[i] = (fam[i] == "o");
-  }
+  CharacterVector fam = family_member(model);
+  Rcpp::LogicalVector is_p = is_parent(model) ;
+  Rcpp::LogicalVector is_mendel = model.slot("is_mendelian");
   IntegerVector z = model.slot("z");
-  Rcpp::IntegerVector zp = z[!child_ind];
-  
+  Rcpp::IntegerVector zp = z[is_p];
+  Rcpp::IntegerVector zo = z[!is_p];
   Rcpp::IntegerVector nn(K) ;
+  Rcpp::IntegerVector no(K) ;
   for(int k = 0; k < K; k++){
     nn[k] = sum(zp == (k+1)) ;
+    no[k] = sum(zo == (k+1) & is_mendel == 0);
+    nn[k] = nn[k] + no[k];
   }
   return nn ;
 }
@@ -964,19 +955,23 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object) {
   int N = x.size() ;
   double df = getDf(model.slot("hyperparams")) ;
   for(int s = 1; s < S; ++s){
-    model.slot("z") = update_z(model) ;
-    model.slot("zfreq") = tableZ(K, model.slot("z")) ;
-    model.slot("theta") = update_theta(model) ;
+    // This only works if other parameters are updated immediately after the z-update under the independence model
+    model.slot("z") = update_zparents(model) ;
+    model.slot("z") = update_zchild(model) ;
+    model.slot("is_mendelian") = update_mendelian(model) ;
+    //model.slot("zfreq") = tableZ(K, model.slot("z")) ;
     model.slot("zfreq_parents") = tableZpar(model) ;
+    model.slot("zfreq") = tableZpar(model) ;
+    //model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    model.slot("theta") = update_theta(model) ;
     model.slot("sigma2") = update_sigma2(model) ;
     model.slot("nu.0") = update_nu0(model) ;
     model.slot("sigma2.0") = update_sigma20(model) ;
-    model.slot("z") = update_zchild(model) ;
-    model.slot("is_mendelian") = update_mendelian(model) ;
     model.slot("mu") = update_mu(model) ;
     model.slot("tau2") = update_tau2(model) ;
     model.slot("pi_parents") = update_pp(model) ;
-    model.slot("pi") = update_p(model) ;
+    model.slot("pi") = update_pp(model) ;
+    //model.slot("pi") = update_p(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   NumericVector lls2(1);
@@ -1116,13 +1111,13 @@ Rcpp::S4 trios_mcmc(Rcpp::S4 object) {
     // Thinning
     for(int t = 0; t < T; ++t){
       model.slot("z") = update_z(model) ;
+      model.slot("z") = update_zchild(model) ;
       model.slot("zfreq_parents") = tableZpar(model) ;
+      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       model.slot("sigma2") = update_sigma2(model) ;
       model.slot("nu.0") = update_nu0(model) ;
       model.slot("sigma2.0") = update_sigma20(model) ;
-      model.slot("z") = update_zchild(model) ;
       model.slot("is_mendelian") = update_mendelian(model) ;
-      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       model.slot("theta") = update_theta(model) ;
       model.slot("tau2") = update_tau2(model) ;
       model.slot("mu") = update_mu(model) ;

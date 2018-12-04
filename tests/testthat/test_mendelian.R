@@ -50,7 +50,7 @@ test_that("easy mendelian example", {
   expect_identical(y(m)[ix2], -3)
   expect_equal(y(m)[ix.m], 1.36, tolerance=0.01)
 
-  iter(m) <- 250
+  iter(m) <- 0L
   burnin(m) <- 200
   m1 <- posteriorSimulation(m)
   dat <- triodata(m1)
