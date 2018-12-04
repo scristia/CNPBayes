@@ -243,11 +243,11 @@ setMethod("posteriorSimulation", "list", function(object){
 #' @aliases posteriorSimulation,TrioBatchModel-method
 setMethod("posteriorSimulation", "TrioBatchModel", function(object){
   chains(object)@is_mendelian[] <- 0L
-  m <- trios_burnin(object, mcmcParams(object))
-  m <- trios_mcmc(object, mcmcParams(object))
-  if(!isOrdered(m)) label_switch(m) <- TRUE
-  m <- sortComponentLabels(m)
-  m
+  object <- runBurnin(object)
+  if(!isOrdered(object)) label_switch(object) <- TRUE
+  object <- sortComponentLabels(object)
+  object <- runMcmc(object)
+  object
 })
 
 
