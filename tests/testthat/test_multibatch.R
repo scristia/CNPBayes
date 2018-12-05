@@ -173,7 +173,7 @@ test_that("easy", {
                             hp=hpList(k=3)[["MB"]],
                             mp=mcmcp)
   model <- posteriorSimulation(model)
-  expect_equal(theta(model), theta(truth),
+  expect_equivalent(theta(model), theta(truth),
                scale=0.01, tolerance=1)
   if (FALSE) {
     MultiBatchModelExample <- model

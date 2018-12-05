@@ -27,7 +27,7 @@ test_that("hard", {
 test_that("moderate", {
   set.seed(100)
   truth <- simulateData(N = 1000,
-                        theta = c(-2, -0.4, 0), 
+                        theta = c(-2, -0.4, 0),
                         sds = c(0.3, 0.15, 0.15),
                         p = c(0.05, 0.15, 0.8),
                         df=100)
@@ -35,17 +35,17 @@ test_that("moderate", {
   expect_true(validObject(truth))
   ## verify that if we start at the true value, we remain in a region of
   ## high posterior probability after an arbitrary number of mcmc updates
-  mcmcp <- McmcParams(iter = 1000, burnin = 300,
-                      thin = 5, nStarts=10)
+  mcmcp <- McmcParams(iter = 300, burnin = 200,
+                      thin = 5, nStarts=4)
   model <- SingleBatchModel2(dat=y(truth),
                              hp=hpList(k = 3)[["SB"]],
                              mp = mcmcp)
   dfr(model) <- 100
   model <- startAtTrueValues(model, truth)
   model <- posteriorSimulation(model)
-  expect_equal(theta(truth), theta(model), tolerance=0.2)
-  expect_equal(sigma(truth), sigma(model), tolerance=0.15)
-  expect_equal(p(truth), colMeans(pic(model)), tolerance=0.2)
+  expect_equivalent(theta(truth), theta(model), tolerance=0.2)
+  expect_equivalent(sigma(truth), sigma(model), tolerance=0.15)
+  expect_equivalent(p(truth), colMeans(pic(model)), tolerance=0.2)
 })
 
 test_that("easy", {
@@ -66,9 +66,9 @@ test_that("easy", {
     SingleBatchModelExample <- model
     save(SingleBatchModelExample, file = "data/SingleBatchModelExample.RData")
   }
-  expect_equal(theta(model), theta(truth), tolerance=0.03)
-  expect_equal(sigma(model), sigma(truth), tolerance=0.11)
-  expect_equal(p(model), p(truth), tolerance=0.05)
+  expect_equivalent(theta(model), theta(truth), tolerance=0.03)
+  expect_equivalent(sigma(model), sigma(truth), tolerance=0.11)
+  expect_equivalent(p(model), p(truth), tolerance=0.05)
   i <- argMax(model)
   expect_true(i == which.max(log_lik(chains(model))))
   expect_identical(sort(thetac(model)[i, ]), as.numeric(modes(model)[["theta"]]))

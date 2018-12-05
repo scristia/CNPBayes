@@ -26,6 +26,7 @@ setValidity("MixtureModel", function(object){
     return(msg)
   }
   zz <- z(object)
+  if(length(zz) == 0) return(msg)
   if(any(is.na(zz))){
     msg <- "NAs in z slot"
     return(msg)

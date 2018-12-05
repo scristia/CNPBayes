@@ -30,6 +30,7 @@ test_that("revised_constructors", {
 })
 
 test_that("list of models with independent starting values", {
+  skip("replicateMultiBatch not implemented")
   mb <- SingleBatchModelExample %>%
     as("MultiBatch")
   mb.list <- replicateMultiBatch(mb)
@@ -141,6 +142,7 @@ test_that("findSurrogates", {
   thin(mb2) <- 2
   expect_true(validObject(mb2))
   mb2 <- posteriorSimulation(mb2)
+  expect_true(validObject(mb2))
 })
 
 test_that("downsampling_with_surrogates", {
