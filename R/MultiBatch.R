@@ -1793,11 +1793,17 @@ setMethod("[", "MultiBatch", function(x, i, j, ..., drop=FALSE){
   cv$u <- cv$u[i]
   cv$z <- cv$z[i]
   x@current_values <- cv
-  m <- summaries(x)$modes
-  m$probz <- m$probz[i, , drop=FALSE]
-  m$u <- m$u[i]
-  m$z <- m$z[i]
-  summaries(x)$modes <- m
+  L <- specs(x)$number_batches
+  L2 <- length(unique(batch(x)))
+  if( L == L2 ) return(object)
+  sp <- specs(x)
+  sp$number_batches <- L2
+  specs(x) <- sp
+  current_values(x)[["theta"]] <- computeMeans(x)
+  current_values(x)[["sigma2"]] <- 1/computePrec(x)
+  summaries(x)[["data.mean"]] <- theta(x)
+  summaries(x)[["data.prec"]] <- 1/sigma2(x)
+  chains(x) <- initialize_mcmc(k(x), iter(x), numBatch(x))
   x
 })
 
