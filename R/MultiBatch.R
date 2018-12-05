@@ -1639,11 +1639,20 @@ setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
     arrange(batch)
   assays(object) <- full.data2
   L <- length(unique(full.data2$batch))
-  if( L != specs(object)$number_batches ){
-    spec <- specs(object)
-    spec$number_batches <- L
-    specs(object) <- spec
-  }
+  if( L == specs(object)$number_batches ) return(object)
+  spec <- specs(object)
+  spec$number_batches <- L
+  specs(object) <- spec
+  current_values(object) <- modelValues2(specs(object),
+                                         assays(object),
+                                         parameters(object)[["hp"]])
+  s <- modelSummaries(specs(object))
+  s$data.mean <- computeMeans(object)
+  s$data.prec <- computePrec(object)
+  summaries(object) <- s
+  chains(object) <- initialize_mcmc(k(object),
+                                    iter(object),
+                                    numBatch(object))
   object
 })
 
