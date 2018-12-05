@@ -126,7 +126,8 @@ test_that("easy", {
   N <- 1500
   truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
                                                 length.out = N),
-                             theta = means, sds = sds,
+                             theta = means,
+                             sds = sds,
                              p = c(1/5, 1/3, 1 - 1/3 - 1/5),
                              df=100)
   ##yy <- y(truth)
@@ -260,7 +261,7 @@ test_that("kbatch", {
   ##trace(simulateBatchData, browser)
   truth <- simulateBatchData(N = N, batch = batch, theta = means,
       sds = sds, p = p)
-  mp <- McmcParams(iter = 100, burnin = 50, nStarts = 10)
+  mp <- McmcParams(iter = 200, burnin = 2000, nStarts = 5)
   kmod <- MB(dat=y(truth),
              batches=batch(truth),
              hp=hpList(k = 3)[["MB"]],

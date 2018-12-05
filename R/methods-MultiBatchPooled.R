@@ -3,7 +3,7 @@ NULL
 
 setValidity("MultiBatchPooled", function(object){
   msg <- TRUE
-  if(length(p(object)) != k(object)){
+  if(ncol(p(object)) != k(object)){
     msg <- "Mixture probability vector must be the same length as k"
     return(msg)
   }
@@ -50,7 +50,7 @@ reorderMultiBatchPooled <- function(model){
       mutate(z_relabel=as.integer(z_relabel))
     tab$z[index] <- tab2$z_relabel
   }
-  ps <- p(model)[ix]
+  ps <- p(model)[, ix, drop=FALSE]
   mu(model) <- mu(model)[ix]
   tau2(model) <- tau2(model)[ix]
   theta(model) <- thetas
@@ -261,7 +261,7 @@ combine_multibatch_pooled <- function(model.list, batches){
   K <- k(model.list[[1]])
   pm.th <- matrix(colMeans(th), B, K)
   pm.s2 <- colMeans(s2)
-  pm.p <- colMeans(pp)
+  pm.p <- matrix(colMeans(pp), B, K)
   pm.n0 <- median(n0)
   pm.mu <- colMeans(.mu)
   pm.tau2 <- colMeans(.tau2)

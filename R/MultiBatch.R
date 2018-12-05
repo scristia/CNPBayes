@@ -261,7 +261,7 @@ modelValues2 <- function(specs, data, hp){
                  sigma2=matrix(nrow=0, ncol=K),
                  nu.0=numeric(),
                  sigma2.0=numeric(),
-                 p=numeric(K),
+                 p=matrix(nrow=0, ncol=K),
                  mu=numeric(K),
                  tau2=numeric(K),
                  u=numeric(),
@@ -278,6 +278,7 @@ modelValues2 <- function(specs, data, hp){
   mu <- sort(rnorm(K, mu.0(hp), 3))
   tau2 <- 1/rgamma(K, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
   p <- rdirichlet(1, alpha(hp))[1, ]
+  p <- matrix(p, B, K, byrow=TRUE)
   sim_theta <- function(mu, tau, B) sort(rnorm(B, mu, tau))
   . <- NULL
   theta <- map2(mu, sqrt(tau2), sim_theta, B) %>%
@@ -290,7 +291,8 @@ modelValues2 <- function(specs, data, hp){
   sigma2 <- 1/rgamma(K * B, 0.5 * nu.0, 0.5 * nu.0 * sigma2.0) %>%
     matrix(B, K)
   u <- rchisq(n.sampled, dfr(hp))
-  z <- sample(seq_len(K), prob=p, replace=TRUE, size=n.sampled)
+  pmeans <- colMeans(p)
+  z <- sample(seq_len(K), prob=pmeans, replace=TRUE, size=n.sampled)
   logprior <- numeric()
   loglik <- numeric()
   probz <- matrix(0L, nrow=n.sampled, ncol=K)
@@ -1795,7 +1797,7 @@ setMethod("[", "MultiBatch", function(x, i, j, ..., drop=FALSE){
   x@current_values <- cv
   L <- specs(x)$number_batches
   L2 <- length(unique(batch(x)))
-  if( L == L2 ) return(object)
+  if( L == L2 ) return(x)
   sp <- specs(x)
   sp$number_batches <- L2
   specs(x) <- sp

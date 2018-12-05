@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods-TrioBatchModel.R
 \name{TrioBatchModel}
 \alias{TrioBatchModel}
-\title{Constructor for TrioBatchModel}
+\title{Initializes a TrioBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.}
 \usage{
 TrioBatchModel(triodata = tibble(), hp = HyperparametersTrios(),
   mp = McmcParams(iter = 1000, thin = 10, burnin = 1000, nStarts = 4),

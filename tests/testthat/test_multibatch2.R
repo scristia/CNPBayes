@@ -14,6 +14,7 @@ test_that("revised_constructors", {
   mp <- McmcParams(iter=10, burnin=1, nStarts=4)
   data(SingleBatchModelExample)
   sb <- SingleBatchModelExample
+  sb@pi <- matrix(p(sb), 1, k(sb))
 
   ##sb <- updateObject(sb)
   mcmcParams(sb) <- mp
@@ -31,6 +32,9 @@ test_that("revised_constructors", {
 
 test_that("list of models with independent starting values", {
   skip("replicateMultiBatch not implemented")
+  data(SingleBatchModelExample)
+  sb <- SingleBatchModelExample
+  sb@pi <- matrix(p(sb), 1, k(sb))
   mb <- SingleBatchModelExample %>%
     as("MultiBatch")
   mb.list <- replicateMultiBatch(mb)
@@ -45,7 +49,10 @@ test_that("list of models with independent starting values", {
 })
 
 test_that("no downsampling", {
-  mb <- SingleBatchModelExample %>%
+  data(SingleBatchModelExample)
+  sb <- SingleBatchModelExample
+  sb@pi <- matrix(p(sb), 1, k(sb))
+  mb <- sb %>%
     as("MultiBatch")
   mcmcParams(mb) <- McmcParams(iter=10L, thin=0L,
                                burnin=0L)
@@ -78,7 +85,10 @@ test_that("no downsampling", {
 })
 
 test_that("working with lists of models", {
-  mb <- SingleBatchModelExample %>%
+  data(SingleBatchModelExample)
+  sb <- SingleBatchModelExample
+  sb@pi <- matrix(p(sb), 1, k(sb))
+  mb <- sb %>%
     as("MultiBatch")
   mcmcParams(mb) <- McmcParams(iter=10L, thin=0L,
                                burnin=0L,
@@ -120,6 +130,7 @@ test_that("starting_values", {
 
   data(SingleBatchModelExample)
   sb <- SingleBatchModelExample
+  sb@pi <- matrix(p(sb), 1, k(sb))
   dat <- tibble(oned=y(sb),
                 batch=1L) %>%
     mutate(id=seq_len(nrow(.)),
@@ -128,7 +139,9 @@ test_that("starting_values", {
 
 test_that("findSurrogates", {
   data(SingleBatchModelExample)
-  sb <- updateObject(SingleBatchModelExample)
+  sb <- SingleBatchModelExample
+  sb@pi <- matrix(p(sb), 1, k(sb))
+  ##sb <- updateObject(SingleBatchModelExample)
   mb <- as(sb, "MultiBatch")
   assays(mb)[["provisional_batch"]] <- sample(letters[1:15], nrow(mb),
                                               replace=TRUE)
@@ -150,6 +163,7 @@ test_that("downsampling_with_surrogates", {
   library(tidyverse)
   data(MultiBatchModelExample)
   mb <- MultiBatchModelExample
+  mb@pi <- matrix(p(mb), numBatch(mb), k(mb))
   mcmcParams(mb) <- McmcParams(iter=10, thin=2,
                                burnin=50,
                                nStarts=4)
@@ -215,6 +229,7 @@ test_that("upsample", {
   library(tidyverse)
   data(MultiBatchModelExample)
   mb <- MultiBatchModelExample
+  mb@pi <- matrix(p(mb), numBatch(mb), k(mb))
   mcmcParams(mb) <- McmcParams(iter=200, thin=2,
                                burnin=200,
                                nStarts=4)
@@ -246,19 +261,32 @@ test_that("Pooled model", {
   mb <- MultiBatchP()
   ## with data
   data(MultiBatchModelExample)
-  mb <- as(MultiBatchModelExample, "MultiBatch")
+  mb <- MultiBatchModelExample
+  mb@pi <- matrix(p(mb), numBatch(mb), k(mb), byrow=TRUE)
+  mb <- as(mb, "MultiBatch")
   mb1 <- MultiBatchP(data=assays(mb))
   expect_identical(ncol(sigma_(mb1)), 1L)
+  expect_identical(ncol(sigma_(chains(mb1))), 3L)
 
   data(MultiBatchPooledExample)
   mbp <- MultiBatchPooledExample
+  expect_identical(ncol(sigma2(chains(mbp))), numBatch(mbp))
+  mbp@pi <- matrix(p(mbp), numBatch(mbp), k(mbp))
   mp2 <- as(mbp, "MultiBatchP")
+  expect_identical(ncol(sigma_(chains(mp2))), 3L)
+  expect_identical(nrow(sigma_(mp2)), 3L)
   expect_true(validObject(mp2))
   expect_is(mp2, "MultiBatchP")
 
-  iter(mp2) <- 10L
-  burnin(mp2) <- 10L
+  iter(mp2) <- 100L
+  expect_identical(ncol(sigma_(chains(mp2))), 3L)
+  burnin(mp2) <- 100L
+  expect_identical(ncol(sigma_(chains(mp2))), 3L)
   mp3 <- posteriorSimulation(mp2)
+  mp <- as(mp3, "MultiBatchPooled")
+  ll <- loglik_multibatch_pvar(mp)
+  expect_true(!is.na(ll))
+
   log_lik(chains(mp3))
   expect_true(validObject(mp3))
 
@@ -310,16 +338,17 @@ test_that("predictive", {
   library(magrittr)
   data(MultiBatchModelExample)
   mbe <- MultiBatchModelExample
+  mbe@pi <- matrix(p(mbe), numBatch(mbe), k(mbe), byrow=TRUE)
   prob <- p(mbe)
   z <- seq_len(k(mbe))
   set.seed(123)
-  sample(z, replace=TRUE, size=3, prob=prob)
+  sample(z, replace=TRUE, size=3, prob=prob[1, ])
   set.seed(123)
-  tmp=replicate(1000, sample_components(z, 3, prob)) %>%
+  tmp=replicate(1000, sample_components(z, 3, prob[1, ])) %>%
     as.numeric
   phat <- table(tmp)/length(tmp)
   phat <- as.numeric(phat)
-  expect_equal(phat, prob, tolerance=0.01)
+  expect_equal(phat, prob[1, ], tolerance=0.01)
 
   set.seed(123)
   update_predictive(mbe)

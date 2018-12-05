@@ -15,6 +15,7 @@ Rcpp::NumericVector update_sigma20(Rcpp::S4 xmod);
 Rcpp::NumericVector update_nu0(Rcpp::S4 xmod);
 Rcpp::NumericMatrix update_multinomialPr(Rcpp::S4 xmod);
 Rcpp::NumericVector update_p(Rcpp::S4 xmod);
+Rcpp::NumericMatrix update_weightedp(Rcpp::S4 xmod);
 Rcpp::IntegerVector update_z(Rcpp::S4 xmod);
 
 Rcpp::NumericMatrix compute_means(Rcpp::S4 xmod);

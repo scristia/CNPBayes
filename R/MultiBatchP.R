@@ -300,3 +300,24 @@ setMethod("computeModes", "MultiBatchP", function(object){
   modes[["sigma2"]] <- sigma2max
   modes
 })
+
+setReplaceMethod("mcmcParams", c("MultiBatchP", "McmcParams"), function(object, value){
+  it <- iter(object)
+  if(it != iter(value)){
+    if(iter(value) > iter(object)){
+      parameters(object)[["mp"]] <- value
+      ## create a new chain
+      ch <- mcmc_chainsP(specs(object), parameters(object))
+    } else {
+      parameters(object)[["mp"]] <- value
+      index <- seq_len(iter(value))
+      ch <- chains(object)[index, ]
+    }
+    chains(object) <- ch
+    return(object)
+  }
+  ## if we've got to this point, it must be safe to update mcmc.params
+  ## (i.e., size of chains is not effected)
+  parameters(object)[["mp"]] <- value
+  object
+})

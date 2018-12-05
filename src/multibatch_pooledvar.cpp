@@ -31,7 +31,7 @@ Rcpp::S4 update_predictiveP(Rcpp::S4 xmod){
   Rcpp::NumericMatrix theta = model.slot("theta");
   // sigma2 is a vector of length B (B = number batches)
   Rcpp::NumericVector sigma2 = model.slot("sigma2");
-  Rcpp::NumericVector prob = model.slot("pi");
+  Rcpp::NumericMatrix prob = model.slot("pi");
   Rcpp::IntegerVector batch = model.slot("batch") ;
   Rcpp::IntegerVector ub = unique_batch(batch);
   int K = theta.ncol();
@@ -47,12 +47,14 @@ Rcpp::S4 update_predictiveP(Rcpp::S4 xmod){
   int j=0;
   // sample components according to mixture probabilities
   // mixture probabilities are assumed to be the same for each batch
-  z=sample_componentsP(components, K, prob);
-  z=z-1;  // Need to subtract 1 for this to index the right column
+  //z=sample_componentsP(components, K, prob);
+  //z=z-1;  // Need to subtract 1 for this to index the right column
   Rcpp::NumericVector yy(K*B);
   Rcpp::IntegerVector zz(K*B);
   for(int k=0; k < K; k++){
     for(int b = 0; b < B; b++){
+      z=sample_componentsP(components, K, prob(b,_));
+      z=z-1;  // Need to subtract 1 for this to index the right column
       int index = z[k];
       //double sigma=pow(sigma2[index], 0.5) ;
       double sigma=pow(sigma2[b], 0.5) ;
@@ -76,7 +78,8 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
   int K = getK(model.slot("hyperparams")) ;
   NumericVector x = model.slot("data") ;
   int N = x.size() ;
-  NumericVector p = model.slot("pi") ;
+  //NumericVector p = model.slot("pi") ;
+  NumericMatrix p = model.slot("pi") ;
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = unique_batch(batch);
   NumericMatrix theta = model.slot("theta") ;
@@ -85,23 +88,23 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
   NumericVector loglik_(1) ;
   NumericMatrix tabz = tableBatchZ(xmod) ;
   int B = ub.size() ;
-  NumericMatrix P(B, K) ;
+  //NumericMatrix P(B, K) ;
   //NumericMatrix sigma(B, K) ;
   NumericVector sigma(B);
   double df = getDf(model.slot("hyperparams")) ;
   // component probabilities for each batch
-  for(int b = 0; b < B; ++b){
-    int rowsum = 0 ;
-    rowsum = sum(tabz(b, _));
-    //for(int k = 0; k < K; ++k){
-    //  rowsum += tabz(b, k) ;
-    //sigma(b, k) = sqrt(sigma2(b, k)) ;
-    sigma[b] = sqrt(sigma2[b]) ;
-    //}
-    for(int k = 0; k < K; ++k){
-      P(b, k) = tabz(b, k)/rowsum ;
-    }
-  }
+//  for(int b = 0; b < B; ++b){
+//    int rowsum = 0 ;
+//    rowsum = sum(tabz(b, _));
+//    //for(int k = 0; k < K; ++k){
+//    //  rowsum += tabz(b, k) ;
+//    //sigma(b, k) = sqrt(sigma2(b, k)) ;
+//    sigma[b] = sqrt(sigma2[b]) ;
+//    //}
+//    for(int k = 0; k < K; ++k){
+//      P(b, k) = tabz(b, k)/rowsum ;
+//    }
+//  }
   NumericMatrix lik(N, K) ;
   // double y ;
   NumericVector tmp(1) ;
@@ -110,7 +113,8 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
-      tmp = P(b, k) * dlocScale_t(x, df, theta(b, k), sigma[b]) * this_batch ;
+      //tmp = P(b, k) * dlocScale_t(x, df, theta(b, k), sigma[b]) * this_batch ;
+      tmp = p(b, k) * dlocScale_t(x, df, theta(b, k), sigma[b]) * this_batch ;
       dens = dens + tmp ;
     }
     lik(_, k) = dens ;
@@ -233,7 +237,8 @@ Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod) {
   int K = getK(hypp) ;
   IntegerVector batch = model.slot("batch") ;
   IntegerVector ub = unique_batch(batch) ;
-  NumericVector p = model.slot("pi") ;
+  //NumericVector p = model.slot("pi") ;
+  NumericMatrix p = model.slot("pi") ;
   NumericVector sigma2 = model.slot("sigma2") ;
   NumericMatrix theta = model.slot("theta") ;
   int B = theta.nrow() ;
@@ -249,8 +254,8 @@ Rcpp::NumericMatrix multinomialPr_multibatch_pvar(Rcpp::S4 xmod) {
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
       this_batch = batch == ub[b] ;
-      //tmp = p[k] * dnorm(x, theta(b, k), sqrt(sigma2(b, k))) * this_batch ;
-      tmp = p[k] * dlocScale_t(x, df, theta(b, k), sqrt(sigma2[b])) * this_batch ;
+      //tmp = p[k] * dlocScale_t(x, df, theta(b, k), sqrt(sigma2[b])) * this_batch ;
+      tmp = p(b, k) * dlocScale_t(x, df, theta(b, k), sqrt(sigma2[b])) * this_batch ;
       dens += tmp ;
     }
     lik(_, k) = dens ;
@@ -464,7 +469,7 @@ Rcpp::S4 burnin_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("sigma2.0") = sigma20_multibatch_pvar(model) ;
     model.slot("nu.0") = nu0_multibatch_pvar(model) ;
-    model.slot("pi") = update_p(model) ;
+    model.slot("pi") = update_weightedp(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
   }
   // compute log prior probability from last iteration of burnin
@@ -510,7 +515,8 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
   IntegerMatrix zstar_ = chain.slot("zstar") ;
   NumericVector th(K) ;
   NumericVector s2(K) ;
-  NumericVector p(K) ;
+  //NumericVector p(K) ;
+  NumericMatrix p(B, K) ;
   NumericVector m(K) ; //mu
   NumericVector t2(K) ;//tau2
   NumericVector n0(1) ;//nu0
@@ -547,9 +553,9 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
     s2 = sigma2_multibatch_pvar(model);
     model.slot("sigma2") = s2 ;
     sigma2(s, _) = s2 ;
-    p = update_p(model) ;
+    p = update_weightedp(model) ;
     model.slot("pi") = p ;
-    pmix(s, _) = p ;
+    pmix(s, _) = as<Rcpp::NumericVector>(p) ;
     m = update_mu(model) ;
     model.slot("mu") = m ;
     mu(s, _) = m ;
@@ -583,7 +589,7 @@ Rcpp::S4 mcmc_multibatch_pvar(Rcpp::S4 object, Rcpp::S4 mcmcp) {
       model.slot("zfreq") = tableZ(K, model.slot("z")) ;
       model.slot("theta") = theta_multibatch_pvar(model) ;
       model.slot("sigma2") = sigma2_multibatch_pvar(model) ;
-      model.slot("pi") = update_p(model) ;
+      model.slot("pi") = update_weightedp(model) ;
       model.slot("mu") = update_mu(model) ;
       model.slot("tau2") = update_tau2(model) ;
       model.slot("nu.0") = nu0_multibatch_pvar(model) ;

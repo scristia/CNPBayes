@@ -12,7 +12,8 @@
              tau2=numeric(K),
              nu.0=numeric(1),
              sigma2.0=numeric(1),
-             pi=numeric(K),
+             ##pi=numeric(K),
+             pi=matrix(NA, 0, K),
              predictive=numeric(K*B),
              zstar=integer(K*B),
              data=numeric(0),
@@ -67,7 +68,7 @@ reorderMultiBatch <- function(model){
       mutate(z_relabel=as.integer(z_relabel))
     tab$z[index] <- tab2$z_relabel
   }
-  ps <- p(model)[ix]
+  ps <- p(model)[, ix, drop=FALSE]
   mu(model) <- mu(model)[ix]
   tau2(model) <- tau2(model)[ix]
   sigma2(model) <- s2s
@@ -104,6 +105,7 @@ setMethod("sortComponentLabels", "MultiBatchModel", function(model){
   mu <- sort(rnorm(k(hp), mu.0(hp), sqrt(tau2.0(hp))))
   tau2 <- 1/rgamma(k(hp), 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
   p <- rdirichlet(1, alpha(hp))[1, ]
+  p <- matrix(p, B, K, byrow=TRUE)
   sim_theta <- function(mu, tau, B) sort(rnorm(B, mu, tau))
   . <- NULL
   thetas <- map2(mu, sqrt(tau2), sim_theta, B) %>%
@@ -269,48 +271,48 @@ ensureAllComponentsObserved <- function(obj){
 ##
 ## Multiple batches, but only 1 component
 ##
-UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
-  mcmc.chains <- McmcChains()
-  zz <- integer(length(data))
-  zfreq <- as.integer(table(zz))
-  bf <- factor(batch)
-  batch <- as.integer(bf)
-  ix <- order(bf)
-  ##B <- length(levels(batch))
-  nbatch <- elementNROWS(split(batch, batch))
-  B <- length(nbatch)
-  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=1)
-  obj <- new("UnivariateBatchModel",
-             k=as.integer(k),
-             hyperparams=hypp,
-             theta=matrix(NA, B, 1),
-             sigma2=matrix(NA, B, 1),
-             mu=numeric(k),
-             tau2=numeric(k),
-             nu.0=numeric(1),
-             sigma2.0=numeric(1),
-             pi=numeric(k),
-             ##pi=matrix(NA, B, 1),
-             data=data[ix],
-             data.mean=matrix(NA, B, 1),
-             data.prec=matrix(NA, B, 1),
-             z=integer(length(data)),
-             zfreq=zfreq,
-             probz=matrix(0, length(data), 1),
-             logprior=numeric(1),
-             loglik=numeric(1),
-             mcmc.chains=mcmc.chains,
-             mcmc.params=mcmc.params,
-             batch=batch[ix],
-             batchElements=nbatch,
-             label_switch=FALSE,
-             .internal.constraint=5e-4)
-  obj <- startingValues(obj)
-  if(!is.null(obj)){
-    obj@probz[, 1] <- 1
-  }
-  obj
-}
+##UnivariateBatchModel <- function(data, k=1, batch, hypp, mcmc.params){
+##  mcmc.chains <- McmcChains()
+##  zz <- integer(length(data))
+##  zfreq <- as.integer(table(zz))
+##  bf <- factor(batch)
+##  batch <- as.integer(bf)
+##  ix <- order(bf)
+##  ##B <- length(levels(batch))
+##  nbatch <- elementNROWS(split(batch, batch))
+##  B <- length(nbatch)
+##  if(missing(hypp)) hypp <- HyperparametersMultiBatch(k=1)
+##  obj <- new("UnivariateBatchModel",
+##             k=as.integer(k),
+##             hyperparams=hypp,
+##             theta=matrix(NA, B, 1),
+##             sigma2=matrix(NA, B, 1),
+##             mu=numeric(k),
+##             tau2=numeric(k),
+##             nu.0=numeric(1),
+##             sigma2.0=numeric(1),
+##             pi=numeric(k),
+##             ##pi=matrix(NA, B, 1),
+##             data=data[ix],
+##             data.mean=matrix(NA, B, 1),
+##             data.prec=matrix(NA, B, 1),
+##             z=integer(length(data)),
+##             zfreq=zfreq,
+##             probz=matrix(0, length(data), 1),
+##             logprior=numeric(1),
+##             loglik=numeric(1),
+##             mcmc.chains=mcmc.chains,
+##             mcmc.params=mcmc.params,
+##             batch=batch[ix],
+##             batchElements=nbatch,
+##             label_switch=FALSE,
+##             .internal.constraint=5e-4)
+##  obj <- startingValues(obj)
+##  if(!is.null(obj)){
+##    obj@probz[, 1] <- 1
+##  }
+##  obj
+##}
 
 ##
 
@@ -381,7 +383,7 @@ setMethod("computePrior", "MultiBatchModel", function(object){
   K <- k(object)
   thetamax <- matrix(theta(mc)[i, ], B, K)
   sigma2max <- matrix(sigma2(mc)[i, ], B, K)
-  pmax <- p(mc)[i, ]
+  pmax <- matrix(p(mc)[i, ], B, K)
   mumax <- mu(mc)[i, ]
   tau2max <- tau2(mc)[i,]
   modes <- list(theta=thetamax,

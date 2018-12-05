@@ -4,8 +4,9 @@ context("SingleBatchModel")
 
 test_that("test_marginal_empty_component", {
     set.seed(1)
-    truth <- simulateData(N = 10, p = rep(1/3, 3), theta = c(-1,
-        0, 1), sds = rep(0.1, 3))
+    truth <- simulateData(N = 10, p = rep(1/3, 3),
+                          theta = c(-1, 0, 1),
+                          sds = rep(0.1, 3))
     mp <- McmcParams(iter = 5, burnin = 5, nStarts = 1)
     model <- SingleBatchModel2(dat = y(truth),
                                hp=hpList(k = 3)[["SB"]],

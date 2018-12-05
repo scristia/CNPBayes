@@ -24,8 +24,9 @@
 #' @export
 simulateBatchData <- function(N=2500, p, theta, sds, batch, zz, df=10){
   ## order ys by batch
-  if(length(p) != ncol(theta)) stop("length of p must be same as ncol(theta)")
-  if(sum(p)!=1) stop("elements of p must sum to 1")
+  if(!is.matrix(p)) p <- matrix(p, nrow(theta), ncol(theta), byrow=TRUE)
+  if(ncol(p) != ncol(theta)) stop("length of p must be same as ncol(theta)")
+  if(!all(rowSums(p)==1)) stop("elements of p must sum to 1")
   if(missing(batch)) {
     batch <- rep(1L, N)
   } else {
@@ -60,7 +61,9 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz, df=10){
   mu(object) <- colMeans(dataMean(object))
   sigma2(object) <- computeVars(object)
   dataPrec(object) <- 1/computeVars(object)
-  p(object) <- as.numeric(table(z(object))/N)
+  counts <- tableBatchZ(object)
+  P <- counts/rowSums(counts)
+  p(object) <- P
   log_lik(object) <- computeLoglik(object)
   object
 }
@@ -81,6 +84,7 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz, df=10){
 simulateData <- function(N, p, theta, sds, df=10){
   theta <- matrix(theta, nrow=1)
   sds <- matrix(sds, nrow=1)
+  p <- matrix(p, nrow=1)
   object <- simulateBatchData(N=N,
                               p=p,
                               theta=theta,
@@ -110,7 +114,7 @@ simulateData <- function(N, p, theta, sds, df=10){
 }
 
 simulateZ <- function(N, p){
-  P <- rdirichlet(N, p)
+  P <- rdirichlet(N, p[1, ])
   cumP <- t(apply(P, 1, cumsum))
   u <- runif(N)
   zz <- rep(NA, N)

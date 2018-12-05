@@ -271,7 +271,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // update_weightedp
-Rcpp::NumericVector update_weightedp(Rcpp::S4 xmod);
+Rcpp::NumericMatrix update_weightedp(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_update_weightedp(SEXP xmodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

@@ -55,6 +55,7 @@ Collate:
     'MultiBatchList.R'
     'MultiBatchP.R'
     'RcppExports.R'
+    'Trios.R'
     'augment.R'
     'coerce-methods.R'
     'copynumber-models.R'

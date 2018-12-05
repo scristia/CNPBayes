@@ -3,7 +3,7 @@ NULL
 
 setValidity("MixtureModel", function(object){
   msg <- TRUE
-  if(length(p(object)) != k(object)){
+  if(ncol(p(object)) != k(object)){
     msg <- "Mixture probability vector must be the same length as k"
     return(msg)
   }
@@ -125,7 +125,7 @@ setReplaceMethod("k", "MixtureModel",
         hypp@alpha <- rep(1, k)
         hyperParams(object) <- hypp
         object@k <- k
-        object@pi <- rep(1/k, k)
+        object@pi <- matrix(1, nrow(theta(value)), k)
         object@probz <- matrix(0, length(y(object)), k)
         object <- startingValues(object)
         object
@@ -559,7 +559,7 @@ restartAtChainIndex <- function(model, index){
   nb <- nrow(theta(model))
   theta(model) <- matrix(theta(ch)[index, ], nrow=nb)
   sigma2(model) <- matrix(sigma2(ch)[index, ], nrow=nb)
-  p(model) <- p(ch)[index, ]
+  p(model) <- matrix(p(ch)[index, ], nrow=nb)
   mu(model) <- mu(ch)[index]
   tau2(model) <- tau2(ch)[index]
   sigma2.0(model) <- sigma2.0(ch)[index]
@@ -864,11 +864,12 @@ upSample2 <- function(orig.data,
       ss <- sigmas[b, ]
     }
     yy <- y(model2)[j]
+    pb <- p.comp[b, ]
     for(k in K){
       if(pooled){
-        temp <- p.comp[k] * dst(yy, df=df, mu=m[k], sigma=ss)
+        temp <- pb[k] * dst(yy, df=df, mu=m[k], sigma=ss)
       } else {
-        temp <- p.comp[k] * dst(yy, df=df, mu=m[k], sigma=ss[k])
+        temp <- pb[k] * dst(yy, df=df, mu=m[k], sigma=ss[k])
       }
       pz[j, k] <- temp
     }

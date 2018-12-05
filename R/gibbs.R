@@ -117,7 +117,7 @@ combine_batch <- function(model.list, batches){
             predictive=pred,
             zstar=zz,
             k=k(model.list[[1]]),
-            B=length(unique(batches)))  
+            B=length(unique(batches)))
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
   iter(mp) <- nrow(th)
@@ -125,7 +125,7 @@ combine_batch <- function(model.list, batches){
   K <- k(model.list[[1]])
   pm.th <- matrix(colMeans(th), B, K)
   pm.s2 <- matrix(colMeans(s2), B, K)
-  pm.p <- colMeans(pp)
+  pm.p <- matrix(colMeans(pp), B, K)
   pm.n0 <- median(n0)
   pm.mu <- colMeans(.mu)
   pm.tau2 <- colMeans(.tau2)
