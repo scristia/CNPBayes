@@ -1804,6 +1804,7 @@ setMethod("[", "MultiBatch", function(x, i, j, ..., drop=FALSE){
   summaries(x)[["data.mean"]] <- theta(x)
   summaries(x)[["data.prec"]] <- 1/sigma2(x)
   chains(x) <- initialize_mcmc(k(x), iter(x), numBatch(x))
+  assays(x)$batch <- as.integer(factor(batch(x)))
   x
 })
 

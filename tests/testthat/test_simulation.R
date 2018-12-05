@@ -87,3 +87,90 @@ test_that("simulations in manuscript", {
   cnpbayes.stats <- performanceStats(truth2, copyNumber(gt.model))
 })
 
+test_that("more challenging simulation", {
+  skip("more challenging simulation")
+  library(SummarizedExperiment)
+  library(magrittr)
+  library(devtools)
+  library(tidyverse)
+  i <- 200
+  data(simulation_parameters, package="PancCnvsData2")
+  data(hapmap, package="PancCnvsData2")
+  data(cnp_se, package="PancCnvsData2")
+  experiment <- simulation_parameters[i, ]
+  set.seed(experiment$seed)
+  fname <- paste0("shift_", i, ".rds")
+  hdat <- simulateBatchEffect(hapmap, experiment)
+  snpdat <- hapmapSummarizedExperiment(hapmap,
+                                       rowRanges(cnp_se)["CNP_057"])
+  colnames(hdat)[1] <- "provisional_batch"
+  colnames(hdat)[6] <- "true_batch"
+  mb <- MultiBatch(data=hdat, burnin=150L,
+                   iter=200L, max_burnin=150L) %>%
+    findSurrogates(0.0001)
+  ## batch 4 has different mixture proportions
+  mbl <- MultiBatchList(data=assays(mb),
+                        iter=100L,
+                        burnin=500L,
+                        max_burnin=150L,
+                        nStarts=4)
+  mb <- mbl[["MB3"]]
+  mb <- mcmc2(mb)
+  ##summaries(mb)[["data.mean"]] <- computeMeans(mb)
+  ##summaries(mb)[["data.prec"]] <- computePrec(mb)
+  mb <- mcmc2(mbl[["MB3"]])
+
+
+
+  tmp <- posteriorSimulation(mb)
+  mb4 <- mb[batch(mb) == 4]
+  mb4 <- posteriorSimulation(mb4)
+  tmp2 <- mb[ batch(mb) != 4]
+  tmp2 <- posteriorSimulation(tmp2)
+  tmp2 <- mb[ !batch(mb) %in% c(3, 4) ]
+  tmp2 <- posteriorSimulation(tmp2)
+  counts=tableBatchZ(mb2)
+  batch_totals=rowSums(counts)
+  weighted_sums <- rep(NA, k(mb2))
+  for(k in 1:3){
+    weighted_sums[k] <- sum(counts[, k] * batch_totals) / sum(batch_totals)
+  }
+
+  ## problem batch
+
+  ## TODO: I don't like this, but we currently require batches to be renumbered from 1
+  ## So batch 4 is now batch 1
+  expect_true(all(batch(mb4) == 1))
+  mb4 <- posteriorSimulation(mb4)
+  ## fit for this batch is perfectly reasonable
+  ggMixture(mb4)
+
+  sigma(tmp)
+  theta(tmp)[4, ] <- colMeans(theta(tmp))
+  sigma2(tmp)[4, ] <- colMedians(sigma2(tmp))
+
+  expect_true(validObject(mb4))
+  mb4 <- posteriorSimulation(mb4)
+
+  snpdat2 <- snpdat[, id(mb)]
+  mb <- MultiBatchList(data=assays(mb),
+                       mp=mcmcParams(mb),
+                       iter=100L,
+                       burnin=100L,
+                       max_burnin=150L)
+  ## short MCMC with large number of candidate models
+  mlist <- mcmc2(mb)
+  nStarts(mlist) <- 4
+  iter(mlist) <- 1000
+  burnin(mlist) <- 500
+  iter(mlist) <- 300
+  burnin(mlist) <- 300
+  mlist2 <- mcmc3(mlist)
+  mb <- mlist2[[1]]
+  ix <- grep("augment_", id(mb))
+  clist <- CnList(mb)
+  stats <- baf_loglik(clist, snpdat2)
+  mapping(mb) <- strsplit(stats$cn.model[1], ",")[[1]]
+  cn <- factor(copyNumber(mb))
+  pstats <- performanceStats(as.integer(assays(mb)$cn), as.integer(cn))
+}

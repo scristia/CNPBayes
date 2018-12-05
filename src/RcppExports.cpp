@@ -270,6 +270,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// update_weightedp
+Rcpp::NumericVector update_weightedp(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_update_weightedp(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_weightedp(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // update_z
 Rcpp::IntegerVector update_z(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_update_z(SEXP xmodSEXP) {
@@ -1203,6 +1214,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_update_nu0", (DL_FUNC) &_CNPBayes_update_nu0, 1},
     {"_CNPBayes_update_multinomialPr", (DL_FUNC) &_CNPBayes_update_multinomialPr, 1},
     {"_CNPBayes_update_p", (DL_FUNC) &_CNPBayes_update_p, 1},
+    {"_CNPBayes_update_weightedp", (DL_FUNC) &_CNPBayes_update_weightedp, 1},
     {"_CNPBayes_update_z", (DL_FUNC) &_CNPBayes_update_z, 1},
     {"_CNPBayes_compute_means", (DL_FUNC) &_CNPBayes_compute_means, 1},
     {"_CNPBayes_compute_vars", (DL_FUNC) &_CNPBayes_compute_vars, 1},

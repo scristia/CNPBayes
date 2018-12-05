@@ -89,6 +89,9 @@ setMethod("[[", c("MultiBatchList", "numeric"), function(x, i){
                    summaries=summaries(x)[[i]],
                    flags=flags(x)[[i]])
   mb
+  summaries(mb)[["data.mean"]] <- computeMeans(mb)
+  summaries(mb)[["data.prec"]] <- computePrec(mb)
+  mb
 })
 
 setMethod("[[", c("MultiBatchList", "character"), function(x, i){

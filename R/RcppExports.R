@@ -93,6 +93,10 @@ update_p <- function(xmod) {
     .Call('_CNPBayes_update_p', PACKAGE = 'CNPBayes', xmod)
 }
 
+update_weightedp <- function(xmod) {
+    .Call('_CNPBayes_update_weightedp', PACKAGE = 'CNPBayes', xmod)
+}
+
 update_z <- function(xmod) {
     .Call('_CNPBayes_update_z', PACKAGE = 'CNPBayes', xmod)
 }
