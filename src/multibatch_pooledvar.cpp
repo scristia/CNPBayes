@@ -86,25 +86,28 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
   NumericVector sigma2 = model.slot("sigma2") ;
   IntegerVector batch_freq = model.slot("batchElements") ;
   NumericVector loglik_(1) ;
-  NumericMatrix tabz = tableBatchZ(xmod) ;
+  //NumericMatrix tabz = tableBatchZ(xmod) ;
+  IntegerVector z = model.slot("z") ;
   int B = ub.size() ;
   //NumericMatrix P(B, K) ;
   //NumericMatrix sigma(B, K) ;
   NumericVector sigma(B);
   double df = getDf(model.slot("hyperparams")) ;
   // component probabilities for each batch
-//  for(int b = 0; b < B; ++b){
-//    int rowsum = 0 ;
-//    rowsum = sum(tabz(b, _));
-//    //for(int k = 0; k < K; ++k){
-//    //  rowsum += tabz(b, k) ;
-//    //sigma(b, k) = sqrt(sigma2(b, k)) ;
-//    sigma[b] = sqrt(sigma2[b]) ;
-//    //}
-//    for(int k = 0; k < K; ++k){
-//      P(b, k) = tabz(b, k)/rowsum ;
-//    }
-//  }
+  for(int b = 0; b < B; ++b){
+    sigma[b] = pow(sigma2[b], 0.5);
+  }
+  //    int rowsum = 0 ;
+  //    rowsum = sum(tabz(b, _));
+  //    //for(int k = 0; k < K; ++k){
+  //    //  rowsum += tabz(b, k) ;
+  //    //sigma(b, k) = sqrt(sigma2(b, k)) ;
+  //    sigma[b] = sqrt(sigma2[b]) ;
+  //    //}
+  //    for(int k = 0; k < K; ++k){
+  //      P(b, k) = tabz(b, k)/rowsum ;
+  //    }
+  //  }
   NumericMatrix lik(N, K) ;
   // double y ;
   NumericVector tmp(1) ;
@@ -112,7 +115,8 @@ Rcpp::NumericVector loglik_multibatch_pvar(Rcpp::S4 xmod){
   for(int k = 0; k < K; ++k){
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
-      this_batch = batch == ub[b] ;
+      this_batch = batch == ub[b] & (z-1) == k;
+      //this_batch = batch == ub[b];
       //tmp = P(b, k) * dlocScale_t(x, df, theta(b, k), sigma[b]) * this_batch ;
       tmp = p(b, k) * dlocScale_t(x, df, theta(b, k), sigma[b]) * this_batch ;
       dens = dens + tmp ;

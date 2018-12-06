@@ -320,7 +320,6 @@ Rcpp::NumericVector dlocScale_t(NumericVector x, double df, double mu, double si
     double coef = tgamma((df + 1.0)/2.0)/(sigma*sqrt(df*PI)*tgamma(df/2.0));
     NumericVector d = coef*pow(1 + pow((x - mu)/sigma, 2.0)/df, -(df+1.0)/2.0);
     return d;
-
 }
 
 // [[Rcpp::export]]

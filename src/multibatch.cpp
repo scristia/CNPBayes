@@ -38,22 +38,23 @@ Rcpp::NumericVector compute_loglik(Rcpp::S4 xmod){
   NumericMatrix sigma2 = model.slot("sigma2") ;
   IntegerVector batch_freq = model.slot("batchElements") ;
   NumericVector loglik_(1) ;
+  IntegerVector z = model.slot("z");
   NumericMatrix tabz = tableBatchZ(model) ;
   int B = ub.size() ;
-  NumericMatrix P(B, K) ;
-  NumericMatrix sigma(B, K) ;
+  //NumericMatrix P(B, K) ;
+  NumericMatrix sigma(B, K);
   double df = getDf(model.slot("hyperparams")) ;
   // component probabilities for each batch
   for(int b = 0; b < B; ++b){
-    int rowsum = 0 ;
     for(int k = 0; k < K; ++k){
-      rowsum += tabz(b, k) ;
-      sigma(b, k) = sqrt(sigma2(b, k)) ;
-    }
-    for(int k = 0; k < K; ++k){
-      P(b, k) = tabz(b, k)/rowsum ;
+      sigma(b,k) = pow(sigma2(b,k), 0.5) ;
     }
   }
+  //  for(int k = 0; k < K; ++k){
+  //    P(b, k) = tabz(b, k)/rowsum ;
+  //  }
+  //}
+  NumericMatrix P = model.slot("pi") ;
   NumericMatrix lik(N, K) ;
   // double y ;
   NumericVector tmp(1) ;
@@ -61,7 +62,7 @@ Rcpp::NumericVector compute_loglik(Rcpp::S4 xmod){
   for(int k = 0; k < K; ++k){
     NumericVector dens(N) ;
     for(int b = 0; b < B; ++b){
-      this_batch = batch == ub[b] ;
+      this_batch = batch == ub[b] & (z-1) == k;
       tmp = P(b, k) * dlocScale_t(x, df, theta(b, k), sigma(b, k)) * this_batch ;
       dens = dens + tmp ;
     }
@@ -485,7 +486,7 @@ Rcpp::NumericMatrix compute_prec(Rcpp::S4 xmod){
 Rcpp::NumericVector compute_logprior(Rcpp::S4 xmod) {
     // set RNG
     RNGScope scope;
-    
+
     // Get model/accessories
     Rcpp::S4 model(clone(xmod)) ;
     Rcpp::S4 hypp(model.slot("hyperparams"));
@@ -524,7 +525,7 @@ Rcpp::NumericVector stageTwoLogLikBatch(Rcpp::S4 xmod) {
   NumericVector sigma2_tilde(1) ; // = 1.0/sigma2 ;
   NumericVector loglik(1) ;
   NumericVector tau = sqrt(tau2) ;
-  int K = theta.ncol() ;  
+  int K = theta.ncol() ;
   NumericVector liknorm(1) ;
   NumericVector likprec(1) ;
   NumericVector th(1) ;
