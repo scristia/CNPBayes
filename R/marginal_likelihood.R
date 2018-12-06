@@ -58,7 +58,7 @@
   logprobs <- tibble(theta=marginal_theta_pooled(model.reduced))
   ##continue <- .message_theta(model, params, logprobs)
   logprobs$sigma2 <- reduced_sigma_pooled(model.reduced)
-  logprobs$pi <- reduced_pi_pooled(model.reduced)
+  logprobs$pi <- reduced_pi_pooled2(model.reduced)
   ##
   ## Block updates for stage 2 parameters
   ##

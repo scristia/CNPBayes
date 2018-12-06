@@ -225,6 +225,7 @@ double log_prob_pmix(Rcpp::S4 xmod, Rcpp::NumericVector pstar) {
   return logp[0] ;
 }
 
+// [[Rcpp::export]]
 double log_prob_pmix2(Rcpp::S4 xmod, Rcpp::NumericMatrix pstar) {
   Rcpp::RNGScope scope;
   Rcpp::S4 model(xmod);

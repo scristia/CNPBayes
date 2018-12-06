@@ -213,6 +213,10 @@ log_prob_pmix <- function(xmod, pstar) {
     .Call('_CNPBayes_log_prob_pmix', PACKAGE = 'CNPBayes', xmod, pstar)
 }
 
+log_prob_pmix2 <- function(xmod, pstar) {
+    .Call('_CNPBayes_log_prob_pmix2', PACKAGE = 'CNPBayes', xmod, pstar)
+}
+
 reduced_pi_batch2 <- function(xmod) {
     .Call('_CNPBayes_reduced_pi_batch2', PACKAGE = 'CNPBayes', xmod)
 }
@@ -267,6 +271,10 @@ reduced_sigma_pooled <- function(xmod) {
 
 reduced_pi_pooled <- function(xmod) {
     .Call('_CNPBayes_reduced_pi_pooled', PACKAGE = 'CNPBayes', xmod)
+}
+
+reduced_pi_pooled2 <- function(xmod) {
+    .Call('_CNPBayes_reduced_pi_pooled2', PACKAGE = 'CNPBayes', xmod)
 }
 
 reduced_mu_pooled <- function(xmod) {

@@ -947,7 +947,7 @@ Rcpp::S4 trios_burnin(Rcpp::S4 object) {
   Rcpp::S4 model(clone(object)) ;
   Rcpp::S4 mcmcp(model.slot("mcmc.params")) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
-  int K = getK(hypp) ;
+  //int K = getK(hypp) ;
   Rcpp::S4 params(mcmcp) ;
   IntegerVector up = params.slot("param_updates") ;
   int S = params.slot("burnin") ;

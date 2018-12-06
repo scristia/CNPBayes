@@ -607,6 +607,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_prob_pmix2
+double log_prob_pmix2(Rcpp::S4 xmod, Rcpp::NumericMatrix pstar);
+RcppExport SEXP _CNPBayes_log_prob_pmix2(SEXP xmodSEXP, SEXP pstarSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type pstar(pstarSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_prob_pmix2(xmod, pstar));
+    return rcpp_result_gen;
+END_RCPP
+}
 // reduced_pi_batch2
 Rcpp::NumericVector reduced_pi_batch2(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_reduced_pi_batch2(SEXP xmodSEXP) {
@@ -762,6 +774,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
     rcpp_result_gen = Rcpp::wrap(reduced_pi_pooled(xmod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// reduced_pi_pooled2
+Rcpp::NumericVector reduced_pi_pooled2(Rcpp::S4 xmod);
+RcppExport SEXP _CNPBayes_reduced_pi_pooled2(SEXP xmodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
+    rcpp_result_gen = Rcpp::wrap(reduced_pi_pooled2(xmod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1244,6 +1267,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_log_prob_sigma2", (DL_FUNC) &_CNPBayes_log_prob_sigma2, 2},
     {"_CNPBayes_reduced_sigma_batch", (DL_FUNC) &_CNPBayes_reduced_sigma_batch, 1},
     {"_CNPBayes_log_prob_pmix", (DL_FUNC) &_CNPBayes_log_prob_pmix, 2},
+    {"_CNPBayes_log_prob_pmix2", (DL_FUNC) &_CNPBayes_log_prob_pmix2, 2},
     {"_CNPBayes_reduced_pi_batch2", (DL_FUNC) &_CNPBayes_reduced_pi_batch2, 1},
     {"_CNPBayes_log_prob_mu", (DL_FUNC) &_CNPBayes_log_prob_mu, 2},
     {"_CNPBayes_reduced_mu_batch", (DL_FUNC) &_CNPBayes_reduced_mu_batch, 1},
@@ -1258,6 +1282,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_log_prob_sigmap", (DL_FUNC) &_CNPBayes_log_prob_sigmap, 2},
     {"_CNPBayes_reduced_sigma_pooled", (DL_FUNC) &_CNPBayes_reduced_sigma_pooled, 1},
     {"_CNPBayes_reduced_pi_pooled", (DL_FUNC) &_CNPBayes_reduced_pi_pooled, 1},
+    {"_CNPBayes_reduced_pi_pooled2", (DL_FUNC) &_CNPBayes_reduced_pi_pooled2, 1},
     {"_CNPBayes_reduced_mu_pooled", (DL_FUNC) &_CNPBayes_reduced_mu_pooled, 1},
     {"_CNPBayes_reduced_tau2_pooled", (DL_FUNC) &_CNPBayes_reduced_tau2_pooled, 1},
     {"_CNPBayes_log_prob_nu0p", (DL_FUNC) &_CNPBayes_log_prob_nu0p, 2},

@@ -99,7 +99,7 @@ Rcpp::NumericVector marginal_theta_pooled(Rcpp::S4 xmod) {
       model.slot("tau2") = update_tau2(model) ;
       model.slot("sigma2.0") = sigma20_multibatch_pvar(model) ;
       model.slot("nu.0") = nu0_multibatch_pvar(model) ;
-      model.slot("pi") = update_p(model) ;
+      model.slot("pi") = update_weightedp(model) ;
       model.slot("u") = Rcpp::rchisq(N, df) ;
       logp[s]=log_prob_thetap(model, thetastar) ;
     }
@@ -194,7 +194,7 @@ Rcpp::NumericVector reduced_sigma_pooled(Rcpp::S4 xmod) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("sigma2.0") = sigma20_multibatch_pvar(model) ;
     model.slot("nu.0") = nu0_multibatch_pvar(model) ;
-    model.slot("pi") = update_p(model) ;
+    model.slot("pi") = update_weightedp(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_sigmap(model, sigma2star) ;
   }
@@ -234,6 +234,42 @@ Rcpp::NumericVector reduced_pi_pooled(Rcpp::S4 xmod) {
     model.slot("pi") = update_p(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_pmix(model, pstar) ;
+  }
+  return logp ;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericVector reduced_pi_pooled2(Rcpp::S4 xmod) {
+  Rcpp::RNGScope scope;
+  Rcpp::S4 model_(xmod);
+  Rcpp::S4 model = clone(model_);
+  Rcpp::S4 params=model.slot("mcmc.params");
+  int S = params.slot("iter");
+  Rcpp::NumericVector y = model.slot("data");
+  int N=y.size();
+  Rcpp::List modes = model.slot("modes");
+  Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
+  Rcpp::NumericMatrix thetastar=clone(theta_);
+  Rcpp::NumericMatrix p_ = Rcpp::as<Rcpp::NumericMatrix>(modes["mixprob"]);
+  Rcpp::NumericMatrix pstar = clone(p_);
+  int K = thetastar.ncol();
+  double df = getDf(model.slot("hyperparams")) ;
+  Rcpp::NumericVector logp(S) ;
+  //
+  // Run reduced Gibbs    -- theta is fixed at modal ordinate
+  //
+  for (int s = 0; s < S; ++s) {
+    model.slot("z") = z_multibatch_pvar(model) ;
+    model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    //model.slot("theta") = theta_multibatch_pvar(model) ;
+    //model.slot("sigma2") = sigma2_multibatch_pvar(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("sigma2.0") = sigma20_multibatch_pvar(model) ;
+    model.slot("nu.0") = nu0_multibatch_pvar(model) ;
+    model.slot("pi") = update_weightedp(model) ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
+    logp[s]=log_prob_pmix2(model, pstar) ;
   }
   return logp ;
 }

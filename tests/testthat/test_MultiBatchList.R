@@ -340,7 +340,16 @@ test_that("Smarter MCMC for MultiBatchList", {
   expect_identical(dim(s), c(3L, 1L))
   ##k4 <- fitModelK(mlist[[1]])
   k3 <- fitModelK(mlist[[2]])
+  if(FALSE) {
+    ggMixture(k3[[1]])
+  }
   expect_is(k3, "MultiBatchList")
+  expect_true(!any(is.na(marginal_lik(k3))))
+  mbp <- k3[[4]]
+  mbp2 <- as(mbp, "MultiBatchPooled")
+  ml <- marginalLikelihood(mbp)
+
+
   ## models in list ordered by marginal likelihood
   expect_true(all(convergence(k3)))
   expect_true(all(diff(marginal_lik(k3)) < 0))

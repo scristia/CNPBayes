@@ -7,6 +7,8 @@ double log_prob_sigma2(Rcpp::S4 model, Rcpp::NumericMatrix sigma2star);
 Rcpp::NumericVector reduced_sigma_batch(Rcpp::S4 xmod) ;
 double log_prob_pmix(Rcpp::S4 xmod, Rcpp::NumericVector pstar);
 Rcpp::NumericVector reduced_pi_batch(Rcpp::S4 xmod) ;
+double log_prob_pmix2(Rcpp::S4 xmod, Rcpp::NumericMatrix pstar);
+Rcpp::NumericVector reduced_pi_batch2(Rcpp::S4 xmod) ;
 double log_prob_mu(Rcpp::S4 xmod, Rcpp::NumericVector mustar) ;
 Rcpp::NumericVector reduced_mu_batch(Rcpp::S4 xmod) ;
 double log_prob_tau2(Rcpp::S4 xmod);
