@@ -14,7 +14,6 @@ test_that("revised_constructors", {
   mp <- McmcParams(iter=10, burnin=1, nStarts=4)
   data(SingleBatchModelExample)
   sb <- SingleBatchModelExample
-  sb@pi <- matrix(p(sb), 1, k(sb))
 
   ##sb <- updateObject(sb)
   mcmcParams(sb) <- mp
@@ -34,8 +33,7 @@ test_that("list of models with independent starting values", {
   skip("replicateMultiBatch not implemented")
   data(SingleBatchModelExample)
   sb <- SingleBatchModelExample
-  sb@pi <- matrix(p(sb), 1, k(sb))
-  mb <- SingleBatchModelExample %>%
+  mb <- sb %>%
     as("MultiBatch")
   mb.list <- replicateMultiBatch(mb)
 
@@ -51,7 +49,6 @@ test_that("list of models with independent starting values", {
 test_that("no downsampling", {
   data(SingleBatchModelExample)
   sb <- SingleBatchModelExample
-  sb@pi <- matrix(p(sb), 1, k(sb))
   mb <- sb %>%
     as("MultiBatch")
   mcmcParams(mb) <- McmcParams(iter=10L, thin=0L,
@@ -87,7 +84,6 @@ test_that("no downsampling", {
 test_that("working with lists of models", {
   data(SingleBatchModelExample)
   sb <- SingleBatchModelExample
-  sb@pi <- matrix(p(sb), 1, k(sb))
   mb <- sb %>%
     as("MultiBatch")
   mcmcParams(mb) <- McmcParams(iter=10L, thin=0L,
@@ -130,7 +126,6 @@ test_that("starting_values", {
 
   data(SingleBatchModelExample)
   sb <- SingleBatchModelExample
-  sb@pi <- matrix(p(sb), 1, k(sb))
   dat <- tibble(oned=y(sb),
                 batch=1L) %>%
     mutate(id=seq_len(nrow(.)),
@@ -140,7 +135,6 @@ test_that("starting_values", {
 test_that("findSurrogates", {
   data(SingleBatchModelExample)
   sb <- SingleBatchModelExample
-  sb@pi <- matrix(p(sb), 1, k(sb))
   ##sb <- updateObject(SingleBatchModelExample)
   mb <- as(sb, "MultiBatch")
   assays(mb)[["provisional_batch"]] <- sample(letters[1:15], nrow(mb),
@@ -163,7 +157,6 @@ test_that("downsampling_with_surrogates", {
   library(tidyverse)
   data(MultiBatchModelExample)
   mb <- MultiBatchModelExample
-  mb@pi <- matrix(p(mb), numBatch(mb), k(mb))
   mcmcParams(mb) <- McmcParams(iter=10, thin=2,
                                burnin=50,
                                nStarts=4)
@@ -229,7 +222,6 @@ test_that("upsample", {
   library(tidyverse)
   data(MultiBatchModelExample)
   mb <- MultiBatchModelExample
-  mb@pi <- matrix(p(mb), numBatch(mb), k(mb))
   mcmcParams(mb) <- McmcParams(iter=200, thin=2,
                                burnin=200,
                                nStarts=4)
@@ -262,7 +254,6 @@ test_that("Pooled model", {
   ## with data
   data(MultiBatchModelExample)
   mb <- MultiBatchModelExample
-  mb@pi <- matrix(p(mb), numBatch(mb), k(mb), byrow=TRUE)
   mb <- as(mb, "MultiBatch")
   mb1 <- MultiBatchP(data=assays(mb))
   expect_identical(ncol(sigma_(mb1)), 1L)
@@ -271,7 +262,6 @@ test_that("Pooled model", {
   data(MultiBatchPooledExample)
   mbp <- MultiBatchPooledExample
   expect_identical(ncol(sigma2(chains(mbp))), numBatch(mbp))
-  mbp@pi <- matrix(p(mbp), numBatch(mbp), k(mbp))
   mp2 <- as(mbp, "MultiBatchP")
   expect_identical(ncol(sigma_(chains(mp2))), 3L)
   expect_identical(nrow(sigma_(mp2)), 3L)
@@ -338,7 +328,6 @@ test_that("predictive", {
   library(magrittr)
   data(MultiBatchModelExample)
   mbe <- MultiBatchModelExample
-  mbe@pi <- matrix(p(mbe), numBatch(mbe), k(mbe), byrow=TRUE)
   prob <- p(mbe)
   z <- seq_len(k(mbe))
   set.seed(123)
@@ -397,4 +386,10 @@ test_that("predictive", {
   p1 <- mean(y(mbp3) < -1)
   p2 <- mean(pred < -1)
   expect_equal(p1, p2, tolerance=0.05)
+})
+
+test_that("likelihood for pooled variance model", {
+  mbp <- MultiBatchPooledExample
+  logl <- loglik_multibatch_pvar(mbp)
+  expect_equal(logl, -124, tolerance=1)
 })

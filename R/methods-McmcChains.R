@@ -522,7 +522,7 @@ setAs("McmcChains", "list", function(from){
   } else {
     sigma2 <- longFormatK(sigma2(from), K)
   }
-  p <- longFormatK(p(from), K)
+  p <- longFormatKB(p(from), K, B)
   mu <- longFormatK(mu(from), K)
   tau2 <- longFormatK(tau2(from), K)
   zfreq <- longFormatK(zFreq(from), K)

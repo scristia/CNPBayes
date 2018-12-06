@@ -10,16 +10,6 @@ test_that("MultiBatchPooled", {
   expect_equivalent(sigma(model), numeric())
   mp <- McmcParams(iter=50, burnin=5)
   model <- MultiBatchPooledExample
-##  ch <- chains(model)
-##  ch <- updateObject(ch)
-##  ch@zstar <- matrix(as.integer(NA), nrow=nrow(predictive(ch)), ncol=ncol(predictive(ch)))
-##  chains(model) <- ch
-##  model2 <- updateObject(model)
-##  model2@predictive <- as.numeric(matrix(as.numeric(NA), numBatch(model2), k(model2)))
-##  model2@zstar <- as.integer(matrix(as.integer(NA), numBatch(model2), k(model2)))
-##  MultiBatchPooledExample <- model2
-##  save(MultiBatchPooledExample, file="MultiBatchPooledExample.rda", compression_level=9)
-##  model <- MultiBatchPooledExample
   mcmcParams(model) <- mp
   model <- posteriorSimulation(model)
   model2 <- as(model, "MultiBatchCopyNumberPooled")

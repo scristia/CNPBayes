@@ -345,29 +345,15 @@ test_that("Smarter MCMC for MultiBatchList", {
   }
   expect_is(k3, "MultiBatchList")
   expect_true(!any(is.na(marginal_lik(k3))))
-  mbp <- k3[[4]]
-  mbp2 <- as(mbp, "MultiBatchPooled")
-  ml <- marginalLikelihood(mbp)
-
-
   ## models in list ordered by marginal likelihood
   expect_true(all(convergence(k3)))
   expect_true(all(diff(marginal_lik(k3)) < 0))
   k2 <- fitModelK(mlist[[3]])
   ##expect_false(convergence(k2))
-
   mlist <- list(k3, k2)
-  mlist2 <- as(mlist, "MultiBatchList")
+  mlist2 <- as(mlist, "MultiBatchList") 
   ix <- order(marginal_lik(mlist2), decreasing=TRUE)
   mlist2 <- mlist2[ix]
-  expect_identical(modelName(mlist2)[1], "MB3")
-
-  ##k1 <- fitModelK(mlist[[4]])
-  burnin(object) <- 50
-  iter(object) <- 100
-  max_burnin(object) <- 50
-  mlist <- mcmc2(object)
-  expect_is(mlist, "MultiBatchList")
   expect_identical(modelName(mlist2)[1], "MB3")
 })
 

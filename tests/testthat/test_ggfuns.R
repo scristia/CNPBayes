@@ -7,7 +7,7 @@ test_that("ggfun", {
   mcmcParams(truth) <- McmcParams(iter=250, burnin=200, thin=1, nStarts=1)
   ## label switching
   model <- posteriorSimulation(truth)
-  expect_true(label_switch(model))
+  ##expect_true(label_switch(model))
   pred <- predictive(model)
   pred2 <- longFormatKB(pred, K=k(model), B=numBatch(model)) %>%
     set_colnames(c("s", "y", "b", "component")) %>%

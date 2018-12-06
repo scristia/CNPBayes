@@ -7,11 +7,13 @@ test_that("test_loglik", {
     ll.truth <- log_lik(truth)
     expect_equal(computeLoglik(truth), ll.truth)
     yy <- y(truth)
+    zz <- z(truth)
     th <- theta(truth)
     sd <- sigma(truth)
-    p_ <- p(truth)
-    loglik <- sum(log(p_[1] * dnorm(yy, th[1], sd[1]) + p_[2] *
-        dnorm(yy, th[2], sd[2]) + p_[3] * dnorm(yy, th[3], sd[3])))
+    p_ <- p(truth)[1, ]
+    loglik <- sum(log(c(p_[1] * dnorm(yy[zz==1], th[1], sd[1]),
+                        p_[2] * dnorm(yy[zz==2], th[2], sd[2]),
+                        p_[3] * dnorm(yy[zz == 3], th[3], sd[3]))))
     expect_equal(ll.truth, loglik, tolerance=1)
     hp <- HyperparametersMultiBatch(k=3,
                                     mu=-0.75,
@@ -19,10 +21,11 @@ test_that("test_loglik", {
                                     eta.0=32,
                                     m2.0=0.5)
     if(FALSE){
-      mp <- McmcParams(iter=1000, burnin=500, nStarts=4)
+      mp <- McmcParams(iter=300, burnin=200, nStarts=4)
       model <- gibbs(model="SB", k_range=c(3, 3),
                      dat=y(truth),
-                     mp=mp)
+                     mp=mp,
+                     max_burnin=200)
       ## this does reasonably well eventually
       ##>theta(model[[1]])
       ##[1] -1.924558547 -0.264303345  0.003895387
