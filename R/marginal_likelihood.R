@@ -29,7 +29,6 @@
 
 .blockUpdatesBatch <- function(model, params){
   model.reduced <- model
-  browser()
   logprobs <- tibble(theta=marginal_theta_batch(model.reduced))
   ##continue <- .message_theta(model, params, logprobs)
   ##if(!continue) return(matrix(NA))

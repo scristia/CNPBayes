@@ -253,6 +253,7 @@ double log_prob_pmix2(Rcpp::S4 xmod, Rcpp::NumericMatrix pstar) {
   return logp[0] ;
 }
 
+// [[Rcpp::export]]
 Rcpp::NumericVector reduced_pi_batch2(Rcpp::S4 xmod) {
   Rcpp::RNGScope scope;
   Rcpp::S4 model_(xmod);
@@ -295,7 +296,6 @@ Rcpp::NumericVector reduced_pi_batch2(Rcpp::S4 xmod) {
 }
 
 
-// [[Rcpp::export]]
 Rcpp::NumericVector reduced_pi_batch(Rcpp::S4 xmod) {
   Rcpp::RNGScope scope;
   Rcpp::S4 model_(xmod);
