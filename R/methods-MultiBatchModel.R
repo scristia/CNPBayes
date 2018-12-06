@@ -377,8 +377,9 @@ setMethod("computePrior", "MultiBatchModel", function(object){
 })
 
 .computeModesBatch <- function(object){
-  i <- argMax(object)
   mc <- chains(object)
+  if(iter(mc) == 0) return(list())
+  i <- argMax(object)
   B <- nBatch(object)
   K <- k(object)
   thetamax <- matrix(theta(mc)[i, ], B, K)

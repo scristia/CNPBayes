@@ -42,6 +42,18 @@ setValidity("MultiBatch", function(object){
     msg <- "z* and predictive matrices in MCMC chains should be the same dimension"
     return(msg)
   }
+  if(!is.matrix(p(object))){
+    msg <- "mixture probabilities should be a matrix with dimensions B x K"
+    return(msg)
+  }
+  if(nrow(p(object)) != numBatch(object)){
+    msg <- "matrix of mixture probabilities should have dimensions B x K"
+    return(msg)
+  }
+  if(ncol(p(chains(object))) != numBatch(object) * k(object)){
+    msg <- "matrix of mixture probabilities in McmcChains should have dimensions B x K"
+    return(msg)
+  }
   msg
 })
 
@@ -928,7 +940,7 @@ setMethod("computeModes", "MultiBatch", function(object){
   K <- k(object)
   thetamax <- matrix(theta(mc)[i, ], B, K)
   sigma2max <- matrix(sigma2(mc)[i, ], B, K)
-  pmax <- p(mc)[i, ]
+  pmax <- matrix(p(mc)[i, ], B, K)
   mumax <- mu(mc)[i, ]
   tau2max <- tau2(mc)[i,]
   ##

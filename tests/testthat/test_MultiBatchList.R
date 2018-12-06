@@ -107,14 +107,34 @@ test_that("upsampling with lists", {
 test_that("mcmc2 for MultiBatch", {
   data(MultiBatchModelExample)
   mb <- MultiBatchModelExample
+  if(FALSE){
+    chains(mb) <- initialize_mcmc(k(mb), iter(mb), numBatch(mb))
+    mb <- posteriorSimulation(mb)
+    MultiBatchModelExample <- mb
+    save(MultiBatchModelExample, file="MultiBatchModelExample.rda", compression_level=9)
+
+    mb <- MultiBatchPooledExample
+    chains(mb) <- initialize_mcmcP(k(mb), iter(mb), numBatch(mb))
+    mb <- posteriorSimulation(mb)
+    MultiBatchPooledExample <- mb
+    save(MultiBatchPooledExample, file="MultiBatchPooledExample.rda", compression_level=9)
+  }
   set.seed(1234)
   mb2 <- as(mb, "MultiBatch")
   iter(mb2) <- 100
   burnin(mb2) <- 100
   max_burnin(mb2) <- 200
   nStarts(mb2) <- 4
+  pp <- p(chains(mb2))
+  expect_equal(ncol(pp), numBatch(mb2)*k(mb2))
+  mb2 <- posteriorSimulation(mb2)
+
+  mbm <- as(mb2, "MultiBatchModel")
+  marginalLikelihood(mbm)
+  ml <- tryCatch(marginalLikelihood(mbm, params), warning=function(w) NULL)
+  compute_marginal_lik(mb2)
   ##trace(startingValues2, browser)
-  mb.list <- startingValues2(mb2)
+  ##mb.list <- startingValues2(mb2)
   mb3 <- mcmc2(mb2)
   ## select tolerance of 3
   ## - ml should be more stable with more iterations
