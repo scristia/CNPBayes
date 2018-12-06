@@ -596,13 +596,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // log_prob_pmix
-double log_prob_pmix(Rcpp::S4 xmod, Rcpp::NumericVector pstar);
+double log_prob_pmix(Rcpp::S4 xmod, Rcpp::NumericMatrix pstar);
 RcppExport SEXP _CNPBayes_log_prob_pmix(SEXP xmodSEXP, SEXP pstarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type xmod(xmodSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pstar(pstarSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type pstar(pstarSEXP);
     rcpp_result_gen = Rcpp::wrap(log_prob_pmix(xmod, pstar));
     return rcpp_result_gen;
 END_RCPP

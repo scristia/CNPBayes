@@ -331,7 +331,7 @@ Rcpp::NumericMatrix update_weightedp(Rcpp::S4 xmod) {
   Rcpp::S4 model(clone(xmod)) ;
   Rcpp::S4 hypp(model.slot("hyperparams")) ;
   int K = getK(hypp) ;
-  IntegerVector alpha = hypp.slot("alpha") ;
+  NumericVector alpha = hypp.slot("alpha") ;
   NumericMatrix theta = model.slot("theta");
   NumericMatrix counts=tableBatchZ(model);
   int B = theta.nrow() ;
@@ -340,17 +340,11 @@ Rcpp::NumericMatrix update_weightedp(Rcpp::S4 xmod) {
   NumericMatrix P(B, K);
   for(int b = 0; b < B; ++b){
     NumericVector p(K) ;
-    alpha_n = counts(b, _) ;
+    alpha_n = counts(b, _) + alpha;
     rdirichlet(alpha_n, p) ;
     P(b,_) = p ;
   }
-  //  NumericVector weighted_sums(K);
-  //  for(int k = 0; k < K; ++k){
-  //    weighted_sums = counts(_, k) * totals ;
-  //    alpha_n[k] = sum(weighted_sums) / sum(totals);
-  //  }
   return P ;
-  //  return alpha_n ;
 }
 
 // [[Rcpp::export]]
