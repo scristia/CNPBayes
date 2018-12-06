@@ -29,12 +29,14 @@
 
 .blockUpdatesBatch <- function(model, params){
   model.reduced <- model
+  browser()
   logprobs <- tibble(theta=marginal_theta_batch(model.reduced))
   ##continue <- .message_theta(model, params, logprobs)
   ##if(!continue) return(matrix(NA))
   logprobs$sigma <- reduced_sigma_batch(model.reduced)
   stopifnot(identical(modes(model.reduced), modes(model)))
-  logprobs$pi <- reduced_pi_batch(model.reduced)
+  ##logprobs$pi <- reduced_pi_batch(model.reduced)
+  logprobs$pi <- reduced_pi_batch2(model.reduced)
   ## Block updates for stage 2 parameters
   ##
   logprobs$mu <- reduced_mu_batch(model.reduced)

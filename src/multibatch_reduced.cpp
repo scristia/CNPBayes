@@ -3,6 +3,8 @@
 #include <Rcpp.h>
 #include <Rmath.h>
 
+using namespace Rcpp ;
+
 Rcpp::NumericMatrix toMatrix(Rcpp::NumericVector x, int NR, int NC) {
     Rcpp::NumericMatrix Y(NR, NC);
     int iter = 0;
@@ -102,7 +104,7 @@ Rcpp::NumericVector marginal_theta_batch(Rcpp::S4 xmod) {
       model.slot("tau2") = update_tau2(model) ;
       model.slot("sigma2.0") = update_sigma20(model) ;
       model.slot("nu.0") = update_nu0(model) ;
-      model.slot("pi") = update_p(model) ;
+      model.slot("pi") = update_weightedp(model) ;
       model.slot("u") = Rcpp::rchisq(N, df) ;
       logp[s]=log_prob_theta(model, thetastar) ;
     }
@@ -197,7 +199,7 @@ Rcpp::NumericVector reduced_sigma_batch(Rcpp::S4 xmod) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("sigma2.0") = update_sigma20(model) ;
     model.slot("nu.0") = update_nu0(model) ;
-    model.slot("pi") = update_p(model) ;
+    model.slot("pi") = update_weightedp(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_sigma2(model, sigma2star) ;
   }
@@ -221,6 +223,75 @@ double log_prob_pmix(Rcpp::S4 xmod, Rcpp::NumericVector pstar) {
   }
   logp = log_ddirichlet_(pstar, alpha_n);
   return logp[0] ;
+}
+
+double log_prob_pmix2(Rcpp::S4 xmod, Rcpp::NumericMatrix pstar) {
+  Rcpp::RNGScope scope;
+  Rcpp::S4 model(xmod);
+  Rcpp::S4 hypp = model.slot("hyperparams");
+  Rcpp::NumericVector x = model.slot("data");
+  Rcpp::S4 mp=model.slot("mcmc.params");
+  int K = hypp.slot("k");
+  Rcpp::NumericVector alpha = hypp.slot("alpha");
+  Rcpp::NumericVector alpha_n(K);
+  Rcpp::NumericVector logp(1);
+  Rcpp::NumericVector z=model.slot("z") ;
+  Rcpp::NumericMatrix theta=model.slot("theta");
+  int B=theta.nrow();
+  //Rcpp::NumericMatrix pstar2(B, K);
+  NumericMatrix counts=tableBatchZ(model);
+  for(int b=0; b < B; ++b){
+    //pstar2(b,_) = pstar ;
+    alpha_n = counts(b,_) + alpha;
+    logp += log_ddirichlet_(pstar(b,_), alpha_n);
+  }
+  //for (int k = 0 ; k < K; ++k) {
+  //alpha_n[k] = sum(z == k+1) + alpha[k];
+  //}
+  //}
+  //logp = log_ddirichlet_(pstar, alpha_n);
+  return logp[0] ;
+}
+
+Rcpp::NumericVector reduced_pi_batch2(Rcpp::S4 xmod) {
+  Rcpp::RNGScope scope;
+  Rcpp::S4 model_(xmod);
+  Rcpp::S4 model = clone(model_);
+  Rcpp::S4 params=model.slot("mcmc.params");
+  int S = params.slot("iter");
+  Rcpp::NumericVector y = model.slot("data");
+  int N=y.size();
+  Rcpp::List modes = model.slot("modes");
+  Rcpp::NumericMatrix theta_ = Rcpp::as<Rcpp::NumericMatrix>(modes["theta"]);
+  Rcpp::NumericMatrix thetastar=clone(theta_);
+  Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
+  Rcpp::NumericMatrix sigma2star = clone(sigma2_);
+  Rcpp::NumericMatrix p_ = Rcpp::as<Rcpp::NumericMatrix>(modes["mixprob"]);
+  Rcpp::NumericMatrix pstar = clone(p_);
+  int K = thetastar.ncol();
+  double df = getDf(model.slot("hyperparams")) ;
+  Rcpp::NumericVector logp(S) ;
+  model.slot("theta") = thetastar;
+  model.slot("sigma2") = sigma2star;
+  //
+  // Run reduced Gibbs:
+  //   -- theta is fixed at modal ordinate
+  //   -- sigma2 is fixed at modal ordinate
+  for (int s = 0; s < S; ++s) {
+    model.slot("z") = update_z(model) ;
+    model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    // theta, sigma2 FIXED AT MODAL ORDINATES
+    //model.slot("theta") = update_theta(model) ;
+    //model.slot("sigma2") = update_sigma2(model) ;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("sigma2.0") = update_sigma20(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("pi") = update_weightedp(model) ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
+    logp[s]=log_prob_pmix2(model, pstar) ;
+  }
+  return logp;
 }
 
 
@@ -259,7 +330,7 @@ Rcpp::NumericVector reduced_pi_batch(Rcpp::S4 xmod) {
     model.slot("tau2") = update_tau2(model) ;
     model.slot("sigma2.0") = update_sigma20(model) ;
     model.slot("nu.0") = update_nu0(model) ;
-    model.slot("pi") = update_p(model) ;
+    model.slot("pi") = update_weightedp(model) ;
     model.slot("u") = Rcpp::rchisq(N, df) ;
     logp[s]=log_prob_pmix(model, pstar) ;
   }
@@ -349,8 +420,10 @@ Rcpp::NumericVector reduced_mu_batch(Rcpp::S4 xmod) {
   Rcpp::NumericMatrix thetastar=clone(theta_);
   Rcpp::NumericMatrix sigma2_ = Rcpp::as<Rcpp::NumericMatrix>(modes["sigma2"]);
   Rcpp::NumericMatrix sigma2star = clone(sigma2_);
-  Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
-  Rcpp::NumericVector pstar = clone(p_);
+  //Rcpp::NumericVector p_ = Rcpp::as<Rcpp::NumericVector>(modes["mixprob"]);
+  //Rcpp::NumericVector pstar = clone(p_);
+  Rcpp::NumericMatrix p_ = Rcpp::as<Rcpp::NumericMatrix>(modes["mixprob"]);
+  Rcpp::NumericMatrix pstar = clone(p_);
   Rcpp::NumericVector mu_ = Rcpp::as<Rcpp::NumericVector>(modes["mu"]);
   Rcpp::NumericVector mustar = clone(mu_);
   int K = thetastar.ncol();
@@ -369,7 +442,7 @@ Rcpp::NumericVector reduced_mu_batch(Rcpp::S4 xmod) {
     // FIXED AT MODAL ORDINATES
     //model.slot("theta") = update_theta(model) ;
     //model.slot("sigma2") = update_sigma2(model) ;
-    //model.slot("pi") = update_p(model) ;
+    //model.slot("pi") = update_weightedp(model) ;
     model.slot("mu") = update_mu(model) ;
     model.slot("tau2") = update_tau2(model) ;
     model.slot("sigma2.0") = update_sigma20(model) ;
@@ -446,7 +519,7 @@ Rcpp::NumericVector reduced_tau_batch(Rcpp::S4 xmod) {
     // FIXED AT MODAL ORDINATES
     //model.slot("theta") = update_theta(model) ;
     //model.slot("sigma2") = update_sigma2(model) ;
-    //model.slot("pi") = update_p(model) ;
+    //model.slot("pi") = update_weightedp(model) ;
     //model.slot("mu") = update_mu(model) ;
     model.slot("tau2") = update_tau2(model) ;
     model.slot("sigma2.0") = update_sigma20(model) ;
@@ -528,7 +601,7 @@ Rcpp::NumericVector reduced_nu0_batch(Rcpp::S4 xmod) {
     // FIXED AT MODAL ORDINATES
     //model.slot("theta") = update_theta(model) ;
     //model.slot("sigma2") = update_sigma2(model) ;
-    //model.slot("pi") = update_p(model) ;
+    //model.slot("pi") = update_weightedp(model) ;
     //model.slot("mu") = update_mu(model) ;
     //model.slot("tau2") = update_tau2(model) ;
     model.slot("sigma2.0") = update_sigma20(model) ;
@@ -599,7 +672,7 @@ Rcpp::NumericVector reduced_s20_batch(Rcpp::S4 xmod) {
     // FIXED AT MODAL ORDINATES
     //model.slot("theta") = update_theta(model) ;
     //model.slot("sigma2") = update_sigma2(model) ;
-    //model.slot("pi") = update_p(model) ;
+    //model.slot("pi") = update_weightedp(model) ;
     //model.slot("mu") = update_mu(model) ;
     //model.slot("tau2") = update_tau2(model) ;
     //model.slot("nu.0") = update_nu0(model) ;
