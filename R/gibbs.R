@@ -16,6 +16,11 @@ mcmcList <- function(model.list){
     map(set_param_names, "theta")
   sigma.list <- map(ch.list, sigma) %>%
     map(set_param_names, "sigma")
+  ## The last column of the p-matrix is completely determined
+  B <- numBatch(model.list[[1]])
+  K <- k(model.list[[1]])
+  ix <- matrix(seq_len(B*K), B, K)
+  drop <- ix[, K]
   p.list <- map(ch.list, p) %>%
     map(set_param_names, "p")
   nu0.list <- map(ch.list, nu.0) %>%
@@ -48,6 +53,7 @@ mcmcList <- function(model.list){
                   map(sigma.list, last_half, half))
   p.list <- c(map(p.list, first_half, half),
               map(p.list, last_half, half))
+  p.list <- lapply(p.list, "[", , -drop)
   nu0.list <- c(map(nu0.list, first_half, half),
                 map(nu0.list, last_half, half))
   s20.list <- c(map(s20.list, first_half, half),

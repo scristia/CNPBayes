@@ -213,8 +213,8 @@ log_prob_pmix <- function(xmod, pstar) {
     .Call('_CNPBayes_log_prob_pmix', PACKAGE = 'CNPBayes', xmod, pstar)
 }
 
-reduced_pi_batch <- function(xmod) {
-    .Call('_CNPBayes_reduced_pi_batch', PACKAGE = 'CNPBayes', xmod)
+reduced_pi_batch2 <- function(xmod) {
+    .Call('_CNPBayes_reduced_pi_batch2', PACKAGE = 'CNPBayes', xmod)
 }
 
 log_prob_mu <- function(xmod, mustar) {
