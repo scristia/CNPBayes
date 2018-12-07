@@ -329,7 +329,7 @@ tau2HyperparamsBatch <- function(thetas){
   ##
   zz <- unlist(zlist)
   ## *should do a weighted average since batches are unequally sized
-  p <- colMeans(P)
+  ##p <- colMeans(P)
   mu(object) <- colMeans(T)
   tau2(object) <- colVars(T)
   if(K > 1){
@@ -338,7 +338,7 @@ tau2HyperparamsBatch <- function(thetas){
     m2.0(hypp) <- tau2.hypp$m2.0
     hyperParams(object) <- hypp
   }
-  p(object) <- p
+  p(object) <- P
   z(object) <- zz
   ## since batches are required to be in batch order, this is not necessary
   ##y(object) <- unlist(ylist)

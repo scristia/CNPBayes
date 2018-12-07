@@ -995,6 +995,8 @@ setGeneric("flags<-", function(object, value) standardGeneric("flags<-"))
 setGeneric("current_values<-", function(object, value) standardGeneric("current_values<-"))
 setGeneric("current_values", function(object, value) standardGeneric("current_values"))
 setGeneric("u<-", function(object, value) standardGeneric("u<-"))
+
+#' @export
 setGeneric("parameters", function(object) standardGeneric("parameters"))
 setGeneric("parameters<-", function(object, value) standardGeneric("parameters<-"))
 setGeneric("summaries", function(object) standardGeneric("summaries"))
@@ -1025,12 +1027,20 @@ setGeneric("numBatch", function(object) standardGeneric("numBatch"))
 setGeneric("numBatch<-", function(object, value) standardGeneric("numBatch<-"))
 setGeneric("max_burnin<-", function(object, value) standardGeneric("max_burnin<-"))
 setGeneric("useModes", function(object) standardGeneric("useModes"))
+
+#' @export
 setGeneric("compute_marginal_lik", function(object, params) standardGeneric("compute_marginal_lik"))
+
+
 setGeneric("modelName", function(object) standardGeneric("modelName"))
 setGeneric("singleBatchGuided", function(x, guide) standardGeneric("singleBatchGuided"))
 
 setGeneric("convergence", function(object) standardGeneric("convergence"))
 setGeneric("isMendelian", function(object) standardGeneric("isMendelian"))
+
+#' @export
 setGeneric("augmentData2", function(object) standardGeneric("augmentData2"))
+
+#' @export
 setGeneric("baf_loglik", function(object, snpdat) standardGeneric("baf_loglik"))
 setGeneric("toSingleBatch", function(object) standardGeneric("toSingleBatch"))

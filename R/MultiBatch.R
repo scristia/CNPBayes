@@ -144,6 +144,7 @@ mcmc_chains <- function(specs, parameters){
 ##
 ## Constructor
 ##
+#' @export
 MultiBatch <- function(model="MB3",
                        data=modelData(),
                        ## by default, assume no downsampling
@@ -287,7 +288,7 @@ modelValues2 <- function(specs, data, hp){
   B <- specs$number_batches
   K <- specs$k
   alpha(hp) <- rep(1, K)
-  mu <- sort(rnorm(K, mu.0(hp), 3))
+  mu <- sort(rnorm(K, mu.0(hp), 2))
   tau2 <- 1/rgamma(K, 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
   p <- rdirichlet(1, alpha(hp))[1, ]
   p <- matrix(p, B, K, byrow=TRUE)
@@ -400,6 +401,8 @@ extractSummaries <- function(old){
   s.list <- list(data.mean=dataMean(old),
                  data.prec=dataPrec(old),
                  zfreq=zFreq(old),
+                 logprior=logPrior(old),
+                 loglik=log_lik(old),
                  marginal_lik=marginal_lik(old),
                  modes=modes(old))
   x <- s.list[["data.mean"]]
@@ -439,16 +442,31 @@ extractFlags <- function(old){
 
 modelData <- function(id=character(),
                       oned=numeric(),
-                      batch=integer()){
+                      batch=integer(),
+                      is_simulated=logical()){
   tibble(id=id,
          oned=oned,
-         batch=batch)
+         batch=batch,
+         is_simulated=is_simulated)
 }
+
+setGeneric("isSimulated", function(object) standardGeneric("isSimulated"))
+setMethod("isSimulated", "MultiBatch", function(object){
+  assays(object)$is_simulated
+})
+setMethod("isSimulated", "MultiBatchList", function(object){
+  assays(object)$is_simulated
+})
+setMethod("isSimulated", "MixtureModel", function(object){
+  rep(FALSE, length(y(object)))
+})
+
 
 extractData <- function(old){
   tibble(id=as.character(seq_along(y(old))),
          oned=y(old),
-         batch=batch(old))
+         batch=batch(old),
+         is_simulated=FALSE)
 }
 
 
@@ -540,7 +558,9 @@ setAs("MultiBatch", "list", function(from){
                                       mp=mcmcParams(from),
                                       hp=hyperParams(from),
                                       chains=chains(from)))
-  mb.list <- lapply(mb.list, as, "MultiBatchModel")
+  for(i in seq_along(mb.list)){
+    modes(mb.list[[i]]) <- computeModes(mb.list[[i]])
+  }
   mb.list <- lapply(mb.list, function(x) {nStarts(x) <- 1; return(x)})
   mb.list
 })
@@ -933,7 +953,23 @@ setMethod("showMeans", "MultiBatch", function(object){
 ##
 ## Summary statistics
 ##
+
 setMethod("computeModes", "MultiBatch", function(object){
+  if(iter(object) == 0){
+    modes <- list(theta=theta(object),
+                  sigma2=sigma2(object),
+                  nu.0=nu.0(object),
+                  sigma2.0=sigma2.0(object),
+                  p=p(object),
+                  mu=mu(object),
+                  tau2=tau2(object),
+                  u=u(object),
+                  z=z(object),
+                  logprior=logPrior(object),
+                  loglik=log_lik(object),
+                  probz=probz(object))
+    return(modes)
+  }
   i <- argMax(object)[1]
   mc <- chains(object)
   B <- specs(object)$number_batches
@@ -1022,8 +1058,8 @@ summarizeModel <- function(object){
 }
 
 collectFlags <- function(model.list){
-  getConstraint <- function(model) model@.internal.constraint
-  getCounter <- function(model) model@.internal.counter
+  getConstraint <- function(model) flags(model)$.internal.constraint
+  getCounter <- function(model) flags(model)$.internal.counter
   nlabel_swap <- sum(map_lgl(model.list, label_switch))
   n.internal.constraint <- sum(map_dbl(model.list, getConstraint))
   n.internal.counter <- map(model.list, getCounter) %>%
@@ -1069,6 +1105,7 @@ combineChains <- function(model.list){
 
 ## update the current values with the posterior means across all chains
 
+#' @export
 combineModels <- function(model.list){
   mc <- combineChains(model.list)
   pz.list <- lapply(model.list, probz)
@@ -1076,23 +1113,18 @@ combineModels <- function(model.list){
     "/"(rowSums(.))
   hp <- hyperParams(model.list[[1]])
   mp <- mcmcParams(model.list[[1]])
-  ##nStarts(mp) <- length(model.list)
-  nStarts(mp) <- 1L
   iter(mp) <- iter(mp) * length(model.list)
   nStarts(mp) <- 1
-  tib <- tibble(oned=y(model.list[[1]])) %>%
-    mutate(id=seq_along(oned),
-           id=as.character(id),
-           batch=batch(model.list[[1]]))
+  mb <- model.list[[1]]
   param.list <- list(mp=mp, hp=hp)
-  if(is(model.list[[1]], "MultiBatchPooled")){
+  if(is(mb, "MultiBatchP")){
     mb <- MultiBatchP(modelName(model.list[[1]]),
-                      data=tib,
+                      data=assays(mb),
                       parameters=param.list,
                       chains=mc)
   } else {
     mb <- MultiBatch(modelName(model.list[[1]]),
-                     data=tib,
+                     data=assays(mb),
                      parameters=param.list,
                      chains=mc)
   }
@@ -1410,15 +1442,15 @@ setMethod("singleBatchGuided", c("MultiBatchP", "MultiBatch"), function(x, guide
   sigma2.0(x) <- sigma2.0(guide)
   ## 1/sigma2 ~gamma
   ## sigma2 is invgamma
-  NC <- ncol(sigma2(x))
-  if(NC == 1){
-    w <- as.numeric(table(z(guide)))
-    sigma2(x) <- matrix((sum((w * sds)/sum(w)))^2, B, 1)
-  } else{
-    sigma2(x) <- matrix(sds/2, B, K, byrow=TRUE)
-  }
+  w <- as.numeric(table(z(guide)))
+  sigma2(x) <- matrix((sum((w * sds)/sum(w)))^2, B, 1)
   nStarts(x) <- 1L
   x <- as(x, "MultiBatchPooled")
+  m <- modes(x)
+  m[["mixprob"]] <- matrix(modes(guide)[["p"]][1, ], B, k(x), byrow=TRUE)
+  m[["theta"]] <- theta(x)
+  m[["sigma2"]] <- sigma2(x)
+  modes(x) <- m
   ##
   ## shouldn't have to initialize z since z is the first update of the gibbs sampler (and its update would be conditional on the above values)
   x
@@ -1742,6 +1774,7 @@ isAugmented <- function(model){
   seq_len(nrow(model)) %in% ix
 }
 
+#' @export
 CnList <- function(mb){
   mb <- mb[ !isAugmented(mb) ]
   cn.specs <- .candidate_mapping(mb) %>%
@@ -1796,9 +1829,15 @@ setMethod("numberObs", "MultiBatch", function(model) {
   specs(model)$number_obs[1]
 })
 
+#' @export
 setGeneric("id", function(object) standardGeneric("id"))
 setMethod("id", "MultiBatch", function(object) assays(object)$id)
 setMethod("id", "MultiBatchList", function(object) assays(object)$id)
+
+#' @export
+id2 <- function(object){
+  id(object)[!isSimulated(object)]
+}
 
 setMethod("[", "MultiBatch", function(x, i, j, ..., drop=FALSE){
   x@data <- x@data[i, , drop=FALSE]
@@ -1853,4 +1892,27 @@ setMethod("toSingleBatch", "MultiBatch", function(object){
                     data=dat,
                     parameters=parameters(mb))
   mb2
+})
+
+gr <- function(x){
+  stat <- mcmcList(x) %>%
+    gelman_rubin
+  stat$mpsrf
+}
+
+#' @export
+is_high_mpsrf <- function(m){
+  mpsrf <- tryCatch(gr(m), error=function(e) NULL)
+  if(is.null(mpsrf) || mpsrf > 1.25){
+    return(TRUE)
+  }
+  FALSE
+}
+
+#' @export
+setGeneric("fails_gr<-", function(object, value) standardGeneric("fails_gr<-"))
+
+setReplaceMethod("fails_gr", "MultiBatch", function(object, value){
+  flags(object)[["fails_GR"]] <- value
+  object
 })

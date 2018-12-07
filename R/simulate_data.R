@@ -217,6 +217,7 @@ hapmapTruth <- function(avg.lrr, simulate_truth){
   true.z
 }
 
+#' @export
 simulateBatchEffect <- function(hap.list,
                                 experiment){
   scale <- experiment$scale[[1]]
@@ -391,6 +392,7 @@ hapmapData <- function(cnp_57, true.z, experiment){
   dat
 }
 
+#' @export
 hapmapSummarizedExperiment <- function(hapmap, gr){
   B <- hapmap[["b"]] 
   B2 <- select(B, c(id, baf)) %>%
@@ -434,9 +436,11 @@ hapmapExperiment <- function(){
   experiment
 }
 
+#' @export
 performanceStats <- function(truth, cn){
   k <- length(table(cn))
-  tib <- tibble(truth=truth, cn=cn)
+  tib <- tibble(truth=as.character(truth),
+                cn=as.character(cn))
   stats <- tib %>%
     group_by(truth) %>%
     summarize(n=n(),

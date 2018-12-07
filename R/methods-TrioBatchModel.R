@@ -12,8 +12,8 @@
              tau2=numeric(K),
              nu.0=numeric(1),
              sigma2.0=numeric(1),
-             pi=numeric(K),
-             pi_parents=numeric(K),
+             pi=matrix(NA, 0, K),
+             pi_parents=matrix(NA, 0, K),
              #data=numeric(K),
              triodata=as_tibble(0),
              mprob=matrix(NA, 0, 0),
@@ -68,8 +68,7 @@
   ## tau_k is the sd of the batch means for component k
   mu <- sort(rnorm(k(hp), mu.0(hp), sqrt(tau2.0(hp))))
   tau2 <- 1/rgamma(k(hp), 1/2*eta.0(hp), 1/2*eta.0(hp) * m2.0(hp))
-  p <- rdirichlet(1, alpha(hp))[1, ]
-  pp <- rdirichlet(1, alpha(hp))[1, ]
+  pp <- p <- matrix(rdirichlet(1, alpha(hp))[1, ], B, K, byrow=TRUE)
   sim_theta <- function(mu, tau, B) sort(rnorm(B, mu, tau))
   . <- NULL
   thetas <- map2(mu, sqrt(tau2), sim_theta, B) %>%
@@ -230,8 +229,8 @@ combine_batchTrios <- function(model.list, batches){
   K <- k(model.list[[1]])
   pm.th <- matrix(colMeans(th), B, K)
   pm.s2 <- matrix(colMeans(s2), B, K)
-  pm.p <- colMeans(ppi)
-  pm.par <- colMeans(pp.par)
+  pm.p <- matrix(colMeans(ppi), B, K)
+  pm.par <- matrix(colMeans(pp.par), B, K)
   pm.n0 <- median(n0)
   pm.mu <- colMeans(.mu)
   pm.tau2 <- colMeans(.tau2)
@@ -353,7 +352,6 @@ combine_batchTrios <- function(model.list, batches){
 }
 
 
-#'
 #' Initializes a TrioBatchModel, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means and variances.
 #'
 #' @param triodata the data for the simulation.
@@ -988,7 +986,7 @@ setReplaceMethod("k", "TrioBatchModel",
                    hypp@alpha <- rep(1, k)
                    hyperParams(object) <- hypp
                    object@k <- k
-                   object@pi <- rep(1/k, k)
+                   object@pi <- matrix(rep(1/k, k), numBatch(object), k, byrow=TRUE)
                    object@probz <- matrix(0, length(y(object)), k)
                    object <- startingValues(object)
                    object
@@ -1191,7 +1189,7 @@ setMethod("sortComponentLabels", "TrioBatchModel", function(model){
   ps <- p(model)[ix]
   mu(model) <- mu(model)[ix]
   tau2(model) <- tau2(model)[ix]
-  model@pi_parents <- model@pi_parents[ix]
+  model@pi_parents <- model@pi_parents[, ix, drop=FALSE]
   model@zfreq_parents <- model@zfreq_parents[ix]
   model@probz_par <- model@probz_par[, ix, drop=FALSE]
   sigma2(model) <- s2s

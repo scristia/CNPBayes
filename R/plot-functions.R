@@ -560,39 +560,6 @@ multibatch_figure <- function(theoretical, empirical, model){
     ##coord_cartesian(xlim=xlimit) +
     guides(color=FALSE) ##+
   return(fig)
-##    ggtitle(cnp.id)
-##
-##  empirical <- tibble(lrr=observed(model),
-##                      batch=paste0("batch: ", batch(model)),
-##                      z=map_z(model))
-##  empirical$cn <- .remap(empirical$z, mapping(model))
-##  empirical2 <- empirical %>%
-##    mutate(batch="overall")
-##  empirical3 <- bind_rows(empirical, empirical2) %>%
-##    mutate(batch=factor(batch, levels=c(unique(empirical$batch),
-##                                        "overall")))
-##
-##  scale_col <-  scale_color_manual(values=colors)
-##  scale_fill <- scale_fill_manual(values=colors)
-##  scale_y <- scale_y_sqrt()
-##  ..count.. <- lrr <- NULL
-##  ghist <- geom_histogram(data=empirical3, aes(lrr, ..count..), binwidth=0.01, inherit.aes=FALSE)
-##  gobj <- ggplot() + ghist + facet_wrap(~batch)
-##  gb <- ggplot_build(gobj)
-##  ylimit <- gb$layout$panel_ranges[[1]][["y.range"]]
-##
-##  theoretical$y <- scales::rescale(theoretical$y, c(0, ylimit[2]))
-##  x <- y <- cn <- NULL
-##  gpolygon <-  geom_polygon(aes(x, y, fill=cn, color=cn), alpha=0.4)
-##  nb <- nBatch(model)
-##  ggplot(theoretical) +
-##    ghist +
-##    gpolygon +
-##    scale_col +
-##    scale_fill +
-##    xlab("quantiles") + ylab("count") +
-##    guides(fill=guide_legend(""), color=guide_legend("")) +
-##    facet_wrap(~batch, nrow=nb, as.table=TRUE, scales="free_y")
 }
 
 #' @export
@@ -638,6 +605,37 @@ setMethod("ggMixture", "MultiBatchPooled", function(model, bins=100){
 #' @aliases ggChains,MultiBatchModel-method
 setMethod("ggChains", "MultiBatchModel", function(model){
   .ggMultiBatchChains(model)
+})
+
+#' @export
+#' @rdname ggplot-functions
+#' @aliases ggChains,MultiBatch-method
+setMethod("ggChains", "MultiBatch", function(model){
+  ch <- chains(model)
+  ch.list <- as(ch, "list")
+  melt.ch <- gatherChains(model)
+  dat.batch <- melt.ch$batch %>%
+    mutate(iter=as.integer(iter))
+  dat.comp <- melt.ch$comp %>%
+    as.tibble
+  dat.single <- melt.ch$single %>%
+    as.tibble
+  iter <- value <- batch <- param <- comp <- NULL
+  p.batch <- ggplot(dat.batch, aes(iter, value, group=batch)) +
+    geom_point(size=0.3, aes(color=batch)) +
+    geom_line(aes(color=batch)) +
+    facet_grid(param ~ comp, scales="free_y")
+
+  p.comp <- ggplot(dat.comp, aes(iter, value, group=comp)) +
+    geom_point(size=0.3, aes(color=comp)) +
+    geom_line(aes(color=comp)) +
+    facet_wrap(~param, scales="free_y")
+
+  p.single <- ggplot(dat.single, aes(iter, value, group="param")) +
+    geom_point(size=0.3, color="gray") +
+    geom_line(color="gray") +
+    facet_wrap(~param, scales="free_y")
+  list(batch=p.batch, comp=p.comp, single=p.single)  
 })
 
 #' @export

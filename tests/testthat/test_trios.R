@@ -90,6 +90,7 @@ test_that("mprob matrix", {
 })
 
 test_that("constructor", {
+  skip("construction of triomodels ")
   set.seed(123)
   library(dplyr)
   maplabel <- c(0, 1, 2)
@@ -123,6 +124,7 @@ test_that("constructor", {
 
 
 test_that("burnin", {
+  skip("burnin for trios model")
   library(tidyverse)
   N = 300
   nbatch <- 1
@@ -166,6 +168,7 @@ test_that("burnin", {
 })
 
 test_that("posterior predictive", {
+  skip("posterior predictive for trios model")
   set.seed(123)
   library(tidyverse)
   model <- simulateTrioData()[["model"]]
@@ -199,6 +202,7 @@ maplabel <- c(0,1,2)
 mprob <- mprob.matrix(tau=c(0.5, 0.5, 0.5), maplabel, error=0.001)
 
 test_that("update_zparent and update_zchild", {
+  skip("updates for trios model")
   set.seed(123)
   library(tidyverse)
 
@@ -231,6 +235,7 @@ test_that("update_zparent and update_zchild", {
 })
 
 test_that("full example", {
+  skip("full example for trios model")
   set.seed(123)
   model <- simulateTrioData()[["model"]]
   u1 <- u(model)
@@ -338,6 +343,7 @@ test_that("full example", {
 })
 
 test_that("gibbs implement", {
+  skip("gibbs for trios model")
   set.seed(123)
   library(tidyverse)
   p <- c(0.24, 0.43, 0.33)
@@ -387,6 +393,7 @@ test_that("gibbs implement", {
 })
 
 test_that("triodata accessor", {
+  skip("triomodel accessors")
   m <- simulateTrioData()[["model"]]
   expect_is(chains(m), "McmcChainsTrios")
   dat2 <- triodata(m, TRUE) 
@@ -417,6 +424,8 @@ test_that("triodata accessor", {
 })
 
 test_that("posterior probability for mendelian inheritance", {
+  skip("mendelian indicator")
+  test("mendelian indicator for trios model")
   library(tidyverse)
   N = 300
   nbatch <- 1

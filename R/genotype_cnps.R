@@ -271,6 +271,7 @@ cmap <- function(model){
   B
 }
 
+#' @export
 modelProb <- function(cn.model, snpdata){
   B <- .modelProb(cn.model, snpdata)
   marginal_prob <- sum(log(B$prob))
@@ -328,7 +329,7 @@ ccmap <- function(model){
 #' @export
 #' @return a list. The first element is the log likeihood and the second element is the copy number model that maximized the likelihood.
 bafLikelihood <- function(cn.model, snpdata){
-  g <- genotypes(snpdat) %>%
+  g <- genotypes(snpdata) %>%
     as.integer
   g <- g[!is.na(g)]
   if(!all(g %in% 1:3)){

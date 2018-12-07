@@ -40,6 +40,19 @@ setValidity("MultiBatchList", function(object){
     msg <- "not in batch order"
     return(msg)
   }
+  L <- length(object) ## number of chains
+  if(L != nrow(specs(object))){
+    msg <- "number of chains must be the same as the number of rows in model specs"
+    return(msg)
+  }
+  if(L != length(current_values(object))){
+    msg <- "current_values list must be the same as the number of rows in model specs"
+    return(msg)
+  }
+  if(L != length(summaries(object))){
+    msg <- "summaries list must be the same as the number of rows in model specs"
+    return(msg)
+  }
   msg
 })
 
@@ -393,6 +406,7 @@ listFlags <- function(model_specs){
 }
 
 
+#' @export
 MultiBatchList <- function(models,
                            data=modelData(),
                            K,
@@ -487,6 +501,14 @@ setAs("MultiBatch", "MultiBatchList", function(from){
                  flags=list(flags(from)))
 })
 
+setAs("MultiBatchList", "list", function(from){
+  result <- vector("list", length(from))
+  for(i in seq_along(from)){
+    result[[i]] <- from[[i]]
+  }
+  result
+})
+
 setAs("MultiBatchList", "MultiBatch", function(from){
   from[[1]]
 })
@@ -512,6 +534,31 @@ extractFromModelList <- function(from, FUN){
   cv
 }
 
+#' @export
+listToMultiBatchList <- function(x){
+  models <- names(x)
+  kk <- sapply(x, k)
+  ix <- which(substr(models, 1, 2) == "MB")
+  i <- ifelse(length(ix) > 0, ix[1], 1)
+  dat <- assays(x[[i]])
+  specs <- modelSpecs(models,
+                      kk,
+                      data=dat)
+  current_vals <- extractFromModelList(x, current_values)
+  summary.list <- extractFromModelList(x, summaries)
+  chains.list <- extractFromModelList(x, chains)
+  flag.list <- extractFromModelList(x, flags)
+  params <- parameters(x[[1]])
+  mb <- MultiBatchList(models=models,
+                       data=dat,
+                       specs=specs,
+                       parameters=parameters(x[[1]]),
+                       current_values=current_vals,
+                       summaries=summary.list,
+                       chains=chains.list,
+                       flags=flag.list)
+}
+
 setAs("list", "MultiBatchList", function(from){
   it <- sapply(from, iter)
   ##  if(length(unique(it)) > 1){
@@ -522,7 +569,8 @@ setAs("list", "MultiBatchList", function(from){
   ## pass data from MultiBatch model, if any
   ##
   ix <- grep("MB", models)[1]
-  dat <- assays(from[[ix]])
+  if(!is.na(ix))
+    dat <- assays(from[[ix]])
   if(is(models, "list")){
     ## object from is a list of MultiBatchList objects
     models2 <- unlist(models)
@@ -654,7 +702,15 @@ setMethod("lapply", "MultiBatchList", function(X, FUN, ...){
   for(i in seq_along(X)){
     result[[i]] <- FUN(X[[i]], ...)
   }
+  names(result) <- names(X)
   result
+})
+
+setMethod("endoapply", "MultiBatchList", function(X, FUN, ...){
+  for(i in seq_along(X)){
+    X[[i]] <- FUN(X[[i]], ...)
+  }
+  X
 })
 
 setMethod("sapply", "MultiBatchList", function(X, FUN, ..., simplify=TRUE, USE.NAMES=TRUE){
@@ -662,6 +718,7 @@ setMethod("sapply", "MultiBatchList", function(X, FUN, ..., simplify=TRUE, USE.N
   if(simplify){
     result <- unlist(result)
   }
+  names(result) <- names(X)
   result
 })
 
@@ -704,4 +761,9 @@ setMethod("singleBatchGuided", c("MultiBatchList", "MultiBatch"),
 
 setMethod("convergence", "MultiBatchList", function(object){
   sapply(object, convergence)
+})
+
+setMethod("compute_marginal_lik", "MultiBatchList",
+          function(object, params){
+            endoapply(object, compute_marginal_lik, params=params)
 })

@@ -65,7 +65,9 @@ posteriorSimulationNoMendel <- function(object){
 }
 
 anyWarnings <- function(object){
-  label_switch(object)
+  fl <- flags(object)
+  fl2 <- sapply(fl, as.logical)
+  any(fl2)
 }
 
 .posteriorSimulation2 <- function(post){
@@ -158,13 +160,9 @@ setMethod("posteriorSimulation", "MultiBatchP", function(object){
   mbm <- runBurnin(mbm)
   mbm <- sortComponentLabels(mbm)
   mbm <- runMcmc(mbm)
-  if(!isOrdered(mbm)) label_switch(mbm) <- TRUE
-  if(isOrdered(mbm)){
-    label_switch(mbm) <- FALSE
-  }
-  mbm <- sortComponentLabels(mbm)
-  modes(mb) <- computeModes(mbm)
+  label_switch(mbm) <- !isOrdered(mbm)
   mb <- revertBack(object, mbm)
+  modes(mb) <- computeModes(mb)
   return(mb)
 })
 

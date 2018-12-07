@@ -103,42 +103,64 @@ test_that("upsampling with lists", {
   expect_false(any(is.na(pz)))
 })
 
-## this is a much simpler replacement for gibbs
-test_that("mcmc2 for MultiBatch", {
+test_that("Running multiple chains for one model", {
+  set.seed(34)
   data(MultiBatchModelExample)
-  mb <- MultiBatchModelExample
-  if(FALSE){
-    chains(mb) <- initialize_mcmc(k(mb), iter(mb), numBatch(mb))
-    mb <- posteriorSimulation(mb)
-    MultiBatchModelExample <- mb
-    save(MultiBatchModelExample, file="MultiBatchModelExample.rda", compression_level=9)
-
-    mb <- MultiBatchPooledExample
-    chains(mb) <- initialize_mcmcP(k(mb), iter(mb), numBatch(mb))
-    mb <- posteriorSimulation(mb)
-    MultiBatchPooledExample <- mb
-    save(MultiBatchPooledExample, file="MultiBatchPooledExample.rda", compression_level=9)
-  }
-  set.seed(1234)
-  mb2 <- as(mb, "MultiBatch")
-  iter(mb2) <- 100
-  burnin(mb2) <- 100
-  max_burnin(mb2) <- 200
-  nStarts(mb2) <- 4
-  pp <- p(chains(mb2))
-  expect_equal(ncol(pp), numBatch(mb2)*k(mb2))
-  mb2 <- posteriorSimulation(mb2)
-  ##mbm <- as(mb2, "MultiBatchModel")
-  ##marginalLikelihood(mbm)
-  ##ml <- tryCatch(marginalLikelihood(mbm, params), warning=function(w) NULL)
-  ##compute_marginal_lik(mb2)
-  ##trace(startingValues2, browser)
-  ##mb.list <- startingValues2(mb2)
-  mb3 <- mcmc2(mb2)
-  ## select tolerance of 3
-  ## - ml should be more stable with more iterations
-  expect_equal(-341, marginal_lik(mb3)[[1]], tolerance=3)
+  mb <- MultiBatchModelExample %>%
+    as("MultiBatch")
+  nStarts(mb) <- 3
+  iter(mb) <- 150
+  burnin(mb) <- 400
+  mbl <- as(mb, "list")
+  lapply(mbl, theta)
+  lapply(mbl, sigma)
+  lapply(mbl, p)
+  mbl <- lapply(mbl, posteriorSimulation)
+  mb <- combineModels(mbl)
+  gr <- mcmcList(mbl) %>%
+    gelman_rubin
+  gr$mpsrf
+  flags(mb)$fails_GR <- gr$mpsrf > 1.2
+  expect_true(!anyWarnings(mb))
 })
+
+
+test_that("Running multiple chains for multiple models", {
+  set.seed(34)
+  data(MultiBatchModelExample)
+  mb <- MultiBatchModelExample %>%
+    as("MultiBatch") %>%
+    "["(sort(sample(seq_len(nrow(.)), 500, replace=TRUE))) %>% {
+    MultiBatchList(data=assays(.),
+                   parameters=parameters(.))
+    }
+  nStarts(mb) <- 1
+  iter(mb) <- 0
+  burnin(mb) <- 500
+  mb2 <- lapply(mb, posteriorSimulation)
+  loglik <- sapply(mb2, log_lik) %>%
+    sort(decreasing=TRUE) %>%
+    head
+  mb3 <- mb2[names(loglik)] %>%
+    listToMultiBatchList
+  ## Might want to specify more iterations here
+  nStarts(mb3) <- 3
+  iter(mb3) <- 150
+  burnin(mb3) <- 300
+  for(i in seq_along(mb3)){
+    cat(".")
+    m <- as(mb3[[i]], "list") %>%
+      posteriorSimulation %>%
+      combineModels
+    fails_gr(m) <- is_high_mpsrf(m)
+    mb3[[i]] <- m
+  }
+  mb3@parameters[["mp"]]@iter <- iter(m)
+  mb4 <- mb3[ !sapply(mb3, anyWarnings) ]
+  ## For marginal likelihood
+  mb4 <- lapply(mb4, compute_marginal_lik)
+})
+
 
 test_that("augment data for MultiBatch", {
   set.seed(123)
@@ -303,60 +325,6 @@ test_that("MultiBatchP <-> MultiBatchPooled", {
   expect_true(all(names(modes(x)) %in% names(modes(x2))))
 })
 
-.test_that <- function(nm, expr) NULL
-
-test_that("Smarter MCMC for MultiBatchList", {
-  library(SummarizedExperiment)
-  data(MultiBatchModelExample)
-  mb <- as(MultiBatchModelExample, "MultiBatch")
-  ##
-  ## beginning of mcmc2
-  ##
-  object <- MultiBatchList(data=assays(mb), burnin=100L,
-                           iter=300L, max_burnin=100L)
-  expect_identical(length(unique(batch(object[["SB3"]]))), 1L)
-  expect_identical(length(unique(batch(object[["MB3"]]))), 3L)
-  sb <- object[["SBP3"]]
-  s <- sigma(sb)
-  expect_identical(dim(s), c(1L, 1L))
-  sb <- object[["MBP3"]]
-  expect_is(sb, "MultiBatchP")
-  s <- sigma(sb)
-  ch <- sigma(chains(sb))
-  expect_identical(dim(s), c(3L, 1L))
-  expect_identical(dim(summaries(sb)[["data.prec"]]), c(3L, 1L))
-  expect_identical(dim(ch), c(iter(sb), nBatch(sb)))
-
-  x <- object[["SBP3"]]
-  expect_is(x, "MultiBatchP")
-  expect_true(validObject(x))
-  x <- object[["MBP3"]]
-  expect_is(x, "MultiBatchP")
-  expect_true(validObject(x))
-
-  mlist <- listModelsByDecreasingK(object)
-  expect_identical(names(mlist), as.character(4:1))
-  s <- sigma(mlist[["3"]][["MBP3"]])
-  expect_identical(dim(s), c(3L, 1L))
-  ##k4 <- fitModelK(mlist[[1]])
-  k3 <- fitModelK(mlist[[2]])
-  if(FALSE) {
-    ggMixture(k3[[1]])
-  }
-  expect_is(k3, "MultiBatchList")
-  expect_true(!any(is.na(marginal_lik(k3))))
-  ## models in list ordered by marginal likelihood
-  expect_true(all(convergence(k3)))
-  expect_true(all(diff(marginal_lik(k3)) < 0))
-  k2 <- fitModelK(mlist[[3]])
-  ##expect_false(convergence(k2))
-  mlist <- list(k3, k2)
-  mlist2 <- as(mlist, "MultiBatchList") 
-  ix <- order(marginal_lik(mlist2), decreasing=TRUE)
-  mlist2 <- mlist2[ix]
-  expect_identical(modelName(mlist2)[1], "MB3")
-})
-
 test_that("augment data from pooled model", {
   data(MultiBatchModelExample)
   mb <- as(MultiBatchModelExample, "MultiBatch")
@@ -398,10 +366,6 @@ test_that("Data not in batch-order", {
   expect_error(as(mb, "MultiBatchList"))
 })
 
-.test_that("augment data and down sample for MultiBatchList", {
-
-})
-
 test_that("Generate a list of candidate copy number models", {
   mb <- MultiBatchModelExample
   mb <- as(mb, "MultiBatch")
@@ -415,77 +379,3 @@ test_that("Generate a list of candidate copy number models", {
   expect_identical(cmap(mb), "012")
 })
 
-test_that("Compute BAF likelihood for each candidate model", {
-  skip("uses external data")
-  library(SummarizedExperiment)
-  mb <- MultiBatchModelExample
-  mb <- as(mb, "MultiBatch")
-  mapping(mb) <- seq_len(k(mb))
-  clist <- CnList(mb)
-  data(cnp_se, package="PancCnvsData2")
-  data(hapmap, package="PancCnvsData2")
-  data(simulation_parameters, package="PancCnvsData2")
-  if(FALSE){
-    ## sanity check
-    dat <- left_join(hapmap[["b"]], hapmap$truth, by="id")
-    ggplot(dat, aes(cn, baf)) +
-      geom_jitter(width=0.1)
-  }
-  experiment <- simulation_parameters[1, ]
-  set.seed(132)
-  set.seed(experiment$seed[1])
-  hdat <- simulateBatchEffect(hapmap, experiment)
-  gr <- rowRanges(cnp_se)["CNP_057"]
-  snpdat <- hapmapSummarizedExperiment(hapmap, gr)
-  snpdat <- snpdat[, hdat$id]
-  expect_identical(colnames(snpdat), hdat$id)
-  if(FALSE){
-    ## sanity check
-    ggplot(hdat, aes(cn, baf)) +
-      geom_jitter(width=0.1)
-  }
-  colnames(hdat)[1] <- "provisional_batch"
-  colnames(hdat)[6] <- "true_batch"
-  mb <- MultiBatch(data=hdat, burnin=150L,
-                   iter=200L, max_burnin=150L) %>%
-    findSurrogates(0.001)
-  snpdat2 <- snpdat[, id(mb)]
-  expect_identical(id(mb), colnames(snpdat2))
-  mb <- MultiBatchList(data=assays(mb),
-                       mp=mcmcParams(mb),
-                       iter=100L,
-                       burnin=100L,
-                       max_burnin=150L)
-  mlist <- mcmc2(mb)
-  ix <- grep("augment_", id(mlist))
-  expect_identical(assays(mlist), assays(mb))
-  if(FALSE){
-    ggMixture(mlist[[1]])
-  }
-  mb3 <- mlist[[1]]
-  expect_identical(modelName(mb3), "MB3")
-  tmp <- isAugmented(mb3)
-  expect_equal(sum(!tmp), 990L)
-  clist <- CnList(mb3)
-  expect_equal(nrow(clist[[1]]), 990)
-  if(FALSE){
-    dat <- tibble(g=genotypes(snpdat)[1, ],
-                  b=bafs(snpdat)[1, ],
-                  cn=copyNumber(clist[[1]]),
-                  true.cn=true.z) %>%
-      mutate(cn=factor(cn))
-    ggplot(dat, aes(cn, b)) +
-      geom_jitter(width=0.1)
-    ggplot(dat, aes(true.cn, b)) +
-      geom_jitter(width=0.1)
-  }
-  blik <- modelProb(clist[[1]], snpdat2)
-  expect_true(blik > -20)
-  stats <- baf_loglik(clist, snpdat2)
-  ## model fit looks good, but mapping by baf_loglik does not
-  expect_identical(stats$cn.model[1], "0,1,2")
-  mb3 <- mb3[!isAugmented(mb3), ]
-  mapping(mb3) <- strsplit(stats$cn.model[1], ",")[[1]]
-  cn <- factor(copyNumber(mb3))
-  pstats <- performanceStats(assays(mb3)$cn, cn)
-})

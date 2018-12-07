@@ -55,7 +55,9 @@ setMethod("augmentData2", "MultiBatchList", function(object){
   ## Running MCMC for SingleBatch model to find posterior predictive distribution
   ##
   message("Checking whether possible homozygous deletions occur in only a subset of batches...")
+  iter(SB) <- max(iter(object), 150L)
   SB <- posteriorSimulation(SB)
+  modes(SB) <- computeModes(SB)
   mn.sd <- c(theta(SB)[1], sigma(SB)[1])
   limits <- mn.sd[1] + c(-1, 1)*2*mn.sd[2]
   ## record number of observations in each batch that are within 2sds of the mean
@@ -64,6 +66,7 @@ setMethod("augmentData2", "MultiBatchList", function(object){
     summarize(n = sum(oned < limits[[2]]))
   nzero <- sum(freq.del$n == 0)
   if(nzero == 0 || nzero == nrow(freq.del)){
+    assays(object)$is_simulated <- FALSE
     return(object)
   }
   ## else:  some of the batches are likely missing observations in the first component
@@ -84,7 +87,8 @@ setMethod("augmentData2", "MultiBatchList", function(object){
            id=paste0("augment_", seq_len(nrow(.)))) %>%
     select(c(id, oned, batch))
   newdat <- bind_rows(assays(object), pred) %>%
-    arrange(batch)
+    arrange(batch) %>%
+    mutate(is_simulated = seq_len(nrow(.)) %in% grep("augment_", id))
   mbl <- MultiBatchList(data=newdat,
                         parameters=parameters(object))
   mbl

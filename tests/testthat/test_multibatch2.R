@@ -92,7 +92,7 @@ test_that("working with lists of models", {
   ##
   ## Turn one specific model (e.g., MB3) into a list with multiple chains
   mb.list <- as(mb, "list")
-  expect_is(mb.list[[1]], "MultiBatchModel")
+  expect_is(mb.list[[1]], "MultiBatch")
   ## each element of the list should have nStarts set to 1
   expect_identical(nStarts(mb.list[[1]]), 1L)
   expect_identical(length(mb.list), nStarts(mb))
@@ -107,8 +107,9 @@ test_that("working with lists of models", {
   ##
   ## old approach
   ##trace(combine_batch, browser)
-  tmp <- combine_batch(mb.list, batches=1L)
-  expect_is(tmp, "MultiBatchModel")
+  ##tmp <- combine_batch(mb.list, batches=1L)
+  tmp <- combineModels(mb.list)
+  expect_is(tmp, "MultiBatch")
   ch <- chains(tmp)
   ch2 <- combineChains(mb.list)
   expect_identical(ch, ch2)
@@ -306,7 +307,7 @@ test_that("Pooled model", {
                      burnin=200)
   ## does NOT move to region of high posterior probability quickly
   tmp <- posteriorSimulation(mb1)
-  ##expect_false(all.equal(theta(tmp), theta(mb), tolerance=0.02))
+  expect_true(all.equal(theta(tmp), theta(mb), tolerance=0.02))
 })
 
 test_that("Plotting", {

@@ -10,6 +10,7 @@
 \alias{ggMixture,MultiBatch-method}
 \alias{ggMixture,MultiBatchPooled-method}
 \alias{ggChains,MultiBatchModel-method}
+\alias{ggChains,MultiBatch-method}
 \alias{ggChains,MultiBatchPooled-method}
 \title{Trace plots of MCMC chains and mixture model densities}
 \usage{
@@ -28,6 +29,8 @@ ggMixture(model, bins = 100)
 \S4method{ggMixture}{MultiBatchPooled}(model, bins = 100)
 
 \S4method{ggChains}{MultiBatchModel}(model)
+
+\S4method{ggChains}{MultiBatch}(model)
 
 \S4method{ggChains}{MultiBatchPooled}(model)
 }

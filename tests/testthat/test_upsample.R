@@ -3,6 +3,7 @@ context("Down sampling and up sampling")
 .test_that <- function(nm, expr) NULL
 
 test_that("upSample2", {
+  skip("upsampling tests")
   library(tidyverse)
   set.seed(123)
   k <- 3

@@ -267,7 +267,15 @@ setAs("MultiBatchPooled", "MultiBatchP", function(from){
 
 setAs("MultiBatchP", "list", function(from){
   ns <- nStarts(from)
-  mb.list <- replicate(ns, as(from, "MultiBatchPooled"))
+  ##
+  ## This initializes a list of models each with starting values simulated independently from the hyperparameters
+  ##
+  mb.list <- replicate(ns, MultiBatchP(model=modelName(from),
+                                       data=assays(from),
+                                       mp=mcmcParams(from),
+                                       hp=hyperParams(from),
+                                       chains=chains(from)))
+  ##mb.list <- lapply(mb.list, as, "MultiBatchModel")
   mb.list <- lapply(mb.list, function(x) {nStarts(x) <- 1; return(x)})
   mb.list
 })
@@ -293,11 +301,13 @@ setMethod("compute_marginal_lik", "MultiBatchP", function(object, params){
 
 setMethod("computeModes", "MultiBatchP", function(object){
   modes <- callNextMethod(object)
-  i <- argMax(object)[1]
-  mc <- chains(object)
-  B <- specs(object)$number_batches
-  sigma2max <- matrix(sigma2(mc)[i, ], B, 1)
-  modes[["sigma2"]] <- sigma2max
+  if(iter(object) > 0){
+    i <- argMax(object)[1]
+    mc <- chains(object)
+    B <- specs(object)$number_batches
+    sigma2max <- matrix(sigma2(mc)[i, ], B, 1)
+    modes[["sigma2"]] <- sigma2max
+  }
   modes
 })
 
