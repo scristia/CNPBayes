@@ -155,14 +155,19 @@ setAs("MultiBatch", "MultiBatchP", function(from){
     s$data.prec <- matrix(rowMeans(s[["data.prec"]]),
                           numBatch(from),
                           1)
+  } else {
+    s$data.prec <- 1/m[["sigma2"]]
+  }
+  if(all(is.na(s$data.mean))){
+    s$data.mean <- theta(from)
   }
   ch <- chains(from)
   sigma2(ch) <- matrix(as.numeric(NA),
                        iter(from),
                        numBatch(from))
   if(numBatch(from) > 1){
-    specs(from)$model <- "MBP"
-  }else specs(from)$model <- "SBP"
+    specs(from)$model <- paste0("MBP", k(from))
+  }else specs(from)$model <- paste0("SBP", k(from))
   model <- new("MultiBatchP",
                data=assays(from),
                specs=specs(from),
@@ -270,13 +275,16 @@ setAs("MultiBatchP", "list", function(from){
   ##
   ## This initializes a list of models each with starting values simulated independently from the hyperparameters
   ##
+  mp <- mcmcParams(from)
+  nStarts(mp) <- 1L
+  ## the starts will be independent by not transferring current_values
   mb.list <- replicate(ns, MultiBatchP(model=modelName(from),
                                        data=assays(from),
-                                       mp=mcmcParams(from),
+                                       mp=mp,
                                        hp=hyperParams(from),
-                                       chains=chains(from)))
-  ##mb.list <- lapply(mb.list, as, "MultiBatchModel")
-  mb.list <- lapply(mb.list, function(x) {nStarts(x) <- 1; return(x)})
+                                       chains=chains(from),
+                                       summaries=summaries(from),
+                                       current_values=current_values(from)))
   mb.list
 })
 

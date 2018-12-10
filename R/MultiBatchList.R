@@ -545,7 +545,8 @@ listToMultiBatchList <- function(x){
                       kk,
                       data=dat)
   current_vals <- extractFromModelList(x, current_values)
-  summary.list <- extractFromModelList(x, summaries)
+  ##summary.list <- extractFromModelList(x, summaries)
+  summary.list <- extractFromModelList(x, summarizeModel)
   chains.list <- extractFromModelList(x, chains)
   flag.list <- extractFromModelList(x, flags)
   params <- parameters(x[[1]])
