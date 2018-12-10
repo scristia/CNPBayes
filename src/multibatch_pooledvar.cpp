@@ -286,7 +286,7 @@ Rcpp::IntegerVector z_multibatch_pvar(Rcpp::S4 xmod) {
   int B = theta.nrow() ;
   int n = x.size() ;
   NumericMatrix p(n, K);
-  p = multinomialPr_multibatch_pvar(xmod) ;
+  p = multinomialPr_multibatch_pvar(model) ;
   //NumericMatrix cumP(n, K) ;
   //  Make more efficient?
   //return cumP ;

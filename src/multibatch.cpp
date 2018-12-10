@@ -360,7 +360,7 @@ Rcpp::IntegerVector update_z(Rcpp::S4 xmod) {
   int B = theta.nrow() ;
   int n = x.size() ;
   NumericMatrix p(n, K);
-  p = update_multinomialPr(xmod) ;
+  p = update_multinomialPr(model) ;
   //NumericMatrix cumP(n, K) ;
   //  Make more efficient
   //return cumP ;
@@ -388,9 +388,9 @@ Rcpp::IntegerVector update_z(Rcpp::S4 xmod) {
   //
   // Don't update z if there are states with zero frequency.
   //
-  int counter = model.slot(".internal.counter");
+  int counter = xmod.slot(".internal.counter");
   counter++;
-  model.slot(".internal.counter") = counter;
+  xmod.slot(".internal.counter") = counter;
   return model.slot("z") ;
 }
 
