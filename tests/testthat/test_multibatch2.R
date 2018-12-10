@@ -20,6 +20,22 @@ test_that("revised_constructors", {
   expect_true(validObject(sb))
   mb2 <- as(sb, "MultiBatch")
   mb2 <- posteriorSimulation(mb2)
+
+  iter(mb2) <- 0
+  burnin(mb2) <- 25
+  mb2 <- posteriorSimulation(mb2)
+  nStarts(mb2) <- 3
+
+  mb3 <- as(mb2, "list")
+  posteriorSimulation(mb3[[1]])
+
+  mbp <- as(mb2, "MultiBatchP")
+  mb.list <- as(mbp, "list")
+  lapply(mb.list, posteriorSimulation)
+  iter(mbp) <- 10
+  mb.list <- as(mbp, "list") %>%
+    lapply(posteriorSimulation)
+
   expect_true(validObject(mb2))
   m <- computeModes(mb2)
   dat <- assays(mb2)
@@ -394,3 +410,5 @@ test_that("likelihood for pooled variance model", {
   logl <- loglik_multibatch_pvar(mbp)
   expect_equal(logl, -124, tolerance=1)
 })
+
+

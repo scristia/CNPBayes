@@ -993,14 +993,28 @@ setGeneric("sigma_<-", function(object, value) standardGeneric("sigma_<-"))
 setGeneric("flags", function(object) standardGeneric("flags"))
 setGeneric("flags<-", function(object, value) standardGeneric("flags<-"))
 setGeneric("current_values<-", function(object, value) standardGeneric("current_values<-"))
+
+#' @export
 setGeneric("current_values", function(object, value) standardGeneric("current_values"))
+
+#' @export
+setGeneric("current_values2<-", function(object, value) standardGeneric("current_values2<-"))
+#' @export
+setGeneric("current_values2", function(object, value) standardGeneric("current_values2"))
+
 setGeneric("u<-", function(object, value) standardGeneric("u<-"))
 
 #' @export
 setGeneric("parameters", function(object) standardGeneric("parameters"))
 setGeneric("parameters<-", function(object, value) standardGeneric("parameters<-"))
+
+#' @export
 setGeneric("summaries", function(object) standardGeneric("summaries"))
 setGeneric("summaries<-", function(object, value) standardGeneric("summaries<-"))
+
+setGeneric("summaries2", function(object) standardGeneric("summaries2"))
+setGeneric("summaries2<-", function(object, value) standardGeneric("summaries2<-"))
+
 setGeneric("dataSd", function(object) standardGeneric("dataSd"))
 
 #' @export
@@ -1014,6 +1028,8 @@ setGeneric("probability_z", function(object) standardGeneric("probability_z"))
 setGeneric("mcmc2", function(object, guide) standardGeneric("mcmc2"))
 setGeneric("setModes", function(object) standardGeneric("setModes"))
 setGeneric("upsample_z", function(object) standardGeneric("upsample_z"))
+
+#' @export
 setGeneric("specs", function(object) standardGeneric("specs"))
 setGeneric("specs<-", function(object, value) standardGeneric("specs<-"))
 setGeneric("downSampleModel", function(object, N, i) standardGeneric("downSampleModel") )

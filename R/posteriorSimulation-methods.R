@@ -64,6 +64,7 @@ posteriorSimulationNoMendel <- function(object){
   post
 }
 
+#' @export
 anyWarnings <- function(object){
   fl <- flags(object)
   fl2 <- sapply(fl, as.logical)
@@ -107,6 +108,7 @@ setMethod("posteriorSimulation", "MixtureModel", function(object){
 })
 
 setMethod("runBurnin", "MultiBatchModel", function(object){
+  ##browser()
   cpp_burnin(object)
 })
 
@@ -150,8 +152,8 @@ setMethod("posteriorSimulation", "MultiBatch", function(object){
   mbm <- sortComponentLabels(mbm)
   mbm <- runMcmc(mbm)
   if(!isOrdered(mbm)) label_switch(mbm) <- TRUE
-  modes(mbm) <- computeModes(mbm)
   mb <- revertBack(object, mbm)
+  summaries(mb) <- summarizeModel(mb)
   return(mb)
 })
 
@@ -162,7 +164,7 @@ setMethod("posteriorSimulation", "MultiBatchP", function(object){
   mbm <- runMcmc(mbm)
   label_switch(mbm) <- !isOrdered(mbm)
   mb <- revertBack(object, mbm)
-  modes(mb) <- computeModes(mb)
+  summaries(mb) <- summarizeModel(mb)
   return(mb)
 })
 
@@ -191,6 +193,3 @@ setMethod("posteriorSimulation", "TrioBatchModel", function(object){
   object <- runMcmc(object)
   object
 })
-
-
-

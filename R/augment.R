@@ -46,6 +46,7 @@ setMethod("augmentData2", "MultiBatchList", function(object){
   sp <- specs(object) %>%
     filter(k == 3 & substr(model, 1, 2) == "MB")
   if(nrow(sp) == 0) return(object)
+  sp <- sp[1, ]
   object2 <- object[ specs(object)$model %in% sp$model ]
   ix <- order(specs(object2)$k, decreasing=FALSE)
   ## order models by number of components.
@@ -58,33 +59,44 @@ setMethod("augmentData2", "MultiBatchList", function(object){
   iter(SB) <- max(iter(object), 150L)
   SB <- posteriorSimulation(SB)
   modes(SB) <- computeModes(SB)
+  SB <- setModes(SB)
   mn.sd <- c(theta(SB)[1], sigma(SB)[1])
   limits <- mn.sd[1] + c(-1, 1)*2*mn.sd[2]
   ## record number of observations in each batch that are within 2sds of the mean
   freq.del <- assays(object) %>%
     group_by(batch) %>%
     summarize(n = sum(oned < limits[[2]]))
-  nzero <- sum(freq.del$n == 0)
-  if(nzero == 0 || nzero == nrow(freq.del)){
+  fewobs <- freq.del$n <= 2
+  iszero <- freq.del$n == 0
+  if( all(iszero) ){
+    ## no homozygous deletions
     assays(object)$is_simulated <- FALSE
     return(object)
   }
-  ## else:  some of the batches are likely missing observations in the first component
-  ## Augment data with 10 observations to allow fitting this data
+  if( !any(fewobs) ){
+    ## many homozygous deletions in each batch
+    assays(object)$is_simulated <- FALSE
+    return(object)
+  }
+  ## Some of the batches have 2 or fewer homozygous deletions
+  ## Augment data with 10 observations to allow fitting this component
   ##
   ## - sample a minimum of 10 observations (with replacement) from the posterior predictive distribution of the other batches
   ##
-  zerobatch <- freq.del$batch[ freq.del$n == 0 ]
+  batches <- freq.del$batch [ fewobs ]
+  ##zerobatch <- freq.del$batch[ freq.del$n == 0 ]
   dat <- assays(object2[[1]])
   expected_homdel <- modes(SB)[["p"]][1] * table(dat$batch)
-  expected_homdel <- ceiling(expected_homdel [ unique(dat$batch) %in% zerobatch ])
+  expected_homdel <- ceiling(expected_homdel [ unique(dat$batch) %in% batches ])
   nsample <- pmax(10L, expected_homdel)
   pred <- predictiveTibble(SB) %>%
-    filter(!(batch %in% zerobatch)  & component == 0) %>%
+    ##filter(!(batch %in% batches)  & component == 0) %>%
+    filter(component == 0) %>%
     "["(sample(seq_len(nrow(.)), sum(nsample), replace=TRUE), ) %>%
     select(oned) %>%
-    mutate(batch=rep(zerobatch, nsample),
-           id=paste0("augment_", seq_len(nrow(.)))) %>%
+    mutate(batch=rep(batches, nsample),
+           id=paste0("augment_", seq_len(nrow(.))),
+           oned=oned+rnorm(nrow(.), 0, mn.sd[2])) %>%
     select(c(id, oned, batch))
   newdat <- bind_rows(assays(object), pred) %>%
     arrange(batch) %>%

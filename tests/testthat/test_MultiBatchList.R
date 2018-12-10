@@ -134,6 +134,7 @@ test_that("Running multiple chains for multiple models", {
     MultiBatchList(data=assays(.),
                    parameters=parameters(.))
     }
+  orig <- mb[["MB2"]]
   nStarts(mb) <- 1
   iter(mb) <- 0
   burnin(mb) <- 500
@@ -156,9 +157,18 @@ test_that("Running multiple chains for multiple models", {
     mb3[[i]] <- m
   }
   mb3@parameters[["mp"]]@iter <- iter(m)
-  mb4 <- mb3[ !sapply(mb3, anyWarnings) ]
+  mb4 <- mb3[ !sapply(mb3, anyWarnings) ] %>%
+    compute_marginal_lik
   ## For marginal likelihood
-  mb4 <- lapply(mb4, compute_marginal_lik)
+  x <- mb4[ order(marginal_lik(mb4), decreasing=TRUE) ]
+  ##
+  ## reset the initial model
+  ##
+  mb2 <- reset(orig, x[[1]])
+  expect_true(validObject(mb2))
+  expect_identical(specs(mb2), specs(x[[1]]))
+  expect_identical(summaries2(mb2), summaries2(x[[1]]))
+  expect_identical(current_values2(mb2), current_values2(x[[1]]))
 })
 
 

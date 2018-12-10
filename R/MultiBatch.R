@@ -177,6 +177,9 @@ MultiBatch <- function(model="MB3",
                current_values=current_values,
                summaries=summaries,
                flags=flags)
+  s <- summaries(model)
+  s$modes <- current_values(model)
+  summaries(model) <- s
   model
 }
 
@@ -385,6 +388,7 @@ setMethod("mapping", "MultiBatch", function(object){
   summaries(object)$mapping
 })
 
+
 setReplaceMethod("mapping", "MultiBatch", function(object, value){
   summaries(object)$mapping <- value
   object
@@ -450,6 +454,8 @@ modelData <- function(id=character(),
          is_simulated=is_simulated)
 }
 
+
+#' @export
 setGeneric("isSimulated", function(object) standardGeneric("isSimulated"))
 setMethod("isSimulated", "MultiBatch", function(object){
   assays(object)$is_simulated
@@ -553,15 +559,15 @@ setAs("MultiBatch", "list", function(from){
   ##
   ## This initializes a list of models each with starting values simulated independently from the hyperparameters
   ##
+  mp <- mcmcParams(from)
+  nStarts(mp) <- 1L
   mb.list <- replicate(ns, MultiBatch(model=modelName(from),
                                       data=assays(from),
-                                      mp=mcmcParams(from),
+                                      mp=mp,
                                       hp=hyperParams(from),
-                                      chains=chains(from)))
-  for(i in seq_along(mb.list)){
-    modes(mb.list[[i]]) <- computeModes(mb.list[[i]])
-  }
-  mb.list <- lapply(mb.list, function(x) {nStarts(x) <- 1; return(x)})
+                                      chains=chains(from),
+                                      summaries=summaries(from),
+                                      current_values=current_values(from)))
   mb.list
 })
 
@@ -577,6 +583,38 @@ setAs("MultiBatch", "list", function(from){
 ##
 setMethod("current_values", "MultiBatch", function(object){
   object@current_values
+})
+
+setMethod("current_values2", "MultiBatch", function(object){
+  cv <- object@current_values
+  cv <- cv[ !names(cv) %in% c("u", "z", "probz") ]
+  cv
+})
+
+setReplaceMethod("current_values2", "MultiBatch", function(object, value){
+  object@current_values[ names(value) ] <- value
+  object
+})
+
+setMethod("summaries2", "MultiBatch", function(object){
+  x <- object@summaries
+  m <- x$modes
+  m <- m[ !names(x) %in% c("u", "z", "probz")]
+  x$modes <- m
+  x
+})
+
+setReplaceMethod("summaries2", c("MultiBatch", "list"), function(object, value){
+  x <- object@summaries
+  value_modes <- value$modes
+  value_modes <- value_modes[ !names(value_modes) %in% c("u", "z", "probz") ]
+  x$modes[ names(value_modes) ] <- value_modes
+  nms <- c("data.mean", "data.prec", "marginal_lik",
+           "zfreq", "mapping")
+  x[nms] <- value[ nms ]
+  x <- x[ names(value) ]
+  object@summaries <- x
+  object
 })
 
 setMethod("theta", "MultiBatch", function(object){
@@ -900,6 +938,8 @@ setReplaceMethod("summaries", c("MultiBatch", "list"), function(object, value){
   object@summaries <- value
   object
 })
+
+
 
 setMethod("dataMean", "MultiBatch", function(object){
   summaries(object)[["data.mean"]]
@@ -1564,7 +1604,7 @@ listModelsByDecreasingK <- function(object){
 
 
 .find_surrogates <- function(x, B, THR=0.1){
-  if(length(unique(B))==1) return(B)
+  if(length(unique(B))==1) return(list(pval=1, batches=B))
   B2 <- B
   dat <- tibble(x=x, batch=B) %>%
     group_by(batch) %>%
@@ -1839,7 +1879,7 @@ id2 <- function(object){
   id(object)[!isSimulated(object)]
 }
 
-setMethod("[", "MultiBatch", function(x, i, j, ..., drop=FALSE){
+setMethod("[", c("MultiBatch", "numeric"), function(x, i, j, ..., drop=FALSE){
   x@data <- x@data[i, , drop=FALSE]
   cv <- current_values(x)
   cv$probz <- cv$probz[i, , drop=FALSE]
@@ -1848,16 +1888,23 @@ setMethod("[", "MultiBatch", function(x, i, j, ..., drop=FALSE){
   x@current_values <- cv
   L <- specs(x)$number_batches
   L2 <- length(unique(batch(x)))
-  if( L == L2 ) return(x)
   sp <- specs(x)
   sp$number_batches <- L2
+  sp$number_obs <- length(i)
   specs(x) <- sp
+  if( L == L2 ) return(x)
   current_values(x)[["theta"]] <- computeMeans(x)
   current_values(x)[["sigma2"]] <- 1/computePrec(x)
   summaries(x)[["data.mean"]] <- theta(x)
   summaries(x)[["data.prec"]] <- 1/sigma2(x)
   chains(x) <- initialize_mcmc(k(x), iter(x), numBatch(x))
   assays(x)$batch <- as.integer(factor(batch(x)))
+  x
+})
+
+setMethod("[", c("MultiBatch", "logical"), function(x, i, j, ..., drop=FALSE){
+  i <- which(i)
+  x <- x[i]
   x
 })
 
@@ -1916,3 +1963,59 @@ setReplaceMethod("fails_gr", "MultiBatch", function(object, value){
   flags(object)[["fails_GR"]] <- value
   object
 })
+
+#' @export
+reset <- function(from, to){
+  sp <- specs(to)
+  nsim <- sum(isSimulated(to))
+  sp$number_obs <- nrow(from) + nsim
+  specs(from) <- sp
+  is_pooled <- substr(modelName(to), 1, 3) %in% c("SBP", "MBP") 
+  if(is_pooled){
+    from <- as(from, "MultiBatchP")
+  }
+  if(nsim > 0){
+    dat <- assays(from) %>%
+      mutate(is_simulated=FALSE)
+    simdat <- assays(to)[isSimulated(to), ] %>%
+      select(colnames(dat))
+    dat <- bind_rows(dat, simdat) %>%
+      arrange(batch)
+    assays(from) <- dat
+  } else {
+    assays(from)$is_simulated <- FALSE
+  }
+  B <- numBatch(to)
+  if(B == 1){
+    batch(from) <- 1L
+  }
+  current_values2(from) <- current_values2(to)
+  K <- k(to)
+  df <- dfr(to)
+  current_values(from)$u <- rchisq(nrow(from), df)
+  current_values(from)$probz <- matrix(0, nrow(from), K)
+  summaries2(from) <- summaries2(to)
+  modes(from)$u <- current_values(from)$u
+  modes(from)$probz <- current_values(from)$probz
+  parameters(from) <- parameters(to)
+  if(!is_pooled){
+    chains(from) <- mcmc_chains(sp, parameters(to))
+  } else {
+    chains(from) <- mcmc_chainsP(sp, parameters(to))
+  }
+  from
+}
+
+#' Downsampling will not work well if the range of the downsampled data is not similar to the range of the original data
+#'
+#' @export
+sample2 <- function(mb, N){
+  ix <- sort(sample(seq_len(nrow(mb)), N, replace=TRUE))
+  r <- oned(mb)[ix]
+  minr <- min(r)
+  if(minr > -2 && min(oned(mb)) < -2){
+    ix2 <- which(oned(mb) < -2)
+    ix <- sort(c(ix, ix2))
+  }
+  ix
+}
