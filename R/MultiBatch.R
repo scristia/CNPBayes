@@ -1714,6 +1714,13 @@ setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
     arrange(batch) %>%
     select(c(provisional_batch, batch, batch_labels))  %>%
     filter(!duplicated(provisional_batch))
+  if(any(is.na(dat2$batch))){
+    ## randomly assign to one of available batches
+    nna <- sum(is.na(dat2$batch))
+    ub <- unique(dat2$batch)
+    ub <- ub[!is.na(ub)]
+    dat2$batch[is.na(dat2$batch)] <- sample(ub, nna, replace=TRUE)
+  }
   ##
   ## There is a many to one mapping from provisional_batch to batch
   ## Since each sample belongs to a single plate, samples in the downsampled data will only belong to a single batch

@@ -38,6 +38,24 @@ augmentData <- function(full.data){
   current
 }
 
+useSingleBatchValues <- function(mb, sb){
+  cv.mb <- current_values(mb)
+  cv.sb <- current_values(sb)
+
+  cv.mb$theta <- replicate(numBatch(mb), cv.sb$theta) %>%
+    "["(1,,) %>%
+    t
+  cv.mb$sigma2 <- replicate(numBatch(mb), cv.sb$sigma2) %>%
+    "["(1,,) %>%
+    t
+  cv.mb$p <- replicate(numBatch(mb), cv.sb$p) %>%
+    "["(1,,) %>%
+    t
+  current_values(mb) <- cv.mb
+  modes(mb) <- cv.mb
+  mb
+}
+
 
 setMethod("augmentData2", "MultiBatchList", function(object){
   ##
@@ -52,12 +70,12 @@ setMethod("augmentData2", "MultiBatchList", function(object){
   ## order models by number of components.
   object2 <- object2[ix]
   SB <- toSingleBatch(object2[[1]])
+  iter(SB) <- max(iter(object), 150L)
+  SB <- posteriorSimulation(SB)
   ##
   ## Running MCMC for SingleBatch model to find posterior predictive distribution
   ##
   message("Checking whether possible homozygous deletions occur in only a subset of batches...")
-  iter(SB) <- max(iter(object), 150L)
-  SB <- posteriorSimulation(SB)
   modes(SB) <- computeModes(SB)
   SB <- setModes(SB)
   mn.sd <- c(theta(SB)[1], sigma(SB)[1])
@@ -105,3 +123,99 @@ setMethod("augmentData2", "MultiBatchList", function(object){
                         parameters=parameters(object))
   mbl
 })
+
+
+augmentTest <- function(object){
+  ##
+  ## - only makes sense to do this if multibatch models
+  ##   with 3 or 4 components are included in the list
+  ##
+  ##
+  ## Idea:
+  ##  1. Run SingleBatch independently for each batch
+  ##  2. Assess if there is a potential problem
+  ##     - components with high standard deviation, or models with small standard deviation of thetas
+  ##     - components with very few observations
+  ##  3. If no problems detected, return object
+  ##
+  ##   Unusually high standard deviations
+  ##     - is homozygous deletion component missing?
+  ##       assign well estimated components to theta1 theta2 of theta matrix
+  ##       set theta0 to NA for these batches
+  ##
+  ##   Small standard deviations
+  ##     - set components with most observations to theta 1 theta2 of theta matrix
+  ##     - set theta0 to NA
+  ##  4. Impute missing theta 10 times assuming MVN
+  ##  5. Augment data with the imputed thetas
+  ##
+  mb <- object[["MB3"]]
+  iter(mb) <- max(iter(object), 150L)
+  burnin(mb) <- 0L
+  mbm <- as(mb, "MultiBatchModel")
+  zfreq <- tableBatchZ(mbm)
+  if(any(zfreq == 0)){
+
+  }
+  mb <- posteriorSimulation(mb)
+  ub <- unique(batch(mb))
+  mb.list <- vector("list", length(ub))
+  for(i in seq_along(ub)){
+    B <- ub[i]
+    mb2 <- mb[ batch(mb) == B ]
+    mb.list[[i]] <- posteriorSimulation(mb2)
+  }
+  th <- lapply(mb.list, theta) %>%
+    do.call(rbind, .) %>%
+    round(2)
+  sds <- lapply(mb.list, sigma) %>%
+    do.call(rbind, .) %>%
+    round(2)
+  zz <- lapply(mb.list, function(x) table(z(x))) %>%
+    do.call(rbind, .)
+
+  r1 <- order(rowSds(th), decreasing=TRUE)
+
+  batchfreq <- table(batch(object))
+  B <- which(batchfreq==max(batchfreq))[[1]]
+  mb <- object[["MB3"]]
+  sb <- mb[ batch(mb) == B ]
+  iter(mb) <- iter(sb) <- max(iter(object), 150L)
+  sb <- posteriorSimulation(sb)
+  modes(sb) <- computeModes(sb)
+  sb <- setModes(sb)
+  MB <- useSingleBatchValues(mb=mb, sb=sb)
+  mbm <- as(MB, "MultiBatchModel")
+  z(mbm) <- update_z(mbm)
+  zfreq <- tableBatchZ(mbm)
+  if(any(zfreq)==0){
+    
+  }
+  MB <- posteriorSimulation(MB)
+  modes(MB) <- computeModes(MB)
+  MB <- setModes(MB)
+  sds <- sigma(MB)
+  th <- theta(MB)
+  fc <- sds[, 1]/min(sds[, 1])
+  if(!any(fc > 2.5 )) {
+    assays(object)$is_simulated <- FALSE
+    return(object)
+  }
+  if(any(fc > 2.5)){
+    th1 <- th[, 1]
+    th1[ fc > 2.5 ] <- NA
+    th[, 1] <- NA
+
+    th.imputed <- replicate(10, Impute, simplify=FALSE)
+    th.imputed2 <- lapply(th.imputed, function(x) x$yimp[, 1]) %>%
+      do.call(cbind, .)
+    th.imputed <- th.imputed2[which(is.na(th1)), drop=FALSE]
+  }
+  dat <- assays(object[[1]])
+  newdat <- bind_rows(assays(object), pred) %>%
+    arrange(batch) %>%
+    mutate(is_simulated = seq_len(nrow(.)) %in% grep("augment_", id))
+  mbl <- MultiBatchList(data=newdat,
+                        parameters=parameters(object))
+  mbl
+}

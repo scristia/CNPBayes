@@ -242,23 +242,68 @@ simulateBatchEffect <- function(hap.list,
                                  nplates,
                                  replace=TRUE,
                                  prob=c(0.5, 0.5)))
-  r2 <- left_join(r, batches, by="plate") %>%
-    ungroup() %>%
+
+
+  ## probe-level data with batch effect
+  r3 <- left_join(hap.list[["r"]], batches, by="plate") %>%
+    left_join(hap.list[["truth"]], by="id") %>%
     mutate(mu=cn.stats$mu[ as.integer(cn)] ,
            delta=ifelse(batch==0, 0, shift),
-           centered=oned-mu) %>%
+           centered=lrr-mu) %>%
     mutate(rescaled=centered*scale + mu,
-           raw=oned,
-           oned=rescaled + rnorm(nrow(.), delta, 0.02)) %>%
-    select(c(plate, id, oned, raw, cn, batch))
+           lrr.star=rescaled + rnorm(nrow(.), delta, 0.02))
+  r3
+}
+
+
+#' @export
+meanSummaryBatchEffect <- function(hap.list, probe.level){
+  r4 <- probe.level %>%
+    group_by(plate, id) %>%
+    summarize(oned=mean(lrr.star, na.rm=TRUE),
+              true_batch=unique(batch)) %>%
+    left_join(hap.list[["truth"]], by="id") %>%
+    ungroup
   b <- hap.list[["b"]] %>%
     select(-probe)
   g <- hap.list[["g"]] %>%
     select(-probe)
-  r3 <- left_join(r2, b, by=c("id", "plate")) %>%
-    left_join(g, by=c("id", "plate"))
-  r3
+  r5 <- left_join(r4, b, by=c("id", "plate")) %>%
+    left_join(g, by=c("id", "plate")) %>%
+    mutate(provisional_batch=plate)
+  r5
 }
+
+#' @export
+pcaSummaryBatchEffect <- function(hap.list, probe.level){
+  probe.level2 <- probe.level %>%
+  select(c("probe", "id", "lrr.star")) %>%
+  spread(id, lrr.star)
+  probe.level3 <- select(probe.level2, -probe) %>%
+    as.matrix
+  rownames(probe.level3) <- probe.level2$probe
+  pc1 <- prcomp(t(probe.level3), scale=TRUE)$x[, 1]
+  medians <- colMedians(probe.level3)
+  pc1 <- sign(cor(medians, pc1))*pc1
+  tib <- tibble(oned=pc1, id=colnames(probe.level3))
+
+  r4 <- probe.level %>%
+    group_by(plate, id) %>%
+    summarize(true_batch=unique(batch)) %>%
+    left_join(hap.list[["truth"]], by="id") %>%
+    ungroup
+  r4 <- left_join(r4, tib, by="id")
+  b <- hap.list[["b"]] %>%
+    select(-probe)
+  g <- hap.list[["g"]] %>%
+    select(-probe)
+  r5 <- left_join(r4, b, by=c("id", "plate")) %>%
+    left_join(g, by=c("id", "plate")) %>%
+    mutate(provisional_batch=plate)
+  r5
+}
+
+
   ##number.plates <- sum(batches == 0)
   ##  n.plate <- sapply(lrr.batch, ncol)
   ##  plates <- factor(rep(names(lrr.batch), n.plate),

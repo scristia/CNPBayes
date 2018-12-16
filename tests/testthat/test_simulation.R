@@ -80,7 +80,7 @@ test_that("simulations in manuscript", {
 })
 
 test_that("Compute BAF likelihood for each candidate model", {
-  skip("uses external data")
+  ##skip("uses external data")
   library(SummarizedExperiment)
   mb <- MultiBatchModelExample
   mb <- as(mb, "MultiBatch")
@@ -98,8 +98,9 @@ test_that("Compute BAF likelihood for each candidate model", {
   experiment <- simulation_parameters[1, ]
   set.seed(132)
   set.seed(experiment$seed[1])
-  hdat <- simulateBatchEffect(hapmap, experiment) %>%
+  probe.level <- simulateBatchEffect(hapmap, experiment) %>%
     mutate(is_simulated=FALSE)
+  hdat <- meanSummaryBatchEffect(hapmap, probe.level)
   gr <- rowRanges(cnp_se)["CNP_057"]
   snpdat <- hapmapSummarizedExperiment(hapmap, gr)
   snpdat <- snpdat[, hdat$id]
@@ -109,8 +110,6 @@ test_that("Compute BAF likelihood for each candidate model", {
     ggplot(hdat, aes(cn, baf)) +
       geom_jitter(width=0.1)
   }
-  colnames(hdat)[1] <- "provisional_batch"
-  colnames(hdat)[6] <- "true_batch"
   mb <- MultiBatch(data=hdat, burnin=150L,
                    iter=200L, max_burnin=150L) %>%
     findSurrogates(0.001) %>% {
@@ -145,7 +144,9 @@ test_that("Compute BAF likelihood for each candidate model", {
   if(FALSE){
     ggMixture(mlist[[1]])
   }
-  mb3 <- mb2[ !sapply(mb2, anyWarnings) ]
+  mb3 <- mb2[ !sapply(mb2, anyWarnings) ] %>%
+    compute_marginal_lik
+  mb3 <- mb3[ order(marginal_lik(mb3), decreasing=TRUE) ]
   ## rank by marginal likelihood or proceed?
   expect_identical(k(mb3)[1], 3L)
   tmp <- isAugmented(mb3)
@@ -178,7 +179,7 @@ test_that("Compute BAF likelihood for each candidate model", {
 
 
 test_that("More challenging simulation", {
-  skip("uses external data")
+  ##skip("uses external data")
   library(SummarizedExperiment)
   mb <- MultiBatchModelExample
   mb <- as(mb, "MultiBatch")
@@ -196,8 +197,9 @@ test_that("More challenging simulation", {
   experiment <- simulation_parameters[200, ]
   set.seed(132)
   set.seed(experiment$seed[1])
-  hdat <- simulateBatchEffect(hapmap, experiment) %>%
+  probe.level <- simulateBatchEffect(hapmap, experiment) %>%
     mutate(is_simulated=FALSE)
+  hdat <- meanSummaryBatchEffect(hapmap, probe.level)
   gr <- rowRanges(cnp_se)["CNP_057"]
   snpdat <- hapmapSummarizedExperiment(hapmap, gr)
   snpdat <- snpdat[, hdat$id]
@@ -207,8 +209,6 @@ test_that("More challenging simulation", {
     ggplot(hdat, aes(cn, baf)) +
       geom_jitter(width=0.1)
   }
-  colnames(hdat)[1] <- "provisional_batch"
-  colnames(hdat)[6] <- "true_batch"
   mb <- MultiBatch(data=hdat, burnin=150L,
                    iter=200L, max_burnin=150L) %>%
     findSurrogates(0.001) %>% {
@@ -264,7 +264,174 @@ test_that("More challenging simulation", {
   stats <- baf_loglik(clist, snpdat2)
   mapping(mb4) <- strsplit(stats$cn.model[1], ",")[[1]]
   model.cn <- factor(copyNumber(mb4))
-  trace(performanceStats, browser)
+  ##trace(performanceStats, browser)
   pstats <- performanceStats(assays(mb4)$cn, model.cn)
   expect_true(sum(pstats$incorrect) < 3)
 })
+
+test_that("Most challenging simulation", {
+  ##skip("uses external data")
+  library(SummarizedExperiment)
+  mb <- MultiBatchModelExample
+  mb <- as(mb, "MultiBatch")
+  mapping(mb) <- seq_len(k(mb))
+  clist <- CnList(mb)
+  data(cnp_se, package="PancCnvsData2")
+  data(hapmap, package="PancCnvsData2")
+  data(simulation_parameters, package="PancCnvsData2")
+  if(FALSE){
+    ## sanity check
+    dat <- left_join(hapmap[["b"]], hapmap$truth, by="id")
+    ggplot(dat, aes(cn, baf)) +
+      geom_jitter(width=0.1)
+  }
+  experiment <- simulation_parameters[300, ]
+  set.seed(132)
+  set.seed(experiment$seed[300])
+  probe.level <- simulateBatchEffect(hapmap, experiment) %>%
+    mutate(is_simulated=FALSE)
+  hdat <- meanSummaryBatchEffect(hapmap, probe.level)
+  gr <- rowRanges(cnp_se)["CNP_057"]
+  snpdat <- hapmapSummarizedExperiment(hapmap, gr)
+  snpdat <- snpdat[, hdat$id]
+  expect_identical(colnames(snpdat), hdat$id)
+  if(FALSE){
+    ## sanity check
+    ggplot(hdat, aes(cn, baf)) +
+      geom_jitter(width=0.1)
+  }
+  mb <- MultiBatch(data=hdat, burnin=150L,
+                   iter=200L, max_burnin=150L) %>%
+    findSurrogates(0.001) %>% {
+    MultiBatchList(data=assays(.),
+                   parameters=parameters(.))
+    }%>%
+    augmentTest
+  snpdat2 <- snpdat[, id2(mb)]
+  expect_identical(id2(mb), colnames(snpdat2))
+  nStarts(mb) <- 1
+  iter(mb) <- 0
+  burnin(mb) <- 500
+  mb <- lapply(mb, posteriorSimulation)
+  loglik <- sapply(mb, log_lik) %>%
+    sort(decreasing=TRUE) %>%
+    head
+  mb2 <- mb[names(loglik)] %>%
+    listToMultiBatchList
+  nStarts(mb2) <- 3
+  iter(mb2) <- 150
+  burnin(mb2) <- 300
+  for(i in seq_along(mb2)){
+    cat(".")
+    m <- as(mb2[[i]], "list") %>%
+      posteriorSimulation %>%
+      combineModels
+    fails_gr(m) <- is_high_mpsrf(m)
+    mb2[[i]] <- m
+  }
+  if(FALSE){
+    ggMixture(mlist[[1]])
+    tmp <- mb2[["MB3"]]
+    tmp <- tmp[!isSimulated(tmp)]
+    th <- theta(tmp)
+    sds <- sigma(tmp)
+    fc <- sds[, 1]/min(sds[, 1])
+    th1 <- th[, 1]
+    th1[ fc > 2.5 ] <- NA
+    th[, 1] <- th1
+    yy <- replicate(10, Impute(th), simplify=FALSE)
+    th.imputed <- lapply(yy, function(x) x$yimp[, 1]) %>%
+      do.call(cbind, .)
+
+    library(GGally)
+    ggpairs(th)
+    th2 <- gather(th, "theta", "mean")
+    sds2 <- gather(sds, "sigma", "sd")
+    library(dplyr)
+    mvn <- bind_cols(th2, sds2) %>%
+      mutate(component=rep(seq_len(k(tmp)), each=numBatch(tmp)))
+    
+
+  }
+
+  ggMixture(tmp)
+  mb3 <- mb2[ !sapply(mb2, anyWarnings) ] %>%
+    compute_marginal_lik
+  ## rank by marginal likelihood or proceed?
+  mb4 <- mb3[ order(marginal_lik(mb3), decreasing=TRUE) ]
+  mb4 <- mb4[[1]][!isSimulated(mb4)]
+  clist <- CnList(mb4)
+  expect_equal(nrow(clist[[1]]), 990)
+  if(FALSE){
+    ## sanity check
+    identical(id(mb4), colnames(snpdat2))
+    dat <- tibble(g=genotypes(snpdat2)[1, ],
+                  b=bafs(snpdat2)[1, ],
+                  cn=copyNumber(clist[[1]]),
+                  true.cn=assays(mb4)$cn) %>%
+      mutate(cn=factor(cn))
+    ggplot(dat, aes(cn, b)) +
+      geom_jitter(width=0.1)
+    ggplot(dat, aes(true.cn, b)) +
+      geom_jitter(width=0.1)
+  }
+  stats <- baf_loglik(clist, snpdat2)
+  mapping(mb4) <- strsplit(stats$cn.model[1], ",")[[1]]
+  model.cn <- factor(copyNumber(mb4))
+  ##trace(performanceStats, browser)
+  pstats <- performanceStats(assays(mb4)$cn, model.cn)
+  expect_true(sum(pstats$incorrect) < 3)
+})
+
+test_that("Rare homozygous deletion exacerbated by batching samples", {
+  library(tidyverse)
+  p2 <- 0.01
+  twopq <- 2*sqrt(p2)*(1-sqrt(p2))
+  q2 <- (1-sqrt(p2))^2
+  ps <- matrix(c(p2, twopq, q2),
+               4, 3, byrow=TRUE) %>%
+    "/"(rowSums(.))
+  dat <- tibble(z=sample(1:3, 500, prob=c(p2, twopq, q2), replace=TRUE),
+                batch=sort(sample(1:4, 500, prob=rep(1/4, 4),
+                                  replace=TRUE)))
+  table(dat$z, dat$batch)
+  thetas <- rbind(c(-2, -0.5, 0),
+                  c(-2.5, -0.7, -0.1),
+                  c(-1.8, -0.3, 0.1),
+                  c(-1.9, -0.4, 0))
+  sigmas <- matrix(rep(0.05, 3), 4, 3, byrow=TRUE)
+  mb <- simulateBatchData(500, p=ps, theta=thetas, sds=sigmas,
+                          batch=dat$batch,
+                          zz=dat$z) %>%
+    as("MultiBatch")
+  assays(mb)$z <- dat$z
+  table(batch(mb), assays(mb)$z)
+
+  sb <- toSingleBatch(mb)
+  iter(sb) <- 200
+  burnin(sb) <- 150
+  sb <- posteriorSimulation(sb)
+  object <- mb
+  modes(sb) <- computeModes(sb)
+  sb <- setModes(sb)
+  sds <- sigma(sb)
+  fc <- sds/min(sds)
+  mn.sd <- c(theta(sb)[1], min(sigma(sb)))
+
+  limits <- mn.sd[1] + c(-1, 1)*2*mn.sd[2]
+  freq.del <- assays(object) %>%
+    group_by(batch) %>%
+    summarize(n = sum(oned < limits[[2]]))
+  fewobs <- freq.del$n <= 2
+  iszero <- freq.del$n == 0
+  expect_false(all(iszero))
+  expect_false(!any(fewobs))
+  ## at this point, we've established that hom dels are likely in some batches
+  ## but not all
+  ## -fit k=3 model to batches with homdels
+  ## -fit k=2 model to batches with <=2 homdels
+  ## - extract thetas and impute missing
+  ## - augment data
+  ## - fit multibatch model
+})
+

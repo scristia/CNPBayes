@@ -152,6 +152,7 @@ setMethod("posteriorSimulation", "MultiBatch", function(object){
   mbm <- sortComponentLabels(mbm)
   mbm <- runMcmc(mbm)
   if(!isOrdered(mbm)) label_switch(mbm) <- TRUE
+  mbm <- sortComponentLabels(mbm)
   mb <- revertBack(object, mbm)
   summaries(mb) <- summarizeModel(mb)
   return(mb)
@@ -163,6 +164,7 @@ setMethod("posteriorSimulation", "MultiBatchP", function(object){
   mbm <- sortComponentLabels(mbm)
   mbm <- runMcmc(mbm)
   label_switch(mbm) <- !isOrdered(mbm)
+  mbm <- sortComponentLabels(mbm)
   mb <- revertBack(object, mbm)
   summaries(mb) <- summarizeModel(mb)
   return(mb)
