@@ -496,19 +496,20 @@ multibatch_figure <- function(theoretical, empirical, model){
 .gg_multibatch_copynumber <- function(model, bins=400){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
-  pred <- predictive(model) %>%
-    longFormatKB(K=k(model), B=numBatch(model)) %>%
-    set_colnames(c("s", "y", "batch", "component")) %>%
-    mutate(model=modelName(model),
-           batch=as.character(batch),
-           batch=gsub("batch ", "", batch),
-           component=factor(component))
-  ##  predictive <- posteriorPredictive(model) %>%
-  ##    mutate(component=factor(component))
+  pred <- predictiveTibble(model)
+##  pred <- predictive(model) %>%
+##    longFormatKB(K=k(model), B=numBatch(model)) %>%
+##    set_colnames(c("s", "y", "batch", "component")) %>%
+##    mutate(model=modelName(model),
+##           batch=as.character(batch),
+##           batch=gsub("batch ", "", batch),
+##           component=factor(component))
+##  ##  predictive <- posteriorPredictive(model) %>%
+##  ##    mutate(component=factor(component))
   predictive.summary <- pred %>%
     group_by(model, batch) %>%
     summarize(n=n())
-  predictive <- left_join(pred, predictive.summary,
+  pred <- left_join(pred, predictive.summary,
                           by=c("model", "batch")) %>%
     mutate(batch=paste("Batch", batch))
   zz <- map_z(model)
@@ -516,7 +517,7 @@ multibatch_figure <- function(theoretical, empirical, model){
   pred$copynumber <- comp_labels[pred$component]
   colors <- colors[seq_along(comp_labels)]
   ##df <- multiBatchDensities(model)
-  full.data <- tibble(y=y(model),
+  full.data <- tibble(oned=oned(model),
                       batch=batch(model)) %>%
     mutate(batch=paste("Batch", batch)) %>%
     mutate(model=modelName(model))
@@ -530,17 +531,19 @@ multibatch_figure <- function(theoretical, empirical, model){
   ..density.. <- NULL
   x <- NULL
   copynumber <- NULL
-  fig <- ggplot(pred, aes(x=y, n_facet=n,
+  fig <- ggplot(pred, aes(x=oned, n_facet=n,
                           y=..count../n_facet,
-                                fill=copynumber)) +
-    geom_histogram(data=full.data, aes(y, ..density..),
+                          fill=copynumber)) +
+    geom_histogram(data=full.data, aes(oned, ..density..),
                    bins=bins,
                    inherit.aes=FALSE,
                    color="gray70",
                    fill="gray70",
                    alpha=0.1) +
+    facet_wrap(~batch, ncol=1, strip.position="right") +
     geom_density(adjust=1, alpha=0.4, size=0.75, color="gray30") +
-    geom_text(data=batch.data, aes(x=x, y=y, label=paste0("  n=", n)),
+    geom_text(data=batch.data,
+              aes(x=x, y=y, label=paste0("  n=", n)),
               hjust="inward", vjust="inward",
               inherit.aes=FALSE,
               size=3) +
@@ -550,7 +553,6 @@ multibatch_figure <- function(theoretical, empirical, model){
           legend.position="bottom",
           legend.direction="horizontal") +
     ##facet_grid(batch~model,
-    facet_wrap(~batch, ncol=1, strip.position="right") +
     ##labeller=labeller(model=ml)) +
     scale_y_sqrt() +
     scale_color_manual(values=colors) +

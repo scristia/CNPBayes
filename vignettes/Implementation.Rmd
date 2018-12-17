@@ -3,7 +3,7 @@ title: "Implementation of Bayesian mixture models for copy number estimation"
 author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
 date: \today
 output: BiocStyle::pdf_document
-bibliography: references.bib
+Bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Implementation of Bayesian mixture models for copy number estimation}
   %\VignetteEngine{knitr::rmarkdown}
@@ -189,7 +189,8 @@ The workhorse function in this package is `gibbs`.  This function allows the use
 ```{r batch}
 ## Create McmcParams for batch model
 mp <- McmcParams(iter=600, burnin=100, thin=1, nStarts=4)
-model.list <- gibbs(model="SB", dat=y(sim.data), k_range=c(3, 3), mp=mp)
+model.list <- gibbs(model="SB", dat=y(sim.data),
+                    k_range=c(3, 3), mp=mp)
 ```
 
 We use Chib's estimator [@chib], running a reduced Gibbs sample to estimate the marginal likelihood of each model. Alternative methods for selection of *k* are also included. As an example, the `bic` method can be used for calculating the Bayesian Information Criterion. As the data is simulated from a three component distribution, `SB3` should be chosen. 
