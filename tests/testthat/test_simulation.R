@@ -350,10 +350,7 @@ test_that("Most challenging simulation", {
     library(dplyr)
     mvn <- bind_cols(th2, sds2) %>%
       mutate(component=rep(seq_len(k(tmp)), each=numBatch(tmp)))
-    
-
   }
-
   ggMixture(tmp)
   mb3 <- mb2[ !sapply(mb2, anyWarnings) ] %>%
     compute_marginal_lik
@@ -385,13 +382,15 @@ test_that("Most challenging simulation", {
 
 test_that("Rare homozygous deletion exacerbated by batching samples", {
   library(tidyverse)
+  set.seed(75)
   p2 <- 0.01
   twopq <- 2*sqrt(p2)*(1-sqrt(p2))
   q2 <- (1-sqrt(p2))^2
   ps <- matrix(c(p2, twopq, q2),
                4, 3, byrow=TRUE) %>%
     "/"(rowSums(.))
-  dat <- tibble(z=sample(1:3, 500, prob=c(p2, twopq, q2), replace=TRUE),
+  dat <- tibble(z=sample(1:3, 500,
+                         prob=c(p2, twopq, q2), replace=TRUE),
                 batch=sort(sample(1:4, 500, prob=rep(1/4, 4),
                                   replace=TRUE)))
   table(dat$z, dat$batch)
@@ -406,12 +405,17 @@ test_that("Rare homozygous deletion exacerbated by batching samples", {
     as("MultiBatch")
   assays(mb)$z <- dat$z
   table(batch(mb), assays(mb)$z)
-
+  if(FALSE){
+    ggplot(assays(mb), aes(z, oned)) +
+      geom_jitter(width=0.1) +
+      facet_wrap(~batch)
+    ggMixture(mb)
+  }
+  object <- mb
   sb <- toSingleBatch(mb)
   iter(sb) <- 200
   burnin(sb) <- 150
   sb <- posteriorSimulation(sb)
-  object <- mb
   modes(sb) <- computeModes(sb)
   sb <- setModes(sb)
   sds <- sigma(sb)
@@ -430,6 +434,39 @@ test_that("Rare homozygous deletion exacerbated by batching samples", {
   ## but not all
   ## -fit k=3 model to batches with homdels
   ## -fit k=2 model to batches with <=2 homdels
+  mbl <- MultiBatchList(data=assays(mb))
+  iter(mbl) <- 200
+  burnin(mbl) <- 150
+  mb3 <- mbl[["MB3"]]
+  B1 <- filter(freq.del, n >= 1)
+  B2 <- filter(freq.del, n < 1)
+  mb3 <- mb3[ batch(mb3) %in% B1$batch ]
+  mb2 <- mbl[["MB2"]]
+  mb2 <- mb2[ batch(mb2) %in% B2$batch ]
+
+  ##dfr(hyn nnperParams(mb3)) <- 10
+  mb3 <- posteriorSimulation(mb3)
+  ## large variance for one of components in each batch
+  ## -- the component with large variance differs between batches
+  ## What if there were 10 more homozygous deletions in each of these batches?
+  ## ( this is the idea of augmentData2 )
+  nsample <- 10
+  batches <- rep(unique(batch(mb3), each=10)
+  pred <- predictiveTibble(mb3) %>%
+    ##filter(!(batch %in% batches)  & component == 0) %>%
+    filter(component == 0) %>%
+    "["(sample(seq_len(nrow(.)), sum(nsample), replace=TRUE), ) %>%
+    select(oned) %>%
+    mutate(batch=rep(batches, nsample),
+           id=paste0("augment_", seq_len(nrow(.))),
+           oned=oned+rnorm(nrow(.), 0, mn.sd[2])) %>%
+    select(c(id, oned, batch))
+  newdat <- bind_rows(assays(object), pred) %>%
+    arrange(batch) %>%
+    mutate(is_simulated = seq_len(nrow(.)) %in% grep("augment_", id))  
+
+
+  mb2 <- posteriorSimulation(mb2)
   ## - extract thetas and impute missing
   ## - augment data
   ## - fit multibatch model
