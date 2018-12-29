@@ -524,7 +524,7 @@ Rcpp::NumericMatrix update_multinomialPrChild(Rcpp::S4 xmod) {
   CharacterVector fam = family_member(xmod);
   Rcpp::LogicalVector child_ind(fam.size());
   // TODO:
-  double p_mendel=0.9;
+  // double p_mendel=0.9;
   // TODO: we do this with each MCMC iteration
   for (int i = 0; i < fam.size(); i++){
     child_ind[i] = (fam[i] == "o");

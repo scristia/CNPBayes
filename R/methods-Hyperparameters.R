@@ -60,7 +60,7 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 #'
 #' @return An object of class HyperparameterTrios
 #' @examples
-#'     hyp.trio <- CNPBayes:::HyperparameterTrios(k=3)
+#'     hyp.trio <- HyperparametersTrios(k=3)
 #'
 #' @export
 HyperparametersTrios <- function(k=3,

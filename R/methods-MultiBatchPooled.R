@@ -276,7 +276,7 @@ combine_multibatch_pooled <- function(model.list, batches){
   zfreq <- as.integer(table(zz))
   any_label_swap <- any(map_lgl(model.list, label_switch))
   ## use mean marginal likelihood in combined model,
-  ## or NA if marginal likelihood has not been estimated
+  ## or NA if margoinal likelihood has not been estimated
   ml <- map_dbl(model.list, marginal_lik)
   if(all(is.na(ml))) {
     ml <- as.numeric(NA)
