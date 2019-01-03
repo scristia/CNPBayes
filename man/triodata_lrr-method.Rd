@@ -17,5 +17,7 @@ An integer vector of length the number of components
 Retrieves intensity data from trios
 }
 \examples{
+\dontrun{
      triodata_lrr(TrioBatchModelExample)
+}
 }
