@@ -430,10 +430,17 @@ extractSummaries <- function(old){
 modelFlags <- function(.internal.constraint=5e-4,
                        .internal.counter=0L,
                        label_switch=FALSE,
+                       small_effsize=NA,
+                       fails_GR=NA,
                        warn=FALSE){
+  ##
+  ## fails_GR is only set when multiple chains are run
+  ##
   list(.internal.constraint=.internal.constraint,
        .internal.counter=.internal.counter,
        label_switch=label_switch,
+       small_effsize=NA,
+       fails_GR=NA,
        warn=warn)
 }
 
@@ -441,6 +448,9 @@ extractFlags <- function(old){
   list(.internal.constraint=old@.internal.constraint,
        .internal.counter=old@.internal.counter,
        label_switch=label_switch(old),
+       ## these slots are not available in old
+       small_effsize=NA,
+       fails_GR=NA,
        warn=FALSE)
 }
 
@@ -1215,10 +1225,21 @@ setFlags <- function(mb.list){
   mb
 }
 
-
-
 setMethod("convergence", "MultiBatch", function(object){
-  !flags(object)$label_switch && !flags(object)[["fails_GR"]] && !flags(object)[["small_effsize"]]
+  ml <- mcmcList(object)
+  effsize <- ml %>%
+    effectiveSize %>%
+    median
+  gelman_rub <- gelman_rubin(ml)$mpsrf
+  flags(object)[["small_effsize"]] <- effsize < min_effsize(object)
+  flags(object)[["fails_GR"]] <- gelman_rub > min_GR(object)
+  smallcount <- flags(object)$.internal.counter > 10
+  fl <- c(label_switch=flags(object)[["label_switch"]],
+          small_effsize=flags(object)[["small_effsize"]],
+          fails_GR=flags(object)[["fails_GR"]],
+          high_internal_counter=smallcount)
+  any_flags <- any(fl)
+  !any_flags
 })
 
 setMethod("max_burnin", "MultiBatch", function(object) {
@@ -2026,3 +2047,11 @@ sample2 <- function(mb, N){
   }
   ix
 }
+
+setMethod("min_effsize", "MultiBatch", function(object){
+  min_effsize(mcmcParams(object))
+})
+
+setMethod("min_GR", "MultiBatch", function(object){
+  min_GR(mcmcParams(object))
+})

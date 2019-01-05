@@ -451,7 +451,7 @@ test_that("Rare homozygous deletion exacerbated by batching samples", {
   ## What if there were 10 more homozygous deletions in each of these batches?
   ## ( this is the idea of augmentData2 )
   nsample <- 10
-  batches <- rep(unique(batch(mb3), each=10)
+  batches <- rep(unique(batch(mb3)), each=10)
   pred <- predictiveTibble(mb3) %>%
     ##filter(!(batch %in% batches)  & component == 0) %>%
     filter(component == 0) %>%
