@@ -95,9 +95,9 @@ setValidity("McmcParams", function(object){
     msg <- "vector for slot param_updates should have same names as .param_updates()"
     return(msg)
   }
-  if(nStarts(object) < min_chains(object)){
-    msg <- "number of independent starts is less than the mininum number required for assessing convergence"
-  }
+##  if(nStarts(object) < min_chains(object)){
+##    msg <- "number of independent starts is less than the mininum number required for assessing convergence"
+##  }
 })
 
 #' @rdname nStarts-method

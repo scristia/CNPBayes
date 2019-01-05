@@ -20,5 +20,7 @@ A matrix of size number of observations x number of components
 Retrieve the probability of latent variable membership by observation for parents.
 }
 \examples{
+\dontrun{
      probzpar(TrioBatchModelExample)
+}
 }

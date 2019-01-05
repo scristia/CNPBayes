@@ -16,5 +16,7 @@ A vector of length the number of components
 Retrieve mixture proportions of parents.
 }
 \examples{
+  \dontrun{
      pp(TrioBatchModelExample)
+   } 
 }

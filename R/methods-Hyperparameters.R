@@ -57,11 +57,11 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 }
 
 #' Create an object of class 'Hyperparameters' with additional parameters for Trios
-#' 
+#'
 #' @return An object of class HyperparameterTrios
-#' @examples 
-#'     hyp.trio <- HyperparameterTrios(k=3)
-#'     
+#' @examples
+#'     hyp.trio <- HyperparametersTrios(k=3)
+#'
 #' @export
 HyperparametersTrios <- function(k=3,
                                  mu.0=0,

@@ -996,7 +996,9 @@ setReplaceMethod("k", "TrioBatchModel",
 #' Retrieve mixture proportions of parents.
 #'
 #' @examples
+#'   \dontrun{
 #'      pp(TrioBatchModelExample)
+#'    } 
 #' @param object an object of class TrioBatchModel
 #' @return A vector of length the number of components
 #' @export

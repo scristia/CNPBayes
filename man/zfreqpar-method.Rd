@@ -21,5 +21,7 @@ An integer vector of length the number of components
 Calculates a frequency table of latent variable assigments for parents by observation.
 }
 \examples{
+\dontrun{
      zfreqpar(TrioBatchModelExample)
+}
 }

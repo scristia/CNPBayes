@@ -673,7 +673,9 @@ setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 #' Calculates a frequency table of latent variable assigments for parents by observation.
 #' 
 #' @examples
+#' \dontrun{
 #'      zfreqpar(TrioBatchModelExample)
+#' }
 #' @param object see \code{showMethods(zfreqpar)}
 #' @return An integer vector of length the number of components
 #' @export
@@ -685,7 +687,9 @@ setGeneric("zFreqPar<-", function(object,value) standardGeneric("zFreqPar<-"))
 #' Retrieves intensity data from trios
 #' 
 #' @examples
+#' \dontrun{
 #'      triodata_lrr(TrioBatchModelExample)
+#' }
 #' @param object see \code{showMethods(triodata_lrr)}
 #' @return An integer vector of length the number of components
 #' @export
@@ -976,7 +980,9 @@ setGeneric("u", function(object) standardGeneric("u"))
 #' Retrieve the probability of latent variable membership by observation for parents.
 #'
 #' @examples
+#' \dontrun{
 #'      probzpar(TrioBatchModelExample)
+#' }
 #' @param object see \code{showMethods(probzpar)}
 #' @return A matrix of size number of observations x number of components
 #' @export

@@ -1,4 +1,4 @@
-
+if(FALSE){
 # before running the unit test, prep the folder structure and batch input files
 # for reproducibility please use the params_seeds.rds file already in the testthat folder
 # params_seeds.rds is currently for deletion seeds
@@ -357,3 +357,4 @@ for(i in 1:L){
 # or if running in qrsh, set the ab variable to following seeds:
 
 
+}

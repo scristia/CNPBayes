@@ -14,6 +14,6 @@ An object of class HyperparameterTrios
 Create an object of class 'Hyperparameters' with additional parameters for Trios
 }
 \examples{
-    hyp.trio <- HyperparameterTrios(k=3)
-    
+    hyp.trio <- HyperparametersTrios(k=3)
+
 }
