@@ -5,9 +5,9 @@ date: "`r doc_date()`"
 output: BiocStyle::pdf_document
 bibliography: references.bib
 vignette: >
-  %\VignetteIndexEntry{Overview of CNPBayes package}
+  %\VignetteIndexEntry{Assessing convergence}
   %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc} 
+  %\usepackage[utf8]{inputenc} 
 ---
 
 # Introduction
