@@ -29,63 +29,120 @@ test_that("test_simulation", {
   }
 })
 
-test_that("simulations in manuscript", {
-  skip("test uses external data")
-  ##load_all("../../../PancCnvs")
-  library(PancCnvsData2)
+unitTestSimulation <- function(){
+  p2 <- 0.01
+  twopq <- 2*sqrt(p2)*(1-sqrt(p2))
+  q2 <- (1-sqrt(p2))^2
+  ps <- matrix(c(p2, twopq, q2),
+               4, 3, byrow=TRUE) %>%
+    "/"(rowSums(.))
+  dat <- tibble(z=sample(1:3, 500,
+                         prob=c(p2, twopq, q2), replace=TRUE),
+                batch=sort(sample(1:4, 500, prob=rep(1/4, 4),
+                                  replace=TRUE)))
+  table(dat$z, dat$batch)
+  thetas <- rbind(c(-2, -0.5, 0),
+                  c(-2.5, -0.7, -0.1),
+                  c(-1.8, -0.6, 0.1),
+                  c(-1.9, -0.55, 0))
+  sigmas <- matrix(rep(0.05, 3), 4, 3, byrow=TRUE)
+  mb <- simulateBatchData(500, p=ps,
+                          theta=thetas,
+                          sds=sigmas,
+                          batch=dat$batch,
+                          zz=dat$z,
+                          df=100) %>%
+    as("MultiBatch")
+  assays(mb)$z <- dat$z
+  mb
+}
+
+test_that("Rare homozygous deletion exacerbated by batching samples.", {
+  ##
+  ## This simulation assumes that we have already identified the batches.  In particular, we use the batches provided by simulateBatchData
+  ##
   library(tidyverse)
-  library(SummarizedExperiment)
-  i <- 1
-  data(simulation_parameters, package="PancCnvsData2")
-  data(hapmap, package="PancCnvsData2")
-  data(cnp_se, package="PancCnvsData2")
-  experiment <- simulation_parameters[i, ]
-  truth <- hapmap[["truth"]]
-  set.seed(experiment$seed)
-  fname <- paste0("shift_", i, ".rds")
-  hdat <- simulateBatchEffect(hapmap, experiment)
-  snpdat <- hapmapSummarizedExperiment(hapmap,
-                                       rowRanges(cnp_se)["CNP_057"])
-  colnames(hdat)[1] <- "provisional_batch"
-  colnames(hdat)[6] <- "true_batch"
-  mb <- MultiBatch(data=hdat, burnin=150L,
-                   iter=200L, max_burnin=150L) %>%
-    findSurrogates(0.0001)
-  mb <- MultiBatchList(data=assays(mb),
-                       mp=mcmcParams(mb))
-  mlist <- mcmc2(mb)
-  expect_identical(modelName(mlist)[1], "MB3")
-  p <- ggMixture(mlist[[1]])
-  expect_is(p, "gg")
-  mb3 <- mlist[[1]]
-  expect_identical(mapping(mb3), seq_len(3))
-  g <- genotypes(snpdat)[1, ]
-  g [ g < 0 ] <- NA
-  g <- g+1
-  assays(snpdat)[["GT"]][1, ] <- g
-  model.lik <- bafLikelihood(mb3, snpdat)
-  if(FALSE){
-    mp <- McmcParams(iter=1000, burnin=5000, nStarts=4, thin=2)
-    models <- gibbs(model=c("SB", "MB", "MBP", "SBP"),
-                    dat=full.data$medians,
-                    batch=full.data$batch_index,
-                    k_range=c(1, 4),
-                    mp=mp,
-                    max_burnin=5000,
-                    df=100,
-                    min_effsize=200)
-  }
-  truth2 <- left_join(tibble(id=colnames(snpdat)), truth, by="id")
-  ##cnpbayes.stats <- performanceStats(truth2, copyNumber(gt.model))
+  set.seed(75)
+  mb <- unitTestSimulation()
+  if(FALSE) ggMixture(mb)
+
+  ##
+  ## 1. Create a MultiBatch object and identify batch surrogates
+  ##
+  ## this step is already complete.  unitTestSimulation created a MultiBatch object with batch surrogates
+  ##
+
+  ##
+  ## 2. Assess whether this is a deletion CNP
+  ##  - if deletion, run batches with hom. del and batches without hom del. separately.  Or, augment batches without homozygous deletion (?)
+  ##
+  ##
+
+  object <- mb
+  sb <- toSingleBatch(mb)
+  iter(sb) <- 200
+  burnin(sb) <- 150
+  sb <- posteriorSimulation(sb)
+  modes(sb) <- computeModes(sb)
+  sb <- setModes(sb)
+  sds <- sigma(sb)
+  fc <- sds/min(sds)
+  mn.sd <- c(theta(sb)[1], min(sigma(sb)))
+
+  limits <- mn.sd[1] + c(-1, 1)*2*mn.sd[2]
+  freq.del <- assays(object) %>%
+    group_by(batch) %>%
+    summarize(n = sum(oned < limits[[2]]))
+  fewobs <- freq.del$n <= 2
+  iszero <- freq.del$n == 0
+  expect_false(all(iszero))
+  expect_false(!any(fewobs))
+  ## at this point, we've established that hom dels are likely in some batches
+  ## but not all
+  ## -fit k=3 model to batches with homdels
+  ## -fit k=2 model to batches with <=2 homdels
+  mbl <- MultiBatchList(data=assays(mb))
+  iter(mbl) <- 200
+  burnin(mbl) <- 150
+  mb3 <- mbl[["MB3"]]
+  B1 <- filter(freq.del, n >= 1)
+  B2 <- filter(freq.del, n < 1)
+  mb3 <- mb3[ batch(mb3) %in% B1$batch ]
+  mb2 <- mbl[["MB2"]]
+  mb2 <- mb2[ batch(mb2) %in% B2$batch ]
+
+  ##dfr(hyn nnperParams(mb3)) <- 10
+  mb3 <- posteriorSimulation(mb3)
+  ## large variance for one of components in each batch
+  ## -- the component with large variance differs between batches
+  ## What if there were 10 more homozygous deletions in each of these batches?
+  ## ( this is the idea of augmentData2 )
+  nsample <- 10
+  batches <- rep(unique(batch(mb3)), each=10)
+  pred <- predictiveTibble(mb3) %>%
+    ##filter(!(batch %in% batches)  & component == 0) %>%
+    filter(component == 0) %>%
+    "["(sample(seq_len(nrow(.)), sum(nsample), replace=TRUE), ) %>%
+    select(oned) %>%
+    mutate(batch=rep(batches, nsample),
+           id=paste0("augment_", seq_len(nrow(.))),
+           oned=oned+rnorm(nrow(.), 0, mn.sd[2])) %>%
+    select(c(id, oned, batch))
+  newdat <- bind_rows(assays(object), pred) %>%
+    arrange(batch) %>%
+    mutate(is_simulated = seq_len(nrow(.)) %in% grep("augment_", id))  
+
+
+  mb2 <- posteriorSimulation(mb2)
+  ## - extract thetas and impute missing
+  ## - augment data
+  ## - fit multibatch model
 })
 
-test_that("Compute BAF likelihood for each candidate model", {
+test_that("Simulations in manuscript", {
   ##skip("uses external data")
   library(SummarizedExperiment)
-  mb <- MultiBatchModelExample
-  mb <- as(mb, "MultiBatch")
-  mapping(mb) <- seq_len(k(mb))
-  clist <- CnList(mb)
+  library(pROC)
   data(cnp_se, package="PancCnvsData2")
   data(hapmap, package="PancCnvsData2")
   data(simulation_parameters, package="PancCnvsData2")
@@ -110,16 +167,43 @@ test_that("Compute BAF likelihood for each candidate model", {
     ggplot(hdat, aes(cn, baf)) +
       geom_jitter(width=0.1)
   }
+  ##
+  ## 1. Create a MultiBatch object and identify batch surrogates
+  ##
+  message("Finding surrogate variables")
   mb <- MultiBatch(data=hdat, burnin=150L,
                    iter=200L, max_burnin=150L) %>%
-    findSurrogates(0.001) %>% {
+    findSurrogates(0.001)
+
+  ##
+  ## 2. Assess whether this is a deletion CNP
+  ##  - if deletion, run batches with hom. del and batches without hom del. separately.  Or, augment batches without homozygous deletion (?)
+  ##
+  ##
+
+
+  ##
+  ## 3. Create a MultiBatchList of all possible models
+  ##
+  message("Creating MultiBatchList of all models")
+  mb <- mb %>% {
     MultiBatchList(data=assays(.),
                    parameters=parameters(.))
-    }%>%
-    augmentData2
-  expect_equal(sum(isSimulated(mb)), 10)
-  snpdat2 <- snpdat[, id2(mb)]
-  expect_identical(id2(mb), colnames(snpdat2))
+  }
+###%>%
+  ##augmentData2
+  ##expect_equal(sum(isSimulated(mb)), 10)
+  snpdat2 <- snpdat[, id(mb)]
+  ##snpdat2 <- snpdat[, id2(mb)]
+  ##expect_identical(id2(mb), colnames(snpdat2))
+  expect_identical(id(mb), colnames(snpdat2))
+
+  ##
+  ## 2. Quickly assess which models are most likely to fit this data from an initial burnin
+  ##    - sort models by log likelihood
+  ##    - use kmeans to cluster the models with the largest log likelihoods
+  ##    - select models in the cluster with largest log likelihoods
+  message("List the most likely models")
   nStarts(mb) <- 1
   iter(mb) <- 0
   burnin(mb) <- 500
@@ -127,54 +211,89 @@ test_that("Compute BAF likelihood for each candidate model", {
   loglik <- sapply(mb, log_lik) %>%
     sort(decreasing=TRUE) %>%
     head
-  mb2 <- mb[names(loglik)] %>%
-    listToMultiBatchList
+  km <- kmeans(loglik, centers=2)
+  ix <- order(km$centers, decreasing=TRUE)[1]
+  model_names <- names(which(km$cluster == ix))
+  mb <- mb[ model_names ]
+  mb2 <- listToMultiBatchList(mb)
+  ##
+  ## 3. For each model, run 2 or more chains starting from the burned in values above
+  ## - assess Gelman-Rubin convergence from the multiple chains
+  ## - exclude models that have not converged
+  nStarts(mb2) <- 2
+  iter(mb2) <- 200
+  burnin(mb2) <- 100
   expect_true(validObject(mb2))
-  nStarts(mb2) <- 3
-  iter(mb2) <- 150
-  burnin(mb2) <- 300
+  expect_identical(theta(mb2[[1]]), theta(mb[[1]]))
+  expect_identical(z(mb2[[1]]), z(mb[[1]]))
   for(i in seq_along(mb2)){
     cat(".")
-    m <- as(mb2[[i]], "list") %>%
-      posteriorSimulation %>%
+    ## list with length equal to number of starts
+    mlist <- as(mb2[[i]], "list")
+    m <- posteriorSimulation(mlist) %>%
       combineModels
-    fails_gr(m) <- is_high_mpsrf(m)
+    ##fails_gr(m) <- is_high_mpsrf(m)
     mb2[[i]] <- m
   }
-  if(FALSE){
-    ggMixture(mlist[[1]])
-  }
-  mb3 <- mb2[ !sapply(mb2, anyWarnings) ] %>%
-    compute_marginal_lik
-  mb3 <- mb3[ order(marginal_lik(mb3), decreasing=TRUE) ]
-  ## rank by marginal likelihood or proceed?
-  expect_identical(k(mb3)[1], 3L)
-  tmp <- isAugmented(mb3)
-  expect_equal(sum(!tmp), 990L)
-  mb4 <- mb3[[1]][!isSimulated(mb3)]
-  clist <- CnList(mb4)
+  not_converged <- !sapply(mb2, convergence)
+  mb3 <- mb2[ ! not_converged ]
+  ##
+  ## 4. For remaining models, compute the marginal likelihood of each
+  ##
+  iter(mb3) <- 1000
+  burnin(mb3) <- 0L
+  mb4 <- posteriorSimulation(mb3)
+  mb4 <- compute_marginal_lik(mb4)
+  ml <- marginal_lik(mb4)
+  mb5 <- mb4[ order(ml, decreasing=TRUE) ]
+  expect_identical(k(mb5)[1], 3L)
+  ##
+  ## 5. Select top model
+  ##
+  topmodel <- mb5[[1]]
+  ##  tmp <- isAugmented(mb3)
+  ##  expect_equal(sum(!tmp), 990L)
+  ##  mb4 <- mb3[[1]][!isSimulated(mb3)]
+  ##
+  ## 6. Map components to copy number
+  ##
+  clist <- CnList(topmodel)
   expect_equal(nrow(clist[[1]]), 990)
   if(FALSE){
     ## sanity check
-    identical(id(mb4), colnames(snpdat2))
+    identical(id(mb5), colnames(snpdat2))
     dat <- tibble(g=genotypes(snpdat2)[1, ],
                   b=bafs(snpdat2)[1, ],
                   cn=copyNumber(clist[[1]]),
-                  true.cn=assays(mb4)$cn) %>%
+                  true.cn=assays(mb5)$cn) %>%
       mutate(cn=factor(cn))
     ggplot(dat, aes(cn, b)) +
       geom_jitter(width=0.1)
     ggplot(dat, aes(true.cn, b)) +
       geom_jitter(width=0.1)
   }
+  ##
+  ## 7. Calculate probability of the BAFs given the copy number mapping
+  ##  - select the mapping that maxizes the probability of the observed allele frequencies
+  ##
   blik <- modelProb(clist[[1]], snpdat2)
   expect_true(blik > -20)
   stats <- baf_loglik(clist, snpdat2)
   expect_identical(stats$cn.model[1], "0,1,2")
-  mapping(mb4) <- strsplit(stats$cn.model[1], ",")[[1]]
-  model.cn <- factor(copyNumber(mb4))
-  pstats <- performanceStats(assays(mb4)$cn, model.cn)
-  expect_true(sum(pstats$incorrect) < 3)
+  mapping(topmodel) <- strsplit(stats$cn.model[1], ",")[[1]]
+  ##
+  ## 8. For simulation only:  calculate performance characteristics for copy number classification
+  ##
+  true.cn <- assays(topmodel)$cn
+  prob.cn <- probCopyNumber(topmodel)
+  cn.score <- prob.cn %*% unique(as.integer(mapping(topmodel)))
+  dat <- tibble(true.cn=true.cn,
+                score=cn.score[, 1],
+                deletion=ifelse(true.cn=="2", "diploid", "deletion"))
+  droc <- roc(response=dat$deletion, predictor=dat$score,
+              levels=c("deletion", "diploid"),
+              auc.polygon=TRUE, plot=FALSE)
+  expect_true(droc$auc[[1]] > 0.999)
 })
 
 
@@ -380,95 +499,5 @@ test_that("Most challenging simulation", {
   expect_true(sum(pstats$incorrect) < 3)
 })
 
-test_that("Rare homozygous deletion exacerbated by batching samples", {
-  library(tidyverse)
-  set.seed(75)
-  p2 <- 0.01
-  twopq <- 2*sqrt(p2)*(1-sqrt(p2))
-  q2 <- (1-sqrt(p2))^2
-  ps <- matrix(c(p2, twopq, q2),
-               4, 3, byrow=TRUE) %>%
-    "/"(rowSums(.))
-  dat <- tibble(z=sample(1:3, 500,
-                         prob=c(p2, twopq, q2), replace=TRUE),
-                batch=sort(sample(1:4, 500, prob=rep(1/4, 4),
-                                  replace=TRUE)))
-  table(dat$z, dat$batch)
-  thetas <- rbind(c(-2, -0.5, 0),
-                  c(-2.5, -0.7, -0.1),
-                  c(-1.8, -0.3, 0.1),
-                  c(-1.9, -0.4, 0))
-  sigmas <- matrix(rep(0.05, 3), 4, 3, byrow=TRUE)
-  mb <- simulateBatchData(500, p=ps, theta=thetas, sds=sigmas,
-                          batch=dat$batch,
-                          zz=dat$z) %>%
-    as("MultiBatch")
-  assays(mb)$z <- dat$z
-  table(batch(mb), assays(mb)$z)
-  if(FALSE){
-    ggplot(assays(mb), aes(z, oned)) +
-      geom_jitter(width=0.1) +
-      facet_wrap(~batch)
-    ggMixture(mb)
-  }
-  object <- mb
-  sb <- toSingleBatch(mb)
-  iter(sb) <- 200
-  burnin(sb) <- 150
-  sb <- posteriorSimulation(sb)
-  modes(sb) <- computeModes(sb)
-  sb <- setModes(sb)
-  sds <- sigma(sb)
-  fc <- sds/min(sds)
-  mn.sd <- c(theta(sb)[1], min(sigma(sb)))
 
-  limits <- mn.sd[1] + c(-1, 1)*2*mn.sd[2]
-  freq.del <- assays(object) %>%
-    group_by(batch) %>%
-    summarize(n = sum(oned < limits[[2]]))
-  fewobs <- freq.del$n <= 2
-  iszero <- freq.del$n == 0
-  expect_false(all(iszero))
-  expect_false(!any(fewobs))
-  ## at this point, we've established that hom dels are likely in some batches
-  ## but not all
-  ## -fit k=3 model to batches with homdels
-  ## -fit k=2 model to batches with <=2 homdels
-  mbl <- MultiBatchList(data=assays(mb))
-  iter(mbl) <- 200
-  burnin(mbl) <- 150
-  mb3 <- mbl[["MB3"]]
-  B1 <- filter(freq.del, n >= 1)
-  B2 <- filter(freq.del, n < 1)
-  mb3 <- mb3[ batch(mb3) %in% B1$batch ]
-  mb2 <- mbl[["MB2"]]
-  mb2 <- mb2[ batch(mb2) %in% B2$batch ]
-
-  ##dfr(hyn nnperParams(mb3)) <- 10
-  mb3 <- posteriorSimulation(mb3)
-  ## large variance for one of components in each batch
-  ## -- the component with large variance differs between batches
-  ## What if there were 10 more homozygous deletions in each of these batches?
-  ## ( this is the idea of augmentData2 )
-  nsample <- 10
-  batches <- rep(unique(batch(mb3)), each=10)
-  pred <- predictiveTibble(mb3) %>%
-    ##filter(!(batch %in% batches)  & component == 0) %>%
-    filter(component == 0) %>%
-    "["(sample(seq_len(nrow(.)), sum(nsample), replace=TRUE), ) %>%
-    select(oned) %>%
-    mutate(batch=rep(batches, nsample),
-           id=paste0("augment_", seq_len(nrow(.))),
-           oned=oned+rnorm(nrow(.), 0, mn.sd[2])) %>%
-    select(c(id, oned, batch))
-  newdat <- bind_rows(assays(object), pred) %>%
-    arrange(batch) %>%
-    mutate(is_simulated = seq_len(nrow(.)) %in% grep("augment_", id))  
-
-
-  mb2 <- posteriorSimulation(mb2)
-  ## - extract thetas and impute missing
-  ## - augment data
-  ## - fit multibatch model
-})
 

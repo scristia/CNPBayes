@@ -168,6 +168,11 @@ MultiBatch <- function(model="MB3",
   if(nrow(data) > 0 && is_SB){
     data$batch <- 1L
   }
+  if(nrow(data) > 0){
+    if("batch" %in% colnames(data)){
+      data <- data[order(data$batch), , drop=FALSE]
+    }
+  }
   if(!"batch" %in% colnames(data)) data$batch <- 1L
   model <- new("MultiBatch",
                data=data,
