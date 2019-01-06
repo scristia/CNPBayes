@@ -49,7 +49,13 @@ manyToOneMapping <- function(model){
 
 .prob_copynumber <- function(model){
   if(!manyToOneMapping(model)){
-    return(probz(model))
+    pz <- probz(model)
+    rs <- rowSums(pz)
+    if(!all(rs == 1)){
+      rs <- matrix(rs, nrow(pz), ncol(pz), byrow=FALSE)
+      pz <- pz/rs
+    }
+    return(pz)
   }
   S <- numberStates(model)
   N <- numberObs(model)
@@ -72,6 +78,11 @@ manyToOneMapping <- function(model){
     if(ncol(p) > 1){
       result[, i] <- rowSums(p)
     } else result[, i] <- as.numeric(p)
+    rs <- rowSums(result)
+    if(!all(rs == 1)){
+      rs <- matrix(rs, nrow(result), ncol(result), byrow=FALSE)
+      result <- result/rs
+    }
   }
   result
 }
