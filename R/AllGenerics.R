@@ -865,9 +865,10 @@ setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 
 #' @rdname ggplot-functions
 #' @param bins a length-one numeric vector indicating the number of bins -- passed to \code{geom_hist}
+#' @param mixtheme a ggplot theme
 #' @export
 #' @rdname ggplot-functions
-setGeneric("ggMixture", function(model, bins=100) standardGeneric("ggMixture"))
+setGeneric("ggMixture", function(model, bins=100, mixtheme) standardGeneric("ggMixture"))
 
 ## #' @export
 ## #' @rdname ggplot-functions

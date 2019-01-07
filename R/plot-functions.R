@@ -335,7 +335,7 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
   list(theta=p.theta, sigma=p.sigma, comp=p.comp, single=p.single)
 }
 
-.gg_multibatch <- function(model, bins=100){
+.gg_multibatch <- function(model, bins=100, mixtheme){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
   pred <- predictiveTibble(model)
@@ -359,6 +359,12 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
   ..count.. <- NULL
   n_facet <- NULL
   ..density.. <- NULL
+  if(missing(mixtheme)){
+    mixtheme <- theme(panel.background=element_rect(fill="white"),
+                      axis.line=element_line(color="black"),
+                      legend.position="bottom",
+                      legend.direction="horizontal")
+  }
   x <- NULL
   fig <- ggplot(pred, aes(x=oned, n_facet=n,
                           y=..count../n_facet,
@@ -375,20 +381,13 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
               hjust="inward", vjust="inward",
               inherit.aes=FALSE,
               size=3) +
-    ## show marginal density
-    theme(panel.background=element_rect(fill="white"),
-          axis.line=element_line(color="black"),
-          legend.position="bottom",
-          legend.direction="horizontal") +
-    ##facet_grid(batch~model,
-    ##labeller=labeller(model=ml)) +
+    mixtheme +
     scale_y_sqrt() +
     scale_color_manual(values=colors) +
     scale_fill_manual(values=colors) +
     xlab("average copy number") +
     ylab("density") +
-    ##coord_cartesian(xlim=xlimit) +
-    guides(color=FALSE) ##+
+    guides(color=FALSE)
   return(fig)
 }
 
@@ -570,35 +569,40 @@ multibatch_figure <- function(theoretical, empirical, model){
 #' data(MultiBatchModelExample)
 #' fig <- ggMixture(MultiBatchModelExample)
 #' @aliases ggMixture,MultiBatchCopyNumber-method
-setMethod("ggMixture", "MultiBatchCopyNumber", function(model, bins=100){
+setMethod("ggMixture", "MultiBatchCopyNumber",
+          function(model, bins=100, mixtheme){
   .gg_multibatch_copynumber(model, bins)
 })
 
 #' @export
 #' @rdname ggplot-functions
 #' @aliases ggMixture,MultiBatchCopyNumberPooled-method
-setMethod("ggMixture", "MultiBatchCopyNumberPooled", function(model, bins=100){
+setMethod("ggMixture", "MultiBatchCopyNumberPooled",
+          function(model, bins=100, mixtheme){
   .gg_multibatch_copynumber(model, bins)
 })
 
 #' @export
 #' @rdname ggplot-functions
 #' @aliases ggMixture,MultiBatchModel-method
-setMethod("ggMixture", "MultiBatchModel", function(model, bins=100){
-  .gg_multibatch(model, bins=bins)
+setMethod("ggMixture", "MultiBatchModel",
+          function(model, bins=100, mixtheme){
+  .gg_multibatch(model, bins=bins, mixtheme)
 })
 
 #' @export
 #' @rdname ggplot-functions
 #' @aliases ggMixture,MultiBatchModel-method
-setMethod("ggMixture", "MultiBatch", function(model, bins=100){
-  .gg_multibatch(model, bins=bins)
+setMethod("ggMixture", "MultiBatch",
+          function(model, bins=100, mixtheme){
+  .gg_multibatch(model, bins=bins, mixtheme)
 })
 
 #' @export
 #' @rdname ggplot-functions
 #' @aliases ggMixture,MultiBatchPooled-method
-setMethod("ggMixture", "MultiBatchPooled", function(model, bins=100){
+setMethod("ggMixture", "MultiBatchPooled",
+          function(model, bins=100, mixtheme){
   .gg_multibatch_pooled(model, bins)
 })
 
