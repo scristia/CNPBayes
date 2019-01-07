@@ -313,10 +313,10 @@ Rcpp::IntegerVector z_multibatch_pvar(Rcpp::S4 xmod) {
   }
   //
   // Don't update z if there are states with zero frequency.
-  //
-  int counter = model.slot(".internal.counter");
+  //  Note: counter must increment xmod not model
+  int counter = xmod.slot(".internal.counter");
   counter++;
-  model.slot(".internal.counter") = counter;
+  xmod.slot(".internal.counter") = counter;
   return model.slot("z") ;
 }
 

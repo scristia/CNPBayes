@@ -365,14 +365,14 @@ Rcpp::IntegerVector update_z(Rcpp::S4 xmod) {
   //  Make more efficient
   //return cumP ;
   NumericVector u = runif(n) ;
-  IntegerVector zz_(n) ;
-  IntegerVector zz = clone(zz_) ;
+  IntegerVector zz(n) ;
+  //IntegerVector zz = clone(zz_) ;
   IntegerMatrix freq(B, K) ;
   int b ;
   for(int i=0; i < n; i++){
     //initialize accumulator ;
     double acc = 0 ;
-    for(int k = 0; k < K; k++){
+   for(int k = 0; k < K; k++){
       acc += p(i, k) ;
       if( u[i] < acc ) {
         zz[i] = k + 1 ;
@@ -391,7 +391,29 @@ Rcpp::IntegerVector update_z(Rcpp::S4 xmod) {
   int counter = xmod.slot(".internal.counter");
   counter++;
   xmod.slot(".internal.counter") = counter;
-  return model.slot("z") ;
+  return xmod.slot("z") ;
+}
+
+// [[Rcpp::export]]
+Rcpp::IntegerVector update_z2(Rcpp::NumericMatrix p_) {
+  RNGScope scope ;
+  Rcpp::NumericMatrix p=clone(p_) ;
+  int n=p.nrow() ;
+  int K=p.ncol() ;
+  NumericVector u = runif(n) ;
+  IntegerVector zz(n) ;
+  for(int i=0; i < n; i++){
+    //initialize accumulator ;
+    double acc = 0 ;
+   for(int k = 0; k < K; k++){
+      acc += p(i, k) ;
+      if( u[i] < acc ) {
+        zz[i] = k + 1 ;
+        break ;
+      }
+   }
+  }
+  return zz ;
 }
 
 

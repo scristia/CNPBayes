@@ -91,17 +91,17 @@ setMethod("[[", c("MultiBatchList", "numeric"), function(x, i){
                       chains=chains(x)[[i]],
                       summaries=summaries(x)[[i]],
                       flags=flags(x)[[i]])
-    return(mb)
+    ##return(mb)
+  } else {
+    mb <- MultiBatch(model=model,
+                     data=assays(x),
+                     specs=specs(x)[i, ],
+                     parameters=params,
+                     current_values=current_values(x)[[i]],
+                     chains=chains(x)[[i]],
+                     summaries=summaries(x)[[i]],
+                     flags=flags(x)[[i]])
   }
-  mb <- MultiBatch(model=model,
-                   data=assays(x),
-                   specs=specs(x)[i, ],
-                   parameters=params,
-                   current_values=current_values(x)[[i]],
-                   chains=chains(x)[[i]],
-                   summaries=summaries(x)[[i]],
-                   flags=flags(x)[[i]])
-  mb
   summaries(mb)[["data.mean"]] <- computeMeans(mb)
   summaries(mb)[["data.prec"]] <- computePrec(mb)
   mb
@@ -112,7 +112,7 @@ setMethod("[[", c("MultiBatchList", "character"), function(x, i){
   x[[j]]
 })
 
-setMethod("[", "MultiBatchList", function(x, i, j, ...){
+setMethod("[", c("MultiBatchList", "numeric"), function(x, i, j, ...){
   ## return MultiBatchList 
   MultiBatchList(data=assays(x),
                  specs=specs(x)[i, ],
@@ -121,6 +121,16 @@ setMethod("[", "MultiBatchList", function(x, i, j, ...){
                  summaries=summaries(x)[i],
                  chains=chains(x)[i],
                  flags=flags(x)[i])
+})
+
+setMethod("[", c("MultiBatchList", "character"), function(x, i, j, ...){
+  i <- match(i, names(x))
+  x[i]
+})
+
+setMethod("[", c("MultiBatchList", "logical"), function(x, i, j, ...){
+  i <- which(i)
+  x[i]
 })
 
 

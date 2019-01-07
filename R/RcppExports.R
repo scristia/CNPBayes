@@ -101,6 +101,10 @@ update_z <- function(xmod) {
     .Call('_CNPBayes_update_z', PACKAGE = 'CNPBayes', xmod)
 }
 
+update_z2 <- function(p_) {
+    .Call('_CNPBayes_update_z2', PACKAGE = 'CNPBayes', p_)
+}
+
 compute_means <- function(xmod) {
     .Call('_CNPBayes_compute_means', PACKAGE = 'CNPBayes', xmod)
 }

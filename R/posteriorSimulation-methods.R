@@ -159,9 +159,20 @@ setMethod("posteriorSimulation", "MultiBatch", function(object){
 })
 
 setMethod("posteriorSimulation", "MultiBatchP", function(object){
+  if(any(is.na(dataMean(object)))){
+    summaries(object)[["data.mean"]] <- computeMeans(object)
+    summaries(object)[["data.prec"]] <- computePrec(object)
+  }
   mbm <- as(object, "MultiBatchPooled")
   mbm <- runBurnin(mbm)
   mbm <- sortComponentLabels(mbm)
+  if(mbm@.internal.counter / burnin(mbm) > 0.5){
+    ## there were no valid updates for the z chain
+    ## no point in continuing
+    mb <- revertBack(object, mbm)
+    summaries(mb) <- summarizeModel(mb)
+    return(mb)
+  }
   mbm <- runMcmc(mbm)
   label_switch(mbm) <- !isOrdered(mbm)
   mbm <- sortComponentLabels(mbm)

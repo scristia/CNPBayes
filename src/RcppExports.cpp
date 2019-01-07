@@ -292,6 +292,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// update_z2
+Rcpp::IntegerVector update_z2(Rcpp::NumericMatrix p_);
+RcppExport SEXP _CNPBayes_update_z2(SEXP p_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type p_(p_SEXP);
+    rcpp_result_gen = Rcpp::wrap(update_z2(p_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // compute_means
 Rcpp::NumericMatrix compute_means(Rcpp::S4 xmod);
 RcppExport SEXP _CNPBayes_compute_means(SEXP xmodSEXP) {
@@ -1239,6 +1250,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_update_p", (DL_FUNC) &_CNPBayes_update_p, 1},
     {"_CNPBayes_update_weightedp", (DL_FUNC) &_CNPBayes_update_weightedp, 1},
     {"_CNPBayes_update_z", (DL_FUNC) &_CNPBayes_update_z, 1},
+    {"_CNPBayes_update_z2", (DL_FUNC) &_CNPBayes_update_z2, 1},
     {"_CNPBayes_compute_means", (DL_FUNC) &_CNPBayes_compute_means, 1},
     {"_CNPBayes_compute_vars", (DL_FUNC) &_CNPBayes_compute_vars, 1},
     {"_CNPBayes_compute_prec", (DL_FUNC) &_CNPBayes_compute_prec, 1},

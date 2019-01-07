@@ -99,6 +99,9 @@ MultiBatchP <- function(model="MBP3",
                current_values=current_values,
                summaries=summaries,
                flags=flags)
+  s <- summaries(model)
+  s$modes <- current_values(model)
+  summaries(model) <- s
   model
 }
 

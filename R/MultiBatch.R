@@ -681,6 +681,12 @@ setReplaceMethod("p", c("MultiBatch", "numeric"),
                    object
                  })
 
+setReplaceMethod("p", c("MultiBatch", "matrix"),
+                 function(object, value){
+                   current_values(object)[["p"]] <- value
+                   object
+                 })
+
 setMethod("nu.0", "MultiBatch", function(object){
   current_values(object)[["nu.0"]]
 })
@@ -1074,6 +1080,23 @@ setMethod("computeMeans", "MultiBatch", function(object){
     as.matrix
   dimnames(m) <- NULL
   m
+})
+
+setGeneric("computeMixProbs", function(object) standardGeneric("computeMixProbs"))
+setMethod("computeMixProbs", "MultiBatch", function(object){
+  z(object) <- map_z(object)
+  tib2 <- assays(object) %>%
+    group_by(batch) %>%
+    summarize(N=n())
+  tib <- assays(object) %>%
+    mutate(z=z(object)) %>%
+    group_by(batch, z) %>%
+    summarize(n=n()) %>%
+    left_join(tib2, by="batch")
+  p <- matrix(tib$n/tib$N, nrow(tib2), ncol=k(object),
+              byrow=TRUE)
+  dimnames(p) <- NULL
+  p
 })
 
 setMethod("computePrec", "MultiBatch", function(object){
@@ -1928,6 +1951,7 @@ setMethod("[", c("MultiBatch", "numeric"), function(x, i, j, ..., drop=FALSE){
   if( L == L2 ) return(x)
   current_values(x)[["theta"]] <- computeMeans(x)
   current_values(x)[["sigma2"]] <- 1/computePrec(x)
+  current_values(x)[["p"]] <- computeMixProbs(x)
   summaries(x)[["data.mean"]] <- theta(x)
   summaries(x)[["data.prec"]] <- 1/sigma2(x)
   chains(x) <- initialize_mcmc(k(x), iter(x), numBatch(x))
