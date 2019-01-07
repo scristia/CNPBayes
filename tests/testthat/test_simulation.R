@@ -64,8 +64,114 @@ test_that("Rare homozygous deletion exacerbated by batching samples.", {
   library(tidyverse)
   set.seed(75)
   mb <- unitTestSimulation()
+  truez <- z(mb)
   if(FALSE) ggMixture(mb)
+  mb3.all <- MultiBatchList(data=assays(mb))[["MB3"]]
+  ##
+  ## segfault !
+  ##
+  burnin(mb3.all) <- 200
+  iter(mb3.all) <- 300
+  ## this doesn't work
+  tmp <- posteriorSimulation(mb3.all)
 
+  ##
+  ## Plotting the data, we see homozygous deletion is rare and batch 3 does not have any homozygous deletions
+  ##
+  ## Excluding all homozygous deletions, we fit the multibatch model with 2 components
+  ##
+  tmp <- mb[ oned(mb) > -1 ]
+  mb2 <- MultiBatchList(data=assays(tmp))[["MB2"]]
+  mb2 <- posteriorSimulation(mb2)
+  if(FALSE) ggMixture(mb2)
+  ##
+  ## Fit MB3 for batch 2, using starting values from MB2
+  mb3 <- MultiBatchList(data=assays(mb))[["MB3"]]
+  sb3 <- mb3[ batch(mb3) == 2 ]
+  theta(sb3)[, 2:3] <- theta(mb2)[2, ]
+  sigma_(sb3)[, 2:3] <- sigma(mb2)[2, ]
+  sigma_(sb3)[, 1] <- rowMeans(sigma_(sb3)[, 2:3, drop=FALSE])
+  tau2(sb3) <- rep(tau2(mb2), k(sb3))
+  mu(sb3) <- c(NA, mu(mb2))
+  p(sb3)[1, ] <- c(sum(oned(sb3) < -1),
+              sum(z(mb2)==1),
+              sum(z(mb2)==2)) %>%
+    "/"(sum(.))
+  theta(sb3)[1, 1] <- mean(oned(sb3)[oned(sb3) < -1])
+  mu(sb3)[1] <- theta(sb3)[1, 1]
+  sigma2.0(sb3) <- sigma2.0(mb2)
+  nu.0(sb3) <- nu.0(mb2)
+  burnin(sb3) <- 0
+  iter(sb3) <- 300
+  sb3 <- posteriorSimulation(sb3)
+  if(FALSE) ggMixture(sb3)
+  ##
+  ## Next, simulate homozygous deletions for other batches
+  ##
+  mb3.all <- MultiBatchList(data=assays(mb))[["MB3"]]
+  th <- cbind(theta(sb3)[1, 1], theta(mb2))
+  theta(mb3.all) <- th
+  s <- cbind(sigma2(sb3)[1, 1], sigma2(mb2))
+  sigma2(mb3.all) <- s
+  p <- cbind(p(sb3)[1, 1], p(mb2)) %>%
+    "/"(rowSums(.))
+  p(mb3.all) <- p
+  tau2(mb3.all) <- tau2(sb3)
+  mu(mb3.all) <- mu(sb3)
+  nu.0(mb3.all) <- nu.0(sb3)
+  sigma2.0(mb3.all) <- sigma2.0(sb3)
+  ## number of batches with missing components
+  nMissing <- 3
+  ## number observations in missing batches
+  nObs <- table(batch(mb3.all))[c(1, 3, 4)] %>%
+    as.numeric
+  expected_freq <- nObs * p(mb3.all)[c(1, 3, 4), 1]
+  expected_freq <- ceiling(expected_freq)
+
+  obsdat <- assays(mb3.all)
+  imp <- lapply(expected_freq, function(x, th, s) rnorm(x, th, s),
+                th=theta(mb3.all)[c(1, 3, 4), 1],
+                s=sigma(mb3.all)[c(1, 3, 4), 1]) %>%
+    unlist
+  simdat <- tibble(id=paste0("augment_", seq_along(imp)),
+                   oned=imp,
+                   batch=rep(c(1L, 3L, 4L), expected_freq),
+                   is_simulated=TRUE,
+                   z=1)
+  newdat <- bind_rows(obsdat, simdat) %>%
+    arrange(batch)
+  ##
+  ## Re-initialize model with random starts
+  ##
+  tmp <- current_values(mb3.all)[c("theta", "sigma2", "mu", "p",
+                                   "tau2")]
+  mbl <- MultiBatchList(data=newdat,
+                        parameters=parameters(mb3.all))
+  burnin(100) <- mbl
+  iter(0) <- mbl
+  posteriorSimulation(mb3.all)
+
+  tmp <- as(mb3.all, "MultiBatchModel")
+  logr <- oned(tmp)
+  pp <- update_multinomialPr(tmp) %>%
+    round(5) %>%
+    as.tibble %>%
+    mutate(truez=truez,
+           logr=round(logr, 3),
+           zz=update_z(tmp),
+           z2=update_z(tmp))
+
+  p2 <- update_multinomialPr(tmp)
+  z2 <- update_z2(p2)
+  p2[z2==1, ]
+  logr[z2 == 1]
+  z3 <- update_z(tmp)
+
+  zz <- update_z(tmp)
+  p2 <- update_multinomialPr(tmp)
+  z2 <- apply(p2, 1, function(x) sample(1:3, 1, prob=x))
+
+  tmp <- posteriorSimulation(mb3.all)
   ##
   ## 1. Create a MultiBatch object and identify batch surrogates
   ##
@@ -77,7 +183,6 @@ test_that("Rare homozygous deletion exacerbated by batching samples.", {
   ##  - if deletion, run batches with hom. del and batches without hom del. separately.  Or, augment batches without homozygous deletion (?)
   ##
   ##
-
   object <- mb
   sb <- toSingleBatch(mb)
   iter(sb) <- 200
@@ -179,8 +284,6 @@ test_that("Simulations in manuscript", {
   ## 2. Assess whether this is a deletion CNP
   ##  - if deletion, run batches with hom. del and batches without hom del. separately.  Or, augment batches without homozygous deletion (?)
   ##
-  ##
-
 
   ##
   ## 3. Create a MultiBatchList of all possible models

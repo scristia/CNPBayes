@@ -1,0 +1,275 @@
+---
+title: "Rare deletions"
+author: "Steven Cristiano, Jacob Carey, and Robert B. Scharpf"
+date: \today
+output: BiocStyle::pdf_document
+Bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{Rare deletions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc} 
+---
+
+# Introduction
+
+This vignette describes the approach currently implemented in `CNPBayes` for evaluating copy number at regions where deletions are rare and possibly not identified in all batches.
+
+```{r packages, message=FALSE}
+library(devtools)
+library(CNPBayes)
+library(SummarizedExperiment)
+library(tidyverse)
+library(ggplot2)
+library(grid)
+```
+
+# A simulated dataset
+
+Simulate a deletion CNP where batch effect is present and homozygous deletions are rare and not present in all batches.
+
+```{r simulate_data}
+unitTestSimulation <- function(){
+  p2 <- 0.01
+  twopq <- 2*sqrt(p2)*(1-sqrt(p2))
+  q2 <- (1-sqrt(p2))^2
+  ps <- matrix(c(p2, twopq, q2),
+               4, 3, byrow=TRUE) %>%
+    "/"(rowSums(.))
+  dat <- tibble(z=sample(1:3, 500,
+                         prob=c(p2, twopq, q2), replace=TRUE),
+                batch=sort(sample(1:4, 500, prob=rep(1/4, 4),
+                                  replace=TRUE)))
+  table(dat$z, dat$batch)
+  thetas <- rbind(c(-2, -0.5, 0),
+                  c(-2.5, -0.7, -0.1),
+                  c(-1.8, -0.6, 0.1),
+                  c(-1.9, -0.55, 0))
+  sigmas <- matrix(rep(0.05, 3), 4, 3, byrow=TRUE)
+  mb <- simulateBatchData(500, p=ps,
+                          theta=thetas,
+                          sds=sigmas,
+                          batch=dat$batch,
+                          zz=dat$z,
+                          df=100) %>%
+    as("MultiBatch")
+  assays(mb)$z <- dat$z
+  mb
+}
+set.seed(75)
+mb <- unitTestSimulation()
+```
+
+```{r ggfig, fig.cap="Homozygous deletions are rare and not all batches have homozygous deletions", fig.width=8, fig.height=6}
+ggMixture(mb)
+```
+
+# Approach
+
+Here, we assume that the batch surrogates have already been identified and are as shown in Figure 1. See [ other vignette ] for identification of batch surrogates.  The next step is to assess whether the region is a  deletion polymorphism by evaluating whether any of the one dimensional summaries (here, average log R ratios) are consistent with a homozygous deletion.  Below, we use an ad-hoc approach that simply evaluates whether there are multiple samples with average log R ratios less than some threshold. 
+
+```{r possible_hd}
+THR <- -1.25
+tab <- assays(mb) %>%
+  filter(oned < THR) %>%
+  group_by(batch) %>%
+  summarize(n=n(),
+            mean=mean(oned),
+            max=max(oned))
+tab
+```
+
+Only batch 2 has multiple possible homozygous deletions at this cutoff.  The only relevant model fitting all of the data would have at least 3 components, but care needs to be taken in the event of batch effects.  To see this, we fit the `MultiBatch` model with 3 components (MB3).
+
+```{r multibatchlist}
+mbl <- MultiBatchList(data=assays(mb), parameters=parameters(mb))
+mb3 <- mbl[["MB3"]]
+iter(mb3) <- 200
+burnin(mb3) <- 300
+mb3 <- posteriorSimulation(mb3)
+```
+
+```{r mb3fig, fig.cap="The k=3 model does not do well since some batches have no observed homozygous deletions.", fig.width=8, fig.height=6}
+ggMixture(mb3)
+```
+
+The mixture components plotted in Fig 2 do not correspond to the same copy number state, complicating downstream inference.  This can also be detected by inspecting the current values of $\theta$ and $\sigma$.
+
+```{r currentvals}
+round(theta(mb3), 2)
+round(sigma(mb3), 2)
+```
+
+Programmatically, we could compare the fold change of the standard deviations of the mixture component.  A fold change larger than 5 would be suprising.  In addition, we can check whether any of the first component means would be consistent with the observations that are likely homozygously deleted:
+
+```{r foldchange_sigma}
+round(rowMax(sigma(mb3))/rowMin(sigma(mb3)), 2)
+any(rowMax(sigma(mb3))/rowMin(sigma(mb3)) > 5)
+any(theta(mb3)[, 1] < max(tab$max))
+```
+
+## Two strategies for dealing with unobserved homozygous deletions in a subset of batches
+
+1.  Assume the batch effects are negligble and fit a single batch model.
+
+2.  Impute homozygous deletions for the batches where no homozygous deletions were observed.
+
+
+### Assume batch effects are negligible
+
+When the assumption that the batch effects are negligible is reasonable, this approach is the easiest.
+
+```{r sb3}
+sb3 <- mbl[["SB3"]]
+iter(sb3) <- 200
+burnin(sb3) <- 300
+sb3 <- posteriorSimulation(sb3)
+```
+
+```{r sb3fig, fig.cap="Single batch model with 3 components. This model identifies the 3 copy number states, but the variances are wider than they need be and there is some overlap in components 2 and 3 if we ignore batch effects.", fig.width=8, fig.height=6}
+ggMixture(sb3)
+```
+
+While the standard deviations of the mixture components may be inflated, the SB3 model does fairly well and we can see that the programmatic checks for the deletion model are more reasonable.
+
+
+```{r programmatic_checks_sb3}
+any(rowMax(sigma(sb3))/rowMin(sigma(sb3)))
+theta(sb3)[1, 1] < max(tab$max)
+```
+
+### Impute homozygous deletions for a subset of batches
+
+First, we fit the multibatch model with two components (MB2) after excluding the suspected homozygous deletions from all batches. In the case of a simple deletion polymorphism, the two mixture components should correspond to hemizygous and diploid states.  Together with parameters from the single batch model evaluated in the previous section (`sb3`), we will impute data for the unobserved homozygous deletions in batches 1, 3 and 4.  The following code implements these steps.
+
+```{r mb2}
+mbl2 <- filter(assays(mb), oned > THR) %>%
+  MultiBatchList(data=.)
+mb2 <- mbl2[["MB2"]]
+iter(mb2) <- iter(mb3)
+burnin(mb2) <- burnin(mb3)
+mb2 <- posteriorSimulation(mb2)
+```
+
+```{r mb2fig, fig.cap="Multibatch model with 2 components after excluding likely homozygous deletions.", fig.width=8, fig.height=6}
+ggMixture(mb2)
+```
+
+We now have reasonable starting values for components two and three across the multiple batches and a marginal mean for homozygous deletions from model SB2.  We use this information to impute homozygous deletions for the batches in which no homozygous deletion was observed.
+
+```{r impute_hd}
+p_ <- cbind(p(sb3)[1, 1], p(mb2)) %>%
+  "/"(rowSums(.))
+theta_ <- cbind(theta(sb3)[1, 1],
+                theta(mb2))
+sigma2_ <- cbind(sigma2(mb2)[1, 2],
+                 sigma2(mb2))
+loc.scale <- tibble(theta=theta_[, 1],
+                    sigma2=sigma2_[, 1],
+                    batch=seq_len(nrow(theta_)))
+x <- assays(mb) %>%
+  group_by(batch) %>%
+  summarize(N=n()) %>%
+  left_join(tab, by="batch") %>%
+  left_join(loc.scale, by="batch") %>%
+  mutate(n = ifelse(is.na(n), 0, n),
+         phat=n/N,
+         expected=2*ceiling(N*max(phat))) %>%
+  filter(n < 3)
+imp.list <- vector("list", nrow(x))
+for(i in seq_along(imp.list)){
+  imp.list[[i]] <- rnorm(x$expected[i], mean=x$theta[i],
+                         sd=sqrt(x$sigma2[i]))
+}
+imp <- unlist(imp.list)
+impdat <- tibble(id=paste0("augment_", seq_along(imp)),
+                 oned=imp,
+                 batch=rep(x$batch, x$expected),
+                 is_simulated=TRUE,
+                 z=1)
+simdat <- bind_rows(assays(mb),
+                    impdat) %>%
+  arrange(batch)
+mbl3 <- MultiBatchList(data=simdat)
+```
+
+Given the above `MultiBatchList`, we now restrict the model space to those with at least 3 components.  Below, we fit a small number of burnin iterations and keep the models with the highest log likelihood.
+
+```{r restrict_modelspace}
+set.seed(123)
+mbl3 <- mbl3[ k(mbl3) >= 3 ]
+burnin(mbl3) <- 500
+iter(mbl3) <- 0
+mbl3 <- posteriorSimulation(mbl3)
+logLK <- sapply(mbl3, log_lik) %>%
+  sort(decreasing=TRUE)
+km <- kmeans(logLK, centers=2)
+ix <- which.max(km$centers)
+nms <- names(km$cluster)[ km$cluster == ix ]
+logLK <- logLK[ nms ]
+```
+
+Next, we run additional MCMC iterations on the top models and compute the marginal likelihood of each.
+
+```{r marginal_LK}
+mbl3 <- mbl3[ names(logLK) ]
+burnin(mbl3) <- 250
+iter(mbl3) <- 500
+mbl3 <- posteriorSimulation(mbl3)
+mbl3 <- compute_marginal_lik(mbl3)
+ml <- marginal_lik(mbl3) %>%
+  sort(decreasing=TRUE)
+mb.top <- mbl3[[ names(ml)[1] ]]
+```
+
+Here, we compare the posterior predictive distributions from the single batch model that ignored batch effects to the MultiBatch model with imputed data for homozygous deletions.
+
+```{r comparemodels}
+peelLegend <- function(gg){
+  if(!is(gg, "gg")) stop("object must be instance of class 'gg'")
+  gtab <- ggplotGrob(gg)
+  i <- which(sapply(gtab$grobs, function(x) x$name) == "guide-box")
+  legend <- gtab$grobs[[i]]
+  fig <- gg + theme(legend.position="none")
+  gtab <- ggplotGrob(fig)
+  list(gtab=gtab, legend=legend)
+}
+colors <- c("#999999", "#56B4E9", "#E69F00")
+mixtheme <- theme(panel.background=element_rect(fill="white"),
+                  strip.background=element_rect(fill="white",
+                                                color="white"),
+                  axis.line=element_line(color="black"),
+                  legend.position="bottom",
+                  legend.direction="horizontal")
+fig.sb3.with.leg <- ggMixture(sb3, mixtheme=mixtheme) +
+  xlab("") + ylab("")
+leg <- peelLegend(fig.sb3.with.leg)[["legend"]]
+fig.sb3 <- fig.sb3.with.leg + guides(fill=FALSE, color=FALSE)
+fig.imputed <- ggMixture(mb.top, mixtheme=mixtheme) +
+  xlab("") + ylab("") + guides(fill=FALSE)
+pdf("mixmodel_comparison.pdf", width=10, height=12)
+grid.newpage()
+pushViewport(viewport(layout=grid.layout(1, 2)))
+pushViewport(viewport(layout.pos.row=1,
+                      layout.pos.col=1))
+pushViewport(viewport(width=unit(0.96, "npc"),
+                      height=unit(0.5, "npc"),
+                      y=unit(0.75, "npc")))
+print(fig.sb3, newpage=FALSE)
+popViewport(1)
+pushViewport(viewport(width=unit(0.96, "npc"),
+                      height=unit(0.5, "npc"),
+                      y=unit(0.25, "npc")))
+grid.draw(leg)
+popViewport(2)
+pushViewport(viewport(layout.pos.row=1,
+                      layout.pos.col=2))
+pushViewport(viewport(width=unit(0.96, "npc"),
+                      height=unit(0.96, "npc")))
+print(fig.imputed, newpage=FALSE)
+dev.off()
+```
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{mixmodel_comparison.pdf}
+\caption{Comparison of posterior predictive distributions from the single batch model that ignored batch effects to the MultiBatch model with imputed data for homozygous deletions.}
+\end{figure}
+
