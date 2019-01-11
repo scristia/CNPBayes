@@ -164,11 +164,13 @@ setMethod("posteriorSimulation", "MultiBatchP", function(object){
     summaries(object)[["data.prec"]] <- computePrec(object)
   }
   mbm <- as(object, "MultiBatchPooled")
+  mbm@.internal.counter <- 0L
   mbm <- runBurnin(mbm)
   mbm <- sortComponentLabels(mbm)
-  if(mbm@.internal.counter / burnin(mbm) > 0.5){
+  if(mbm@.internal.counter / burnin(mbm) > 0.9){
     ## there were no valid updates for the z chain
     ## no point in continuing
+    warning("Burnin failed to find valid updates for z. Stopping MCMC after burnin.")
     mb <- revertBack(object, mbm)
     summaries(mb) <- summarizeModel(mb)
     return(mb)

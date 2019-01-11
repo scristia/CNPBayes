@@ -65,7 +65,8 @@ ggMixture(mb)
 
 # Approach
 
-Here, we assume that the batch surrogates have already been identified and are as shown in Figure 1. See [ other vignette ] for identification of batch surrogates.  The next step is to assess whether the region is a  deletion polymorphism by evaluating whether any of the one dimensional summaries (here, average log R ratios) are consistent with a homozygous deletion.  Below, we use an ad-hoc approach that simply evaluates whether there are multiple samples with average log R ratios less than some threshold. 
+We assume that surrogates for batch effects have already been identified and that the intensities (array) or coverage estimates (sequencing) in the region of interest have been normalized and summarized as in Figure 1. 
+See [ other vignette ] for identification of batch surrogates.  Given an estimate for the batches at a copy number polymorphism, we first assess whether the region is likely a deletion polymorphism.   In the simulated example, the summarized intensities for each sample is a median log R ratio.  Homozygous deletions generally have log R ratios than -2 for germline samples, but this can vary by region.  Below, we use an ad-hoc approach that simply evaluates whether there are multiple samples with average log R ratios less a specific threshold. 
 
 ```{r possible_hd}
 THR <- -1.25
@@ -92,14 +93,14 @@ mb3 <- posteriorSimulation(mb3)
 ggMixture(mb3)
 ```
 
-The mixture components plotted in Fig 2 do not correspond to the same copy number state, complicating downstream inference.  This can also be detected by inspecting the current values of $\theta$ and $\sigma$.
+The mixture components plotted in Figure 2 do not correspond to the same copy number state, complicating downstream inference.  This can also be detected by inspecting the current values of $\theta$ and $\sigma$.
 
 ```{r currentvals}
 round(theta(mb3), 2)
 round(sigma(mb3), 2)
 ```
 
-Programmatically, we could compare the fold change of the standard deviations of the mixture component.  A fold change larger than 5 would be suprising.  In addition, we can check whether any of the first component means would be consistent with the observations that are likely homozygously deleted:
+Programmatically, we could compare the fold change of the standard deviations of the mixture component.  A large fold change suggest that one or more components is capturing outliers.  In addition, we can check whether any of the first component means would be consistent with the observations that are likely homozygously deleted:
 
 ```{r foldchange_sigma}
 round(rowMax(sigma(mb3))/rowMin(sigma(mb3)), 2)
@@ -107,11 +108,13 @@ any(rowMax(sigma(mb3))/rowMin(sigma(mb3)) > 5)
 any(theta(mb3)[, 1] < max(tab$max))
 ```
 
-## Two strategies for dealing with unobserved homozygous deletions in a subset of batches
+## Strategies for dealing with unobserved homozygous deletions in a subset of batches
 
 1.  Assume the batch effects are negligble and fit a single batch model.
 
 2.  Impute homozygous deletions for the batches where no homozygous deletions were observed.
+
+We explore both of these approaches in the following sections.
 
 
 ### Assume batch effects are negligible
@@ -129,8 +132,7 @@ sb3 <- posteriorSimulation(sb3)
 ggMixture(sb3)
 ```
 
-While the standard deviations of the mixture components may be inflated, the SB3 model does fairly well and we can see that the programmatic checks for the deletion model are more reasonable.
-
+While the standard deviations of the mixture components may be inflated (Figure 2), the SB3 model successfully identifies the three copy number components.  The programmatic checks (below) are consistent with our expectation that the standard deviations of the mixture components should be similar and the mean of the first mixture component should as low or lower than the maximum log R ratio identified previously for the likely homozygous deletion cases.  Nevertheless, the standard deviations of the mixture components are inflated since we did not model batch effects, and some overlap is evident for components 2 and 3. 
 
 ```{r programmatic_checks_sb3}
 any(rowMax(sigma(sb3))/rowMin(sigma(sb3)))
@@ -142,19 +144,19 @@ theta(sb3)[1, 1] < max(tab$max)
 First, we fit the multibatch model with two components (MB2) after excluding the suspected homozygous deletions from all batches. In the case of a simple deletion polymorphism, the two mixture components should correspond to hemizygous and diploid states.  Together with parameters from the single batch model evaluated in the previous section (`sb3`), we will impute data for the unobserved homozygous deletions in batches 1, 3 and 4.  The following code implements these steps.
 
 ```{r mb2}
-mbl2 <- filter(assays(mb), oned > THR) %>%
-  MultiBatchList(data=.)
-mb2 <- mbl2[["MB2"]]
-iter(mb2) <- iter(mb3)
-burnin(mb2) <- burnin(mb3)
+mb2 <- filter(assays(mb), oned > THR) %>%
+  MultiBatchList(data=.) %>%
+  "[["("MB2")
+mcmcParams(mb2) <- mcmcParams(sb3)
 mb2 <- posteriorSimulation(mb2)
 ```
 
 ```{r mb2fig, fig.cap="Multibatch model with 2 components after excluding likely homozygous deletions.", fig.width=8, fig.height=6}
-ggMixture(mb2)
+ggMixture(mb2) +
+  xlim(c(-3, 1))
 ```
 
-We now have reasonable starting values for components two and three across the multiple batches and a marginal mean for homozygous deletions from model SB2.  We use this information to impute homozygous deletions for the batches in which no homozygous deletion was observed.
+We now have reasonable starting values for components two and three across the multiple batches and a marginal mean for homozygous deletions from the SB3 in the previous section.  We use this information to impute homozygous deletions for the batches in which no homozygous deletion was observed.
 
 ```{r impute_hd}
 p_ <- cbind(p(sb3)[1, 1], p(mb2)) %>%
@@ -192,7 +194,7 @@ simdat <- bind_rows(assays(mb),
 mbl3 <- MultiBatchList(data=simdat)
 ```
 
-Given the above `MultiBatchList`, we now restrict the model space to those with at least 3 components.  Below, we fit a small number of burnin iterations and keep the models with the highest log likelihood.
+Given the above `MultiBatchList`, we now restrict the model space to models with at least 3 components.  Below, we fit a small number of burnin iterations and keep the models with the highest log likelihood.
 
 ```{r restrict_modelspace}
 set.seed(123)
@@ -239,14 +241,19 @@ mixtheme <- theme(panel.background=element_rect(fill="white"),
                                                 color="white"),
                   axis.line=element_line(color="black"),
                   legend.position="bottom",
-                  legend.direction="horizontal")
+                  legend.direction="horizontal",
+                  axis.text=element_text(size=14),
+                  strip.text=element_text(size=15),
+                  legend.text=element_text(size=15),
+                  legend.title=element_text(size=16))
 fig.sb3.with.leg <- ggMixture(sb3, mixtheme=mixtheme) +
-  xlab("") + ylab("")
+  xlab("") + ylab("") +
+  guides(fill=guide_legend(title="Mixture\ncomponent"))
 leg <- peelLegend(fig.sb3.with.leg)[["legend"]]
 fig.sb3 <- fig.sb3.with.leg + guides(fill=FALSE, color=FALSE)
 fig.imputed <- ggMixture(mb.top, mixtheme=mixtheme) +
   xlab("") + ylab("") + guides(fill=FALSE)
-pdf("mixmodel_comparison.pdf", width=10, height=12)
+pdf("mixmodel_comparison.pdf", width=14, height=8)
 grid.newpage()
 pushViewport(viewport(layout=grid.layout(1, 2)))
 pushViewport(viewport(layout.pos.row=1,
@@ -269,7 +276,7 @@ print(fig.imputed, newpage=FALSE)
 dev.off()
 ```
 \begin{figure}
-\includegraphics[width=0.8\textwidth]{mixmodel_comparison.pdf}
+\includegraphics[width=\textwidth]{mixmodel_comparison.pdf}
 \caption{Comparison of posterior predictive distributions from the single batch model that ignored batch effects to the MultiBatch model with imputed data for homozygous deletions.}
 \end{figure}
 

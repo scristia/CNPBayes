@@ -868,7 +868,7 @@ setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 #' @param mixtheme a ggplot theme
 #' @export
 #' @rdname ggplot-functions
-setGeneric("ggMixture", function(model, bins=100, mixtheme) standardGeneric("ggMixture"))
+setGeneric("ggMixture", function(model, bins=100, mixtheme, shift_homozygous) standardGeneric("ggMixture"))
 
 ## #' @export
 ## #' @rdname ggplot-functions
@@ -1025,7 +1025,7 @@ setGeneric("summaries2<-", function(object, value) standardGeneric("summaries2<-
 setGeneric("dataSd", function(object) standardGeneric("dataSd"))
 
 #' @export
-setGeneric("findSurrogates", function(object, THR=0.1) standardGeneric("findSurrogates"))
+setGeneric("findSurrogates", function(object, THR=0.1, min_oned=-1) standardGeneric("findSurrogates"))
 setGeneric("isSampled", function(object, THR=0.1) standardGeneric("isSampled"))
 setGeneric("down_sample", function(object) standardGeneric("down_sample"))
 setGeneric("down_sample<-", function(object, value) standardGeneric("down_sample<-"))
@@ -1040,7 +1040,7 @@ setGeneric("upsample_z", function(object) standardGeneric("upsample_z"))
 setGeneric("specs", function(object) standardGeneric("specs"))
 setGeneric("specs<-", function(object, value) standardGeneric("specs<-"))
 setGeneric("downSampleModel", function(object, N, i) standardGeneric("downSampleModel") )
-setGeneric("upSampleModel", function(downsampled.model, full.model) standardGeneric("upSampleModel"))
+setGeneric("upSampleModel", function(downsampled.model, data.full) standardGeneric("upSampleModel"))
 setGeneric("listChains", function(object) standardGeneric("listChains"))
 setGeneric("predictive", function(object) standardGeneric("predictive"))
 setGeneric("zstar", function(object) standardGeneric("zstar"))

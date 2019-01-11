@@ -483,15 +483,15 @@ MultiBatchList <- function(models,
 ##   object
 ## })
 
-setMethod("upSampleModel", "MultiBatchList",
-          function(downsampled.model, full.model){
-  for(i in seq_along(object)){
-    mb <- object[[i]]
-    up <- upSampleModel(mb)
-    object[[i]] <- up
-  }
-  object
-})
+##setMethod("upSampleModel", "MultiBatchList",
+##          function(downsampled.model, full.model){
+##  for(i in seq_along(object)){
+##    mb <- object[[i]]
+##    up <- upSampleModel(mb)
+##    object[[i]] <- up
+##  }
+##  object
+##})
 
 setMethod("length", "MultiBatchList", function(x) {
   length(chains(x))

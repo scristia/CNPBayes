@@ -335,7 +335,7 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
   list(theta=p.theta, sigma=p.sigma, comp=p.comp, single=p.single)
 }
 
-.gg_multibatch <- function(model, bins=100, mixtheme){
+.gg_multibatch <- function(model, bins=100, mixtheme, shift_homozygous){
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
   pred <- predictiveTibble(model)
@@ -351,7 +351,24 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
                       batch=batch(model)) %>%
     mutate(batch=factor(paste("Batch", batch))) %>%
     mutate(model=modelName(model))
-  ##xlimit <- c(-5, 1)
+  if(!missing(shift_homozygous)){
+    full.data <- full.data %>%
+      mutate(is_homozygous=oned <= shift_homozygous[1],
+             oned=ifelse(is_homozygous,
+                         oned + shift_homozygous[2], oned))
+    pred <- pred %>%
+      mutate(is_homozygous=oned <= shift_homozygous[1],
+             oned=ifelse(is_homozygous,
+                         oned + shift_homozygous[2], oned))
+    xint <- max(full.data$oned[full.data$is_homozygous])
+    vertical_break <- geom_vline(xintercept=xint,
+                                 linetype="dashed",
+                                 color="gray")
+
+    ##scale_x <- scale_x_continuous(labels=c())
+  } else {
+    vertical_break <- geom_vline(xintercept=-Inf)
+  }
   batch.data <- full.data %>%
     group_by(batch, model) %>%
     summarize(n=n()) %>%
@@ -365,6 +382,8 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
                       legend.position="bottom",
                       legend.direction="horizontal")
   }
+  geom_dens <- geom_density(adjust=1, alpha=0.4, size=0.75, color="gray30")
+  if(all(is.na(pred$oned))) geom_dens <- geom_vline(xintercept=0, color="transparent")
   x <- NULL
   fig <- ggplot(pred, aes(x=oned, n_facet=n,
                           y=..count../n_facet,
@@ -375,8 +394,9 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
                    color="gray70",
                    fill="gray70",
                    alpha=0.1) +
+    vertical_break +
     facet_wrap(~batch, ncol=1, strip.position="right") +
-    geom_density(adjust=1, alpha=0.4, size=0.75, color="gray30") +
+    geom_dens +
     geom_text(data=batch.data, aes(x=x, y=y, label=paste0("  n=", n)),
               hjust="inward", vjust="inward",
               inherit.aes=FALSE,
@@ -570,7 +590,7 @@ multibatch_figure <- function(theoretical, empirical, model){
 #' fig <- ggMixture(MultiBatchModelExample)
 #' @aliases ggMixture,MultiBatchCopyNumber-method
 setMethod("ggMixture", "MultiBatchCopyNumber",
-          function(model, bins=100, mixtheme){
+          function(model, bins=100, mixtheme, shift_homozygous){
   .gg_multibatch_copynumber(model, bins)
 })
 
@@ -578,7 +598,7 @@ setMethod("ggMixture", "MultiBatchCopyNumber",
 #' @rdname ggplot-functions
 #' @aliases ggMixture,MultiBatchCopyNumberPooled-method
 setMethod("ggMixture", "MultiBatchCopyNumberPooled",
-          function(model, bins=100, mixtheme){
+          function(model, bins=100, mixtheme, shift_homozygous){
   .gg_multibatch_copynumber(model, bins)
 })
 
@@ -586,23 +606,23 @@ setMethod("ggMixture", "MultiBatchCopyNumberPooled",
 #' @rdname ggplot-functions
 #' @aliases ggMixture,MultiBatchModel-method
 setMethod("ggMixture", "MultiBatchModel",
-          function(model, bins=100, mixtheme){
-  .gg_multibatch(model, bins=bins, mixtheme)
+          function(model, bins=100, mixtheme, shift_homozygous){
+  .gg_multibatch(model, bins=bins, mixtheme, shift_homozygous)
 })
 
 #' @export
 #' @rdname ggplot-functions
 #' @aliases ggMixture,MultiBatchModel-method
 setMethod("ggMixture", "MultiBatch",
-          function(model, bins=100, mixtheme){
-  .gg_multibatch(model, bins=bins, mixtheme)
+          function(model, bins=100, mixtheme, shift_homozygous){
+  .gg_multibatch(model, bins=bins, mixtheme, shift_homozygous)
 })
 
 #' @export
 #' @rdname ggplot-functions
 #' @aliases ggMixture,MultiBatchPooled-method
 setMethod("ggMixture", "MultiBatchPooled",
-          function(model, bins=100, mixtheme){
+          function(model, bins=100, mixtheme, shift_homozygous){
   .gg_multibatch_pooled(model, bins)
 })
 

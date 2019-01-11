@@ -169,7 +169,7 @@ pBaf <- function(snpdat, cn.model){
               p3=prod(p3, na.rm=TRUE)^pwr,
               p4=prod(p4, na.rm=TRUE)^pwr) %>%
     left_join(pz, by="id")
-    B
+  B
 }
 
 .pBAF_012 <- function(snpdat, cn.model){
@@ -257,6 +257,12 @@ cmap <- function(model){
 
 .modelProb <- function(cn.model, snpdata){
   cn_map <- paste0("m_", cmap(cn.model))
+##  cn.model <- specs(cn.model)$cn.model
+##  cn.model <- strsplit(cn.model, ",") %>%
+##    unlist
+##  cn.model <- paste(unique(cn.model), collapse="")
+##  ##cn_map <- paste0("m_", cmap(cn.model))
+##  cn_map <- paste0("m_", cn.model)
   fun <- switch(cn_map,
                 m_012=pBAF_012,
                 m_021=pBAF_012,
@@ -281,6 +287,8 @@ modelProb <- function(cn.model, snpdata){
 candidateModels <- function(cn.model){
   if(k(cn.model) == 4){
     candidate_models <- list(c(0, 1, 2, 2),
+                             c(0, 2, 2, 2),
+                             c(2, 2, 2, 2),
                              c(0, 1, 1, 2),
                              c(0, 1, 2, 3),
                              c(1, 2, 3, 3)) %>%

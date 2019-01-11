@@ -1088,12 +1088,17 @@ setMethod("computeMixProbs", "MultiBatch", function(object){
   tib2 <- assays(object) %>%
     group_by(batch) %>%
     summarize(N=n())
+  ## frequency of copy number states in each batch
   tib <- assays(object) %>%
     mutate(z=z(object)) %>%
     group_by(batch, z) %>%
     summarize(n=n()) %>%
     left_join(tib2, by="batch")
-  p <- matrix(tib$n/tib$N, nrow(tib2), ncol=k(object),
+  tib3 <- expand.grid(unique(batch(object)), seq_len(k(object))) %>%
+    as_tibble() %>%
+    set_colnames(c("batch", "z")) %>%
+    left_join(tib, by=c("batch", "z"))
+  p <- matrix(tib3$n/tib3$N, nrow(tib2), ncol=k(object),
               byrow=TRUE)
   dimnames(p) <- NULL
   p
@@ -1464,9 +1469,12 @@ setMethod("upsample_z", "MultiBatch", function(object){
 })
 
 setMethod("upSampleModel", "MultiBatch",
-          function(downsampled.model, full.model){
+          function(downsampled.model, data.full){
             dat.ds <- assays(downsampled.model)
-            dat.full <- assays(full.model)
+            ##dat.full <- assays(full.model)
+            full.model <- arrange(data.full, batch) %>%
+              MultiBatchList(data=.) %>%
+              "[["(modelName(downsampled.model))
             m <- modes(downsampled.model)
             m[["u"]] <- modes(full.model)[["u"]]
             m[["z"]] <- modes(full.model)[["z"]]
@@ -1479,7 +1487,7 @@ setMethod("upSampleModel", "MultiBatch",
             cv[["probz"]] <- current_values(full.model)[["probz"]]
             current_values(full.model) <- cv
             burnin(full.model) <- 0L
-            full.model <- posteriorSimulation(full.model)
+            ##full.model <- posteriorSimulation(full.model)
             full.model
           })
 
@@ -1751,11 +1759,12 @@ find_surrogates <- function(dat, THR=0.1, min_oned=-1){
 #'
 #' @details All pairwise comparisons of batches are performed.  The two most similar batches are combined if the p-value exceeds THR.  The process is repeated recursively until no two batches can be combined.
 #' @return MultiBatch object
-setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
+setMethod("findSurrogates", "MultiBatch",
+          function(object, THR=0.1, min_oned=-1){
   dat <- assays(object) %>%
     select(c(id, provisional_batch, oned))
   message("Putting rows of data in batch order")
-  dat2 <- find_surrogates(dat, THR) %>%
+  dat2 <- find_surrogates(dat, THR, min_oned) %>%
     mutate(batch=factor(batch, levels=unique(batch)),
            batch_labels=as.character(batch),
            batch=as.integer(batch)) %>%
@@ -1801,6 +1810,8 @@ setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
 .candidate_mapping <- function(model){
   if(k(model) == 4){
     candidate_models <- list(c(0, 1, 2, 2),
+                             c(0, 2, 2, 2),
+                             c(2, 2, 2, 2),
                              c(0, 1, 1, 2),
                              c(0, 1, 2, 3),
                              c(1, 2, 3, 3)) %>%
@@ -1835,13 +1846,13 @@ setMethod("findSurrogates", "MultiBatch", function(object, THR=0.1){
 }
 
 setMethod("[[", c("CnList", "numeric"), function(x, i){
-  specs <- specs(x)[i, ]
-  model <- specs$model
+  spec <- specs(x)[i, ]
+  model <- spec$model
   nm <- substr(model, 1, 3)
   if(nm == "SBP" || nm == "MBP"){
     mb <- MultiBatchP(model=model,
                       data=assays(x),
-                      specs=specs(x),
+                      specs=spec,
                       parameters=parameters(x),
                       current_values=current_values(x),
                       chains=chains(x),
@@ -1850,7 +1861,7 @@ setMethod("[[", c("CnList", "numeric"), function(x, i){
   } else {
     mb <- MultiBatch(model=model,
                      data=assays(x),
-                     specs=specs,
+                     specs=spec,
                      parameters=parameters(x),
                      current_values=current_values(x),
                      chains=chains(x),
@@ -1885,6 +1896,7 @@ CnList <- function(mb){
                current_values=current_values(mb),
                summaries=summaries(mb),
                flags=flags(mb))
+  clist
 }
 
 setMethod("probCopyNumber", "MultiBatch", function(model){
@@ -1936,25 +1948,37 @@ id2 <- function(object){
 }
 
 setMethod("[", c("MultiBatch", "numeric"), function(x, i, j, ..., drop=FALSE){
+  nbatch1 <- numBatch(x)
   x@data <- x@data[i, , drop=FALSE]
+  ubatch <- unique(x@data$batch)
   cv <- current_values(x)
   cv$probz <- cv$probz[i, , drop=FALSE]
   cv$u <- cv$u[i]
   cv$z <- cv$z[i]
+  cv$theta <- cv$theta[ubatch, , drop=FALSE]
+  cv$sigma2 <- cv$sigma2[ubatch, , drop=FALSE]
+  cv$p <- cv$p[ubatch, , drop=FALSE]
   x@current_values <- cv
-  L <- specs(x)$number_batches
-  L2 <- length(unique(batch(x)))
-  sp <- specs(x)
-  sp$number_batches <- L2
-  sp$number_obs <- length(i)
-  specs(x) <- sp
-  if( L == L2 ) return(x)
+  specs(x)$number_batches <- length(ubatch)
+  specs(x)$number_obs <- nrow(x@data)
+  nbatch2 <- numBatch(x)
+  ##L <- specs(x)$number_batches
+  ##L2 <- length(unique(batch(x)))
+  ##sp <- specs(x)
+  ##sp$number_batches <- L2
+  ##sp$number_obs <- length(i)
+  ##specs(x) <- sp
+  ##if( L == L2 ) return(x)
   current_values(x)[["theta"]] <- computeMeans(x)
   current_values(x)[["sigma2"]] <- 1/computePrec(x)
   current_values(x)[["p"]] <- computeMixProbs(x)
   summaries(x)[["data.mean"]] <- theta(x)
   summaries(x)[["data.prec"]] <- 1/sigma2(x)
-  chains(x) <- initialize_mcmc(k(x), iter(x), numBatch(x))
+  if(substr(modelName(x), 1, 3) == "MBP"){
+    chains(x) <- initialize_mcmcP(k(x), iter(x), numBatch(x))
+  } else {
+    chains(x) <- initialize_mcmc(k(x), iter(x), numBatch(x))
+  }
   assays(x)$batch <- as.integer(factor(batch(x)))
   x
 })
@@ -2084,3 +2108,13 @@ setMethod("min_effsize", "MultiBatch", function(object){
 setMethod("min_GR", "MultiBatch", function(object){
   min_GR(mcmcParams(object))
 })
+
+#' @export
+incrementK <- function(object){
+  model_name <- modelName(object)
+  K <- substr(model_name, nchar(model_name), nchar(model_name))
+  Kplus <- (as.integer(K) + 1)  %>%
+    as.character
+  model_name <- gsub(K, Kplus, model_name)
+  model_name
+}
