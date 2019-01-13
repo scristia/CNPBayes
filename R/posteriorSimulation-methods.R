@@ -158,6 +158,38 @@ setMethod("posteriorSimulation", "MultiBatch", function(object){
   return(mb)
 })
 
+setGeneric("mcmc_homozygous", function(object) standardGeneric("mcmc_homozygous"))
+
+setGeneric("burnin_homozygous", function(object) standardGeneric("burnin_homozygous"))
+
+setMethod("burnin_homozygous", "MultiBatchModel", function(object) {
+  mb_homozygous_burnin(object)
+})
+
+setMethod("burnin_homozygous", "MultiBatch", function(object) {
+  mbm <- as(object, "MultiBatchModel")
+  mbm <- mb_homozygous_burnin(mbm)
+  mbm <- sortComponentLabels(mbm)
+  mb <- revertBack(object, mbm)
+  mb
+})
+
+setMethod("mcmc_homozygous", "MultiBatchModel", function(object) {
+  mb_homozygous_mcmc(object)
+})
+
+setMethod("mcmc_homozygous", "MultiBatch", function(object){
+  mbm <- as(object, "MultiBatchModel")
+  mbm <- burnin_homozygous(mbm)
+  ##mbm <- sortComponentLabels(mbm)
+  mbm <- mcmc_homozygous(mbm)
+  if(!isOrdered(mbm)) label_switch(mbm) <- TRUE
+  ##mbm <- sortComponentLabels(mbm)
+  mb <- revertBack(object, mbm)
+  summaries(mb) <- summarizeModel(mb)
+  return(mb)
+})
+
 setMethod("posteriorSimulation", "MultiBatchP", function(object){
   if(any(is.na(dataMean(object)))){
     summaries(object)[["data.mean"]] <- computeMeans(object)

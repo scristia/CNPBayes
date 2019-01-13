@@ -16,17 +16,22 @@
 \usage{
 ggChains(model)
 
-ggMixture(model, bins = 100)
+ggMixture(model, bins = 100, mixtheme, shift_homozygous)
 
-\S4method{ggMixture}{MultiBatchCopyNumber}(model, bins = 100)
+\S4method{ggMixture}{MultiBatchCopyNumber}(model, bins = 100, mixtheme,
+  shift_homozygous)
 
-\S4method{ggMixture}{MultiBatchCopyNumberPooled}(model, bins = 100)
+\S4method{ggMixture}{MultiBatchCopyNumberPooled}(model, bins = 100,
+  mixtheme, shift_homozygous)
 
-\S4method{ggMixture}{MultiBatchModel}(model, bins = 100)
+\S4method{ggMixture}{MultiBatchModel}(model, bins = 100, mixtheme,
+  shift_homozygous)
 
-\S4method{ggMixture}{MultiBatch}(model, bins = 100)
+\S4method{ggMixture}{MultiBatch}(model, bins = 100, mixtheme,
+  shift_homozygous)
 
-\S4method{ggMixture}{MultiBatchPooled}(model, bins = 100)
+\S4method{ggMixture}{MultiBatchPooled}(model, bins = 100, mixtheme,
+  shift_homozygous)
 
 \S4method{ggChains}{MultiBatchModel}(model)
 
@@ -38,6 +43,8 @@ ggMixture(model, bins = 100)
 \item{model}{A SB, MB, SBP, or MBP model}
 
 \item{bins}{a length-one numeric vector indicating the number of bins -- passed to \code{geom_hist}}
+
+\item{mixtheme}{a ggplot theme}
 }
 \value{
 A \code{gg} object

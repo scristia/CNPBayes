@@ -149,6 +149,14 @@ cpp_mcmc <- function(object) {
     .Call('_CNPBayes_cpp_mcmc', PACKAGE = 'CNPBayes', object)
 }
 
+mb_homozygous_burnin <- function(object) {
+    .Call('_CNPBayes_mb_homozygous_burnin', PACKAGE = 'CNPBayes', object)
+}
+
+mb_homozygous_mcmc <- function(object) {
+    .Call('_CNPBayes_mb_homozygous_mcmc', PACKAGE = 'CNPBayes', object)
+}
+
 sample_componentsP <- function(x, size, prob) {
     .Call('_CNPBayes_sample_componentsP', PACKAGE = 'CNPBayes', x, size, prob)
 }

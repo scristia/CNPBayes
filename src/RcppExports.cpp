@@ -424,6 +424,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mb_homozygous_burnin
+Rcpp::S4 mb_homozygous_burnin(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_mb_homozygous_burnin(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
+    rcpp_result_gen = Rcpp::wrap(mb_homozygous_burnin(object));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mb_homozygous_mcmc
+Rcpp::S4 mb_homozygous_mcmc(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_mb_homozygous_mcmc(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
+    rcpp_result_gen = Rcpp::wrap(mb_homozygous_mcmc(object));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sample_componentsP
 Rcpp::IntegerVector sample_componentsP(Rcpp::IntegerVector x, int size, Rcpp::NumericVector prob);
 RcppExport SEXP _CNPBayes_sample_componentsP(SEXP xSEXP, SEXP sizeSEXP, SEXP probSEXP) {
@@ -1262,6 +1284,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_update_probz", (DL_FUNC) &_CNPBayes_update_probz, 1},
     {"_CNPBayes_cpp_burnin", (DL_FUNC) &_CNPBayes_cpp_burnin, 1},
     {"_CNPBayes_cpp_mcmc", (DL_FUNC) &_CNPBayes_cpp_mcmc, 1},
+    {"_CNPBayes_mb_homozygous_burnin", (DL_FUNC) &_CNPBayes_mb_homozygous_burnin, 1},
+    {"_CNPBayes_mb_homozygous_mcmc", (DL_FUNC) &_CNPBayes_mb_homozygous_mcmc, 1},
     {"_CNPBayes_sample_componentsP", (DL_FUNC) &_CNPBayes_sample_componentsP, 3},
     {"_CNPBayes_update_predictiveP", (DL_FUNC) &_CNPBayes_update_predictiveP, 1},
     {"_CNPBayes_loglik_multibatch_pvar", (DL_FUNC) &_CNPBayes_loglik_multibatch_pvar, 1},

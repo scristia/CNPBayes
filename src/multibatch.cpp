@@ -922,3 +922,207 @@ Rcpp::S4 cpp_mcmc(Rcpp::S4 object) {
   model.slot("mcmc.chains") = chain ;
   return model ;
 }
+
+// [[Rcpp::export]]
+Rcpp::S4 mb_homozygous_burnin(Rcpp::S4 object) {
+  RNGScope scope ;
+  Rcpp::S4 model(clone(object)) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  int K = getK(hypp) ;
+  Rcpp::S4 params(model.slot("mcmc.params")) ;
+  IntegerVector up = params.slot("param_updates") ;
+  int S = params.slot("burnin") ;
+  NumericVector x = model.slot("data") ;
+  int N = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
+  //
+  // S = the number of burnin iterations
+  // *No need to have a zero based index here*
+  //
+  NumericMatrix ths=model.slot("theta") ;
+  NumericMatrix hds2=model.slot("sigma2") ;
+  for(int s = 1; s < S; ++s){
+    model.slot("z") = update_z(model) ;
+    model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+    NumericMatrix hdmean = model.slot("theta") ;
+    ths = update_theta(model) ;
+    hdmean(_, 0) = ths(_, 0) ;
+    model.slot("theta") = hdmean ;
+    NumericMatrix hdvar = model.slot("sigma2");
+    hds2 = update_sigma2(model) ;
+    hdvar(_, 0) = hds2(_, 0);
+    model.slot("sigma2") = hdvar;
+    model.slot("mu") = update_mu(model) ;
+    model.slot("tau2") = update_tau2(model) ;
+    model.slot("sigma2.0") = update_sigma20(model) ;
+    model.slot("nu.0") = update_nu0(model) ;
+    model.slot("pi") = update_weightedp(model) ;
+    model.slot("u") = Rcpp::rchisq(N, df) ;
+  }
+  // compute log prior probability from last iteration of burnin
+  // compute log likelihood from last iteration of burnin
+  NumericVector lls2(1);
+  NumericVector ll(1);
+  lls2 = stageTwoLogLikBatch(model);
+  ll = compute_loglik(model);
+  ll = ll + lls2;
+  model.slot("loglik") = ll;
+  model.slot("logprior") = compute_logprior(model) ;
+  return model ;
+}
+
+// [[Rcpp::export]]
+Rcpp::S4 mb_homozygous_mcmc(Rcpp::S4 object) {
+  RNGScope scope ;
+  Rcpp::S4 model(clone(object)) ;
+  Rcpp::S4 chain(model.slot("mcmc.chains")) ;
+  Rcpp::S4 hypp(model.slot("hyperparams")) ;
+  Rcpp::S4 params(model.slot("mcmc.params")) ;
+  IntegerVector up = params.slot("param_updates") ;
+  int T = params.slot("thin") ;
+  T = T - 1;
+  int S = params.slot("iter") ;
+  S = S - 1;
+  NumericVector x = model.slot("data") ;
+  int N = x.size() ;
+  double df = getDf(model.slot("hyperparams")) ;
+  NumericMatrix thetac = chain.slot("theta") ;
+  NumericMatrix sigma2c = chain.slot("sigma2") ;
+  NumericMatrix th = model.slot("theta");
+  int B = th.nrow();
+  int K = th.ncol();
+  NumericMatrix s2(B, K);
+  NumericMatrix pmix = chain.slot("pi") ;
+  NumericMatrix zfreq = chain.slot("zfreq") ;
+  NumericMatrix mu = chain.slot("mu") ;
+  NumericMatrix tau2 = chain.slot("tau2") ;
+  NumericVector nu0 = chain.slot("nu.0") ;
+  NumericVector sigma2_0 = chain.slot("sigma2.0") ;
+  NumericVector loglik_ = chain.slot("loglik") ;
+  NumericVector logprior_ = chain.slot("logprior") ;
+  NumericMatrix predictive_ = chain.slot("predictive") ;
+  IntegerMatrix zstar_ = chain.slot("zstar") ;
+  //NumericVector p(K) ;
+  NumericMatrix p(B, K) ;
+  NumericVector m(K) ; //mu
+  NumericVector t2(K) ;//tau2
+  NumericVector n0(1) ;//nu0
+  IntegerVector z(N) ;
+  NumericVector u(N) ;
+  NumericVector s20(1) ; //sigma2_0
+  NumericVector lls2(1) ;  // stage 2 log lik
+  NumericVector ll(1) ;
+  NumericVector lp(1) ;
+  IntegerVector tmp(K) ;
+  IntegerVector zf(K) ;
+  Rcpp::NumericVector ystar = NumericVector(B*K);
+  Rcpp::IntegerVector zstar = IntegerVector(B*K);
+  //
+  // This for-loop uses a zero-based index
+  //
+  // For each parameter update
+  //       a.  update values in 'current value' slots
+  //       b.  update chain
+  //
+  // The current value at simulation s is the s-1 row of the chain.
+  //
+  NumericMatrix hdmean=NumericMatrix(B, K);
+  NumericMatrix ths=NumericMatrix(B, K); //model.slot("theta");
+  NumericMatrix hdvar=NumericMatrix(B, K);
+  NumericMatrix hds2=NumericMatrix(B, K);
+  //Rcpp::NumericMatrix ths=model.slot("theta");
+  //Rcpp::NumericMatrix hdvar=model.slot("sigma2");
+  //Rcpp::NumericMatrix hds2=model.slot("sigma2");
+  for(int s = 0; s < (S + 1); ++s){
+    z = update_z(model) ;
+    model.slot("z") = z ;
+    tmp = tableZ(K, z) ;
+    model.slot("zfreq") = tmp ;
+    zfreq(s, _) = tmp ;
+    model.slot("probz") = update_probz(model) ;
+    // only update mean for homozygous deletion component
+    NumericMatrix hdmean = model.slot("theta") ;
+    ths = update_theta(model) ;
+    hdmean(_, 0) = ths(_, 0) ;
+    model.slot("theta") = hdmean ;
+    thetac(s, _) = as<Rcpp::NumericVector>(hdmean) ;
+    NumericMatrix hdvar = model.slot("sigma2");
+    hds2 = update_sigma2(model) ;
+    hdvar(_, 0) = hds2(_, 0);
+    model.slot("sigma2") = hdvar;
+    sigma2c(s, _) = as<Rcpp::NumericVector>(hdvar);
+    p = update_weightedp(model) ;
+    model.slot("pi") = p ;
+    pmix(s, _) = as<Rcpp::NumericVector>(model.slot("pi")) ;
+    m = update_mu(model) ;
+    model.slot("mu") = m ;
+    mu(s, _) = m ;
+    t2 = update_tau2(model) ;
+    model.slot("tau2") = t2 ;
+    tau2(s, _) = t2 ;
+    n0 = update_nu0(model) ;
+    model.slot("nu.0") = n0 ;
+    nu0[s] = n0[0] ;
+    s20 = update_sigma20(model) ;
+    model.slot("sigma2.0") = s20 ;
+    s20 = model.slot("sigma2.0") ;
+    sigma2_0[s] = s20[0] ;
+    ll = compute_loglik(model) ;
+    lls2 = stageTwoLogLikBatch(model) ;
+    ll = ll + lls2 ;
+    loglik_[s] = ll[0] ;
+    model.slot("loglik") = ll ;
+
+    lp = compute_logprior(model) ;
+    logprior_[s] = lp[0] ;
+    model.slot("logprior") = lp ;
+    u = Rcpp::rchisq(N, df) ;
+    model.slot("u") = u;
+    //
+    // posterior predictive
+    //  - for each simulation, simulate ystar from current values in chain
+    //
+    model = update_predictive(model);
+    ystar = model.slot("predictive");
+    zstar = model.slot("zstar");
+    predictive_(s, _) = ystar ;
+    zstar_(s, _) = zstar ;
+    //
+    // There is no thinning if thin parameter is less than 1
+    // (T = thin parameter -1)
+    //
+    for(int t = 0; t < T; ++t){
+      model.slot("z") = update_z(model) ;
+      model.slot("zfreq") = tableZ(K, model.slot("z")) ;
+      NumericMatrix hdmean = model.slot("theta") ;
+      ths = update_theta(model) ;
+      hdmean(_, 0) = ths(_, 0) ;
+      model.slot("theta") = hdmean ;
+      NumericMatrix hdvar = model.slot("sigma2");
+      hds2 = update_sigma2(model) ;
+      hdvar(_, 0) = hds2(_, 0);
+      model.slot("sigma2") = hdvar ;
+      model.slot("pi") = update_weightedp(model) ;
+      model.slot("mu") = update_mu(model) ;
+      model.slot("tau2") = update_tau2(model) ;
+      model.slot("nu.0") = update_nu0(model) ;
+      model.slot("sigma2.0") = update_sigma20(model) ;
+      model.slot("u") = Rcpp::rchisq(N, df) ;
+    }
+  }
+  //
+  // assign chains back to object
+  //
+  chain.slot("theta") = thetac ;
+  chain.slot("sigma2") = sigma2c ;
+  chain.slot("pi") = pmix ;
+  chain.slot("mu") = mu ;
+  chain.slot("tau2") = tau2 ;
+  chain.slot("nu.0") = nu0 ;
+  chain.slot("sigma2.0") = sigma2_0 ;
+  chain.slot("zfreq") = zfreq ;
+  chain.slot("loglik") = loglik_ ;
+  chain.slot("logprior") = logprior_ ;
+  model.slot("mcmc.chains") = chain ;
+  return model ;
+}

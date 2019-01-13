@@ -380,11 +380,15 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
     mixtheme <- theme(panel.background=element_rect(fill="white"),
                       axis.line=element_line(color="black"),
                       legend.position="bottom",
-                      legend.direction="horizontal")
+                      legend.direction="horizontal",
+                      strip.text.y=element_text(angle=0),
+                      strip.background=element_rect(fill="gray95",
+                                                    color="gray90"))
   }
   geom_dens <- geom_density(adjust=1, alpha=0.4, size=0.75, color="gray30")
   if(all(is.na(pred$oned))) geom_dens <- geom_vline(xintercept=0, color="transparent")
   x <- NULL
+  pred$component <- factor(as.numeric(pred$component))
   fig <- ggplot(pred, aes(x=oned, n_facet=n,
                           y=..count../n_facet,
                           fill=component)) +
@@ -405,9 +409,9 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
     scale_y_sqrt() +
     scale_color_manual(values=colors) +
     scale_fill_manual(values=colors) +
-    xlab("average copy number") +
-    ylab("density") +
-    guides(color=FALSE)
+    xlab("Median log R ratio") +
+    ylab("Density") +
+    guides(color=FALSE, fill=guide_legend(title="Mixture\ncomponent"))
   return(fig)
 }
 

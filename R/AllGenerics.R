@@ -37,6 +37,7 @@ setGeneric("z<-", function(object, value) standardGeneric("z<-"))
 
 setGeneric("theta<-", function(object, value) standardGeneric("theta<-"))
 
+#' @export
 setGeneric("sigma2<-", function(object, value) standardGeneric("sigma2<-"))
 setGeneric("p<-", function(object, value) standardGeneric("p<-"))
 setGeneric("pp<-", function(object, value) standardGeneric("pp<-"))

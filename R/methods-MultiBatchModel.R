@@ -547,6 +547,7 @@ setMethod("tablez", "MixtureModel", function(object){
   tab
 })
 
+#' @export
 uniqueBatch <- function(object) unique(batch(object))
 
 setMethod("updateMultinomialProb", "MultiBatchModel", function(object){
