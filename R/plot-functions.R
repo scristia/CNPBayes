@@ -349,8 +349,17 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
   ##df <- multiBatchDensities(model)
   full.data <- tibble(oned=oned(model),
                       batch=batch(model)) %>%
-    mutate(batch=factor(paste("Batch", batch))) %>%
+    mutate(batch=paste("Batch", batch)) %>%
+    ##mutate(batch=factor(paste("Batch", batch))) %>%
     mutate(model=modelName(model))
+  if(length(unique(full.data$batch)) > 1){
+    full.data2 <- full.data
+    full.data2$batch <- "Overall"
+    full.data3 <- bind_rows(full.data2, full.data) %>%
+      mutate(batch=factor(batch, levels=c("Overall",
+                                          unique(full.data$batch))))
+    full.data <- full.data3
+  }
   if(!missing(shift_homozygous)){
     full.data <- full.data %>%
       mutate(is_homozygous=oned <= shift_homozygous[1],
@@ -373,6 +382,17 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
     group_by(batch, model) %>%
     summarize(n=n()) %>%
     mutate(x=-Inf, y=Inf)
+  if("Overall" %in% batch.data$batch){
+    pred2 <- pred[1:3000, ]
+    ix <- sample(seq_len(nrow(pred)), 3000)
+    pred2$oned <- pred$oned[ix]
+    pred2$component <- pred$component[ix]
+    pred2$batch <- "Overall"
+    pred$batch <- as.character(pred$batch)
+    pred3 <- bind_rows(pred, pred2) %>%
+      mutate(batch=factor(batch, levels=levels(full.data$batch)))
+    pred <- pred3
+  }
   ..count.. <- NULL
   n_facet <- NULL
   ..density.. <- NULL
@@ -397,7 +417,7 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
                    inherit.aes=FALSE,
                    color="gray70",
                    fill="gray70",
-                   alpha=0.1) +
+                   alpha=0.6) +
     vertical_break +
     facet_wrap(~batch, ncol=1, strip.position="right") +
     geom_dens +

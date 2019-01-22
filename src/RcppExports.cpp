@@ -582,6 +582,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mbp_homozygous_burnin
+Rcpp::S4 mbp_homozygous_burnin(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_mbp_homozygous_burnin(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
+    rcpp_result_gen = Rcpp::wrap(mbp_homozygous_burnin(object));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mbp_homozygous_mcmc
+Rcpp::S4 mbp_homozygous_mcmc(Rcpp::S4 object);
+RcppExport SEXP _CNPBayes_mbp_homozygous_mcmc(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type object(objectSEXP);
+    rcpp_result_gen = Rcpp::wrap(mbp_homozygous_mcmc(object));
+    return rcpp_result_gen;
+END_RCPP
+}
 // log_prob_theta
 double log_prob_theta(Rcpp::S4 xmod, Rcpp::NumericMatrix thetastar);
 RcppExport SEXP _CNPBayes_log_prob_theta(SEXP xmodSEXP, SEXP thetastarSEXP) {
@@ -1298,6 +1320,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CNPBayes_sigma2_multibatch_pvar", (DL_FUNC) &_CNPBayes_sigma2_multibatch_pvar, 1},
     {"_CNPBayes_burnin_multibatch_pvar", (DL_FUNC) &_CNPBayes_burnin_multibatch_pvar, 2},
     {"_CNPBayes_mcmc_multibatch_pvar", (DL_FUNC) &_CNPBayes_mcmc_multibatch_pvar, 2},
+    {"_CNPBayes_mbp_homozygous_burnin", (DL_FUNC) &_CNPBayes_mbp_homozygous_burnin, 1},
+    {"_CNPBayes_mbp_homozygous_mcmc", (DL_FUNC) &_CNPBayes_mbp_homozygous_mcmc, 1},
     {"_CNPBayes_log_prob_theta", (DL_FUNC) &_CNPBayes_log_prob_theta, 2},
     {"_CNPBayes_marginal_theta_batch", (DL_FUNC) &_CNPBayes_marginal_theta_batch, 1},
     {"_CNPBayes_log_prob_sigma2", (DL_FUNC) &_CNPBayes_log_prob_sigma2, 2},

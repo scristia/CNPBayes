@@ -205,6 +205,14 @@ mcmc_multibatch_pvar <- function(object, mcmcp) {
     .Call('_CNPBayes_mcmc_multibatch_pvar', PACKAGE = 'CNPBayes', object, mcmcp)
 }
 
+mbp_homozygous_burnin <- function(object) {
+    .Call('_CNPBayes_mbp_homozygous_burnin', PACKAGE = 'CNPBayes', object)
+}
+
+mbp_homozygous_mcmc <- function(object) {
+    .Call('_CNPBayes_mbp_homozygous_mcmc', PACKAGE = 'CNPBayes', object)
+}
+
 log_prob_theta <- function(xmod, thetastar) {
     .Call('_CNPBayes_log_prob_theta', PACKAGE = 'CNPBayes', xmod, thetastar)
 }

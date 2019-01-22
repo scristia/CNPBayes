@@ -473,11 +473,23 @@ modelData <- function(id=character(),
 #' @export
 setGeneric("isSimulated", function(object) standardGeneric("isSimulated"))
 setMethod("isSimulated", "MultiBatch", function(object){
-  assays(object)$is_simulated
+  if('is_simulated' %in% colnames(assays(object))){
+    is_sim <- assays(object)$is_simulated
+  } else {
+    is_sim <- rep(FALSE, nrow(object))
+  }
+  is_sim
 })
+
 setMethod("isSimulated", "MultiBatchList", function(object){
-  assays(object)$is_simulated
+  if('is_simulated' %in% colnames(assays(object))){
+    is_sim <- assays(object)$is_simulated
+  } else {
+    is_sim <- rep(FALSE, nrow(object))
+  }
+  is_sim
 })
+
 setMethod("isSimulated", "MixtureModel", function(object){
   rep(FALSE, length(y(object)))
 })
@@ -1962,8 +1974,7 @@ setMethod("[", c("MultiBatch", "numeric"), function(x, i, j, ..., drop=FALSE){
   specs(x)$number_batches <- length(ubatch)
   specs(x)$number_obs <- nrow(x@data)
   nbatch2 <- numBatch(x)
-  ##L <- specs(x)$number_batches
-  ##L2 <- length(unique(batch(x)))
+  L2 <- length(unique(batch(x)))
   ##sp <- specs(x)
   ##sp$number_batches <- L2
   ##sp$number_obs <- length(i)
@@ -1974,6 +1985,10 @@ setMethod("[", c("MultiBatch", "numeric"), function(x, i, j, ..., drop=FALSE){
   current_values(x)[["p"]] <- computeMixProbs(x)
   summaries(x)[["data.mean"]] <- theta(x)
   summaries(x)[["data.prec"]] <- 1/sigma2(x)
+  if(L2 == nbatch1) {
+    ## leave chains alone and return
+    return(x)
+  }
   if(substr(modelName(x), 1, 3) == "MBP"){
     chains(x) <- initialize_mcmcP(k(x), iter(x), numBatch(x))
   } else {
@@ -2118,3 +2133,37 @@ incrementK <- function(object){
   model_name <- gsub(K, Kplus, model_name)
   model_name
 }
+
+#' @export
+genotypeModel <- function(model, snpdat){
+  keep <- !duplicated(id(model)) & !isSimulated(model)
+  gmodel <- model[ keep ]
+  snpdat2 <- snpdat[, id(gmodel) ]
+  clist <- CnList(gmodel)
+  (stats <- baf_loglik(clist, snpdat2))
+  mapping(gmodel) <- strsplit(stats$cn.model[1], ",")[[1]]
+  gmodel
+}
+
+#' @export
+genotypeData <- function(gmodel, snpdat, min_probz=0.9){
+  snpdat <- snpdat[, id(gmodel)]
+  maxpz <- probz(gmodel) %>%
+    "/"(rowSums(.)) %>%
+    rowMax
+  bafdat <- assays(snpdat)[["baf"]] %>%
+    as_tibble() %>%
+    mutate(rsid=rownames(snpdat)) %>%
+    gather("id", "BAF", -rsid)
+  cndat <- tibble(id=id(gmodel),
+                  batch=batch(gmodel),
+                  oned=oned(gmodel),
+                  pz=maxpz,
+                  z=map_z(gmodel)) %>%
+    mutate(cn=mapping(gmodel)[z]) %>%
+    mutate(cn=factor(cn))
+  bafdat <- left_join(bafdat, cndat, by="id")
+  bafdat2 <- filter(bafdat, pz > min_probz)
+  bafdat2
+}
+

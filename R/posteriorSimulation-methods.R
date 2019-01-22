@@ -158,12 +158,17 @@ setMethod("posteriorSimulation", "MultiBatch", function(object){
   return(mb)
 })
 
+#' @export
 setGeneric("mcmc_homozygous", function(object) standardGeneric("mcmc_homozygous"))
 
 setGeneric("burnin_homozygous", function(object) standardGeneric("burnin_homozygous"))
 
 setMethod("burnin_homozygous", "MultiBatchModel", function(object) {
   mb_homozygous_burnin(object)
+})
+
+setMethod("burnin_homozygous", "MultiBatchPooled", function(object) {
+  mbp_homozygous_burnin(object)
 })
 
 setMethod("burnin_homozygous", "MultiBatch", function(object) {
@@ -174,12 +179,36 @@ setMethod("burnin_homozygous", "MultiBatch", function(object) {
   mb
 })
 
+setMethod("burnin_homozygous", "MultiBatchP", function(object) {
+  mbm <- as(object, "MultiBatchPooled")
+  mbm <- mbp_homozygous_burnin(mbm)
+  mbm <- sortComponentLabels(mbm)
+  mb <- revertBack(object, mbm)
+  mb
+})
+
 setMethod("mcmc_homozygous", "MultiBatchModel", function(object) {
   mb_homozygous_mcmc(object)
 })
 
+setMethod("mcmc_homozygous", "MultiBatchPooled", function(object) {
+  mbp_homozygous_mcmc(object)
+})
+
 setMethod("mcmc_homozygous", "MultiBatch", function(object){
   mbm <- as(object, "MultiBatchModel")
+  mbm <- burnin_homozygous(mbm)
+  ##mbm <- sortComponentLabels(mbm)
+  mbm <- mcmc_homozygous(mbm)
+  if(!isOrdered(mbm)) label_switch(mbm) <- TRUE
+  ##mbm <- sortComponentLabels(mbm)
+  mb <- revertBack(object, mbm)
+  summaries(mb) <- summarizeModel(mb)
+  return(mb)
+})
+
+setMethod("mcmc_homozygous", "MultiBatchP", function(object){
+  mbm <- as(object, "MultiBatchPooled")
   mbm <- burnin_homozygous(mbm)
   ##mbm <- sortComponentLabels(mbm)
   mbm <- mcmc_homozygous(mbm)

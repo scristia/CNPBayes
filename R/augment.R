@@ -219,3 +219,33 @@ augmentTest <- function(object){
                         parameters=parameters(object))
   mbl
 }
+
+#' @export
+impute <- function(model, loc.scale, start.index){
+  x <- assays(model) %>%
+    group_by(batch) %>%
+    summarize(N=n()) %>%
+    ##left_join(tab, by="batch") %>%
+    left_join(loc.scale, by="batch") %>%
+    mutate(##n = ifelse(is.na(n), 0, n),
+      ##phat=n/N,
+      expected=2*ceiling(N*max(phat, na.rm=TRUE))) %>%
+    filter(!is.na(theta)) %>%
+    mutate(expected=pmax(expected, 5))
+    ##filter(n < 3)
+  imp.list <- vector("list", nrow(x))
+  for(i in seq_along(imp.list)){
+    imp.list[[i]] <- rnorm(x$expected[i], mean=x$theta[i],
+                           sd=sqrt(x$sigma2[i]))
+  }
+  imp <- unlist(imp.list)
+  index <- seq_along(imp) + start.index - 1
+  impdat <- tibble(id=paste0("augment_", index),
+                   oned=imp,
+                   provisional_batch=NA,
+                   likely_hd=TRUE,
+                   batch=rep(x$batch, x$expected),
+                   batch_labels=NA,
+                   is_simulated=TRUE)
+  impdat
+}
