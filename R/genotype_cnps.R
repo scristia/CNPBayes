@@ -158,7 +158,8 @@ pBaf <- function(snpdat, cn.model){
     as.tibble %>%
     set_colnames(paste0("prob_cn", unique(mapping(cn.model)))) %>%
     mutate(id=colnames(snpdat))
-  pwr <- 1/10
+  ##pwr <- 1/10
+  pwr <- 1
   p0 <- p1 <- p2 <- p3 <- p4 <- baf <- id <- NULL
   B <- mixtureProbs(snpdat, cn.model) %>%
     group_by(id) %>%
@@ -192,6 +193,15 @@ pBAF_0123 <- function(snpdat, cn.model){
   B <- pBaf(snpdat, cn.model) %>%
     select(c("p0", "p1", "p2", "p3", cols)) %>%
     mutate(prob=prob_cn0*p0 + prob_cn1*p1 + prob_cn2*p2 + prob_cn3*p3)
+}
+
+pBAF_01234 <- function(snpdat, cn.model){
+  cols <- paste0("prob_cn", unique(mapping(cn.model)))
+  p0 <- p1 <- p2 <- p3 <- p4 <- NULL
+  prob_cn0 <- prob_cn1 <- prob_cn2 <- prob_cn3 <- prob_cn4 <- NULL
+  B <- pBaf(snpdat, cn.model) %>%
+    select(c("p0", "p1", "p2", "p3", "p4", cols)) %>%
+    mutate(prob=prob_cn0*p0 + prob_cn1*p1 + prob_cn2*p2 + prob_cn3*p3 + prob_cn4*p4)
 }
 
 pBAF_123 <- function(snpdat, cn.model){
@@ -268,6 +278,7 @@ cmap <- function(model){
                 m_021=pBAF_012,
                 m_02=pBAF_02,
                 m_0123=pBAF_0123,
+                m_01234=pBAF_01234,
                 m_123=pBAF_123,
                 m_12=pBAF_12,
                 m_234=pBAF_234,

@@ -1820,6 +1820,15 @@ setMethod("findSurrogates", "MultiBatch",
 })
 
 .candidate_mapping <- function(model){
+  if(k(model) == 5){
+    candidate_models <- list(c(0, 1, 2, 3, 4),
+                             c(0, 1, 2, 3, 3),
+                             c(0, 1, 2, 2, 2),
+                             c(1, 2, 2, 2, 3),
+                             c(2, 2, 2, 2, 2),
+                             c(2, 2, 3, 3, 4)) %>%
+      lapply(as.character)
+  }
   if(k(model) == 4){
     candidate_models <- list(c(0, 1, 2, 2),
                              c(0, 2, 2, 2),
