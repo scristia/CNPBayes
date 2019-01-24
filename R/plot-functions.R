@@ -352,6 +352,87 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
     mutate(batch=paste("Batch", batch)) %>%
     ##mutate(batch=factor(paste("Batch", batch))) %>%
     mutate(model=modelName(model))
+  if(!missing(shift_homozygous)){
+    full.data <- full.data %>%
+      mutate(is_homozygous=oned <= shift_homozygous[1],
+             oned=ifelse(is_homozygous,
+                         oned + shift_homozygous[2], oned))
+    pred <- pred %>%
+      mutate(is_homozygous=oned <= shift_homozygous[1],
+             oned=ifelse(is_homozygous,
+                         oned + shift_homozygous[2], oned))
+    xint <- max(full.data$oned[full.data$is_homozygous])
+    vertical_break <- geom_vline(xintercept=xint,
+                                 linetype="dashed",
+                                 color="gray")
+
+    ##scale_x <- scale_x_continuous(labels=c())
+  } else {
+    vertical_break <- geom_vline(xintercept=-Inf)
+  }
+  batch.data <- full.data %>%
+    group_by(batch, model) %>%
+    summarize(n=n()) %>%
+    mutate(x=-Inf, y=Inf)
+  ..count.. <- NULL
+  n_facet <- NULL
+  ..density.. <- NULL
+  if(missing(mixtheme)){
+    mixtheme <- theme(panel.background=element_rect(fill="white"),
+                      axis.line=element_line(color="black"),
+                      legend.position="bottom",
+                      legend.direction="horizontal",
+                      strip.text.y=element_text(angle=0),
+                      strip.background=element_rect(fill="gray95",
+                                                    color="gray90"))
+  }
+  geom_dens <- geom_density(adjust=1, alpha=0.4, size=0.75, color="gray30")
+  if(all(is.na(pred$oned))) geom_dens <- geom_vline(xintercept=0, color="transparent")
+  x <- NULL
+  pred$component <- factor(as.numeric(pred$component))
+  fig <- ggplot(pred, aes(x=oned, n_facet=n,
+                          y=..count../n_facet,
+                          fill=component)) +
+    geom_histogram(data=full.data, aes(oned, ..density..),
+                   bins=bins,
+                   inherit.aes=FALSE,
+                   color="gray70",
+                   fill="gray70",
+                   alpha=0.6) +
+    vertical_break +
+    facet_wrap(~batch, ncol=1, strip.position="right") +
+    geom_dens +
+    geom_text(data=batch.data, aes(x=x, y=y, label=paste0("  n=", n)),
+              hjust="inward", vjust="inward",
+              inherit.aes=FALSE,
+              size=3) +
+    mixtheme +
+    scale_y_sqrt() +
+    scale_color_manual(values=colors) +
+    scale_fill_manual(values=colors) +
+    xlab("Median log R ratio") +
+    ylab("Density") +
+    guides(color=FALSE, fill=guide_legend(title="Mixture\ncomponent"))
+  return(fig)
+}
+
+.gg_multibatch2 <- function(model, bins=100, mixtheme, shift_homozygous){
+  colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
+              "#D55E00", "#CC79A7",  "#009E73")
+  pred <- predictiveTibble(model)
+  predictive.summary <- pred %>%
+    group_by(model, batch) %>%
+    summarize(n=n())
+  pred <- left_join(pred, predictive.summary,
+                    by=c("model", "batch")) %>%
+    mutate(batch=factor(paste("Batch", batch)))
+  colors <- colors[seq_len(k(model))]
+  ##df <- multiBatchDensities(model)
+  full.data <- tibble(oned=oned(model),
+                      batch=batch(model)) %>%
+    mutate(batch=paste("Batch", batch)) %>%
+    ##mutate(batch=factor(paste("Batch", batch))) %>%
+    mutate(model=modelName(model))
   if(length(unique(full.data$batch)) > 1){
     full.data2 <- full.data
     full.data2$batch <- "Overall"
