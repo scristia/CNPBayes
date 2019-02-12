@@ -795,3 +795,95 @@ marginalLik <- function(models){
   names(ml2) <- names(ml)
   ml2
 }
+
+#' @export
+getData <- function(i, cnp_se, model){
+  dat <- tibble(id=colnames(cnp_se),
+                oned=assays(cnp_se)[["MEDIAN"]][i, ],
+                provisional_batch=colData(cnp_se)$Sample.Plate)
+  assaydat <- assays(hq)
+  if(!"is_simulated" %in% colnames(assaydat)){
+    assaydat$is_simulated <- FALSE
+  }
+  batches <- assaydat %>%
+    filter(is_simulated==FALSE) %>%
+    group_by(provisional_batch) %>%
+    summarize(batch=unique(batch))
+  dat <- left_join(dat, batches, by="provisional_batch")
+  dat2 <- dat %>%
+    mutate(modeled=id %in% CNPBayes:::id(model))
+  dat2
+}
+
+#' @export
+predictiveDist <- function(model){
+  ##dat2 %>% filter(modeled == FALSE)
+  mb <- model[!isSimulated(model)]
+  comb <- tibble(component=map_z(mb),
+                 batch=batch(mb)) %>%
+    mutate(component=factor(component, levels=seq_len(max(component)))) %>%
+    complete(component, batch, fill=list(z=0)) %>%
+    group_by(batch, component) %>%
+    summarize(freq=n()) %>%
+    mutate(component=as.integer(component))
+  ##select(c(batch, component))
+  ##comb <- expand.grid(comb$batch, comb$component)
+  ##colnames(comb) <- c("batch", "component")
+  ##as.matrix() 
+  ##expand.grid(.[, 1], .[, 2])
+  ##  comb <- tibble(component=map_z(mb),
+  ##                 batch=batch(mb)) %>%
+  ##    group_by(batch) %>%
+  ##    expand.grid() %>%
+  ##    unique()
+  ##  countfreq <- function(x, mbp) {
+  ##    xbatch = x[2]
+  ##    xz = x[1]
+  ##    tb <- tibble(z=map_z(mbp), batch=batch(mbp))
+  ##    nrow(tb %>% filter(batch==xbatch, z==xz))
+  ##  }
+  ##comb$freq  <- apply(comb, 1, countfreq, mbp=mb)
+  phat <- comb %>%
+    as_tibble() %>%
+    mutate(batch=as.character(batch),
+           component=as.factor(component-1))
+  phat <- phat %>%
+    group_by(batch) %>%
+    mutate(p=freq/sum(freq)) %>%
+    arrange(component)
+  pred <- CNPBayes:::predictiveTibble(mb)
+  pred <- pred %>%
+    group_by(batch, component) %>%
+    summarize(mean=mean(oned),
+              sd=sd(oned))
+  pred <- left_join(pred, phat)
+  pred
+}
+
+#' @export
+predictiveProb <- function(pred, dat){
+  prob <- function(oned, batchn, k, pred) {
+    pred2 <- pred %>% filter(batch==batchn)
+    num <- pred2$p[k]*dnorm(oned, pred2$mean[k], pred2$sd[k])
+    denom <- sum(pred2$p*dnorm(oned, pred2$mean, pred2$sd), na.rm=TRUE)
+    num/denom
+  }
+  comp.index <- as.integer(levels(pred$component))
+  L <- length(comp.index)
+  tmp <- tibble("id"=rep(dat$id, each=L),
+                "component"=as.character(rep(comp.index, times=nrow(dat))))
+  dat2 <- left_join(dat, tmp, by="id") %>%
+    rowwise()
+  dat3 <- dat2 %>%
+    mutate(pnorm=prob(oned, batch, as.integer(component)+1, pred)) %>%
+    ungroup()
+  pmax <- group_by(dat3, id) %>%
+    summarize(pmax=max(pnorm, na.rm=TRUE))
+  dat4 <- dat3 %>%
+    group_by(id) %>%
+    filter(!is.na(pnorm)) %>%
+    mutate(inferred_component = which.max(pnorm)) %>%
+    spread(component, pnorm) %>%
+    left_join(pmax, by="id")
+  dat4
+}
