@@ -801,7 +801,7 @@ getData <- function(i, cnp_se, model){
   dat <- tibble(id=colnames(cnp_se),
                 oned=assays(cnp_se)[["MEDIAN"]][i, ],
                 provisional_batch=colData(cnp_se)$Sample.Plate)
-  assaydat <- assays(hq)
+  assaydat <- assays(model)
   if(!"is_simulated" %in% colnames(assaydat)){
     assaydat$is_simulated <- FALSE
   }
@@ -809,7 +809,8 @@ getData <- function(i, cnp_se, model){
     filter(is_simulated==FALSE) %>%
     group_by(provisional_batch) %>%
     summarize(batch=unique(batch))
-  dat <- left_join(dat, batches, by="provisional_batch")
+  dat <- left_join(dat, batches, by="provisional_batch") %>%
+    filter(!is.na(batch))
   dat2 <- dat %>%
     mutate(modeled=id %in% CNPBayes:::id(model))
   dat2
