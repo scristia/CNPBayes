@@ -243,11 +243,13 @@ simulateBatchEffect <- function(hap.list,
                                  replace=TRUE,
                                  prob=c(0.5, 0.5)))
 
-
+  
   ## probe-level data with batch effect
-  r3 <- left_join(hap.list[["r"]], batches, by="plate") %>%
+  H <- hap.list[["r"]] %>%
+    select(-cn)
+  r3 <- left_join(H, batches, by="plate") %>%
     left_join(hap.list[["truth"]], by="id") %>%
-    mutate(mu=cn.stats$mu[ as.integer(cn)] ,
+    mutate(mu=cn.stats$mu[ as.integer(cn) ] ,
            delta=ifelse(batch==0, 0, shift),
            centered=lrr-mu) %>%
     mutate(rescaled=centered*scale + mu,

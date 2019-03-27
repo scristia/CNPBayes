@@ -809,8 +809,11 @@ getData <- function(i, cnp_se, model){
     filter(is_simulated==FALSE) %>%
     group_by(provisional_batch) %>%
     summarize(batch=unique(batch))
-  dat <- left_join(dat, batches, by="provisional_batch") %>%
-    filter(!is.na(batch))
+  dat <- left_join(dat, batches, by="provisional_batch")
+  index <- which(is.na(dat))
+  if(length(index) > 0){
+    dat$batch[index] <- 1L
+  }
   dat2 <- dat %>%
     mutate(modeled=id %in% CNPBayes:::id(model))
   dat2
