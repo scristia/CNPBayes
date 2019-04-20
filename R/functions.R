@@ -810,7 +810,7 @@ getData <- function(i, cnp_se, model){
     group_by(provisional_batch) %>%
     summarize(batch=unique(batch))
   dat <- left_join(dat, batches, by="provisional_batch")
-  index <- which(is.na(dat))
+  index <- which(is.na(dat$batch))
   if(length(index) > 0){
     dat$batch[index] <- 1L
   }
