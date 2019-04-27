@@ -118,14 +118,15 @@ setMethod("k", "MixtureModel", function(object) object@k)
 #' @rdname k-method
 #' @aliases k<-,MixtureModel-method
 setReplaceMethod("k", "MixtureModel",
-    function(object, value) {
+                 function(object, value) {
+                   browser()
         k <- as.integer(value)
         hypp <- hyperParams(object)
         hypp@k <- k
         hypp@alpha <- rep(1, k)
         hyperParams(object) <- hypp
         object@k <- k
-        object@pi <- matrix(1, nrow(theta(value)), k)
+        object@pi <- matrix(1, nrow(theta(object)), k)
         object@probz <- matrix(0, length(y(object)), k)
         object <- startingValues(object)
         object
