@@ -244,10 +244,12 @@ test_that("Rare homozygous deletion exacerbated by batching samples.", {
   ## - fit multibatch model
 })
 
-test_that("Simulations in manuscript", {
+.test_that <- function(expr, name) NULL
+
+.test_that("Simulations in manuscript", {
   ##skip("uses external data")
   library(SummarizedExperiment)
-  library(pROC)
+  ##library(pROC)
   data(cnp_se, package="PancCnvsData2")
   data(hapmap, package="PancCnvsData2")
   data(simulation_parameters, package="PancCnvsData2")
@@ -565,8 +567,8 @@ test_that("Most challenging simulation", {
     th.imputed <- lapply(yy, function(x) x$yimp[, 1]) %>%
       do.call(cbind, .)
 
-    library(GGally)
-    ggpairs(th)
+    ##library(GGally)
+    ##ggpairs(th)
     th2 <- gather(th, "theta", "mean")
     sds2 <- gather(sds, "sigma", "sd")
     library(dplyr)

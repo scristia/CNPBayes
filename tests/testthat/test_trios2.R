@@ -1,11 +1,13 @@
 context("new trios class")
 
-test_that("Michael's example", {
+.test_that <- function(expr, name) NULL
+
+.test_that("Michael's example", {
   skip("Michael's code requires triostat package")
-  library(devtools)
+  ##library(devtools)
   library(coda)
   library(tidyverse)
-  library(bindrcpp)
+  ##library(bindrcpp)
   library(triostat)
   p <- c(0.09, 0.42, 0.49)
   theta <- c(-3, 0.15, 1.2)

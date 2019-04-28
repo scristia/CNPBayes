@@ -106,8 +106,8 @@ test_that("initial values", {
   expect_identical(k(models[[1]]), 3L)
   p1 <- ggMultiBatch(truth)
   p2 <- ggMultiBatch(models[[1]])
-  library(gridExtra)
-  grid.arrange(p1, p2)
+  ##library(gridExtra)
+  ##grid.arrange(p1, p2)
   ## ML_MB2 > ML_SB3
   ggMultiBatch(models[[1]])
   ggMultiBatch(models[[2]])

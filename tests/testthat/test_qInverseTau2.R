@@ -34,7 +34,6 @@ test_that("test_qInverseTau2", {
       hist(sqrt(1/qInverseTau2(mn=mn.prec, sd=10)$quantiles), breaks=100)
       tmp <- qInverseTau2(mn=mn.prec, sd=10)
 
-      library(oligoClasses)
       set.seed(100)
       nbatch <- 3
       k <- 3
