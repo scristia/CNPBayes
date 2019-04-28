@@ -1,5 +1,7 @@
 context("Simulation")
 
+.test_that <- function(expr, name) NULL
+
 test_that("test_simulation", {
   set.seed(42)
   arguments <- list(sl.good = 6.25, sl.bad = 0.0625, prbias = 0.03,
@@ -57,7 +59,7 @@ unitTestSimulation <- function(){
   mb
 }
 
-test_that("Rare homozygous deletion exacerbated by batching samples.", {
+.test_that("Rare homozygous deletion exacerbated by batching samples.", {
   ##
   ## This simulation assumes that we have already identified the batches.  In particular, we use the batches provided by simulateBatchData
   ##
@@ -402,7 +404,7 @@ test_that("Rare homozygous deletion exacerbated by batching samples.", {
 })
 
 
-test_that("More challenging simulation", {
+.test_that("More challenging simulation", {
   ##skip("uses external data")
   library(SummarizedExperiment)
   mb <- MultiBatchModelExample
@@ -493,7 +495,7 @@ test_that("More challenging simulation", {
   expect_true(sum(pstats$incorrect) < 3)
 })
 
-test_that("Most challenging simulation", {
+.test_that("Most challenging simulation", {
   ##skip("uses external data")
   library(SummarizedExperiment)
   mb <- MultiBatchModelExample
