@@ -1,6 +1,8 @@
 context("BAF likelihood")
 
-test_that("baf likelihood", {
+.test_that <- function(expr, name) NULL
+
+.test_that("baf likelihood", {
   library(tidyverse)
   library(purrr)
   library(magrittr)
@@ -44,9 +46,12 @@ test_that("baf likelihood", {
     ab <- params["balanced", ]
     bb <- params["allB", ]
     n0 <- sum(cn == "0")
+    browser()
     b[ gt == 1 ] <- rbeta(freq[1], aa[1], aa[2])
-    b[ gt == 2 ] <- rbeta(freq[2], ab[1], ab[2])
-    b[ gt == 3 ] <- rbeta(freq[3], bb[1], bb[2])
+    if(any(gt == 2))
+      b[ gt == 2 ] <- rbeta(freq[2], ab[1], ab[2])
+    if(any(gt == 3))
+      b[ gt == 3 ] <- rbeta(freq[3], bb[1], bb[2])
     ## overwrite BAFs for homozygous deletion
     b[ cn == "0" ] <- rbeta(n0, 1, 1)
     list(b)
