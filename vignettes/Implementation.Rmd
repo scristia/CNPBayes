@@ -2,7 +2,7 @@
 title: "Implementation of Bayesian mixture models for copy number estimation"
 author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
 date: \today
-output: BiocStyle::pdf_document
+output: pdf_document
 Bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Implementation of Bayesian mixture models for copy number estimation}

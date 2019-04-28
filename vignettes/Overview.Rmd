@@ -2,7 +2,7 @@
 title: "Overview of CNPBayes package"
 author: "Jacob Carey, Steven Cristiano, and Robert Scharpf"
 date: \today
-output: BiocStyle::pdf_document
+output: pdf_document
 bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Overview of CNPBayes package}
