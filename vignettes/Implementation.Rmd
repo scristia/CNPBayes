@@ -171,7 +171,6 @@ grid.line.to(x=unit(sigma2.x, "npc")+e, y=unit(sigma2.y, "npc")+h, arrow=ar,
              gp=gpar(fill="black"))
 ```
 
-
 # Simple example
 
 CNPBayes allows for the simulation of test data. The number of observations, 
@@ -276,4 +275,3 @@ model.list <- gibbs(model=c("SBP", "MBP"), k_range=c(1, 5),
 ```
 
 
-# References
