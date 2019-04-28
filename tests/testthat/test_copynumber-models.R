@@ -1,38 +1,8 @@
 context("Copy number models")
-.test_that <- function(expr, name) NULL
-  ##
-  ## IDEA: There is only one copy number state, but data is not quite normal and
-  ## more than a single component is needed to adequately fit the data
-  ##
-  ##  - the fact that, in truth, there is a single copy number state generating
-  ##    should not effect how we fit or select models
-  ##
-  ##  - copy number inference is a separate step that can be
-  ##    downstream of model selection
-  ##
-  ##  - Downstream steps:
-  ##       - determine what components belong to a single copy number state
-  ##         (a mapping vector of length K denoting distinct copy number states)
-  ##           - first step is just to determine which states are distinct
-  ##           - second step is to provide the most probable copy number of the
-  ##             distinct states
-  ##          -  this could be decided based on the degree of overlap or even
-  ##             the standard deviation (large variance may indicate outlier component)
-  ##       - Extend the SingleBatch and MultiBatch classes to add a @mapping slot
-  ##             SingleBatchCopyNumber
-  ##             MultiBatchCopyNumber
-  ##  - Methods needed for the *BatchCopyNumer classes:
-  ##       - k(object)  returns number of distinct copy number states
-  ##            - returns number of components if mapping is identity
-  ##       - probz(object)
-  ##            - when mapping is many to one, posterior probability is added
-  ##              for components with the same copy number label
-  ##       - gg* plotting methods should be similar, but color code by the mapping
-  ##       - Note the marginal likelihood, BIC, etc are defined only for the superclass
-  ##           - these methods have nothing to do with the *BatchCopyNumber models
-  ##
 
-test_that("Methods defined for the class", {
+.test_that(expr, name) NULL
+
+.test_that("Methods defined for the class", {
   sb <- SingleBatchModelExample
   mcmcParams(sb) <- McmcParams(iter=500, burnin=100, thin=1)
   sb <- posteriorSimulation(sb)
