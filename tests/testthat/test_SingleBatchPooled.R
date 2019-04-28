@@ -24,25 +24,6 @@ test_that("sigma2_pooled", {
   expect_equal(s2.R, 0.029, tolerance=0.01)
 })
 
-test_that("gibbs", {
-  ## example from convergence vignette
-  set.seed(1)
-  N <- 200
-  n <- 81
-  lrr <- c(rnorm(100, -0.5, sd=0.1), rnorm(100, 0, sd=0.1))
-  mp <- McmcParams(iter=50, burnin=10, nStarts=4)
-  model <- SBP(dat=lrr, mp=mp, hp=hpList(k=2)[["SBP"]])
-  expect_warning(model2 <- posteriorSimulation(model))
-  expect_warning(sbp <- gibbs_multibatch_pooled(hp=hpList(k=2)[["MBP"]],
-                                                mp=mp,
-                                                dat=lrr,
-                                                batches=rep(1L, length(lrr)),
-                                                min_effsize=20))
-  expect_is(theta_multibatch_pvar(sbp), "matrix")
-  expect_equal(log_prob_thetap(sbp, theta(sbp)), 7.42, tolerance=0.1)
-  expect_is(marginal_theta_pooled(sbp), "numeric")
-})
-
 test_that("Valid starts", {
   library(purrr)
   set.seed(2000)
