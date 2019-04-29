@@ -1,6 +1,6 @@
 context("Copy number models")
 
-
+.test_that <- function(expr, name) NULL
 
 .test_that("Methods defined for the class", {
   sb <- SingleBatchModelExample
