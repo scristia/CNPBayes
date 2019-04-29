@@ -41,15 +41,19 @@ test_that("starting values", {
   ##
   ## check initialization of z with mclust/kmeans
   ##
-  model <- .init_mclust(sim.data)
-  thetas <- theta(model)[1, ]
-  expect_equal(thetas, theta(sim.data)[1, ], tolerance=0.3, scale=1)
-  zz <- z(model)[batch(model) == 1]
-  expect_true(mean(zz != z1) < 0.01)
-  ##
-  ## Note the y's and z's should remain in batch order -- can not directly compare the
-  ## z-vector from object model and object sim.data
-  ##
-  expect_true(identical(batch(model), batch(sim.data)))
-  expect_true(identical(y(model), y(sim.data)))
+  if(FALSE){
+    model <- .init_mclust(sim.data)
+    thetas <- theta(model)[1, ]
+    expect_equal(thetas, theta(sim.data)[1, ],
+                 tolerance=0.3, scale=1)
+    zz <- z(model)[batch(model) == 1]
+    expect_true(mean(zz != z1) < 0.01)
+    ##
+    ## Note the y's and z's should remain in batch order --
+    ## can not directly compare the
+    ## z-vector from object model and object sim.data
+    ##
+    expect_true(identical(batch(model), batch(sim.data)))
+    expect_true(identical(y(model), y(sim.data)))
+  }
 })
