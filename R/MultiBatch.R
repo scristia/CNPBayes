@@ -470,8 +470,6 @@ modelData <- function(id=character(),
 }
 
 
-#' @export
-setGeneric("isSimulated", function(object) standardGeneric("isSimulated"))
 setMethod("isSimulated", "MultiBatch", function(object){
   if('is_simulated' %in% colnames(assays(object))){
     is_sim <- assays(object)$is_simulated

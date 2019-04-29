@@ -241,6 +241,7 @@ setGeneric("theta<-", function(object, value) standardGeneric("theta<-"))
 #' @docType methods
 #' @rdname sigma2-method
 setGeneric("sigma2", function(object) standardGeneric("sigma2"))
+
 setGeneric("sigma_", function(object) standardGeneric("sigma_"))
 
 #' Retrieve the probability of latent variable membership by observation.
@@ -549,9 +550,15 @@ setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 setGeneric("burnin", function(object) standardGeneric("burnin"))
 
 setGeneric("min_GR", function(object) standardGeneric("min_GR"))
-setGeneric("min_effsize", function(object) standardGeneric("min_effsize"))
-setGeneric("max_burnin", function(object) standardGeneric("max_burnin"))
-setGeneric("min_chains", function(object) standardGeneric("min_chains"))
+
+setGeneric("min_effsize", function(object)
+  standardGeneric("min_effsize"))
+
+setGeneric("max_burnin", function(object)
+  standardGeneric("max_burnin"))
+
+setGeneric("min_chains", function(object)
+  standardGeneric("min_chains"))
 
 #' Reset number of burnin iterations.
 #'
@@ -1068,3 +1075,7 @@ setGeneric("augmentData2", function(object) standardGeneric("augmentData2"))
 #' @export
 setGeneric("baf_loglik", function(object, snpdat) standardGeneric("baf_loglik"))
 setGeneric("toSingleBatch", function(object) standardGeneric("toSingleBatch"))
+
+#' @export
+setGeneric("isSimulated", function(object)
+  standardGeneric("isSimulated"))

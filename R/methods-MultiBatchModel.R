@@ -228,22 +228,24 @@ MultiBatchModel2 <- function(dat=numeric(),
 #' @param mp An object of class 'McmcParams'
 #' @return An object of class `MultiBatchModel`
 #' @examples
-#'   model <- MultiBatchModel2(rnorm(10), batch=rep(1:2, each=5))
-#'   set.seed(100)
-#'   nbatch <- 3
-#'   k <- 3
-#'   means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
-#'       0, 0.05), nbatch, k, byrow = FALSE)
-#'   sds <- matrix(0.15, nbatch, k)
-#'   sds[, 1] <- 0.3
-#'   N <- 1000
-#'   truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
+#'   \dontrun{
+#'     model <- MultiBatchModel2(rnorm(10), batch=rep(1:2, each=5))
+#'     set.seed(100)
+#'     nbatch <- 3
+#'     k <- 3
+#'     means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
+#'         0, 0.05), nbatch, k, byrow = FALSE)
+#'     sds <- matrix(0.15, nbatch, k)
+#'     sds[, 1] <- 0.3
+#'     N <- 1000
+#'     truth <- simulateBatchData(N = N, batch = rep(letters[1:3],
 #'                                                 length.out = N),
 #'                              p = c(1/10, 1/5, 1 - 0.1 - 0.2),
 #'                              theta = means,
 #'                              sds = sds)
 #'     MB(dat=y(truth), batches=batch(truth),
 #'        hp=hpList(k=3)[["MB"]])
+#' }
 #' @export
 #' @rdname MultiBatchModel
 MB <- MultiBatchModel2

@@ -282,7 +282,7 @@ setMethod("theta", "McmcChains", function(object) object@theta)
 #' @rdname sigma2-method
 #' @aliases sigma2,missing-method
 setMethod("sigma2", "McmcChains", function(object) object@sigma2)
-#' @rdname sigma_-method
+
 #' @aliases sigma2,missing-method
 setMethod("sigma_", "McmcChains", function(object) sqrt(object@sigma2))
 

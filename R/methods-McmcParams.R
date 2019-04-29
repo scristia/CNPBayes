@@ -35,16 +35,12 @@ McmcParams <- function(iter=1000L,
 #' @aliases burnin,McmcParams-method
 setMethod("burnin", "McmcParams", function(object)  object@burnin)
 
-#' @rdname min_GR-method
-#' @aliases min_GR,McmcParams-method
+
 setMethod("min_GR", "McmcParams", function(object)  object@min_GR)
 
-#' @rdname min_chains-method
-#' @aliases min_chains,McmcParams-method
+
 setMethod("min_chains", "McmcParams", function(object)  object@min_chains)
 
-#' @rdname max_burnin-method
-#' @aliases max_burnin,McmcParams-method
 setMethod("max_burnin", "McmcParams", function(object)  object@max_burnin)
 
 setReplaceMethod("max_burnin", "McmcParams", function(object, value){
@@ -52,8 +48,6 @@ setReplaceMethod("max_burnin", "McmcParams", function(object, value){
   object
 })
 
-#' @rdname min_effsize-method
-#' @aliases min_effsize,McmcParams-method
 setMethod("min_effsize", "McmcParams", function(object)  object@min_effsize)
 
 #' @rdname burnin-method

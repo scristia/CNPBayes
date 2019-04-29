@@ -130,8 +130,9 @@ d4 <- function(x, p.b){
   )
 }
 
-#' @param snpdat SummarizedExperiment with gt and baf assays
-#' @param cn.model a CopyNumberModel
+
+# @param snpdat SummarizedExperiment with gt and baf assays
+# @param cn.model a CopyNumberModel
 mixtureProbs <- function(snpdat, cn.model){
   snpdat2 <- snpdat
   p.b <- p_b(genotypes(snpdat2))
