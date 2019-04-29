@@ -141,7 +141,7 @@ mixtureProbs <- function(snpdat, cn.model){
   p.b <- p.b[ keep ]
   baf <- NULL
   B <- B %>%
-    as.tibble %>%
+    as_tibble %>%
     mutate(p.b=p.b) %>%
     gather("id", "baf", -p.b) %>%
     mutate(p0=d0(baf),
@@ -155,7 +155,7 @@ mixtureProbs <- function(snpdat, cn.model){
 
 pBaf <- function(snpdat, cn.model){
   pz <- probCopyNumber(cn.model) %>%
-    as.tibble %>%
+    as_tibble %>%
     set_colnames(paste0("prob_cn", unique(mapping(cn.model)))) %>%
     mutate(id=colnames(snpdat))
   ##pwr <- 1/10

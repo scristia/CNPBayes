@@ -24,7 +24,7 @@ predictiveTibble <- function(object){
   ##
   param <- iter <- NULL
   th.m <- gather(th, key="variable", values=-c(param, iter)) %>%
-    as.tibble
+    as_tibble
   ##
   ##
   ##
@@ -43,7 +43,7 @@ predictiveTibble <- function(object){
   s$param <- "sigma"
   . <- value <- NULL
   s.m <- gather(s, key="variable", values=-c(param, iter)) %>%
-    as.tibble
+    as_tibble
   s.m$batch <- th.m$batch
   s.m$comp <- th.m$comp
 
@@ -92,7 +92,7 @@ predictiveTibble <- function(object){
   th$iter <- factor(1:nrow(th))
   . <- param <- iter <- NULL
   th.m <- gather(th, key="variable", values=-c(param, iter)) %>%
-    as.tibble
+    as_tibble
   ##
   ##
   ##
@@ -108,34 +108,34 @@ predictiveTibble <- function(object){
 
   value <- NULL
   s <- as.data.frame(sigma(ch))
-  s.m <- s %>% as.tibble %>%
+  s.m <- s %>% as_tibble %>%
     mutate(iter=seq_len(iter(model))) %>%
     gather(param, value, -iter) %>%
     mutate(param="sigma",
            iter=factor(iter),
            batch=factor(rep(uniqueBatch(model), each=iter(model))))
 
-  nu0.m <- as.tibble(nu.0(ch)) %>%
+  nu0.m <- as_tibble(nu.0(ch)) %>%
     mutate(iter=th$iter,
            param="nu0")
-  s20.m <- as.tibble(sigma2.0(ch)) %>%
+  s20.m <- as_tibble(sigma2.0(ch)) %>%
     mutate(iter=th$iter,
            param="s20")
 
-  mus.m <- as.tibble(mu(ch)) %>% 
+  mus.m <- as_tibble(mu(ch)) %>% 
     mutate(iter=th$iter) %>%
     gather(param, value, -iter) %>%
     mutate(param="mu",
            comp=rep(seq_len(k(model)), each=iter(model))) %>%
     mutate(comp=factor(paste0("k=", .$comp)))
 
-  prob.m <- as.tibble(p(ch)) %>%
+  prob.m <- as_tibble(p(ch)) %>%
     mutate(iter=th$iter) %>%
     gather(param, value, -iter) %>%
     mutate(param="p",
            comp=mus.m$comp)
 
-  taus.m <- as.tibble(tau(ch)) %>%
+  taus.m <- as_tibble(tau(ch)) %>%
     mutate(iter=th$iter) %>%
     gather(param, value, -iter) %>%
     mutate(param="tau",
@@ -155,45 +155,45 @@ predictiveTibble <- function(object){
 meltSingleBatchChains <- function(model){
   parameter <- NULL
   ch <- chains(model)
-  th <- as.tibble(theta(ch)) %>%
+  th <- as_tibble(theta(ch)) %>%
     set_colnames(paste0("theta", seq_len(k(model))))
   th$iter <- 1:nrow(th)
   th.m <- gather(th, key="parameter", value="value", -iter) %>%
     mutate(comp=gsub("theta", "", parameter))
-  sig <- as.tibble(sigma(ch)) %>%
+  sig <- as_tibble(sigma(ch)) %>%
     set_colnames(paste0("sigma", seq_len(k(model))))
   if(class(model) == "SingleBatchPooled"){
     sig$iter <- 1:nrow(sig)
   } else sig$iter <- th$iter
   s.m <- gather(sig, key="parameter", value="value", -iter) %>%
     mutate(comp=gsub("sigma", "", parameter))
-  nu0 <- as.tibble(nu.0(ch)) %>%
+  nu0 <- as_tibble(nu.0(ch)) %>%
     set_colnames("nu0")
   nu0$iter <- th$iter
   nu0.m <- gather(nu0, key="parameter", value="value", -iter)
 
-  s20 <- as.tibble(sigma2.0(ch)) %>%
+  s20 <- as_tibble(sigma2.0(ch)) %>%
     set_colnames("s20")
   s20$iter <- th$iter
   s20.m <- gather(s20, key="parameter", value="value", -iter)
 
-  mus <- as.tibble(mu(ch))%>%
+  mus <- as_tibble(mu(ch))%>%
     set_colnames("mu")
   mus$iter <- th$iter
   mus.m <- gather(mus, key="parameter", value="value", -iter)
 
-  prob <- as.tibble(p(ch)) %>%
+  prob <- as_tibble(p(ch)) %>%
     set_param_names("p")
   prob$iter <- th$iter
   prob.m <- gather(prob, key="parameter", value="value", -iter) %>%
     mutate(comp=gsub("p", "", parameter))
 
-  taus <- as.tibble(tau(ch)) %>%
+  taus <- as_tibble(tau(ch)) %>%
     set_colnames("tau")
   taus$iter <- th$iter
   taus.m <- gather(taus, key="parameter", value="value", -iter)
 
-  ll <- as.tibble(log_lik(ch)) %>%
+  ll <- as_tibble(log_lik(ch)) %>%
     set_colnames("log lik") %>%
     mutate(iter=th$iter) %>%
     gather(key="parameter", value="value", -iter)
@@ -212,13 +212,13 @@ meltSingleBatchChains <- function(model){
 
 meltSingleBatchPooledChains <- function(model){
   ch <- chains(model)
-  th <- as.tibble(theta(ch)) %>%
+  th <- as_tibble(theta(ch)) %>%
     set_colnames(paste0("theta", seq_len(k(model))))
   th$iter <- 1:nrow(th)
   parameter <- NULL
   th.m <- gather(th, key="parameter", value="value", -iter) %>%
     mutate(comp=gsub("theta", "", parameter))
-  sig <- as.tibble(sigma(ch)) %>%
+  sig <- as_tibble(sigma(ch)) %>%
     set_colnames("value") %>%
     mutate(iter=seq_len(iter(model))) %>%
     mutate(parameter="sigma")
@@ -227,35 +227,35 @@ meltSingleBatchPooledChains <- function(model){
 ##  } else sig$iter <- th$iter
 ##  s.m <- gather(sig, key="parameter", value="value", -iter) %>%
 ##    mutate(comp=gsub("sigma", "", parameter))
-  nu0 <- as.tibble(nu.0(ch)) %>%
+  nu0 <- as_tibble(nu.0(ch)) %>%
     set_colnames("nu0")
   nu0$iter <- th$iter
   nu0.m <- gather(nu0, key="parameter", value="value", -iter)
   nu0$iter <- th$iter
   nu0.m <- gather(nu0, key="parameter", value="value", -iter)
 
-  prob <- as.tibble(p(ch)) %>%
+  prob <- as_tibble(p(ch)) %>%
     set_param_names("p")
   prob$iter <- th$iter
   prob.m <- gather(prob, key="parameter", value="value", -iter) %>%
     mutate(comp=gsub("p", "", parameter))
 
-  s20 <- as.tibble(sigma2.0(ch)) %>%
+  s20 <- as_tibble(sigma2.0(ch)) %>%
     set_colnames("s20")
   s20$iter <- th$iter
   s20.m <- gather(s20, key="parameter", value="value", -iter)
 
-  mus <- as.tibble(mu(ch))%>%
+  mus <- as_tibble(mu(ch))%>%
     set_colnames("mu")
   mus$iter <- th$iter
   mus.m <- gather(mus, key="parameter", value="value", -iter)
 
-  taus <- as.tibble(tau(ch)) %>%
+  taus <- as_tibble(tau(ch)) %>%
     set_colnames("tau")
   taus$iter <- th$iter
   taus.m <- gather(taus, key="parameter", value="value", -iter)
 
-  ll <- as.tibble(log_lik(ch)) %>%
+  ll <- as_tibble(log_lik(ch)) %>%
     set_colnames("log lik") %>%
     mutate(iter=th$iter) %>%
     gather(key="parameter", value="value", -iter)
@@ -286,9 +286,9 @@ setMethod("gatherChains", "MultiBatchPooled", function(object){
   dat.batch <- melt.ch$batch %>%
     mutate(iter=as.integer(iter))
   dat.comp <- melt.ch$comp %>%
-    as.tibble
+    as_tibble
   dat.single <- melt.ch$single %>%
-    as.tibble
+    as_tibble
   iter <- value <- batch <- param <- comp <- NULL
   p.batch <- ggplot(dat.batch, aes(iter, value, group=batch)) +
     geom_point(size=0.3, aes(color=batch)) +
@@ -748,9 +748,9 @@ setMethod("ggChains", "MultiBatch", function(model){
   dat.batch <- melt.ch$batch %>%
     mutate(iter=as.integer(iter))
   dat.comp <- melt.ch$comp %>%
-    as.tibble
+    as_tibble
   dat.single <- melt.ch$single %>%
-    as.tibble
+    as_tibble
   iter <- value <- batch <- param <- comp <- NULL
   p.batch <- ggplot(dat.batch, aes(iter, value, group=batch)) +
     geom_point(size=0.3, aes(color=batch)) +

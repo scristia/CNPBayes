@@ -603,7 +603,7 @@ mprob.matrix <-  function(tau=c(0.5, 0.5, 0.5), maplabel, error){
   setDT(mprob.mat)[, c("father","mother") := tstrsplit(parents, "")]
   
   mprob.mat <- mprob.mat[, -1] %>%
-    as.tibble() %>%
+    as_tibble() %>%
     mutate(father=as.numeric(father),
            mother=as.numeric(mother)) %>%
     as.matrix
@@ -653,8 +653,8 @@ mprob.matrix.mallelic <- function (tau=c(0.5, 0.5, 0.5), maplabel){
   
   if(all((rowSums(mendelian.probs, na.rm=T))==1)==F) stop("mendelian matrix is incorrect")
  
-  # must do as.tibble step as cbind converts all cells into one type i.e. characters otherwise
-  mprob.mat <- as.tibble(mendelian.probs)
+  # must do as_tibble step as cbind converts all cells into one type i.e. characters otherwise
+  mprob.mat <- as_tibble(mendelian.probs)
   ref.geno <- reference.genotype(maplabel)
   mprob.mat[, 1] <- ref.geno
   
@@ -680,7 +680,7 @@ mprob.matrix.biallelic <- function (tau=c(0.5, 0.5, 0.5), maplabel, error = 0.00
   mendelian.probs <- array(dim=c(9,4))
   offspring.geno <- cbind(a1a1, a1a2, a2a2)
   mendelian.probs[,2:4] <- offspring.geno
-  mprob.mat <- as.tibble(mendelian.probs)
+  mprob.mat <- as_tibble(mendelian.probs)
   mprob.mat[,1] <- ref.geno
 
   # correctly label the columns 
@@ -839,7 +839,7 @@ component_stats <- function(tbl){
     gather(key="family_member", value="log_ratio", -id) 
   cn.mat <- cbind(c_m, c_f, c_o)
   colnames(cn.mat) <- c("m", "f", "o")
-  cn.tbl <- as.tibble(cn.mat) %>%
+  cn.tbl <- as_tibble(cn.mat) %>%
     mutate(id=factor(paste0("trio_", id.index))) %>%
     gather(key="family_member", value="copy_number", -id)
   tbl <- left_join(logr.tbl, cn.tbl, by=c("id", "family_member")) %>%

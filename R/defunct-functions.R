@@ -43,7 +43,7 @@ tileMedians <- function(y, nt, batch){
     ##
     ## observations can be quite different within a tile (e.g., homozygous deletions)
     ##
-    tiles <- ntile(x, nt) %>% as.tibble %>%
+    tiles <- ntile(x, nt) %>% as_tibble %>%
       mutate(x=x, obs.index) %>%
       set_colnames(c("tile", "logratio", "obs.index"))
     tiles2 <- tiles %>%

@@ -454,7 +454,7 @@ longFormatKB <- function(x, K, B){
     col_names
   ##col_names <- col_names[ !duplicated(col_names) ]
   x <- x %>%
-    as.tibble %>%
+    as_tibble %>%
     set_colnames(col_names) %>%
     mutate(s=seq_len(nrow(.))) %>%
     gather("bk", "value", -s) %>%
@@ -471,7 +471,7 @@ longFormatKB2 <- function(x, K, B){
     paste(rep(seq_len(K), each=K), sep=",")
   col_names <- col_names[ !duplicated(col_names) ]
   x <- x %>%
-    as.tibble %>%
+    as_tibble %>%
     set_colnames(col_names) %>%
     mutate(s=seq_len(nrow(.))) %>%
     gather("bk", "value", -s) %>%
@@ -487,7 +487,7 @@ longFormatK <- function(x, K){
   col_names <- seq_len(K) %>%
     as.character
   x <- x %>%
-    as.tibble %>%
+    as_tibble %>%
     set_colnames(col_names) %>%
     mutate(s=seq_len(nrow(.))) %>%
     gather("k", "value", -s) %>%

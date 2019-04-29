@@ -231,7 +231,7 @@ gelman_rubin <- function(mcmc_list, hp){
     r <- gelman.diag(mcmc_list, autoburnin=FALSE)
     if(FALSE){
       mc <- do.call(rbind, mcmc_list) %>%
-        as.tibble
+        as_tibble
       mc$iter <- rep(seq_len(nrow(mcmc_list[[1]])), length(mcmc_list))
       dat <- gather(mc, key="parameter", value="chain", -iter)
       ggplot(dat, aes(iter, chain)) + geom_line() +
