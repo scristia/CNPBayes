@@ -814,8 +814,9 @@ getData <- function(i, cnp_se, model){
   if(length(index) > 0){
     dat$batch[index] <- 1L
   }
+  ids_ <- id(model)
   dat2 <- dat %>%
-    mutate(modeled=id %in% CNPBayes:::id(model))
+    mutate(modeled=id %in% ids_)
   dat2
 }
 
@@ -855,7 +856,7 @@ predictiveDist <- function(model){
     group_by(batch) %>%
     mutate(p=freq/sum(freq)) %>%
     arrange(component)
-  pred <- CNPBayes:::predictiveTibble(mb)
+  pred <- predictiveTibble(mb)
   pred <- pred %>%
     group_by(batch, component) %>%
     summarize(mean=mean(oned),
