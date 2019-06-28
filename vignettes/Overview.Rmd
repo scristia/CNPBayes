@@ -48,20 +48,25 @@ med.summary <- matrixStats::colMedians(assays(se)[["cn"]][i, ], na.rm=TRUE)
 
 At loci where copy number variants are common, the distribution of the median log R ratios computed above can be approximated by a finite mixture of normal distributions. 
 
-## The `gibbs` function
-
-
-This package provides several implementations of a Bayesian hierarchical normal mixture model, where the implementations differ by whether the component means and variances are batch-specific (multi-batch 'MB' model) or a single batch ('SB' model).  In addition, we allow the variance estimates to be pooled across all components within the multi-batch ('MBP') and single-batch ('SBP') models.  For large studies involving SNP microarrays, the `combinePlates` function can be useful to identify groups of plates processed in the same batch. As there are only 35 samples in this toy example, we assume that these samples were all processed in the same batch and we will only consider the SB and SBP models. The following code chunk initializes an MCMC parameters object that contain parameters governing the number of burnin iterations, the number of iterations following burnin, how often two save simulated values from the chain (*thin*), and the number of independently initialized models (*nStarts*).
+## Fit model
 
 ```{r model_construction}
 mp <- McmcParams(nStarts=5, burnin=500, iter=1000, thin=1)
+dat <- tibble(id=seq_along(med.summary),
+              oned=med.summary,
+              batch=rep(1, length(med.summary))) %>%
+  mutate(likely_hd = FALSE)
+xlimit <- range(dat$oned)
+if(diff(xlimit) < 4){
+  xlimit <- c(-3, 1)
+}
+
 ```
 
-The workhorse function in this package is `gibbs`.  This function allows the user to specify one or all of the four possible mixture model types (SB, MB, SBP, MBP) and for each type fit models with mixture components specified by the argument `k_range`. Below, we run 4 chains for 1000 iterations (100 iterations burnin) for only the k=3 SB model. (In practice, we would fit multiple models and specify a range for k.  For example, `k_range=c(1, 5)`).  As described in the [convergence vignette](Convergence.Rmd), an attempt is made by `gibbs` to adapt the thinning and burnin parameters if there are indications that the chains have not converged.  The models evaluated by `gibbs` are returned in a list where all chains have been combined and the models are sorted by decreasing value of the marginal likelihood.  In order to properly assess convergence, this function requires that one run at least 2 independent chains. Below, we specify a `max_burnin` to a small number (400) to speed up computation. A much longer burnin may be required for convergence.
-
 ```{r gibbs}
-model.list <- gibbs(model="SB", dat=med.summary, k_range=c(2, 3), mp=mp,
-                    max_burnin=400, top=2)
+##model.list <- gibbs(model="SB", dat=med.summary,
+##                    k_range=c(2, 3), mp=mp,
+##                    max_burnin=400, top=2)
 ```
 
 ## Evaluating convergence and goodness of fit
