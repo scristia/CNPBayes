@@ -2174,3 +2174,85 @@ genotypeData <- function(gmodel, snpdat, min_probz=0.9){
   bafdat2
 }
 
+homozygousdel_mean <- function(object, THR=-1) {
+  mean(oned(object)[ oned(object) < THR])
+}
+
+augment_homozygous <- function(mb, THR){
+  hdmean <- homozygousdel_mean(mb, THR)
+  if(sum(oned(mb) < THR) < 5){
+    message("Augment data for rare deletions (less than 5 obs)")
+    hdsd <- sd(oned(mb)[ oned(mb) < THR])
+    if(is.na(hdsd)) hdsd <- 0.1
+    loc.scale <- tibble(theta=hdmean,
+                        sigma2=hdsd^2,
+                        phat=0.01,
+                        batch=seq_len(nrow(theta(mb))))
+    imp.hd <- impute(mb, loc.scale, start.index=1)
+    obsdat <- assays(mb) %>%
+      mutate(is_simulated=FALSE)
+    simdat <- bind_rows(obsdat, imp.hd) %>%
+      arrange(batch) %>%
+      mutate(homozygousdel_mean=hdmean)
+  } else {
+    simdat <- assays(mb) %>%
+      mutate(homozygousdel_mean=hdmean)
+  }
+  simdat
+}
+
+.warmup <- function(tib, model){
+  mbl <- replicate(10, MultiBatchList(data=tib)[[model]])
+  for(j in seq_along(mbl)){
+    cat(".")
+    mb <- mbl[[j]]
+    iter(mb) <- 0
+    burnin(mb) <- 100
+    mb <- tryCatch(posteriorSimulation(mb),
+                   warning=function(w) NULL)
+    if(is.null(mb)) next()
+    mbl[[j]] <- mb
+  }
+  mbl
+}
+
+warmup <- function(tib, model1, model2=NULL){
+  ##
+  ##
+  mbl <- .warmup(tib, model1)
+  ml <- sapply(mbl, log_lik)
+  if(is.null(model2)){
+    model <- mbl[[which.max(ml)]]
+    return(model)
+  }
+  if(!is.null(model2)){
+    mbl2 <- .warmup(tib, model2)
+    ml2 <- sapply(mbl2, log_lik)
+    if(max(ml2, na.rm=TRUE) > max(ml, na.rm=TRUE) + 50){
+      model <- mbl2[[which.max(ml2)]]
+    } else {
+      model <- mbl[[which.max(ml)]]
+    }
+  }
+  return(model)
+}
+
+stop_early <- function(model){
+  pz <- probz(model)
+  maxprob <- rowMax(pz)
+  pz <- probz(model) %>%
+    "/"(rowSums(.)) %>%
+    rowMax
+  mean_maxp <- mean(pz > 0.99)
+  mean_maxp > 0.995
+}
+
+revertToMultiBatch <- function(sb){
+  adat <- assays(sb)
+  batch_levels <- unique(assays(sb)$batch_labels)
+  adat$batch <- as.integer(factor(assays(sb)$batch_labels,
+                                  levels=batch_levels))
+  model_name <- gsub("SB", "MB", modelName(sb))
+  mb <- MultiBatch(model_name, data=adat)
+  mb
+}

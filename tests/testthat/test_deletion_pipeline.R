@@ -5,110 +5,35 @@ context("analysis of rare deletions")
 
 test_that("augment data", {
   set.seed(123)
+  mp <- McmcParams(iter=500, burnin=400)
   seeds <- sample(seq_len(10000), 263, replace=TRUE)
   set.seed(seeds[ 1 ])
   THR <- -1
   mb.subsamp <- readRDS("../../inst/extdata/mb_subsamp.rds")
-  ##
-  ## With a bad choice of start, we can get stuck in a local mode for a very long time. Look at several starts and select the most promising among these.
-  ##
-  ## - 10 random starts for both SB3 and SBP3 models
-  ## - additional MCMC simulations for model with highest log lik
-  ##
-  if(sum(oned(mb.subsamp) < THR) < 5){
-    message("Augment data for rare deletions (less than 5 obs)")
-    hdmean <- mean(oned(mb.subsamp)[ oned(mb.subsamp) < THR])
-    hdsd <- sd(oned(mb.subsamp)[ oned(mb.subsamp) < THR])
-    if(is.na(hdsd)) hdsd <- 0.1
-    loc.scale <- tibble(theta=hdmean,
-                        sigma2=hdsd^2,
-                        phat=0.01,
-                        batch=seq_len(nrow(theta(mb.subsamp))))
-    imp.hd <- impute(mb.subsamp, loc.scale, start.index=1)
-    obsdat <- assays(mb.subsamp) %>%
-      mutate(is_simulated=FALSE)
-    simdat <- bind_rows(obsdat, imp.hd) %>%
-      arrange(batch)
-  } else {
-    simdat <- assays(mb.subsamp)
-  }
+  simdat <- augment_homozygous(mb.subsamp, -1)
+
+
   if(FALSE){
     saveRDS(simdat, file="../../inst/extdata/simdat.rds")
   }
   expected <- readRDS("../../inst/extdata/simdat.rds")
+  expected$homozygousdel_mean <- homozygousdel_mean(mb.subsamp, -1)
   expect_equivalent(simdat, expected)
 })
 
-test_that("warmup", {
+test_that("mcmc", {
   set.seed(5)
   simdat <- readRDS("../../inst/extdata/simdat.rds")
-  ##
   message("Random starts and short warmup for SBP3 model")
-  ##
-  mbl <- replicate(10, MultiBatchList(data=simdat)[["SBP3"]])
-  for(j in seq_along(mbl)){
-    cat(".")
-    mb <- mbl[[j]]
-    iter(mb) <- 0
-    burnin(mb) <- 100
-    mb <- posteriorSimulation(mb)
-    mbl[[j]] <- mb
-  }
-  ##
-  message("Random starts and short warmup for SB3 model")
-  ##
-  ml <- sapply(mbl, log_lik)
-  mbl2 <- replicate(10, MultiBatchList(data=simdat)[["SB3"]])
-  for(j in seq_along(mbl)){
-    cat(".")
-    mb <- mbl2[[j]]
-    iter(mb) <- 0
-    burnin(mb) <- 100
-    mb <- posteriorSimulation(mb)
-    mbl2[[j]] <- mb
-  }
-  ##
-  message("Choose SB3 or SBP3 model with highest log likelihood.  Penalize SB3 model for the additional parameters by adding 50.")
-  ##
-  ml2 <- sapply(mbl2, log_lik)
-  if(max(ml2, na.rm=TRUE) > max(ml, na.rm=TRUE) + 50){
-    sb3 <- mbl2[[which.max(ml2)]]
-  } else {
-    sb3 <- mbl[[which.max(ml)]]
-  }
-  if(FALSE){
-    saveRDS(sb3, file=file.path("..",
-                                "..",
-                                "inst",
-                                "extdata",
-                                "sb3.rds"))
-  }
-  expected <- readRDS(file.path("..",
-                                "..",
-                                "inst",
-                                "extdata",
-                                "sb3.rds"))
-  expect_equivalent(sb3, expected)
-})
-
-test_that("mcmc1", {
-  set.seed(123)
-  seeds <- sample(seq_len(10000), 263, replace=TRUE)
-  set.seed(seeds[ 1 ])
-  sb3 <- readRDS(file.path("..",
-                           "..",
-                           "inst",
-                           "extdata",
-                           "sb3.rds"))
-  ##
-  message("Run 500 burnin and 400 additional simulations.")
-  ##
-  iter(sb3) <- 400
-  burnin(sb3) <- 500
+  sb3 <- warmup(simdat, "SBP3", "SB3")
+  set.seed(2463)
+  mcmcParams(sb3) <- McmcParams(iter=400, burnin=500)
   sb3 <- posteriorSimulation(sb3)
   expect_equal(as.numeric(theta(sb3)),
                c(-3.76, -0.217, -0.0019),
                tolerance=0.01)
+  finished <- stop_early(sb3)
+  expect_false(finished)
   if(FALSE){
     saveRDS(sb3, file=file.path("..",
                                 "..",
@@ -124,53 +49,30 @@ test_that("mcmc1", {
   expect_equivalent(sb3, expected)
 })
 
-test_that("early stop", {
+test_that("Fit multiple batches.  First, pooled-variance model without homozygous deletions", {
+  set.seed(2463)
+  ##
+  ## Read back in the data with all batches
+  ##
   sb3 <- readRDS(file.path("..",
                            "..",
                            "inst",
                            "extdata",
                            "sb3_1.rds"))
-  pz <- probz(sb3)
-  maxprob <- rowMax(pz)
-  (number_lowprob <- sum(maxprob < 0.95))
-  pz <- probz(sb3) %>%
-    "/"(rowSums(.)) %>%
-    rowMax
-  ##
-  message("Compute fraction of samples with posterior probability > 0.99")
-  mean_maxp <- mean(pz > 0.99)
-  expect_equal(mean_maxp, 0.888, tolerance=0.001)
-  ##nif(mean_maxp > 0.98 || CNP == "CNP_058"){
-  condition <- mean_maxp > 0.995
-  expect_false(condition)
-})
-
-test_that("Fit multiple batches.  First, pooled-variance model without homozygous deletions", {
-  ##
-  ## Read back in the data with all batches
-  ##
-  mb.subsamp <- readRDS(file.path("..",
-                                  "..",
-                                  "inst",
-                                  "extdata",
-                                  "mb_subsamp.rds"))
-
-  THR <- -1
-  ##
-  ##
-  ##
-  message("Fit MBP2 model excluding homozygous deletions")
-  ##
-  ##
-  ##
-  fdat <- filter(assays(mb.subsamp), oned > THR)
+  mb.subsamp <- revertToMultiBatch(sb3)
+  fdat <- filter(assays(mb.subsamp), oned > -1)
+  mb <- warmup(fdat, "MBP2")
   mbl <- replicate(10, MultiBatchList(data=fdat)[["MBP2"]])
+  set.seed(2463)
   for(j in seq_along(mbl)){
     cat(".")
     mb <- mbl[[j]]
     burnin(mb) <- 100
     iter(mb) <- 0
-    mb <- posteriorSimulation(mb)
+    mb <- tryCatch(posteriorSimulation(mb),
+                   error=function(e) NULL,
+                   warning=function(w) NULL)
+    if(is.null(mb)) next()
     mbl[[j]] <- mb
   }
   mb <- mbl[[ which.max(sapply(mbl, log_lik)) ]]
@@ -314,9 +216,7 @@ test_that("augment homozygous deletions", {
   ##
   ## Do i need all 3 of these objects?
   ##
-  set.seed(123)
-  seeds <- sample(seq_len(10000), 263, replace=TRUE)
-  set.seed(seeds[ 1 ])
+  set.seed(2463)
   mb.subsamp <- readRDS(file.path("..",
                            "..",
                            "inst",
@@ -401,9 +301,7 @@ test_that("augment homozygous deletions", {
 })
 
 test_that("Fit multi-batch model with all components", {
-  set.seed(123)
-  seeds <- sample(seq_len(10000), 263, replace=TRUE)
-  set.seed(seeds[ 1 ])
+  set.seed(2463)
   simdat <- readRDS("../../inst/extdata/simdat_1.rds")
   mod_2.3 <- readRDS("../../inst/extdata/mod_2.3.rds")
   is_pooledvar <- ncol(sigma2(mod_2.3))==1
