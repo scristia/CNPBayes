@@ -161,19 +161,45 @@ test_that("warmup", {
   expect_equivalent(sb3, expected)
 })
 
-.test_that("", {
+test_that("mcmc1", {
+  sb3 <- readRDS(file.path("..",
+                           "..",
+                           "inst",
+                           "extdata",
+                           "sb3.rds"))
   ##
   message("Run 500 burnin and 400 additional simulations.")
   ##
   iter(sb3) <- 400
   burnin(sb3) <- 500
   sb3 <- posteriorSimulation(sb3)
+  expect_equal(as.numeric(theta(sb3)),
+               c(-3.76, -0.217, -0.0019),
+               tolerance=0.01)
+  if(FALSE){
+    saveRDS(sb3, file=file.path("..",
+                                "..",
+                                "inst",
+                                "extdata",
+                                "sb3_1.rds"))
+  }
+  expected <- readRDS(file.path("..",
+                                "..",
+                                "inst",
+                                "extdata",
+                                "sb3_1.rds"))
+  expect_equivalent(sb3, expected)
+})
+
+test_that("early stop", {
+  sb3 <- readRDS(file.path("..",
+                           "..",
+                           "inst",
+                           "extdata",
+                           "sb3_1.rds"))
   pz <- probz(sb3)
   maxprob <- rowMax(pz)
   (number_lowprob <- sum(maxprob < 0.95))
-  xlimit <- range(oned(sb3))
-  b <- ggMixture(sb3) + xlim(xlimit)
-  if(FALSE) print(b)
   pz <- probz(sb3) %>%
     "/"(rowSums(.)) %>%
     rowMax
@@ -184,14 +210,11 @@ test_that("warmup", {
   ##nif(mean_maxp > 0.98 || CNP == "CNP_058"){
   condition <- mean_maxp > 0.995
   expect_false(condition)
+})
+
+.test_that("", {
   if(condition){
     message("Save model and make plots")
-    A <- ggMixture(sb3) +
-      xlab(expression(paste("Median ", log[2], " R ratio"))) +
-      ylab("Density\n")
-    A2 <- ggMixture(sb3[ !isSimulated(sb3) ]) +
-      xlab(expression(paste("Median ", log[2], " R ratio"))) +
-      ylab("Density\n")
     keep <- !duplicated(CNPBayes:::id(sb3))
     gmodel <- sb3[ !isSimulated(sb3) & keep ]
     snpdat2 <- snpdat[, id(gmodel) ]
@@ -561,6 +584,9 @@ test_that("warmup", {
     xlim(xlimit) +
     geom_vline(xintercept=THR, color="gray", linetype="dashed")
 
+  xlimit <- range(oned(sb3))
+  b <- ggMixture(sb3) + xlim(xlimit)
+  if(FALSE) print(b)
 
   A <- ggMixture(mod_1.3) +
     xlab(expression(paste("Median ", log[2], " R ratio"))) +
