@@ -110,7 +110,8 @@ test_that("augment data", {
   expect_equivalent(simdat, expected)
 })
 
-.test_that("fun", {
+test_that("warmup", {
+  simdat <- readRDS("../../inst/extdata/simdat.rds")
   ##
   message("Random starts and short warmup for SBP3 model")
   ##
@@ -145,6 +146,22 @@ test_that("augment data", {
   } else {
     sb3 <- mbl[[which.max(ml)]]
   }
+  if(FALSE){
+    saveRDS(sb3, file=file.path("..",
+                                "..",
+                                "inst",
+                                "extdata",
+                                "sb3.rds"))
+  }
+  expected <- readRDS(file.path("..",
+                                "..",
+                                "inst",
+                                "extdata",
+                                "sb3.rds"))
+  expect_equivalent(sb3, expected)
+})
+
+.test_that("", {
   ##
   message("Run 500 burnin and 400 additional simulations.")
   ##
