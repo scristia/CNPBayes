@@ -5,7 +5,7 @@ context("analysis of rare deletions")
 
 test_that("augment data", {
   set.seed(123)
-  seeds <- sample(seq_len(10000), nrow(cnp_se), replace=TRUE)
+  seeds <- sample(seq_len(10000), 263, replace=TRUE)
   set.seed(seeds[ 1 ])
   THR <- -1
   mb.subsamp <- readRDS("../../inst/extdata/mb_subsamp.rds")
@@ -93,7 +93,7 @@ test_that("warmup", {
 
 test_that("mcmc1", {
   set.seed(123)
-  seeds <- sample(seq_len(10000), nrow(cnp_se), replace=TRUE)
+  seeds <- sample(seq_len(10000), 263, replace=TRUE)
   set.seed(seeds[ 1 ])
   sb3 <- readRDS(file.path("..",
                            "..",
@@ -223,6 +223,9 @@ test_that("Augment hemizygous", {
   augment_hemizygous <- TRUE
   if(!augment_hemizygous) stop()
   is_pooledvar <- TRUE
+  ##
+  ## This variable is needed later on
+  ##
   batch_labels <- assays(mod_2.3)$batch_labels
   batch_labels <- batch_labels %>%
     factor(., levels=unique(.)) %>%
@@ -311,6 +314,9 @@ test_that("augment homozygous deletions", {
   ##
   ## Do i need all 3 of these objects?
   ##
+  set.seed(123)
+  seeds <- sample(seq_len(10000), 263, replace=TRUE)
+  set.seed(seeds[ 1 ])
   mb.subsamp <- readRDS(file.path("..",
                            "..",
                            "inst",
@@ -353,7 +359,7 @@ test_that("augment homozygous deletions", {
   do_augment_homozygous <- nrow(freq.hd) > 0
   expect_true(do_augment_homozygous)
   ##
-  ## Reminder that this is only evaluated when we need to augment
+  ## Reminder that code below is only evaluated when we need to augment
   ##
   if(! do_augment_homozygous ) stop()
   ##
@@ -394,24 +400,39 @@ test_that("augment homozygous deletions", {
   expect_equivalent(simdat, expected)
 })
 
-.test_that("", {
+test_that("Fit multi-batch model with all components", {
+  set.seed(123)
+  seeds <- sample(seq_len(10000), 263, replace=TRUE)
+  set.seed(seeds[ 1 ])
+  simdat <- readRDS("../../inst/extdata/simdat_1.rds")
+  mod_2.3 <- readRDS("../../inst/extdata/mod_2.3.rds")
+  is_pooledvar <- ncol(sigma2(mod_2.3))==1
+  hdmean <- -3.887 ## computed in summarized_regions
+  batch_labels <- assays(mod_2.3)$batch_labels
+  batch_labels <- batch_labels %>%
+    factor(., levels=unique(.)) %>%
+    as.integer(.) %>%
+    unique(.) %>%
+    sort()
   ##
   message("Rerun 3 batch model with augmented data")
   ##
   mbl <- MultiBatchList(data=simdat)
-  model <- CNPBayes:::incrementK(mod_2.3)
+  model <- incrementK(mod_2.3)
   mod_1.3 <- mbl[[ model ]]
   theta(mod_1.3) <- cbind(hdmean, theta(mod_2.3))
   if(is_pooledvar){
-    CNPBayes:::sigma2(mod_1.3) <- sigma2(mod_2.3)
+    sigma2(mod_1.3) <- sigma2(mod_2.3)
   } else {
-    CNPBayes:::sigma2(mod_1.3) <- cbind(sigma2(sb3)[1], sigma2(mod_2.3))
+    sigma2(mod_1.3) <- cbind(sigma2(sb3)[1], sigma2(mod_2.3))
   }
   burnin(mod_1.3) <- 200
   iter(mod_1.3) <- 0
   mod_1.3 <- tryCatch(posteriorSimulation(mod_1.3),
                       error=function(e) NULL)
-  if(is.null(mod_1.3) || is.nan(log_lik(mod_1.3))){
+  bad_start <- is.null(mod_1.3) || is.nan(log_lik(mod_1.3))
+  expect_false(bad_start)
+  if(bad_start){
     mbl <- replicate(10, MultiBatchList(data=fdat)[[ model ]])
     for(j in seq_along(mbl)){
       cat(".")
@@ -424,7 +445,7 @@ test_that("augment homozygous deletions", {
     mod_1.3 <- mbl[[ which.max(sapply(mbl, log_lik)) ]]
   }
   if(!is.null(mod_1.3)){
-    internal.count <- CNPBayes:::flags(mod_1.3)$.internal.counter
+    internal.count <- flags(mod_1.3)$.internal.counter
     any_dropped <- TRUE
     if(internal.count < 100){
       iter(mod_1.3) <- 1000
@@ -437,14 +458,38 @@ test_that("augment homozygous deletions", {
       any_dropped <- any(!batch_labels %in% ubatch)
       ## Check that variance estimates are comparable to mod_2.3
       varratio <- sigma2(mod_1.3)/sigma2(mod_2.3)
-    }  else  varratio <- Inf; internal.count <- 200; any_dropped <- TRUE
+    }  else  {
+      varratio <- Inf; internal.count <- 200; any_dropped <- TRUE
+    }
   } else {
     varratio <- Inf; internal.count <- 200; any_dropped <- TRUE
   }
-  condition6 <- any(varratio > 4) || internal.count >= 100 ||
+  expect_equal(internal.count, 0)
+  expect_false(any_dropped)
+  bad_pooled_variance <- any(varratio > 4) || internal.count >= 100 ||
     any_dropped
-  expect_true(condition6)
-  if(condition6){
+  expect_false(bad_pooled_variance)
+  if(FALSE){
+    saveRDS(mod_1.3, file="../../inst/extdata/mod_1.3.rds")
+  }
+  expected <- readRDS("../../inst/extdata/mod_1.3.rds")
+  expect_equivalent(mod_1.3, expected)
+})
+
+.test_that("only update homozygous component", {
+  set.seed(2463)
+  simdat <- readRDS("../../inst/extdata/simdat_1.rds")
+  mod_1.3 <- readRDS("../../inst/extdata/mod_1.3.rds")
+  mod_2.3 <- readRDS("../../inst/extdata/mod_2.3.rds")
+  sb3 <- readRDS(file.path("..",
+                           "..",
+                           "inst",
+                           "extdata",
+                           "sb3_1.rds"))
+  hdmean <- -3.887 ## computed in summarized_regions
+  bad_pooled_variance <- TRUE
+  mbl <- MultiBatchList(data=simdat)
+  if(bad_pooled_variance){
     ##
     ## variances much larger than expected when homozygous deletions added
     ## - allow homozygous deletions to have larger variance
@@ -456,9 +501,10 @@ test_that("augment homozygous deletions", {
     ##
     model <- gsub("P", "", modelName(mod_1.3))
     mod_1.3 <- mbl[[ model ]]
-    hdmean <- median(dat$oned[dat$likely_hd])
+    ##hdmean <- median(dat$oned[dat$likely_hd])
     theta(mod_1.3) <- cbind(hdmean, theta(mod_2.3))
     is_pooledvar <- ncol(sigma2(mod_1.3)) == 1
+    expect_false(is_pooledvar)
     if(!is_pooledvar){
       multibatchvar <- sigma2(mod_2.3)
       s2 <- replicate(k(mod_1.3)-1, multibatchvar, simplify=FALSE) %>%
@@ -477,14 +523,28 @@ test_that("augment homozygous deletions", {
     iter(mod_1.3) <- 1000
     mod_1.3 <- mcmc_homozygous(mod_1.3)
   }
+  if(FALSE){
+    saveRDS(mod_1.3, file="../../inst/extdata/mod_1.3_2.rds")
+  }
+  expected <- readRDS("../../inst/extdata/mod_1.3_2.rds")
+  expect_equivalent(mod_1.3, expected)
+})
+
+test_that("genotype", {
   ##
   ## Genotype using high confidence subjects
   ##
+  data(cnp_se, package="panc.data")
+  data(snp_se, package="panc.data")
+  i <- 1
+  se <- cnp_se[i, ]
+  snpdat <- snp_se[overlapsAny(snp_se, se), ]
+  mod_1.3 <- readRDS("../../inst/extdata/mod_1.3.rds")
   pz <- probz(mod_1.3) %>%
     "/"(rowSums(.))
   max_zprob <- rowMax(pz)
   is_high_conf <- max_zprob > 0.95
-  mean(is_high_conf)
+  ##mean(is_high_conf)
   gmodel <- mod_1.3[ !isSimulated(mod_1.3) &  is_high_conf ]
   keep <- !duplicated(CNPBayes:::id(gmodel))
   gmodel <- gmodel[ keep ]
@@ -493,7 +553,6 @@ test_that("augment homozygous deletions", {
   clist <- CnList(gmodel)
   (stats <- baf_loglik(clist, snpdat2))
   mapping(gmodel) <- strsplit(stats$cn.model[1], ",")[[1]]
-
   maxpz <- probz(gmodel) %>%
     "/"(rowSums(.)) %>%
     rowMax
@@ -512,18 +571,21 @@ test_that("augment homozygous deletions", {
     mutate(cn=mapping(gmodel)[z]) %>%
     mutate(cn=factor(cn))
   bafdat <- left_join(bafdat, cndat, by="id")
-  cnlabels <- paste0(seq_len(k(gmodel)),
-                     "%->%",
-                     mapping(gmodel))
-  labs <- as.expression(parse(text=cnlabels))
-  xlab <- expression(paste("\n", "Mixture component"%->%"Copy number"))
   ##
   ##
   ##
   message("Write mapping to model file")
   mapping(mod_1.3) <- mapping(gmodel)
   expect_identical(mapping(mod_1.3), c("0", "2", "2"))
-  saveRDS(mod_1.3, file=file.path(modeldir, paste0(CNP, ".rds")))
+  if(FALSE){
+    saveRDS(mod_1.3, file="../../inst/extdata/CNP_001.rds")
+  }
+  ##expected <- readRDS("~/Dropbox/Labs/klein/cnpbayes-paper/cnp.models/inst/extdata/CNP_001.rds")
+  expected <- readRDS("../../inst/extdata/CNP_001.rds")
+  expect_equivalent(mod_1.3, expected)
+  th.expected <- theta(expected)
+  ##dimnames(th.expected) <- NULL
+  expect_equal(theta(mod_1.3), th.expected, tolerance=0.05)
 })
 
 ## Plotting code
@@ -554,6 +616,11 @@ test_that("augment homozygous deletions", {
   ##
   ## PLot BAFs
   ##
+  cnlabels <- paste0(seq_len(k(gmodel)),
+                     "%->%",
+                     mapping(gmodel))
+  labs <- as.expression(parse(text=cnlabels))
+  xlab <- expression(paste("\n", "Mixture component"%->%"Copy number"))
   B <- ggplot(bafdat2, aes(factor(z), BAF)) +
     geom_hline(yintercept=c(0, 1/3, 0.5, 2/3, 1), color="gray95") +
     geom_jitter(aes(color=pz), width=0.1, size=0.3) +
