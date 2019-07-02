@@ -73,6 +73,7 @@ test_that("summarize region", {
     adat2 <- bind_rows(adat, bdat)
     mb.subsamp <- MultiBatch("MB2", data=adat2)
   }
+
   if(FALSE){
     saveRDS(mb.subsamp, file="../../inst/extdata/mb_subsamp.rds")
     ##saveRDS(dat, file="../../inst/extdata/dat.rds")

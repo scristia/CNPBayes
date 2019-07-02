@@ -10,9 +10,15 @@ test_that("augment data", {
   set.seed(seeds[ 1 ])
   THR <- -1
   mb.subsamp <- readRDS("../../inst/extdata/mb_subsamp.rds")
-  simdat <- augment_homozygous(mb.subsamp, -1)
-
-
+  hdmean <- homozygousdel_mean(mb.subsamp, THR)
+  if(sum(oned(mb.subsamp) < THR) < 5){
+    simdat <- augment_homozygous(mb.subsamp, -1)
+  } else {
+    simdat <- assays(mb.subsamp) %>%
+      arrange(batch) %>%
+      mutate(homozygousdel_mean=hdmean) %>%
+      mutate(homozygousdel_mean=hdmean)
+  }
   if(FALSE){
     saveRDS(simdat, file="../../inst/extdata/simdat.rds")
   }
@@ -34,6 +40,20 @@ test_that("mcmc", {
                tolerance=0.01)
   finished <- stop_early(sb3)
   expect_false(finished)
+
+  ## Since not finished, keep going
+  mb <- revertToMultiBatch(sb3) 
+  fdat <- filter(assays(mb), oned > -1)  %>%
+    mutate(is_simulated=FALSE)
+  mb <- warmup(fdat, "MBP2")
+  mcmcParams(mb) <- McmcParams(iter=500, burnin=50)
+  mod_2.3 <- posteriorSimulation(mb)
+  ok <- ok_hemizygous(sb3)
+  expect_true(ok)
+  if(!ok) {
+    mod_2.3 <- augment_hemizygous(mod_2.3, sb3)
+    mod_2.3 <- posteriorSimulation(mod_2.3)
+  }
   if(FALSE){
     saveRDS(sb3, file=file.path("..",
                                 "..",
@@ -47,64 +67,6 @@ test_that("mcmc", {
                                 "extdata",
                                 "sb3_1.rds"))
   expect_equivalent(sb3, expected)
-})
-
-test_that("Fit multiple batches.  First, pooled-variance model without homozygous deletions", {
-  set.seed(2463)
-  ##
-  ## Read back in the data with all batches
-  ##
-  sb3 <- readRDS(file.path("..",
-                           "..",
-                           "inst",
-                           "extdata",
-                           "sb3_1.rds"))
-  mb.subsamp <- revertToMultiBatch(sb3)
-  fdat <- filter(assays(mb.subsamp), oned > -1)
-  mb <- warmup(fdat, "MBP2")
-  mbl <- replicate(10, MultiBatchList(data=fdat)[["MBP2"]])
-  set.seed(2463)
-  for(j in seq_along(mbl)){
-    cat(".")
-    mb <- mbl[[j]]
-    burnin(mb) <- 100
-    iter(mb) <- 0
-    mb <- tryCatch(posteriorSimulation(mb),
-                   error=function(e) NULL,
-                   warning=function(w) NULL)
-    if(is.null(mb)) next()
-    mbl[[j]] <- mb
-  }
-  mb <- mbl[[ which.max(sapply(mbl, log_lik)) ]]
-  iter(mb) <- 500
-  burnin(mb) <- 50
-  mod_2.3 <- posteriorSimulation(mb)
-  assays(mod_2.3)$is_simulated=FALSE
-  if(FALSE){
-    saveRDS(mod_2.3, file=file.path("..",
-                                    "..",
-                                    "inst",
-                                    "extdata",
-                                    "mod_2.3.rds"))
-  }
-  expected <- readRDS(file.path("..",
-                                "..",
-                                "inst",
-                                "extdata",
-                                "mod_2.3.rds"))
-  expect_equivalent(mod_2.3, expected)
-})
-
-test_that("Compare variances in pooled variance model to variance from SingleBatch model", {
-  sb3 <- readRDS(file.path("..",
-                           "..",
-                           "inst",
-                           "extdata",
-                           "sb3_1.rds"))
-  varratio <- max(sigma2(sb3))/min(sigma2(sb3))
-  expect_equal(varratio, 84.38, tolerance=0.01)
-  augment_hemizygous <- p(sb3)[2] < 0.1 || varratio > 100
-  expect_true(augment_hemizygous)
 })
 
 test_that("Augment hemizygous", {
@@ -122,84 +84,7 @@ test_that("Augment hemizygous", {
                            "inst",
                            "extdata",
                            "sb3_1.rds"))
-  augment_hemizygous <- TRUE
-  if(!augment_hemizygous) stop()
-  is_pooledvar <- TRUE
-  ##
-  ## This variable is needed later on
-  ##
-  batch_labels <- assays(mod_2.3)$batch_labels
-  batch_labels <- batch_labels %>%
-    factor(., levels=unique(.)) %>%
-    as.integer(.) %>%
-    unique(.) %>%
-    sort()
-  ##
-  message("Data augmentation for hemizygous deletion component")
-  ##
-  ##
-  ## normalize probabilities
-  pz <- probz(mod_2.3) %>%
-    "/"(rowSums(.)) %>%
-    rowMax
-  ##
-  ## batches with high posterior probabilities
-  ##
-  ubatch <- unique(batch(mod_2.3)[ pz >= 0.95 ])
-  ##
-  ## Find number of samples assigned to the hemizygous deletion
-  ## component with high probability.
-  ##
-  ## Check if any of the batches have fewer than 10 subjects
-  ## with high posterior probability
-  ##
-  tmp <- tibble(batch=batch(mod_2.3),
-                z=map_z(mod_2.3),
-                pz=pz) %>%
-    group_by(batch) %>%
-    summarize(N=n(),
-              n=sum(z==1 & pz > 0.9)) %>%
-    filter(n < 10)
-  ##
-  ##
-  ##
-  is_dropped <- !batch_labels %in% ubatch |
-    batch_labels %in% tmp$batch
-  condition3 <- any(is_dropped)
-  expect_true(condition3)
-  if(condition3){
-    ##
-    ## possible hemizygous deletion missing in
-    ##   one component (e.g., CNP023)
-    ##
-    message("There are batches with fewer than 10 samples assigned to hemiz. del component with probability > 0.9")
-    ##
-    dropped_batches <- uniqueBatch(mod_2.3)[ is_dropped ]
-    if(modelName(sb3) == "SBP3"){
-      hemvar <- sigma2(sb3)[, 1]
-    } else {
-      hemvar <- sigma2(sb3)[, 2]
-    }
-    message("Find mean and variance of hemizygous deletion component")
-    loc.scale.hem <- tibble(theta=theta(sb3)[2],
-                            sigma2=hemvar,
-                            phat=p(sb3)[2],
-                            batch=dropped_batches,
-                            theta.diploid=theta(mod_2.3)[dropped_batches, 2]) %>%
-      mutate(delta=theta.diploid-theta)
-    message("Augment data with additional hemizygous deletions")
-    impdat <- impute(mod_2.3, loc.scale.hem, 1)
-    obsdat <- assays(mod_2.3) %>%
-      mutate(is_simulated=FALSE)
-    simdat <- bind_rows(obsdat,
-                        impdat) %>%
-      arrange(batch)
-  }
-  mb <- MultiBatchList(data=simdat)[[modelName(mod_2.3)]]
-  mcmcParams(mb) <- mcmcParams(mod_2.3)
-  theta(mb) <- theta(mod_2.3)
-  theta(mb)[is_dropped, 1] <- loc.scale.hem$theta
-  CNPBayes:::sigma2(mb) <- matrix(pmin(sigma2(mod_2.3)[, 1], hemvar), ncol=1)
+  mb <- augment_hemizygous(mod_2.3, sb3)
   ##
   message("Run additional MCMC simulations on the augmented data")
   ##
@@ -217,11 +102,6 @@ test_that("augment homozygous deletions", {
   ## Do i need all 3 of these objects?
   ##
   set.seed(2463)
-  mb.subsamp <- readRDS(file.path("..",
-                           "..",
-                           "inst",
-                           "extdata",
-                           "mb_subsamp.rds"))
   sb3 <- readRDS(file.path("..",
                            "..",
                            "inst",
@@ -232,15 +112,15 @@ test_that("augment homozygous deletions", {
                                "inst",
                                "extdata",
                                "mod_2.32.rds"))
+  mb.subsamp <- revertToMultiBatch(sb3)
   THR <- -1
   is_pooledvar <- ncol(sigma2(mod_2.3))==1
   expect_true(is_pooledvar)
   p_ <- cbind(p(sb3)[1, 1], p(mod_2.3)) %>%
     "/"(rowSums(.))
-  hdmean <- -3.887 ## computed in summarized_regions
+  hdmean <- homozygousdel_mean(mb, -1)
   if(is.na(hdmean)) hdmean <- THR-1
-  theta_ <- cbind(hdmean,
-                  theta(mod_2.3))
+  ##theta_ <- cbind(hdmean, theta(mod_2.3))
   if(is_pooledvar){
     sigma2_ <- sigma2(mod_2.3)
   } else {
@@ -274,7 +154,7 @@ test_that("augment homozygous deletions", {
   loc.scale <- tibble(theta=hdmean,
                       sigma2=sigma2_[, 1],
                       phat=max(p(sb3)[1], 0.05),
-                      batch=seq_len(nrow(theta_)))
+                      batch=batchLevels(sb3))
   loc.scale <- left_join(freq.hd, loc.scale, by="batch") %>%
     select(-N)
   start.index <- length(grep("augment", id(mod_2.3))) + 1

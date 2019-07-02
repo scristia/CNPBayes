@@ -2179,26 +2179,25 @@ homozygousdel_mean <- function(object, THR=-1) {
 }
 
 augment_homozygous <- function(mb, THR){
-  hdmean <- homozygousdel_mean(mb, THR)
-  if(sum(oned(mb) < THR) < 5){
-    message("Augment data for rare deletions (less than 5 obs)")
-    hdsd <- sd(oned(mb)[ oned(mb) < THR])
-    if(is.na(hdsd)) hdsd <- 0.1
-    loc.scale <- tibble(theta=hdmean,
-                        sigma2=hdsd^2,
-                        phat=0.01,
-                        batch=seq_len(nrow(theta(mb))))
-    imp.hd <- impute(mb, loc.scale, start.index=1)
-    obsdat <- assays(mb) %>%
-      mutate(is_simulated=FALSE)
-    simdat <- bind_rows(obsdat, imp.hd) %>%
-      arrange(batch) %>%
-      mutate(homozygousdel_mean=hdmean)
-  } else {
-    simdat <- assays(mb) %>%
-      mutate(homozygousdel_mean=hdmean)
-  }
+  ##message("Augment data for rare deletions (less than 5 obs)")
+  hdsd <- sd(oned(mb)[ oned(mb) < THR])
+  if(is.na(hdsd)) hdsd <- 0.1
+  loc.scale <- tibble(theta=hdmean,
+                      sigma2=hdsd^2,
+                      phat=0.01,
+                      batch=seq_len(nrow(theta(mb))))
+  imp.hd <- impute(mb, loc.scale, start.index=1)
+  obsdat <- assays(mb) %>%
+    mutate(is_simulated=FALSE)
+  simdat <- bind_rows(obsdat, imp.hd) %>%
+    arrange(batch) %>%
+    mutate(homozygousdel_mean=hdmean)
   simdat
+}
+
+ok_hemizygous <- function(sb3){
+  varratio <- max(sigma2(sb3))/min(sigma2(sb3))
+  p(sb3)[2] < 0.1 || varratio > 100
 }
 
 .warmup <- function(tib, model){
@@ -2255,4 +2254,87 @@ revertToMultiBatch <- function(sb){
   model_name <- gsub("SB", "MB", modelName(sb))
   mb <- MultiBatch(model_name, data=adat)
   mb
+}
+
+
+augment_hemizygous <- function(mod_2.3, sb3){
+  is_pooledvar <- TRUE
+  ##
+  ## This variable is needed later on
+  ##
+  batch_labels <- assays(mod_2.3)$batch_labels
+  batch_labels <- batch_labels %>%
+    factor(., levels=unique(.)) %>%
+    as.integer(.) %>%
+    unique(.) %>%
+    sort()
+  ## normalize probabilities
+  pz <- probz(mod_2.3) %>%
+    "/"(rowSums(.)) %>%
+    rowMax
+  ##
+  ## batches with high posterior probabilities
+  ##
+  ubatch <- unique(batch(mod_2.3)[ pz >= 0.95 ])
+  ##
+  ## Find number of samples assigned to the hemizygous deletion
+  ## component with high probability.
+  ##
+  ## Check if any of the batches have fewer than 10 subjects
+  ## with high posterior probability
+  ##
+  tmp <- tibble(batch=batch(mod_2.3),
+                z=map_z(mod_2.3),
+                pz=pz) %>%
+    group_by(batch) %>%
+    summarize(N=n(),
+              n=sum(z==1 & pz > 0.9)) %>%
+    filter(n < 10)
+  ##
+  ##
+  ##
+  is_dropped <- !batch_labels %in% ubatch |
+    batch_labels %in% tmp$batch
+  condition3 <- any(is_dropped)
+  if(condition3){
+    ##
+    ## possible hemizygous deletion missing in
+    ##   one component (e.g., CNP023)
+    ##
+    ## There are batches with fewer than 10 samples
+    ## assigned to hemiz. del component with probability > 0.9
+    ##
+    dropped_batches <- uniqueBatch(mod_2.3)[ is_dropped ]
+    if(modelName(sb3) == "SBP3"){
+      hemvar <- sigma2(sb3)[, 1]
+    } else {
+      hemvar <- sigma2(sb3)[, 2]
+    }
+    message("Find mean and variance of hemizygous deletion component")
+    loc.scale.hem <- tibble(theta=theta(sb3)[2],
+                            sigma2=hemvar,
+                            phat=p(sb3)[2],
+                            batch=dropped_batches,
+                            theta.diploid=theta(mod_2.3)[dropped_batches, 2]) %>%
+      mutate(delta=theta.diploid-theta)
+    message("Augment data with additional hemizygous deletions")
+    impdat <- impute(mod_2.3, loc.scale.hem, 1)
+    obsdat <- assays(mod_2.3) %>%
+      mutate(is_simulated=FALSE)
+    simdat <- bind_rows(obsdat,
+                        impdat) %>%
+      arrange(batch)
+  }
+  mb <- MultiBatchList(data=simdat)[[modelName(mod_2.3)]]
+  mcmcParams(mb) <- mcmcParams(mod_2.3)
+  theta(mb) <- theta(mod_2.3)
+  theta(mb)[is_dropped, 1] <- loc.scale.hem$theta
+  sigma2(mb) <- matrix(pmin(sigma2(mod_2.3)[, 1], hemvar), ncol=1)
+  mb
+}
+
+batchLevels <- function(mb){
+  levs <- unique(assays(mb)$batch_labels)
+  levels <- unique(as.integer(factor(assays(mb)$batch_labels, levels=levs)))
+  sort(levels [ !is.na(levels) ])
 }
