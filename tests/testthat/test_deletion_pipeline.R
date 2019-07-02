@@ -1,83 +1,12 @@
 context("analysis of rare deletions")
 
+## for first step, see test_summarized_region.R
 .test_that <- function(nm, expr) NULL
 
-test_that("summarize region", {
-  library(SummarizedExperiment)
-  library(panc.data)
-  library(CNPBayes)
-  library(readxl)
-  ##
-  ## summarize_region code chunk
-  ##
-  data(cnp_se, package="panc.data")
-  data(snp_se, package="panc.data")
-  g <- GRanges("chr1", IRanges(1627805, 1673809),
-               seqinfo=Seqinfo("chr1", 249250621,
-                               genome="hg19"))
-  snp_se <- snp_se[overlapsAny(snp_se, g), ]
-  i <- 1
+test_that("augment data", {
   set.seed(123)
   seeds <- sample(seq_len(10000), nrow(cnp_se), replace=TRUE)
-  set.seed(seeds[ i ])
-  se <- cnp_se[i, ]
-  CNP <- rownames(se)
-  basedir <- tempdir()
-  figname <- file.path(basedir, paste0(CNP, ".pdf"))
-  modeldir <- file.path(basedir, "cnp.models/inst/extdata")
-  if(!dir.exists(modeldir)) dir.create(modeldir, recursive=TRUE)
-  colnames(cnp_se) <- colnames(snp_se)
-  snpdat <- snp_se[overlapsAny(snp_se, se), ]
-  ##
-  ## Flag homozygous deletions
-  ##
-  message("Flagging apparent homozygous deletions")
-  THR <- -1
-  dat <- tibble(id=colnames(se),
-                oned=assays(se)[["MEDIAN"]][1, ],
-                provisional_batch=colData(se)$Sample.Plate) %>%
-    mutate(likely_hd = oned < THR)
-  dat.nohd <- filter(dat, !likely_hd)
-  ##
-  ## Group chemistry plates, excluding homozygous deletions
-  ##
-  ix <- sample(seq_len(nrow(dat.nohd)), 1000, replace=TRUE)
-  message("Downsampling non-homozygous deletions")
-  mb.subsamp <- dat.nohd[ix, ] %>%
-    bind_rows(filter(dat, likely_hd)) %>%
-    mutate(is_simulated=FALSE) %>%
-    MultiBatch("MB3", data=.) %>%
-    findSurrogates(0.001, THR)
-
-  ##print(a)
-  batches <- assays(mb.subsamp) %>%
-    group_by(provisional_batch) %>%
-    summarize(batch=unique(batch))
-  pr.batch <- assays(mb.subsamp)$provisional_batch
-  stopifnot(all(pr.batch %in% dat$provisional_batch))
-  dat <- left_join(dat, batches, by="provisional_batch")
-  ##
-  message("Check batches")
-  ##
-  batchfreq <- assays(mb.subsamp) %>%
-    group_by(batch) %>%
-    summarize(n=n())
-  if(any(batchfreq$n < 50)){
-    batchfreq <- filter(batchfreq, n < 50)
-    adat <- assays(mb.subsamp) %>%
-      filter(!batch %in% batchfreq$batch)
-    bdat <- filter(dat, batch %in% batchfreq$batch)
-    adat2 <- bind_rows(adat, bdat)
-    mb.subsamp <- MultiBatch("MB2", data=adat2)
-  }
-  if(FALSE){
-    saveRDS(mb.subsamp, file="../../inst/extdata/mb_subsamp.rds")
-  }
-  expected <- readRDS("../../inst/extdata/mb_subsamp.rds")
-  expect_equivalent(mb.subsamp, expected)
-})
-
-test_that("augment data", {
+  set.seed(seeds[ 1 ])
   THR <- -1
   mb.subsamp <- readRDS("../../inst/extdata/mb_subsamp.rds")
   ##
@@ -111,6 +40,7 @@ test_that("augment data", {
 })
 
 test_that("warmup", {
+  set.seed(5)
   simdat <- readRDS("../../inst/extdata/simdat.rds")
   ##
   message("Random starts and short warmup for SBP3 model")
@@ -162,6 +92,9 @@ test_that("warmup", {
 })
 
 test_that("mcmc1", {
+  set.seed(123)
+  seeds <- sample(seq_len(10000), nrow(cnp_se), replace=TRUE)
+  set.seed(seeds[ 1 ])
   sb3 <- readRDS(file.path("..",
                            "..",
                            "inst",
@@ -288,7 +221,7 @@ test_that("Augment hemizygous", {
                            "extdata",
                            "sb3_1.rds"))
   augment_hemizygous <- TRUE
-  if(augment_hemizygous) stop()
+  if(!augment_hemizygous) stop()
   is_pooledvar <- TRUE
   batch_labels <- assays(mod_2.3)$batch_labels
   batch_labels <- batch_labels %>%
@@ -357,32 +290,48 @@ test_that("Augment hemizygous", {
                         impdat) %>%
       arrange(batch)
   }
+  mb <- MultiBatchList(data=simdat)[[modelName(mod_2.3)]]
+  mcmcParams(mb) <- mcmcParams(mod_2.3)
+  theta(mb) <- theta(mod_2.3)
+  theta(mb)[is_dropped, 1] <- loc.scale.hem$theta
+  CNPBayes:::sigma2(mb) <- matrix(pmin(sigma2(mod_2.3)[, 1], hemvar), ncol=1)
+  ##
+  message("Run additional MCMC simulations on the augmented data")
+  ##
+  mod_2.32 <- posteriorSimulation(mb)
+  mod_2.3 <- mod_2.32
   if(FALSE){
-    saveRDS(simdat, file="../../inst/extdata/simdat.rds")
+    saveRDS(mod_2.32, file="../../inst/extdata/mod_2.32.rds")
   }
-  expected <- readRDS("../../inst/extdata/simdat.rds")
-  expect_equivalent(simdat, expected)
+  expected <- readRDS("../../inst/extdata/mod_2.32.rds")
+  expect_equivalent(mod_2.32, expected)
 })
 
-.test_that("", {
-    mb <- MultiBatchList(data=simdat)[[modelName(mod_2.3)]]
-    mcmcParams(mb) <- mcmcParams(mod_2.3)
-    theta(mb) <- theta(mod_2.3)
-    theta(mb)[is_dropped, 1] <- loc.scale.hem$theta
-    CNPBayes:::sigma2(mb) <- matrix(pmin(sigma2(mod_2.3)[, 1], hemvar), ncol=1)
-    ##
-    message("Run additional MCMC simulations on the augmented data")
-    ##
-    mod_2.32 <- posteriorSimulation(mb)
-    mod_2.3 <- mod_2.32
-    ##ggMixture(mod_2.3) + xlim(c(-3, 1))
-
+test_that("augment homozygous deletions", {
+  ##
+  ## Do i need all 3 of these objects?
+  ##
+  mb.subsamp <- readRDS(file.path("..",
+                           "..",
+                           "inst",
+                           "extdata",
+                           "mb_subsamp.rds"))
+  sb3 <- readRDS(file.path("..",
+                           "..",
+                           "inst",
+                           "extdata",
+                           "sb3_1.rds"))
+  mod_2.3 <- readRDS(file.path("..",
+                               "..",
+                               "inst",
+                               "extdata",
+                               "mod_2.32.rds"))
+  THR <- -1
   is_pooledvar <- ncol(sigma2(mod_2.3))==1
   expect_true(is_pooledvar)
   p_ <- cbind(p(sb3)[1, 1], p(mod_2.3)) %>%
     "/"(rowSums(.))
-  hdmean <- median(dat$oned[dat$likely_hd])
-  expect_equal(hdmean, -3.9, tolerance=0.02)
+  hdmean <- -3.887 ## computed in summarized_regions
   if(is.na(hdmean)) hdmean <- THR-1
   theta_ <- cbind(hdmean,
                   theta(mod_2.3))
@@ -392,42 +341,60 @@ test_that("Augment hemizygous", {
     sigma2_ <- cbind(sigma2(mod_2.3)[1, 2],
                      sigma2(mod_2.3))
   }
+  ##
+  ## Which batches have fewer than 5% subjects with
+  ## homozygous deletions?
+  ##
   freq.hd <- assays(mb.subsamp) %>%
     group_by(batch) %>%
     summarize(N=n(),
               n=sum(likely_hd)) %>%
     filter(n/N < 0.05)
-  condition4 <- nrow(freq.hd) > 0
-  expect_true(condition4)
-  if(condition4){
-    ##
-    ##
-    message("Augment data for homozygous deletions")
-    ##
-    ##
-    loc.scale <- tibble(theta=hdmean,
-                        sigma2=sigma2_[, 1],
-                        phat=max(p(sb3)[1], 0.05),
-                        batch=seq_len(nrow(theta_)))
-    loc.scale <- left_join(freq.hd, loc.scale, by="batch") %>%
-      select(-N)
-    start.index <- length(grep("augment", id(mod_2.3))) + 1
-    imp.hd <- impute(mod_2.3, loc.scale, start.index=start.index)
-    condition5 <- any(isSimulated(mod_2.3))
-    expect_true(condition5)
-    if(condition5){
-      imp.hemi <- filter(assays(mod_2.3), is_simulated)
-      imp.hd <- bind_rows(imp.hd, imp.hemi)
-    }
-    obsdat <- assays(mb.subsamp) %>%
-      mutate(is_simulated=FALSE)
-    simdat <- bind_rows(obsdat, imp.hd) %>%
-      arrange(batch)
+  do_augment_homozygous <- nrow(freq.hd) > 0
+  expect_true(do_augment_homozygous)
+  ##
+  ## Reminder that this is only evaluated when we need to augment
+  ##
+  if(! do_augment_homozygous ) stop()
+  ##
+  ## If at least one batch has fewer than 5% subjects with
+  ## homozygous deletion, augment the data for homozygous deletions
+  ##
+  ##
+  ##
+  message("Augment data for homozygous deletions")
+  ##
+  ##
+  loc.scale <- tibble(theta=hdmean,
+                      sigma2=sigma2_[, 1],
+                      phat=max(p(sb3)[1], 0.05),
+                      batch=seq_len(nrow(theta_)))
+  loc.scale <- left_join(freq.hd, loc.scale, by="batch") %>%
+    select(-N)
+  start.index <- length(grep("augment", id(mod_2.3))) + 1
+  imp.hd <- impute(mod_2.3, loc.scale, start.index=start.index)
+  condition5 <- any(isSimulated(mod_2.3))
+  expect_true(condition5)
+  if(condition5){
+    imp.hemi <- filter(assays(mod_2.3), is_simulated)
+    imp.hd <- bind_rows(imp.hd, imp.hemi)
   }
+  obsdat <- assays(mb.subsamp) %>%
+    mutate(is_simulated=FALSE)
+  simdat <- bind_rows(obsdat, imp.hd) %>%
+    arrange(batch)
   if(!exists("simdat")){
     simdat <- assays(mb.subsamp) %>%
       mutate(is_simulated=FALSE)
   }
+  if(FALSE){
+    saveRDS(simdat, file="../../inst/extdata/simdat_1.rds")
+  }
+  expected <- readRDS("../../inst/extdata/simdat_1.rds")
+  expect_equivalent(simdat, expected)
+})
+
+.test_that("", {
   ##
   message("Rerun 3 batch model with augmented data")
   ##
