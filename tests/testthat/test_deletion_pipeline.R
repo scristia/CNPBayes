@@ -212,83 +212,17 @@ test_that("early stop", {
   expect_false(condition)
 })
 
-.test_that("", {
-  if(condition){
-    message("Save model and make plots")
-    keep <- !duplicated(CNPBayes:::id(sb3))
-    gmodel <- sb3[ !isSimulated(sb3) & keep ]
-    snpdat2 <- snpdat[, id(gmodel) ]
-    ##identical(colnames(snpdat), id(final.model))
-    clist <- CnList(gmodel)
-    (stats <- baf_loglik(clist, snpdat2))
-    mapping(gmodel) <- strsplit(stats$cn.model[1], ",")[[1]]
-    maxpz <- probz(gmodel) %>%
-      "/"(rowSums(.)) %>%
-      rowMax
-    bafdat <- assays(snpdat)[["baf"]] %>%
-      as_tibble() %>%
-      mutate(rsid=rownames(snpdat2)) %>%
-      gather("id", "BAF", -rsid)
-    cndat <- tibble(id=id(gmodel),
-                    batch=batch(gmodel),
-                    oned=oned(gmodel),
-                    pz=maxpz,
-                    z=map_z(gmodel)) %>%
-      mutate(cn=mapping(gmodel)[z]) %>%
-      mutate(cn=factor(cn))
-    bafdat <- left_join(bafdat, cndat, by="id")
-    bafdat2 <- filter(bafdat, pz > 0.9)
-    cnlabels <- paste0(seq_len(k(gmodel)),
-                       "%->%",
-                       mapping(gmodel))
-    labs <- as.expression(parse(text=cnlabels))
-    xlab <- expression(paste("\n", "Mixture component"%->%"Copy number"))
-    B <- ggplot(bafdat2, aes(factor(z), BAF)) +
-      geom_hline(yintercept=c(0, 1/3, 0.5, 2/3, 1), color="gray95") +
-      geom_jitter(aes(color=pz), width=0.1, size=0.3) +
-      scale_y_continuous(expand=c(0, 0.05)) +
-      scale_x_discrete(breaks=seq_len(k(gmodel)),
-                       labels=labs) +
-      theme(panel.background=element_rect(fill="white", color="gray30"),
-            legend.key=element_rect(fill="white")) +
-      xlab(xlab) +
-      ylab("BAF\n") +
-      guides(color=guide_legend(title="Mixture\ncomponent\nprobability"))
-    pdf(figname, width=14, height=8)
-    grid.newpage()
-    pushViewport(viewport(layout=grid.layout(1, 2, widths=c(0.6, 0.4))))
-    pushViewport(viewport(layout.pos.row=1,
-                          layout.pos.col=1))
-    pushViewport(viewport(width=unit(0.96, "npc"),
-                          height=unit(0.9, "npc")))
-    print(A, newpage=FALSE)
-    popViewport(2)
-    pushViewport(viewport(layout.pos.row=1,
-                          layout.pos.col=2))
-    pushViewport(viewport(width=unit(0.96, "npc"),
-                          height=unit(0.6, "npc")))
-    print(B, newpage=FALSE)
-    dev.off()
+test_that("Fit multiple batches.  First, pooled-variance model without homozygous deletions", {
+  ##
+  ## Read back in the data with all batches
+  ##
+  mb.subsamp <- readRDS(file.path("..",
+                                  "..",
+                                  "inst",
+                                  "extdata",
+                                  "mb_subsamp.rds"))
 
-    pdf(figname2, width=14, height=8)
-    grid.newpage()
-    pushViewport(viewport(layout=grid.layout(1, 2, widths=c(0.6, 0.4))))
-    pushViewport(viewport(layout.pos.row=1,
-                          layout.pos.col=1))
-    pushViewport(viewport(width=unit(0.96, "npc"),
-                          height=unit(0.9, "npc")))
-    print(A2, newpage=FALSE)
-    popViewport(2)
-    pushViewport(viewport(layout.pos.row=1,
-                          layout.pos.col=2))
-    pushViewport(viewport(width=unit(0.96, "npc"),
-                          height=unit(0.6, "npc")))
-    print(B, newpage=FALSE)
-    dev.off()
-    mapping(sb3) <- mapping(gmodel)
-    saveRDS(sb3, file=file.path(modeldir, paste0(CNP, ".rds")))
-    if(!interactive()) q('no') else stop("Single-batch model is sufficient")
-  }
+  THR <- -1
   ##
   ##
   ##
@@ -311,85 +245,138 @@ test_that("early stop", {
   burnin(mb) <- 50
   mod_2.3 <- posteriorSimulation(mb)
   assays(mod_2.3)$is_simulated=FALSE
-  c <- ggMixture(mod_2.3) + xlim(c(-3, 1))
-  ##print(c)
-  is_pooledvar <- TRUE
-  batch_labels <- sort(unique(dat$batch))
-  varratio <- max(sigma2(sb3))/min(sigma2(sb3))
-  condition2 <- p(sb3)[2] < 0.1 || varratio > 100
-  expect_true(condition2)
-  if(condition2){
-    ##
-    ##
-    ##
-    message("Data augmentation for hemizygous deletion component")
-    ##
-    ##
-    ## normalize probabilities
-    pz <- probz(mod_2.3) %>%
-      "/"(rowSums(.)) %>%
-      rowMax
-    ##
-    ## batches with high posterior probabilities
-    ##
-    ubatch <- unique(batch(mod_2.3)[ pz >= 0.95 ])
-    ##
-    ## Find number of samples assigned to the hemizygous deletion component with high probability.  
-    ##
-    tmp <- tibble(batch=batch(mod_2.3),
-                  z=map_z(mod_2.3),
-                  pz=pz) %>%
-      group_by(batch) %>%
-      summarize(N=n(),
-                n=sum(z==1 & pz > 0.9)) %>%
-      filter(n < 10)
-    ##
-    ##
-    ##
-    is_dropped <- !batch_labels %in% ubatch |
-      batch_labels %in% tmp$batch
-    condition3 <- any(is_dropped)
-    expect_true(condition3)
-    if(condition3){
-      ##
-      ## possible hemizygous deletion missing in
-      ##   one component (e.g., CNP023)
-      ##
-      message("There are batches with fewer than 10 samples assigned to hemiz. del component with probability > 0.9")
-      ##
-      dropped_batches <- uniqueBatch(mod_2.3)[ is_dropped ]
-      if(modelName(sb3) == "SBP3"){
-        hemvar <- sigma2(sb3)[, 1]
-      } else {
-        hemvar <- sigma2(sb3)[, 2]
-      }
-      message("Find mean and variance of hemizygous deletion component")
-      loc.scale.hem <- tibble(theta=theta(sb3)[2],
-                              sigma2=hemvar,
-                              phat=p(sb3)[2],
-                              batch=dropped_batches,
-                              theta.diploid=theta(mod_2.3)[dropped_batches, 2]) %>%
-        mutate(delta=theta.diploid-theta)
-      message("Augment data with additional hemizygous deletions")
-      impdat <- impute(mod_2.3, loc.scale.hem, 1)
-      obsdat <- assays(mod_2.3) %>%
-        mutate(is_simulated=FALSE)
-      simdat <- bind_rows(obsdat,
-                          impdat) %>%
-        arrange(batch)
-      mb <- MultiBatchList(data=simdat)[[modelName(mod_2.3)]]
-      mcmcParams(mb) <- mcmcParams(mod_2.3)
-      theta(mb) <- theta(mod_2.3)
-      theta(mb)[is_dropped, 1] <- loc.scale.hem$theta
-      CNPBayes:::sigma2(mb) <- matrix(pmin(sigma2(mod_2.3)[, 1], hemvar), ncol=1)
-      ##
-      message("Run additional MCMC simulations on the augmented data")
-      ##
-      mod_2.32 <- posteriorSimulation(mb)
-      mod_2.3 <- mod_2.32
-      ##ggMixture(mod_2.3) + xlim(c(-3, 1)) 
-    }
+  if(FALSE){
+    saveRDS(mod_2.3, file=file.path("..",
+                                    "..",
+                                    "inst",
+                                    "extdata",
+                                    "mod_2.3.rds"))
   }
+  expected <- readRDS(file.path("..",
+                                "..",
+                                "inst",
+                                "extdata",
+                                "mod_2.3.rds"))
+  expect_equivalent(mod_2.3, expected)
+})
+
+test_that("Compare variances in pooled variance model to variance from SingleBatch model", {
+  sb3 <- readRDS(file.path("..",
+                           "..",
+                           "inst",
+                           "extdata",
+                           "sb3_1.rds"))
+  varratio <- max(sigma2(sb3))/min(sigma2(sb3))
+  expect_equal(varratio, 84.38, tolerance=0.01)
+  augment_hemizygous <- p(sb3)[2] < 0.1 || varratio > 100
+  expect_true(augment_hemizygous)
+})
+
+test_that("Augment hemizygous", {
+  ##
+  ## Reminder that we only do this section if augment_hemizygous
+  ## is TRUE
+  ##
+  mod_2.3 <- readRDS(file.path("..",
+                               "..",
+                               "inst",
+                               "extdata",
+                               "mod_2.3.rds"))
+  sb3 <- readRDS(file.path("..",
+                           "..",
+                           "inst",
+                           "extdata",
+                           "sb3_1.rds"))
+  augment_hemizygous <- TRUE
+  if(augment_hemizygous) stop()
+  is_pooledvar <- TRUE
+  batch_labels <- assays(mod_2.3)$batch_labels
+  batch_labels <- batch_labels %>%
+    factor(., levels=unique(.)) %>%
+    as.integer(.) %>%
+    unique(.) %>%
+    sort()
+  ##
+  message("Data augmentation for hemizygous deletion component")
+  ##
+  ##
+  ## normalize probabilities
+  pz <- probz(mod_2.3) %>%
+    "/"(rowSums(.)) %>%
+    rowMax
+  ##
+  ## batches with high posterior probabilities
+  ##
+  ubatch <- unique(batch(mod_2.3)[ pz >= 0.95 ])
+  ##
+  ## Find number of samples assigned to the hemizygous deletion
+  ## component with high probability.
+  ##
+  ## Check if any of the batches have fewer than 10 subjects
+  ## with high posterior probability
+  ##
+  tmp <- tibble(batch=batch(mod_2.3),
+                z=map_z(mod_2.3),
+                pz=pz) %>%
+    group_by(batch) %>%
+    summarize(N=n(),
+              n=sum(z==1 & pz > 0.9)) %>%
+    filter(n < 10)
+  ##
+  ##
+  ##
+  is_dropped <- !batch_labels %in% ubatch |
+    batch_labels %in% tmp$batch
+  condition3 <- any(is_dropped)
+  expect_true(condition3)
+  if(condition3){
+    ##
+    ## possible hemizygous deletion missing in
+    ##   one component (e.g., CNP023)
+    ##
+    message("There are batches with fewer than 10 samples assigned to hemiz. del component with probability > 0.9")
+    ##
+    dropped_batches <- uniqueBatch(mod_2.3)[ is_dropped ]
+    if(modelName(sb3) == "SBP3"){
+      hemvar <- sigma2(sb3)[, 1]
+    } else {
+      hemvar <- sigma2(sb3)[, 2]
+    }
+    message("Find mean and variance of hemizygous deletion component")
+    loc.scale.hem <- tibble(theta=theta(sb3)[2],
+                            sigma2=hemvar,
+                            phat=p(sb3)[2],
+                            batch=dropped_batches,
+                            theta.diploid=theta(mod_2.3)[dropped_batches, 2]) %>%
+      mutate(delta=theta.diploid-theta)
+    message("Augment data with additional hemizygous deletions")
+    impdat <- impute(mod_2.3, loc.scale.hem, 1)
+    obsdat <- assays(mod_2.3) %>%
+      mutate(is_simulated=FALSE)
+    simdat <- bind_rows(obsdat,
+                        impdat) %>%
+      arrange(batch)
+  }
+  if(FALSE){
+    saveRDS(simdat, file="../../inst/extdata/simdat.rds")
+  }
+  expected <- readRDS("../../inst/extdata/simdat.rds")
+  expect_equivalent(simdat, expected)
+})
+
+.test_that("", {
+    mb <- MultiBatchList(data=simdat)[[modelName(mod_2.3)]]
+    mcmcParams(mb) <- mcmcParams(mod_2.3)
+    theta(mb) <- theta(mod_2.3)
+    theta(mb)[is_dropped, 1] <- loc.scale.hem$theta
+    CNPBayes:::sigma2(mb) <- matrix(pmin(sigma2(mod_2.3)[, 1], hemvar), ncol=1)
+    ##
+    message("Run additional MCMC simulations on the augmented data")
+    ##
+    mod_2.32 <- posteriorSimulation(mb)
+    mod_2.3 <- mod_2.32
+    ##ggMixture(mod_2.3) + xlim(c(-3, 1))
+
   is_pooledvar <- ncol(sigma2(mod_2.3))==1
   expect_true(is_pooledvar)
   p_ <- cbind(p(sb3)[1, 1], p(mod_2.3)) %>%
