@@ -2175,33 +2175,72 @@ genotypeData <- function(gmodel, snpdat, min_probz=0.9){
 }
 
 homozygousdel_mean <- function(object, THR=-1) {
-  mean(oned(object)[ oned(object) < THR])
+  mn <- mean(oned(object)[ oned(object) < THR])
+  if(is.na(mn)) mn <- THR - 1
+  mn
 }
+
+isPooledVar <- function(object) ncol(sigma2(object))==1
 
 meanSdHomDel <- function(object, THR){
-  c(homozygousdel_mean(object, THR),
-    sd(oned(object)[ oned(object) < THR]))
+  list(homozygousdel_mean(object, THR),
+       sd(oned(object)[ oned(object) < THR]))
 }
 
-augment_homozygous <- function(mb, mean_sd, THR=-1){
-  if(is.na(mean_sd[2])) mean_sd[2] <- 0.1
-  loc.scale <- tibble(theta=mean_sd[1],
-                      sigma2=mean_sd[2]^2,
-                      phat=0.01,
-                      batch=seq_len(nrow(theta(mb))))
+sdModel2_3 <- function(mod_2.3){
+  if(isPooledVar(mod_2.3)){
+    sigma2_ <- sigma2(mod_2.3)
+  } else {
+    sigma2_ <- cbind(sigma2(mod_2.3)[1, 2],
+                     sigma2(mod_2.3))
+  }
+  sigma2_
+}
+
+.augment_homozygous <- function(mb, mean_sd, THR=-1, phat=0.01){
+  if(all(is.na(mean_sd[[2]]))) mean_sd[[2]] <- 0.1
   freq.hd <- assays(mb) %>%
+    filter(!is_simulated) %>%
     group_by(batch) %>%
     summarize(N=n(),
               n=sum(likely_hd)) %>%
     filter(n/N < 0.05)
+  if(nrow(freq.hd) == 0){
+    obsdat <- assays(mb)
+    return(obsdat)
+  }
+  loc.scale <- tibble(theta=mean_sd[[1]],
+                      sigma2=mean_sd[[2]]^2,
+                      phat=phat,
+                      batch=seq_len(nrow(theta(mb))))
   loc.scale <- left_join(freq.hd, loc.scale, by="batch") %>%
     select(-N)
-  imp.hd <- impute(mb, loc.scale, start.index=1)
+  start.index <- length(grep("augment", id(mb))) + 1
+  any_simulated <- any(isSimulated(mb))
+  imp.hd <- impute(mb, loc.scale, start.index=start.index)
+  if(any_simulated){
+    simulated <- bind_rows(imp.hd,
+                           filter(assays(mb), is_simulated))
+  } else simulated <- imp.hd
   obsdat <- assays(mb) %>%
-    mutate(is_simulated=FALSE)
-  simdat <- bind_rows(obsdat, imp.hd) %>%
+    filter(is_simulated==FALSE)
+  simdat <- bind_rows(obsdat, simulated) %>%
     arrange(batch) %>%
-    mutate(homozygousdel_mean=mean_sd[1])
+    mutate(homozygousdel_mean=mean_sd[[1]])
+  simdat
+}
+
+augment_homozygous <- function(mb.subsamp, THR){
+  mean_sd <- meanSdHomDel(mb.subsamp, -1)
+  rare_homozygous <- sum(oned(mb.subsamp) < THR) < 5
+  ##expect_false(rare_homozygous)
+  if(rare_homozygous){
+    simdat <- augment_homozygous(mb.subsamp, mean_sd, THR)
+  } else {
+    simdat <- assays(mb.subsamp) %>%
+      arrange(batch) %>%
+      mutate(homozygousdel_mean=mean_sd[[1]])
+  }
   simdat
 }
 
@@ -2230,6 +2269,11 @@ warmup <- function(tib, model1, model2=NULL){
   ##
   mbl <- .warmup(tib, model1)
   ml <- sapply(mbl, log_lik)
+  if(is(ml, "list")){
+    mbl <- mbl[ lengths(ml) > 0 ]
+    ml <- ml[ lengths(ml) > 0 ]
+    ml <- unlist(ml)
+  }
   if(is.null(model2)){
     model <- mbl[[which.max(ml)]]
     return(model)
@@ -2237,6 +2281,11 @@ warmup <- function(tib, model1, model2=NULL){
   if(!is.null(model2)){
     mbl2 <- .warmup(tib, model2)
     ml2 <- sapply(mbl2, log_lik)
+    if(is(ml2, "list")){
+      mbl2 <- mbl2[ lengths(ml2) > 0 ]
+      ml2 <- ml2[ lengths(ml2) > 0 ]
+      ml2 <- unlist(ml2)
+    }
     if(max(ml2, na.rm=TRUE) > max(ml, na.rm=TRUE) + 50){
       model <- mbl2[[which.max(ml2)]]
     } else {
@@ -2347,4 +2396,262 @@ batchLevels <- function(mb){
   levs <- unique(assays(mb)$batch_labels)
   levels <- unique(as.integer(factor(assays(mb)$batch_labels, levels=levs)))
   sort(levels [ !is.na(levels) ])
+}
+
+.mcmcWithHomDel <- function(simdat, mod_2.3){
+  is_pooledvar <- ncol(sigma2(mod_2.3))==1
+  hdmean <- simdat$homozygousdel_mean[1]
+  batch_labels <- batchLevels(mod_2.3)
+  ##
+  ## Rerun 3 batch model with augmented data
+  ##
+  mbl <- MultiBatchList(data=simdat)
+  model <- incrementK(mod_2.3)
+  mod_1.3 <- mbl[[ model ]]
+  theta(mod_1.3) <- cbind(hdmean, theta(mod_2.3))
+  if(is_pooledvar){
+    sigma2(mod_1.3) <- sigma2(mod_2.3)
+  } else {
+    sigma2(mod_1.3) <- cbind(sigma2(sb3)[1], sigma2(mod_2.3))
+  }
+  burnin(mod_1.3) <- 200
+  iter(mod_1.3) <- 0
+  mod_1.3 <- tryCatch(posteriorSimulation(mod_1.3),
+                      error=function(e) NULL)
+  bad_start <- is.null(mod_1.3) || is.nan(log_lik(mod_1.3))
+  if(bad_start){
+    fdat <- filter(assays(mod_1.3), oned > -1)  %>%
+      filter(is_simulated=FALSE)
+    mod_1.3 <- warmup(fdat, model)
+  }
+  if(is.null(mod_1.3)) return(NULL)
+  internal.count <- flags(mod_1.3)$.internal.counter
+  any_dropped <- TRUE
+  if(internal.count < 100){
+    iter(mod_1.3) <- 1000
+    mod_1.3 <- posteriorSimulation(mod_1.3)
+  }
+  mod_1.3
+}
+
+mcmcWithHomDel <- function(mb, sb, restricted_model){
+  hdmean <- homozygousdel_mean(sb)
+  mn_sd <- list(hdmean, sdModel2_3(restricted_model))
+  ## If at least one batch has fewer than 5% subjects with
+  ## homozygous deletion, augment the data for homozygous deletions
+  mb.observed <- mb[ !isSimulated(mb) ]
+  mb1 <- filter(assays(restricted_model),
+                isSimulated(restricted_model)) %>%
+    bind_rows(assays(mb.observed)) %>%
+    arrange(batch) %>%
+    MultiBatchList(data=.) %>%
+    "[["("MB3")
+  simdat <- .augment_homozygous(mb1, mn_sd, -1,
+                               phat=max(p(sb)[1], 0.05))
+  mod_1.3 <- .mcmcWithHomDel(simdat, restricted_model)
+  mod_1.3
+}
+
+
+mcmcHomDelOnly <- function(simdat, restricted_model, model){
+  mbl <- MultiBatchList(data=simdat)
+  mod_1.3 <- mbl[[ model ]]
+  hdmean <- homozygousdel_mean(mod_1.3)
+  theta(mod_1.3) <- cbind(hdmean, theta(restricted_model))
+  is_pooledvar <- ncol(sigma2(mod_1.3)) == 1
+  ##expect_false(is_pooledvar)
+  if(!is_pooledvar){
+    multibatchvar <- sigma2(restricted_model)
+    s2 <- replicate(k(mod_1.3)-1, multibatchvar, simplify=FALSE) %>%
+      do.call(cbind, .)
+    singlebatchvar <- sigma2(sb3)[, 1]
+    foldchange_singlebatchvar <-
+      singlebatchvar/median(multibatchvar[, 1])
+    if(foldchange_singlebatchvar > 5) {
+      singlebatchvar <- median(multibatchvar[, 1])*5
+    }
+    s2 <- cbind(singlebatchvar, s2)
+  } else {
+    s2 <- sigma2(restricted_model)
+  }
+  sigma2(mod_1.3) <- s2
+  burnin(mod_1.3) <- 200
+  iter(mod_1.3) <- 1000
+  mod_1.3 <- mcmc_homozygous(mod_1.3)
+  mod_1.3
+}
+
+ok_model <- function(mod_1.3, restricted_model){
+  if(is.null(mod_1.3)){
+    return(FALSE)
+  }
+  batch_labels <- batchLevels(mod_1.3)
+  internal.count <- flags(mod_1.3)$.internal.counter
+  pz <- probz(mod_1.3) %>%
+    "/"(rowSums(.)) %>%
+    rowMax
+  ubatch <- batch(mod_1.3)[ pz >= 0.95 & z(mod_1.3) == 2] %>%
+    unique
+  any_dropped <- any(!batch_labels %in% ubatch)
+  ## Check that variance estimates are comparable to restricted_model
+  varratio <- sigma2(mod_1.3)/sigma2(restricted_model)
+  bad_pooled_variance <- any(varratio > 4) ||
+    internal.count >= 100 ||
+    any_dropped
+  !bad_pooled_variance
+}
+
+summarize_region <- function(se, provisional_batch, THR=-1){
+  ##
+  ## Flag homozygous deletions
+  ##
+  message("Flagging apparent homozygous deletions")
+  dat <- tibble(id=colnames(se),
+                oned=assays(se)[["MEDIAN"]][1, ],
+                provisional_batch=provisional_batch) %>%
+    mutate(likely_hd = oned < THR)
+  dat.nohd <- filter(dat, !likely_hd)
+  ##
+  ## Group chemistry plates, excluding homozygous deletions
+  ##
+  ix <- sample(seq_len(nrow(dat.nohd)), 1000, replace=TRUE)
+  message("Downsampling non-homozygous deletions and identify batches from surrogates")
+  mb.subsamp <- dat.nohd[ix, ] %>%
+    bind_rows(filter(dat, likely_hd)) %>%
+    mutate(is_simulated=FALSE) %>%
+    MultiBatch("MB3", data=.) %>%
+    findSurrogates(0.001, THR)
+
+  ##print(a)
+  batches <- assays(mb.subsamp) %>%
+    group_by(provisional_batch) %>%
+    summarize(batch=unique(batch))
+  pr.batch <- assays(mb.subsamp)$provisional_batch
+  stopifnot(all(pr.batch %in% dat$provisional_batch))
+  dat <- left_join(dat, batches, by="provisional_batch")
+  ##
+  ## We need the number in `hdmean` later. Where to keep it?
+  ##
+  hdmean <- median(dat$oned[dat$likely_hd])
+  ##expect_equal(hdmean, -3.887, tolerance=0.001)
+  ##
+  message("Check batches")
+  ##
+  batchfreq <- assays(mb.subsamp) %>%
+    group_by(batch) %>%
+    summarize(n=n())
+  if(any(batchfreq$n < 50)){
+    batchfreq <- filter(batchfreq, n < 50)
+    adat <- assays(mb.subsamp) %>%
+      filter(!batch %in% batchfreq$batch)
+    bdat <- filter(dat, batch %in% batchfreq$batch)
+    adat2 <- bind_rows(adat, bdat)
+    mb.subsamp <- MultiBatch("MB2", data=adat2)
+  }
+  mb.subsamp
+}
+
+genotype_model <- function(mod_1.3, snpdat){
+  pz <- probz(mod_1.3) %>%
+    "/"(rowSums(.))
+  max_zprob <- rowMax(pz)
+  is_high_conf <- max_zprob > 0.95
+  ##mean(is_high_conf)
+  gmodel <- mod_1.3[ !isSimulated(mod_1.3) &  is_high_conf ]
+  keep <- !duplicated(id(gmodel))
+  gmodel <- gmodel[ keep ]
+  snpdat2 <- snpdat[, id(gmodel) ]
+  ##identical(colnames(snpdat), id(final.model))
+  clist <- CnList(gmodel)
+  stats <- baf_loglik(clist, snpdat2)
+  mapping(gmodel) <- strsplit(stats$cn.model[1], ",")[[1]]
+  mapping(mod_1.3) <- mapping(gmodel)
+  mod_1.3
+}
+
+join_baf_oned <- function(mod_1.3, snpdat){
+  xlimit <- range(oned(mod_1.3))
+  if(diff(xlimit) < 4){
+    xlimit <- c(-3, 1)
+  }
+  maxpz <- probz(mod_1.3) %>%
+    "/"(rowSums(.)) %>%
+    rowMax
+  bafdat <- assays(snpdat)[["baf"]] %>%
+    as_tibble() %>%
+    mutate(rsid=rownames(snpdat)) %>%
+    gather("id", "BAF", -rsid)
+  ##
+  ## tibble of copy number probabilities
+  ##
+  gmodel <- mod_1.3
+  cndat <- tibble(id=id(gmodel),
+                  batch=batch(gmodel),
+                  oned=oned(gmodel),
+                  pz=maxpz,
+                  z=map_z(gmodel)) %>%
+    mutate(cn=mapping(gmodel)[z]) %>%
+    mutate(cn=factor(cn))
+  bafdat <- left_join(bafdat, cndat, by="id")
+  bafdat2 <- filter(bafdat, pz > 0.9)
+  bafdat2
+}
+
+component_labels <- function(model){
+  cnlabels <- paste0(seq_len(k(model)),
+                     "%->%",
+                     mapping(model))
+  labs <- as.expression(parse(text=cnlabels))
+  labs
+}
+
+list_mixture_plots <- function(mod_1.3, bafdat2){
+  A <- ggMixture(mod_1.3) +
+    xlab(expression(paste("Median ", log[2], " R ratio"))) +
+    ylab("Density\n")
+  ## predictive densities excluding simulated data
+  A2 <- ggMixture(mod_1.3[ !isSimulated(mod_1.3) ]) +
+    xlab(expression(paste("Median ", log[2], " R ratio"))) +
+    ylab("Density\n")
+  ##
+  ## PLot BAFs
+  ##
+  labs <- component_labels(mod_1.3)
+  xlab <- expression(paste("\n", "Mixture component"%->%"Copy number"))
+  legtitle <- "Mixture\ncomponent\nprobability"
+  B <- ggplot(bafdat2, aes(factor(z), BAF)) +
+    geom_hline(yintercept=c(0, 1/3, 0.5, 2/3, 1), color="gray95") +
+    geom_jitter(aes(color=pz), width=0.1, size=0.3) +
+    scale_y_continuous(expand=c(0, 0.05)) +
+    scale_x_discrete(breaks=seq_len(k(gmodel)),
+                     labels=labs) +
+    theme(panel.background=element_rect(fill="white", color="gray30"),
+          legend.key=element_rect(fill="white")) +
+    xlab(xlab) +
+    ylab("BAF\n") +
+    guides(color=guide_legend(title=legtitle))
+  list(augmented=A, ## observed + augmented data
+       observed=A2, ## observed data only
+       baf=B)
+}
+
+mixture_layout <- function(figure_list, augmented=TRUE){
+  if(augmented) {
+    A <- figure_list[["augmented"]]
+  } else A <- figure_list[["observed"]]
+  B <- figure_list[["baf"]]
+  grid.newpage()
+  pushViewport(viewport(layout=grid.layout(1, 2,
+                                           widths=c(0.6, 0.4))))
+  pushViewport(viewport(layout.pos.row=1,
+                        layout.pos.col=1))
+  pushViewport(viewport(width=unit(0.96, "npc"),
+                        height=unit(0.9, "npc")))
+  print(A, newpage=FALSE)
+  popViewport(2)
+  pushViewport(viewport(layout.pos.row=1,
+                        layout.pos.col=2))
+  pushViewport(viewport(width=unit(0.96, "npc"),
+                        height=unit(0.6, "npc")))
+  print(B, newpage=FALSE)
 }
