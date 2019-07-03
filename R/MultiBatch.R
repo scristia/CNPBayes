@@ -2178,20 +2178,30 @@ homozygousdel_mean <- function(object, THR=-1) {
   mean(oned(object)[ oned(object) < THR])
 }
 
-augment_homozygous <- function(mb, THR){
-  ##message("Augment data for rare deletions (less than 5 obs)")
-  hdsd <- sd(oned(mb)[ oned(mb) < THR])
-  if(is.na(hdsd)) hdsd <- 0.1
-  loc.scale <- tibble(theta=hdmean,
-                      sigma2=hdsd^2,
+meanSdHomDel <- function(object, THR){
+  c(homozygousdel_mean(object, THR),
+    sd(oned(object)[ oned(object) < THR]))
+}
+
+augment_homozygous <- function(mb, mean_sd, THR=-1){
+  if(is.na(mean_sd[2])) mean_sd[2] <- 0.1
+  loc.scale <- tibble(theta=mean_sd[1],
+                      sigma2=mean_sd[2]^2,
                       phat=0.01,
                       batch=seq_len(nrow(theta(mb))))
+  freq.hd <- assays(mb) %>%
+    group_by(batch) %>%
+    summarize(N=n(),
+              n=sum(likely_hd)) %>%
+    filter(n/N < 0.05)
+  loc.scale <- left_join(freq.hd, loc.scale, by="batch") %>%
+    select(-N)
   imp.hd <- impute(mb, loc.scale, start.index=1)
   obsdat <- assays(mb) %>%
     mutate(is_simulated=FALSE)
   simdat <- bind_rows(obsdat, imp.hd) %>%
     arrange(batch) %>%
-    mutate(homozygousdel_mean=hdmean)
+    mutate(homozygousdel_mean=mean_sd[1])
   simdat
 }
 
