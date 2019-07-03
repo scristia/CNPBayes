@@ -2569,12 +2569,12 @@ genotype_model <- function(mod_1.3, snpdat){
   mod_1.3
 }
 
-join_baf_oned <- function(mod_1.3, snpdat){
-  xlimit <- range(oned(mod_1.3))
+join_baf_oned <- function(model, snpdat){
+  xlimit <- range(oned(model))
   if(diff(xlimit) < 4){
     xlimit <- c(-3, 1)
   }
-  maxpz <- probz(mod_1.3) %>%
+  maxpz <- probz(model) %>%
     "/"(rowSums(.)) %>%
     rowMax
   bafdat <- assays(snpdat)[["baf"]] %>%
@@ -2584,7 +2584,7 @@ join_baf_oned <- function(mod_1.3, snpdat){
   ##
   ## tibble of copy number probabilities
   ##
-  gmodel <- mod_1.3
+  gmodel <- model
   cndat <- tibble(id=id(gmodel),
                   batch=batch(gmodel),
                   oned=oned(gmodel),
@@ -2605,21 +2605,21 @@ component_labels <- function(model){
   labs
 }
 
-list_mixture_plots <- function(mod_1.3, bafdat2){
-  A <- ggMixture(mod_1.3) +
+list_mixture_plots <- function(model, bafdat){
+  A <- ggMixture(model) +
     xlab(expression(paste("Median ", log[2], " R ratio"))) +
     ylab("Density\n")
   ## predictive densities excluding simulated data
-  A2 <- ggMixture(mod_1.3[ !isSimulated(mod_1.3) ]) +
+  A2 <- ggMixture(model[ !isSimulated(model) ]) +
     xlab(expression(paste("Median ", log[2], " R ratio"))) +
     ylab("Density\n")
   ##
   ## PLot BAFs
   ##
-  labs <- component_labels(mod_1.3)
+  labs <- component_labels(model)
   xlab <- expression(paste("\n", "Mixture component"%->%"Copy number"))
   legtitle <- "Mixture\ncomponent\nprobability"
-  B <- ggplot(bafdat2, aes(factor(z), BAF)) +
+  B <- ggplot(bafdat, aes(factor(z), BAF)) +
     geom_hline(yintercept=c(0, 1/3, 0.5, 2/3, 1), color="gray95") +
     geom_jitter(aes(color=pz), width=0.1, size=0.3) +
     scale_y_continuous(expand=c(0, 0.05)) +
@@ -2654,4 +2654,27 @@ mixture_layout <- function(figure_list, augmented=TRUE){
   pushViewport(viewport(width=unit(0.96, "npc"),
                         height=unit(0.6, "npc")))
   print(B, newpage=FALSE)
+}
+
+explore_multibatch <- function(sb3, simdat, THR=-1){
+  mb <- revertToMultiBatch(sb3)
+  message("Fitting restricted MultiBatch model")
+  fdat <- filter(assays(mb), oned > THR)  %>%
+    mutate(is_simulated=FALSE)
+  mb <- warmup(fdat, "MBP2")
+  mcmcParams(mb) <- McmcParams(iter=500, burnin=50)
+  mod_2.3 <- posteriorSimulation(mb)
+  ok <- ok_hemizygous(sb3)
+  if(!ok) {
+    mod_2.3 <- augment_hemizygous(mod_2.3, sb3)
+    mod_2.3 <- posteriorSimulation(mod_2.3)
+  }
+  message("Fitting full model")
+  mod_1.3 <- mcmcWithHomDel(mb, sb3, mod_2.3)
+  ok <- ok_model(mod_1.3, mod_2.3)
+  if(!ok){
+    model <- gsub("P", "", modelName(mod_1.3))
+    mod_1.3 <- mcmcHomDelOnly(simdat, mod_2.3, model)
+  }
+  mod_1.3
 }

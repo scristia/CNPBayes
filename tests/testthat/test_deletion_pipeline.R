@@ -1,6 +1,6 @@
 context("analysis of rare deletions")
 
-test_that("pipeline", {
+test_that("rare_deletion_pipeline", {
   path <- system.file("extdata", package="CNPBayes")
   set.seed(2463)
   mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
@@ -14,24 +14,7 @@ test_that("pipeline", {
   finished <- stop_early(sb3)
   expect_false(finished)
   ## Since not finished, keep going
-  mb <- revertToMultiBatch(sb3)
-  fdat <- filter(assays(mb), oned > -1)  %>%
-    mutate(is_simulated=FALSE)
-  mb <- warmup(fdat, "MBP2")
-  mcmcParams(mb) <- McmcParams(iter=500, burnin=50)
-  mod_2.3 <- posteriorSimulation(mb)
-  ok <- ok_hemizygous(sb3)
-  expect_true(ok)
-  if(!ok) {
-    mod_2.3 <- augment_hemizygous(mod_2.3, sb3)
-    mod_2.3 <- posteriorSimulation(mod_2.3)
-  }
-  mod_1.3 <- mcmcWithHomDel(mb, sb3, mod_2.3)
-  ok <- ok_model(mod_1.3, mod_2.3)
-  if(!ok){
-    model <- gsub("P", "", modelName(mod_1.3))
-    mod_1.3 <- mcmcHomDelOnly(simdat, mod_2.3, model)
-  }
+  mod_1.3 <- explore_multibatch(sb3, simdat, -1)
   gmodel <- genotype_model(mod_1.3, snp_se)
   if(FALSE){
     saveRDS(sb3, file=file.path(path, "sb3_1.rds"))
@@ -42,7 +25,7 @@ test_that("pipeline", {
   expected_gt <- readRDS(file.path(path, "CNP_001.rds"))
   expect_equivalent(sb3, expected_sb3)
   expect_equivalent(mod_1.3, expected_mod1.3)
-  expect_equivalent(gmodel, expected_mod1.3)
+  expect_equivalent(gmodel, expected_gt)
 })
 
 ## for first step, see test_summarized_region.R
@@ -61,8 +44,6 @@ test_that("augment data", {
   expected$homozygousdel_mean <- simdat$homozygousdel_mean
   expect_equivalent(simdat, expected)
 })
-
-
 
 test_that("Augment hemizygous", {
   path <- system.file("extdata", package="CNPBayes")
