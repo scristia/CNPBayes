@@ -12,9 +12,10 @@ test_that("summarize region", {
   mb.subsamp <- summarize_region(cnp_se[1, ],
                                  provisional_batch=plates,
                                  THR=-1)
+  expect_identical(summaries(mb.subsamp)$deletion_cutoff,
+                   -1)
   if(FALSE){
     saveRDS(mb.subsamp, file="../../inst/extdata/mb_subsamp.rds")
-    ##saveRDS(dat, file="../../inst/extdata/dat.rds")
   }
   expected <- readRDS("../../inst/extdata/mb_subsamp.rds")
   expect_equivalent(mb.subsamp, expected)

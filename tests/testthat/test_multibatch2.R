@@ -170,6 +170,7 @@ test_that("findSurrogates", {
 })
 
 test_that("downsampling_with_surrogates", {
+  set.seed(456)
   library(SummarizedExperiment)
   library(tidyverse)
   data(MultiBatchModelExample)

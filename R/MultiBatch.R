@@ -2187,12 +2187,12 @@ meanSdHomDel <- function(object, THR){
        sd(oned(object)[ oned(object) < THR]))
 }
 
-sdModel2_3 <- function(mod_2.3){
-  if(isPooledVar(mod_2.3)){
-    sigma2_ <- sigma2(mod_2.3)
+sdRestrictedModel <- function(restricted){
+  if(isPooledVar(restricted)){
+    sigma2_ <- sigma2(restricted)
   } else {
-    sigma2_ <- cbind(sigma2(mod_2.3)[1, 2],
-                     sigma2(mod_2.3))
+    sigma2_ <- cbind(sigma2(restricted)[1, 2],
+                     sigma2(restricted))
   }
   sigma2_
 }
@@ -2203,7 +2203,7 @@ sdModel2_3 <- function(mod_2.3){
     filter(!is_simulated) %>%
     group_by(batch) %>%
     summarize(N=n(),
-              n=sum(likely_hd)) %>%
+              n=sum(likely_deletion)) %>%
     filter(n/N < 0.05)
   if(nrow(freq.hd) == 0){
     obsdat <- assays(mb)
@@ -2230,8 +2230,9 @@ sdModel2_3 <- function(mod_2.3){
   simdat
 }
 
-augment_homozygous <- function(mb.subsamp, THR){
-  mean_sd <- meanSdHomDel(mb.subsamp, -1)
+augment_homozygous <- function(mb.subsamp){
+  THR <- summaries(mb.subsamp)$deletion_cutoff
+  mean_sd <- meanSdHomDel(mb.subsamp, THR)
   rare_homozygous <- sum(oned(mb.subsamp) < THR) < 5
   ##expect_false(rare_homozygous)
   if(rare_homozygous){
@@ -2244,9 +2245,9 @@ augment_homozygous <- function(mb.subsamp, THR){
   simdat
 }
 
-ok_hemizygous <- function(sb3){
-  varratio <- max(sigma2(sb3))/min(sigma2(sb3))
-  p(sb3)[2] < 0.1 || varratio > 100
+ok_hemizygous <- function(sb){
+  varratio <- max(sigma2(sb))/min(sigma2(sb))
+  !(p(sb)[2] < 0.1 || varratio > 100)
 }
 
 .warmup <- function(tib, model){
@@ -2295,14 +2296,14 @@ warmup <- function(tib, model1, model2=NULL){
   return(model)
 }
 
-stop_early <- function(model){
+stop_early <- function(model, min_prob=0.99, prop_greater=0.995){
   pz <- probz(model)
   maxprob <- rowMax(pz)
   pz <- probz(model) %>%
     "/"(rowSums(.)) %>%
     rowMax
-  mean_maxp <- mean(pz > 0.99)
-  mean_maxp > 0.995
+  mean_maxp <- mean(pz > min_prob)
+  mean_maxp > prop_greater
 }
 
 revertToMultiBatch <- function(sb){
@@ -2316,25 +2317,22 @@ revertToMultiBatch <- function(sb){
 }
 
 
-augment_hemizygous <- function(mod_2.3, sb3){
-  is_pooledvar <- TRUE
-  ##
-  ## This variable is needed later on
-  ##
-  batch_labels <- assays(mod_2.3)$batch_labels
-  batch_labels <- batch_labels %>%
-    factor(., levels=unique(.)) %>%
-    as.integer(.) %>%
-    unique(.) %>%
-    sort()
+augment_hemizygous <- function(restricted, sb){
+  batch_labels <- batchLevels(restricted)
+##  batch_labels <- assays(restricted)$batch_labels
+##  batch_labels <- batch_labels %>%
+##    factor(., levels=unique(.)) %>%
+##    as.integer(.) %>%
+##    unique(.) %>%
+##    sort()
   ## normalize probabilities
-  pz <- probz(mod_2.3) %>%
+  pz <- probz(restricted) %>%
     "/"(rowSums(.)) %>%
     rowMax
   ##
   ## batches with high posterior probabilities
   ##
-  ubatch <- unique(batch(mod_2.3)[ pz >= 0.95 ])
+  ubatch <- unique(batch(restricted)[ pz >= 0.95 ])
   ##
   ## Find number of samples assigned to the hemizygous deletion
   ## component with high probability.
@@ -2342,8 +2340,8 @@ augment_hemizygous <- function(mod_2.3, sb3){
   ## Check if any of the batches have fewer than 10 subjects
   ## with high posterior probability
   ##
-  tmp <- tibble(batch=batch(mod_2.3),
-                z=map_z(mod_2.3),
+  tmp <- tibble(batch=batch(restricted),
+                z=map_z(restricted),
                 pz=pz) %>%
     group_by(batch) %>%
     summarize(N=n(),
@@ -2354,8 +2352,8 @@ augment_hemizygous <- function(mod_2.3, sb3){
   ##
   is_dropped <- !batch_labels %in% ubatch |
     batch_labels %in% tmp$batch
-  condition3 <- any(is_dropped)
-  if(condition3){
+  any_dropped <- any(is_dropped)
+  if(any_dropped){
     ##
     ## possible hemizygous deletion missing in
     ##   one component (e.g., CNP023)
@@ -2363,32 +2361,32 @@ augment_hemizygous <- function(mod_2.3, sb3){
     ## There are batches with fewer than 10 samples
     ## assigned to hemiz. del component with probability > 0.9
     ##
-    dropped_batches <- uniqueBatch(mod_2.3)[ is_dropped ]
-    if(modelName(sb3) == "SBP3"){
-      hemvar <- sigma2(sb3)[, 1]
+    dropped_batches <- uniqueBatch(restricted)[ is_dropped ]
+    if(ncol(sigma2(sb)) == 1){
+      hemvar <- sigma2(sb)[, 1]
     } else {
-      hemvar <- sigma2(sb3)[, 2]
+      hemvar <- sigma2(sb)[, 2]
     }
     message("Find mean and variance of hemizygous deletion component")
-    loc.scale.hem <- tibble(theta=theta(sb3)[2],
+    loc.scale.hem <- tibble(theta=theta(sb)[2],
                             sigma2=hemvar,
-                            phat=p(sb3)[2],
+                            phat=p(sb)[2],
                             batch=dropped_batches,
-                            theta.diploid=theta(mod_2.3)[dropped_batches, 2]) %>%
+                            theta.diploid=theta(restricted)[dropped_batches, 2]) %>%
       mutate(delta=theta.diploid-theta)
     message("Augment data with additional hemizygous deletions")
-    impdat <- impute(mod_2.3, loc.scale.hem, 1)
-    obsdat <- assays(mod_2.3) %>%
+    impdat <- impute(restricted, loc.scale.hem, 1)
+    obsdat <- assays(restricted) %>%
       mutate(is_simulated=FALSE)
     simdat <- bind_rows(obsdat,
                         impdat) %>%
       arrange(batch)
   }
-  mb <- MultiBatchList(data=simdat)[[modelName(mod_2.3)]]
-  mcmcParams(mb) <- mcmcParams(mod_2.3)
-  theta(mb) <- theta(mod_2.3)
+  mb <- MultiBatchList(data=simdat)[[modelName(restricted)]]
+  mcmcParams(mb) <- mcmcParams(restricted)
+  theta(mb) <- theta(restricted)
   theta(mb)[is_dropped, 1] <- loc.scale.hem$theta
-  sigma2(mb) <- matrix(pmin(sigma2(mod_2.3)[, 1], hemvar), ncol=1)
+  sigma2(mb) <- matrix(pmin(sigma2(restricted)[, 1], hemvar), ncol=1)
   mb
 }
 
@@ -2416,14 +2414,21 @@ batchLevels <- function(mb){
   }
   burnin(mod_1.3) <- 200
   iter(mod_1.3) <- 0
-  mod_1.3 <- tryCatch(posteriorSimulation(mod_1.3),
-                      error=function(e) NULL)
-  bad_start <- is.null(mod_1.3) || is.nan(log_lik(mod_1.3))
-  if(bad_start){
-    fdat <- filter(assays(mod_1.3), oned > -1)  %>%
-      filter(is_simulated=FALSE)
-    mod_1.3 <- warmup(fdat, model)
+  tmp <- tryCatch(posteriorSimulation(mod_1.3),
+                  warning=function(w) NULL)
+  bad_start <- FALSE
+  if(is.null(tmp)){
+    bad_start <- TRUE
   }
+  if(!is.null(tmp)){
+    if(is.nan(log_lik(tmp)))
+    bad_start <- TRUE
+  }
+  if(bad_start){
+    adat <- assays(mod_1.3)
+    fdat <- filter(adat, oned > -1, !is_simulated) 
+    mod_1.3 <- warmup(fdat, model)
+  } else mod_1.3 <- tmp
   if(is.null(mod_1.3)) return(NULL)
   internal.count <- flags(mod_1.3)$.internal.counter
   any_dropped <- TRUE
@@ -2434,9 +2439,10 @@ batchLevels <- function(mb){
   mod_1.3
 }
 
-mcmcWithHomDel <- function(mb, sb, restricted_model){
-  hdmean <- homozygousdel_mean(sb)
-  mn_sd <- list(hdmean, sdModel2_3(restricted_model))
+mcmcWithHomDel <- function(mb, sb, restricted_model, THR,
+                           model="MB3"){
+  hdmean <- homozygousdel_mean(sb, THR)
+  mn_sd <- list(hdmean, sdRestrictedModel(restricted_model))
   ## If at least one batch has fewer than 5% subjects with
   ## homozygous deletion, augment the data for homozygous deletions
   mb.observed <- mb[ !isSimulated(mb) ]
@@ -2445,15 +2451,19 @@ mcmcWithHomDel <- function(mb, sb, restricted_model){
     bind_rows(assays(mb.observed)) %>%
     arrange(batch) %>%
     MultiBatchList(data=.) %>%
-    "[["("MB3")
+    "[["(model)
   simdat <- .augment_homozygous(mb1, mn_sd, -1,
-                               phat=max(p(sb)[1], 0.05))
-  mod_1.3 <- .mcmcWithHomDel(simdat, restricted_model)
-  mod_1.3
+                                phat=max(p(sb)[1], 0.05))
+  full <- .mcmcWithHomDel(simdat, restricted_model)
+  full
 }
 
 
-mcmcHomDelOnly <- function(simdat, restricted_model, model){
+mcmcHomDelOnly <- function(simdat,
+                           restricted_model,
+                           sb,
+                           model,
+                           mp=McmcParams(iter=100, burnin=200)){
   mbl <- MultiBatchList(data=simdat)
   mod_1.3 <- mbl[[ model ]]
   hdmean <- homozygousdel_mean(mod_1.3)
@@ -2464,7 +2474,7 @@ mcmcHomDelOnly <- function(simdat, restricted_model, model){
     multibatchvar <- sigma2(restricted_model)
     s2 <- replicate(k(mod_1.3)-1, multibatchvar, simplify=FALSE) %>%
       do.call(cbind, .)
-    singlebatchvar <- sigma2(sb3)[, 1]
+    singlebatchvar <- sigma2(sb)[, 1]
     foldchange_singlebatchvar <-
       singlebatchvar/median(multibatchvar[, 1])
     if(foldchange_singlebatchvar > 5) {
@@ -2475,8 +2485,7 @@ mcmcHomDelOnly <- function(simdat, restricted_model, model){
     s2 <- sigma2(restricted_model)
   }
   sigma2(mod_1.3) <- s2
-  burnin(mod_1.3) <- 200
-  iter(mod_1.3) <- 1000
+  mcmcParams(mod_1.3) <- mp
   mod_1.3 <- mcmc_homozygous(mod_1.3)
   mod_1.3
 }
@@ -2501,7 +2510,51 @@ ok_model <- function(mod_1.3, restricted_model){
   !bad_pooled_variance
 }
 
-summarize_region <- function(se, provisional_batch, THR=-1){
+hemizygous_cutoff <- function(dat){
+  ## is there a peak less than -0.2
+  dens <- density(dat$oned[ dat$oned < -0.2] )
+  firstderivative <- diff(dens$y)
+  changesign <- which(diff(sign(firstderivative)) != 0)
+  if(length(changesign) == 0){
+    return(-Inf)
+  }
+  ## choose the one with the maximal y
+  index <- changesign[which.max(dens$y[-1][changesign])]
+  if(FALSE){
+    plot(dens)
+    abline(v=dens$x[index])
+  }
+  peak <- dens$x[index]
+  xy <- tibble(x=dens$x, y=dens$y) %>%
+    filter(x > peak)
+  lowest_point_after_peak <- xy$x[xy$y==min(xy$y)]
+  lowest_point_after_peak
+}
+
+duplication_cutoff <- function(dat, min_cutoff=0.1){
+  ## is there a peak greater than 0.1
+  dens <- density(dat$oned[ dat$oned > min_cutoff] , adjust=1/2)
+  firstderivative <- diff(dens$y)
+  changesign <- which(diff(sign(firstderivative)) != 0)
+  if(length(changesign) == 0){
+    return(+Inf)
+  }
+  ## choose the one with the maximal y
+  changesign <- changesign[-1]
+  index <- changesign[which.max(dens$y[-1][changesign])]
+  if(FALSE){
+    plot(dens)
+    abline(v=dens$x[index])
+  }
+  peak <- dens$x[index]
+  xy <- tibble(x=dens$x, y=dens$y) %>%
+    filter(x < peak, x > min_cutoff)
+  lowest_point_before_peak <- xy$x[xy$y==min(xy$y)]
+  lowest_point_before_peak
+}
+
+summarize_region <- function(se, provisional_batch, THR=-1,
+                             KS_cutoff=0.001){
   ##
   ## Flag homozygous deletions
   ##
@@ -2509,19 +2562,23 @@ summarize_region <- function(se, provisional_batch, THR=-1){
   dat <- tibble(id=colnames(se),
                 oned=assays(se)[["MEDIAN"]][1, ],
                 provisional_batch=provisional_batch) %>%
-    mutate(likely_hd = oned < THR)
-  dat.nohd <- filter(dat, !likely_hd)
+    mutate(likely_deletion = oned < THR)
+  ## if no homozygous deletions, check for hemizygous deletions
+  if(!any(dat$likely_deletion)){
+    THR <- hemizygous_cutoff(dat)
+    dat$likely_deletion <- dat$oned < THR
+  }
+  dat.nohd <- filter(dat, !likely_deletion)
   ##
   ## Group chemistry plates, excluding homozygous deletions
   ##
   ix <- sample(seq_len(nrow(dat.nohd)), 1000, replace=TRUE)
   message("Downsampling non-homozygous deletions and identify batches from surrogates")
   mb.subsamp <- dat.nohd[ix, ] %>%
-    bind_rows(filter(dat, likely_hd)) %>%
+    bind_rows(filter(dat, likely_deletion)) %>%
     mutate(is_simulated=FALSE) %>%
     MultiBatch("MB3", data=.) %>%
-    findSurrogates(0.001, THR)
-
+    findSurrogates(KS_cutoff, THR)
   ##print(a)
   batches <- assays(mb.subsamp) %>%
     group_by(provisional_batch) %>%
@@ -2532,7 +2589,7 @@ summarize_region <- function(se, provisional_batch, THR=-1){
   ##
   ## We need the number in `hdmean` later. Where to keep it?
   ##
-  hdmean <- median(dat$oned[dat$likely_hd])
+  hdmean <- median(dat$oned[dat$likely_deletion])
   ##expect_equal(hdmean, -3.887, tolerance=0.001)
   ##
   message("Check batches")
@@ -2548,6 +2605,8 @@ summarize_region <- function(se, provisional_batch, THR=-1){
     adat2 <- bind_rows(adat, bdat)
     mb.subsamp <- MultiBatch("MB2", data=adat2)
   }
+  assays(mb.subsamp)$homozygousdel_mean <- hdmean
+  summaries(mb.subsamp)$deletion_cutoff <- THR
   mb.subsamp
 }
 
@@ -2656,25 +2715,52 @@ mixture_layout <- function(figure_list, augmented=TRUE){
   print(B, newpage=FALSE)
 }
 
-explore_multibatch <- function(sb3, simdat, THR=-1){
-  mb <- revertToMultiBatch(sb3)
-  message("Fitting restricted MultiBatch model")
+fit_restricted <- function(mb, sb, THR, model="MBP2"){
   fdat <- filter(assays(mb), oned > THR)  %>%
     mutate(is_simulated=FALSE)
-  mb <- warmup(fdat, "MBP2")
+  mb <- warmup(fdat, model)
   mcmcParams(mb) <- McmcParams(iter=500, burnin=50)
-  mod_2.3 <- posteriorSimulation(mb)
-  ok <- ok_hemizygous(sb3)
+  restricted <- posteriorSimulation(mb)
+  ok <- ok_hemizygous(sb)
   if(!ok) {
-    mod_2.3 <- augment_hemizygous(mod_2.3, sb3)
-    mod_2.3 <- posteriorSimulation(mod_2.3)
+    restricted <- augment_hemizygous(restricted, sb)
+    restricted <- posteriorSimulation(restricted)
   }
+  restricted
+}
+
+explore_multibatch <- function(sb, simdat, THR=-1,
+                               model="MBP2"){
+  mb <- revertToMultiBatch(sb)
+  restricted <- fit_restricted(mb, sb, THR, model=model)
   message("Fitting full model")
-  mod_1.3 <- mcmcWithHomDel(mb, sb3, mod_2.3)
-  ok <- ok_model(mod_1.3, mod_2.3)
+  full <- mcmcWithHomDel(mb, sb, restricted, THR)
+  ok <- ok_model(full, restricted)
   if(!ok){
-    model <- gsub("P", "", modelName(mod_1.3))
-    mod_1.3 <- mcmcHomDelOnly(simdat, mod_2.3, model)
+    model <- gsub("P", "", modelName(full))
+    full <- mcmcHomDelOnly(simdat, restricted, sb, model)
   }
-  mod_1.3
+  full
+}
+
+few_hemizygous <- function(model){
+  pz <- probz(model) %>%
+    "/"(rowSums(.)) %>%
+    rowMax
+  tmp <- tibble(batch=batch(model), z=map_z(model), pz=pz) %>%
+    group_by(batch) %>%
+    summarize(N=n(),
+              n=sum(z==2 & pz > 0.9))
+  any(tmp$n < 10)
+}
+
+explore_restricted <- function(mb, sb, THR=-1, model="MB3"){
+  if(few_hemizygous(mb))
+    return(mb)
+  mbp <- fit_restricted(mb, sb, THR=-1)
+  restricted <- mcmcHomDelOnly(assays(mb),
+                               restricted_model=mbp,
+                               sb,
+                               model=model)
+  restricted
 }

@@ -3,18 +3,21 @@ context("analysis of rare deletions")
 test_that("rare_deletion_pipeline", {
   path <- system.file("extdata", package="CNPBayes")
   set.seed(2463)
+  snp_se <- readRDS(file.path(path, "snp_se.rds"))
   mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
-  simdat <- augment_homozygous(mb.subsamp, -1)
+  simdat <- augment_homozygous(mb.subsamp)
+  THR <- summaries(mb.subsamp)$deletion_cutoff
   sb3 <- warmup(simdat, "SBP3", "SB3")
   mcmcParams(sb3) <- McmcParams(iter=400, burnin=500)
   sb3 <- posteriorSimulation(sb3)
   expect_equal(as.numeric(theta(sb3)),
-               c(-3.9, -0.22, 0.002),
+               c(-3.76, -0.22, 0.002),
                tolerance=0.01)
   finished <- stop_early(sb3)
   expect_false(finished)
   ## Since not finished, keep going
-  mod_1.3 <- explore_multibatch(sb3, simdat, -1)
+  ##trace(explore_multibatch, browser)
+  mod_1.3 <- explore_multibatch(sb3, simdat, THR)
   gmodel <- genotype_model(mod_1.3, snp_se)
   if(FALSE){
     saveRDS(sb3, file=file.path(path, "sb3_1.rds"))
@@ -36,7 +39,7 @@ test_that("augment data", {
   ##mp <- McmcParams(iter=500, burnin=400)
   path <- system.file("extdata", package="CNPBayes")
   mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
-  simdat <- augment_homozygous(mb.subsamp, -1)
+  simdat <- augment_homozygous(mb.subsamp)
   if(FALSE){
     saveRDS(simdat, file=file.path(path, "simdat.rds"))
   }
@@ -57,17 +60,17 @@ test_that("Augment hemizygous", {
   ##
   message("Run additional MCMC simulations on the augmented data")
   ##
-  mod_2.32 <- posteriorSimulation(mb)
-  mod_2.3 <- mod_2.32
+  mod_2.3 <- posteriorSimulation(mb)
   if(FALSE){
-    saveRDS(mod_2.32, file=file.path(path, "mod_2.32.rds"))
+    saveRDS(mod_2.3, file=file.path(path, "mod_2.32.rds"))
   }
   expected <- readRDS(file.path(path, "mod_2.32.rds"))
-  expect_equivalent(mod_2.32, expected)
+  expect_equivalent(mod_2.3, expected)
 })
 
 test_that("Fit multi-batch model with all components", {
   set.seed(2463)
+  path <- system.file("extdata", package="CNPBayes")
   simdat <- readRDS(file.path(path, "simdat_2.rds"))
   mod_2.3 <- readRDS(file.path(path, "mod_2.3.rds"))
   sb3 <- readRDS(file.path(path, "sb3_1.rds"))
@@ -77,7 +80,8 @@ test_that("Fit multi-batch model with all components", {
   mb <- warmup(fdat, "MBP2")
   mcmcParams(mb) <- McmcParams(iter=500, burnin=50)
   mod_1.3 <- mcmcWithHomDel(mb, sb=sb3,
-                            restricted_model=mod_2.3)
+                            restricted_model=mod_2.3,
+                            THR=-1)
   ##
   ##
   ##
@@ -101,7 +105,7 @@ test_that("only update homozygous component", {
     saveRDS(mod_1.3, file=file.path(path, "mod_1.3_2.rds"))
   }
   model <- gsub("P", "", modelName(mod_1.3))
-  mod_1.3 <- mcmcHomDelOnly(simdat, mod_2.3, model)
+  mod_1.3 <- mcmcHomDelOnly(simdat, mod_2.3, sb3, model)
   expected <- readRDS(file.path(path, "mod_1.3_2.rds"))
   expect_equivalent(mod_1.3, expected)
 })
