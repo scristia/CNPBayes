@@ -56,7 +56,7 @@ test_that("Augment hemizygous", {
   ##
   mod_2.3 <- readRDS(file.path(path, "mod_2.3.rds"))
   sb3 <- readRDS(file.path(path, "sb3_1.rds"))
-  mb <- augment_hemizygous(mod_2.3, sb3)
+  mb <- augment_rarecomponent(mod_2.3, sb3)
   ##
   message("Run additional MCMC simulations on the augmented data")
   ##
@@ -66,6 +66,7 @@ test_that("Augment hemizygous", {
   }
   expected <- readRDS(file.path(path, "mod_2.32.rds"))
   expect_equivalent(mod_2.3, expected)
+  expect_equivalent(assays(mod_2.3), assays(expected))
 })
 
 test_that("Fit multi-batch model with all components", {

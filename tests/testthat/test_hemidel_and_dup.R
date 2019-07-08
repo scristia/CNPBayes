@@ -21,16 +21,16 @@ test_that("summarize CNP_147", {
 test_that("Hemizygous deletion / duplication pipeline", {
   library(SummarizedExperiment)
   path <- file.path(system.file("extdata", package="CNPBayes"),
-                    "CNP_029")
+                    "CNP_147")
   data(snp_se, package="panc.data")
   data(cnp_se, package="panc.data")
-  g <- rowRanges(cnp_se)["CNP_029"]
+  g <- rowRanges(cnp_se)["CNP_147"]
   snpdat <- snp_se[overlapsAny(snp_se, g), ]
   mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
   simdat <- augment_homozygous(mb.subsamp)
   sb <- warmup(assays(mb.subsamp),
-               "SBP4",
-               "SB4")
+               "SBP3",
+               "SB3")
   mp <- McmcParams(iter=400, burnin=500)
   mcmcParams(sb) <- mp
   sb <- posteriorSimulation(sb)

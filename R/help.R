@@ -21,7 +21,7 @@
 #' @importFrom coda effectiveSize mcmc.list gelman.diag mcmc as.mcmc.list
 #' @importFrom mclust Mclust mclustBIC
 #' @importFrom reshape2 melt
-#' @importMethodsFrom SummarizedExperiment assays SummarizedExperiment assays<-
+#' @importMethodsFrom SummarizedExperiment assays SummarizedExperiment assays<- rowRanges colData
 #' @import ggplot2
 #' @importFrom magrittr set_colnames "%>%" "%$%"
 #' @importFrom purrr map map2 map_lgl map_dbl map_chr

@@ -2316,15 +2316,25 @@ revertToMultiBatch <- function(sb){
   mb
 }
 
+modal_theta <-  function(model){
+  p_ <- p(model)
+  th_ <- rep(NA, nrow(p_))
+  TH <- theta(model)
+  for(i in seq_along(th_)){
+    j <- which.max(p_[i, ])
+    th_[i] <- TH[i, j]
+  }
+  th_
+}
 
-augment_hemizygous <- function(restricted, sb){
+## rare_component: of restricted model
+## diploid_component: of SB model
+augment_rarecomponent <- function(restricted, sb,
+                               rare_component_restricted=1,
+                               rare_component_sb=2,
+                               diploid_component_sb=3,
+                               use_restricted_theta=FALSE){
   batch_labels <- batchLevels(restricted)
-##  batch_labels <- assays(restricted)$batch_labels
-##  batch_labels <- batch_labels %>%
-##    factor(., levels=unique(.)) %>%
-##    as.integer(.) %>%
-##    unique(.) %>%
-##    sort()
   ## normalize probabilities
   pz <- probz(restricted) %>%
     "/"(rowSums(.)) %>%
@@ -2345,7 +2355,7 @@ augment_hemizygous <- function(restricted, sb){
                 pz=pz) %>%
     group_by(batch) %>%
     summarize(N=n(),
-              n=sum(z==1 & pz > 0.9)) %>%
+              n=sum(z==rare_component_restricted & pz > 0.9)) %>%
     filter(n < 10)
   ##
   ##
@@ -2355,38 +2365,64 @@ augment_hemizygous <- function(restricted, sb){
   any_dropped <- any(is_dropped)
   if(any_dropped){
     ##
-    ## possible hemizygous deletion missing in
-    ##   one component (e.g., CNP023)
-    ##
     ## There are batches with fewer than 10 samples
-    ## assigned to hemiz. del component with probability > 0.9
+    ## assigned to mixture component with probability > 0.9
     ##
     dropped_batches <- uniqueBatch(restricted)[ is_dropped ]
     if(ncol(sigma2(sb)) == 1){
-      hemvar <- sigma2(sb)[, 1]
+      component_var <- sigma2(sb)[, 1]
     } else {
-      hemvar <- sigma2(sb)[, 2]
+      ##
+      ## estimate variance from diploid mixture component
+      ##
+      component_var <- sigma2(sb)[, diploid_component_sb]
     }
-    message("Find mean and variance of hemizygous deletion component")
-    loc.scale.hem <- tibble(theta=theta(sb)[2],
-                            sigma2=hemvar,
-                            phat=p(sb)[2],
-                            batch=dropped_batches,
-                            theta.diploid=theta(restricted)[dropped_batches, 2]) %>%
-      mutate(delta=theta.diploid-theta)
+    msg <- "Find mean and variance of rare component"
+    message(msg)
+    i <- dropped_batches
+    if(use_restricted_theta){
+      j <- rare_component_restricted
+      theta_ <- median(theta(restricted)[, j]) %>%
+        median
+      diploid_component_restricted <-  2
+      theta_diploid <- modal_theta(restricted)
+      delta <- theta_diploid - median(theta_diploid)
+      theta_ <- (theta_ + delta)[dropped_batches]
+      p_ <- pmax(median(p(restricted)[, j]), 0.05)
+    } else {
+      j <- rare_component_sb
+      theta_ <- theta(sb)[j]
+      p_ <- pmax(p(sb)[j], 0.05)
+    }
+    loc.scale <- tibble(theta=theta_,
+                        sigma2=component_var,
+                        phat=p_,
+                        batch=dropped_batches)
     message("Augment data with additional hemizygous deletions")
-    impdat <- impute(restricted, loc.scale.hem, 1)
-    obsdat <- assays(restricted) %>%
-      mutate(is_simulated=FALSE)
-    simdat <- bind_rows(obsdat,
+    start_index <- length(grep("augment", id(restricted))) + 1
+    impdat <- impute(restricted, loc.scale, start.index=start_index)
+    ## removes all simulated and then adds back only the
+    ## data simulated above
+    simdat <- bind_rows(assays(restricted),
                         impdat) %>%
       arrange(batch)
+    ##    obsdat <- assays(restricted) %>%
+    ##      mutate(is_simulated=FALSE)
+    ##    simdat <- bind_rows(obsdat,
+    ##                        impdat) %>%
+    ##      arrange(batch)
   }
   mb <- MultiBatchList(data=simdat)[[modelName(restricted)]]
   mcmcParams(mb) <- mcmcParams(restricted)
   theta(mb) <- theta(restricted)
-  theta(mb)[is_dropped, 1] <- loc.scale.hem$theta
-  sigma2(mb) <- matrix(pmin(sigma2(restricted)[, 1], hemvar), ncol=1)
+  theta(mb)[is_dropped, rare_component_restricted] <- loc.scale$theta
+  if(ncol(sigma2(restricted)) == 1){
+    j <- 1
+  }else{
+    j <- rare_component_restricted
+  }
+  sigma2(mb) <- matrix(pmin(sigma2(restricted)[, j], component_var),
+                       ncol=1)
   mb
 }
 
@@ -2715,7 +2751,8 @@ mixture_layout <- function(figure_list, augmented=TRUE){
   print(B, newpage=FALSE)
 }
 
-fit_restricted <- function(mb, sb, THR, model="MBP2"){
+fit_restricted <- function(mb, sb, THR, model="MBP2",
+                           use_restricted=FALSE){
   fdat <- filter(assays(mb), oned > THR)  %>%
     mutate(is_simulated=FALSE)
   mb <- warmup(fdat, model)
@@ -2723,7 +2760,8 @@ fit_restricted <- function(mb, sb, THR, model="MBP2"){
   restricted <- posteriorSimulation(mb)
   ok <- ok_hemizygous(sb)
   if(!ok) {
-    restricted <- augment_hemizygous(restricted, sb)
+    restricted <- augment_rarecomponent(restricted, sb,
+                                        use_restricted=use_restricted)
     restricted <- posteriorSimulation(restricted)
   }
   restricted
@@ -2763,4 +2801,291 @@ explore_restricted <- function(mb, sb, THR=-1, model="MB3"){
                                sb,
                                model=model)
   restricted
+}
+
+as_tibble.density <- function(x, ...){
+  dens <- x
+  result <- tibble(index=seq_along(dens$x),
+                   x=dens$x,
+                   y=dens$y)
+}
+
+compute_density <- function(mb, THR){
+  batches <- batchLevels(mb)
+  densities <- vector("list", length(batches))
+  for(i in seq_along(batches)){
+  ##
+  ## Coarse
+  ##
+  index <- which(batch(mb)==i & oned(mb) < THR)
+  if(length(index) > 2){
+    tmp <- density(oned(mb)[index])
+    tmp <- as_tibble(tmp)
+  } else tmp <- NULL
+  ##
+  ## Fine
+  ##
+  tmp2 <- density(oned(mb)[batch(mb)==i & oned(mb) > THR]) %>%
+    as_tibble
+  densities[[i]] <- list(coarse=as_tibble(tmp),
+                         fine=as_tibble(tmp2))
+  }
+  densities
+}
+
+compute_modes <- function(densities){
+  primary_mode <- sapply(densities, function(dens.list){
+    dens <- dens.list[["fine"]]
+    dens$x[which.max(dens$y)]
+  })
+  primary_mode
+}
+
+sample_homdel_from_density <- function(densities, modes, N=5){
+  isnull_dens <- sapply(densities, function(x) nrow(x[[1]])==0)
+  homdel_dens <- densities[!isnull_dens]
+  ## just sample one if multiple available
+  ix <- sample(seq_along(homdel_dens), 1)
+  homdel_dens <- homdel_dens[[ix]][["coarse"]]
+  imputed <- list()
+  for(i in seq_along(densities)){
+    if(!isnull_dens[[i]]) next()
+    y <- sample(homdel_dens$x, N, prob=homdel_dens$y)
+    adjust <- modes[i] - modes[ix]
+    y <- y - adjust
+    imputed[[i]] <- tibble(x=y, batch=i)
+  }
+  imputed <- do.call(rbind, imputed)
+  return(imputed)
+}
+
+sample_hemdel_from_density <- function(dens, N=5){
+  peaks <- hemizygous_peaks(dens)
+  fine <- dens[["fine"]] %>%
+    filter(x < max(peaks$maxx))
+  x <- sample(fine$x, N, prob=fine$y)
+  x
+}
+
+sample_from_distribution <- function(dat, modes, THR, N){
+  del_dat <- filter(dat, oned < THR)
+  mn <- mean(del_dat$oned)
+  s <-  sd(del_dat$oned)*2
+  if(missing(s)) s <- 0.2
+  B <- length(unique(dat$batch))
+  total <- N * B
+  mn <- rep(mn, B)
+  delta <- modes - median(modes)
+  mn <- rep(mn - delta, each=N)
+  x <- rnorm(length(mn), mn, s)
+  tibble(x=x, batch=rep(B, each=N))
+}
+
+impute_needed <- function(mb, THR){
+  dat <- assays(mb)
+  if(!any(dat$oned < THR)) return(FALSE)
+  tab <- filter(dat, oned < THR) %>%
+    group_by(batch) %>%
+    summarize(n=n())
+  if(all(tab$n > 5)) return(FALSE)
+  TRUE
+}
+
+impute_homozygous <- function(mb, modes, densities, THR){
+  need2impute <- impute_needed(mb, THR)
+  dat <- assays(mb)
+  if(!need2impute) return(dat)
+  isnull_dens <- sapply(densities, function(x) nrow(x[[1]])==0)
+  if(any(!isnull_dens)) sample_from_density <- TRUE
+  if(sample_from_density){
+    x <- sample_homdel_from_density(densities, modes, N=5)
+  } else {
+    x <- sample_from_distribution(dat, THR)
+  }
+  nsim <- sum(isSimulated(mb))
+  impdat <- tibble(id=paste0("augment_", seq_len(nrow(x)) + nsim),
+                   oned=x$x,
+                   provisional_batch=NA,
+                   likely_deletion=TRUE,
+                   batch=x$batch,
+                   batch_labels=NA,
+                   is_simulated=TRUE)
+  dat2 <- bind_rows(dat, imputed) %>%
+    arrange(batch)
+  dat2
+}
+
+.peak <- function(dens, h){
+  exceeds_h <- dens$y >= h
+  regions <- cumsum(c(0, diff(exceeds_h) != 0))
+  dens$region <- regions
+  dens$h <- h
+  peaks <- filter(dens, y > h) %>%
+    group_by(region) %>%
+    summarize(minx=min(x),
+              maxx=max(x),
+              miny=unique(h),
+              maxy=max(y)) %>%
+    mutate(h=h)
+}
+
+find_peaks <- function(dens, max_number=5, min_number=3){
+  miny <- min(dens$y[dens$y > 0]) ## smallest y greater than 0
+  maxy <- max(dens$y)
+  heights <- seq(miny, maxy, length.out=100)
+  peak_list <- vector("list", length(heights))
+  for(i in seq_along(heights)){
+    peak_list[[i]] <- .peak(dens, heights[i])
+  }
+  npeaks <- elementNROWS(peak_list)
+  peak_list[ npeaks <= max_number & npeaks >= min_number]
+}
+
+hemizygous_peaks <- function(dens){
+  fine <- dens[["fine"]]
+  if(FALSE){
+    ggplot(fine, aes(x, y, ymin=0, ymax=y)) +
+      geom_ribbon()
+  }
+  peaks <- find_peaks(fine, 50, 2)
+  npeaks <- elementNROWS(peaks)
+  peaks <- peaks[npeaks == max(npeaks)]
+  ix <- sapply(peaks, function(x) which.max(x$maxy))
+  peaks <- peaks[ix > 1]
+  peaks <- peaks[[length(peaks)]]
+  peaks$index <- seq_len(nrow(peaks))
+  diploid_index <- which(peaks$maxy==max(peaks$maxy))
+  hemizygous_index <- peaks$index < diploid_index
+  peaks[hemizygous_index, ]
+}
+
+homozygous_peaks <- function(dens){
+  coarse <- dens[["coarse"]]
+  if(FALSE){
+    ggplot(fine, aes(x, y, ymin=0, ymax=y)) +
+      geom_ribbon()
+  }
+  peaks <- find_peaks(coarse, 50, 1)
+  npeaks <- elementNROWS(peaks)
+  peaks <- peaks[npeaks == max(npeaks)]
+  peaks <- peaks[[1]]
+}
+
+duplication_peaks <- function(dens){
+  fine <- dens[["fine"]]
+  if(FALSE){
+    ggplot(fine, aes(x, y, ymin=0, ymax=y)) +
+      geom_ribbon()
+  }
+  peaks <- find_peaks(fine, 50, 2)
+  npeaks <- elementNROWS(peaks)
+  peaks <- peaks[npeaks == max(npeaks)]
+  peaks <- peaks[[1]]
+  peaks$index <- seq_len(nrow(peaks))
+  diploid_index <- which(peaks$maxy==max(peaks$maxy))
+  duplication_index <- peaks$index > diploid_index
+  peaks[duplication_index, ]
+}
+
+handle_missing <- function(fun, dens){
+  peaks <- tryCatch(fun(dens), error=function(e) NULL,
+                    warning=function(w) NULL)
+  if(is.null(peaks)){
+    tab <-  tibble(min=NA, max=NA)
+    return(tab)
+  }
+  tab <- tibble(min=min(peaks$minx),
+                max=max(peaks$maxx))
+  tab
+}
+
+homozygous_cutoff2 <- function(dens){
+  handle_missing(homozygous_peaks, dens)
+}
+
+hemizygous_cutoff2 <- function(dens){
+  handle_missing(hemizygous_peaks, dens)
+}
+
+duplication_cutoff2 <- function(dens){
+  handle_missing(duplication_peaks, dens)
+}
+
+impute_hemizygous <- function(mb, modes, densities, N){
+  ##hemizygous_cutoff2(densities[[1]])
+  cutoffs <- round(sapply(densities, hemizygous_cutoff2),
+                   3)
+  cuts <- tibble(batch=seq_along(densities),
+                 hemizygous_cutoff=cutoffs)
+  dat2 <- assays(mb) %>%
+    left_join(cuts, by="batch")
+  tab <- dat2 %>%
+    group_by(batch) %>%
+    summarize(n=sum(oned < hemizygous_cutoff))
+  ## if TRUE, no need to impute
+  if(all(tab$n > N)) return(assays(mb))
+  batches <- batchLevels(mb)
+  imputed_list <- vector("list", sum(tab$n <= N))
+  for(i in seq_along(batches)){
+    freq <- tab$n[tab$batch==i]
+    if(freq > N) next()
+    dens <- densities[[i]]
+    if(!is.null(dens)){
+      x <- sample_hemdel_from_density(dens, N=N)
+    } else{
+      browser()
+      ##imputed <- sample_hemdel_from_distribution(dat, THR)
+    }
+    imputed <- tibble(x=x, batch=i)
+    imputed_list[[i]] <- imputed
+  }
+  imputed <- do.call(rbind, imputed_list)
+  index <- sum(isSimulated(mb)) + 1
+  impdat <- tibble(id=paste0("augment_", index),
+                   oned=imputed$x,
+                   provisional_batch=NA,
+                   likely_deletion=TRUE,
+                   batch=imputed$batch,
+                   batch_labels=NA,
+                   is_simulated=TRUE)
+  dat <- bind_rows(assays(mb), imputed) %>%
+    arrange(batch)
+  dat
+}
+
+summarize_blocks <- function(blocks){
+  blocks2 <- blocks %>%
+    group_by(type) %>%
+    summarize(min_mean=mean(min, na.rm=TRUE),
+              max_mean=mean(max, na.rm=TRUE))
+  blocks3 <- left_join(blocks, blocks2, by="type") %>%
+    mutate(min=ifelse(is.na(min) | !is.finite(min), min_mean, min),
+           max=ifelse(is.na(max) | !is.finite(max), max_mean, max)) %>%
+    select(-c(min_mean, max_mean)) %>%
+    filter(!is.na(min))
+  blocks4 <- blocks3 %>%
+    mutate(mn=(min+max)/2)
+  ##blocks4 <- blocks3 %>%
+  blocks3
+}
+
+make_blocks <- function(densities){
+  homdel_cutoffs <- lapply(densities, homozygous_cutoff2) %>%
+    do.call(rbind, .) %>%
+    mutate(batch=paste("Batch", seq_along(densities)),
+           type="homozygous deletion")
+  hemdel_cutoffs <- lapply(densities, hemizygous_cutoff2) %>%
+    do.call(rbind, .) %>%
+    mutate(batch=paste("Batch", seq_along(densities)),
+           type="hemizygous deletion")
+  dup_cutoffs <- lapply(densities, duplication_cutoff2) %>%
+    do.call(rbind, .) %>%
+    mutate(batch=paste("Batch", seq_along(densities))) %>%
+    mutate(type="duplication")
+  cuts <- bind_rows(homdel_cutoffs, hemdel_cutoffs) %>%
+    bind_rows(dup_cutoffs) %>%
+    mutate(ymin=0,
+           ymax=Inf)
+  blocks <- summarize_blocks(cuts)
+  blocks
 }

@@ -1,6 +1,7 @@
 context("Common deletions")
 
 test_that("summarize_cnp22", {
+  library(SummarizedExperiment)
   path <- file.path(system.file("extdata", package="CNPBayes"),
                     "CNP_022")
   set.seed(555)

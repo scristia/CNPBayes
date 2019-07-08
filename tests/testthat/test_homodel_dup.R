@@ -26,7 +26,7 @@ test_that("Homozygous deletion / duplication pipeline", {
   data(snp_se, package="panc.data")
   data(cnp_se, package="panc.data")
   g <- rowRanges(cnp_se)["CNP_029"]
-  snpdat <- snp_se[overlapsAny(snp_se, g), ]e
+  snpdat <- snp_se[overlapsAny(snp_se, g), ]
   mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
   THR <- summaries(mb.subsamp)$deletion_cutoff
   simdat <- augment_homozygous(mb.subsamp)
@@ -41,26 +41,27 @@ test_that("Homozygous deletion / duplication pipeline", {
   THR <- summaries(mb.subsamp)$deletion_cutoff
   ##trace(explore_multibatch, browser)
   mb <- revertToMultiBatch(sb)
-  restricted <- fit_restricted(mb, sb, THR, model="MBP3")
+  restricted <- fit_restricted(mb, sb, THR, model="MBP3",
+                               use_restricted=TRUE)
+  x <- assays(mb) %>%
+    filter(batch==5)
+  plot(density(x$oned, adjust=1/2))
+
+  ## potential problems with duplication component
+  ## rare duplications can cause problems
   expect_true(any(round(p(restricted), 2)[, 3] < 0.05))
-  ## duplications are rare and will cause problems
   dat <- filter(assays(sb), oned > 0.1)
   cutoff <- duplication_cutoff(assays(sb))
-  ##
-  ## impute rare duplications
-  ##
-  ## fit model
-  ##
-  ## Need unit tests on augmentation
-  ## rare homozygous
-  ## rare hemizygous
-  ## rare duplications
-  ## rare hemizygous and rare duplications
-
-  mb <- explore_multibatch(sb, simdat, THR,
-                           model="MBP3")
-  choose_mb <- log_lik(mb) > log_lik(sb) + 25
-  if(choose_mb) full <- mb else  full <- sb
+  restricted2 <- augment_rarecomponent(restricted, sb,
+                                      rare_component_restricted=3,
+                                      rare_component_sb=4,
+                                      diploid_component_sb=3,
+                                      use_restricted_theta=TRUE)
+  restricted3 <- warmup(assays(restricted2), "MBP3")
+  mcmcParams(restricted3) <- mp
+  restricted4 <- posteriorSimulation(restricted3)
+  full <- mcmcWithHomDel(mb, sb, restricted4, THR)
   gmodel <- genotype_model(full, snpdat)
-
+  expect_identical(mapping(gmodel),
+                   as.character(0:3))
 })
