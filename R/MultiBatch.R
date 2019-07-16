@@ -2157,7 +2157,7 @@ genotypeData <- function(gmodel, snpdat, min_probz=0.9){
   snpdat <- snpdat[, id(gmodel)]
   maxpz <- probz(gmodel) %>%
     "/"(rowSums(.)) %>%
-    rowMax
+    rowMaxs
   bafdat <- assays(snpdat)[["baf"]] %>%
     as_tibble() %>%
     mutate(rsid=rownames(snpdat)) %>%
@@ -2178,6 +2178,12 @@ homozygousdel_mean <- function(object, THR=-1) {
   mn <- mean(oned(object)[ oned(object) < THR])
   if(is.na(mn)) mn <- THR - 1
   mn
+}
+
+homozygousdel_var <- function(object, THR=-1) {
+  v <- var(oned(object)[ oned(object) < THR])
+  if(is.na(v)) v <- sqrt(0.3)
+  v
 }
 
 isPooledVar <- function(object) ncol(sigma2(object))==1
@@ -2298,10 +2304,10 @@ warmup <- function(tib, model1, model2=NULL){
 
 stop_early <- function(model, min_prob=0.99, prop_greater=0.995){
   pz <- probz(model)
-  maxprob <- rowMax(pz)
+  maxprob <- rowMaxs(pz)
   pz <- probz(model) %>%
     "/"(rowSums(.)) %>%
-    rowMax
+    rowMaxs
   mean_maxp <- mean(pz > min_prob)
   mean_maxp > prop_greater
 }
@@ -2330,22 +2336,22 @@ modal_theta <-  function(model){
 ## rare_component: of restricted model
 ## diploid_component: of SB model
 augment_rarecomponent <- function(restricted, sb,
-                               rare_component_restricted=1,
-                               rare_component_sb=2,
-                               diploid_component_sb=3,
-                               use_restricted_theta=FALSE){
+                                  rare_component_restricted=1,
+                                  rare_component_sb=2,
+                                  diploid_component_sb=3,
+                                  use_restricted_theta=FALSE){
   batch_labels <- batchLevels(restricted)
   ## normalize probabilities
   pz <- probz(restricted) %>%
     "/"(rowSums(.)) %>%
-    rowMax
+    rowMaxs
   ##
   ## batches with high posterior probabilities
   ##
   ubatch <- unique(batch(restricted)[ pz >= 0.95 ])
   ##
-  ## Find number of samples assigned to the hemizygous deletion
-  ## component with high probability.
+  ## Find number of samples assigned to the rare component with high
+  ## probability.
   ##
   ## Check if any of the batches have fewer than 10 subjects
   ## with high posterior probability
@@ -2382,8 +2388,7 @@ augment_rarecomponent <- function(restricted, sb,
     i <- dropped_batches
     if(use_restricted_theta){
       j <- rare_component_restricted
-      theta_ <- median(theta(restricted)[, j]) %>%
-        median
+      theta_ <- median(theta(restricted)[, j])
       diploid_component_restricted <-  2
       theta_diploid <- modal_theta(restricted)
       delta <- theta_diploid - median(theta_diploid)
@@ -2426,9 +2431,77 @@ augment_rarecomponent <- function(restricted, sb,
   mb
 }
 
+augment_rareduplication <- function(sb3, mod_2.4,
+                                    full_data,
+                                    THR){
+  loc.scale <- tibble(theta=theta(sb3)[3],
+                      sigma2=sigma2(sb3),
+                      phat=max(p(sb3)[1, 3], 0.05),
+                      batch=seq_len(numBatch(mod_2.4)))
+  densities <- compute_density(mod_2.4, THR)
+  modes <- round(compute_modes(densities), 3)
+  ## shift the batches according to location of mode
+  loc.scale$theta <- loc.scale$theta + modes
+  start.index <- length(grep("augment", id(mod_2.4))) + 1
+  imp.dup <- impute(mod_2.4, loc.scale,
+                    start.index=start.index)
+  obsdat <- full_data %>%
+    mutate(is_simulated=FALSE)
+  simdat <- bind_rows(obsdat, imp.dup) %>%
+    arrange(batch)
+  simdat
+}
+
+augment_rarehomdel <- function(restricted, sb4, mb.subsamp, THR){
+  p_ <- cbind(p(sb4)[1, 1], p(restricted)) %>%
+    "/"(rowSums(.))
+  dat <- assays(mb.subsamp)
+  hdmean <- median(dat$oned[dat$likely_deletion])
+  hdvar <- var(dat$oned[dat$likely_deletion])
+  if(is.na(hdmean)) hdmean <- THR-1
+  theta_ <- cbind(hdmean, theta(restricted))
+  is_pooledvar <- ncol(sigma(restricted)) == 1
+  if(is_pooledvar){
+    sigma2_ <- sigma2(restricted)
+  } else {
+    sigma2_ <- cbind(sigma2(restricted)[1, 2],
+                     sigma2(restricted))
+  }
+  freq.hd <- assays(mb.subsamp) %>%
+    group_by(batch) %>%
+    summarize(N=n(),
+              n=sum(likely_deletion)) %>%
+    filter(n/N < 0.05)
+  if(nrow(freq.hd) > 0){
+    loc.scale <- tibble(theta=hdmean,
+                        sigma2=sigma2_[, 1],
+                        phat=max(p(sb4)[1], 0.05),
+                        batch=seq_len(nrow(theta_)))
+    loc.scale <- left_join(freq.hd, loc.scale, by="batch") %>%
+      select(-N)
+    start.index <- length(grep("augment", id(restricted))) + 1
+    imp.hd <- impute(restricted, loc.scale, start.index=start.index)
+    if(any(isSimulated(restricted))){
+      imp1 <- filter(assays(restricted), is_simulated)
+      imp.hd <- bind_rows(imp.hd, imp1)
+    }
+    obsdat <- assays(mb.subsamp) %>%
+      mutate(is_simulated=FALSE)
+    simdat <- bind_rows(obsdat, imp.hd) %>%
+      arrange(batch)
+  } else {
+    imp1 <-filter(assays(restricted), is_simulated)
+    simdat <- bind_rows(assays(mb.subsamp),
+                        imp1) %>%
+      arrange(batch)
+  }
+  simdat
+}
+
 batchLevels <- function(mb){
-  levs <- unique(assays(mb)$batch_labels)
-  levels <- unique(as.integer(factor(assays(mb)$batch_labels, levels=levs)))
+  labels <- assays(mb)$batch_labels
+  levs <- unique(labels)
+  levels <- unique(as.integer(factor(labels, levels=levs)))
   sort(levels [ !is.na(levels) ])
 }
 
@@ -2534,7 +2607,7 @@ ok_model <- function(mod_1.3, restricted_model){
   internal.count <- flags(mod_1.3)$.internal.counter
   pz <- probz(mod_1.3) %>%
     "/"(rowSums(.)) %>%
-    rowMax
+    rowMaxs
   ubatch <- batch(mod_1.3)[ pz >= 0.95 & z(mod_1.3) == 2] %>%
     unique
   any_dropped <- any(!batch_labels %in% ubatch)
@@ -2646,13 +2719,13 @@ summarize_region <- function(se, provisional_batch, THR=-1,
   mb.subsamp
 }
 
-genotype_model <- function(mod_1.3, snpdat){
-  pz <- probz(mod_1.3) %>%
+genotype_model <- function(model, snpdat){
+  pz <- probz(model) %>%
     "/"(rowSums(.))
-  max_zprob <- rowMax(pz)
+  max_zprob <- rowMaxs(pz)
   is_high_conf <- max_zprob > 0.95
   ##mean(is_high_conf)
-  gmodel <- mod_1.3[ !isSimulated(mod_1.3) &  is_high_conf ]
+  gmodel <- model[ !isSimulated(model) &  is_high_conf ]
   keep <- !duplicated(id(gmodel))
   gmodel <- gmodel[ keep ]
   snpdat2 <- snpdat[, id(gmodel) ]
@@ -2660,8 +2733,9 @@ genotype_model <- function(mod_1.3, snpdat){
   clist <- CnList(gmodel)
   stats <- baf_loglik(clist, snpdat2)
   mapping(gmodel) <- strsplit(stats$cn.model[1], ",")[[1]]
-  mapping(mod_1.3) <- mapping(gmodel)
-  mod_1.3
+  mapping(model) <- mapping(gmodel)
+  summaries(model)$baf_loglik <- stats
+  model
 }
 
 join_baf_oned <- function(model, snpdat){
@@ -2671,7 +2745,7 @@ join_baf_oned <- function(model, snpdat){
   }
   maxpz <- probz(model) %>%
     "/"(rowSums(.)) %>%
-    rowMax
+    rowMaxs
   bafdat <- assays(snpdat)[["baf"]] %>%
     as_tibble() %>%
     mutate(rsid=rownames(snpdat)) %>%
@@ -2712,13 +2786,14 @@ list_mixture_plots <- function(model, bafdat){
   ## PLot BAFs
   ##
   labs <- component_labels(model)
-  xlab <- expression(paste("\n", "Mixture component"%->%"Copy number"))
+  xlab <- expression(paste("\n",
+                           "Mixture component"%->%"Copy number"))
   legtitle <- "Mixture\ncomponent\nprobability"
   B <- ggplot(bafdat, aes(factor(z), BAF)) +
     geom_hline(yintercept=c(0, 1/3, 0.5, 2/3, 1), color="gray95") +
     geom_jitter(aes(color=pz), width=0.1, size=0.3) +
     scale_y_continuous(expand=c(0, 0.05)) +
-    scale_x_discrete(breaks=seq_len(k(gmodel)),
+    scale_x_discrete(breaks=seq_len(k(model)),
                      labels=labs) +
     theme(panel.background=element_rect(fill="white", color="gray30"),
           legend.key=element_rect(fill="white")) +
@@ -2784,7 +2859,7 @@ explore_multibatch <- function(sb, simdat, THR=-1,
 few_hemizygous <- function(model){
   pz <- probz(model) %>%
     "/"(rowSums(.)) %>%
-    rowMax
+    rowMaxs
   tmp <- tibble(batch=batch(model), z=map_z(model), pz=pz) %>%
     group_by(batch) %>%
     summarize(N=n(),
@@ -3088,4 +3163,88 @@ make_blocks <- function(densities){
            ymax=Inf)
   blocks <- summarize_blocks(cuts)
   blocks
+}
+
+equivalent_variance <- function(model){
+  s <- colMeans(sigma(chains(model)))
+  th <- colMeans(theta(chains(model)))
+  L <- length(s)
+  if(L >= 3 && th[1] < -1){
+    s_other <- mean(s[-c(1, L)])
+    fc <- s[L] / s_other
+    if(fc >= 1.5) return(FALSE) else return(TRUE)
+  }
+  NA
+}
+
+homodel_model <- function(mb.subsamp, mp){
+  simdat <- augment_homozygous(mb.subsamp)
+  THR <- summaries(mb.subsamp)$deletion_cutoff
+  sb3 <- warmup(simdat, "SBP3", "SB3")
+  mcmcParams(sb3) <- mp
+  sb3 <- posteriorSimulation(sb3)
+  finished <- stop_early(sb3)
+  if(!finished){
+    ## Since not finished, keep going
+    final <- explore_multibatch(sb3, simdat, THR)
+  }  else final <- sb3
+  ##gmodel <- genotype_model(final, snp_se)
+  ##gmodel
+  final
+}
+
+hd4comp <- function(mod_2.4, simdat2, mb.subsamp, mp){
+  model <- incrementK(mod_2.4) %>%
+    gsub("P", "", .)
+  THR <- summaries(mb.subsamp)$deletion_cutoff
+  mod_1.4 <- MultiBatchList(data=simdat2)[[ model ]]
+  hdmean <- homozygousdel_mean(mb.subsamp, THR)
+  hdvar <- homozygousdel_var(mb.subsamp, THR)
+  theta(mod_1.4) <- cbind(hdmean, theta(mod_2.4))
+  V <- matrix(sigma2(mod_2.4)[, 1],
+              nrow(sigma2(mod_2.4)), 3,
+              byrow=FALSE)
+  sigma2(mod_1.4) <- cbind(hdvar, V)
+  mcmcParams(mod_1.4) <- mp
+  mod_1.4 <- mcmc_homozygous(mod_1.4)
+  mod_1.4
+}
+
+homodeldup_model <- function(mb.subsamp, mp){
+  THR <- summaries(mb.subsamp)$deletion_cutoff
+  simdat <- augment_homozygous(mb.subsamp)
+  sb <- warmup(assays(mb.subsamp),
+               "SBP4",
+               "SB4")
+  mcmcParams(sb) <- mp
+  sb <- posteriorSimulation(sb)
+  finished <- stop_early(sb, 0.99, 0.99)
+  if(finished) return(sb)
+  ##
+  ## 4th component variance is much too big
+  ##
+  fdat <- filter(assays(mb.subsamp), oned > THR)
+  mb <- warmup(fdat, "MBP3")
+  mcmcParams(mb) <- mp
+  mod_2.4 <- posteriorSimulation(mb)
+  is_flagged <- mod_2.4@flags$.internal.counter > 40
+  if(is_flagged){
+    sb3 <- warmup(fdat, "SBP3")
+    mcmcParams(sb3) <- mp
+    sb3 <- posteriorSimulation(sb3)
+  }
+  ## simulate from the pooled model for each batch
+  simdat <- augment_rareduplication(sb3, mod_2.4,
+                                    full_data=assays(mb.subsamp),
+                                    THR)
+  fdat <- filter(simdat, oned > THR)
+  mb <- warmup(fdat, "MBP3")
+  mcmcParams(mb) <- mp
+  mod_2.4 <- posteriorSimulation(mb)
+  ##
+  ## Impute HD
+  ##
+  simdat2 <- augment_rarehomdel(mod_2.4, sb, mb.subsamp, THR)
+  mod_1.4 <- hd4comp(mod_2.4, simdat2, mb.subsamp, mp)
+  mod_1.4
 }

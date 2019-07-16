@@ -13,7 +13,7 @@
 #' @import S4Vectors
 #' @importFrom combinat permn
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom matrixStats colSds colVars colMedians rowProds colMaxs
+#' @importFrom matrixStats colSds colVars colMedians rowProds colMaxs rowMaxs
 #' @importFrom BiocGenerics unlist
 #' @importFrom graphics lines par
 #' @importFrom stats dnorm qnorm kmeans ks.test plot.ts qgamma rbeta rgamma dbeta pnorm prcomp rbinom t.test

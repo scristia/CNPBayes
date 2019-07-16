@@ -1,5 +1,8 @@
 context("analysis of rare deletions")
 
+## CNP_001
+.test_that <- function(nm, expr) NULL
+
 test_that("rare_deletion_pipeline", {
   path <- system.file("extdata", package="CNPBayes")
   set.seed(2463)
@@ -16,9 +19,9 @@ test_that("rare_deletion_pipeline", {
   finished <- stop_early(sb3)
   expect_false(finished)
   ## Since not finished, keep going
-  ##trace(explore_multibatch, browser)
   mod_1.3 <- explore_multibatch(sb3, simdat, THR)
   gmodel <- genotype_model(mod_1.3, snp_se)
+  ##expect_true(FALSE)
   if(FALSE){
     saveRDS(sb3, file=file.path(path, "sb3_1.rds"))
   }
@@ -31,9 +34,42 @@ test_that("rare_deletion_pipeline", {
   expect_equivalent(gmodel, expected_gt)
 })
 
-## for first step, see test_summarized_region.R
-.test_that <- function(nm, expr) NULL
+test_that("rare_deletion_wrapper", {
+  path <- system.file("extdata", package="CNPBayes")
+  set.seed(2463)
+  snp_se <- readRDS(file.path(path, "snp_se.rds"))
+  mp <- McmcParams(iter=400, burnin=500)
+  mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
+  final <- homodel_model(mb.subsamp, mp)
+  gmodel <- genotype_model(final, snp_se)
+  expected_gt <- readRDS(file.path(path, "CNP_001.rds"))
+  expect_equivalent(gmodel, expected_gt)
+  ##
+  ## fit 4-component model
+  ##
+  mod4 <- homodeldup_model(mb.subsamp, mp)
+  gmodel4 <- genotype_model(mod4, snp_se)
+  ## how to choose?
+  if(identical(unique(mapping(gmodel)),
+               unique(mapping(gmodel4)))){
+    ## choose simpler model
+    final <- gmodel
+  }
+  if(FALSE){
+    library(grid)
+    bafdat <- join_baf_oned(gmodel, snp_se)
+    figs <- list_mixture_plots(gmodel, bafdat)
+    pdf(tempfile(), width=14, height=8)
+    mixture_layout(figs, augmented=TRUE)
+    dev.off()
 
+    bafdat2 <- join_baf_oned(gmodel4, snp_se)
+    figs2 <- list_mixture_plots(gmodel4, bafdat2)
+    mixture_layout(figs2, augmented=TRUE)
+  }
+})
+
+## for first step, see test_summarized_region.R
 test_that("augment data", {
   set.seed(2463)
   ##mp <- McmcParams(iter=500, burnin=400)
@@ -66,7 +102,9 @@ test_that("Augment hemizygous", {
   }
   expected <- readRDS(file.path(path, "mod_2.32.rds"))
   expect_equivalent(mod_2.3, expected)
-  expect_equivalent(assays(mod_2.3), assays(expected))
+  if(FALSE){
+    ggMixture(mod_2.3)
+  }
 })
 
 test_that("Fit multi-batch model with all components", {
