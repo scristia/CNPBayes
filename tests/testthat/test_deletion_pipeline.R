@@ -34,26 +34,50 @@ test_that("rare_deletion_pipeline", {
   expect_equivalent(gmodel, expected_gt)
 })
 
+test_that("deletion_models", {
+  path <- system.file("extdata", package="CNPBayes")
+  set.seed(2463)
+  snp_se <- readRDS(file.path(path, "snp_se.rds"))
+  mp <- McmcParams(iter=400, burnin=500)
+  mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
+  model <- deletion_models(mb.subsamp, snp_se, mp)
+  expected <- readRDS(file.path(path, "CNP_001.rds"))
+  expect_equivalent(theta(model), theta(expected), tolerance=0.05)
+  expect_identical(mapping(model), mapping(expected))
+})
+
 test_that("rare_deletion_wrapper", {
   path <- system.file("extdata", package="CNPBayes")
   set.seed(2463)
   snp_se <- readRDS(file.path(path, "snp_se.rds"))
   mp <- McmcParams(iter=400, burnin=500)
   mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
-  final <- homodel_model(mb.subsamp, mp)
-  gmodel <- genotype_model(final, snp_se)
+  mod3 <- homdel_model(mb.subsamp, mp)
+  gmodel <- genotype_model(mod3, snp_se)
   expected_gt <- readRDS(file.path(path, "CNP_001.rds"))
   expect_equivalent(gmodel, expected_gt)
   ##
   ## fit 4-component model
   ##
-  mod4 <- homodeldup_model(mb.subsamp, mp)
+  mod4 <- homdeldup_model(mb.subsamp, mp)
   gmodel4 <- genotype_model(mod4, snp_se)
-  ## how to choose?
+  ## how to choose? shiny app to visualize
   if(identical(unique(mapping(gmodel)),
                unique(mapping(gmodel4)))){
     ## choose simpler model
     final <- gmodel
+  } else {
+    ## compare bic without data augmentation
+    mod3.2 <- mod3[!isSimulated(mod3)]
+    expect_true(validModel(mod3.2))
+    mod4.2 <- mod4[!isSimulated(mod4)]
+    expect_false(validModel(mod4.2))
+    ## BIC grabs log likelihood from slot.  Need to update loglik
+    ##    ll <- loglik_multibatch_pvar(as(mod3.2, "MultiBatchPooled"))
+    ##    mb <- as(mod4.2, "MultiBatchModel")
+    ##    ll2 <- compute_loglik(mb)
+    ##    bic3 <- bic(mod3.2)
+    ##    bic4 <- bic(mod4.2)
   }
   if(FALSE){
     library(grid)

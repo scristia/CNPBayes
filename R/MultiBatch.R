@@ -3177,9 +3177,14 @@ equivalent_variance <- function(model){
   NA
 }
 
-homodel_model <- function(mb.subsamp, mp){
-  simdat <- augment_homozygous(mb.subsamp)
+homdel_model <- function(mb.subsamp, mp){
   THR <- summaries(mb.subsamp)$deletion_cutoff
+  if(is.null(THR)){
+    dat <- assays(mb.subsamp)
+    THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
+    summaries(mb.subsamp)$deletion_cutoff <- THR
+  }
+  simdat <- augment_homozygous(mb.subsamp)
   sb3 <- warmup(simdat, "SBP3", "SB3")
   mcmcParams(sb3) <- mp
   sb3 <- posteriorSimulation(sb3)
@@ -3210,8 +3215,13 @@ hd4comp <- function(mod_2.4, simdat2, mb.subsamp, mp){
   mod_1.4
 }
 
-homodeldup_model <- function(mb.subsamp, mp){
+homdeldup_model <- function(mb.subsamp, mp){
   THR <- summaries(mb.subsamp)$deletion_cutoff
+  if(is.null(THR)){
+    dat <- assays(mb.subsamp)
+    THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
+    summaries(mb.subsamp)$deletion_cutoff <- THR
+  }
   simdat <- augment_homozygous(mb.subsamp)
   sb <- warmup(assays(mb.subsamp),
                "SBP4",
@@ -3247,4 +3257,47 @@ homodeldup_model <- function(mb.subsamp, mp){
   simdat2 <- augment_rarehomdel(mod_2.4, sb, mb.subsamp, THR)
   mod_1.4 <- hd4comp(mod_2.4, simdat2, mb.subsamp, mp)
   mod_1.4
+}
+
+setMethod("bic", "MultiBatchP", function(object){
+  model <- as(object, "MultiBatchPooled")
+  bic(model)
+})
+
+setMethod("bic", "MultiBatch", function(object){
+  model <- as(object, "MultiBatchModel")
+  bic(model)
+})
+
+validModel <- function(model){
+  !any(is.na(theta(model))) &&
+    !any(is.na(sigma(model))) &&
+     (ncol(theta(model)) == k(model))
+}
+
+deletion_models <- function(mb.subsamp, snp_se, mp){
+  THR <- summaries(mb.subsamp)$deletion_cutoff
+  if(any(oned(mb.subsamp) < THR)){
+    mod3 <- homdel_model(mb.subsamp, mp)
+    gmodel <- genotype_model(mod3, snp_se)
+    mod4 <- homdeldup_model(mb.subsamp, mp)
+    gmodel4 <- genotype_model(mod4, snp_se)
+    if(identical(unique(mapping(gmodel)),
+                 unique(mapping(gmodel4)))){
+      return(gmodel)
+    }
+    ## compare bic without data augmentation
+    mod3.2 <- mod3[!isSimulated(mod3)]
+    mod4.2 <- mod4[!isSimulated(mod4)]
+    is_valid1 <- validModel(mod3.2)
+    is_valid2 <- validModel(mod4.2)
+    if(is_valid1 && !is_valid2) return(gmodel)
+    if(is_valid2 && !is_valid1) return(gmodel4)
+    ##
+    ## compute bic
+    ##
+    browser()
+  }
+  ## Try hemdel, hemdel_dup models
+  stop("did not expect to get here")
 }

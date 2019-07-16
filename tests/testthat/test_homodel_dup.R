@@ -92,7 +92,7 @@ test_that("Homozygous deletion / duplication pipeline", {
   expect_equivalent(assays(mod_1.4), assays(expected))
 })
 
-test_that("homodeldup_model", {
+test_that("homdeldup_model", {
   library(SummarizedExperiment)
   set.seed(5)
   path <- file.path(system.file("extdata", package="CNPBayes"),
@@ -102,7 +102,7 @@ test_that("homodeldup_model", {
   g <- rowRanges(cnp_se)["CNP_029"]
   mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
   mp <- McmcParams(iter=400, burnin=500)
-  mod_1.4 <- homodeldup_model(mb.subsamp, mp)
+  mod_1.4 <- homdeldup_model(mb.subsamp, mp)
   expected <- readRDS(file.path(path, "final_model.rds"))
   expect_equivalent(theta(mod_1.4), theta(expected))
   expect_equivalent(assays(mod_1.4), assays(expected))
