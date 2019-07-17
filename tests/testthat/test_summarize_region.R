@@ -7,7 +7,6 @@ test_that("summarize region", {
   ##
   path <- system.file("extdata", package="CNPBayes")
   cnp_se <- readRDS(file.path(path, "cnp_se.rds"))
-  snp_se <- readRDS(file.path(path, "snp_se.rds"))
   plates <- colData(cnp_se)$Sample.Plate
   mb.subsamp <- summarize_region(cnp_se[1, ],
                                  provisional_batch=plates,

@@ -8,7 +8,6 @@ test_that("summarize CNP_029", {
                     "CNP_029")
   if(!dir.exists(path)) dir.create(path)
   data(cnp_se, package="panc.data")
-  data(snp_se, package="panc.data")
   plates <- colData(cnp_se)$Sample.Plate
   mb.subsamp <- summarize_region(cnp_se[29, ],
                                  provisional_batch=plates,

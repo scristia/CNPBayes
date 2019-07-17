@@ -51,3 +51,18 @@ test_that("Hemizygous deletion / duplication pipeline", {
     mixture_layout(figs, augmented=TRUE)
   }
 })
+
+test_that("hemdeldup_model", {
+  library(SummarizedExperiment)
+  path <- file.path(system.file("extdata", package="CNPBayes"),
+                    "CNP_147")
+  data(snp_se, package="panc.data")
+  data(cnp_se, package="panc.data")
+  g <- rowRanges(cnp_se)["CNP_147"]
+  snpdat <- snp_se[overlapsAny(snp_se, g), ]
+  mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
+  mp <- McmcParams(iter=400, burnin=500)
+  model <- hemdeldup_model(mb.subsamp, mp)
+  gmodel <- genotype_model(model, snpdat)
+  expect_identical(mapping(gmodel), c("1", "2", "3"))
+})

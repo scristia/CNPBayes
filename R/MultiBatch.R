@@ -2673,10 +2673,10 @@ summarize_region <- function(se, provisional_batch, THR=-1,
                 provisional_batch=provisional_batch) %>%
     mutate(likely_deletion = oned < THR)
   ## if no homozygous deletions, check for hemizygous deletions
-  if(!any(dat$likely_deletion)){
-    THR <- hemizygous_cutoff(dat)
-    dat$likely_deletion <- dat$oned < THR
-  }
+  ##  if(!any(dat$likely_deletion)){
+  ##    THR <- hemizygous_cutoff(dat)
+  ##    dat$likely_deletion <- dat$oned < THR
+  ##  }
   dat.nohd <- filter(dat, !likely_deletion)
   ##
   ## Group chemistry plates, excluding homozygous deletions
@@ -2720,6 +2720,7 @@ summarize_region <- function(se, provisional_batch, THR=-1,
 }
 
 genotype_model <- function(model, snpdat){
+  if(iter(model) == 0) stop("No saved MCMC simulations. Must specify iter > 0")
   pz <- probz(model) %>%
     "/"(rowSums(.))
   max_zprob <- rowMaxs(pz)
@@ -3198,6 +3199,20 @@ homdel_model <- function(mb.subsamp, mp){
   final
 }
 
+hemdel_model <- function(mb.subsamp, mp){
+  THR <- summaries(mb.subsamp)$deletion_cutoff
+  sb <- warmup(assays(mb.subsamp), "SBP2", "SB2")
+  mcmcParams(sb) <- mp
+  sb <- posteriorSimulation(sb)
+  finished <- stop_early(sb)
+  if(finished) return(sb)
+
+  mb <- warmup(assays(mb.subsamp), "MBP2", "MB1")
+  mcmcParams(mb) <- mp
+  mb <- posteriorSimulation(mb)
+  mb
+}
+
 hd4comp <- function(mod_2.4, simdat2, mb.subsamp, mp){
   model <- incrementK(mod_2.4) %>%
     gsub("P", "", .)
@@ -3277,7 +3292,7 @@ validModel <- function(model){
 
 deletion_models <- function(mb.subsamp, snp_se, mp){
   THR <- summaries(mb.subsamp)$deletion_cutoff
-  if(any(oned(mb.subsamp) < THR)){
+  if(any(oned(mb.subsamp) < THR) && THR <= -1){
     mod3 <- homdel_model(mb.subsamp, mp)
     gmodel <- genotype_model(mod3, snp_se)
     mod4 <- homdeldup_model(mb.subsamp, mp)
@@ -3300,4 +3315,18 @@ deletion_models <- function(mb.subsamp, snp_se, mp){
   }
   ## Try hemdel, hemdel_dup models
   stop("did not expect to get here")
+}
+
+hemdeldup_model <- function(mb.subsamp, mp){
+  simdat <- augment_homozygous(mb.subsamp)
+  sb <- warmup(assays(mb.subsamp),
+               "SBP3",
+               "SB3")
+  mcmcParams(sb) <- mp
+  sb <- posteriorSimulation(sb)
+  finished <- stop_early(sb, 0.99, 0.99)
+  if(finished) return(sb)
+  THR <- summaries(mb.subsamp)$deletion_cutoff
+  mb <- explore_multibatch(sb, simdat, THR)
+  return(mb)
 }
