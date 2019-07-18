@@ -2341,7 +2341,8 @@ modal_theta <-  function(model){
 
 ## rare_component: of restricted model
 ## diploid_component: of SB model
-augment_rarecomponent <- function(restricted, sb,
+augment_rarecomponent <- function(restricted,
+                                  sb,
                                   rare_component_restricted=1,
                                   rare_component_sb=2,
                                   diploid_component_sb=3,
@@ -3257,15 +3258,21 @@ homdeldup_model <- function(mb.subsamp, mp){
   fdat <- filter(assays(mb.subsamp), oned > THR)
   mb <- warmup(fdat, "MBP3")
   mcmcParams(mb) <- mp
-  mod_2.4 <- posteriorSimulation(mb)
+  mod_2.4 <- tryCatch(posteriorSimulation(mb),
+                      warning=function(w) NULL)
+  if(is.null(mod_2.4)){
+    tmp <- augment_rarecomponent(mb, sb)
+    mcmcParams(tmp) <- mp
+    mod_2.4 <- posteriorSimulation(tmp)
+  }
   is_flagged <- mod_2.4@flags$.internal.counter > 40
   if(is_flagged){
-    sb3 <- warmup(fdat, "SBP3")
-    mcmcParams(sb3) <- mp
-    sb3 <- posteriorSimulation(sb3)
+    sb <- warmup(fdat, "SBP3")
+    mcmcParams(sb) <- mp
+    sb <- posteriorSimulation(sb)
   }
   ## simulate from the pooled model for each batch
-  simdat <- augment_rareduplication(sb3, mod_2.4,
+  simdat <- augment_rareduplication(sb, mod_2.4,
                                     full_data=assays(mb.subsamp),
                                     THR)
   fdat <- filter(simdat, oned > THR)
