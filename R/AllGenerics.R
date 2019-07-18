@@ -1079,3 +1079,5 @@ setGeneric("toSingleBatch", function(object) standardGeneric("toSingleBatch"))
 #' @export
 setGeneric("isSimulated", function(object)
   standardGeneric("isSimulated"))
+
+setGeneric(".compute_loglik", function(object) standardGeneric(".compute_loglik"))

@@ -3275,16 +3275,47 @@ homdeldup_model <- function(mb.subsamp, mp){
 }
 
 setMethod("bic", "MultiBatchP", function(object){
-  model <- as(object, "MultiBatchPooled")
-  bic(model)
+  object <- useModes(object)
+  object <- object[!isSimulated(object)]
+  ## number of free parameters to estimate (counting just top level of model)
+  ## tau^2_k, mu_k, nu.0, sigma2.0, pi
+  K <- length(tau2(object)) +
+    length(mu(object)) +
+    length(nu.0(object)) +
+    length(sigma2.0(object)) +
+    length(p(object)[1, ])
+  n <- length(oned(object))
+  ll <- .compute_loglik(object)
+  bicstat <- -2*(ll + logPrior(object)) + K*(log(n) - log(2*pi))
+  bicstat
 })
 
 setMethod("bic", "MultiBatch", function(object){
+  object <- useModes(object)
+  object <- object[!isSimulated(object)]
+  K <- length(tau2(object)) +
+    length(mu(object)) +
+    length(nu.0(object)) +
+    length(sigma2.0(object)) +
+    length(p(object)[1, ])
+  n <- length(oned(object))
+  ll <- .compute_loglik(object)
+  bicstat <- -2*(ll + logPrior(object)) + K*(log(n) - log(2*pi))
+  bicstat
+})
+
+setMethod(".compute_loglik", "MultiBatch", function(object){
   model <- as(object, "MultiBatchModel")
-  bic(model)
+  .compute_loglik(model)
+})
+
+setMethod(".compute_loglik", "MultiBatchP", function(object){
+  model <- as(object, "MultiBatchPooled")
+  .compute_loglik(model)
 })
 
 validModel <- function(model){
+  model <- model[ !isSimulated(model) ]
   !any(is.na(theta(model))) &&
     !any(is.na(sigma(model))) &&
      (ncol(theta(model)) == k(model))
