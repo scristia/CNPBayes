@@ -3368,3 +3368,32 @@ hemdeldup_model <- function(mb.subsamp, mp){
   mb <- explore_multibatch(sb, simdat, THR)
   return(mb)
 }
+
+restricted_homhemdup <- function(mb, mod_2.4, mb.subsamp){
+  mod_2.4 <- suppressWarnings(posteriorSimulation(mb))
+  is_flagged <- mod_2.4@flags$.internal.counter > 40
+  if(!is_flagged) return(mod_2.4)
+  THR <- summaries(mb.subsamp)$deletion_cutoff
+  filtered.dat <- filter(assays(mb.subsamp), oned > THR)
+  sb3 <- warmup(filtered.dat, "SBP3")
+  mcmcParams(sb3) <- mp
+  sb3 <- posteriorSimulation(sb3)
+  ## simulate from the pooled model for each batch
+  full.dat <- assays(mb.subsamp)
+  simdat <- augment_rareduplication(sb3, mod_2.4,
+                                    full_data=full.dat,
+                                    THR)
+  mod_2.4.2 <- MultiBatchList(data=simdat)[["MBP3"]]
+  simdat <- augment_rarehemdel(sb3,
+                               mod_2.4.2,
+                               full_data=full.dat,
+                               THR)
+  ## try again
+  filtered.dat <- filter(simdat, oned > THR)
+  mb <- warmup(filtered.dat, "MBP3")
+  mcmcParams(mb) <- mp
+  mod_2.4 <- posteriorSimulation(mb)
+  mod_2.4
+}
+
+dropSimulated <- function(model) model[!isSimulated(model)]
