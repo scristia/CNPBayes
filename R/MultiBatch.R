@@ -2459,6 +2459,31 @@ augment_rareduplication <- function(sb3, mod_2.4,
   simdat
 }
 
+augment_rarehemdel <- function(sb3,
+                               mod_2.4,
+                               full_data,
+                               THR){
+  loc.scale <- tibble(theta=theta(sb3)[1],
+                      sigma2=sigma2(sb3),
+                      phat=max(p(sb3)[1, 1], 0.05),
+                      batch=seq_len(numBatch(mod_2.4)))
+  densities <- compute_density(mod_2.4, THR)
+  modes <- round(compute_modes(densities), 3)
+  ## shift the batches according to location of mode
+  loc.scale$theta <- loc.scale$theta + modes
+  start.index <- length(grep("augment", id(mod_2.4))) + 1
+  imp.dup <- impute(mod_2.4,
+                    loc.scale,
+                    start.index=start.index)
+  obsdat <- full_data %>%
+    mutate(is_simulated=FALSE)
+  simdat <- bind_rows(filter(assays(mod_2.4), is_simulated),
+                      imp.dup)
+  dat <- bind_rows(obsdat, simdat) %>%
+    arrange(batch)
+  dat
+}
+
 augment_rarehomdel <- function(restricted, sb4, mb.subsamp, THR){
   p_ <- cbind(p(sb4)[1, 1], p(restricted)) %>%
     "/"(rowSums(.))
