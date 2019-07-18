@@ -3336,29 +3336,21 @@ validModel <- function(model){
 
 deletion_models <- function(mb.subsamp, snp_se, mp){
   THR <- summaries(mb.subsamp)$deletion_cutoff
-  if(any(oned(mb.subsamp) < THR) && THR <= -1){
-    mod3 <- homdel_model(mb.subsamp, mp)
-    gmodel <- genotype_model(mod3, snp_se)
-    mod4 <- homdeldup_model(mb.subsamp, mp)
-    gmodel4 <- genotype_model(mod4, snp_se)
-    if(identical(unique(mapping(gmodel)),
-                 unique(mapping(gmodel4)))){
-      return(gmodel)
-    }
-    ## compare bic without data augmentation
-    mod3.2 <- mod3[!isSimulated(mod3)]
-    mod4.2 <- mod4[!isSimulated(mod4)]
-    is_valid1 <- validModel(mod3.2)
-    is_valid2 <- validModel(mod4.2)
-    if(is_valid1 && !is_valid2) return(gmodel)
-    if(is_valid2 && !is_valid1) return(gmodel4)
-    ##
-    ## compute bic
-    ##
-    browser()
-  }
-  ## Try hemdel, hemdel_dup models
-  stop("did not expect to get here")
+  if(!any(oned(mb.subsamp) < THR)) stop("No observations below deletion cutoff")
+  mod3 <- homdel_model(mb.subsamp, mp)
+  gmodel <- genotype_model(mod3, snp_se)
+  mod4 <- homdeldup_model(mb.subsamp, mp)
+  gmodel4 <- genotype_model(mod4, snp_se)
+  ##  if(identical(unique(mapping(gmodel)),
+  ##               unique(mapping(gmodel4)))){
+  ##    return(gmodel)
+  ##  }
+  ##compare bic without data augmentation
+  model.list <- list(gmodel, gmodel4)
+  bics <- sapply(model.list, bic)
+  ix <- which.min(bics)
+  model <- model.list[[ix]]
+  model
 }
 
 hemdeldup_model <- function(mb.subsamp, mp){
