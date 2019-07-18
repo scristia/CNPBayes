@@ -3,6 +3,7 @@ context("Homozygous deletion and duplication")
 .test_that <- function(nm, expr) NULL
 
 test_that("summarize CNP_029", {
+  set.seed(5)
   library(panc.data)
   path <- file.path(system.file("extdata", package="CNPBayes"),
                     "CNP_029")
@@ -17,6 +18,7 @@ test_that("summarize CNP_029", {
   }
   expected <- readRDS(file.path(path, "mb_subsamp.rds"))
   expect_equivalent(mb.subsamp, expected)
+  expect_equivalent(assays(mb.subsamp), assays(expected))
 })
 
 test_that("Homozygous deletion / duplication pipeline", {
@@ -37,36 +39,23 @@ test_that("Homozygous deletion / duplication pipeline", {
   mp <- McmcParams(iter=400, burnin=500)
   mcmcParams(sb) <- mp
   sb <- posteriorSimulation(sb)
-  finished <- stop_early(sb, 0.99, 0.99)
+  ## at least 99% of samples above 0.95 probability
+  finished <- stop_early(sb, 0.95, 0.99)
   expect_false(finished)
-  ##
-  ## 4th component variance is much too big
-  ##
-  expect_false(equivalent_variance(sb))
+  expect_true(equivalent_variance(sb))
   THR <- summaries(mb.subsamp)$deletion_cutoff
   ##
-  ##
+  ## even though we could have stopped, try to improve by multibatch
   ##
   fdat <- filter(assays(mb.subsamp), oned > THR)
   mb <- warmup(fdat, "MBP3")
   mcmcParams(mb) <- mp
-  mod_2.4 <- posteriorSimulation(mb)
-  is_flagged <- mod_2.4@flags$.internal.counter > 40
-  expect_true(is_flagged)
-  if(is_flagged){
-    sb3 <- warmup(fdat, "SBP3")
-    mcmcParams(sb3) <- mp
-    sb3 <- posteriorSimulation(sb3)
-  }
-  ## simulate from the pooled model for each batch
-  simdat <- augment_rareduplication(sb3, mod_2.4,
-                                    full_data=assays(mb.subsamp),
-                                    THR)
-  fdat <- filter(simdat, oned > THR)
-  mb <- warmup(fdat, "MBP3")
-  mcmcParams(mb) <- mp
-  mod_2.4 <- posteriorSimulation(mb)
+  set.seed(123)
+  mod_2.4 <- restricted_homhemdup(mb, mod_2.4, mb.subsamp)
   if(FALSE){
+    ##fig1=ggMixture(tmp)
+    ##fig2=ggMixture(mod_2.4)
+    grid.arrange(fig1, fig2)
     saveRDS(mod_2.4, file=file.path(path, "mod_2.4.rds"))
   }
   expected <- readRDS(file.path(path, "mod_2.4.rds"))
@@ -75,16 +64,19 @@ test_that("Homozygous deletion / duplication pipeline", {
   ##
   ## Impute HD
   ##
+  set.seed(4)
   simdat2 <- augment_rarehomdel(mod_2.4, sb, mb.subsamp, THR)
   if(FALSE){
     saveRDS(simdat2, file=file.path(path, "simdat2.rds"))
   }
   expected <- readRDS(file.path(path, "simdat2.rds"))
   expect_equivalent(simdat2, expected)
+  set.seed(5)
   mod_1.4 <- hd4comp(mod_2.4, simdat2, mb.subsamp, mp)
   if(FALSE){
     saveRDS(mod_1.4, file=file.path(path, "final_model.rds"))
   }
+  expect_true(mean(rowMaxs(probz(dropSimulated(mod_1.4))) > 0.99) > mean(rowMaxs(probz(sb)) > 0.99))
   expected <- readRDS(file.path(path, "final_model.rds"))
   expect_equivalent(mod_1.4, expected)
   expect_equivalent(theta(mod_1.4), theta(expected))
@@ -103,8 +95,7 @@ test_that("homdeldup_model", {
   mp <- McmcParams(iter=400, burnin=500)
   mod_1.4 <- homdeldup_model(mb.subsamp, mp)
   expected <- readRDS(file.path(path, "final_model.rds"))
-  expect_equivalent(theta(mod_1.4), theta(expected))
-  expect_equivalent(assays(mod_1.4), assays(expected))
+  expect_equivalent(theta(mod_1.4), theta(expected), tolerance=0.05)
 })
 
 
