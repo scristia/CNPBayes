@@ -349,8 +349,34 @@ setMethod("bic", "MultiBatchModel", function(object){
   ##   - length-one parameters: sigma2.0, nu.0                   +2
   K <- 2*k(object)*nBatch(object) + (k(object)-1) + 2*k(object) + 2
   n <- length(y(object))
-  bicstat <- -2*(log_lik(object) + logPrior(object)) + K*(log(n) - log(2*pi))
+  ll <- compute_loglik(object)
+  bicstat <- -2*(ll + logPrior(object)) + K*(log(n) - log(2*pi))
   bicstat
+})
+
+#' @rdname bic-method
+#' @aliases bic,MultiBatchModel-method
+setMethod("bic", "MultiBatchPooled", function(object){
+  object <- useModes(object)
+  ## K: number of free parameters to be estimated
+  ##   - component and batch-specific parameters:  theta  ( k(model) * nBatch(model))
+  ##   - batch specific parameter: sigma2
+  ##   - mixing probabilities: (k-1)*nBatch
+  ##   - component-specific parameters: mu, tau2                 2 x k(model)
+  ##   - length-one parameters: sigma2.0, nu.0                   +2
+  K <- k(object)*nBatch(object) + nBatch(object) + (k(object)-1) + 2*k(object) + 2
+  n <- length(y(object))
+  ll <- loglik_multibatch_pvar(object)
+  bicstat <- -2*(ll + logPrior(object)) + K*(log(n) - log(2*pi))
+  bicstat
+})
+
+setMethod(".compute_loglik", "MultiBatchModel", function(object){
+  compute_loglik(object)
+})
+
+setMethod(".compute_loglik", "MultiBatchPooled", function(object){
+  loglik_multibatch_pvar(object)
 })
 
 
