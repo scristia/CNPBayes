@@ -1987,9 +1987,15 @@ setMethod("[", c("MultiBatch", "numeric"), function(x, i, j, ..., drop=FALSE){
   ##sp$number_obs <- length(i)
   ##specs(x) <- sp
   ##if( L == L2 ) return(x)
-  current_values(x)[["theta"]] <- computeMeans(x)
-  current_values(x)[["sigma2"]] <- 1/computePrec(x)
-  current_values(x)[["p"]] <- computeMixProbs(x)
+  means <- computeMeans(x)
+  precs <- computePrec(x)
+  ps <- computeMixProbs(x)
+  if(any(is.na(ps))) ps <- p(x)
+  if(any(is.na(means))) means <- theta(x)
+  if(any(is.na(precs))) precs <- 1/sigma2(x)
+  current_values(x)[["theta"]] <- means
+  current_values(x)[["sigma2"]] <- 1/precs
+  current_values(x)[["p"]] <- ps
   summaries(x)[["data.mean"]] <- theta(x)
   summaries(x)[["data.prec"]] <- 1/sigma2(x)
   if(L2 == nbatch1) {
