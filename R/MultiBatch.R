@@ -3283,30 +3283,7 @@ homdeldup_model <- function(mb.subsamp, mp){
   fdat <- filter(assays(mb.subsamp), oned > THR)
   mb <- warmup(fdat, "MBP3")
   mcmcParams(mb) <- mp
-  mod_2.4 <- tryCatch(posteriorSimulation(mb),
-                      warning=function(w) NULL)
-  if(is.null(mod_2.4)){
-    tmp <- augment_rarecomponent(mb, sb)
-    mcmcParams(tmp) <- mp
-    mod_2.4 <- posteriorSimulation(tmp)
-  }
-  is_flagged <- mod_2.4@flags$.internal.counter > 40
-  if(is_flagged){
-    sb <- warmup(fdat, "SBP3")
-    mcmcParams(sb) <- mp
-    sb <- posteriorSimulation(sb)
-  }
-  ## simulate from the pooled model for each batch
-  simdat <- augment_rareduplication(sb, mod_2.4,
-                                    full_data=assays(mb.subsamp),
-                                    THR)
-  fdat <- filter(simdat, oned > THR)
-  mb <- warmup(fdat, "MBP3")
-  mcmcParams(mb) <- mp
-  mod_2.4 <- posteriorSimulation(mb)
-  ##
-  ## Impute HD
-  ##
+  mod_2.4 <- restricted_homhemdup(mb, mod_2.4, mb.subsamp)
   simdat2 <- augment_rarehomdel(mod_2.4, sb, mb.subsamp, THR)
   mod_1.4 <- hd4comp(mod_2.4, simdat2, mb.subsamp, mp)
   mod_1.4
