@@ -3488,3 +3488,44 @@ restricted_homhemdup <- function(mb, mod_2.4, mb.subsamp){
 }
 
 dropSimulated <- function(model) model[!isSimulated(model)]
+
+distinct_components <- function(model){
+  if(numBatch(model) == 1) return(TRUE)
+  p <- probz(model)
+  nearly_equivalent <- rowSums(p > 0.4 & p < 0.6) > 0
+  if(sum(nearly_equivalent) == 0) return(TRUE)
+  colnames(p) <- paste0("comp", seq_len(ncol(p)))
+  b <- batch(model)
+  ptib <- as_tibble(p) %>%
+    mutate(nearly_equivalent=nearly_equivalent,
+           batch=b) %>%
+    filter(nearly_equivalent)
+  batches <- seq_len(numBatch(model))
+  nbatch <- tibble(batch=batches, N=as.numeric(table(b)))
+  equiv <- ptib %>%
+    left_join(nbatch, by="batch") %>%
+    group_by(batch) %>%
+    summarize(number_equivalent=n(),
+              N=unique(N)) %>%
+    mutate(prop_equivalent=number_equivalent/N) %>%
+    filter(prop_equivalent > 1/3)
+  ifelse(nrow(equiv) > 0, FALSE, TRUE)
+}
+
+same_diploid_component<- function(model){
+  if(numBatch(model) == 1) return(TRUE)
+  pmix <- p(model)
+  ranks <- apply(pmix, 1, order, decreasing=TRUE)
+  diploid.ranks <- ranks[1, ]
+  ifelse(length(unique(diploid.ranks)) > 1, FALSE, TRUE)
+}
+
+not_duplication <- function(model){
+  pmix <- p(model)
+  k_ <- ncol(pmix)
+  ranks <- apply(pmix, 1, order, decreasing=TRUE)
+  diploid.ranks <- ranks[1, ]
+  appears_diploid <- any(diploid.ranks == k_ & pmix[, k_] > 0.6 )
+  notdup <- appears_diploid
+  notdup
+}
