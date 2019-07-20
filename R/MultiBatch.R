@@ -3352,6 +3352,17 @@ validModel <- function(model){
      (ncol(theta(model)) == k(model))
 }
 
+model_checks <- function(models){
+  var.check <- sapply(models, equivalent_variance)
+  dip.check <- sapply(models, same_diploid_component)
+  distinct <- sapply(models, distinct_components)
+  model_names <- sapply(models, modelName)
+  tib <- tibble(model=model_names,
+                equiv_variance=var.check,
+                same_diploid_comp=dip.check,
+                distinct_comp=distinct)
+}
+
 deletion_models <- function(mb.subsamp, snp_se, mp){
   THR <- summaries(mb.subsamp)$deletion_cutoff
   if(!any(oned(mb.subsamp) < THR)) stop("No observations below deletion cutoff")
