@@ -2248,7 +2248,7 @@ augment_homozygous <- function(mb.subsamp){
   rare_homozygous <- sum(oned(mb.subsamp) < THR) < 5
   ##expect_false(rare_homozygous)
   if(rare_homozygous){
-    simdat <- augment_homozygous(mb.subsamp, mean_sd, THR)
+    simdat <- .augment_homozygous(mb.subsamp, mean_sd, THR)
   } else {
     simdat <- assays(mb.subsamp) %>%
       arrange(batch) %>%
@@ -2438,14 +2438,15 @@ augment_rarecomponent <- function(restricted,
   mb
 }
 
-augment_rareduplication <- function(sb3, mod_2.4,
+augment_rareduplication <- function(sb3,
+                                    mod_2.4,
                                     full_data,
                                     THR){
   loc.scale <- tibble(theta=theta(sb3)[3],
                       sigma2=sigma2(sb3),
                       phat=max(p(sb3)[1, 3], 0.05),
                       batch=seq_len(numBatch(mod_2.4)))
-  densities <- compute_density(mod_2.4, THR)
+  densities <- compute_density(mod_2.4)
   modes <- round(compute_modes(densities), 3)
   ## shift the batches according to location of mode
   loc.scale$theta <- loc.scale$theta + modes
@@ -2879,6 +2880,7 @@ explore_multibatch <- function(sb, simdat, THR=-1,
                                model="MBP2"){
   mb <- revertToMultiBatch(sb)
   restricted <- fit_restricted(mb, sb, THR, model=model)
+  ## augment_rareduplication?
   message("Fitting full model")
   full <- mcmcWithHomDel(mb, sb, restricted, THR)
   ok <- ok_model(full, restricted)
@@ -3226,8 +3228,6 @@ homdel_model <- function(mb.subsamp, mp){
     ## Since not finished, keep going
     final <- explore_multibatch(sb3, simdat, THR)
   }  else final <- sb3
-  ##gmodel <- genotype_model(final, snp_se)
-  ##gmodel
   final
 }
 
@@ -3238,7 +3238,6 @@ hemdel_model <- function(mb.subsamp, mp){
   sb <- posteriorSimulation(sb)
   finished <- stop_early(sb)
   if(finished) return(sb)
-
   mb <- warmup(assays(mb.subsamp), "MBP2", "MB1")
   mcmcParams(mb) <- mp
   mb <- posteriorSimulation(mb)
@@ -3260,6 +3259,23 @@ hd4comp <- function(mod_2.4, simdat2, mb.subsamp, mp){
   mcmcParams(mod_1.4) <- mp
   mod_1.4 <- mcmc_homozygous(mod_1.4)
   mod_1.4
+}
+
+hd3comp <- function(restricted, simdat, mb.subsamp, mp){
+  model <- incrementK(restricted) %>%
+    gsub("P", "", .)
+  THR <- summaries(mb.subsamp)$deletion_cutoff
+  mod_1.3 <- MultiBatchList(data=simdat)[[ model ]]
+  hdmean <- homozygousdel_mean(mb.subsamp, THR)
+  hdvar <- homozygousdel_var(mb.subsamp, THR)
+  theta(mod_1.3) <- cbind(hdmean, theta(restricted))
+  V <- matrix(sigma2(restricted)[, 1],
+              nrow(sigma2(restricted)), 3,
+              byrow=FALSE)
+  sigma2(mod_1.3) <- cbind(hdvar, V)
+  mcmcParams(mod_1.3) <- mp
+  mod_1.3 <- mcmc_homozygous(mod_1.3)
+  mod_1.3
 }
 
 homdeldup_model <- function(mb.subsamp, mp){
