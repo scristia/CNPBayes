@@ -3376,13 +3376,28 @@ deletion_models <- function(mb.subsamp, snp_se, mp){
   ##  }
   ##compare bic without data augmentation
   model.list <- list(gmodel, gmodel4)
-  bics <- sapply(model.list, bic)
-  ix <- which.min(bics)
-  model <- model.list[[ix]]
-  model
+  model.list
 }
 
-hemdeldup_model <- function(mb.subsamp, mp){
+hemideletion_models <- function(mb.subsamp, snp_se, mp, THR=-0.25){
+  assays(mb.subsamp)$deletion_cutoff <- -0.25
+  mb1 <- hemdel_model(mb.subsamp, mp)
+  mb2 <- hemdeldup_model2(mb.subsamp, mp, THR=THR)
+  g1 <- genotype_model(mb1, snp_se)
+  g2 <- genotype_model(mb2, snp_se)
+  model.list <- list(g1, g2)
+  model.list
+}
+
+posthoc_checks <- function(model.list){
+  checks <- model_checks(model.list)
+  bics <- sapply(model.list, bic)
+  checks$bic <- bics
+  checks
+}
+
+hemdeldup_model <- function(mb.subsamp, mp, THR=-0.25){
+  THR <- summaries(mb.subsamp)$deletion_cutoff <- THR
   simdat <- augment_homozygous(mb.subsamp)
   sb <- warmup(assays(mb.subsamp),
                "SBP3",
