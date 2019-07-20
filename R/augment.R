@@ -245,7 +245,10 @@ impute <- function(model, loc.scale, start.index){
                    provisional_batch=NA,
                    likely_hd=TRUE,
                    batch=rep(x$batch, x$expected),
-                   batch_labels=NA,
                    is_simulated=TRUE)
-  impdat
+  batch_mapping <- assays(model) %>%
+    group_by(batch) %>%
+    summarize(batch_labels=unique(batch_labels))
+  impdat2 <- left_join(impdat, batch_mapping, by="batch")
+  impdat2
 }

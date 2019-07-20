@@ -35,11 +35,13 @@ test_that("rare_deletion_pipeline", {
 })
 
 test_that("deletion_models", {
+  skip("deletion_models")
   path <- system.file("extdata", package="CNPBayes")
   set.seed(2463)
   snp_se <- readRDS(file.path(path, "snp_se.rds"))
   mp <- McmcParams(iter=400, burnin=500)
   mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
+  trace(deletion_models, browser)
   model <- deletion_models(mb.subsamp, snp_se, mp)
   expected <- readRDS(file.path(path, "CNP_001.rds"))
   expect_equivalent(theta(model), theta(expected), tolerance=0.05)
