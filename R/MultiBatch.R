@@ -1328,7 +1328,7 @@ setMethod("mcmc2", c("MultiBatch", "missing"), function(object, guide){
     if(flags(object)$warn) warning("Very few Monte Carlo simulations specified")
   maxb <- max(max_burnin(mp), burnin(mp))
   while(burnin(mp) <= maxb && thin(mp) < 100){
-    message("  k: ", K, ", burnin: ", burnin(mp), ", thin: ", thin(mp))
+    ##message("  k: ", K, ", burnin: ", burnin(mp), ", thin: ", thin(mp))
     mcmcParams(mb) <- mp
     ##
     ## Convert to list of MultiBatchModels with independent starting values
@@ -1987,15 +1987,15 @@ setMethod("[", c("MultiBatch", "numeric"), function(x, i, j, ..., drop=FALSE){
   ##sp$number_obs <- length(i)
   ##specs(x) <- sp
   ##if( L == L2 ) return(x)
-  means <- computeMeans(x)
-  precs <- computePrec(x)
-  ps <- computeMixProbs(x)
-  if(any(is.na(ps))) ps <- p(x)
-  if(any(is.na(means))) means <- theta(x)
-  if(any(is.na(precs))) precs <- 1/sigma2(x)
-  current_values(x)[["theta"]] <- means
-  current_values(x)[["sigma2"]] <- 1/precs
-  current_values(x)[["p"]] <- ps
+  ##means <- computeMeans(x)
+  ##precs <- computePrec(x)
+  ##ps <- computeMixProbs(x)
+  ##  if(any(is.na(ps))) ps <- p(x)
+  ##  if(any(is.na(means))) means <- theta(x)
+  ##  if(any(is.na(precs))) precs <- 1/sigma2(x)
+  current_values(x)[["theta"]] <- theta(x)
+  current_values(x)[["sigma2"]] <- sigma2(x)
+  current_values(x)[["p"]] <- p(x)
   summaries(x)[["data.mean"]] <- theta(x)
   summaries(x)[["data.prec"]] <- 1/sigma2(x)
   if(L2 == nbatch1) {
@@ -2391,7 +2391,7 @@ augment_rarecomponent <- function(restricted,
       component_var <- sigma2(sb)[, diploid_component_sb]
     }
     msg <- "Find mean and variance of rare component"
-    message(msg)
+    ##message(msg)
     i <- dropped_batches
     if(use_restricted_theta){
       j <- rare_component_restricted
@@ -2410,7 +2410,7 @@ augment_rarecomponent <- function(restricted,
                         sigma2=component_var,
                         phat=p_,
                         batch=dropped_batches)
-    message("Augment data with additional hemizygous deletions")
+    ##message("Augment data with additional hemizygous deletions")
     start_index <- length(grep("augment", id(restricted))) + 1
     impdat <- impute(restricted, loc.scale, start.index=start_index)
     ## removes all simulated and then adds back only the
@@ -2446,7 +2446,7 @@ augment_rareduplication <- function(sb3,
                       sigma2=sigma2(sb3),
                       phat=max(p(sb3)[1, 3], 0.05),
                       batch=seq_len(numBatch(mod_2.4)))
-  densities <- compute_density(mod_2.4)
+  densities <- compute_density(mod_2.4, THR)
   modes <- round(compute_modes(densities), 3)
   ## shift the batches according to location of mode
   loc.scale$theta <- loc.scale$theta + modes
@@ -2695,12 +2695,7 @@ duplication_cutoff <- function(dat, min_cutoff=0.1){
   lowest_point_before_peak
 }
 
-summarize_region <- function(se, provisional_batch, THR=-1,
-                             KS_cutoff=0.001){
-  ##
-  ## Flag homozygous deletions
-  ##
-  message("Flagging apparent homozygous deletions")
+median_summary <- function(se, provisional_batch, THR){
   dat <- tibble(id=colnames(se),
                 oned=assays(se)[["MEDIAN"]][1, ],
                 provisional_batch=provisional_batch) %>%
@@ -2710,46 +2705,76 @@ summarize_region <- function(se, provisional_batch, THR=-1,
   ##    THR <- hemizygous_cutoff(dat)
   ##    dat$likely_deletion <- dat$oned < THR
   ##  }
+  dat
+}
+
+kolmogorov_batches <- function(dat, KS_cutoff, THR){
   dat.nohd <- filter(dat, !likely_deletion)
   ##
   ## Group chemistry plates, excluding homozygous deletions
   ##
   ix <- sample(seq_len(nrow(dat.nohd)), 1000, replace=TRUE)
-  message("Downsampling non-homozygous deletions and identify batches from surrogates")
+  ##message("Downsampling non-homozygous deletions and identify batches from surrogates")
   mb.subsamp <- dat.nohd[ix, ] %>%
     bind_rows(filter(dat, likely_deletion)) %>%
     mutate(is_simulated=FALSE) %>%
     MultiBatch("MB3", data=.) %>%
     findSurrogates(KS_cutoff, THR)
-  ##print(a)
-  batches <- assays(mb.subsamp) %>%
+}
+
+add_batchinfo <- function(dat, mb){
+  batches <- assays(mb) %>%
     group_by(provisional_batch) %>%
     summarize(batch=unique(batch))
-  pr.batch <- assays(mb.subsamp)$provisional_batch
+  pr.batch <- assays(mb)$provisional_batch
   stopifnot(all(pr.batch %in% dat$provisional_batch))
   dat <- left_join(dat, batches, by="provisional_batch")
+  dat
+}
+
+add2small_batches <- function(dat, mb){
+  ##message("Check batches")
   ##
-  ## We need the number in `hdmean` later. Where to keep it?
-  ##
-  hdmean <- median(dat$oned[dat$likely_deletion])
-  ##expect_equal(hdmean, -3.887, tolerance=0.001)
-  ##
-  message("Check batches")
-  ##
-  batchfreq <- assays(mb.subsamp) %>%
+  batchfreq <- assays(mb) %>%
     group_by(batch) %>%
     summarize(n=n())
   if(any(batchfreq$n < 50)){
+    batchlabels <- group_by(assays(mb), batch) %>%
+      summarize(n=n(),
+                batch_labels=unique(batch_labels))
     batchfreq <- filter(batchfreq, n < 50)
-    adat <- assays(mb.subsamp) %>%
+    adat <- assays(mb) %>%
       filter(!batch %in% batchfreq$batch)
-    bdat <- filter(dat, batch %in% batchfreq$batch)
+    bdat <- filter(dat, batch %in% batchfreq$batch) %>%
+      left_join(batchlabels, by="batch") %>%
+      mutate(is_simulated=FALSE) %>%
+      select(colnames(adat))
     adat2 <- bind_rows(adat, bdat)
-    mb.subsamp <- MultiBatch("MB2", data=adat2)
+    mb <- MultiBatch("MB2", data=adat2)
   }
-  assays(mb.subsamp)$homozygousdel_mean <- hdmean
-  summaries(mb.subsamp)$deletion_cutoff <- THR
-  mb.subsamp
+  mb
+}
+
+add_deletion_stats <- function(dat, mb, THR){
+  hdmean <- median(dat$oned[dat$likely_deletion])
+  ##expect_equal(hdmean, -3.887, tolerance=0.001)
+  ##
+  if(is.na(hdmean)) THR <- hdmean <- -1
+  assays(mb)$homozygousdel_mean <- hdmean
+  summaries(mb)$deletion_cutoff <- THR
+  mb
+}
+
+
+#' @export
+summarize_region <- function(se, provisional_batch, THR=-1,
+                             KS_cutoff=0.001){
+  dat <- median_summary(se, provisional_batch, THR)
+  mb <- kolmogorov_batches(dat, KS_cutoff, THR)
+  dat <- add_batchinfo(dat, mb)
+  mb <- add2small_batches(dat, mb)
+  mb <- add_deletion_stats(dat, mb, THR)
+  mb
 }
 
 genotype_model <- function(model, snpdat){
@@ -2758,6 +2783,9 @@ genotype_model <- function(model, snpdat){
     "/"(rowSums(.))
   max_zprob <- rowMaxs(pz)
   is_high_conf <- max_zprob > 0.95
+  if(!any(is_high_conf)){
+    is_high_conf <- max_zprob > quantile(max_zprob, 0.5)
+  }
   ##mean(is_high_conf)
   gmodel <- model[ !isSimulated(model) &  is_high_conf ]
   keep <- !duplicated(id(gmodel))
@@ -2800,6 +2828,13 @@ join_baf_oned <- function(model, snpdat){
   bafdat2
 }
 
+#' @export
+mixture_plot <- function(model, snpdat){
+  bafdat <- join_baf_oned(model, snpdat)
+  figs <- list_mixture_plots(model, bafdat)
+  figs
+}
+
 component_labels <- function(model){
   cnlabels <- paste0(seq_len(k(model)),
                      "%->%",
@@ -2808,14 +2843,16 @@ component_labels <- function(model){
   labs
 }
 
-list_mixture_plots <- function(model, bafdat){
+list_mixture_plots <- function(model, bafdat, xlimit=c(-4, 1)){
   A <- ggMixture(model) +
     xlab(expression(paste("Median ", log[2], " R ratio"))) +
-    ylab("Density\n")
+    ylab("Density\n") +
+    xlim(xlimit)
   ## predictive densities excluding simulated data
   A2 <- ggMixture(model[ !isSimulated(model) ]) +
     xlab(expression(paste("Median ", log[2], " R ratio"))) +
-    ylab("Density\n")
+    ylab("Density\n") +
+    xlim(xlimit)
   ##
   ## PLot BAFs
   ##
@@ -2839,6 +2876,7 @@ list_mixture_plots <- function(model, bafdat){
        baf=B)
 }
 
+#' @export
 mixture_layout <- function(figure_list, augmented=TRUE){
   if(augmented) {
     A <- figure_list[["augmented"]]
@@ -2881,7 +2919,7 @@ explore_multibatch <- function(sb, simdat, THR=-1,
   mb <- revertToMultiBatch(sb)
   restricted <- fit_restricted(mb, sb, THR, model=model)
   ## augment_rareduplication?
-  message("Fitting full model")
+  ##message("Fitting full model")
   full <- mcmcWithHomDel(mb, sb, restricted, THR)
   ok <- ok_model(full, restricted)
   if(!ok){
@@ -3212,14 +3250,14 @@ equivalent_variance <- function(model){
   NA
 }
 
-homdel_model <- function(mb.subsamp, mp){
-  THR <- summaries(mb.subsamp)$deletion_cutoff
+homdel_model <- function(mb, mp){
+  THR <- summaries(mb)$deletion_cutoff
   if(is.null(THR)){
-    dat <- assays(mb.subsamp)
+    dat <- assays(mb)
     THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
-    summaries(mb.subsamp)$deletion_cutoff <- THR
+    summaries(mb)$deletion_cutoff <- THR
   }
-  simdat <- augment_homozygous(mb.subsamp)
+  simdat <- augment_homozygous(mb)
   sb3 <- warmup(simdat, "SBP3", "SB3")
   mcmcParams(sb3) <- mp
   sb3 <- posteriorSimulation(sb3)
@@ -3278,15 +3316,15 @@ hd3comp <- function(restricted, simdat, mb.subsamp, mp){
   mod_1.3
 }
 
-homdeldup_model <- function(mb.subsamp, mp){
-  THR <- summaries(mb.subsamp)$deletion_cutoff
+homdeldup_model <- function(mb, mp){
+  THR <- summaries(mb)$deletion_cutoff
   if(is.null(THR)){
-    dat <- assays(mb.subsamp)
+    dat <- assays(mb)
     THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
-    summaries(mb.subsamp)$deletion_cutoff <- THR
+    summaries(mb)$deletion_cutoff <- THR
   }
-  simdat <- augment_homozygous(mb.subsamp)
-  sb <- warmup(assays(mb.subsamp),
+  simdat <- augment_homozygous(mb)
+  sb <- warmup(assays(mb),
                "SBP4",
                "SB4")
   mcmcParams(sb) <- mp
@@ -3296,34 +3334,34 @@ homdeldup_model <- function(mb.subsamp, mp){
   ##
   ## 4th component variance is much too big
   ##
+  mb.subsamp <- mb
   fdat <- filter(assays(mb.subsamp), oned > THR)
   mb <- warmup(fdat, "MBP3")
   mcmcParams(mb) <- mp
-  mod_2.4 <- restricted_homhemdup(mb, mod_2.4, mb.subsamp)
+  mod_2.4 <- restricted_homhemdup(mb, mod_2.4, mb.subsamp, mp)
   simdat2 <- augment_rarehomdel(mod_2.4, sb, mb.subsamp, THR)
   mod_1.4 <- hd4comp(mod_2.4, simdat2, mb.subsamp, mp)
   mod_1.4
 }
 
 setMethod("bic", "MultiBatchP", function(object){
-  object <- useModes(object)
-  object <- object[!isSimulated(object)]
+  object2 <- object
+  object2 <- dropSimulated(object2)
   ## number of free parameters to estimate (counting just top level of model)
   ## tau^2_k, mu_k, nu.0, sigma2.0, pi
-  K <- length(tau2(object)) +
-    length(mu(object)) +
-    length(nu.0(object)) +
-    length(sigma2.0(object)) +
-    length(p(object)[1, ])
-  n <- length(oned(object))
-  ll <- .compute_loglik(object)
-  bicstat <- -2*(ll + logPrior(object)) + K*(log(n) - log(2*pi))
+  K <- length(tau2(object2)) +
+    length(mu(object2)) +
+    length(nu.0(object2)) +
+    length(sigma2.0(object2)) +
+    length(p(object2)[1, ])
+  n <- length(oned(object2))
+  ll <- .compute_loglik(object2)
+  bicstat <- -2*(ll + logPrior(object2)) + K*(log(n) - log(2*pi))
   bicstat
 })
 
 setMethod("bic", "MultiBatch", function(object){
-  object <- useModes(object)
-  object <- object[!isSimulated(object)]
+  object <- dropSimulated(object)
   K <- length(tau2(object)) +
     length(mu(object)) +
     length(nu.0(object)) +
@@ -3363,12 +3401,13 @@ model_checks <- function(models){
                 distinct_comp=distinct)
 }
 
-deletion_models <- function(mb.subsamp, snp_se, mp){
-  THR <- summaries(mb.subsamp)$deletion_cutoff
-  if(!any(oned(mb.subsamp) < THR)) stop("No observations below deletion cutoff")
-  mod3 <- homdel_model(mb.subsamp, mp)
+deletion_models <- function(mb, snp_se, mp, THR){
+  if(missing(THR))
+    THR <- summaries(mb)$deletion_cutoff
+  if(!any(oned(mb) < THR)) stop("No observations below deletion cutoff")
+  mod3 <- homdel_model(mb, mp)
   gmodel <- genotype_model(mod3, snp_se)
-  mod4 <- homdeldup_model(mb.subsamp, mp)
+  mod4 <- homdeldup_model(mb, mp)
   gmodel4 <- genotype_model(mod4, snp_se)
   ##  if(identical(unique(mapping(gmodel)),
   ##               unique(mapping(gmodel4)))){
@@ -3380,12 +3419,14 @@ deletion_models <- function(mb.subsamp, snp_se, mp){
 }
 
 hemideletion_models <- function(mb.subsamp, snp_se, mp, THR=-0.25){
-  assays(mb.subsamp)$deletion_cutoff <- -0.25
+  assays(mb.subsamp)$deletion_cutoff <- THR
   mb1 <- hemdel_model(mb.subsamp, mp)
   mb2 <- hemdeldup_model2(mb.subsamp, mp, THR=THR)
-  g1 <- genotype_model(mb1, snp_se)
-  g2 <- genotype_model(mb2, snp_se)
-  model.list <- list(g1, g2)
+  if(nrow(snp_se) > 0){
+    mb1 <- genotype_model(mb1, snp_se)
+    mb2 <- genotype_model(mb2, snp_se)
+  }
+  model.list <- list(mb1, mb2)
   model.list
 }
 
@@ -3434,9 +3475,12 @@ hemdeldup_model2 <- function(mb.subsamp, mp, THR){
     s <- rep(sigma(sb)[1,1]/2, 2)
   } else s <- sigma(sb)[1, c(1, 3)]/2
   B <- numBatch(mb.subsamp)
-  tab <- tibble(component=rep(c("hemidel", "dup"), each=B),
-                mean=c(hemdel, dup),
-                sd=rep(s, each=B))
+  model_names <- rep(c("hemidel", "dup"), each=B)
+  means <- c(hemdel, dup)
+  sds <- rep(s, each=B)
+  tab <- tibble(component=model_names,
+                mean=means,
+                sd=sds)
   x <- vector("list", nrow(tab))
   for(i in seq_len(nrow(tab))){
     x[[i]] <- rnorm(10, tab$mean[i], tab$sd[i])
@@ -3460,11 +3504,11 @@ hemdeldup_model2 <- function(mb.subsamp, mp, THR){
   return(mb)
 }
 
-restricted_homhemdup <- function(mb, mod_2.4, mb.subsamp){
+restricted_homhemdup <- function(mb, mod_2.4, mb.subsamp, mp){
+  THR <- summaries(mb.subsamp)$deletion_cutoff
   mod_2.4 <- suppressWarnings(posteriorSimulation(mb))
   is_flagged <- mod_2.4@flags$.internal.counter > 40
   if(!is_flagged) return(mod_2.4)
-  THR <- summaries(mb.subsamp)$deletion_cutoff
   filtered.dat <- filter(assays(mb.subsamp), oned > THR)
   sb3 <- warmup(filtered.dat, "SBP3")
   mcmcParams(sb3) <- mp
@@ -3473,7 +3517,7 @@ restricted_homhemdup <- function(mb, mod_2.4, mb.subsamp){
   full.dat <- assays(mb.subsamp)
   simdat <- augment_rareduplication(sb3, mod_2.4,
                                     full_data=full.dat,
-                                    THR)
+                                    THR=THR)
   mod_2.4.2 <- MultiBatchList(data=simdat)[["MBP3"]]
   simdat <- augment_rarehemdel(sb3,
                                mod_2.4.2,
@@ -3513,7 +3557,7 @@ distinct_components <- function(model){
 }
 
 same_diploid_component<- function(model){
-  if(numBatch(model) == 1) return(TRUE)
+  if(numBatch(model) == 1 | k(model) == 1) return(TRUE)
   pmix <- p(model)
   ranks <- apply(pmix, 1, order, decreasing=TRUE)
   diploid.ranks <- ranks[1, ]
@@ -3528,4 +3572,79 @@ not_duplication <- function(model){
   appears_diploid <- any(diploid.ranks == k_ & pmix[, k_] > 0.6 )
   notdup <- appears_diploid
   notdup
+}
+
+batchLabels <- function(object){
+  assays(object)$batch_labels
+}
+
+anyMissingBatchLabels <- function(object) any(is.na(batchLabels(object)))
+
+duplication_models <- function(mb.subsamp, snpdat, mp, THR=-0.25){
+  sb <- warmup(assays(mb.subsamp),
+               "SBP2",
+               "SB2")
+  mcmcParams(sb) <- mp
+  sb <- posteriorSimulation(sb)
+  sb <- genotype_model(sb, snpdat)
+  ##
+  ## Try MultiBatch
+  ##
+  mb <- warmup(assays(mb.subsamp), "MBP2")
+  mcmcParams(mb) <- mp
+  mb <- posteriorSimulation(mb)
+  mb <- genotype_model(mb, snpdat)
+  list(sb, mb)
+}
+
+select_models <- function(mb){
+  minlogr <- min(oned(mb), na.rm=TRUE)
+  if(minlogr < -1){
+    model <- deletion_models
+  }
+  if(minlogr >= -1  & minlogr < -0.25){
+    model <- hemideletion_models
+  }
+  if(minlogr >= -0.25){
+    model <- duplication_models
+  }
+  model
+}
+
+use_cutoff <- function(mb){
+  minlogr <- min(oned(mb), na.rm=TRUE)
+  if(minlogr < -1){
+    cutoff <- -1
+  }
+  if(minlogr >= -1  & minlogr < -0.25){
+    cutoff <- -0.25
+  }
+  if(minlogr >= -0.25){
+    cutoff <- 0
+  }
+  cutoff
+}
+
+#' @export
+cnv_models <- function(mb,
+                       grange,
+                       snp_se,
+                       mp=McmcParams(iter=400, burnin=500)){
+  if(length(grange) > 1){
+    warning("Multiple elements for `grange` object. Only using first")
+    grange <- grange[1]
+  }
+  snpdat <- subsetByOverlaps(snp_se, grange)
+  modelfun <- select_models(mb)
+  cut <- use_cutoff(mb)
+  model <- modelfun(mb, snpdat, mp, cut)
+  posthoc <- posthoc_checks(model.list)
+  appears_diploid <- not_duplication(model.list[[2]])
+  if(appears_diploid){
+    model <- model.list[[1]]
+  } else {
+    ix <- which.min(posthoc$bic)
+    model <- model.list[[ix]]
+  }
+  model
 }
