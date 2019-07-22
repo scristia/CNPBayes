@@ -51,7 +51,7 @@ test_that("Homozygous deletion / duplication pipeline", {
   mb <- warmup(fdat, "MBP3")
   mcmcParams(mb) <- mp
   set.seed(123)
-  mod_2.4 <- restricted_homhemdup(mb, mod_2.4, mb.subsamp)
+  mod_2.4 <- restricted_homhemdup(mb, mod_2.4, mb.subsamp, mp)
   if(FALSE){
     ##fig1=ggMixture(tmp)
     ##fig2=ggMixture(mod_2.4)

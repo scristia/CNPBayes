@@ -50,3 +50,24 @@ test_that("duplication", {
     mixture_layout(figs, augmented=TRUE)
   }
 })
+
+test_that("duplication_models", {
+  path <- file.path(system.file("extdata", package="CNPBayes"),
+                    "CNP_244")
+  data(snp_se, package="panc.data")
+  data(cnp_se, package="panc.data")
+  g <- rowRanges(cnp_se)["CNP_244"]
+  snpdat <- snp_se[overlapsAny(snp_se, g), ]
+  mp <- McmcParams(iter=1000, burnin=500)
+  mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
+  model.list <- duplication_models(mb.subsamp, snpdat, mp)
+  posthoc <- posthoc_checks(model.list)
+  appears_diploid <- not_duplication(model.list[[2]])
+  if(appears_diploid){
+    model <- model.list[[1]]
+  } else {
+    ix <- which.min(posthoc$bic)
+    model <- model.list[[ix]]
+  }
+  expect_identical(mapping(model), c("2", "3"))
+})

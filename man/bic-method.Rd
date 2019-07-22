@@ -4,11 +4,14 @@
 \name{bic}
 \alias{bic}
 \alias{bic,MultiBatchModel-method}
+\alias{bic,MultiBatchPooled-method}
 \title{Calculate BIC of a model}
 \usage{
 bic(object)
 
 \S4method{bic}{MultiBatchModel}(object)
+
+\S4method{bic}{MultiBatchPooled}(object)
 }
 \arguments{
 \item{object}{see \code{showMethods(bic)}}

@@ -34,9 +34,6 @@ test_that("Hemizygous deletion / duplication pipeline", {
   mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
   mb <- hemdeldup_model2(mb.subsamp, mp, THR=-0.25)
   mb <- genotype_model(mb, snpdat)
-  sb <- genotype_model(sb, snpdat)
-  expect_identical(mapping(mb),
-                   mapping(sb))
   expect_identical(mapping(mb), c("1", "2", "3"))
   if(FALSE){
     require(grid)
