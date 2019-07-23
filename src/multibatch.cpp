@@ -372,7 +372,7 @@ Rcpp::IntegerVector update_z(Rcpp::S4 xmod) {
   for(int i=0; i < n; i++){
     //initialize accumulator ;
     double acc = 0 ;
-   for(int k = 0; k < K; k++){
+    for(int k = 0; k < K; k++){
       acc += p(i, k) ;
       if( u[i] < acc ) {
         zz[i] = k + 1 ;
@@ -389,6 +389,7 @@ Rcpp::IntegerVector update_z(Rcpp::S4 xmod) {
   // Don't update z if there are states with zero frequency.
   //
   int counter = xmod.slot(".internal.counter");
+  //if(counter.size() == 0) counter=0;
   counter++;
   xmod.slot(".internal.counter") = counter;
   return xmod.slot("z") ;
