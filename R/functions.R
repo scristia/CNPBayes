@@ -797,21 +797,17 @@ marginalLik <- function(models){
 }
 
 #' @export
-getData <- function(i, cnp_se, model){
-  dat <- tibble(id=colnames(cnp_se),
-                oned=assays(cnp_se)[["MEDIAN"]][i, ],
-                provisional_batch=colData(cnp_se)$Sample.Plate)
-  assaydat <- assays(model)
-  if(!"is_simulated" %in% colnames(assaydat)){
-    assaydat$is_simulated <- FALSE
-  }
-  batches <- assaydat %>%
-    filter(is_simulated==FALSE) %>%
+getData <- function(cnp_se, provisional_batch, model, THR=-1){
+  dat <- median_summary(cnp_se, provisional_batch, THR) %>%
+    select(-likely_deletion)
+  model <- dropSimulated(model)
+  batches <- assays(model) %>%
     group_by(provisional_batch) %>%
     summarize(batch=unique(batch))
   dat <- left_join(dat, batches, by="provisional_batch")
   index <- which(is.na(dat$batch))
   if(length(index) > 0){
+    stop("batch not modeled")
     dat$batch[index] <- 1L
   }
   ids_ <- id(model)
