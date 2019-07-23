@@ -576,6 +576,8 @@ setAs("MultiBatch", "MultiBatchModel", function(from){
     modal.ordinates$u <- u(from)
     modes(obj) <- modal.ordinates
   }
+  if(length(obj@.internal.counter)==0)
+    obj@.internal.counter=0L
   obj
 })
 
@@ -2708,14 +2710,30 @@ median_summary <- function(se, provisional_batch, THR){
   dat
 }
 
+resampleFromRareProvisionalBatches <- function(dat, dat.nohd){
+  prov.batch <- unique(dat.nohd$provisional_batch)
+  all.prov.batch <- unique(dat$provisional_batch)
+  notsampled <- all.prov.batch[ !all.prov.batch %in% prov.batch ]
+  ## just include all samples from these batches
+  ix <- which(dat$provisional_batch %in% notsampled)
+  dat2 <- dat[ix, ]
+  dat.nohd <- bind_rows(dat.nohd, dat2) %>%
+    filter(!likely_deletion)
+  dat.nohd
+}
+
 kolmogorov_batches <- function(dat, KS_cutoff, THR){
   dat.nohd <- filter(dat, !likely_deletion)
   ##
   ## Group chemistry plates, excluding homozygous deletions
   ##
   ix <- sample(seq_len(nrow(dat.nohd)), 1000, replace=TRUE)
-  ##message("Downsampling non-homozygous deletions and identify batches from surrogates")
-  mb.subsamp <- dat.nohd[ix, ] %>%
+  dat.nohd <- dat.nohd[ix, ]
+  ##
+  ## ensure all provisional batches were sampled
+  ##
+  dat.nohd <- resampleFromRareProvisionalBatches(dat, dat.nohd)
+  mb.subsamp <- dat.nohd %>%
     bind_rows(filter(dat, likely_deletion)) %>%
     mutate(is_simulated=FALSE) %>%
     MultiBatch("MB3", data=.) %>%
@@ -2783,7 +2801,7 @@ genotype_model <- function(model, snpdat){
     "/"(rowSums(.))
   max_zprob <- rowMaxs(pz)
   is_high_conf <- max_zprob > 0.95
-  if(!any(is_high_conf)){
+  if(sum(is_high_conf) < 100){
     is_high_conf <- max_zprob > quantile(max_zprob, 0.5)
   }
   ##mean(is_high_conf)
@@ -3461,7 +3479,7 @@ hemdeldup_model2 <- function(mb.subsamp, mp, THR){
   mcmcParams(sb) <- mp
   sb <- posteriorSimulation(sb)
   finished <- stop_early(sb, 0.98, 0.98)
-  if(finished) return(finished)
+  if(finished) return(sb)
 
   sb.meds <- colMedians(theta(chains(sb)))
   densities <- compute_density(mb.subsamp, THR)
@@ -3637,7 +3655,7 @@ cnv_models <- function(mb,
   snpdat <- subsetByOverlaps(snp_se, grange)
   modelfun <- select_models(mb)
   cut <- use_cutoff(mb)
-  model <- modelfun(mb, snpdat, mp, cut)
+  model.list <- modelfun(mb, snpdat, mp, cut)
   posthoc <- posthoc_checks(model.list)
   appears_diploid <- not_duplication(model.list[[2]])
   if(appears_diploid){
@@ -3647,4 +3665,52 @@ cnv_models <- function(mb,
     model <- model.list[[ix]]
   }
   model
+}
+
+#' @export
+upsample <- function(model, se, provisional_batch){
+  dat <- getData(se[1, ], provisional_batch, model)
+  pred <- predictiveDist(model)
+  dat2 <- predictiveProb(pred, dat) %>%
+    mutate(copynumber=mapping(model)[inferred_component])
+  ix <- which(colnames(dat2) %in% as.character(0:4))
+  ##
+  ## multiple components can map to the same copy number state
+  ## -- add probabilities belonging to same component
+  select <- dplyr::select
+  tmp <- dat2[, ix] %>%
+    mutate(id=dat2$id) %>%
+    gather("state", "prob", -id) %>%
+    mutate(component_index=as.numeric(state) + 1) %>%
+    mutate(copynumber=mapping(model)[component_index]) %>%
+    group_by(id, copynumber) %>%
+    summarize(prob=sum(prob)) %>%
+    select(c(id, prob, copynumber)) %>%
+    spread(copynumber, prob)
+  dat2 <- dat2[, -ix] %>%
+    left_join(tmp, by="id")
+  dat3 <- tidy_cntable(dat2)
+  dat3
+}
+
+tidy_cntable <- function(dat){
+  tmp <- tibble(id=dat$id,
+                `0`=rep(0, nrow(dat)),
+                `1`=rep(0, nrow(dat)),
+                `2`=rep(0, nrow(dat)),
+                `3`=rep(0, nrow(dat)),
+                `4`=rep(0, nrow(dat)))
+  dat2 <- left_join(dat, tmp, by="id") 
+  dropcols <- paste0(0:4, ".y")
+  dropcols <- dropcols[ dropcols %in% colnames(dat2)]
+  dat2 <- select(dat2, -dropcols)
+  renamecols <- paste0(0:4, ".x")
+  renamecols <- renamecols[renamecols %in% colnames(dat2)]
+  renameto <- gsub("\\.x", "", renamecols)
+  colnames(dat2)[match(renamecols, colnames(dat2))] <- renameto
+  colnames(dat2)[match(0:4, colnames(dat2))] <- paste0("cn_", 0:4)
+  keep <- c("id", "copynumber", paste0("cn_", 0:4))
+  dat3 <- select(dat2, keep) %>%
+    mutate(copynumber=as.integer(copynumber))
+  dat3
 }
