@@ -2420,19 +2420,20 @@ augment_rarecomponent <- function(restricted,
     simdat <- bind_rows(assays(restricted),
                         impdat) %>%
       arrange(batch)
-    ##    obsdat <- assays(restricted) %>%
-    ##      mutate(is_simulated=FALSE)
-    ##    simdat <- bind_rows(obsdat,
-    ##                        impdat) %>%
-    ##      arrange(batch)
+  } else {
+    simdat <- assays(restricted)
   }
   mb <- MultiBatchList(data=simdat)[[modelName(restricted)]]
   mcmcParams(mb) <- mcmcParams(restricted)
   theta(mb) <- theta(restricted)
-  theta(mb)[is_dropped, rare_component_restricted] <- loc.scale$theta
+  if(any_dropped){
+    i_ <- is_dropped
+    j_ <- rare_component_restricted
+    theta(mb)[i_, j_] <- loc.scale$theta
+  }
   if(ncol(sigma2(restricted)) == 1){
     j <- 1
-  }else{
+  } else{
     j <- rare_component_restricted
   }
   sigma2(mb) <- matrix(pmin(sigma2(restricted)[, j], component_var),
@@ -3268,8 +3269,10 @@ equivalent_variance <- function(model){
   NA
 }
 
-homdel_model <- function(mb, mp){
-  THR <- summaries(mb)$deletion_cutoff
+homdel_model <- function(mb, mp, THR){
+  if(missing(THR)){
+    THR <- summaries(mb)$deletion_cutoff
+  } else summaries(mb)$deletion_cutoff <- THR
   if(is.null(THR)){
     dat <- assays(mb)
     THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
@@ -3334,8 +3337,10 @@ hd3comp <- function(restricted, simdat, mb.subsamp, mp){
   mod_1.3
 }
 
-homdeldup_model <- function(mb, mp){
-  THR <- summaries(mb)$deletion_cutoff
+homdeldup_model <- function(mb, mp, THR){
+  if(missing(THR)){
+    THR <- summaries(mb)$deletion_cutoff
+  } else summaries(mb)$deletion_cutoff <- THR
   if(is.null(THR)){
     dat <- assays(mb)
     THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
@@ -3420,17 +3425,14 @@ model_checks <- function(models){
 }
 
 deletion_models <- function(mb, snp_se, mp, THR){
-  if(missing(THR))
+  if(missing(THR)){
     THR <- summaries(mb)$deletion_cutoff
+  } else summaries(mb)$deletion_cutoff <- THR
   if(!any(oned(mb) < THR)) stop("No observations below deletion cutoff")
   mod3 <- homdel_model(mb, mp)
   gmodel <- genotype_model(mod3, snp_se)
   mod4 <- homdeldup_model(mb, mp)
   gmodel4 <- genotype_model(mod4, snp_se)
-  ##  if(identical(unique(mapping(gmodel)),
-  ##               unique(mapping(gmodel4)))){
-  ##    return(gmodel)
-  ##  }
   ##compare bic without data augmentation
   model.list <- list(gmodel, gmodel4)
   model.list
@@ -3464,6 +3466,7 @@ hemdeldup_model <- function(mb.subsamp, mp, THR=-0.25){
   mcmcParams(sb) <- mp
   sb <- posteriorSimulation(sb)
   finished <- stop_early(sb, 0.99, 0.99)
+  if(is.na(finished)) finished <- FALSE
   if(finished) return(sb)
   THR <- summaries(mb.subsamp)$deletion_cutoff
   mb <- explore_multibatch(sb, simdat, THR)
@@ -3471,15 +3474,18 @@ hemdeldup_model <- function(mb.subsamp, mp, THR=-0.25){
 }
 
 hemdeldup_model2 <- function(mb.subsamp, mp, THR){
-  ##sb <- warmup(simdat,
   sb <- warmup(assays(mb.subsamp),
                "SBP3",
                "SB3")
-  mp <- McmcParams(iter=400, burnin=500)
   mcmcParams(sb) <- mp
   sb <- posteriorSimulation(sb)
   finished <- stop_early(sb, 0.98, 0.98)
+  if(is.na(finished)) finished <- FALSE
   if(finished) return(sb)
+
+  while(sum(oned(mb.subsamp) < THR) < 5){
+    THR <- THR + 0.05
+  }
 
   sb.meds <- colMedians(theta(chains(sb)))
   densities <- compute_density(mb.subsamp, THR)
@@ -3605,13 +3611,20 @@ duplication_models <- function(mb.subsamp, snpdat, mp, THR=-0.25){
   mcmcParams(sb) <- mp
   sb <- posteriorSimulation(sb)
   sb <- genotype_model(sb, snpdat)
+  ## probability > 0.98 for 99% or more of participants
+  finished <- stop_early(sb, 0.98, 0.99)
+  if(finished){
+    return(list(sb))
+  }
   ##
   ## Try MultiBatch
   ##
   mb <- warmup(assays(mb.subsamp), "MBP2")
   mcmcParams(mb) <- mp
-  mb <- posteriorSimulation(mb)
-  mb <- genotype_model(mb, snpdat)
+  mb <- tryCatch(posteriorSimulation(mb), warning=function(w) NULL)
+  if(!is.null(mb)){
+    mb <- genotype_model(mb, snpdat)
+  }
   list(sb, mb)
 }
 
@@ -3619,14 +3632,14 @@ select_models <- function(mb){
   minlogr <- min(oned(mb), na.rm=TRUE)
   if(minlogr < -1){
     model <- deletion_models
+    return(model)
   }
-  if(minlogr >= -1  & minlogr < -0.25){
+  number <- sum(oned(mb) >= -1  & oned(mb) < -0.25)
+  if(number > 1 && minlogr >= -1  && minlogr < -0.25){
     model <- hemideletion_models
+    return(model)
   }
-  if(minlogr >= -0.25){
-    model <- duplication_models
-  }
-  model
+  duplication_models
 }
 
 use_cutoff <- function(mb){
@@ -3647,23 +3660,30 @@ use_cutoff <- function(mb){
 cnv_models <- function(mb,
                        grange,
                        snp_se,
-                       mp=McmcParams(iter=400, burnin=500)){
+                       mp=McmcParams(iter=400, burnin=500),
+                       THR){
   if(length(grange) > 1){
     warning("Multiple elements for `grange` object. Only using first")
     grange <- grange[1]
   }
+  if(any(is.na(assays(mb)$batch_labels))) {
+    stop("Missing data in `assays(mb)$batch_labels`")
+  }
   snpdat <- subsetByOverlaps(snp_se, grange)
   modelfun <- select_models(mb)
-  cut <- use_cutoff(mb)
-  model.list <- modelfun(mb, snpdat, mp, cut)
-  posthoc <- posthoc_checks(model.list)
-  appears_diploid <- not_duplication(model.list[[2]])
-  if(appears_diploid){
-    model <- model.list[[1]]
-  } else {
-    ix <- which.min(posthoc$bic)
-    model <- model.list[[ix]]
-  }
+  if(missing(THR))
+    THR <- use_cutoff(mb)
+  model.list <- modelfun(mb, snpdat, mp, THR)
+  if(length(model.list) > 1){
+    posthoc <- posthoc_checks(model.list)
+    appears_diploid <- not_duplication(model.list[[2]])
+    if(appears_diploid){
+      model <- model.list[[1]]
+    } else {
+      ix <- which.min(posthoc$bic)
+      model <- model.list[[ix]]
+    }
+  } else model <- model.list[[1]]
   model
 }
 
