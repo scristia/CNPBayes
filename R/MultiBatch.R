@@ -2436,8 +2436,12 @@ augment_rarecomponent <- function(restricted,
   } else{
     j <- rare_component_restricted
   }
-  sigma2(mb) <- matrix(pmin(sigma2(restricted)[, j], component_var),
-                       ncol=1)
+  if(any_dropped){
+    ##component_var only defined in conditional statement above
+    sigma2(mb) <- matrix(pmin(sigma2(restricted)[, j],
+                              component_var),
+                         ncol=1)
+  }
   mb
 }
 
@@ -2584,7 +2588,9 @@ batchLevels <- function(mb){
   mod_1.3
 }
 
-mcmcWithHomDel <- function(mb, sb, restricted_model, THR,
+mcmcWithHomDel <- function(mb, sb,
+                           restricted_model,
+                           THR,
                            model="MB3"){
   hdmean <- homozygousdel_mean(sb, THR)
   mn_sd <- list(hdmean, sdRestrictedModel(restricted_model))
@@ -2607,8 +2613,8 @@ mcmcWithHomDel <- function(mb, sb, restricted_model, THR,
 mcmcHomDelOnly <- function(simdat,
                            restricted_model,
                            sb,
-                           model,
-                           mp=McmcParams(iter=100, burnin=200)){
+                           model){
+  mp <- mcmcParams(sb)
   mbl <- MultiBatchList(data=simdat)
   mod_1.3 <- mbl[[ model ]]
   hdmean <- homozygousdel_mean(mod_1.3)
@@ -2802,8 +2808,14 @@ genotype_model <- function(model, snpdat){
     "/"(rowSums(.))
   max_zprob <- rowMaxs(pz)
   is_high_conf <- max_zprob > 0.95
-  if(sum(is_high_conf) < 100){
-    is_high_conf <- max_zprob > quantile(max_zprob, 0.5)
+  if(all(is.na(is_high_conf))) return(model)
+  n.highconf <- sum(is_high_conf, na.rm=TRUE)
+  if(n.highconf < 100){
+    is_high_conf <- max_zprob >= quantile(max_zprob, 0.5)
+  }
+  if(!any(is_high_conf)) {
+    warning("No high confidence copy number calls")
+    return(model)
   }
   ##mean(is_high_conf)
   gmodel <- model[ !isSimulated(model) &  is_high_conf ]
@@ -2842,15 +2854,23 @@ join_baf_oned <- function(model, snpdat){
                   z=map_z(gmodel)) %>%
     mutate(cn=mapping(gmodel)[z]) %>%
     mutate(cn=factor(cn))
-  bafdat <- left_join(bafdat, cndat, by="id")
-  bafdat2 <- filter(bafdat, pz > 0.9)
+  bafdat <- left_join(bafdat, cndat, by="id") %>%
+    filter(!is.na(cn))
+  ## Want cutoff that allows plotting of all states but that removes
+  ## low quality SNPs
+  tmp <- group_by(bafdat, cn) %>%
+    summarize(min_prob=min(pz),
+              med_prob=median(pz),
+              n=n())
+  cutoff <- min(min(tmp$med_prob), 0.9)
+  bafdat2 <- filter(bafdat, pz > cutoff)
   bafdat2
 }
 
 #' @export
-mixture_plot <- function(model, snpdat){
+mixture_plot <- function(model, snpdat, xlimit=c(-4, 1), bins=100){
   bafdat <- join_baf_oned(model, snpdat)
-  figs <- list_mixture_plots(model, bafdat)
+  figs <- list_mixture_plots(model, bafdat, xlimit=xlimit, bins=bins)
   figs
 }
 
@@ -2862,13 +2882,18 @@ component_labels <- function(model){
   labs
 }
 
-list_mixture_plots <- function(model, bafdat, xlimit=c(-4, 1)){
-  A <- ggMixture(model) +
+list_mixture_plots <- function(model, bafdat, xlimit=c(-4, 1), bins=100){
+  rg <- range(theta(model)[, 1])
+  if(min(rg) < xlimit[1]){
+    s <- mean(sigma(model)[, 1])
+    xlimit[1] <- min(rg) - 2*s
+  }
+  A <- ggMixture(model, bins=bins) +
     xlab(expression(paste("Median ", log[2], " R ratio"))) +
     ylab("Density\n") +
     xlim(xlimit)
   ## predictive densities excluding simulated data
-  A2 <- ggMixture(model[ !isSimulated(model) ]) +
+  A2 <- ggMixture(model[ !isSimulated(model) ], bins=bins) +
     xlab(expression(paste("Median ", log[2], " R ratio"))) +
     ylab("Density\n") +
     xlim(xlimit)
@@ -2896,12 +2921,13 @@ list_mixture_plots <- function(model, bafdat, xlimit=c(-4, 1)){
 }
 
 #' @export
-mixture_layout <- function(figure_list, augmented=TRUE){
+mixture_layout <- function(figure_list, augmented=TRUE,
+                           newpage=TRUE){
   if(augmented) {
     A <- figure_list[["augmented"]]
   } else A <- figure_list[["observed"]]
   B <- figure_list[["baf"]]
-  grid.newpage()
+  if(newpage) grid.newpage()
   pushViewport(viewport(layout=grid.layout(1, 2,
                                            widths=c(0.6, 0.4))))
   pushViewport(viewport(layout.pos.row=1,
@@ -2915,6 +2941,7 @@ mixture_layout <- function(figure_list, augmented=TRUE){
   pushViewport(viewport(width=unit(0.96, "npc"),
                         height=unit(0.6, "npc")))
   print(B, newpage=FALSE)
+  popViewport(2)
 }
 
 fit_restricted <- function(mb, sb, THR, model="MBP2",
@@ -2943,7 +2970,7 @@ explore_multibatch <- function(sb, simdat, THR=-1,
   ok <- ok_model(full, restricted)
   if(!ok){
     model <- gsub("P", "", modelName(full))
-    full <- mcmcHomDelOnly(simdat, restricted, sb, model)
+    full <- mcmcHomDelOnly(assays(full), restricted, sb, model)
   }
   full
 }
@@ -3352,6 +3379,11 @@ homdeldup_model <- function(mb, mp, THR){
                "SB4")
   mcmcParams(sb) <- mp
   sb <- posteriorSimulation(sb)
+  ##
+  ## if 4th component appears diploid, I don't think we should proceed
+  ##
+  appears_diploid <- not_duplication(sb)
+  if(appears_diploid) return(sb)
   finished <- stop_early(sb, 0.99, 0.99)
   if(finished) return(sb)
   ##
@@ -3605,16 +3637,21 @@ batchLabels <- function(object){
 anyMissingBatchLabels <- function(object) any(is.na(batchLabels(object)))
 
 duplication_models <- function(mb.subsamp, snpdat, mp, THR=-0.25){
+  ## duplication model
   sb <- warmup(assays(mb.subsamp),
                "SBP2",
                "SB2")
   mcmcParams(sb) <- mp
-  sb <- posteriorSimulation(sb)
-  sb <- genotype_model(sb, snpdat)
-  ## probability > 0.98 for 99% or more of participants
-  finished <- stop_early(sb, 0.98, 0.99)
-  if(finished){
-    return(list(sb))
+  sb <- tryCatch(posteriorSimulation(sb),
+                 warning=function(w) NULL)
+  if(!is.null(sb)){
+    appears_diploid <- not_duplication(sb)
+    sb <- genotype_model(sb, snpdat)
+    ## probability > 0.98 for 99% or more of participants
+    finished <- stop_early(sb, 0.98, 0.99)
+    if(finished){
+      return(list(sb))
+    }
   }
   ##
   ## Try MultiBatch
@@ -3642,6 +3679,7 @@ select_models <- function(mb){
   duplication_models
 }
 
+#' @export
 use_cutoff <- function(mb){
   minlogr <- min(oned(mb), na.rm=TRUE)
   if(minlogr < -1){
@@ -3674,7 +3712,10 @@ cnv_models <- function(mb,
   if(missing(THR))
     THR <- use_cutoff(mb)
   model.list <- modelfun(mb, snpdat, mp, THR)
-  if(length(model.list) > 1){
+  is_null <- sapply(model.list, is.null)
+  model.list <- model.list[ !is_null ]
+  if(length(model.list) == 1) return(model.list[[1]])
+  if(length(model.list) == 2) {
     posthoc <- posthoc_checks(model.list)
     appears_diploid <- not_duplication(model.list[[2]])
     if(appears_diploid){
@@ -3683,7 +3724,14 @@ cnv_models <- function(mb,
       ix <- which.min(posthoc$bic)
       model <- model.list[[ix]]
     }
-  } else model <- model.list[[1]]
+    return(model)
+  }
+  if(length(model.list) == 0){
+    ## return single component model
+    mb <- MultiBatchList(data=assays(mb))[["MB1"]]
+    mcmcParams(mb) <- mp
+    model <- posteriorSimulation(mb)
+  }
   model
 }
 

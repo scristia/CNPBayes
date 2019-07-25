@@ -32,6 +32,7 @@ test_that("Hemizygous deletion / duplication pipeline", {
   g <- rowRanges(cnp_se)["CNP_147"]
   snpdat <- snp_se[overlapsAny(snp_se, g), ]
   mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
+  mp <- McmcParams(iter=500, burnin=400)
   mb <- hemdeldup_model2(mb.subsamp, mp, THR=-0.25)
   mb <- genotype_model(mb, snpdat)
   expect_identical(mapping(mb), c("1", "2", "3"))

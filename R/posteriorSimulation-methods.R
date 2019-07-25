@@ -198,6 +198,12 @@ setMethod("mcmc_homozygous", "MultiBatchPooled", function(object) {
 setMethod("mcmc_homozygous", "MultiBatch", function(object){
   mbm <- as(object, "MultiBatchModel")
   mbm <- burnin_homozygous(mbm)
+  ##  frac <- min(mbm@.internal.counter/iter(mbm), 1)
+  ##  if(frac > 0.9){
+  ##    stop("Missing component")
+  ##    mb <- revertBack(object, mbm)
+  ##    summaries(mb) <- summarizeModel(mb)
+  ##  }
   ##mbm <- sortComponentLabels(mbm)
   mbm <- mcmc_homozygous(mbm)
   if(!isOrdered(mbm)) label_switch(mbm) <- TRUE

@@ -58,6 +58,7 @@ test_that("hemdel_model", {
   mb <- hemdel_model(mb.subsamp, mp)
   expected <- readRDS(file.path(path, "CNP_014.rds"))
   expect_equivalent(theta(mb), theta(expected))
+  expect_identical(modelName(mb), "MBP2")
 })
 
 test_that("hemideletion_model", {
@@ -71,7 +72,6 @@ test_that("hemideletion_model", {
   summaries(mb.subsamp)$deletion_cutoff <- -0.25
   mp <- McmcParams(iter=400, burnin=500)
   model.list <- hemideletion_models(mb.subsamp, snpdat, mp)
-  posthoc <- posthoc_checks(model.list)
   appears_diploid <- not_duplication(model.list[[2]])
   if(appears_diploid){
     model <- model.list[[1]]
@@ -79,10 +79,5 @@ test_that("hemideletion_model", {
     ix <- which.min(posthoc$bic)
     model <- model.list[[ix]]
   }
-  if(FALSE){
-    ggMixture(model.list[[1]]) + xlim(c(-4, 1))
-    ggMixture(model.list[[2]]) + xlim(c(-4, 1))
-    m2 <- dropSimulated(model.list[[2]])
-    ggMixture(m2) + xlim(c(-4, 1))
-  }
+  expect_identical(modelName(model), "MBP2")
 })

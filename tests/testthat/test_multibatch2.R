@@ -45,22 +45,7 @@ test_that("revised_constructors", {
   identical(parameters(mb2), parameters(tmp))
 })
 
-test_that("list of models with independent starting values", {
-  skip("replicateMultiBatch not implemented")
-  data(SingleBatchModelExample)
-  sb <- SingleBatchModelExample
-  mb <- sb %>%
-    as("MultiBatch")
-  mb.list <- replicateMultiBatch(mb)
 
-  replicateMultiBatch <- function(object){
-
-
-  }
-  mb <- MultiBatchModel2()
-  mcmcParams(mb) <- McmcParams(iter=iter(mb), thin=thin(mb),
-                               burnin=burnin(mb))
-})
 
 test_that("no downsampling", {
   data(SingleBatchModelExample)
@@ -234,38 +219,6 @@ test_that("downsampling_with_surrogates", {
   expect_true(validObject(mb4))
 })
 
-test_that("upsample", {
-  skip('skip upsample tests')
-  library(SummarizedExperiment)
-  library(tidyverse)
-  data(MultiBatchModelExample)
-  mb <- MultiBatchModelExample
-  mcmcParams(mb) <- McmcParams(iter=200, thin=2,
-                               burnin=200,
-                               nStarts=4)
-  mb1 <- as(mb, "MultiBatch")
-  ix <- sort(sample(seq_len(nrow(mb1)), 1000L, replace=TRUE))
-  downsampled.model <- mb1[ix]
-  burnin(downsampled.model) <- 0L
-  downsampled.model <- posteriorSimulation(downsampled.model)
-  expect_identical(names(current_values(downsampled.model)),
-                   names(modes(downsampled.model)))
-
-  ##
-  ## with upsampling, we would like to infer the probability of the copy number
-  ## assignment from the downsampled data.
-  ##
-  ## Steps:
-  ## 1.  evaluate convergence, etc.
-  ## 2.  set current values to modal ordinates
-  ## 3.  compute z probabilities for full data from modal ordinates
-  ##     (all ordinates are modal except for u)
-  ## 4.  give z probabilities from step 3, update z in the standard way
-  ## Should we automatically upSample?
-  full.model <- mb1
-  mb4 <- upSampleModel(downsampled.model, full.model)
-  if(FALSE) ggMixture(mb4)
-})
 
 test_that("Pooled model", {
   mb <- MultiBatchP()
@@ -325,20 +278,6 @@ test_that("Pooled model", {
   ## does NOT move to region of high posterior probability quickly
   tmp <- posteriorSimulation(mb1)
   ##expect_true(all.equal(theta(tmp), theta(mb), tolerance=0.02))
-})
-
-test_that("Plotting", {
-  library(tidyverse)
-  data(MultiBatchModelExample)
-  mbe <- MultiBatchModelExample
-  mb <- as(mbe, "MultiBatch")
-  ch <- chains(mb)
-  ch.list <- as(ch, "list")
-  if(FALSE){
-    ggplot(ch.list[["theta"]], aes(s, value, group=b)) +
-      geom_line(aes(color=b)) +
-      facet_wrap(~k)
-  }
 })
 
 test_that("predictive", {

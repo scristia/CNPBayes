@@ -79,30 +79,6 @@ test_that("posterior simulation with MBL", {
   expect_true(!any(is.na(theta(chains(mbl2)[[1]]))))
 })
 
-test_that("downsampling with lists", {
-  skip("need to fix this unit test")
-  ##
-  ## with downsampling
-  ##
-  i <- sort(sample(seq_len(nrow(mbl)), replace=TRUE, size=750))
-  ds <- MultiBatchList(data=assays(mb1)[i, ])
-  expect_true(validObject(ds))
-  iter(ds) <- 100
-  burnin(ds) <- 50
-  ds <- posteriorSimulation(ds)
-  expect_true(validObject(ds))
-})
-
-test_that("upsampling with lists", {
-  skip("Might be easiest to restrict upsampling to non-list data -- after model selection  ")
-  ## Easiest to do upsampling once we have selected a model
-  mbl <- full.model
-  mbl5 <- upSampleModel(ds, )
-  pz <- current_values(mbl5)[[1]][["probz_up"]]
-  expect_identical(nrow(pz), specs(mbl5)$number_obs[1])
-  expect_false(any(is.na(pz)))
-})
-
 test_that("Running multiple chains for one model", {
   set.seed(34)
   data(MultiBatchModelExample)
