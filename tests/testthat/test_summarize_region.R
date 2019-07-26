@@ -2,20 +2,19 @@ context("deletion pipeline")
 
 test_that("summarize region", {
   library(SummarizedExperiment)
+  set.seed(2463)
   ##
   ## summarize_region code chunk
   ##
   path <- system.file("extdata", package="CNPBayes")
   cnp_se <- readRDS(file.path(path, "cnp_se.rds"))
-  plates <- colData(cnp_se)$Sample.Plate
+  plates <- colData(cnp_se)$plate
   mb.subsamp <- summarize_region(cnp_se[1, ],
                                  provisional_batch=plates,
                                  THR=-1)
-  expect_identical(summaries(mb.subsamp)$deletion_cutoff,
-                   -1)
   if(FALSE){
     saveRDS(mb.subsamp, file="../../inst/extdata/mb_subsamp.rds")
   }
-  expected <- readRDS("../../inst/extdata/mb_subsamp.rds")
-  expect_equivalent(mb.subsamp, expected)
+  expect_identical(numBatch(mb.subsamp), 5L)
+  expect_identical(nrow(mb.subsamp), 1010L)
 })

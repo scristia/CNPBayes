@@ -1,222 +1,108 @@
-context("analysis of rare deletions")
-
+context("CNV model selection")
 ## CNP_001
-.test_that <- function(nm, expr) NULL
 
-test_that("rare_deletion_pipeline", {
+test_that("cnv pipeline", {
+  library(SummarizedExperiment)
   path <- system.file("extdata", package="CNPBayes")
-  set.seed(2463)
-  snp_se <- readRDS(file.path(path, "snp_se.rds"))
-  mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
-  simdat <- augment_homozygous(mb.subsamp)
-  THR <- summaries(mb.subsamp)$deletion_cutoff
-  sb3 <- warmup(simdat, "SBP3", "SB3")
-  mcmcParams(sb3) <- McmcParams(iter=400, burnin=500)
-  sb3 <- posteriorSimulation(sb3)
-  expect_equal(as.numeric(theta(sb3)),
-               c(-3.76, -0.22, 0.002),
-               tolerance=0.01)
-  finished <- stop_early(sb3)
-  expect_false(finished)
-  ## Since not finished, keep going
-  mod_1.3 <- explore_multibatch(sb3, simdat, THR)
-  gmodel <- genotype_model(mod_1.3, snp_se)
-  ##expect_true(FALSE)
+  cnp_se <- readRDS(file.path(path1, "cnp_se.rds"))["CNP_001", ]
+  snp_se <- readRDS(file.path(path1, "snp_se.rds"))
+  snp_se <- subsetByOverlaps(snp_se, cnp_se)
+  mb <- readRDS(file.path(path, "mb_subsamp.rds"))
+  model <- cnv_models(mb, rowRanges(cnp_se), snp_se)
+  expect_identical(modelName(model), "MBP3")
+  expect_identical(mapping(model), c("0", "2", "2"))
   if(FALSE){
-    saveRDS(sb3, file=file.path(path, "sb3_1.rds"))
-  }
-  expected_sb3 <- readRDS(file.path(path,
-                                    "sb3_1.rds"))
-  expected_mod1.3 <- readRDS(file.path(path, "mod_1.3.rds"))
-  expected_gt <- readRDS(file.path(path, "CNP_001.rds"))
-  expect_equivalent(sb3, expected_sb3)
-  expect_equivalent(mod_1.3, expected_mod1.3)
-  expect_equivalent(gmodel, expected_gt)
-})
-
-test_that("deletion_models", {
-  path <- system.file("extdata", package="CNPBayes")
-  set.seed(2463)
-  snp_se <- readRDS(file.path(path, "snp_se.rds"))
-  mp <- McmcParams(iter=400, burnin=500)
-  mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
-  model.list <- deletion_models(mb.subsamp, snp_se, mp)
-  posthoc <- posthoc_checks(model.list)
-  appears_diploid <- not_duplication(model.list[[2]])
-  expect_false(appears_diploid)
-  if(appears_diploid){
-    model <- model.list[[1]]
-  } else {
-    ix <- which.min(posthoc$bic)
-    model <- model.list[[ix]]
-  }
-  expected <- readRDS(file.path(path, "CNP_001.rds"))
-  expect_equivalent(theta(model), theta(expected), tolerance=0.05)
-  expect_identical(mapping(model), mapping(expected))
-})
-
-test_that("rare_deletion_wrapper", {
-  path <- system.file("extdata", package="CNPBayes")
-  set.seed(2463)
-  snp_se <- readRDS(file.path(path, "snp_se.rds"))
-  mp <- McmcParams(iter=400, burnin=500)
-  mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
-  mod3 <- homdel_model(mb.subsamp, mp)
-  gmodel <- genotype_model(mod3, snp_se)
-  expected_gt <- readRDS(file.path(path, "CNP_001.rds"))
-  expect_equivalent(gmodel, expected_gt)
-  ##
-  ## fit 4-component model
-  ##
-  mod4 <- homdeldup_model(mb.subsamp, mp)
-  gmodel4 <- genotype_model(mod4, snp_se)
-  ## how to choose? shiny app to visualize
-  if(identical(unique(mapping(gmodel)),
-               unique(mapping(gmodel4)))){
-    ## choose simpler model
-    final <- gmodel
-  } else {
-    ## compare bic without data augmentation
-    mod3.2 <- mod3[!isSimulated(mod3)]
-    expect_true(validModel(mod3.2))
-    mod4.2 <- mod4[!isSimulated(mod4)]
-    expect_false(validModel(mod4.2))
-    ## BIC grabs log likelihood from slot.  Need to update loglik
-    ##    ll <- loglik_multibatch_pvar(as(mod3.2, "MultiBatchPooled"))
-    ##    mb <- as(mod4.2, "MultiBatchModel")
-    ##    ll2 <- compute_loglik(mb)
-    ##    bic3 <- bic(mod3.2)
-    ##    bic4 <- bic(mod4.2)
-  }
-  if(FALSE){
-    library(grid)
-    bafdat <- join_baf_oned(gmodel, snp_se)
-    figs <- list_mixture_plots(gmodel, bafdat)
-    pdf(tempfile(), width=14, height=8)
+    ## verify probabilities well calibrated with constrained mcmc
+    maxpz <- tibble(prob=rowMaxs(probz(model)),
+                    batch=batch(model),
+                    z=map_z(model))
+    cutoffs <- group_by(maxpz, z) %>%
+      summarize(upper_quartile=quantile(prob, 0.75))
+    ggplot(maxpz, aes(z, prob)) +
+      geom_jitter(width=0.1) +
+      facet_wrap(~batch)
+    bafdat <- join_baf_oned(model, snp_se)
+    figs <- list_mixture_plots(model, bafdat)
     mixture_layout(figs, augmented=TRUE)
-    dev.off()
-
-    bafdat2 <- join_baf_oned(gmodel4, snp_se)
-    figs2 <- list_mixture_plots(gmodel4, bafdat2)
-    mixture_layout(figs2, augmented=TRUE)
   }
 })
 
-## for first step, see test_summarized_region.R
-test_that("augment data", {
-  set.seed(2463)
-  ##mp <- McmcParams(iter=500, burnin=400)
+##
+## Common deletion
+##
+test_that("common deletion", {
   path <- system.file("extdata", package="CNPBayes")
-  mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
-  simdat <- augment_homozygous(mb.subsamp)
-  if(FALSE){
-    saveRDS(simdat, file=file.path(path, "simdat.rds"))
-  }
-  expected <- readRDS(file.path(path, "simdat.rds"))
-  expected$homozygousdel_mean <- simdat$homozygousdel_mean
-  expect_equivalent(simdat, expected)
-})
-
-test_that("Augment hemizygous", {
-  path <- system.file("extdata", package="CNPBayes")
-  ##
-  ## Reminder that we only do this section if augment_hemizygous
-  ## is TRUE
-  ##
-  mod_2.3 <- readRDS(file.path(path, "mod_2.3.rds"))
-  sb3 <- readRDS(file.path(path, "sb3_1.rds"))
-  mb <- augment_rarecomponent(mod_2.3, sb3)
-  ##
-  message("Run additional MCMC simulations on the augmented data")
-  ##
-  mod_2.3 <- posteriorSimulation(mb)
-  if(FALSE){
-    saveRDS(mod_2.3, file=file.path(path, "mod_2.32.rds"))
-  }
-  expected <- readRDS(file.path(path, "mod_2.32.rds"))
-  expect_equivalent(mod_2.3, expected)
-  if(FALSE){
-    ggMixture(mod_2.3)
-  }
-})
-
-test_that("Fit multi-batch model with all components", {
-  set.seed(2463)
-  path <- system.file("extdata", package="CNPBayes")
-  simdat <- readRDS(file.path(path, "simdat_2.rds"))
-  mod_2.3 <- readRDS(file.path(path, "mod_2.3.rds"))
-  sb3 <- readRDS(file.path(path, "sb3_1.rds"))
-  mb <- revertToMultiBatch(sb3)
-  fdat <- filter(assays(mb), oned > -1)  %>%
-     mutate(is_simulated=FALSE)
-  mb <- warmup(fdat, "MBP2")
-  mcmcParams(mb) <- McmcParams(iter=500, burnin=50)
-  mod_1.3 <- mcmcWithHomDel(mb, sb=sb3,
-                            restricted_model=mod_2.3,
-                            THR=-1)
-  ##
-  ##
-  ##
-  ok <- ok_model(mod_1.3, restricted_model=mod_2.3)
-  expect_true(ok)
-  if(FALSE){
-    saveRDS(mod_1.3, file=file.path(path, "mod_1.3.rds"))
-  }
-  expected <- readRDS(file.path(path, "mod_1.3.rds"))
-  expect_equivalent(mod_1.3, expected)
-})
-
-test_that("only update homozygous component", {
-  path <- system.file("extdata", package="CNPBayes")
-  set.seed(2463)
-  simdat <- readRDS(file.path(path, "simdat_1.rds"))
-  mod_1.3 <- readRDS(file.path(path, "mod_1.3.rds"))
-  mod_2.3 <- readRDS(file.path(path, "mod_2.3.rds"))
-  sb3 <- readRDS(file.path(path, "sb3_1.rds"))
-  if(FALSE){
-    saveRDS(mod_1.3, file=file.path(path, "mod_1.3_2.rds"))
-  }
-  model <- gsub("P", "", modelName(mod_1.3))
-  mod_1.3 <- mcmcHomDelOnly(simdat, mod_2.3, sb3, model)
-  expected <- readRDS(file.path(path, "mod_1.3_2.rds"))
-  expect_equivalent(mod_1.3, expected)
-})
-
-test_that("genotype", {
-  path <- system.file("extdata", package="CNPBayes")
-  ##
-  ## Genotype using high confidence subjects
-  ##
-  path <- system.file("extdata", package="CNPBayes")
+  set.seed(555)
+  cnp_se <- readRDS(file.path(path, "cnp_se.rds"))["CNP_022", ]
   snp_se <- readRDS(file.path(path, "snp_se.rds"))
-  mod_1.3 <- readRDS(file.path(path, "mod_1.3.rds"))
-  mod_1.3 <- genotype_model(mod_1.3, snp_se)
-  ##
-  ##
-  ##
-  message("Write mapping to model file")
-  expect_identical(mapping(mod_1.3), c("0", "2", "2"))
+  snp_se <- subsetByOverlaps(snp_se, cnp_se)
+  path2 <- file.path(path, "CNP_022")
+  mb.subsamp <- readRDS(file.path(path2, "mb_subsamp.rds"))
+  mp <- McmcParams(iter=400, burnin=500)
+  model.list <- deletion_models(mb.subsamp, snp_se, mp)
+  model <- choose_model(model.list, mb.subsamp)
+  expect_identical(mapping(model), c("0", "1", "2"))
+})
+
+## homozygous deletion and duplication
+test_that("homdeldup_model", {
+  library(SummarizedExperiment)
+  path1 <- system.file("extdata", package="CNPBayes")
+  path <- file.path(path1, "CNP_029")
+  cnp_se <- readRDS(file.path(path1, "cnp_se.rds"))["CNP_029", ]
+  snp_se <- readRDS(file.path(path1, "snp_se.rds"))
+  snp_se <- subsetByOverlaps(snp_se, cnp_se)
+  mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
+  mp <- McmcParams(iter=400, burnin=500)
+  set.seed(5)
+  model <- homdeldup_model(mb.subsamp, mp)
+  gmodel <- genotype_model(model, snp_se)
+  expect_identical(mapping(gmodel), c("0", "1", "2", "3"))
   if(FALSE){
-    saveRDS(mod_1.3, file=file.path(path, "CNP_001.rds"))
+    model2 <- select_highconfidence_samples(model, snp_se)
+    bafdat <- join_baf_oned(model, snp_se)
+    figs <- list_mixture_plots(model, bafdat)
+    mixture_layout(figs, augmented=TRUE)    
   }
-  expected <- readRDS(file.path(path, "CNP_001.rds"))
-  expect_equivalent(mod_1.3, expected)
-  th.expected <- theta(expected)
-  expect_equal(theta(mod_1.3), th.expected, tolerance=0.05)
 })
 
-## Plotting code
-.test_that("plots", {
-  path <- system.file("extdata", package="CNPBayes")
-  mod_1.3 <- readRDS(file.path(path, "CNP_001.rds"))
-  snpdat <- readRDS(file.path(path, "snp_se.rds"))
-  bafdat2 <- join_baf_oned(mod_1.3, snpdat)
-  figs <- list_mixture_plots(mod_1.3, bafdat2)
-  pdf(tempfile(), width=14, height=8)
-  mixture_layout(figs, augmented=TRUE)
-  dev.off()
-
-  pdf(tempfile(), width=14, height=8)
-  mixture_layout(figs, augmented=FALSE)
-  dev.off()
+##
+## hemizygous deletion
+##
+test_that("hemideletion_model", {
+  set.seed(9209)
+  path1 <- system.file("extdata", package="CNPBayes")
+  path <- file.path(path1, "CNP_014")
+  cnp_se <- readRDS(file.path(path1, "cnp_se.rds"))
+  snp_se <- readRDS(file.path(path1, "snp_se.rds"))
+  snp_se <- subsetByOverlaps(snp_se, cnp_se["CNP_014"])
+  mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
+  summaries(mb.subsamp)$deletion_cutoff <- -0.25
+  mp <- McmcParams(iter=400, burnin=500)
+  model.list <- hemideletion_models(mb.subsamp, snp_se, mp)
+  model <- choose_model(model.list)
+  expect_identical(modelName(model), "MBP2")
 })
+
+test_that("Hemizygous deletion +/- duplication pipeline", {
+  ##
+  ## For hemizygous deletions/duplications, cutoff should depend on batch -- assume it is the same distance from the mode
+  ##   - easy to calculate mode of diploid component across batches
+  ##   - from single batch model, we have an overall duplication mode that could be shifted by batch
+  ##
+  set.seed(9209)
+  path1 <- system.file("extdata", package="CNPBayes")
+  path <- file.path(path1, "CNP_147")
+  cnp_se <- readRDS(file.path(path1, "cnp_se.rds"))["CNP_147", ]
+  snp_se <- readRDS(file.path(path1, "snp_se.rds"))
+  snp_se <- subsetByOverlaps(snp_se, cnp_se)
+  mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
+  summaries(mb.subsamp)$deletion_cutoff <- -0.25
+  mp <- McmcParams(iter=400, burnin=500)
+  set.seed(9209)
+  model.list <- hemideletion_models(mb.subsamp, snp_se, mp)
+  model <- choose_model(model.list)
+  expect_identical(mapping(model), c("2", "3"))
+})
+
+

@@ -2301,6 +2301,7 @@ warmup <- function(tib, model1, model2=NULL){
       ml2 <- ml2[ lengths(ml2) > 0 ]
       ml2 <- unlist(ml2)
     }
+    if(all(is.na(ml2))) return(model)
     if(max(ml2, na.rm=TRUE) > max(ml, na.rm=TRUE) + 50){
       model <- mbl2[[which.max(ml2)]]
     } else {
@@ -2802,23 +2803,40 @@ summarize_region <- function(se, provisional_batch, THR=-1,
   mb
 }
 
-genotype_model <- function(model, snpdat){
+## select high confidence samples for each component
+## - assume component corresponds to same copy number state across batches
+select_highconfidence_samples <- function(model, snpdat){
   if(iter(model) == 0) stop("No saved MCMC simulations. Must specify iter > 0")
-  pz <- probz(model) %>%
+  model2 <- dropSimulated(model)
+  pz <- probz(model2) %>%
     "/"(rowSums(.))
-  max_zprob <- rowMaxs(pz)
-  is_high_conf <- max_zprob > 0.95
-  if(all(is.na(is_high_conf))) return(model)
-  n.highconf <- sum(is_high_conf, na.rm=TRUE)
-  if(n.highconf < 100){
-    is_high_conf <- max_zprob >= quantile(max_zprob, 0.5)
-  }
-  if(!any(is_high_conf)) {
-    warning("No high confidence copy number calls")
-    return(model)
-  }
+  maxpz <- tibble(prob=rowMaxs(pz),
+                  batch=batch(model2),
+                  z=map_z(model2))
+  cutoffs <- group_by(maxpz, z) %>%
+    summarize(cutoff=quantile(prob, 0.75))
+  maxpz <- left_join(maxpz, cutoffs, by="z")
+  ##  max_zprob <- rowMaxs(pz)
+  ##  is_high_conf <- max_zprob > 0.95
+  ##  if(all(is.na(is_high_conf))) return(model)
+  ##  n.highconf <- sum(is_high_conf, na.rm=TRUE)
+  ##  if(n.highconf < 100){
+  ##    is_high_conf <- max_zprob >= quantile(max_zprob, 0.5)
+  ##  }
+  ##  if(!any(is_high_conf)) {
+  ##    warning("No high confidence copy number calls")
+  ##    return(model)
+  ##  }
   ##mean(is_high_conf)
-  gmodel <- model[ !isSimulated(model) &  is_high_conf ]
+  is_highconf <- maxpz$prob >= maxpz$cutoff
+  ##keep <- !isSimulated(model) & is_highconf
+  gmodel <- model2[ is_highconf ]
+  gmodel
+}
+
+
+genotype_model <- function(model, snpdat){
+  gmodel <- select_highconfidence_samples(model, snpdat)
   keep <- !duplicated(id(gmodel))
   gmodel <- gmodel[ keep ]
   snpdat2 <- snpdat[, id(gmodel) ]
@@ -2832,6 +2850,8 @@ genotype_model <- function(model, snpdat){
 }
 
 join_baf_oned <- function(model, snpdat){
+  ## Plot BAFs for samples with high confidence
+  ##model2 <- select_highconfidence_samples(model, snpdat)
   xlimit <- range(oned(model))
   if(diff(xlimit) < 4){
     xlimit <- c(-3, 1)
@@ -2858,12 +2878,8 @@ join_baf_oned <- function(model, snpdat){
     filter(!is.na(cn))
   ## Want cutoff that allows plotting of all states but that removes
   ## low quality SNPs
-  tmp <- group_by(bafdat, cn) %>%
-    summarize(min_prob=min(pz),
-              med_prob=median(pz),
-              n=n())
-  cutoff <- min(min(tmp$med_prob), 0.9)
-  bafdat2 <- filter(bafdat, pz > cutoff)
+  model2 <- select_highconfidence_samples(model, snpdat)
+  bafdat2 <- filter(bafdat, id %in% id(model2))
   bafdat2
 }
 
@@ -3379,12 +3395,14 @@ homdeldup_model <- function(mb, mp, THR){
                "SB4")
   mcmcParams(sb) <- mp
   sb <- posteriorSimulation(sb)
-  ##
-  ## if 4th component appears diploid, I don't think we should proceed
-  ##
-  appears_diploid <- not_duplication(sb)
-  if(appears_diploid) return(sb)
-  finished <- stop_early(sb, 0.99, 0.99)
+  if(substr(modelName(sb), 3, 3) == "P"){
+    ##
+    ## if 4th component appears diploid in pooled variance model, I don't think we should proceed
+    ##
+    appears_diploid <- not_duplication(sb)
+    if(appears_diploid) return(sb)
+  }
+  finished <- stop_early(sb, 0.98, 0.98)
   if(finished) return(sb)
   ##
   ## 4th component variance is much too big
@@ -3458,15 +3476,19 @@ model_checks <- function(models){
 
 deletion_models <- function(mb, snp_se, mp, THR){
   if(missing(THR)){
-    THR <- summaries(mb)$deletion_cutoff
+    if("deletion_cutoff" %in% names(summaries(mb))){
+      THR <- summaries(mb)$deletion_cutoff
+    } else stop("THR not provided")
   } else summaries(mb)$deletion_cutoff <- THR
   if(!any(oned(mb) < THR)) stop("No observations below deletion cutoff")
-  mod3 <- homdel_model(mb, mp)
-  gmodel <- genotype_model(mod3, snp_se)
-  mod4 <- homdeldup_model(mb, mp)
-  gmodel4 <- genotype_model(mod4, snp_se)
+  model3 <- homdel_model(mb, mp)
+  model4 <- homdeldup_model(mb, mp)
+  if(!is.null(snp_se)){
+    model3 <- genotype_model(model3, snp_se)
+    model4 <- genotype_model(model4, snp_se)
+  }
   ##compare bic without data augmentation
-  model.list <- list(gmodel, gmodel4)
+  model.list <- list(model3, model4)
   model.list
 }
 
@@ -3474,9 +3496,15 @@ hemideletion_models <- function(mb.subsamp, snp_se, mp, THR=-0.25){
   assays(mb.subsamp)$deletion_cutoff <- THR
   mb1 <- hemdel_model(mb.subsamp, mp)
   mb2 <- hemdeldup_model2(mb.subsamp, mp, THR=THR)
+  if(is.null(snp_se)){
+    model.list <- list(mb1, mb2)
+    model.list
+    return(model.list)
+  }
   if(nrow(snp_se) > 0){
     mb1 <- genotype_model(mb1, snp_se)
-    mb2 <- genotype_model(mb2, snp_se)
+    if(!is.null(mb2))
+      mb2 <- genotype_model(mb2, snp_se)
   }
   model.list <- list(mb1, mb2)
   model.list
@@ -3510,15 +3538,15 @@ hemdeldup_model2 <- function(mb.subsamp, mp, THR){
                "SBP3",
                "SB3")
   mcmcParams(sb) <- mp
-  sb <- posteriorSimulation(sb)
+  sb <- tryCatch(posteriorSimulation(sb),
+                 warning=function(w) NULL)
+  if(is.null(sb)) return(NULL)
   finished <- stop_early(sb, 0.98, 0.98)
   if(is.na(finished)) finished <- FALSE
   if(finished) return(sb)
-
   while(sum(oned(mb.subsamp) < THR) < 5){
     THR <- THR + 0.05
   }
-
   sb.meds <- colMedians(theta(chains(sb)))
   densities <- compute_density(mb.subsamp, THR)
   diploid_modes <- compute_modes(densities)
@@ -3622,13 +3650,37 @@ same_diploid_component<- function(model){
 
 not_duplication <- function(model){
   pmix <- p(model)
+  if(nrow(pmix) > 1){
+    sds <- colSds(pmix)
+    if(any(sds > 0.1)){
+      ## suggests overfitting
+      return(TRUE)
+    }
+  }
   k_ <- ncol(pmix)
+  ## most samples belong to 4th component
   ranks <- apply(pmix, 1, order, decreasing=TRUE)
   diploid.ranks <- ranks[1, ]
-  appears_diploid <- any(diploid.ranks == k_ & pmix[, k_] > 0.6 )
+  appears_diploid <- any(diploid.ranks == k_ & pmix[, k_] > 0.6)
   notdup <- appears_diploid
   notdup
 }
+
+##singlebatch_no_duplication <- function(model){
+##  mname <- modelName(model)
+##  is_pooled <- substr(mname, 3, 3) == "P"
+##  if(is_pooled){
+##    appears_diploid <- not_duplication(model)
+##  }else{
+##    ## variances not pooled
+##    ## check if 3rd or 4th component has large variance
+##    ## if so, we need to explore multibatch models
+##    pred <- predictive(chains(model))
+##    maxsd <- max(sd(pred[, 3]), sd(pred[, 4]))
+##    
+##  }
+##  notdup
+##}
 
 batchLabels <- function(object){
   assays(object)$batch_labels
@@ -3646,7 +3698,9 @@ duplication_models <- function(mb.subsamp, snpdat, mp, THR=-0.25){
                  warning=function(w) NULL)
   if(!is.null(sb)){
     appears_diploid <- not_duplication(sb)
-    sb <- genotype_model(sb, snpdat)
+    if(!is.null(snpdat)){
+      sb <- genotype_model(sb, snpdat)
+    }
     ## probability > 0.98 for 99% or more of participants
     finished <- stop_early(sb, 0.98, 0.99)
     if(finished){
@@ -3659,7 +3713,7 @@ duplication_models <- function(mb.subsamp, snpdat, mp, THR=-0.25){
   mb <- warmup(assays(mb.subsamp), "MBP2")
   mcmcParams(mb) <- mp
   mb <- tryCatch(posteriorSimulation(mb), warning=function(w) NULL)
-  if(!is.null(mb)){
+  if(!is.null(mb) && !is.null(snpdat)){
     mb <- genotype_model(mb, snpdat)
   }
   list(sb, mb)
@@ -3694,24 +3748,8 @@ use_cutoff <- function(mb){
   cutoff
 }
 
-#' @export
-cnv_models <- function(mb,
-                       grange,
-                       snp_se,
-                       mp=McmcParams(iter=400, burnin=500),
-                       THR){
-  if(length(grange) > 1){
-    warning("Multiple elements for `grange` object. Only using first")
-    grange <- grange[1]
-  }
-  if(any(is.na(assays(mb)$batch_labels))) {
-    stop("Missing data in `assays(mb)$batch_labels`")
-  }
-  snpdat <- subsetByOverlaps(snp_se, grange)
-  modelfun <- select_models(mb)
-  if(missing(THR))
-    THR <- use_cutoff(mb)
-  model.list <- modelfun(mb, snpdat, mp, THR)
+
+choose_model <- function(model.list, mb){
   is_null <- sapply(model.list, is.null)
   model.list <- model.list[ !is_null ]
   if(length(model.list) == 1) return(model.list[[1]])
@@ -3732,6 +3770,35 @@ cnv_models <- function(mb,
     mcmcParams(mb) <- mp
     model <- posteriorSimulation(mb)
   }
+  model
+}
+
+preliminary_checks <- function(mb, grange){
+  if(any(is.na(assays(mb)$batch_labels))) {
+    stop("Missing data in `assays(mb)$batch_labels`")
+  }
+  if(is.null(grange)) return(TRUE)
+  if(length(grange) > 1){
+    warning("Multiple elements for `grange` object. Only using first")
+    grange <- grange[1]
+  }
+  TRUE
+}
+
+#' @export
+cnv_models <- function(mb,
+                       grange,
+                       snp_se,
+                       mp=McmcParams(iter=400, burnin=500),
+                       THR){
+  preliminary_checks(mb, grange)
+  if(!is.null(snp_se))
+    snpdat <- subsetByOverlaps(snp_se, grange)
+  modelfun <- select_models(mb)
+  if(missing(THR))
+    THR <- use_cutoff(mb)
+  model.list <- modelfun(mb, snpdat, mp, THR)
+  model <- choose_model(model.list)
   model
 }
 
