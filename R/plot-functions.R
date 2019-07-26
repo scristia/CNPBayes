@@ -688,28 +688,16 @@ multibatch_figure <- function(theoretical, empirical, model){
   return(fig)
 }
 
-#' @export
-#' @rdname ggplot-functions
-#' @examples
-#' data(MultiBatchModelExample)
-#' fig <- ggMixture(MultiBatchModelExample)
-#' @aliases ggMixture,MultiBatchCopyNumber-method
 setMethod("ggMixture", "MultiBatchCopyNumber",
           function(model, bins=100, mixtheme, shift_homozygous){
   .gg_multibatch_copynumber(model, bins)
 })
 
-#' @export
-#' @rdname ggplot-functions
-#' @aliases ggMixture,MultiBatchCopyNumberPooled-method
 setMethod("ggMixture", "MultiBatchCopyNumberPooled",
           function(model, bins=100, mixtheme, shift_homozygous){
   .gg_multibatch_copynumber(model, bins)
 })
 
-#' @export
-#' @rdname ggplot-functions
-#' @aliases ggMixture,MultiBatchModel-method
 setMethod("ggMixture", "MultiBatchModel",
           function(model, bins=100, mixtheme, shift_homozygous){
   .gg_multibatch(model, bins=bins, mixtheme, shift_homozygous)
@@ -723,17 +711,11 @@ setMethod("ggMixture", "MultiBatch",
   .gg_multibatch(model, bins=bins, mixtheme, shift_homozygous)
 })
 
-#' @export
-#' @rdname ggplot-functions
-#' @aliases ggMixture,MultiBatchPooled-method
 setMethod("ggMixture", "MultiBatchPooled",
           function(model, bins=100, mixtheme, shift_homozygous){
   .gg_multibatch_pooled(model, bins)
 })
 
-#' @export
-#' @rdname ggplot-functions
-#' @aliases ggChains,MultiBatchModel-method
 setMethod("ggChains", "MultiBatchModel", function(model){
   .ggMultiBatchChains(model)
 })
@@ -769,9 +751,6 @@ setMethod("ggChains", "MultiBatch", function(model){
   list(batch=p.batch, comp=p.comp, single=p.single)  
 })
 
-#' @export
-#' @rdname ggplot-functions
-#' @aliases ggChains,MultiBatchPooled-method
 setMethod("ggChains", "MultiBatchPooled", function(model){
   .ggMultiBatchPooledChains(model)
 })

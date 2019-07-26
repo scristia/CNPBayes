@@ -64,7 +64,6 @@ posteriorSimulationNoMendel <- function(object){
   post
 }
 
-#' @export
 anyWarnings <- function(object){
   fl <- flags(object)
   fl2 <- sapply(fl, as.logical)
@@ -158,7 +157,6 @@ setMethod("posteriorSimulation", "MultiBatch", function(object){
   return(mb)
 })
 
-#' @export
 setGeneric("mcmc_homozygous", function(object) standardGeneric("mcmc_homozygous"))
 
 setGeneric("burnin_homozygous", function(object) standardGeneric("burnin_homozygous"))

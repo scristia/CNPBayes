@@ -4,40 +4,19 @@
 \name{ggChains}
 \alias{ggChains}
 \alias{ggMixture}
-\alias{ggMixture,MultiBatchCopyNumber-method}
-\alias{ggMixture,MultiBatchCopyNumberPooled-method}
-\alias{ggMixture,MultiBatchModel-method}
 \alias{ggMixture,MultiBatch-method}
-\alias{ggMixture,MultiBatchPooled-method}
-\alias{ggChains,MultiBatchModel-method}
+\alias{ggMixture,MultiBatchModel-method}
 \alias{ggChains,MultiBatch-method}
-\alias{ggChains,MultiBatchPooled-method}
 \title{Trace plots of MCMC chains and mixture model densities}
 \usage{
 ggChains(model)
 
 ggMixture(model, bins = 100, mixtheme, shift_homozygous)
 
-\S4method{ggMixture}{MultiBatchCopyNumber}(model, bins = 100, mixtheme,
-  shift_homozygous)
-
-\S4method{ggMixture}{MultiBatchCopyNumberPooled}(model, bins = 100,
-  mixtheme, shift_homozygous)
-
-\S4method{ggMixture}{MultiBatchModel}(model, bins = 100, mixtheme,
-  shift_homozygous)
-
 \S4method{ggMixture}{MultiBatch}(model, bins = 100, mixtheme,
   shift_homozygous)
 
-\S4method{ggMixture}{MultiBatchPooled}(model, bins = 100, mixtheme,
-  shift_homozygous)
-
-\S4method{ggChains}{MultiBatchModel}(model)
-
 \S4method{ggChains}{MultiBatch}(model)
-
-\S4method{ggChains}{MultiBatchPooled}(model)
 }
 \arguments{
 \item{model}{A SB, MB, SBP, or MBP model}
@@ -68,8 +47,6 @@ The \code{ggMixture} method overlays the density of the posterior predictive dis
 
   ## plot the mixture
   fig.mix <- ggMixture(sb)
-data(MultiBatchModelExample)
-fig <- ggMixture(MultiBatchModelExample)
 }
 \seealso{
 \code{\link{gibbs}}
