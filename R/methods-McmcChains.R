@@ -559,3 +559,123 @@ setMethod("updateObject", "McmcChains",
 })
 
 setMethod("isMendelian", "McmcChains", function(object) object@is_mendelian)
+
+
+##
+## divides each chain into halves
+## 
+##
+mcmcList <- function(model.list){
+  if(!is(model.list, "list")){
+    model.list <- list(model.list)
+  }
+  ch.list <- map(model.list, chains)
+  theta.list <- map(ch.list, theta) %>%
+    map(set_param_names, "theta")
+  sigma.list <- map(ch.list, sigma) %>%
+    map(set_param_names, "sigma")
+  ## The last column of the p-matrix is completely determined
+  B <- numBatch(model.list[[1]])
+  K <- k(model.list[[1]])
+  ix <- matrix(seq_len(B*K), B, K)
+  drop <- ix[, K]
+  p.list <- map(ch.list, p) %>%
+    map(set_param_names, "p")
+  nu0.list <- map(ch.list, nu.0) %>%
+    map(as.matrix) %>%
+    map(set_param_names, "nu.0")
+  s20.list <- map(ch.list, sigma2.0) %>%
+    map(as.matrix) %>%
+    map(set_param_names, "sigma2.0")
+  mu.list <- map(ch.list, mu) %>%
+    map(as.matrix) %>%
+    map(set_param_names, "mu")
+  tau2.list <- map(ch.list, tau2) %>%
+    map(as.matrix) %>%
+    map(set_param_names, "tau2")
+  loglik <- map(ch.list, log_lik) %>%
+    map(as.matrix) %>%
+    map(set_param_names, "log_lik")
+  half <- floor(nrow(theta.list[[1]])/2)
+  first_half <- function(x, half){
+    x[seq_len(half), , drop=FALSE]
+  }
+  last_half <- function(x, half){
+    i <- (half + 1):(half*2)
+    x <- x[i, , drop=FALSE]
+    x
+  }
+  theta.list <- c(map(theta.list, first_half, half),
+                  map(theta.list, last_half, half))
+  sigma.list <- c(map(sigma.list, first_half, half),
+                  map(sigma.list, last_half, half))
+  p.list <- c(map(p.list, first_half, half),
+              map(p.list, last_half, half))
+  p.list <- lapply(p.list, "[", , -drop)
+  nu0.list <- c(map(nu0.list, first_half, half),
+                map(nu0.list, last_half, half))
+  s20.list <- c(map(s20.list, first_half, half),
+                map(s20.list, last_half, half))
+  mu.list <- c(map(mu.list, first_half, half),
+               map(mu.list, last_half, half))
+  tau2.list <- c(map(tau2.list, first_half, half),
+                map(tau2.list, last_half, half))
+  vars.list <- vector("list", length(p.list))
+  for(i in seq_along(vars.list)){
+    vars.list[[i]] <- cbind(theta.list[[i]],
+                            sigma.list[[i]],
+                            p.list[[i]],
+                            nu0.list[[i]],
+                            s20.list[[i]],
+                            mu.list[[i]],
+                            tau2.list[[i]])
+  }
+  vars.list <- map(vars.list, mcmc)
+  ##loglik2 <- mcmc(do.call(rbind, loglik))
+  mlist <- mcmc.list(vars.list)
+  if(k(model.list[[1]]) == 1){
+    ## there is no p chain
+    dropP <- function(x) x[, -match("p1", colnames(x))]
+    mlist <- map(mlist, dropP)
+  }
+  mlist
+}
+
+
+gelman_rubin <- function(mcmc_list, hp){
+  anyNA <- function(x){
+    any(is.na(x))
+  }
+  any_nas <- map_lgl(mcmc_list, anyNA)
+  mcmc_list <- mcmc_list[ !any_nas ]
+  if(length(mcmc_list) < 2 ) stop("Need at least two MCMC chains")
+  r <- tryCatch(gelman.diag(mcmc_list, autoburnin=FALSE), error=function(e) NULL)
+  if(is.null(r)){
+    ## gelman rubin can fail if p is not positive definite
+    ## check also for any parameters that were not updated
+    no_updates <- apply(mcmc_list[[1]], 2, var) == 0
+    pcolumn <- c(which(paste0("p", k(hp)) == colnames(mcmc_list[[1]])),
+                 which(no_updates))
+    if(length(pcolumn) == 0) stop("Gelman Rubin not available. Check chain for anomolies")
+    f <- function(x, pcolumn){
+      x[, -pcolumn]
+    }
+    mcmc_list <- map(mcmc_list, f, pcolumn) %>%
+      as.mcmc.list
+    r <- gelman.diag(mcmc_list, autoburnin=FALSE)
+    if(FALSE){
+      mc <- do.call(rbind, mcmc_list) %>%
+        as_tibble
+      mc$iter <- rep(seq_len(nrow(mcmc_list[[1]])), length(mcmc_list))
+      dat <- gather(mc, key="parameter", value="chain", -iter)
+      ggplot(dat, aes(iter, chain)) + geom_line() +
+        facet_wrap(~parameter, scales="free_y")
+    }
+  }
+  r
+}
+
+set_param_names <- function(x, nm){
+  K <- seq_len(ncol(x))
+  set_colnames(x, paste0(nm, K))
+}

@@ -220,7 +220,6 @@ augmentTest <- function(object){
   mbl
 }
 
-#' @export
 impute <- function(model, loc.scale, start.index){
   x <- assays(model) %>%
     group_by(batch) %>%
