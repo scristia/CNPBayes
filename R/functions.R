@@ -491,3 +491,48 @@ predictiveProb <- function(pred, dat){
   dat4
 }
 
+manyToOneMapping <- function(model){
+  copynumber <- NULL
+  tab <- tibble(comp=seq_len(k(model)),
+                copynumber=mapping(model)) %>%
+    group_by(copynumber) %>%
+    summarize(n=n())
+  ##!identical(comp, map)
+  any(tab$n > 1)
+}
+
+.prob_copynumber <- function(model){
+  pz <- probz(model)
+  rs <- rowSums(pz)
+  if(!all(rs == 1)){
+    rs <- matrix(rs, nrow(pz), ncol(pz), byrow=FALSE)
+    pz <- pz/rs
+  }
+  if(!manyToOneMapping(model)){
+    return(pz)
+  }
+  S <- numberStates(model)
+  N <- numberObs(model)
+  result <- matrix(NA, N, S)
+  if(S == 1) {
+    result[] <- 1
+    return(result)
+  }
+  ##
+  ## If we've reached this point, there is a many-to-one mapping of components
+  ## to copy number states.
+  ##
+  map <- mapping(model)
+  map.list <- split(seq_len(k(model)), map)
+  for(i in seq_along(map.list)){
+    j <- map.list[[i]]
+    p <- pz[, j, drop=FALSE]
+    if(ncol(p) > 1){
+      result[, i] <- rowSums(p)
+    } else result[, i] <- as.numeric(p)
+  }
+  result <- result/matrix(rowSums(result),
+                          nrow(result), ncol(result),
+                          byrow=FALSE)
+  result
+}
