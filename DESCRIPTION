@@ -24,8 +24,6 @@ Imports:
     stats,
     coda,
     SummarizedExperiment,
-    mclust,
-    reshape2,
     ggplot2,
     magrittr,
     purrr,
