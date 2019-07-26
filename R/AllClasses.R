@@ -172,7 +172,6 @@ setClass("McmcParams", representation(thin="numeric",
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
 #' @slot .internal.counter For internal use only.
 #' @slot marginal_lik scalar for marginal likelihood
-#' @export
 setClass("MixtureModel", representation("VIRTUAL",
                                         k = "integer",
                                         hyperparams="Hyperparameters",
@@ -232,7 +231,6 @@ setClass("MixtureModel", representation("VIRTUAL",
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot is_mendelian integer vector equal in length to the number of trios
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
-#' @export
 setClass("MultiBatchModel", contains="MixtureModel")
 
 setClass("TrioBatchModel", contains="MultiBatchModel",
@@ -274,8 +272,6 @@ setClass("TrioBatchModel", contains="MultiBatchModel",
 #' @slot mcmc.params An object of class 'McmcParams'
 #' @slot label_switch length-one logical vector indicating whether label-switching occurs (possibly an overfit model)
 #' @slot .internal.constraint Constraint on parameters. For internal use only.
-#' @export
-#' @rdname SingleBatchModel-class
 setClass("SingleBatchModel", contains="MixtureModel")
 
 
@@ -299,18 +295,15 @@ setClass("UnivariateBatchModel", contains="MultiBatchModel")
 #'
 #' @details Suppose a mixture model with four components is selected, where the 3rd and 4th components both correspond to the diploid state.  The mapping slot will be the vector "0", "1", "2", and "2".
 #' @rdname CopyNumber-classes
-#' @export
 #' @rdname SingleBatchModel-class
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
          representation(mapping="character"))
 
 #' @rdname CopyNumber-classes
-#' @export
 setClass("MultiBatchCopyNumber", contains="MultiBatchModel",
          representation(mapping="character"))
 
 #' @rdname CopyNumber-classes
-#' @export
 setClass("MultiBatchCopyNumberPooled", contains="MultiBatchModel",
          representation(mapping="character"))
 

@@ -21,7 +21,7 @@ theta(object) <- value
 \item{object}{see \code{showMethods(theta)}}
 }
 \value{
-A vector of length number of components or a matrix of size 
+A vector of length number of components or a matrix of size
 number of batches x number of components
 }
 \description{

@@ -2,8 +2,7 @@
 % Please edit documentation in R/AllGenerics.R, R/methods-McmcChains.R,
 %   R/methods-MultiBatchModel.R, R/methods-MultiBatchPooled.R
 \docType{methods}
-\name{sigma<-}
-\alias{sigma<-}
+\name{sigma2}
 \alias{sigma2}
 \alias{sigma2,McmcChains-method}
 \alias{sigma2,missing-method}
@@ -19,8 +18,6 @@
 \alias{sigma_,MultiBatchCopyNumberPooled-method}
 \title{Retrieve the variances of each component and batch distribution}
 \usage{
-sigma(object) <- value
-
 sigma2(object)
 
 \S4method{sigma2}{McmcChains}(object)
