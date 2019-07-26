@@ -31,7 +31,6 @@ Imports:
     dplyr,
     tibble,
     scales,
-    data.table,
     RcppArmadillo,
     stringr,
     grid

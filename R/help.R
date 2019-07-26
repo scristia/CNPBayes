@@ -24,7 +24,6 @@
 #' @importFrom magrittr set_colnames "%>%" "%$%"
 #' @importFrom purrr map map2 map_lgl map_dbl map_chr
 #' @importFrom tidyr gather spread
-#' @importFrom data.table setDT tstrsplit frank
 #' @importFrom stringr str_pad
 #' @importFrom dplyr mutate bind_rows group_by summarize arrange filter n left_join select ungroup
 #' @import grid
