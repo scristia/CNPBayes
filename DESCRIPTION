@@ -58,7 +58,6 @@ Collate:
     'Trios.R'
     'augment.R'
     'coerce-methods.R'
-    'copynumber-models.R'
     'data.R'
     'functions.R'
     'genotype_cnps.R'
