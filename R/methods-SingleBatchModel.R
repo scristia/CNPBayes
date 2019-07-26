@@ -1,17 +1,6 @@
 #' @include methods-MixtureModel.R
 NULL
 
-#' Constructors for SB and SBP models
-#'
-#' This creates a MultiBatchModel object with a single batch.
-#'
-#' @param dat numeric vector of average log R ratios
-#' @param mp an object of class \code{McmcParams}
-#' @param hp an object of class \code{Hyperparameters}
-#' @rdname SingleBatchModel
-#' @seealso \code{\link{MultiBatchModel2}}
-#' @return An instance of \code{MultiBatchModel}
-#' @export
 SingleBatchModel2 <- function(dat=numeric(),
                               hp=Hyperparameters(),
                               mp=McmcParams(iter=1000, burnin=1000,
@@ -20,17 +9,6 @@ SingleBatchModel2 <- function(dat=numeric(),
   sb
 }
 
-#' @rdname SingleBatchModel
-#' @seealso \code{\link{MultiBatchModel2}}
-#' @return An instance of \code{MultiBatchModel}
-#' @examples
-#' SB()
-#' SB(dat=rnorm(100), hpList(k=2)[["SB"]])
-#' ## pooled variance model
-#' SingleBatchPooled()
-#' ## or, equivalently
-#' SBP()
-#' @export
 SB <- function(dat=numeric(),
                hp=Hyperparameters(),
                mp=McmcParams(iter=1000, burnin=1000,
@@ -46,14 +24,6 @@ getK <- function(object){
   getK(hypp)
 }
 
-#' Compute the log bayes factor between models.
-#'
-#' Models of varying component sizes are compared. The log bayes factor is 
-#' calculated comparing each set of two models by marginal likelihood, 
-#' as computed by \code{marginalLikelihood}.
-#' @param x the result of a call to \code{computeMarginalLik}.
-#' @return Log Bayes factor comparing the two models with highest likelihood.
-#' @export
 logBayesFactor <- function(x) {
     k <- length(x)
     mat <- matrix(0, nrow=k, ncol=k, dimnames=list(names(x), names(x)))

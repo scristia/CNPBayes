@@ -1,52 +1,14 @@
 #' @include methods-SingleBatchModel.R
 NULL
 
-## We initialize the z's to be all zeros, then z is updated as the first step of
-## the mcmc. However, if the first update of z results in some components not
-## being observed, then z will not be updated and will stay at zero. This
-## creates NaNs for the thetas and several other parameters. To try to
-## circumvent this issue, we have a while loop that simulates a model and runs 5
-## iterations burnin. If the parameter values are valid, we stop. If not, we
-## simulate a new model.
-
-#' @export
-#' @rdname SingleBatchModel
 SingleBatchPooled <- function(dat=numeric(),
                               hp=Hyperparameters(),
                               mp=McmcParams(iter=1000, burnin=1000,
                                             thin=10, nStarts=4)){
   sbp <- MBP(dat=dat, hp=hp, mp=mp, batches=rep(1L, length(dat)))
-##  if(length(dat) == 0){
-##    return(.SingleBatchPooled(dat, hp, mp))
-##  }
-##  iter <- 0
-##  validZ <- FALSE
-##  ##
-##  ## Burnin with the more flexible SingleBatch model to obtain starting values,
-##  ## then convert to SingleBatchPooled class
-##  ##
-##  mp.tmp <- McmcParams(iter=0, burnin=burnin(mp), thin=1, nStarts=1)
-##  while(!validZ){
-##    ##
-##    ## Burnin with SB model
-##    ##
-##    sb <- .SingleBatchModel2(dat, hp, mp.tmp)
-##    sb <- runBurnin(sb)
-##    tabz <- table(z(sb))
-##    if(length(tabz) == k(hp)) validZ <- TRUE
-##    iter <- iter + 1
-##    if(iter > 50) stop("Trouble initializing valid model. Try increasing the burnin")
-##  }
-##  sbp <- as(sb, "SingleBatchPooled")
-##  mcmcParams(sbp) <- mp
-##  sbp <- sortComponentLabels(sbp)
-##  log_lik(sbp) <- loglik_pooled(sbp)
   sbp
 }
 
-#' @export
-#' @rdname SingleBatchModel
-#' @export
 SBP <- SingleBatchPooled
 
 setValidity("SingleBatchPooled", function(object){
@@ -56,10 +18,6 @@ setValidity("SingleBatchPooled", function(object){
   }
   TRUE
 })
-
-##setMethod("updateZ", "SingleBatchPooled", function(object){
-##  z_pooled(object)
-##})
 
 combine_singlebatch_pooled <- function(model.list, batches){
   ch.list <- map(model.list, chains)
