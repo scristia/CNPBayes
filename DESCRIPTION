@@ -62,7 +62,6 @@ Collate:
     'data.R'
     'functions.R'
     'genotype_cnps.R'
-    'gibbs.R'
     'marginal_likelihood.R'
     'methods-Hyperparameters.R'
     'methods-McmcChains.R'
