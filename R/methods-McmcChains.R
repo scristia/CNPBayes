@@ -210,24 +210,6 @@ setMethod("McmcChains", "MultiBatchModel", function(object){
   dat <- triodata(object)
   T <- length(unique(dat$id))
   initialize_mcmcT(K, S, B, T)
-##  new("McmcChainsTrios",
-##      theta=matrix(NA, nr, K*B),
-##      sigma2=matrix(NA, nr, K*B),
-##      pi=matrix(NA, nr, K),
-##      pi_parents=matrix(NA, nr, K),
-##      mu=matrix(NA, nr, K),
-##      tau2=matrix(NA, nr, K),
-##      nu.0=numeric(nr),
-##      sigma2.0=numeric(nr),
-##      logprior=numeric(nr),
-##      loglik=numeric(nr),
-##      zfreq=mati,
-##      zfreq_parents=mati,
-##      predictive=matrix(as.numeric(NA), nr, K*B),
-##      zstar=matrix(as.integer(NA), nr, K*B),
-##      iter=iter(object),
-##      k=k(object),
-##      B=nBatch(object))
 }
 
 setMethod("McmcChainsTrios", "TrioBatchModel", function(object){
@@ -443,11 +425,6 @@ setReplaceMethod("zFreq", "McmcChains", function(object, value){
   object
 })
 
-##setReplaceMethod("zFreqPar", "McmcChains", function(object, value){
-##  object@zfreq_parents <- value
-##  object
-##})
-
 longFormatKB <- function(x, K, B){
   col_names <- expand.grid(seq_len(B), seq_len(K)) %>%
     mutate(col_names=paste(Var1, Var2, sep=",")) %$%
@@ -510,8 +487,6 @@ setReplaceMethod("numBatch", "McmcChains",  function(object, value){
   object@B <- value
 })
 
-##setMethod("nBatch", "McmcChains",  function(object) object@nBatch)
-
 setAs("McmcChains", "list", function(from){
   K <- k(from)
   B <- from@B
@@ -541,15 +516,6 @@ setAs("McmcChains", "list", function(from){
        scalars=params)
 })
 
-##setMethod("listChains", "MultiBatch", function(object){
-##  ch.list <- McmcChains2(mc=chains(object),
-##                         iter=iter(object),
-##                         k=k(object),
-##                         batch=nBatch(object)) %>%
-##  chains(object) %>%
-##    as("list")
-##  ch.list
-##})
 
 setMethod("predictive", "McmcChains", function(object) object@predictive)
 setMethod("zstar", "McmcChains", function(object) object@zstar)
