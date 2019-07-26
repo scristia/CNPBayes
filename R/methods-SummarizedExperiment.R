@@ -9,7 +9,6 @@ integerMatrix <- function(x, scale=100) {
         return(x)
 }
 
-#' @export
 setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   cnmat <- matrix(y(from), 1, length(y(from)))
   cnmat <- integerMatrix(cnmat, 1000)
@@ -25,15 +24,13 @@ setAs("MixtureModel", "SummarizedExperiment", function(from, to){
   se
 })
 
-#' @rdname collapseBatch-method
-#' @aliases collapseBatch,SummarizedExperiment-method
+
 setMethod("collapseBatch", "SummarizedExperiment", function(object, provisional_batch, THR=0.1){
   batch <- as.character(object$provisional_batch)
   collapseBatch(assays(object)[["medr"]][1, ]/1000)
 })
 
-#' @rdname collapseBatch-method
-#' @aliases collapseBatch,numeric-method
+
 setMethod("collapseBatch", "numeric", function(object, provisional_batch, THR=0.1, nchar=8){
   N <- choose(length(unique(provisional_batch)), 2)
   if(N == 1){
@@ -50,22 +47,6 @@ setMethod("collapseBatch", "numeric", function(object, provisional_batch, THR=0.
   makeUnique(provisional_batch, nchar)
 })
 
-
-
-
-## #' @rdname combinePlates-method
-## #' @aliases combinePlates,numeric-method
-## setMethod("combinePlates", "numeric", function(object, plate, THR=0.1){
-##   N <- choose(length(unique(plate)), 2)
-##   cond2 <- TRUE
-##   while(N > 1 && cond2){
-##     B <- plate
-##     plate <- .combinePlates(object, plate, THR=THR)
-##     cond2 <- !identical(B, plate)
-##     N <- choose(length(unique(plate)), 2)
-##   }
-##   makeUnique(plate)
-## })
 
 ##
 ## Combine the most similar batches first.
@@ -90,20 +71,6 @@ setMethod("collapseBatch", "numeric", function(object, provisional_batch, THR=0.
   B
 }
 
-
-
-
-
-
-
-#' Save se data
-#'
-#' Batches drawn from the same distribution as identified by Kolmogorov-Smirnov test are combined.
-#' @param se a SummarizedExperiment object
-#' @param batch.file the file name to which to save the data
-#' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
-#' @return A vector of collapsed batch labels
-#' @export
 saveBatch <- function(se, batch.file, THR=0.1){
   if(file.exists(batch.file)){
     bt <- readRDS(batch.file)

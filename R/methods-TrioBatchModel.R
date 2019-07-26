@@ -359,7 +359,6 @@ combine_batchTrios <- function(model.list, batches){
 #' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
 #' @param mp An object of class 'McmcParams'
 #' @return An object of class `TrioBatchModel`
-#' @export
 TrioBatchModel <- function(triodata=tibble(),
                            hp=HyperparametersTrios(),
                            mp=McmcParams(iter=1000, thin=10,
@@ -376,11 +375,7 @@ TrioBatchModel <- function(triodata=tibble(),
   tbm
 }
 
-#' @export
 TBM <- TrioBatchModel
-
-
-
 
 theta.fix <- function(model, values) {
   # values is in the form of a [1,K] matrix
@@ -972,12 +967,10 @@ setMethod("show", "TrioBatchModel", function(object){
   cat("     logprior (s):", round(logPrior(object), 1), "\n")
 })
 
-#' @rdname k-method
-#' @aliases k,TrioBatchModel-method
+
 setMethod("k", "TrioBatchModel", function(object) object@k)
 
-#' @rdname k-method
-#' @aliases k<-,TrioBatchModel-method
+
 setReplaceMethod("k", "TrioBatchModel",
                  function(object, value) {
                    k <- as.integer(value)
@@ -993,15 +986,7 @@ setReplaceMethod("k", "TrioBatchModel",
                  }
 )
 
-#' Retrieve mixture proportions of parents.
-#'
-#' @examples
-#'   \dontrun{
-#'      pp(TrioBatchModelExample)
-#'    } 
-#' @param object an object of class TrioBatchModel
-#' @return A vector of length the number of components
-#' @export
+
 pp <- function(object) object@pi_parents
 
 setReplaceMethod("pp", "TrioBatchModel", function(object, value){
@@ -1130,8 +1115,6 @@ simulateTrioData <- function(theta=c(-1.2, 0.3, 1.7), maplabel=c(0,1,2),
 }
 
 
-#' @rdname mcmcParams-method
-#' @aliases mcmcParams,MixtureModel-method
 setReplaceMethod("mcmcParams", "TrioBatchModel", function(object, value){
   S <- iter(value)
   B <- numBatch(object)
