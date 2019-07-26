@@ -86,39 +86,9 @@ MultiBatchPooled <- function(dat=numeric(),
   mbp
 }
 
-#' Constructor for MultiBatchPooled model
-#'
-#' Initializes a MultiBatchPooled model, a container for storing data, parameters, and MCMC output for mixture models with batch- and component-specific means. The variance is assumed to be the same for all components, but allowed to differ by batch.
-#'
-#' @param dat the data for the simulation.
-#' @param batches an integer-vector of the different batches
-#' @param hp An object of class `Hyperparameters` used to specify the hyperparameters of the model.
-#' @param mp An object of class 'McmcParams'
-#' @return An object of class `MultiBatchPooled`
-#' @export
-#' @examples
-#'   model <- MBP(rnorm(10), batch=rep(1L, 10))
-#'   set.seed(100)
-#'   nbatch <- 3
-#'   k <- 3
-#'   means <- matrix(c(-2.1, -2, -1.95, -0.41, -0.4, -0.395, -0.1,
-#'       0, 0.05), nbatch, k, byrow = FALSE)
-#'   sds <- matrix(0.15, nbatch, k)
-#'   sds[, 1] <- 0.3
-#'   N <- 1000
-#'   truth <- simulateBatchData(N = 2500,
-#'                              batch = rep(letters[1:3],
-#'                              length.out = 2500),
-#'                              theta = means, sds = sds,
-#'                              p = c(1/5, 1/3, 1 - 1/3 - 1/5))
-#'   MBP(dat=y(truth), batches=batch(truth),
-#'       hp=hpList(k=3)[["MB"]])
 MBP <- MultiBatchPooled
 
-## MBP
 
-#' @rdname sigma2-method
-#' @aliases sigma2,MultiBatchPooled-method
 setMethod("sigma2", "MultiBatchPooled", function(object) {
   s2 <- object@sigma2
   ##s2 <- matrix(s2, nBatch(object), k(object))
@@ -131,8 +101,6 @@ setMethod("sigma", "MultiBatchPooled", function(object) {
   sqrt(s2)
 })
 
-#' @rdname sigma2-method
-#' @aliases sigma2<-,MultiBatchCopyNumberPooled-method
 setReplaceMethod("sigma2", "MultiBatchPooled", function(object, value){
   names(value) <- uniqueBatch(object)
   object@sigma2 <- value
@@ -146,31 +114,23 @@ setReplaceMethod("sigma", "MultiBatchPooled", function(object, value) {
 
 ## MultiBatch Copy number
 
-#' @rdname sigma2-method
-#' @aliases sigma2,MultiBatchCopyNumberPooled-method
 setMethod("sigma2", "MultiBatchCopyNumberPooled", function(object) {
   s2 <- object@sigma2
   names(s2) <- uniqueBatch(object)
   s2
 })
 
-#' @rdname sigma2-method
-#' @aliases sigma,MultiBatchCopyNumberPooled-method
 setMethod("sigma", "MultiBatchCopyNumberPooled", function(object) {
   sqrt(sigma2(object))
   s2
 })
 
-#' @rdname sigma2-method
-#' @aliases sigma2,MultiBatchCopyNumberPooled-method
 setReplaceMethod("sigma2", "MultiBatchCopyNumberPooled", function(object, value){
   names(value) <- uniqueBatch(object)
   object@sigma2 <- value
   object
 })
 
-#' @rdname sigma2-method
-#' @aliases sigma,MultiBatchCopyNumberPooled-method
 setReplaceMethod("sigma", "MultiBatchCopyNumberPooled", function(object, value){
   sigma2(object) <- value^2
   object
@@ -318,19 +278,8 @@ combine_multibatch_pooled <- function(model.list, batches){
   model
 }
 
-
-#' @aliases sigma,MultiBatchCopyNumberPooled-method
-#' @rdname sigma2-method
 setMethod("sigma_", "MultiBatchCopyNumberPooled", function(object){
   s2 <- object@sigma2
   names(s2) <- uniqueBatch(object)
   sqrt(s2)
 })
-
-##setMethod("updateObject", "MultiBatchPooled", function(object){
-##  chains(object) <- updateObject(chains(object),
-##                                 k=k(object),
-##                                 iter=iter(object),
-##                                 B=nBatch(object))
-##  object
-##})

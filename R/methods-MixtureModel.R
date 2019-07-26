@@ -39,12 +39,8 @@ setValidity("MixtureModel", function(object){
   msg
 })
 
-#' @rdname hyperParams-method
-#' @aliases hyperParams,MixtureModel-method
 setMethod("hyperParams", "MixtureModel", function(object) object@hyperparams)
 
-#' @rdname hyperParams-method
-#' @aliases hyperParams<-,MixtureModel-method
 setReplaceMethod("hyperParams", c("MixtureModel", "Hyperparameters"),
   function(object, value) {
     object@hyperparams <- value
@@ -58,45 +54,19 @@ setReplaceMethod("batch", "MixtureModel", function(object, value){
 
 observed <- function(object) object@data
 
-#' Retrieve standard deviations of each component/batch mean.
-#'
-#' @examples
-#'      sigma(SingleBatchModelExample)
-#' @param object an object of class MarginalModel or BatchModel
-#' @return A vector of length K, or a matrix of size B x K, where
-#' K is the number of components and B is the number of batches
-#' @export
 sigma <- function(object) sqrt(sigma2(object))
 
-#' Retrieve overall standard deviation.
-#'
-#' @examples
-#'      tau(SingleBatchModelExample)
-#' @param object an object of class MarginalModel or BatchModel
-#' @return A vector of standard deviations
-#' @export
 tau <- function(object) sqrt(tau2(object))
 
-#' @rdname nu.0-method
-#' @aliases nu.0,MixtureModel-method
+
 setMethod("nu.0", "MixtureModel", function(object) object@nu.0)
 
-#' @rdname sigma2.0-method
-#' @aliases sigma2.0,MixtureModel-method
+
 setMethod("sigma2.0", "MixtureModel", function(object) object@sigma2.0)
 
 sigma.0 <- function(object) sqrt(sigma2.0(object))
 
 
-
-
-#' Retrieve mixture proportions.
-#'
-#' @examples
-#'      p(SingleBatchModelExample)
-#' @param object an object of class MarginalModel or BatchModel
-#' @return A vector of length the number of components
-#' @export
 setMethod("p", "MixtureModel", function(object){
   object@pi
 })
@@ -107,16 +77,10 @@ setMethod("dataMean", "MixtureModel", function(object) object@data.mean)
 setMethod("dataPrec", "MixtureModel", function(object) object@data.prec)
 setMethod("dataSd", "MixtureModel", function(object) sqrt(1/dataPrec(object)))
 
-##dataMean <- function(object) object@data.mean
-##dataPrec <- function(object) object@data.prec
-##dataSd <- function(object) sqrt(1/dataPrec(object))
 
-#' @rdname k-method
-#' @aliases k,MixtureModel-method
 setMethod("k", "MixtureModel", function(object) object@k)
 
-#' @rdname k-method
-#' @aliases k<-,MixtureModel-method
+
 setReplaceMethod("k", "MixtureModel",
                  function(object, value) {
                    browser()
@@ -164,8 +128,6 @@ setReplaceMethod("sigma2.0", "MixtureModel", function(object, value){
   object
 })
 
-#' @rdname chains-method
-#' @aliases chains,MixtureModel-method
 setMethod("chains", "MixtureModel", function(object) object@mcmc.chains)
 
 setReplaceMethod("chains", "MixtureModel", function(object, value){
@@ -198,8 +160,6 @@ setMethod("show", "SingleBatchModel", function(object){
 
 setMethod("alpha", "MixtureModel", function(object) alpha(hyperParams(object)))
 
-#' @rdname y-method
-#' @aliases y,MixtureModel-method
 setMethod("y", "MixtureModel", function(object) object@data)
 
 setReplaceMethod("y", "MixtureModel", function(object, value){
@@ -207,16 +167,11 @@ setReplaceMethod("y", "MixtureModel", function(object, value){
   object
 })
 
-#' @rdname oned-method
-#' @aliases oned,MixtureModel-method
 setMethod("oned", "MixtureModel", function(object) object@data)
 
-#' @rdname batch-method
-#' @aliases batch,MixtureModel-method
+
 setMethod("batch", "MixtureModel", function(object) object@batch)
 
-#' @rdname z-method
-#' @aliases z,MixtureModel-method
 setMethod("z", "MixtureModel", function(object) object@z)
 
 
@@ -244,12 +199,6 @@ setReplaceMethod("probz", "MixtureModel", function(object, value){
   object
 })
 
-## TODO Dangerous to have accessor do something more than return the value of it
-## slot.  Further
-## probz(object) <- probz(object)
-## will not behave as expected
-#' @rdname probz-method
-#' @aliases probz,MixtureModel-method
 setMethod("probz", "MixtureModel", function(object) {
   if(iter(object) > 0){
     pz <- object@probz/iter(object)
@@ -258,32 +207,6 @@ setMethod("probz", "MixtureModel", function(object) {
   object@probz
 })
 
-
-## multipleStarts <- function(object){
-##   if(k(object)==1) return(object)
-##   mcmcp <- mcmcParams(object)
-##   mmod <- replicate(nStarts(mcmcp), SingleBatchModel(y(object), mcmc.params=mcmcp,
-##                                                   hypp=hyperParams(object), k=k(object)))
-##   models <- suppressMessages(lapply(mmod, runBurnin))
-##   lp <- sapply(models, log_lik)
-##   select <- which.max(lp)
-##   if(length(select) == 0) stop("No model selected")
-##   model <- models[[select]]
-##   if(isSB(object)) return(model)
-##   ##
-##   ##  initialize batch model
-##   ##
-##   bmodel <- MultiBatchModel(data=y(model), batch=batch(object), k=k(object), hypp=hyperParams(object))
-##   mcmcParams(bmodel, force=TRUE) <- mcmcParams(object)
-##   theta(bmodel) <- matrix(theta(model), nBatch(object), k(object), byrow=TRUE)
-##   mu(bmodel) <- theta(model)
-##   z(bmodel) <- z(model)
-##   bmodel <- ensureAllComponentsObserved(bmodel)
-##   zFreq(bmodel) <- as.integer(table(z(bmodel)))
-##   dataMean(bmodel) <- computeMeans(bmodel)
-##   dataPrec(bmodel) <- computePrec(bmodel)
-##   bmodel
-## }
 
 selectByLogLik <- function(model.list){
   lp <- sapply(model.list, log_lik)
@@ -301,36 +224,10 @@ selectByLogLik <- function(model.list){
   model
 }
 
-## multipleStarts2 <- function(object){
-##   if(k(object)==1) return(object)
-##   mcmcp <- mcmcParams(object)
-##   ##
-##   ##
-##   if(is(object, "MultiBatchModel")){
-##     model.list <- replicate(nStarts(mcmcp),
-##                             MultiBatchModel(y(object), mcmc.params=mcmcp,
-##                                        hypp=hyperParams(object), k=k(object),
-##                                        batch=batch(object)))
-##   }
-##   if(is(object, "SingleBatchModel")){
-##     model.list <- replicate(nStarts(mcmcp),
-##                             SingleBatchModel(y(object), mcmc.params=mcmcp,
-##                                           hypp=hyperParams(object), k=k(object)))
-##   }
-##   model <- selectByLogLik(model.list)
-##   model
-## }
-
-
 psParams <- function(warnings=TRUE,
                      returnNULLonWarnings=FALSE){
   list(warnings=warnings)
 }
-
-
-
-
-
 
 setMethod("isOrdered", "MixtureModel", function(object){
   identical(order(theta(object)), seq_along(theta(object)))
@@ -358,20 +255,14 @@ setMethod("tau2.0", "Hyperparameters", function(object) object@tau2.0)
 
 tau.0 <- function(object) sqrt(tau2.0(object))
 
-#' @rdname eta.0-method
-#' @aliases eta.0,MixtureModel-method
+
 setMethod("eta.0", "MixtureModel", function(object) eta.0(hyperParams(object)))
 
-#' @rdname eta.0-method
-#' @aliases eta.0,Hyperparameters-method
 setMethod("eta.0", "Hyperparameters", function(object) object@eta.0)
 
-#' @rdname m2.0-method
-#' @aliases m2.0,MixtureModel-method
 setMethod("m2.0", "MixtureModel", function(object) m2.0(hyperParams(object)))
 
-#' @rdname m2.0-method
-#' @aliases m2.0,Hyperparameters-method
+
 setMethod("m2.0", "Hyperparameters", function(object) object@m2.0)
 
 setReplaceMethod("eta.0", "MixtureModel", function(object, value){
@@ -428,46 +319,16 @@ setMethod("sigmaMean", "MixtureModel", function(object) colMeans(sigmac(object))
 logLikc <- function(object) log_lik(chains(object))
 
 
-#' Retrieve standard deviation of each component/batch mean at each iteration of the MCMC.
-#'
-#' @examples
-#'      sigmac(SingleBatchModelExample)
-#' @param object an object of class MarginalModel or BatchModel
-#' @return A matrix of size N x K where N is the number of observations
-#' and K is the number of components
-#' @export
 sigmac <- function(object) sigma(chains(object))
 
-#' Retrieve mixture proportions at each iteration of the MCMC.
-#'
-#' @examples
-#'      head(pic(MultiBatchModelExample))
-#' @param object an object of class MarginalModel or BatchModel
-#' @return A matrix of size MCMC iterations x Number of components
-#' @export
 pic <- function(object) p(chains(object))
 
 setMethod("pMean", "MixtureModel", function(object){
   colMeans(pic(object))
 })
 
-#' Retrieve overall mean at each iteration of the MCMC.
-#'
-#' @examples
-#'      head(muc(SingleBatchModelExample))
-#' @param object an object of class MarginalModel or BatchModel
-#' @return A vector of length N or matrix of size N x B, where N is the 
-#' number of observations and B is the number of unique batches.
-#' @export
 muc <- function(object) mu(chains(object))
 
-#' Retrieve overall mean averaged across MCMC simulations.
-#'
-#' @examples
-#'      muMean(SingleBatchModelExample)
-#' @param object an object of class MarginalModel or BatchModel
-#' @return A vector of size 1 or number of batches
-#' @export
 muMean <- function(object) {
   x <- muc(object)
   if(is(object, "MultiBatchModel")){
@@ -476,23 +337,8 @@ muMean <- function(object) {
   mean(x)
 }
 
-#' Retrieve overall standard deviation at each iteration of the MCMC.
-#'
-#' @examples
-#'      tauc(SingleBatchModelExample)
-#' @param object an object of class MarginalModel or BatchModel
-#' @return A vector of length N or matrix of size N x B, where N is the 
-#' number of observations and B is the number of unique batches.
-#' @export
 tauc <- function(object) sqrt(tau2(chains(object)))
 
-#' Retrieve overall standard deviation averaged across MCMC simulations.
-#'
-#' @examples
-#'      tauMean(SingleBatchModelExample)
-#' @param object an object of class MarginalModel or BatchModel
-#' @return A vector of size 1 or number of batches
-#' @export
 tauMean <- function(object){
   x <- tauc(object)
   if(is(object, "MultiBatchModel")){
@@ -501,19 +347,14 @@ tauMean <- function(object){
   mean(x)
 }
 
-#' @rdname modes-method
-#' @aliases modes,MixtureModel-method
+
 setMethod("modes", "MixtureModel", function(object) object@modes)
 
-#' @rdname modes-method
-#' @aliases modes<-,MixtureModel-method
 setReplaceMethod("modes", "MixtureModel", function(object, value) {
   object@modes <- value
   object
 })
 
-#' @rdname log_lik-method
-#' @aliases log_lik,MixtureModel-method
 setMethod("log_lik", "MixtureModel", function(object){
   object@loglik
 })
@@ -571,8 +412,6 @@ restartAtChainIndex <- function(model, index){
   model
 }
 
-#' @rdname zfreq-method
-#' @aliases zfreq,MixtureModel-method
 setMethod("zFreq", "MixtureModel", function(object) object@zfreq)
 
 setReplaceMethod("zFreq", "MixtureModel", function(object, value){
@@ -580,44 +419,35 @@ setReplaceMethod("zFreq", "MixtureModel", function(object, value){
   object
 })
 
-#' @rdname mcmcParams-method
-#' @aliases mcmcParams,MixtureModel-method
+
 setMethod("mcmcParams", "MixtureModel", function(object) object@mcmc.params )
 
-#' @rdname iter-method
-#' @aliases iter,MixtureModel-method
+
 setMethod("iter", "MixtureModel", function(object) iter(mcmcParams(object)))
 
-#' @rdname nStarts-method
-#' @aliases nStarts,MixtureModel-method
+
 setMethod("nStarts", "MixtureModel", function(object) nStarts(mcmcParams(object)))
 
-#' @rdname nStarts-method
-#' @aliases nStarts<-,MixtureModel-method
+
 setReplaceMethod("nStarts", "MixtureModel", function(object, value){
   mcmcParams(object)@nstarts <- as.integer(value)
   object
 })
 
-#' @rdname thin-method
-#' @aliases thin,MixtureModel-method
+
 setMethod("thin", "MixtureModel", function(object) thin(mcmcParams(object)))
 
-#' @rdname burnin-method
-#' @aliases burnin,MixtureModel-method
+
 setMethod("burnin", "MixtureModel", function(object) burnin(mcmcParams(object)))
 
 setMethod("numBatch", "MixtureModel", function(object) numBatch(chains(object)))
 
-#' @rdname burnin-method
-#' @aliases burnin<-,MixtureModel-method
+
 setReplaceMethod("burnin", "MixtureModel", function(object, value){
   burnin(mcmcParams(object)) <- value
   object
 })
 
-#' @rdname iter-method
-#' @aliases iter<-,MixtureModel-method
 setReplaceMethod("iter", "MixtureModel", function(object, value){
   mp <- mcmcParams(object)
   iter(mp) <- as.integer(value)
@@ -626,8 +456,6 @@ setReplaceMethod("iter", "MixtureModel", function(object, value){
   object
 })
 
-#' @rdname logPrior-method
-#' @aliases logPrior,MixtureModel-method
 setMethod("logPrior", "MixtureModel", function(object) object@logprior)
 
 setReplaceMethod("logPrior", "MixtureModel", function(object, value) {
@@ -644,8 +472,6 @@ setReplaceMethod("paramUpdates", "MixtureModel", function(x, value){
 nu0c <- function(object) nu.0(chains(object))
 sigma20c <- function(object) sigma2.0(chains(object))
 
-#' @rdname mcmcParams-method
-#' @aliases mcmcParams,MixtureModel-method
 setReplaceMethod("mcmcParams", "MixtureModel", function(object, value){
   S <- iter(value)
   B <- numBatch(object)
@@ -672,8 +498,7 @@ setReplaceMethod("mcmcParams", "MixtureModel", function(object, value){
   object
 })
 
-#' @rdname mcmcParams-method
-#' @aliases mcmcParams,list-method
+
 setReplaceMethod("mcmcParams", "list",
                  function(object, value){
                    for(i in seq_along(object)){
@@ -689,12 +514,6 @@ mapModel <- function(model){
   model2
 }
 
-#' Probabiliistic copy number assigments.
-#'
-#' Calculate probabilistic copy number assignments using Bayes Rule applied at the MAP estimates of the cluster mean, variance, and class proportion parameters
-#' @param model An object of class MixtureModel.
-#' @return A matrix of size N x K where N is number of observations and K is the number of components.
-#' @export
 mapCnProbability <- function(model){
   ## Cardin et al. : calculate probabilistic copy number assignments
   ## using Bayes Rule applied at the MAP estimates of the cluster
@@ -705,9 +524,6 @@ mapCnProbability <- function(model){
 }
 
 
-#' @param value a length-one numeric vector indicating how often to save MCMC iterations to the chain.  For example, a thin of 10 means that every 10th MCMC simulation is saved to the chain.
-#' @rdname thin-method
-#' @aliases thin<-,MixtureModel,numeric-method
 setReplaceMethod("thin", c("MixtureModel", "numeric"), function(object, value){
   mp <- mcmcParams(object)
   mp@thin <- as.integer(value)
@@ -715,14 +531,12 @@ setReplaceMethod("thin", c("MixtureModel", "numeric"), function(object, value){
   object
 })
 
-#' @rdname mcmcParams-method
-#' @aliases mcmcParams,list-method
+
 setMethod("mcmcParams", "list", function(object){
   mcmcParams(object[[1]])
 })
 
-#' @aliases label_switch,MixtureModel-method
-#' @rdname label_switch
+
 setMethod("label_switch", "MixtureModel", function(object) object@label_switch)
 
 setReplaceMethod("label_switch", c("MixtureModel", "logical"),
@@ -731,15 +545,10 @@ setReplaceMethod("label_switch", c("MixtureModel", "logical"),
                    object
                  })
 
-#' @aliases marginal_lik,MixtureModel-method
-#' @rdname marginal_lik
 setMethod("marginal_lik", "MixtureModel", function(object){
   object@marginal_lik
 })
 
-#' @aliases marginal_lik<-,MixtureModel,numeric-method
-#' @param value scalar for marginal likelihood
-#' @rdname marginal_lik
 setReplaceMethod("marginal_lik", c("MixtureModel", "numeric"),
                  function(object, value){
                    object@marginal_lik <- value
@@ -747,88 +556,9 @@ setReplaceMethod("marginal_lik", c("MixtureModel", "numeric"),
                  })
 
 
-## #' @rdname tile-functions
-## #' @aliases upSample,MultiBatchModel-method
-## setMethod("upSample", "MultiBatchModel", function(model, tiles){
-##   tile.sum <- tileSummaries(tiles)
-##   ##stopifnot(all.equal(y(model), tile.sum$avgLRR))
-##   key <- match(tiles$tile, tile.sum$tile)
-##   model2 <- model
-##   y(model2) <- tiles$logratio
-##   probs <- probz(model)
-##   probs2 <- probs[key, , drop=FALSE]
-##   probz(model2) <- probs2 * (iter(model) - 1)
-##   z(model2) <- z(model)[key]
-##   batch(model2) <- tiles$batch
-##   model2
-## })
-
-
 dst <- dlocScale_t
 
 
-#' Restore model of down-sampled to original dimension.
-#'
-#' @examples
-#'  library(tidyverse)
-#'  library(dplyr)
-#'  set.seed(123)
-#'  k <- 3
-#'  nbatch <- 3
-#'  means <- matrix(c(-1.2, -1, -0.8, -0.2, 0, 0.2, 0.8, 1, 1.2),
-#'      nbatch, k, byrow = FALSE)
-#'  sds <- matrix(0.1, nbatch, k)
-#'  N <- 1500
-#'  truth <- simulateBatchData(N = N,
-#'                             batch = rep(letters[1:3],
-#'                                         length.out = N),
-#'                             theta = means,
-#'                             sds = sds,
-#'                             p = c(1/5, 1/3, 1 - 1/3 - 1/5))
-#'
-#'  ##
-#'  ## Make a tibble:  required plate, plate.index, batch_orig
-#'  ##
-#'  full.data <- tibble(medians=y(truth),
-#'                      plate=batch(truth),
-#'                      batch_orig=as.character(batch(truth))) %>%
-#'    mutate(plate.index=as.integer(factor(plate, levels=unique(plate))))
-#'
-#'
-#'  ## Below, we down-sample to 500 observations
-#'  ## Required:  batch_orig, batch_index
-#'  partial.data <- downSample(full.data, size=500)
-#'
-#'  ##
-#'  ## Required:  a mapping from plate to batch
-#'  ##
-#'  select <- dplyr::select
-#'  summarize <- dplyr::summarize
-#'  plate.mapping <- partial.data %>%
-#'    select(c(plate, batch_index)) %>%
-#'    group_by(plate) %>%
-#'    summarize(batch_index=unique(batch_index))
-#'
-#'  ## Fit a model as per usual to the down-sampled data
-#'  mp <- McmcParams(iter=200, burnin=10)
-#'  hp <- HyperparametersMultiBatch(k=3)
-#'  model <- MultiBatchModel2(dat=partial.data$medians,
-#'                            batches=partial.data$batch_index,
-#'                            mp=mp,
-#'                            hp=hp)
-#'  model <- posteriorSimulation(model)
-#'  ##
-#'  ## Add the batching used for the down-sampled data to the full data
-#'  ##
-#'  full.data2 <- left_join(full.data, plate.mapping, by="plate")
-#'  ##
-#'  ## Estimate probabilities for each individual in the full data
-#'  ##
-#'  model.full <- upSample2(full.data2, model)
-#' @param orig.data a \code{data.frame} containing the original data (not downsampled) with the batch labels stored with colname \code{batch_orig} and the median-summarized data stored in column \code{medians}
-#' @param model model fit to the down-sampled data
-#' @param up_sample logical.  If TRUE, model is restored to the original dimension.
-#' @export
 upSample2 <- function(orig.data,
                       model, ## the downsampled model
                       up_sample=TRUE){
@@ -890,33 +620,12 @@ upSample2 <- function(orig.data,
   model2
 }
 
-## #' @rdname tile-functions
-## #' @aliases upSample,MixtureModel-method
-## setMethod("upSample", "MixtureModel", function(model, tiles){
-##   tile.sum <- tileSummaries(tiles)
-##   ##stopifnot(all.equal(y(model), tile.sum$avgLRR, tolerance=0.1, scale=1))
-##   key <- match(tiles$tile, tile.sum$tile)
-##   model2 <- model
-##   y(model2) <- tiles$logratio
-##   probs <- probz(model)
-##   probs2 <- probs[key, , drop=FALSE]
-##   probz(model2) <- probs2 * (iter(model) - 1)
-##   z(model2) <- z(model)[key]
-##   batch(model2) <- tiles$batch
-##   model2
-## })
-
 setMethod("u", "MixtureModel", function(object) object@u )
 
-#' Accessor for degrees of freedom
-#'
-#' @rdname dfr-method
-#' @aliases dfr,MixtureModel-method
+
 setMethod("dfr", "MixtureModel", function(object) object@hyperparams@dfr )
 
-#' @aliases dfr,MixtureModel,numeric-method
-#' @param value scalar providing degrees of freedom for t-distribution
-#' @rdname dfr-method
+
 setReplaceMethod("dfr", c("MixtureModel", "numeric"),
                  function(object, value) {
                    object@hyperparams@dfr <- value
