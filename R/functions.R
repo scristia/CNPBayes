@@ -393,8 +393,6 @@ bayesFactor <- function(model.list, prior.odds=1){
 #'
 #' @param models list of \code{MixtureModel}-derived objects
 #' @param bf.thr scalar: minimal bayes factor for selecting a model with more parameters over a more parsimonious model
-#'
-#' @export
 orderModels <- function(models, bf.thr=10){
   mliks <- sapply(models, marginal_lik)
   if(!any(is.na(mliks))){
@@ -420,7 +418,6 @@ marginalLik <- function(models){
   ml2
 }
 
-#' @export
 getData <- function(cnp_se, provisional_batch, model, THR=-1){
   dat <- median_summary(cnp_se, provisional_batch, THR) %>%
     select(-likely_deletion)
@@ -440,7 +437,6 @@ getData <- function(cnp_se, provisional_batch, model, THR=-1){
   dat2
 }
 
-#' @export
 predictiveDist <- function(model){
   ##dat2 %>% filter(modeled == FALSE)
   mb <- model[!isSimulated(model)]
@@ -451,23 +447,6 @@ predictiveDist <- function(model){
     group_by(batch, component) %>%
     summarize(freq=n()) %>%
     mutate(component=as.integer(component))
-  ##select(c(batch, component))
-  ##comb <- expand.grid(comb$batch, comb$component)
-  ##colnames(comb) <- c("batch", "component")
-  ##as.matrix() 
-  ##expand.grid(.[, 1], .[, 2])
-  ##  comb <- tibble(component=map_z(mb),
-  ##                 batch=batch(mb)) %>%
-  ##    group_by(batch) %>%
-  ##    expand.grid() %>%
-  ##    unique()
-  ##  countfreq <- function(x, mbp) {
-  ##    xbatch = x[2]
-  ##    xz = x[1]
-  ##    tb <- tibble(z=map_z(mbp), batch=batch(mbp))
-  ##    nrow(tb %>% filter(batch==xbatch, z==xz))
-  ##  }
-  ##comb$freq  <- apply(comb, 1, countfreq, mbp=mb)
   phat <- comb %>%
     as_tibble() %>%
     mutate(batch=as.character(batch),
@@ -485,7 +464,6 @@ predictiveDist <- function(model){
   pred
 }
 
-#' @export
 predictiveProb <- function(pred, dat){
   prob <- function(oned, batchn, k, pred) {
     pred2 <- pred %>% filter(batch==batchn)
