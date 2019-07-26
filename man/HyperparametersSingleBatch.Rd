@@ -57,5 +57,4 @@ single batch mixture model
 }
 \examples{
 HyperparametersSingleBatch(k=3)
-
 }

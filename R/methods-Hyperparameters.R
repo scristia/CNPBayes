@@ -38,7 +38,6 @@
 #' hypp <- Hyperparameters(type="batch")
 #' results3 <- qInverseTau2(eta.0(hypp), m2.0(hypp))
 #' default.precision.quantiles <- results3$quantiles
-#' @export
 qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
   if(!missing(mn) && !missing(sd)){
     params <- .parameterizeGammaByMeanSd(mn, sd)
@@ -62,7 +61,6 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 #' @examples
 #'     hyp.trio <- HyperparametersTrios(k=3)
 #'
-#' @export
 HyperparametersTrios <- function(k=3,
                                  mu.0=0,
                                  tau2.0=0.4,
@@ -127,7 +125,6 @@ HyperparametersTrios <- function(k=3,
 #' @examples
 #' HyperparametersMultiBatch(k=3)
 #'
-#' @export
 #' @seealso \code{\link{hpList}}
 HyperparametersMultiBatch <- function(k=3L,
                                       mu.0=0,
@@ -189,8 +186,6 @@ HyperparametersMultiBatch <- function(k=3L,
 #' @return An object of class HyperparametersSingleBatch
 #' @examples
 #' HyperparametersSingleBatch(k=3)
-#'
-#' @export
 HyperparametersSingleBatch <- function(k=0L,
                                     mu.0=0,
                                     tau2.0=0.4,
@@ -236,7 +231,6 @@ setValidity("Hyperparameters", function(object){
 #' @details
 #' Additional hyperparameters can be passed to the HyperparametersMarginal and HyperparametersBatch models.
 #'
-#' @export
 #' @rdname Hyperparameters
 Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="marginal") return(HyperparametersSingleBatch(k, ...))
@@ -295,26 +289,11 @@ setMethod("show", "Hyperparameters", function(object){
   cat("   b      :", b(object), "\n")
 })
 
-## hyperparam_list <- function(){
-##   hp <- HyperparametersBatch(mu=-0.75,
-##                              tau2.0=0.4,
-##                              eta.0=32,
-##                              m2.0=0.5)
-##   hp.sb <- Hyperparameters(tau2.0=0.4,
-##                            mu.0=-0.75,
-##                            eta.0=32,
-##                            m2.0=0.5)
-##   hp.list <- list(single_batch=hp.sb,
-##                   multi_batch=hp)
-##   hp.list
-## }
-
 #' Create a list of hyperparameter objects for each of the four mixture model implmentations
 #'
 #' The elements of the list are named by the type of model (SB, MB, SBP, MBP).
 #'
 #' @param ... additional arguments passed to hyperparameter constructors
-#' @export
 #' @return a list of hyperparameter objects
 #' @examples
 #' hp.list <- hpList(k=3)
@@ -332,12 +311,8 @@ hpList <- function(...){
        TBM=tbm)
 }
 
-#' @rdname dfr-method
-#' @aliases dfr,Hyperparameters-method
 setMethod("dfr", "Hyperparameters", function(object) object@dfr)
 
-#' @aliases dfr<-,Hyperparameters,numeric-method
-#' @rdname dfr-method
 setReplaceMethod("dfr", c("Hyperparameters", "numeric"),
                  function(object, value){
                    object@dfr <- value

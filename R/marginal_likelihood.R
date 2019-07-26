@@ -1,32 +1,3 @@
-##failSmallPstar <- function(ptheta.star, params=mlParams()){
-##  ptheta.star <- ptheta.star[!is.nan(ptheta.star)]
-##  reject.threshold <- params$reject.threshold
-##  prop.threshold <- params$prop.threshold
-##  small.theta.red <- mean(ptheta.star < reject.threshold)
-##  ## might small values inflate the marginal likelihood
-##  small.theta.red >= prop.threshold
-##}
-##
-##.message_theta <- function(model, params, logprobs){
-##  reject.threshold <- params$reject.threshold
-##  prop.threshold <- params$prop.threshold
-##  ignore.small.pstar <- params$ignore.small.pstar
-##  warnings <- params$warnings
-##  if(paramUpdates(model)[["theta"]]==0) {
-##    ignore.small.pstar <- TRUE
-##  }
-##  if(!ignore.small.pstar){
-##    failed <- failSmallPstar(logprobs$theta, params)
-##    if (failed) {
-##      msg <- paste("The model for k=", k(model), " may be overfit.",
-##                   "This can lead to an incorrect marginal likelihood")
-##      if(warnings) warning(msg)
-##      return(FALSE)
-##    }
-##  }
-##  TRUE
-##}
-
 .blockUpdatesBatch <- function(model, params){
   model.reduced <- model
   logprobs <- tibble(theta=marginal_theta_batch(model.reduced))
@@ -122,7 +93,6 @@ blockUpdates <- function(reduced_gibbs, root) {
 #'
 #' @return a list of parameters to be passed to \code{marginalLikelihood}.
 #' @seealso \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
-#' @export
 mlParams <- function(root=1/10,
                      reject.threshold=exp(-10),
                      prop.threshold=0.5,
@@ -138,28 +108,6 @@ mlParams <- function(root=1/10,
        ignore.small.pstar=ignore.small.pstar,
        warnings=warnings)
 }
-
-## used for debugging
-## computeML <- function(model, params=mlParams()){
-##   ## calculate p(x|theta)
-##   logLik <- modes(model)[["loglik"]] ## includes 2nd stage
-##   stage2.loglik <- stageTwoLogLik(model)
-## 
-##   ## calculate log p(theta)
-##   logPrior <- modes(model)[["logprior"]]
-## 
-##   ## calculate log p(theta|x)
-##   ##mp <- McmcParams(iter=niter)
-##   mp <- McmcParams(iter=iter(model))
-##   red_gibbs <- .blockUpdates(model, params)
-##   pstar <- blockUpdates(red_gibbs, root=1)
-## 
-##   ## calculate p(x|model)
-##   setNames(c(logLik, stage2.loglik, logPrior,
-##              sum(pstar), log(factorial(k(model)))),
-##            c("loglik", "stage2lik", "logprior",
-##              "total.pstar", "correction"))
-## }
 
 thetaEffectiveSize <- function(model){
   thetas <- as.data.frame(thetac(model))
@@ -222,13 +170,6 @@ effectiveSizeWarning <- function(model){
 
 .ml_multibatch_pooled <- function(model, params=mlParams()){
   ## calculate effective size of thetas and check against threshold
-##  warnings <- params$warnings
-##  if (failEffectiveSize(model, params)) {
-##    if(warnings) warning(effectiveSizeWarning(model))
-##    naresult <- setNames(NA, paste0("MB", k(model)))
-##    if(!params$ignore.effective.size)
-##      return(naresult)
-##  }
   ## get parameters from list params
   niter <- iter(model)
   root <- params$root
@@ -240,11 +181,6 @@ effectiveSizeWarning <- function(model){
   mp <- McmcParams(iter=niter)
   red_gibbs <- .blockUpdatesMultiBatchPooled(model2, params)
   pstar <- blockUpdates(red_gibbs, root)
-##  if(failEffectiveSize(model, params)){
-##    ## this can fail because the model is mixing beteen components
-##    ## and the correction factor is not needed
-##    correction.factor <- 0
-  ##  } else
   correction.factor <- log(factorial(k(model)))
   ## calculate p(x|model)
   m.y <- logLik + logPrior - sum(pstar) +
