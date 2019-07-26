@@ -79,7 +79,6 @@ Collate:
     'model_initialization.R'
     'plot-functions.R'
     'posteriorSimulation-methods.R'
-    'relabeling.R'
     'simulate_data.R'
     'zzz.R'
 VignetteBuilder: knitr
