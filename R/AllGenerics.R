@@ -2,88 +2,27 @@
 NULL
 
 #' Number of observations
-#'
-#' @param model a MixtureModel-derived object
-#' @examples
-#' numberObs(SingleBatchModelExample)
-#' @export
-#' @rdname numberObs-method
 setGeneric("numberObs", function(model) standardGeneric("numberObs"))
 
 #' Number of components.
-#'
-#' This function retrieves the number of a priori components.
-#' @param object see \code{showMethods(k)}
-#' @return The number of components
-#' @export
-#' @docType methods
-#' @rdname k-method
 setGeneric("k", function(object) standardGeneric("k"))
 
 #' Change the number of components.
-#'
-#' Updates the number of components and erases chains from a previous
-#' posteriorSimulation (if one was performed). Draws from prior to guess
-#' new starting values.
-#' @examples
-#' k(SingleBatchModelExample) <- 2
-#' @param value An integer for the new number of components.
-#' @export
-#' @docType methods
-#' @rdname k-method
 setGeneric("k<-", function(object, value) standardGeneric("k<-"))
 
 setGeneric("z<-", function(object, value) standardGeneric("z<-"))
 
 setGeneric("theta<-", function(object, value) standardGeneric("theta<-"))
 
-#' @export
 setGeneric("sigma2<-", function(object, value) standardGeneric("sigma2<-"))
 setGeneric("p<-", function(object, value) standardGeneric("p<-"))
 setGeneric("pp<-", function(object, value) standardGeneric("pp<-"))
 
-#' @export
-#' @rdname sigma2-method
 setGeneric("sigma<-", function(object, value) standardGeneric("sigma<-"))
 
-#' Retrieve overall mean
-#'
-#' @examples
-#'      mu(SingleBatchModelExample)
-#' @param object see \code{showMethods(mu)}
-#' @return A vector containing 'mu'
-#' @export
-#' @docType methods
-#' @rdname mu-method
 setGeneric("mu", function(object) standardGeneric("mu"))
 setGeneric("mu<-", function(object, value) standardGeneric("mu<-"))
 
-#' Accessor for the tau2 parameter in the hierarchical mixture model
-#'
-#' The interpretation of \code{tau2} depends on whether \code{object}
-#' is a \code{MarginalModel} or a \code{BatchModel}.  For
-#' \code{BatchModel}, \code{tau2} is a vector with length equal to the
-#' number of components.  Each element of the \code{tau2} vector can
-#' be interpreted as the within-component variance of the batch means
-#' (\code{theta}).  For objects of class \code{MarginalModel}
-#' (assumes no batch effect), \code{tau2} is a length-one vector that
-#' describes the variance of the component means between batches.  The
-#' hyperparameters of \code{tau2} are \code{eta.0} and \code{m2.0}. See the
-#' following examples for setting the hyperparameters, accessing the current
-#' value of \code{tau2} from a \code{MixtureModel}-derived object, and
-#' for plotting the chain of \code{tau2} values.
-#'
-#' @examples
-#' k(MultiBatchModelExample)
-#' tau2(MultiBatchModelExample)
-#' plot.ts(tau2(chains(MultiBatchModelExample)))
-#'
-#' @param object see \code{showMethods(tau2)}
-#' @return A vector of variances
-#' @export
-#' @docType methods
-#' @rdname tau2-method
-#' @seealso \code{Hyperparameters}
 setGeneric("tau2", function(object) standardGeneric("tau2"))
 
 setGeneric("tau2<-", function(object, value) standardGeneric("tau2<-"))
@@ -147,9 +86,6 @@ setGeneric("McmcChainsTrios", function(object) standardGeneric("McmcChainsTrios"
 
 
 setGeneric("hist")
-
-
-
 
 #' Retrieve batches from object.
 #'
@@ -218,7 +154,7 @@ setGeneric("bic", function(object) standardGeneric("bic"))
 #' plot.ts(theta(chains(MultiBatchModelExample))[, 1:3])
 #' }
 #' @param object see \code{showMethods(theta)}
-#' @return A vector of length number of components or a matrix of size 
+#' @return A vector of length number of components or a matrix of size
 #' number of batches x number of components
 #' @export
 #' @docType methods
@@ -257,43 +193,13 @@ setGeneric("probz", function(object) standardGeneric("probz"))
 
 setGeneric("probz<-", function(object, value) standardGeneric("probz<-"))
 
-#' Retrieve the shape parameter for the sigma.2 distribution.
-#'
-#' @examples
-#'      nu.0(SingleBatchModelExample)
-#' @param object see \code{showMethods(nu.0)}
-#' @return An integer
-#' @export
-#' @docType methods
-#' @rdname nu.0-method
 setGeneric("nu.0", function(object) standardGeneric("nu.0"))
 
-#' Retrieve the rate parameter for the sigma.2 distribution.
-#'
-#' @examples
-#'      sigma2.0(SingleBatchModelExample)
-#' @param object see \code{showMethods(sigma2.0)}
-#' @return A length 1 numeric
-#' @export
-#' @docType methods
-#' @rdname sigma2.0-method
 setGeneric("sigma2.0", function(object) standardGeneric("sigma2.0"))
 
-#' Retrieve data.
-#'
-#' @examples
-#'      head(y(SingleBatchModelExample))
-#' @param object see \code{showMethods(y)}
-#' @return A vector containing the data
-#' @export
-#' @docType methods
-#' @rdname y-method
 setGeneric("y", function(object) standardGeneric("y"))
 
 setGeneric("y<-", function(object, value) standardGeneric("y<-"))
-
-## TODO: oned is for 1-dimensional summary. Perhaps more informative
-## than 'y'.
 
 #' Retrieve data.
 #'
@@ -323,58 +229,17 @@ setGeneric("modalParameters", function(object) standardGeneric("modalParameters"
 
 setGeneric("computeModes", function(object) standardGeneric("computeModes"))
 
-#' Retrieve the modes from a model.
-#'
-#' The iteration which maximizes log likelihood and log prior is found. The estimates for each parameter at this iteration are retrieved.
-#' @examples
-#'      modes(SingleBatchModelExample)
-#' @param object a \code{MixtureModel}-derived class
-#' @return A list of the modes of each parameter
-#' @export
-#' @docType methods
-#' @rdname modes-method
 setGeneric("modes", function(object) standardGeneric("modes"))
 
-
-#' Replacement method for modes
-#'
-#' For a mixture model with K components, there are K! possible modes.
-#' One can permute the ordering of the modes and assign the permuted
-#' order to a MixtureModel derived class by this method.
-#'
-#' @param value a \code{list} of the modes.  See \code{mode(object)}
-#' to obtain the correct format of the list.
-#'
-#' @export
-#' @docType methods
-#' @rdname modes-method
 setGeneric("modes<-", function(object,value) standardGeneric("modes<-"))
 
 
 setGeneric("mu.0", function(object) standardGeneric("mu.0"))
 setGeneric("tau2.0", function(object) standardGeneric("tau2.0"))
 
-#' Retrieve the rate parameter for the tau2 distribution.
-#'
-#' @examples
-#'      eta.0(SingleBatchModelExample)
-#' @param object see \code{showMethods(eta.0)}
-#' @return eta.0 of a 'MixtureModel'
-#' @export
-#' @docType methods
-#' @rdname eta.0-method
 setGeneric("eta.0", function(object) standardGeneric("eta.0"))
 setGeneric("eta.0<-", function(object,value) standardGeneric("eta.0<-"))
 
-#' Retrieve the shape parameter for the tau2 distribution.
-#'
-#' @examples
-#'      m2.0(SingleBatchModelExample)
-#' @param object see \code{showMethods(m2.0)}
-#' @return m2.0 for a model
-#' @export
-#' @docType methods
-#' @rdname m2.0-method
 setGeneric("m2.0", function(object) standardGeneric("m2.0"))
 
 setGeneric("m2.0<-", function(object,value) standardGeneric("m2.0<-"))
@@ -382,92 +247,9 @@ setGeneric("m2.0<-", function(object,value) standardGeneric("m2.0<-"))
 setGeneric("showMeans", function(object) standardGeneric("showMeans"))
 setGeneric("showSigmas", function(object) standardGeneric("showSigmas"))
 
-## Combine batches if distribution of one-dimensional summary is similar by Kolmogorov-Smirnov test statistic
-##
-
-#' Estimate batch from any sample-level surrogate variables that capture aspects of sample processing, such as the PCR experiment (e.g., the 96 well chemistry plate), laboratory, DNA source, or DNA extraction method.
-#'
-#' In high-throughput assays, low-level summaries of copy number at
-#' copy number polymorphic loci (e.g., the mean log R ratio for each
-#' sample, or a principal-component derived summary) often differ
-#' between groups of samples due to technical sources of variation
-#' such as reagents, technician, or laboratory.  Technical (as opposed
-#' to biological) differences between groups of samples are referred
-#' to as batch effects.  A useful surrogate for batch is the chemistry
-#' plate on which the samples were hybridized. In large studies, a
-#' Bayesian hierarchical mixture model with plate-specific means and
-#' variances is computationally prohibitive.  However, chemistry
-#' plates processed at similar times may be qualitatively similar in
-#' terms of the distribution of the copy number summary statistic.
-#' Further, we have observed that some copy number polymorphic loci
-#' exhibit very little evidence of a batch effect, while other loci
-#' are more prone to technical variation.  We suggest combining plates
-#' that are qualitatively similar in terms of the Kolmogorov-Smirnov
-#' two-sample test of the distribution and to implement this test
-#' independently for each candidate copy number polymophism identified
-#' in a study.  The \code{collapseBatch} function is a wrapper to the
-#' \code{ks.test} implemented in the \code{stats} package that
-#' compares all pairwise combinations of plates.  The \code{ks.test}
-#' is performed recursively on the batch variables defined for a given
-#' CNP until no batches can be combined. For smaller values of THR, plates are more likely to be judged as similar and combined.
-#'
-#' @examples
-#' mb.ex <- MultiBatchModelExample
-#' batches <- batch(mb.ex)
-#' bt <- collapseBatch(y(mb.ex), batches)
-#' batches <- as.integer(factor(bt))
-#' hp <- hpList(k=k(mb.ex))[["MB"]]
-#' model <- MB(dat=y(mb.ex),
-#'             hp=hp,
-#'             batch=batches,
-#'             mp=mcmcParams(mb.ex))
-#' @param object see \code{showMethods(collapseBatch)}
-#' @param provisional_batch a vector labelling from which batch each observation came from.
-#' @param THR p-value threshold below which the null hypothesis should be rejected and batches are collapsed
-#' @param nchar integer specifying the maximum number of characters in the batch labels
-#' @return The new batch value.
-#' @export
-#' @docType methods
-#' @rdname collapseBatch-method
 setGeneric("collapseBatch", function(object, provisional_batch, THR=0.1, nchar=8) standardGeneric("collapseBatch"))
 
 
-
-## #' Combine chemistry plates into batches
-## #'
-## #' In high-throughput assays, low-level summaries of copy number at
-## #' copy number polymorphic loci (e.g., the mean log R ratio for each
-## #' sample, or a principal-component derived summary) often differ
-## #' between groups of samples due to technical sources of variation
-## #' such as reagents, technician, or laboratory.  Technical (as opposed
-## #' to biological) differences between groups of samples are referred
-## #' to as batch effects.  A useful surrogate for batch is the chemistry
-## #' plate on which the samples were hybridized. In large studies, a
-## #' Bayesian hierarchical mixture model with plate-specific means and
-## #' variances is computationally prohibitive.  However, chemistry
-## #' plates processed at similar times may be qualitatively similar in
-## #' terms of the distribution of the copy number summary statistic.
-## #' Further, we have observed that some copy number polymorphic loci
-## #' exhibit very little evidence of a batch effect, while other loci
-## #' are more prone to technical variation.  We suggest combining plates
-## #' that are qualitatively similar in terms of the Kolmogorov-Smirnov
-## #' two-sample test of the distribution and to implement this test
-## #' independently for each candidate copy number polymophism identified
-## #' in a study.  The \code{combinePlates} function is a wrapper to the
-## #' \code{ks.test} implemented in the \code{stats} package that
-## #' compares all pairwise combinations of plates.  The \code{ks.test}
-## #' is performed recursively on the batch variables defined for a given
-## #' CNP until no batches can be combined.
-## #' @examples
-## 
-## #' @param object see \code{showMethods(combinePlates)}
-## #' @param plate a vector labelling from which batch each observation came from.
-## #' @param THR threshold below which the null hypothesis should be rejected and batches are collapsed.
-## #' @return The new batch value.
-## #' @export
-## #' @docType methods
-## #' @rdname combinePlates-method
-## setGeneric("combinePlates", function(object, plate, THR=0.1) standardGeneric("combinePlates"))
 
 setGeneric("thetac", function(object) standardGeneric("thetac"))
 
@@ -479,40 +261,8 @@ setGeneric("pMean", function(object) standardGeneric("pMean"))
 
 setGeneric("tablez", function(object) standardGeneric("tablez"))
 
-#' Number of MCMC chains.
-#'
-#' This function retrieves the number of chains used for an MCMC simulation.
-#' @examples
-#' number_of_chains <- nStarts(SingleBatchModelExample)
-#' @param object see \code{showMethods(nStarts)}
-#' @return An integer of the number of different starts.
-#' @export
-#' @docType methods
-#' @rdname nStarts-method
 setGeneric("nStarts", function(object) standardGeneric("nStarts"))
 
-#' Reset number of starting values 
-#'
-#' @details Simulating starting values from the priors makes it imperative to
-#'   run a large nubmer of simulations for burnin and to carefully evaluate the
-#'   chains following burning for convergence. The adequacy of the burnin is
-#'   difficult to assess in high-dimensional settings with a large number of
-#'   CNPs. To avoid starting in regions of low posterior probabilitiy, we use
-#'   existing EM-based methods in the package \code{{mclust}} to select starting
-#'   values from \code{N} bootstrap sample of the observed data, where \code{N}
-#'   is specificed as in the example below. For each bootstrap sample, starting
-#'   values for the model are estimated. For each set of simulated starting
-#'   values, the log likelihood of the full data is evaluated. The starting
-#'   values with the largest log likelihood are used as initial values for the
-#'   MCMC simulations.
-#'
-#' @examples
-#' number_of_chains <- 10
-#' nStarts(SingleBatchModelExample) <- number_of_chains
-#' @param value new number of chains
-#' @export
-#' @docType methods
-#' @rdname nStarts-method
 setGeneric("nStarts<-", function(object, value) standardGeneric("nStarts<-"))
 
 setGeneric("alpha", function(object) standardGeneric("alpha"))
@@ -651,10 +401,6 @@ setGeneric("thin<-", function(object, value) standardGeneric("thin<-"))
 #' @rdname posteriorSimulation-method
 setGeneric("posteriorSimulation", function(object, k) standardGeneric("posteriorSimulation"))
 
-## setGeneric("posteriorSimulation2", function(object, params)  {
-##   standardGeneric("posteriorSimulation2")
-## })
-
 setGeneric("isSB", function(object) standardGeneric("isSB"))
 
 setGeneric("computePrior", function(object) standardGeneric("computePrior"))
@@ -666,43 +412,12 @@ setGeneric("runMcmc", function(object, mcmcp) standardGeneric("runMcmc"))
 
 setGeneric("paramUpdates<-", function(x, value) standardGeneric("paramUpdates<-"))
 
-#' Calculates a frequency table of latent variable assigments by observation.
-#'
-#' @examples
-#'      zFreq(SingleBatchModelExample)
-#' @param object see \code{showMethods(zfreq)}
-#' @return An integer vector of length the number of components
-#' @export
-#' @docType methods
-#' @rdname zfreq-method
 setGeneric("zFreq", function(object) standardGeneric("zFreq"))
 setGeneric("zFreq<-", function(object,value) standardGeneric("zFreq<-"))
 
-#' Calculates a frequency table of latent variable assigments for parents by observation.
-#' 
-#' @examples
-#' \dontrun{
-#'      zfreqpar(TrioBatchModelExample)
-#' }
-#' @param object see \code{showMethods(zfreqpar)}
-#' @return An integer vector of length the number of components
-#' @export
-#' @docType methods
-#' @rdname zfreqpar-method
 setGeneric("zFreqPar", function(object) standardGeneric("zFreqPar"))
 setGeneric("zFreqPar<-", function(object,value) standardGeneric("zFreqPar<-"))
 
-#' Retrieves intensity data from trios
-#' 
-#' @examples
-#' \dontrun{
-#'      triodata_lrr(TrioBatchModelExample)
-#' }
-#' @param object see \code{showMethods(triodata_lrr)}
-#' @return An integer vector of length the number of components
-#' @export
-#' @docType methods
-#' @rdname triodata_lrr-method
 setGeneric("triodata_lrr", function(object) standardGeneric("triodata_lrr"))
 
 #' Retrieve MCMC parameters from model.
@@ -727,15 +442,6 @@ setGeneric("mcmcParams", function(object) standardGeneric("mcmcParams"))
 #' @rdname mcmcParams-method
 setGeneric("mcmcParams<-", function(object, value) standardGeneric("mcmcParams<-"))
 
-#' Calculate log likelihood of prior for model
-#'
-#' @examples
-#'      logPrior(SingleBatchModelExample)
-#' @param object see \code{showMethods(logPrior)}
-#' @return log likelihood of the prior.
-#' @export
-#' @docType methods
-#' @rdname logPrior-method
 setGeneric("logPrior", function(object) standardGeneric("logPrior"))
 
 setGeneric("logPrior<-", function(object,value) standardGeneric("logPrior<-"))
@@ -786,35 +492,12 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #' @rdname marginalLikelihood-method
 setGeneric("marginalLikelihood", function(model, params=mlParams()) standardGeneric("marginalLikelihood"))
 
-#' Extract character vector of sequence names
-#'
-#' Short cut for \code{as.character(seqnames(g))} where g is a
-#' \code{GRanges} object.
-#' @param object a \code{GRanges} instance
-#' @param ... currently ignored
-#' @return A character vector
-#' @examples
-#'    g <- GRanges("chr1", IRanges(10, 15))
-#'    chromosome(g)
-#' @rdname chromosome
-#' @export
 setGeneric("chromosome", function(object, ...) standardGeneric("chromosome"))
 
-#' @rdname chromosome
-#' @aliases chromosome,GenomicRanges-method
 setMethod("chromosome", "GenomicRanges", function(object, ...){
   as.character(seqnames(object))
 })
 
-
-
-#' Accessor for determing whether label switching occurred during MCMC
-#'
-#'
-#' @param object MixtureModel-derived class
-#' @export
-#' @examples
-#' label_switch(SingleBatchModelExample)
 setGeneric("label_switch", function(object) standardGeneric("label_switch"))
 
 
@@ -878,31 +561,6 @@ setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 #' @rdname ggplot-functions
 setGeneric("ggMixture", function(model, bins=100, mixtheme, shift_homozygous) standardGeneric("ggMixture"))
 
-## #' @export
-## #' @rdname ggplot-functions
-## setGeneric("ggMultiBatch", function(model, bins=100) standardGeneric("ggMultiBatch"))
-
-## #' @param model a SB, MB, SBP, or MBP model
-## #' @examples
-## #'
-## #' @export
-## #' @return a SB, MB, SBP, or MBP model
-## #' @rdname tile-functions
-## setGeneric("upSample", function(model, tiles) standardGeneric("upSample"))
-
-#' Constructs a CopyNumberModel from SB, SBP, MB, or MBP models
-#'
-#' The mixture components do not necessarily reflect distinct copy number
-#' states, possibly due to skewed (non-Gaussian) log R ratios. While easy to fit skewed data with a finite mixture of Gaussians, additional steps are needed to assess whether the components correspond to distinct copy number states.  This accessor \code{copyNumber} returns the copy number states -- i.e., the result after mapping mixture components to copy number states.
-#'
-#' @param model a SB, SBP, MB, or MBP model
-#' @param params a list of parameters used for mapping mixture components to copy number states.
-#' @seealso \code{\link{copyNumber}}
-#' @export
-#' @examples
-#' sb <- SingleBatchModelExample
-#' cn.model <- CopyNumberModel(sb, mapParams())
-#' @rdname CopyNumber-methods 
 setGeneric("CopyNumberModel", function(model, params=mapParams()) standardGeneric("CopyNumberModel"))
 
 #' Map mixture components to copy number states
@@ -928,75 +586,21 @@ setGeneric("mapping<-", function(object, value) standardGeneric("mapping<-"))
 
 setGeneric("numberStates", function(model) standardGeneric("numberStates"))
 
-#' Posterior probabilities for copy number states
-#'
-#' In contrast to posterior probabilities for mixture components, this function
-#' returns posterior probabilities for distinct copy number states.
-#' a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} instance
-#' @param model a SB, SBP, MB, or MBP model
-#' @rdname probCopyNumber
-#' @seealso \code{\link{CopyNumberModel}}
-#' @export
 setGeneric("probCopyNumber", function(model) standardGeneric("probCopyNumber"))
 
-#' Extract copy number estimates from a `CopyNumberModel`
-#'
-#'
-#' @param object a \code{SingleBatchCopyNumber} or \code{MultiBatchCopyNumber} object
-#' @examples
-#' sb <- SingleBatchModelExample
-#' cn.model <- CopyNumberModel(sb)
-#' head(copyNumber(cn.model))
-#'
-#' ## here is an identity mapping
-#' \dontrun{
-#'     mapping(cn.model) <- 1:3
-#'     identical(copyNumber(cn.model), z(cn.model))
-#'     table(copyNumber(cn.model))
-#'
-#'     ## here, we map the first two mixture components to one copy number state
-#'     mapping(cn.model) <- c(1, 1, 2)
-#'     table(copyNumber(cn.model))
-#' }
-#' @seealso \code{\link{CopyNumberModel}}
-#' @export
-#' @rdname copyNumber
 setGeneric("copyNumber", function(object) standardGeneric("copyNumber"))
 
 setGeneric("mergeComponents", function(model, j) standardGeneric("mergeComponents"))
 
 ### t-distribution stuff
 
-#' Accessor for degrees of freedom
-#'
-#' @param object a Hyperparameters- or MixtureModel-derived class
-#' @export
-#' @examples
-#'   hp <- Hyperparameters()
-#'   dfr(hp)
-#'   dfr(hp) <- 10
-#'   dfr(hp)
-#' @rdname dfr-method
 setGeneric("dfr", function(object) standardGeneric("dfr"))
 
-#' @export
-#' @rdname dfr-method
 setGeneric("dfr<-", function(object, value) standardGeneric("dfr<-"))
 
 setGeneric("u", function(object) standardGeneric("u"))
 
 
-#' Retrieve the probability of latent variable membership by observation for parents.
-#'
-#' @examples
-#' \dontrun{
-#'      probzpar(TrioBatchModelExample)
-#' }
-#' @param object see \code{showMethods(probzpar)}
-#' @return A matrix of size number of observations x number of components
-#' @export
-#' @docType methods
-#' @rdname probzpar-method
 setGeneric("probzpar", function(object) standardGeneric("probzpar"))
 
 setGeneric("probzpar<-", function(object, value) standardGeneric("probzpar<-"))
@@ -1009,22 +613,20 @@ setGeneric("flags", function(object) standardGeneric("flags"))
 setGeneric("flags<-", function(object, value) standardGeneric("flags<-"))
 setGeneric("current_values<-", function(object, value) standardGeneric("current_values<-"))
 
-#' @export
 setGeneric("current_values", function(object, value) standardGeneric("current_values"))
 
-#' @export
 setGeneric("current_values2<-", function(object, value) standardGeneric("current_values2<-"))
-#' @export
+
 setGeneric("current_values2", function(object, value) standardGeneric("current_values2"))
 
 setGeneric("u<-", function(object, value) standardGeneric("u<-"))
 
-#' @export
 setGeneric("parameters", function(object) standardGeneric("parameters"))
 setGeneric("parameters<-", function(object, value) standardGeneric("parameters<-"))
 
 #' @export
 setGeneric("summaries", function(object) standardGeneric("summaries"))
+
 setGeneric("summaries<-", function(object, value) standardGeneric("summaries<-"))
 
 setGeneric("summaries2", function(object) standardGeneric("summaries2"))
@@ -1032,48 +634,66 @@ setGeneric("summaries2<-", function(object, value) standardGeneric("summaries2<-
 
 setGeneric("dataSd", function(object) standardGeneric("dataSd"))
 
-#' @export
 setGeneric("findSurrogates", function(object, THR=0.1, min_oned=-1) standardGeneric("findSurrogates"))
+
 setGeneric("isSampled", function(object, THR=0.1) standardGeneric("isSampled"))
+
 setGeneric("down_sample", function(object) standardGeneric("down_sample"))
+
 setGeneric("down_sample<-", function(object, value) standardGeneric("down_sample<-"))
+
 setGeneric("downSampledData", function(object) standardGeneric("downSampledData"))
+
 setGeneric("downSampledData<-", function(x, value) standardGeneric("downSampledData<-"))
+
 setGeneric("probability_z", function(object) standardGeneric("probability_z"))
+
 setGeneric("mcmc2", function(object, guide) standardGeneric("mcmc2"))
+
 setGeneric("setModes", function(object) standardGeneric("setModes"))
+
 setGeneric("upsample_z", function(object) standardGeneric("upsample_z"))
 
-#' @export
 setGeneric("specs", function(object) standardGeneric("specs"))
+
 setGeneric("specs<-", function(object, value) standardGeneric("specs<-"))
+
 setGeneric("downSampleModel", function(object, N, i) standardGeneric("downSampleModel") )
+
 setGeneric("upSampleModel", function(downsampled.model, data.full) standardGeneric("upSampleModel"))
+
 setGeneric("listChains", function(object) standardGeneric("listChains"))
+
 setGeneric("predictive", function(object) standardGeneric("predictive"))
+
 setGeneric("zstar", function(object) standardGeneric("zstar"))
+
 setGeneric("predictive<-", function(object, value) standardGeneric("predictive<-"))
+
 setGeneric("revertBack", function(object, mbm) standardGeneric("revertBack"))
+
 setGeneric("numBatch", function(object) standardGeneric("numBatch"))
+
 setGeneric("numBatch<-", function(object, value) standardGeneric("numBatch<-"))
+
 setGeneric("max_burnin<-", function(object, value) standardGeneric("max_burnin<-"))
+
 setGeneric("useModes", function(object) standardGeneric("useModes"))
 
-#' @export
 setGeneric("compute_marginal_lik", function(object, params) standardGeneric("compute_marginal_lik"))
 
-
 setGeneric("modelName", function(object) standardGeneric("modelName"))
+
 setGeneric("singleBatchGuided", function(x, guide) standardGeneric("singleBatchGuided"))
 
 setGeneric("convergence", function(object) standardGeneric("convergence"))
+
 setGeneric("isMendelian", function(object) standardGeneric("isMendelian"))
 
-#' @export
 setGeneric("augmentData2", function(object) standardGeneric("augmentData2"))
 
-#' @export
 setGeneric("baf_loglik", function(object, snpdat) standardGeneric("baf_loglik"))
+
 setGeneric("toSingleBatch", function(object) standardGeneric("toSingleBatch"))
 
 #' @export
