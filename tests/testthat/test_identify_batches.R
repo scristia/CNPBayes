@@ -1,6 +1,7 @@
-context("deletion pipeline")
+context("Identify batches")
 
-test_that("summarize region", {
+test_that("summarize_region", {
+  skip("Unit test for batches is slow")
   library(SummarizedExperiment)
   set.seed(2463)
   ##
@@ -13,7 +14,7 @@ test_that("summarize region", {
                                  provisional_batch=plates,
                                  THR=-1)
   if(FALSE){
-    saveRDS(mb.subsamp, file="../../inst/extdata/mb_subsamp.rds")
+    saveRDS(mb.subsamp, file="../../inst/extdata/CNP_001/mb_subsamp.rds")
   }
   expect_identical(numBatch(mb.subsamp), 5L)
   expect_identical(nrow(mb.subsamp), 1010L)

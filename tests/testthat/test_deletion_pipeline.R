@@ -1,13 +1,13 @@
 context("CNV model selection")
-## CNP_001
 
 test_that("cnv pipeline", {
   library(SummarizedExperiment)
   path <- system.file("extdata", package="CNPBayes")
-  cnp_se <- readRDS(file.path(path1, "cnp_se.rds"))["CNP_001", ]
-  snp_se <- readRDS(file.path(path1, "snp_se.rds"))
+  path1 <- file.path(path, "CNP_001")
+  cnp_se <- readRDS(file.path(path, "cnp_se.rds"))["CNP_001", ]
+  snp_se <- readRDS(file.path(path, "snp_se.rds"))
   snp_se <- subsetByOverlaps(snp_se, cnp_se)
-  mb <- readRDS(file.path(path, "mb_subsamp.rds"))
+  mb <- readRDS(file.path(path1, "mb_subsamp.rds"))
   model <- cnv_models(mb, rowRanges(cnp_se), snp_se)
   expect_identical(modelName(model), "MBP3")
   expect_identical(mapping(model), c("0", "2", "2"))
