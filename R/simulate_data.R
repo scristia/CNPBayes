@@ -8,20 +8,6 @@
 #' @param zz a vector indicating latent variable membership. Can be omitted.
 #' @param df length-1 numeric vector for the t-distribution degrees of freedom
 #' @return An object of class 'MultiBatchModel'
-#' @examples
-#' k <- 3
-#' nbatch <- 3
-#' means <- matrix(c(-1.2, -1.0, -0.8,
-#'                   -0.2, 0, 0.2,
-#'                   0.8, 1, 1.2), nbatch, k, byrow=FALSE)
-#' sds <- matrix(0.1, nbatch, k)
-#' N <- 1500
-#' truth <- simulateBatchData(N=N,
-#'                            batch=rep(letters[1:3], length.out=N),
-#'                            theta=means,
-#'                            sds=sds,
-#'                            p=c(1/5, 1/3, 1-1/3-1/5))
-#' @export
 simulateBatchData <- function(N=2500, p, theta, sds, batch, zz, df=10){
   ## order ys by batch
   if(!is.matrix(p)) p <- matrix(p, nrow(theta), ncol(theta), byrow=TRUE)
@@ -76,11 +62,6 @@ simulateBatchData <- function(N=2500, p, theta, sds, batch, zz, df=10){
 #' @param sds a vector of standard deviations, one per component
 #' @param df length-1 numeric vector for the t-distribution degrees of freedom
 #' @return An object of class 'SingleBatchModel'
-#' @examples
-#' truth <- simulateData(N=2500, p=rep(1/3, 3),
-#'                       theta=c(-1, 0, 1),
-#'                       sds=rep(0.1, 3))
-#' @export
 simulateData <- function(N, p, theta, sds, df=10){
   theta <- matrix(theta, nrow=1)
   sds <- matrix(sds, nrow=1)
@@ -92,25 +73,6 @@ simulateData <- function(N, p, theta, sds, df=10){
                               df=df,
                               batch=rep(1L, N))
   return(object)
-##  zz <- simulateZ(N, p)
-##  y <- rnorm(N, theta[zz], sds[zz]/sqrt(rchisq(N, df)/df))
-##  ## y <- rnorm(N, theta[zz], sds[zz])
-##  ##object <- SingleBatchModel(data=y, k=length(theta))
-##  object <- SingleBatchModel2(dat=y, hp=hpList(k=length(theta))[["SB"]])
-##  z(object) <- as.integer(factor(zz, levels=unique(sort(zz))))
-##  p(object) <- p
-##  theta(object) <- matrix(as.numeric(sapply(split(y(object), z(object)), mean)),
-##                          nrow=1)
-##  sigma2(object) <- matrix(as.numeric(sapply(split(y(object), z(object)), var)),
-##                           nrow=1)
-##  p(object) <- as.numeric(sapply(split(y(object),
-##                                       z(object)),
-##                                 length)/length(z(object)))
-##  mu(object) <- mean(theta(object))
-##  tau2(object) <- var(theta(object))
-##  log_lik(object) <- computeLoglik(object)
-##  logPrior(object) <- computePrior(object)
-##  object
 }
 
 simulateZ <- function(N, p){
@@ -217,7 +179,6 @@ hapmapTruth <- function(avg.lrr, simulate_truth){
   true.z
 }
 
-#' @export
 simulateBatchEffect <- function(hap.list,
                                 experiment){
   scale <- experiment$scale[[1]]
@@ -258,7 +219,6 @@ simulateBatchEffect <- function(hap.list,
 }
 
 
-#' @export
 meanSummaryBatchEffect <- function(hap.list, probe.level){
   r4 <- probe.level %>%
     group_by(plate, id) %>%
@@ -276,7 +236,6 @@ meanSummaryBatchEffect <- function(hap.list, probe.level){
   r5
 }
 
-#' @export
 pcaSummaryBatchEffect <- function(hap.list, probe.level){
   probe.level2 <- probe.level %>%
   select(c("probe", "id", "lrr.star")) %>%
@@ -306,72 +265,12 @@ pcaSummaryBatchEffect <- function(hap.list, probe.level){
 }
 
 
-  ##number.plates <- sum(batches == 0)
-  ##  n.plate <- sapply(lrr.batch, ncol)
-  ##  plates <- factor(rep(names(lrr.batch), n.plate),
-  ##                   levels=names(lrr.batch))
-  ##  z.list <- split(true.z, plates)
-  ##medians2 <- medians[true.z + 1]
-  ##medians.list <- split(medians2, plates)
-  ##delta <- ifelse(batch.id == 0, shift, 0)
-  ##lrr.sim <- lrr.batch
-  ##
-  ##  Below is the random part of the simulation -- adding shift and scale
-  ##
-##  for(j in seq_along(batch.id)){
-##    r <- lrr.batch[[j]]
-##    ## centering by z.meds will not remove copy number effect
-##    z.meds <- matrix(medians.list[[j]],
-##                     nrow(r), ncol(r), byrow=TRUE)
-##    centered <- r - z.meds
-##    rr <- (centered)*scale + z.meds
-##    if(batch.id[j] == 0) {
-##      ##
-##      ## On average, each observation is shifted by amount [shift]
-##      ##
-##      ##rr <- rr + rnorm(nrow(rr) * ncol(rr), shift, 0.01)
-##      rr <- rr + shift
-##    }
-##    lrr.sim[[j]] <- rr
-##  }
-##  lrr.sim
-
-
-
 getHapmapIds <- function(hap.list){
   ids <- lapply(hap.list[[1]], colnames) %>%
     lapply("[", -c(1, 2)) %>%
     unlist
   ids
 }
-
-##hapmapData <- function(experiment, hap.list){
-##  ids <- getHapmapIds(hap.list)
-##  shift <- experiment$batch.effect
-##  scale <- experiment$scale
-##  seed <- experiment$seed
-##  set.seed(seed)
-##  simulate_truth <- experiment$id == "001"
-##  ## plates will be in different batches even if the overall modes
-##  ## look the same. This is because the representation of copy number in the different plates is different.  homdel are rare in plates 12 and 14
-##  sim.data <- hapmapSimulation2(shift, scale,
-##                                simulate_truth=simulate_truth,
-##                                thr=0.0001)
-##  return(sim.data)
-##  full.data <- sim.data$full.data %>%
-##    mutate(id=ids) %>%
-##    arrange(batch_index)
-##
-##  cnp57 <- readRDS("PancCnvsData2/inst/extdata/hapmap/cnp_57.rds")
-##  probe_id <- cnp57[["r"]][[1]]$probeset_id
-##  sample_ids <- lapply(cnp57[["r"]], colnames) %>%
-##    lapply("[", -c(1,2)) %>%
-##    unlist
-##  lrr.sim <- sim.data$lrr.sim
-##  xx <- t(do.call(cbind, lrr.sim))
-##  dimnames(xx) <- list(sample_ids, probe_id)
-##  list(full.data=full.data, probe.level=xx)
-##}
 
 hapmapAvgLrr <- function(dat, min_plate=0){
   ##hapmap.dir <- "PancCnvsData2/inst/extdata/hapmap"
@@ -439,7 +338,6 @@ hapmapData <- function(cnp_57, true.z, experiment){
   dat
 }
 
-#' @export
 hapmapSummarizedExperiment <- function(hapmap, gr){
   B <- hapmap[["b"]] 
   B2 <- select(B, c(id, baf)) %>%
@@ -483,7 +381,6 @@ hapmapExperiment <- function(){
   experiment
 }
 
-#' @export
 performanceStats <- function(truth, cn){
   k <- length(table(cn))
   tib <- tibble(truth=as.character(truth),

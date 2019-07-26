@@ -27,17 +27,3 @@ An object of class 'MultiBatchModel'
 \description{
 Create simulated batch data for testing.
 }
-\examples{
-k <- 3
-nbatch <- 3
-means <- matrix(c(-1.2, -1.0, -0.8,
-                  -0.2, 0, 0.2,
-                  0.8, 1, 1.2), nbatch, k, byrow=FALSE)
-sds <- matrix(0.1, nbatch, k)
-N <- 1500
-truth <- simulateBatchData(N=N,
-                           batch=rep(letters[1:3], length.out=N),
-                           theta=means,
-                           sds=sds,
-                           p=c(1/5, 1/3, 1-1/3-1/5))
-}
