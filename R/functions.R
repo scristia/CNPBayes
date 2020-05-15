@@ -437,6 +437,22 @@ getData <- function(cnp_se, provisional_batch, model, THR=-1){
   dat2
 }
 
+
+getData2 <- function(cnp_se, provisional_batch, model, THR=-1){
+  dat <- median_summary(cnp_se, provisional_batch, THR) %>%
+    select(-likely_deletion)
+  model <- dropSimulated(model)
+  batches <- assays(model) %>%
+    group_by(provisional_batch) %>%
+    summarize(batch=unique(batch))
+  dat <- left_join(dat, batches, by="provisional_batch")
+  dat <- filter(dat, !is.na(batch))
+  ids_ <- id(model)
+  dat2 <- dat %>%
+    mutate(modeled=id %in% ids_)
+  dat2
+}
+
 predictiveDist <- function(model){
   ##dat2 %>% filter(modeled == FALSE)
   mb <- model[!isSimulated(model)]

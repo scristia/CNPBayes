@@ -78,13 +78,15 @@ p_b <- function(gt){
 
 d0 <- null()
 
+p_outlier <- function() 1e-4
+
 ## p.b = population frequency of B allele
 ## p.b should be the same length as the x-vector
 ## x: vector of B allele frequencies
 d1 <- function(x, p.b){
   daa <- aa()
   dbb <- bb()
-  p.outlier <- 1e-4
+  p.outlier <- p_outlier()
   p.outlier + (1-p.outlier)*(
     (1-p.b)*daa(x) + p.b*dbb(x)
   )
@@ -94,7 +96,7 @@ d2 <- function(x, p.b){
   daa <- aa()
   dab <- ab()
   dbb <- bb()
-  p.outlier <- 1e-4
+  p.outlier <- p_outlier()
   p.outlier + (1-p.outlier)*(
     (1-p.b)^2*daa(x) + p.b^2*dbb(x) +
     2*p.b*(1-p.b)*dab(x)
@@ -107,7 +109,7 @@ d3 <- function(x, p.b){
   daab <- aab()
   dabb <- abb()
   dbb <- bb()
-  p.outlier <- 1e-4
+  p.outlier <- p_outlier()
   p.outlier + (1-p.outlier)*(
     (1-p.b)^3*daa(x) + choose(3, 1)*p.a^2*p.b*daab(x) +
     choose(3, 1)*p.a*p.b^2*dabb(x) + p.b^3*dbb(x)
@@ -121,7 +123,7 @@ d4 <- function(x, p.b){
   daabb <- ab()
   dabbb <- abbb()
   dbbbb <- bb()
-  p.outlier <- 1e-4
+  p.outlier <- p_outlier()
   p.outlier + (1-p.outlier)*(
     (1-p.b)^4*daaaa(x) + choose(4, 1)*p.a^3*p.b*daaab(x) +
     choose(4, 2)*p.a^2*p.b^2*daabb(x) +
