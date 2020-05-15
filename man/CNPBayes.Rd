@@ -3,8 +3,4 @@
 \docType{package}
 \name{CNPBayes}
 \alias{CNPBayes}
-\alias{CNPBayes-package}
 \title{Bayesian mixture models for copy number estimation}
-\description{
-Bayesian mixture models for copy number estimation
-}

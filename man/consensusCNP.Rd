@@ -5,8 +5,13 @@
 \title{Identify consensus start and stop coordinates of a copy number
 polymorphism}
 \usage{
-consensusCNP(grl, transcripts, min.width = 2000, max.width = 2e+05,
-  min.prevalance = 0.02)
+consensusCNP(
+  grl,
+  transcripts,
+  min.width = 2000,
+  max.width = 2e+05,
+  min.prevalance = 0.02
+)
 }
 \arguments{
 \item{grl}{A \code{GRangesList} of all CNVs in a study -- each

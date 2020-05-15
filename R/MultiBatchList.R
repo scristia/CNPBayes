@@ -56,6 +56,17 @@ setValidity("MultiBatchList", function(object){
   msg
 })
 
+setMethod("isSimulated", "MultiBatchList", function(object){
+  if('is_simulated' %in% colnames(assays(object))){
+    is_sim <- assays(object)$is_simulated
+  } else {
+    is_sim <- rep(FALSE, nrow(object))
+  }
+  is_sim
+})
+
+setMethod("id", "MultiBatchList", function(object) assays(object)$id)
+
 setMethod("current_values", "MultiBatchList", function(object){
   ## a list
   object@current_values
@@ -286,7 +297,7 @@ setReplaceMethod("flags", c("MultiBatchList", "list"), function(object, value){
   object
 })
 
-setMethod("assays", "MultiBatchList", function(x, ..., withDimnames) x@data)
+setMethod("assays", "MultiBatchList", function(x, withDimnames, ...) x@data)
 
 setReplaceMethod("assays", c("MultiBatchList", "tbl_df"), function(x, value){
   x@data <- value

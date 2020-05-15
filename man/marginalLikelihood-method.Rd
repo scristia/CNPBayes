@@ -12,14 +12,11 @@
 \usage{
 marginalLikelihood(model, params = mlParams())
 
-\S4method{marginalLikelihood}{MultiBatchModel}(model,
-  params = mlParams())
+\S4method{marginalLikelihood}{MultiBatchModel}(model, params = mlParams())
 
-\S4method{marginalLikelihood}{MultiBatchPooled}(model,
-  params = mlParams())
+\S4method{marginalLikelihood}{MultiBatchPooled}(model, params = mlParams())
 
-\S4method{marginalLikelihood}{list}(model, params = mlParams(warnings =
-  FALSE))
+\S4method{marginalLikelihood}{list}(model, params = mlParams(warnings = FALSE))
 }
 \arguments{
 \item{model}{An object of class \code{MarginalModel}, or a list of

@@ -4,10 +4,17 @@
 \alias{McmcParams}
 \title{Create an object of class 'McmcParams' to specify iterations, burnin, etc.}
 \usage{
-McmcParams(iter = 1000L, burnin = 0L, thin = 1L, nStarts = 1L,
-  param_updates = .param_updates(), min_GR = 1.2,
-  min_effsize = round(1/3 * iter, 0), max_burnin = 32000,
-  min_chains = 1)
+McmcParams(
+  iter = 1000L,
+  burnin = 0L,
+  thin = 1L,
+  nStarts = 1L,
+  param_updates = .param_updates(),
+  min_GR = 1.2,
+  min_effsize = round(1/3 * iter, 0),
+  max_burnin = 32000,
+  min_chains = 1
+)
 }
 \arguments{
 \item{iter}{number of iterations}

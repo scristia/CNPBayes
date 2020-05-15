@@ -19,7 +19,7 @@
 #' @importFrom stats dnorm qnorm kmeans ks.test plot.ts qgamma rbeta rgamma dbeta pnorm prcomp rbinom t.test
 #' @importFrom stats rgeom rnorm runif setNames rpois rchisq dgamma df
 #' @importFrom coda effectiveSize mcmc.list gelman.diag mcmc as.mcmc.list
-#' @importMethodsFrom SummarizedExperiment assays SummarizedExperiment assays<- rowRanges colData
+#' @import SummarizedExperiment
 #' @import ggplot2
 #' @importFrom magrittr set_colnames "%>%" "%$%"
 #' @importFrom purrr map map2 map_lgl map_dbl map_chr

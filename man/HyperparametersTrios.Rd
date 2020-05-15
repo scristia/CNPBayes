@@ -4,8 +4,18 @@
 \alias{HyperparametersTrios}
 \title{Create an object of class 'Hyperparameters' with additional parameters for Trios}
 \usage{
-HyperparametersTrios(k = 3, mu.0 = 0, tau2.0 = 0.4, eta.0 = 32,
-  m2.0 = 0.5, alpha, beta = 0.1, a = 1.8, b = 6, dfr = 100)
+HyperparametersTrios(
+  k = 3,
+  mu.0 = 0,
+  tau2.0 = 0.4,
+  eta.0 = 32,
+  m2.0 = 0.5,
+  alpha,
+  beta = 0.1,
+  a = 1.8,
+  b = 6,
+  dfr = 100
+)
 }
 \value{
 An object of class HyperparameterTrios

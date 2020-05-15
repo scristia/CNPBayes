@@ -479,14 +479,6 @@ setMethod("isSimulated", "MultiBatch", function(object){
   is_sim
 })
 
-setMethod("isSimulated", "MultiBatchList", function(object){
-  if('is_simulated' %in% colnames(assays(object))){
-    is_sim <- assays(object)$is_simulated
-  } else {
-    is_sim <- rep(FALSE, nrow(object))
-  }
-  is_sim
-})
 
 setMethod("isSimulated", "MixtureModel", function(object){
   rep(FALSE, length(y(object)))
@@ -915,7 +907,7 @@ setReplaceMethod("label_switch", c("MultiBatch", "logical"),
                  })
 
 
-setMethod("assays", "MultiBatch", function(x, ..., withDimnames) x@data)
+setMethod("assays", "MultiBatch", function(x, withDimnames, ...) x@data)
 
 setReplaceMethod("assays", "MultiBatch", function(x, value){
   x@data <- value
@@ -1961,7 +1953,6 @@ setMethod("numberObs", "MultiBatch", function(model) {
 #' @export
 setGeneric("id", function(object) standardGeneric("id"))
 setMethod("id", "MultiBatch", function(object) assays(object)$id)
-setMethod("id", "MultiBatchList", function(object) assays(object)$id)
 
 #' @export
 id2 <- function(object){
@@ -2004,11 +1995,22 @@ setMethod("[", c("MultiBatch", "numeric"), function(x, i, j, ..., drop=FALSE){
     ## leave chains alone and return
     return(x)
   }
+  ## can we keep the chains for batches still in the model
+  B <- matrix(seq_len(nbatch1), nbatch1, k(x)) %>%
+    as.numeric
+  keep <- B %in% ubatch
+  ch <- chains(x)
+  ch@theta <- theta(ch)[, keep, drop=FALSE]
+  ch@pi <- p(ch)[, keep, drop=FALSE]
+  ch@predictive <- predictive(ch)[, keep, drop=FALSE]
+  ch@zstar <- ch@zstar[, keep, drop=FALSE]
   if(substr(modelName(x), 1, 3) == "MBP"){
-    chains(x) <- initialize_mcmcP(k(x), iter(x), numBatch(x))
+    ##chains(x) <- initialize_mcmcP(k(x), iter(x), numBatch(x))
   } else {
-    chains(x) <- initialize_mcmc(k(x), iter(x), numBatch(x))
+    ##chains2 <- initialize_mcmc(k(x), iter(x), numBatch(x))
+    ch@sigma2 <- sigma2(ch)[, keep, drop=FALSE]
   }
+  x@chains <- ch
   assays(x)$batch <- as.integer(factor(batch(x)))
   x
 })
@@ -2814,20 +2816,15 @@ select_highconfidence_samples <- function(model, snpdat){
                   batch=batch(model2),
                   z=map_z(model2))
   cutoffs <- group_by(maxpz, z) %>%
-    summarize(cutoff=quantile(prob, 0.75))
+    summarize(cutoff=max(quantile(prob, 0.75), 0.8))
   maxpz <- left_join(maxpz, cutoffs, by="z")
-  ##  max_zprob <- rowMaxs(pz)
-  ##  is_high_conf <- max_zprob > 0.95
-  ##  if(all(is.na(is_high_conf))) return(model)
-  ##  n.highconf <- sum(is_high_conf, na.rm=TRUE)
-  ##  if(n.highconf < 100){
-  ##    is_high_conf <- max_zprob >= quantile(max_zprob, 0.5)
-  ##  }
-  ##  if(!any(is_high_conf)) {
-  ##    warning("No high confidence copy number calls")
-  ##    return(model)
-  ##  }
-  ##mean(is_high_conf)
+  highconf <- group_by(maxpz, z, batch)  %>%
+      summarize(total=n(),
+                n=sum(prob >= cutoff))
+  if(!all(highconf$n >= 5)){
+    mapping(model) <- rep("?", k(model))
+    return(model)
+  }
   is_highconf <- maxpz$prob >= maxpz$cutoff
   ##keep <- !isSimulated(model) & is_highconf
   gmodel <- model2[ is_highconf ]
@@ -2837,6 +2834,10 @@ select_highconfidence_samples <- function(model, snpdat){
 
 genotype_model <- function(model, snpdat){
   gmodel <- select_highconfidence_samples(model, snpdat)
+  if(all(mapping(gmodel) == "?")) {
+    mapping(gmodel) <- rep("2", k(gmodel))
+    return(gmodel)
+  }
   keep <- !duplicated(id(gmodel))
   gmodel <- gmodel[ keep ]
   snpdat2 <- snpdat[, id(gmodel) ]
@@ -2898,7 +2899,8 @@ component_labels <- function(model){
   labs
 }
 
-list_mixture_plots <- function(model, bafdat, xlimit=c(-4, 1), bins=100){
+list_mixture_plots <- function(model, bafdat,
+                               xlimit=c(-4, 1), bins=100){
   rg <- range(theta(model)[, 1])
   if(min(rg) < xlimit[1]){
     s <- mean(sigma(model)[, 1])
@@ -3326,6 +3328,7 @@ homdel_model <- function(mb, mp, THR){
   mcmcParams(sb3) <- mp
   sb3 <- posteriorSimulation(sb3)
   finished <- stop_early(sb3)
+  if(numBatch(mb) == 1) return(sb3)
   if(!finished){
     ## Since not finished, keep going
     final <- explore_multibatch(sb3, simdat, THR)
@@ -3775,12 +3778,13 @@ choose_model <- function(model.list, mb){
 
 preliminary_checks <- function(mb, grange){
   if(any(is.na(assays(mb)$batch_labels))) {
-    stop("Missing data in `assays(mb)$batch_labels`")
+    message("Missing data in `assays(mb)$batch_labels`")
+    return(FALSE)
   }
   if(is.null(grange)) return(TRUE)
   if(length(grange) > 1){
     warning("Multiple elements for `grange` object. Only using first")
-    grange <- grange[1]
+    return(TRUE)
   }
   TRUE
 }
@@ -3791,37 +3795,40 @@ cnv_models <- function(mb,
                        snp_se,
                        mp=McmcParams(iter=400, burnin=500),
                        THR){
-  preliminary_checks(mb, grange)
+  ok <- preliminary_checks(mb, grange)
+  stopifnot(ok)
+  grange <- grange[1]
   if(!is.null(snp_se))
     snpdat <- subsetByOverlaps(snp_se, grange)
   modelfun <- select_models(mb)
   if(missing(THR))
     THR <- use_cutoff(mb)
   model.list <- modelfun(mb, snpdat, mp, THR)
-  model <- choose_model(model.list)
+  model <- choose_model(model.list, mb)
   model
 }
 
 #' @export
 upsample <- function(model, se, provisional_batch){
-  dat <- getData(se[1, ], provisional_batch, model)
+  dat <- getData2(se[1, ], provisional_batch, model)
   pred <- predictiveDist(model)
   dat2 <- predictiveProb(pred, dat) %>%
     mutate(copynumber=mapping(model)[inferred_component])
+  if(nrow(dat2) == 0) return(dat2)
   ix <- which(colnames(dat2) %in% as.character(0:4))
   ##
   ## multiple components can map to the same copy number state
   ## -- add probabilities belonging to same component
   select <- dplyr::select
   tmp <- dat2[, ix] %>%
-    mutate(id=dat2$id) %>%
-    gather("state", "prob", -id) %>%
-    mutate(component_index=as.numeric(state) + 1) %>%
-    mutate(copynumber=mapping(model)[component_index]) %>%
-    group_by(id, copynumber) %>%
-    summarize(prob=sum(prob)) %>%
-    select(c(id, prob, copynumber)) %>%
-    spread(copynumber, prob)
+      mutate(id=dat2$id) %>%
+      gather("state", "prob", -c(id)) %>%
+      mutate(component_index=as.numeric(state) + 1) %>%
+      mutate(copynumber=mapping(model)[component_index]) %>%
+      group_by(id, copynumber) %>%
+      summarize(prob=sum(prob)) %>%
+      select(c(id, prob, copynumber)) %>%
+      spread(copynumber, prob)
   dat2 <- dat2[, -ix] %>%
     left_join(tmp, by="id")
   dat3 <- tidy_cntable(dat2)
@@ -3829,23 +3836,23 @@ upsample <- function(model, se, provisional_batch){
 }
 
 tidy_cntable <- function(dat){
-  tmp <- tibble(id=dat$id,
-                `0`=rep(0, nrow(dat)),
-                `1`=rep(0, nrow(dat)),
-                `2`=rep(0, nrow(dat)),
-                `3`=rep(0, nrow(dat)),
-                `4`=rep(0, nrow(dat)))
-  dat2 <- left_join(dat, tmp, by="id") 
-  dropcols <- paste0(0:4, ".y")
-  dropcols <- dropcols[ dropcols %in% colnames(dat2)]
-  dat2 <- select(dat2, -dropcols)
-  renamecols <- paste0(0:4, ".x")
-  renamecols <- renamecols[renamecols %in% colnames(dat2)]
-  renameto <- gsub("\\.x", "", renamecols)
-  colnames(dat2)[match(renamecols, colnames(dat2))] <- renameto
-  colnames(dat2)[match(0:4, colnames(dat2))] <- paste0("cn_", 0:4)
-  keep <- c("id", "copynumber", paste0("cn_", 0:4))
-  dat3 <- select(dat2, keep) %>%
-    mutate(copynumber=as.integer(copynumber))
-  dat3
+    tmp <- tibble(id=dat$id,
+                  `0`=rep(0, nrow(dat)),
+                  `1`=rep(0, nrow(dat)),
+                  `2`=rep(0, nrow(dat)),
+                  `3`=rep(0, nrow(dat)),
+                  `4`=rep(0, nrow(dat)))
+    dat2 <- left_join(dat, tmp, by="id") 
+    dropcols <- paste0(0:4, ".y")
+    dropcols <- dropcols[ dropcols %in% colnames(dat2)]
+    dat2 <- select(dat2, -dropcols)
+    renamecols <- paste0(0:4, ".x")
+    renamecols <- renamecols[renamecols %in% colnames(dat2)]
+    renameto <- gsub("\\.x", "", renamecols)
+    colnames(dat2)[match(renamecols, colnames(dat2))] <- renameto
+    colnames(dat2)[match(0:4, colnames(dat2))] <- paste0("cn_", 0:4)
+    keep <- c("id", "batch", "copynumber", paste0("cn_", 0:4))
+    dat3 <- select(dat2, keep) %>%
+        mutate(copynumber=as.integer(copynumber))
+    dat3
 }
