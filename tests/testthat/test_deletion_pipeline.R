@@ -1,4 +1,5 @@
 context("analysis of rare deletions")
+
 test_that("deletion pipeline", {
   library(devtools)
   library(SummarizedExperiment)
