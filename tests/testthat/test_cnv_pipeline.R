@@ -104,5 +104,3 @@ test_that("Hemizygous deletion +/- duplication pipeline", {
   model <- choose_model(model.list)
   expect_identical(mapping(model), c("2", "3"))
 })
-
-
