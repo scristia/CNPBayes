@@ -1,0 +1,29 @@
+---
+title: "CNPBayes: Bayesian copy number detection and association in large-scale studies"
+author: "Stephen Cristiano, Jacob Carey, David McKean, Alison Klein, and Rob Scharpf"
+date: "`r format(Sys.Date())`"
+output:
+	html_document:
+		keep_md: TRUE
+---
+
+# Overview
+
+Germline copy number variants (CNVs) increase risk for many diseases, yet detection of CNVs and quantifying their contribution to disease risk in large-scale studies is challenging due to biological and technical sources of heterogeneity that vary across the genome within and between samples. We developed an approach called CNPBayes to identify latent batch effects in genome-wide association studies involving copy number, to provide probabilistic estimates of integer copy number across the estimated batches, and to fully integrate the copy number uncertainty in the association model for disease. 
+
+# Installation
+
+```{r installation}
+## install.packages("devtools")
+devtools::install_github("scristia/CNPBayes")
+```
+
+# Usage
+
+```{r data}
+
+
+```
+
+# Detailed workflow
+
