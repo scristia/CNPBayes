@@ -2266,13 +2266,13 @@ ok_hemizygous <- function(sb){
   !(p(sb)[2] < 0.1 || varratio > 100)
 }
 
-.warmup <- function(tib, model){
-  mbl <- replicate(10, MultiBatchList(data=tib)[[model]])
+.warmup <- function(tib, model, Nrep=10, .burnin=100){
+  mbl <- replicate(Nrep, MultiBatchList(data=tib)[[model]])
   for(j in seq_along(mbl)){
     cat(".")
     mb <- mbl[[j]]
     iter(mb) <- 0
-    burnin(mb) <- 100
+    burnin(mb) <- .burnin
     mb <- tryCatch(posteriorSimulation(mb),
                    warning=function(w) NULL)
     if(is.null(mb)) next()
@@ -2281,10 +2281,11 @@ ok_hemizygous <- function(sb){
   mbl
 }
 
-warmup <- function(tib, model1, model2=NULL){
+warmup <- function(tib, model1, model2=NULL, model2.penalty=50,
+                   Nrep=10, .burnin=100){
   ##
   ##
-  mbl <- .warmup(tib, model1)
+  mbl <- .warmup(tib, model1, Nrep=Nrep, .burnin=.burnin)
   ml <- sapply(mbl, log_lik)
   if(is(ml, "list")){
     mbl <- mbl[ lengths(ml) > 0 ]
@@ -2296,7 +2297,7 @@ warmup <- function(tib, model1, model2=NULL){
     return(model)
   }
   if(!is.null(model2)){
-    mbl2 <- .warmup(tib, model2)
+    mbl2 <- .warmup(tib, model2, Nrep=Nrep, .burnin=.burnin)
     ml2 <- sapply(mbl2, log_lik)
     if(is(ml2, "list")){
       mbl2 <- mbl2[ lengths(ml2) > 0 ]
@@ -2304,7 +2305,7 @@ warmup <- function(tib, model1, model2=NULL){
       ml2 <- unlist(ml2)
     }
     if(all(is.na(ml2))) return(model)
-    if(max(ml2, na.rm=TRUE) > max(ml, na.rm=TRUE) + 50){
+    if(max(ml2, na.rm=TRUE) > max(ml, na.rm=TRUE) + model2.penalty){
       model <- mbl2[[which.max(ml2)]]
     } else {
       model <- mbl[[which.max(ml)]]
@@ -2605,9 +2606,9 @@ mcmcWithHomDel <- function(mb, sb,
     bind_rows(assays(mb.observed)) %>%
     arrange(batch) %>%
     MultiBatchList(data=.) %>%
-    "[["(model)
+      "[["(model)
   simdat <- .augment_homozygous(mb1, mn_sd, -1,
-                                phat=max(p(sb)[1], 0.05))
+                                phat=max(p(sb)[1], 0.05))  
   full <- .mcmcWithHomDel(simdat, restricted_model)
   full
 }
