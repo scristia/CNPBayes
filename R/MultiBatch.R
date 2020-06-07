@@ -1090,18 +1090,18 @@ setGeneric("computeMixProbs", function(object) standardGeneric("computeMixProbs"
 setMethod("computeMixProbs", "MultiBatch", function(object){
   z(object) <- map_z(object)
   tib2 <- assays(object) %>%
-    group_by(batch) %>%
-    summarize(N=n())
+      group_by(batch) %>%
+      summarize(N=n())
   ## frequency of copy number states in each batch
   tib <- assays(object) %>%
-    mutate(z=z(object)) %>%
-    group_by(batch, z) %>%
-    summarize(n=n()) %>%
-    left_join(tib2, by="batch")
+      mutate(z=z(object)) %>%
+      group_by(batch, z) %>%
+      summarize(n=n()) %>%
+      left_join(tib2, by="batch")
   tib3 <- expand.grid(unique(batch(object)), seq_len(k(object))) %>%
-    as_tibble() %>%
-    set_colnames(c("batch", "z")) %>%
-    left_join(tib, by=c("batch", "z"))
+      set_colnames(c("batch", "z")) %>%
+      as_tibble() %>%
+      left_join(tib, by=c("batch", "z"))
   p <- matrix(tib3$n/tib3$N, nrow(tib2), ncol=k(object),
               byrow=TRUE)
   dimnames(p) <- NULL
@@ -2169,9 +2169,9 @@ genotypeData <- function(gmodel, snpdat, min_probz=0.9){
     "/"(rowSums(.)) %>%
     rowMaxs
   bafdat <- assays(snpdat)[["baf"]] %>%
-    as_tibble() %>%
-    mutate(rsid=rownames(snpdat)) %>%
-    gather("id", "BAF", -rsid)
+      as_tibble() %>%
+      mutate(rsid=rownames(snpdat)) %>%
+      gather("id", "BAF", -rsid)
   cndat <- tibble(id=id(gmodel),
                   batch=batch(gmodel),
                   oned=oned(gmodel),
@@ -2861,9 +2861,9 @@ join_baf_oned <- function(model, snpdat){
     "/"(rowSums(.)) %>%
     rowMaxs
   bafdat <- assays(snpdat)[["baf"]] %>%
-    as_tibble() %>%
-    mutate(rsid=rownames(snpdat)) %>%
-    gather("id", "BAF", -rsid)
+      as_tibble() %>%
+      mutate(rsid=rownames(snpdat)) %>%
+      gather("id", "BAF", -rsid)
   ##
   ## tibble of copy number probabilities
   ##
@@ -3023,26 +3023,26 @@ as_tibble.density <- function(x, ...){
 }
 
 compute_density <- function(mb, THR){
-  batches <- batchLevels(mb)
-  densities <- vector("list", length(batches))
-  for(i in seq_along(batches)){
-  ##
-  ## Coarse
-  ##
-  index <- which(batch(mb)==i & oned(mb) < THR)
-  if(length(index) > 2){
-    tmp <- density(oned(mb)[index])
-    tmp <- as_tibble(tmp)
-  } else tmp <- NULL
-  ##
-  ## Fine
-  ##
-  tmp2 <- density(oned(mb)[batch(mb)==i & oned(mb) > THR]) %>%
-    as_tibble
-  densities[[i]] <- list(coarse=as_tibble(tmp),
-                         fine=as_tibble(tmp2))
-  }
-  densities
+    batches <- batchLevels(mb)
+    densities <- vector("list", length(batches))
+    for(i in seq_along(batches)){
+        ##
+        ## Coarse
+        ##
+        index <- which(batch(mb)==i & oned(mb) < THR)
+        if(length(index) > 2){
+            tmp <- density(oned(mb)[index])
+            tmp <- as_tibble(tmp)
+        } else tmp <- NULL
+        ##
+        ## Fine
+        ##
+        tmp2 <- density(oned(mb)[batch(mb)==i & oned(mb) > THR]) %>%
+            as_tibble()
+        densities[[i]] <- list(coarse=as_tibble(tmp),
+                               fine=as_tibble(tmp2))
+    }
+    densities
 }
 
 compute_modes <- function(densities){
@@ -3627,13 +3627,13 @@ distinct_components <- function(model){
   if(sum(nearly_equivalent) == 0) return(TRUE)
   colnames(p) <- paste0("comp", seq_len(ncol(p)))
   b <- batch(model)
-  ptib <- as_tibble(p) %>%
+  tib <- as_tibble(p) %>%
     mutate(nearly_equivalent=nearly_equivalent,
            batch=b) %>%
     filter(nearly_equivalent)
   batches <- seq_len(numBatch(model))
   nbatch <- tibble(batch=batches, N=as.numeric(table(b)))
-  equiv <- ptib %>%
+  equiv <- tib %>%
     left_join(nbatch, by="batch") %>%
     group_by(batch) %>%
     summarize(number_equivalent=n(),

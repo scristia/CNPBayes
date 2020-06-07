@@ -426,37 +426,37 @@ setReplaceMethod("zFreq", "McmcChains", function(object, value){
 })
 
 longFormatKB <- function(x, K, B){
-  col_names <- expand.grid(seq_len(B), seq_len(K)) %>%
-    mutate(col_names=paste(Var1, Var2, sep=",")) %$%
-    col_names
-  ##col_names <- col_names[ !duplicated(col_names) ]
-  x <- x %>%
-    as_tibble %>%
-    set_colnames(col_names) %>%
-    mutate(s=seq_len(nrow(.))) %>%
-    gather("bk", "value", -s) %>%
-    mutate(b=sapply(strsplit(bk, ","), "[", 1),
-           k=sapply(strsplit(bk, ","), "[", 2)) %>%
-    mutate(b=factor(paste("batch", b)),
-           k=factor(paste("k", k))) %>%
-    select(-bk)
-  x
+    col_names <- expand.grid(seq_len(B), seq_len(K)) %>%
+        mutate(col_names=paste(Var1, Var2, sep=",")) %$%
+        col_names
+    ##col_names <- col_names[ !duplicated(col_names) ]
+    x <- x %>%
+        set_colnames(col_names) %>%
+        as_tibble %>%
+        mutate(s=seq_len(nrow(.))) %>%
+        gather("bk", "value", -s) %>%
+        mutate(b=sapply(strsplit(bk, ","), "[", 1),
+               k=sapply(strsplit(bk, ","), "[", 2)) %>%
+        mutate(b=factor(paste("batch", b)),
+               k=factor(paste("k", k))) %>%
+        select(-bk)
+    x
 }
 
 longFormatKB2 <- function(x, K, B){
   col_names <- rep(seq_len(B), B) %>%
-    paste(rep(seq_len(K), each=K), sep=",")
+      paste(rep(seq_len(K), each=K), sep=",")
   col_names <- col_names[ !duplicated(col_names) ]
   x <- x %>%
-    as_tibble %>%
-    set_colnames(col_names) %>%
-    mutate(s=seq_len(nrow(.))) %>%
-    gather("bk", "value", -s) %>%
-    mutate(b=sapply(strsplit(bk, ","), "[", 1),
-           k=sapply(strsplit(bk, ","), "[", 2)) %>%
-    mutate(b=factor(paste("batch", b)),
-           k=factor(paste("k", k))) %>%
-    select(-bk)
+      set_colnames(col_names) %>%      
+      as_tibble %>%
+      mutate(s=seq_len(nrow(.))) %>%
+      gather("bk", "value", -s) %>%
+      mutate(b=sapply(strsplit(bk, ","), "[", 1),
+             k=sapply(strsplit(bk, ","), "[", 2)) %>%
+      mutate(b=factor(paste("batch", b)),
+             k=factor(paste("k", k))) %>%
+      select(-bk)
   x
 }
 
@@ -464,11 +464,11 @@ longFormatK <- function(x, K){
   col_names <- seq_len(K) %>%
     as.character
   x <- x %>%
-    as_tibble %>%
-    set_colnames(col_names) %>%
-    mutate(s=seq_len(nrow(.))) %>%
-    gather("k", "value", -s) %>%
-    mutate(k=factor(paste("k ", k)))
+      set_colnames(col_names) %>%
+      as_tibble() %>%
+      mutate(s=seq_len(nrow(.))) %>%
+      gather("k", "value", -s) %>%
+      mutate(k=factor(paste("k ", k)))
   x
 }
 
@@ -665,7 +665,7 @@ gelman_rubin <- function(mcmc_list, hp){
     r <- gelman.diag(mcmc_list, autoburnin=FALSE)
     if(FALSE){
       mc <- do.call(rbind, mcmc_list) %>%
-        as_tibble
+        as_tibble()
       mc$iter <- rep(seq_len(nrow(mcmc_list[[1]])), length(mcmc_list))
       dat <- gather(mc, key="parameter", value="chain", -iter)
       ggplot(dat, aes(iter, chain)) + geom_line() +

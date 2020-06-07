@@ -144,7 +144,7 @@ mixtureProbs <- function(snpdat, cn.model){
   p.b <- p.b[ keep ]
   baf <- NULL
   B <- B %>%
-    as_tibble %>%
+    as_tibble() %>%
     mutate(p.b=p.b) %>%
     gather("id", "baf", -p.b) %>%
     mutate(p0=d0(baf),
@@ -157,23 +157,23 @@ mixtureProbs <- function(snpdat, cn.model){
 }
 
 pBaf <- function(snpdat, cn.model){
-  pz <- probCopyNumber(cn.model) %>%
-    as_tibble %>%
-    set_colnames(paste0("prob_cn", unique(mapping(cn.model)))) %>%
-    mutate(id=colnames(snpdat))
-  ##pwr <- 1/10
-  pwr <- 1
-  p0 <- p1 <- p2 <- p3 <- p4 <- baf <- id <- NULL
-  B <- mixtureProbs(snpdat, cn.model) %>%
-    group_by(id) %>%
-    summarize(baf=mean(baf, na.rm=TRUE),
-              p0=prod(p0, na.rm=TRUE)^pwr,
-              p1=prod(p1, na.rm=TRUE)^pwr,
-              p2=prod(p2, na.rm=TRUE)^pwr,
-              p3=prod(p3, na.rm=TRUE)^pwr,
-              p4=prod(p4, na.rm=TRUE)^pwr) %>%
-    left_join(pz, by="id")
-  B
+    pz <- probCopyNumber(cn.model) %>%
+        set_colnames(paste0("prob_cn", unique(mapping(cn.model)))) %>%
+        as_tibble() %>%
+        mutate(id=colnames(snpdat))
+    ##pwr <- 1/10
+    pwr <- 1
+    p0 <- p1 <- p2 <- p3 <- p4 <- baf <- id <- NULL
+    B <- mixtureProbs(snpdat, cn.model) %>%
+      group_by(id) %>%
+      summarize(baf=mean(baf, na.rm=TRUE),
+                p0=prod(p0, na.rm=TRUE)^pwr,
+                p1=prod(p1, na.rm=TRUE)^pwr,
+                p2=prod(p2, na.rm=TRUE)^pwr,
+                p3=prod(p3, na.rm=TRUE)^pwr,
+                p4=prod(p4, na.rm=TRUE)^pwr) %>%
+      left_join(pz, by="id")
+    B
 }
 
 .pBAF_012 <- function(snpdat, cn.model){
