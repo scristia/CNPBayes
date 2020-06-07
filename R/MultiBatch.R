@@ -2809,32 +2809,59 @@ summarize_region <- function(se, provisional_batch, THR=-1,
 ## select high confidence samples for each component
 ## - assume component corresponds to same copy number state across batches
 select_highconfidence_samples <- function(model, snpdat){
-  if(iter(model) == 0) stop("No saved MCMC simulations. Must specify iter > 0")
-  model2 <- dropSimulated(model)
-  pz <- probz(model2) %>%
-    "/"(rowSums(.))
-  maxpz <- tibble(prob=rowMaxs(pz),
-                  batch=batch(model2),
-                  z=map_z(model2))
-  cutoffs <- group_by(maxpz, z) %>%
-    summarize(cutoff=max(quantile(prob, 0.75), 0.8))
-  maxpz <- left_join(maxpz, cutoffs, by="z")
-  highconf <- group_by(maxpz, z, batch)  %>%
-      summarize(total=n(),
-                n=sum(prob >= cutoff))
-  if(!all(highconf$n >= 5)){
-    mapping(model) <- rep("?", k(model))
-    return(model)
-  }
-  is_highconf <- maxpz$prob >= maxpz$cutoff
-  ##keep <- !isSimulated(model) & is_highconf
-  gmodel <- model2[ is_highconf ]
-  gmodel
+    if(iter(model) == 0) stop("No saved MCMC simulations. Must specify iter > 0")
+    model2 <- dropSimulated(model)
+    pz <- probz(model2) %>%
+        "/"(rowSums(.))
+    maxpz <- tibble(prob=rowMaxs(pz),
+                    batch=batch(model2),
+                    z=map_z(model2))
+    cutoffs <- group_by(maxpz, z) %>%
+        summarize(cutoff=max(quantile(prob, 0.75), 0.8))
+        ##mutate(cutoff=ifelse(cutoff > 0.9, 0.9, cutoff))
+    maxpz <- left_join(maxpz, cutoffs, by="z")
+    highconf <- group_by(maxpz, z, batch)  %>%
+        summarize(total=n(),
+                  n=sum(prob >= cutoff))
+    if(!all(highconf$n >= 5)){
+        mapping(model) <- rep("?", k(model))
+        return(model)
+    }
+    is_highconf <- maxpz$prob >= maxpz$cutoff
+    ##keep <- !isSimulated(model) & is_highconf
+    gmodel <- model2[ is_highconf ]
+    gmodel
+}
+
+select_highconfidence_samples2 <- function(model, snpdat){
+    if(iter(model) == 0) stop("No saved MCMC simulations. Must specify iter > 0")
+    model2 <- dropSimulated(model)
+    pz <- probz(model2) %>%
+        "/"(rowSums(.))
+    maxpz <- tibble(prob=rowMaxs(pz),
+                    batch=batch(model2),
+                    z=map_z(model2))
+##    
+##    cutoffs <- group_by(maxpz, z) %>%
+##        summarize(cutoff=max(quantile(prob, 0.75), 0.8))
+##        ##mutate(cutoff=ifelse(cutoff > 0.9, 0.9, cutoff))
+##    maxpz <- left_join(maxpz, cutoffs, by="z")
+    highconf <- group_by(maxpz, z, batch)  %>%
+        summarize(total=n(),
+                  n=sum(prob >= 0.75))
+    if(!all(highconf$n >= 1)){
+        mapping(model) <- rep("?", k(model))
+        return(model)
+    }
+    is_highconf <- maxpz$prob >= 0.75
+    ##keep <- !isSimulated(model) & is_highconf
+    gmodel <- model2[ is_highconf ]
+    gmodel
 }
 
 
 genotype_model <- function(model, snpdat){
-  gmodel <- select_highconfidence_samples(model, snpdat)
+  gmodel <- select_highconfidence_samples2(model, snpdat)
   if(all(mapping(gmodel) == "?")) {
     mapping(gmodel) <- rep("2", k(gmodel))
     return(gmodel)
@@ -2981,17 +3008,17 @@ fit_restricted <- function(mb, sb, THR, model="MBP2",
 
 explore_multibatch <- function(sb, simdat, THR=-1,
                                model="MBP2"){
-  mb <- revertToMultiBatch(sb)
-  restricted <- fit_restricted(mb, sb, THR, model=model)
-  ## augment_rareduplication?
-  ##message("Fitting full model")
-  full <- mcmcWithHomDel(mb, sb, restricted, THR)
-  ok <- ok_model(full, restricted)
-  if(!ok){
-    model <- gsub("P", "", modelName(full))
-    full <- mcmcHomDelOnly(assays(full), restricted, sb, model)
-  }
-  full
+    mb <- revertToMultiBatch(sb)
+    restricted <- fit_restricted(mb, sb, THR, model=model)
+    ## augment_rareduplication?
+    ##message("Fitting full model")
+    full <- mcmcWithHomDel(mb, sb, restricted, THR)
+    ok <- ok_model(full, restricted)
+    if(!ok){
+        model <- gsub("P", "", modelName(full))
+        full <- mcmcHomDelOnly(assays(full), restricted, sb, model)
+    }
+    full
 }
 
 few_hemizygous <- function(model){
@@ -3316,25 +3343,25 @@ equivalent_variance <- function(model){
 }
 
 homdel_model <- function(mb, mp, THR){
-  if(missing(THR)){
-    THR <- summaries(mb)$deletion_cutoff
-  } else summaries(mb)$deletion_cutoff <- THR
-  if(is.null(THR)){
-    dat <- assays(mb)
-    THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
-    summaries(mb)$deletion_cutoff <- THR
-  }
-  simdat <- augment_homozygous(mb)
-  sb3 <- warmup(simdat, "SBP3", "SB3")
-  mcmcParams(sb3) <- mp
-  sb3 <- posteriorSimulation(sb3)
-  finished <- stop_early(sb3)
-  if(numBatch(mb) == 1) return(sb3)
-  if(!finished){
-    ## Since not finished, keep going
-    final <- explore_multibatch(sb3, simdat, THR)
-  }  else final <- sb3
-  final
+    if(missing(THR)){
+        THR <- summaries(mb)$deletion_cutoff
+    } else summaries(mb)$deletion_cutoff <- THR
+    if(is.null(THR)){
+        dat <- assays(mb)
+        THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
+        summaries(mb)$deletion_cutoff <- THR
+    }
+    simdat <- augment_homozygous(mb)
+    sb3 <- warmup(simdat, "SBP3", "SB3")
+    mcmcParams(sb3) <- mp
+    sb3 <- posteriorSimulation(sb3)
+    finished <- stop_early(sb3)
+    if(numBatch(mb) == 1) return(sb3)
+    if(!finished){
+      ## Since not finished, keep going
+        final <- explore_multibatch(sb3, simdat, THR)
+    }  else final <- sb3
+    final
 }
 
 hemdel_model <- function(mb.subsamp, mp){
