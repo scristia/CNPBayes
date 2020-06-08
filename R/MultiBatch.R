@@ -2736,22 +2736,23 @@ resampleFromRareProvisionalBatches <- function(dat, dat.nohd){
   dat.nohd
 }
 
-kolmogorov_batches <- function(dat, KS_cutoff, THR){
-  dat.nohd <- filter(dat, !likely_deletion)
-  ##
-  ## Group chemistry plates, excluding homozygous deletions
-  ##
-  ix <- sample(seq_len(nrow(dat.nohd)), 1000, replace=TRUE)
-  dat.nohd <- dat.nohd[ix, ]
-  ##
-  ## ensure all provisional batches were sampled
-  ##
-  dat.nohd <- resampleFromRareProvisionalBatches(dat, dat.nohd)
-  mb.subsamp <- dat.nohd %>%
-    bind_rows(filter(dat, likely_deletion)) %>%
-    mutate(is_simulated=FALSE) %>%
-    MultiBatch("MB3", data=.) %>%
-    findSurrogates(KS_cutoff, THR)
+kolmogorov_batches <- function(dat, KS_cutoff, THR, S=1000){
+    dat.nohd <- filter(dat, !likely_deletion)
+    ##
+    ## Group chemistry plates, excluding homozygous deletions
+    ##
+    S <- min(nrow(dat.nohd), S)
+    ix <- sample(seq_len(nrow(dat.nohd)), S, replace=TRUE)
+    dat.nohd <- dat.nohd[ix, ]
+    ##
+    ## ensure all provisional batches were sampled
+    ##
+    dat.nohd <- resampleFromRareProvisionalBatches(dat, dat.nohd)
+    mb.subsamp <- dat.nohd %>%
+        bind_rows(filter(dat, likely_deletion)) %>%
+        mutate(is_simulated=FALSE) %>%
+        MultiBatch("MB3", data=.) %>%
+        findSurrogates(KS_cutoff, THR)
 }
 
 add_batchinfo <- function(dat, mb){
