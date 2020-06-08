@@ -11,14 +11,16 @@ test_that("common deletion", {
     snp_se <- subsetByOverlaps(snp_se, cnp_se)
     path2 <- file.path(path, "CNP_022")
     mb.subsamp <- readRDS(file.path(path2, "mb_subsamp.rds"))
+    ## batch effect is subtle.  Try both SB and MB
     ##ggMixture(mb.subsamp)
     ## should do more iterations in practice
     mp <- McmcParams(iter=400, burnin=100)
     ## model.list <- deletion_models(mb.subsamp, snp_se, mp)
     ## model <- choose_model(model.list, mb.subsamp)
     model <- homdel_model(mb.subsamp, mp)
-    expect_identical(mapping(model), c("0", "1", "2"))
-    expect_identical(modelName(model), "MBP3")
+    gmodel <- genotype_model(model, snp_se)
+    expect_identical(mapping(gmodel), c("0", "1", "2"))
+    expect_identical(modelName(gmodel), "MBP3")
 })
 
 ## homozygous deletion and duplication, as well as obvious batch effects

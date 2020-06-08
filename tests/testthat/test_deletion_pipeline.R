@@ -26,9 +26,9 @@ prepareData <- function(){
     message("Flagging apparent homozygous deletions")
     THR <- -1
     dat <- tibble(id=colnames(se),
-                  oned=assays(se)[["MEDIAN"]][1, ],
-                  provisional_batch=colData(se)$plate) %>%
-      mutate(likely_hd = oned < THR)
+                  oned=assays(se)[[1]][1, ],
+                  provisional_batch=colData(se)$Sample.Plate) %>%
+        mutate(likely_deletion = oned < THR)
 }
 
 addBatchLabels <- function(dat, mb.subsamp){
@@ -66,7 +66,7 @@ test_that("homdel_model", {
     if(diff(xlimit) < 4){
         xlimit <- c(-3, 1)
     }
-    dat.nohd <- filter(dat, !likely_hd)
+    dat.nohd <- filter(dat, !likely_deletion)
     ##
     ## Group chemistry plates, excluding homozygous deletions
     ##

@@ -15,8 +15,9 @@ id <- colnames(cnp_se)
 snp_se <- snp_se[overlapsAny(snp_se, cnp_se), ]
 ##coldat <- DataFrame(Sample.Plate=colData(cnp_se)[, "Sample.Plate"])
 ##colData(cnp_se) <- coldat
+colData(cnp_se) <- DataFrame(Sample.Plate=colData(cnp_se)[, "Sample.Plate"])
+colData(snp_se) <- colData(cnp_se)
 colnames(cnp_se) <- seq_along(id)
 colnames(snp_se) <- colnames(cnp_se)
-colData(snp_se) <- colData(cnp_se)
 saveRDS(cnp_se, file="../inst/extdata/cnp_se.rds")
 saveRDS(snp_se, file="../inst/extdata/snp_se.rds")
