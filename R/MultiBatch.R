@@ -3449,7 +3449,9 @@ homdeldup_model <- function(mb, mp, THR, skip_SB=FALSE){
   fdat <- filter(assays(mb.subsamp), oned > THR)
   mb <- warmup(fdat, "MBP3")
   mcmcParams(mb) <- mp
-  mod_2.4 <- restricted_homhemdup(mb, mod_2.4, mb.subsamp, mp)
+  message("Fitting restricted model")
+  mod_2.4 <- restricted_homhemdup(mb, mb.subsamp, mp)
+  message("Data augmentation for homozygous deletions")
   simdat2 <- augment_rarehomdel(mod_2.4, sb, mb.subsamp, THR)
   mod_1.4 <- hd4comp(mod_2.4, simdat2, mb.subsamp, mp)
   mod_1.4
@@ -3530,10 +3532,12 @@ deletion_models <- function(mb, snp_se, mp, THR){
   model.list
 }
 
-hemideletion_models <- function(mb.subsamp, snp_se, mp, THR=-0.25){
+hemideletion_models <- function(mb.subsamp, snp_se, mp, THR=-0.25,
+                                skip_SB=FALSE){
   assays(mb.subsamp)$deletion_cutoff <- THR
-  mb1 <- hemdel_model(mb.subsamp, mp)
-  mb2 <- hemdeldup_model2(mb.subsamp, mp, THR=THR)
+  mb1 <- hemdel_model(mb.subsamp, mp, skip_SB=skip_SB)
+  mb2 <- hemdeldup_model2(mb.subsamp, mp, THR=THR,
+                          skip_SB=skip_SB)
   if(is.null(snp_se)){
     model.list <- list(mb1, mb2)
     model.list
