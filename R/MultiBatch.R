@@ -2801,13 +2801,13 @@ add_deletion_stats <- function(dat, mb, THR){
 
 #' @export
 summarize_region <- function(se, provisional_batch, THR=-1,
-                             KS_cutoff=0.001){
-  dat <- median_summary(se, provisional_batch, THR)
-  mb <- kolmogorov_batches(dat, KS_cutoff, THR)
-  dat <- add_batchinfo(dat, mb)
-  mb <- add2small_batches(dat, mb)
-  mb <- add_deletion_stats(dat, mb, THR)
-  mb
+                             KS_cutoff=0.001, S=1000){
+    dat <- median_summary(se, provisional_batch, THR)
+    mb <- kolmogorov_batches(dat, KS_cutoff, THR, S=S)
+    dat <- add_batchinfo(dat, mb)
+    mb <- add2small_batches(dat, mb)
+    mb <- add_deletion_stats(dat, mb, THR)
+    mb
 }
 
 ## select high confidence samples for each component
