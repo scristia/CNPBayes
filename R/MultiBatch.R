@@ -2766,26 +2766,26 @@ add_batchinfo <- function(dat, mb){
 }
 
 add2small_batches <- function(dat, mb){
-  ##message("Check batches")
-  ##
-  batchfreq <- assays(mb) %>%
-    group_by(batch) %>%
-    summarize(n=n())
-  if(any(batchfreq$n < 50)){
-    batchlabels <- group_by(assays(mb), batch) %>%
-      summarize(n=n(),
-                batch_labels=unique(batch_labels))
-    batchfreq <- filter(batchfreq, n < 50)
-    adat <- assays(mb) %>%
-      filter(!batch %in% batchfreq$batch)
-    bdat <- filter(dat, batch %in% batchfreq$batch) %>%
-      left_join(batchlabels, by="batch") %>%
-      mutate(is_simulated=FALSE) %>%
-      select(colnames(adat))
-    adat2 <- bind_rows(adat, bdat)
-    mb <- MultiBatch("MB2", data=adat2)
-  }
-  mb
+    ##message("Check batches")
+    ##
+    batchfreq <- assays(mb) %>%
+        group_by(batch) %>%
+        summarize(n=n())
+    if(any(batchfreq$n < 50)){
+        batchlabels <- group_by(assays(mb), batch) %>%
+            summarize(n=n(),
+                      batch_labels=unique(batch_labels))
+        batchfreq <- filter(batchfreq, n < 50)
+        adat <- assays(mb) %>%
+            filter(!batch %in% batchfreq$batch)
+        bdat <- filter(dat, batch %in% batchfreq$batch) %>%
+            left_join(batchlabels, by="batch") %>%
+            mutate(is_simulated=FALSE) %>%
+            select(colnames(adat))
+        adat2 <- bind_rows(adat, bdat)
+        mb <- MultiBatch("MB2", data=adat2)
+    }
+    mb
 }
 
 add_deletion_stats <- function(dat, mb, THR){
