@@ -3575,62 +3575,72 @@ hemdeldup_model <- function(mb.subsamp, mp, THR=-0.25){
   return(mb)
 }
 
-hemdeldup_model2 <- function(mb.subsamp, mp, THR){
-  sb <- warmup(assays(mb.subsamp),
-               "SBP3",
-               "SB3")
-  mcmcParams(sb) <- mp
-  sb <- tryCatch(posteriorSimulation(sb),
-                 warning=function(w) NULL)
-  if(is.null(sb)) return(NULL)
-  finished <- stop_early(sb, 0.98, 0.98)
-  if(is.na(finished)) finished <- FALSE
-  if(finished) return(sb)
-  while(sum(oned(mb.subsamp) < THR) < 5){
-    THR <- THR + 0.05
-  }
-  sb.meds <- colMedians(theta(chains(sb)))
-  densities <- compute_density(mb.subsamp, THR)
-  diploid_modes <- compute_modes(densities)
-  dist <- c(sb.meds[2] - sb.meds[1],
-            sb.meds[3] - sb.meds[2])
-  hemdel <- diploid_modes - dist[1]
-  dup <- diploid_modes + dist[2]
-  ## standard deviations will be inflated in SB model
-  if(modelName(sb)=="SBP3"){
-    s <- rep(sigma(sb)[1,1]/2, 2)
-  } else s <- sigma(sb)[1, c(1, 3)]/2
-  B <- numBatch(mb.subsamp)
-  model_names <- rep(c("hemidel", "dup"), each=B)
-  means <- c(hemdel, dup)
-  sds <- rep(s, each=B)
-  tab <- tibble(component=model_names,
-                mean=means,
-                sd=sds)
-  x <- vector("list", nrow(tab))
-  for(i in seq_len(nrow(tab))){
-    x[[i]] <- rnorm(10, tab$mean[i], tab$sd[i])
-  }
-  x <- unlist(x)
-  likely_deletion <- c(rep(TRUE, B*10), rep(FALSE, B*10))
-  sdat <- tibble(id=paste0("augment_", seq_along(x)),
-                 oned=x,
-                 provisional_batch=NA,
-                 likely_deletion=likely_deletion,
-                 is_simulated=TRUE,
-                 batch=rep(rep(seq_len(B), each=10), 2),
-                 homozygousdel_mean=NA,
-                 likely_hd=NA)
-  tmp <- bind_rows(assays(mb.subsamp), sdat) %>%
-    arrange(batch)
-  mb <- MultiBatchList(data=tmp)[["MBP3"]]
-  mb <- warmup(tmp, "MBP3", "MB3")
-  mcmcParams(mb) <- mp
-  mb <- posteriorSimulation(mb)
-  return(mb)
+hemdeldup_model2 <- function(mb.subsamp, mp, THR,
+                             skip_SB=FALSE){
+    if(!skip_SB){
+        sb <- warmup(assays(mb.subsamp),
+                     "SBP3",
+                     "SB3")
+        mcmcParams(sb) <- mp
+        sb <- tryCatch(posteriorSimulation(sb),
+                       warning=function(w) NULL)
+        if(is.null(sb)) return(NULL)
+        finished <- stop_early(sb, 0.98, 0.98)
+        if(is.na(finished)) finished <- FALSE
+        if(finished) return(sb)
+    } else{
+        sb <- warmup(assays(mb.subsamp),
+                     "SB3", Nrep=1,
+                     .burnin=200)
+        mcmcParams(sb) <- mp
+        sb <- tryCatch(posteriorSimulation(sb),
+                       warning=function(w) NULL)        
+    }
+    while(sum(oned(mb.subsamp) < THR) < 5){
+        THR <- THR + 0.05
+    }
+    sb.meds <- colMedians(theta(chains(sb)))
+    densities <- compute_density(mb.subsamp, THR)
+    diploid_modes <- compute_modes(densities)
+    dist <- c(sb.meds[2] - sb.meds[1],
+              sb.meds[3] - sb.meds[2])
+    hemdel <- diploid_modes - dist[1]
+    dup <- diploid_modes + dist[2]
+    ## standard deviations will be inflated in SB model
+    if(modelName(sb)=="SBP3"){
+      s <- rep(sigma(sb)[1,1]/2, 2)
+    } else s <- sigma(sb)[1, c(1, 3)]/2
+    B <- numBatch(mb.subsamp)
+    model_names <- rep(c("hemidel", "dup"), each=B)
+    means <- c(hemdel, dup)
+    sds <- rep(s, each=B)
+    tab <- tibble(component=model_names,
+                  mean=means,
+                  sd=sds)
+    x <- vector("list", nrow(tab))
+    for(i in seq_len(nrow(tab))){
+      x[[i]] <- rnorm(10, tab$mean[i], tab$sd[i])
+    }
+    x <- unlist(x)
+    likely_deletion <- c(rep(TRUE, B*10), rep(FALSE, B*10))
+    sdat <- tibble(id=paste0("augment_", seq_along(x)),
+                   oned=x,
+                   provisional_batch=NA,
+                   likely_deletion=likely_deletion,
+                   is_simulated=TRUE,
+                   batch=rep(rep(seq_len(B), each=10), 2),
+                   homozygousdel_mean=NA,
+                   likely_hd=NA)
+    tmp <- bind_rows(assays(mb.subsamp), sdat) %>%
+      arrange(batch)
+    mb <- MultiBatchList(data=tmp)[["MBP3"]]
+    mb <- warmup(tmp, "MBP3", "MB3")
+    mcmcParams(mb) <- mp
+    mb <- posteriorSimulation(mb)
+    return(mb)
 }
 
-restricted_homhemdup <- function(mb, mod_2.4, mb.subsamp, mp){
+restricted_homhemdup <- function(mb, mb.subsamp, mp){
   THR <- summaries(mb.subsamp)$deletion_cutoff
   mod_2.4 <- suppressWarnings(posteriorSimulation(mb))
   is_flagged <- mod_2.4@flags$.internal.counter > 40
