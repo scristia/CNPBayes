@@ -3366,34 +3366,37 @@ homdel_model <- function(mb, mp, THR){
     final
 }
 
-hemdel_model <- function(mb.subsamp, mp){
-  THR <- summaries(mb.subsamp)$deletion_cutoff
-  sb <- warmup(assays(mb.subsamp), "SBP2", "SB2")
-  mcmcParams(sb) <- mp
-  sb <- posteriorSimulation(sb)
-  finished <- stop_early(sb)
-  if(finished) return(sb)
-  mb <- warmup(assays(mb.subsamp), "MBP2", "MB1")
-  mcmcParams(mb) <- mp
-  mb <- posteriorSimulation(mb)
-  mb
+hemdel_model <- function(mb.subsamp, mp, skip_SB=FALSE){
+    THR <- summaries(mb.subsamp)$deletion_cutoff
+    if(!skip_SB){
+        sb <- warmup(assays(mb.subsamp), "SBP2", "SB2")
+        mcmcParams(sb) <- mp
+        sb <- posteriorSimulation(sb)
+        finished <- stop_early(sb)
+        if(finished) return(sb)
+    }
+    mb <- warmup(assays(mb.subsamp), "MBP2", "MB1")
+    mcmcParams(mb) <- mp
+    mb <- posteriorSimulation(mb)
+    mb
 }
 
 hd4comp <- function(mod_2.4, simdat2, mb.subsamp, mp){
-  model <- incrementK(mod_2.4) %>%
-    gsub("P", "", .)
-  THR <- summaries(mb.subsamp)$deletion_cutoff
-  mod_1.4 <- MultiBatchList(data=simdat2)[[ model ]]
-  hdmean <- homozygousdel_mean(mb.subsamp, THR)
-  hdvar <- homozygousdel_var(mb.subsamp, THR)
-  theta(mod_1.4) <- cbind(hdmean, theta(mod_2.4))
-  V <- matrix(sigma2(mod_2.4)[, 1],
-              nrow(sigma2(mod_2.4)), 3,
-              byrow=FALSE)
-  sigma2(mod_1.4) <- cbind(hdvar, V)
-  mcmcParams(mod_1.4) <- mp
-  mod_1.4 <- mcmc_homozygous(mod_1.4)
-  mod_1.4
+    model <- incrementK(mod_2.4) %>%
+        gsub("P", "", .)
+    THR <- summaries(mb.subsamp)$deletion_cutoff
+    mod_1.4 <- MultiBatchList(data=simdat2)[[ model ]]
+    hdmean <- homozygousdel_mean(mb.subsamp, THR)
+    hdvar <- homozygousdel_var(mb.subsamp, THR)
+    theta(mod_1.4) <- cbind(hdmean, theta(mod_2.4))
+    V <- matrix(sigma2(mod_2.4)[, 1],
+                nrow(sigma2(mod_2.4)), 3,
+                byrow=FALSE)
+    sigma2(mod_1.4) <- cbind(hdvar, V)
+    mcmcParams(mod_1.4) <- mp
+    ##mod_1.4 <- mcmc_homozygous(mod_1.4)
+    mod_1.4 <- posteriorSimulation(mod_1.4)
+    mod_1.4
 }
 
 hd3comp <- function(restricted, simdat, mb.subsamp, mp){
