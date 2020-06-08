@@ -3416,7 +3416,7 @@ hd3comp <- function(restricted, simdat, mb.subsamp, mp){
   mod_1.3
 }
 
-homdeldup_model <- function(mb, mp, THR){
+homdeldup_model <- function(mb, mp, THR, skip_SB=FALSE){
   if(missing(THR)){
     THR <- summaries(mb)$deletion_cutoff
   } else summaries(mb)$deletion_cutoff <- THR
@@ -3426,20 +3426,22 @@ homdeldup_model <- function(mb, mp, THR){
     summaries(mb)$deletion_cutoff <- THR
   }
   simdat <- augment_homozygous(mb)
-  sb <- warmup(assays(mb),
-               "SBP4",
-               "SB4")
-  mcmcParams(sb) <- mp
-  sb <- posteriorSimulation(sb)
-  if(substr(modelName(sb), 3, 3) == "P"){
-    ##
-    ## if 4th component appears diploid in pooled variance model, I don't think we should proceed
-    ##
-    appears_diploid <- not_duplication(sb)
-    if(appears_diploid) return(sb)
+  if(!skip_SB){
+      sb <- warmup(assays(mb),
+                   "SBP4",
+                   "SB4")
+      mcmcParams(sb) <- mp
+      sb <- posteriorSimulation(sb)
+      if(substr(modelName(sb), 3, 3) == "P"){
+          ##
+          ## if 4th component appears diploid in pooled variance model, I don't think we should proceed
+          ##
+          appears_diploid <- not_duplication(sb)
+          if(appears_diploid) return(sb)
+      }
+      finished <- stop_early(sb, 0.98, 0.98)
+      if(finished) return(sb)
   }
-  finished <- stop_early(sb, 0.98, 0.98)
-  if(finished) return(sb)
   ##
   ## 4th component variance is much too big
   ##
