@@ -2283,35 +2283,37 @@ ok_hemizygous <- function(sb){
 
 warmup <- function(tib, model1, model2=NULL, model2.penalty=50,
                    Nrep=10, .burnin=100){
-  ##
-  ##
-  mbl <- .warmup(tib, model1, Nrep=Nrep, .burnin=.burnin)
-  ml <- sapply(mbl, log_lik)
-  if(is(ml, "list")){
-    mbl <- mbl[ lengths(ml) > 0 ]
-    ml <- ml[ lengths(ml) > 0 ]
-    ml <- unlist(ml)
-  }
-  if(is.null(model2)){
-    model <- mbl[[which.max(ml)]]
+    ##
+    ##
+    message("Warmup with ", model1)
+    mbl <- .warmup(tib, model1, Nrep=Nrep, .burnin=.burnin)
+    ml <- sapply(mbl, log_lik)
+    if(is(ml, "list")){
+        mbl <- mbl[ lengths(ml) > 0 ]
+        ml <- ml[ lengths(ml) > 0 ]
+        ml <- unlist(ml)
+    }
+    if(is.null(model2)){
+        model <- mbl[[which.max(ml)]]
+        return(model)
+    }
+    if(!is.null(model2)){
+        message("Warmup with ", model2)        
+        mbl2 <- .warmup(tib, model2, Nrep=Nrep, .burnin=.burnin)
+        ml2 <- sapply(mbl2, log_lik)
+      if(is(ml2, "list")){
+          mbl2 <- mbl2[ lengths(ml2) > 0 ]
+          ml2 <- ml2[ lengths(ml2) > 0 ]
+          ml2 <- unlist(ml2)
+      }
+        if(all(is.na(ml2))) return(model)
+        if(max(ml2, na.rm=TRUE) > max(ml, na.rm=TRUE) + model2.penalty){
+            model <- mbl2[[which.max(ml2)]]
+        } else {
+            model <- mbl[[which.max(ml)]]
+        }
+    }
     return(model)
-  }
-  if(!is.null(model2)){
-    mbl2 <- .warmup(tib, model2, Nrep=Nrep, .burnin=.burnin)
-    ml2 <- sapply(mbl2, log_lik)
-    if(is(ml2, "list")){
-      mbl2 <- mbl2[ lengths(ml2) > 0 ]
-      ml2 <- ml2[ lengths(ml2) > 0 ]
-      ml2 <- unlist(ml2)
-    }
-    if(all(is.na(ml2))) return(model)
-    if(max(ml2, na.rm=TRUE) > max(ml, na.rm=TRUE) + model2.penalty){
-      model <- mbl2[[which.max(ml2)]]
-    } else {
-      model <- mbl[[which.max(ml)]]
-    }
-  }
-  return(model)
 }
 
 stop_early <- function(model, min_prob=0.99, prop_greater=0.995){
