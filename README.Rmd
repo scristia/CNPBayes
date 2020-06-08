@@ -20,10 +20,60 @@ devtools::install_github("scristia/CNPBayes")
 
 # Usage
 
-```{r data}
+For studies with hundreds to thousands of samples, estimation of copy number at regions known to harbor copy number variants (CNVs) has the potential to improve sensitivity and specificity as technical sources of variation across the genome are largely controlled when limited to a focal genomic region (less than 1 MB) and variation between samples can be explicitly modeled.  Such CNV regions are of particular interest for a comprehensive assessment of common genetic variants and their relationship to disease. 
 
+A convenient container for storing SNP-level summaries for log$_2 R$ ratios and B allele frequencies (BAFs) at SNPs along the genome is a `SummarizedExperiment`. For illustration, we load a small `SummarizedExperiment` containing log$_2 R$ ratios and BAFs for 110 SNPs and 6038 samples.  This example container includes 6 different CNV regions from multiple chromosomes as can be seen from the `rowRanges`. 
 
+```{r summarized_experiment}
+library(SummarizedExperiment)
+library(CNPBayes)
+extdir <- system.file("extdata", package="CNPBayes")
+se <- readRDS(file.path(extdir, "snp_se.rds"))
+rowRanges(se)
 ```
 
+Below, we focus on a CNV region on chromosome 1 that we obtained from the 1000 Genomes Project (@url) and subset the `SummarizedExperiment` to the 8 SNPs that are contained in this region.  For each sample, we summarize their log$_2 R$ ratios by the median.
+
+
+```{r cnv_region}
+cnv_region <- GRanges("chr1", IRanges(1627805, 1673809), seqinfo=seqinfo(se))
+se2 <- subsetByOverlaps(se, cnv_region)
+medians <- apply(assays(se2)[["lrr"]], 2, median, na.rm=TRUE) %>%
+    matrix(nrow=1)
+cnv_se <- SummarizedExperiment(assays=SimpleList(cnv_summary=medians),
+                               rowRanges=cnv_region,
+                               colData=colData(se2))
+```
+
+By modelling the copy number across samples instead of sample by sample, we can take into account technical sources of variation that may effect these measurements.  The largest sources of technical variation are not known, and can potentially differ by region.  For example, some regions may be more susceptible to PCR-induced batch effects.  Since the technical sources of variation are not known, we allow the user to specify a batch surrogate.  The function `summarize_region` compares the empirical cumulative distribution function (eCDF) of the CNV summaries between these surrogates using a Kolmogorov-Smirnov test. One can specify a cutoff for the p-value derived from Kolmogorov-Smirnov test statistic.  If the p-value exceeds the cutoff, the two surrogate batches are combined, otherwise the samples are left in separate groups.  The test is repeated recursively until no 2 batches can be combined.  An important argument of this function, particularly for rarer CNVs, is a threshold below which homozygous deletions are likely. For log$_2 R$ ratios from SNP arrays, -1 is often a useful cutoff.  This cutoff is used so that the sources of technical variation where the bulk of the data exists is more likely to drive clustering rather than rare CNVs in the tails.  The helper function `ggMixture` can be used to visualize the clustering.  Below, we use the 96-well chemistry plate on which the samples were processed as a surrogate for capturing sources of technical variation and limit our analysis to the first 20 chemistry plates so that the example runs quickly.
+
+```{r batch_surrogates}
+plates <- colData(cnv_se)$plate
+##
+## To keep the unit test short, focus on first 10 plates
+##
+plates1_20 <- plates[ plates %in% unique(plates)[1:20] ]
+keep <- colData(cnv_se)$plate %in% plates1_20
+mb.subsamp <- summarize_region(cnv_se[, keep],
+                               provisional_batch=plates1_20,
+                               THR=-1)
+dat <- median_summary(cnv_se[, keep], provisional_batch=plates1_20, THR=-1)
+```
+
+
+
+
+
+
 # Detailed workflow
+
+
+# Related tools
+
+- cnvCall
+
+- Birdsuite
+
+- XHMM
+
 
