@@ -2711,16 +2711,17 @@ duplication_cutoff <- function(dat, min_cutoff=0.1){
 }
 
 median_summary <- function(se, provisional_batch, THR){
-  dat <- tibble(id=colnames(se),
-                oned=assays(se)[["MEDIAN"]][1, ],
-                provisional_batch=provisional_batch) %>%
-    mutate(likely_deletion = oned < THR)
-  ## if no homozygous deletions, check for hemizygous deletions
-  ##  if(!any(dat$likely_deletion)){
-  ##    THR <- hemizygous_cutoff(dat)
-  ##    dat$likely_deletion <- dat$oned < THR
-  ##  }
-  dat
+    dat <- tibble(id=colnames(se),
+                  ##oned=assays(se)[["MEDIAN"]][1, ],
+                  oned=assays(se)[[1]][1, ],
+                  provisional_batch=provisional_batch) %>%
+        mutate(likely_deletion = oned < THR)
+    ## if no homozygous deletions, check for hemizygous deletions
+    ##  if(!any(dat$likely_deletion)){
+    ##    THR <- hemizygous_cutoff(dat)
+    ##    dat$likely_deletion <- dat$oned < THR
+    ##  }
+    dat
 }
 
 resampleFromRareProvisionalBatches <- function(dat, dat.nohd){
