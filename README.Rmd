@@ -21,9 +21,11 @@ devtools::install_github("scristia/CNPBayes")
 install.packages("gap")
 ```
 
-# Basic usage
+# Usage and workflow
 
-The simplest way to illustrate how to fit finite normal mixture models in CNPBayes is to read in a `SummarizedExperiment` containing median summaries of a few CNV regions for several thousand individuals that were analyzed as part of the Pancreatic Cancer Case Control Consortium (PanC4) @Childs2015.  We will focus on a CNV region on chromosome 8:
+## Example data
+
+The simplest way to illustrate how to fit finite normal mixture models in CNPBayes is to start with a `SummarizedExperiment` object provided in CNPBayes that contains median summaries of a few CNV regions for individuals analyzed as part of the Pancreatic Cancer Case Control Consortium (PanC4) @Childs2015.  Here, we will focus on a CNV region on chromosome 8:
 
 ```{r multibatch_data}
 library(CNPBayes)
@@ -31,27 +33,30 @@ library(SummarizedExperiment)
 library(ggplot2)
 extdir <- system.file("extdata", package="CNPBayes")
 cnp_se <- readRDS(file.path(extdir, "cnp_se.rds"))
-rowRanges(cnp_se)
-se.chr8 <- cnp_se[5, ]
+snp_se <- readRDS(file.path(extdir, "snp_se.rds"))
+rowRanges(cnp_se)[5]
+se <- cnp_se[5, ]
 ```
 
+## Identifying possible sources of batch effects
 
-As in any large-scale study, sources of technical variation can potentially confound statistical inference @Leek2010.  Here, the inferential goal is to identify the germline integer copy number for these participants.  To model latent sources of technical variation, the user can provide a variable that we call a 'provisional batch'. This is a variable that CNPBayes will evaluate as for whether it is a likely source of technical variation between groups of samples, and for which CNPBayes will further collapse into fewer variables if possible (details provided in vignette).  Examples of a provisional batch variable could include the chemistry plate on which the samples were processed, the date genomic libraries were prepared, the source of DNA (i.e., blood, buccal, saliva, etc), lab technician, or study site.  Below, we specify chemistry plate as the provisional batch.  So that the example runs quickly, we focus on samples belonging to the first 20 chemistry plates.
 
-```{r batch}
+As in any large-scale study, sources of technical variation can potentially confound statistical inference @Leek2010.  Here, the inferential goal is to identify the germline integer copy number for these participants.  To model latent sources of technical variation, we begin with a provisional concept of batch derived from some aspect of the experiment. Examples of a provisional batch variable could include the chemistry plate on which the samples were processed, the date genomic libraries were prepared, the source of DNA (i.e., blood, buccal, saliva, etc), lab technician, or study site.  Below, we specify chemistry plate as the provisional batch.   So that the example runs quickly, we focus on samples belonging to the first 20 chemistry plates.
+
+```{r batch, message=FALSE}
 set.seed(1234)
-plates <- se.chr8$Sample.Plate
+plates <- se$Sample.Plate
 plates1_20 <- plates[ plates %in% unique(plates)[1:20] ]
-keep <- colData(se.chr8)$Sample.Plate %in% plates1_20
-se.chr8 <- se.chr8[, keep]
-mb <- summarize_region(se.chr8[, keep],
-                               provisional_batch=plates1_20,
-                               THR=-1,
-                               S=1000)
+keep <- colData(se)$Sample.Plate %in% plates1_20
+se.chr8 <- se[, keep]
+mb <- summarize_region(se.chr8,
+                       provisional_batch=plates1_20,
+                       THR=-1,
+                       S=1000)
 mb
 ```
 
-The object created from `summarize_region` contains median summaries of log$_2 R$ ratios for 1000 participants sampled randomly with replacement. The helper function `ggMixture` can be used to visualize the median summaries.
+The object created from `summarize_region` contains the median log$_2 R$ ratio at the CNV region for each of 1000 randomly sampled (with replacement) participants. The helper function `ggMixture` can be used to visualize the median summaries.
 
 ```{r mixtures, fig.align="center", fig.width=10, fig.height=8}
 hd <- tibble(oned=min(oned(mb)),
@@ -68,9 +73,11 @@ assays(mb) %>%
     theme_bw()
 ```
 
+## Fitting finite mixture models
+
 This is an obvious deletion polymorphism.  The bulk of the data corresponds to diploid individuals with median log$_2 R$ ratios near zero, and the small cluster to the left of this model contains subjects with a hemizygous deletion.  At the very left end of the plot is a single individual with a homozygous deletion. Our goal is to model all of the available data and, in particular, not to treat the extreme observation at -5 in batch 3 as an outlier (circled observation). While fitting mixture models to accomplish this basic idea robustly at thousands of candidate CNV regions across the genome is challenging and requires fitting many models, here we sidestep these issues and focus on fitting this data as a finite mixture of near-Gaussian distributions using Markov Chain Monte Carlo to approximate the joint distribution of the unknown parameters. Due to the apparent batch effects, we speed up computation by skipping the evaluation of single-batch models (`SB_skip=TRUE`) in the code-chunk below:
 
-```{r deletion_models}
+```{r deletion_models, message=FALSE}
 mp <- McmcParams(burnin=100, iter=1000, thin=1)
 model <- homdel_model(mb, mp, skip_SB=TRUE)
 model
@@ -79,7 +86,6 @@ model
 The resulting `model` object contains information about the type of model that was fit and the number of mixture components.  Here `MBP3` means that the selected model is a multi-batch (MB) model with a pooled (P) variance having 3 mixture components.  In addition, notice that the resulting model contains 1125 observation whereas the initial `mb` object contained only 1001 observations.  As we have flagged the observation as a likely homozygous deletion, CNPBayes simulates additional data at this location to encourage a model that dedicates a mixture component to the likely homozygous deletions. The primary effects of this augmentation are two-fold: (1) the mixture components capturing the bulk of the data  are not heavy-tailed and (2) we obtain a left-most mixture component with a scale component that is the same as the variance of the other mixture components, even for batches in which the homozygous deletion was not observed (additional discussion in vignette). To evaluate goodness of fit, we overlay the density of the posterior predictive distribution on the empirical data using the `ggMixture` function with and without the simulated observations.
 
 ```{r posterior_predictive, fig.align="center"}
-ggMixture(model)
 obs <- model[ !isSimulated(model) ]
 obs
 hd$batch <- paste0("Batch ", hd$batch)
@@ -88,41 +94,33 @@ ggMixture(obs) +
                shape=21,
                fill="transparent",
                size=7,
-               color="steelblue", inherit.aes=F) 
+               color="steelblue", inherit.aes=F)  +
+    xlab("median log R ratio")
 ```
+
+## Genotyping the mixture components
 
 Finally, we genotype the samples using the available SNP B allele frequency data at this region and extrapolate the probabilistic inference for the copy number assignments to the full dataset.
 
 ```{r genotype}
+snp.chr8 <- subsetByOverlaps(snp_se, se.chr8)
 gmodel <- genotype_model(model, snp.chr8)
 mapping(gmodel)
 ```
 
 ```{r upsampling}
-snp.chr8 <- subsetByOverlaps(snp_se, se.chr8)
 full <- upsample(gmodel, se.chr8,
                  provisional_batch=plates1_20)
 full
-```
-
-Finally, we compare the observed copy number frequencies based on the maximum a posteriori estimaate to the expected frequency of a deletion allele segregating in a population using the `hwe` function in the `gap` package.
-
-```{r hwe}
 freq <- as.integer(table(full$copynumber))
 pval <- gap::hwe(freq, data.type="count")$p.x2 
-round(pval, 2)
 ```
+
+From the above analyses, we find that the frequencies of copy number states 0, 1, and 2 in this dataset are consistent with a deletion allele segregating at Hardy Weinberg equilibrium in the population (p = `r round(pval, 2)`.
 
 # Related software
 
-- cnvCall @Cardin2011
-
-- Birdsuite (@Korn2008)
-
-- XHMM (@Fromer2012)
-
-- CnvTools (@Barnes2008)
+cnvCall fits Bayesian hierarchical models of t-distributions assuming the principal sources of batch effects are known @Cardin2011.  cnvCall builds on and extends many of the ideas for modeling copy number variation in the R package `CnvTools` @Barnes2008.  Expection-Maximization  implementations of mixture models are available in the canary package of the Birdsuite software (@Korn2008).  Mixture model based approaches for modeling copy number at specific regions of the genome are also useful for whole exome sequencing (e.g., @Fromer2012 and others).
 
 # References
-
 
