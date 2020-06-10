@@ -2,9 +2,10 @@
 title: "CNPBayes: Bayesian copy number detection and association in large-scale studies"
 author: "Stephen Cristiano, Jacob Carey, David McKean, Alison Klein, and Rob Scharpf"
 date: "`r format(Sys.Date())`"
-output:
-	html_document:
-		keep_md: TRUE
+output:	
+  html_document:
+    keep_md: true
+bibliography: refs.bib	
 ---
 
 # Overview
@@ -13,67 +14,115 @@ Germline copy number variants (CNVs) increase risk for many diseases, yet detect
 
 # Installation
 
-```{r installation}
+```{r installation, eval=FALSE}
 ## install.packages("devtools")
 devtools::install_github("scristia/CNPBayes")
+## gap has various functions, some Bayesian, for computing Hardy Weinberg equilibrium
+install.packages("gap")
 ```
 
-# Usage
+# Basic usage
 
-For studies with hundreds to thousands of samples, estimation of copy number at regions known to harbor copy number variants (CNVs) has the potential to improve sensitivity and specificity as technical sources of variation across the genome are largely controlled when limited to a focal genomic region (less than 1 MB) and variation between samples can be explicitly modeled.  Such CNV regions are of particular interest for a comprehensive assessment of common genetic variants and their relationship to disease. 
+The simplest way to illustrate how to fit finite normal mixture models in CNPBayes is to read in a `SummarizedExperiment` containing median summaries of a few CNV regions for several thousand individuals that were analyzed as part of the Pancreatic Cancer Case Control Consortium (PanC4) @Childs2015.  We will focus on a CNV region on chromosome 8:
 
-A convenient container for storing SNP-level summaries for log$_2 R$ ratios and B allele frequencies (BAFs) at SNPs along the genome is a `SummarizedExperiment`. For illustration, we load a small `SummarizedExperiment` containing log$_2 R$ ratios and BAFs for 110 SNPs and 6038 samples.  This example container includes 6 different CNV regions from multiple chromosomes as can be seen from the `rowRanges`. 
-
-```{r summarized_experiment}
-library(SummarizedExperiment)
+```{r multibatch_data}
 library(CNPBayes)
+library(SummarizedExperiment)
+library(ggplot2)
 extdir <- system.file("extdata", package="CNPBayes")
-se <- readRDS(file.path(extdir, "snp_se.rds"))
-rowRanges(se)
+cnp_se <- readRDS(file.path(extdir, "cnp_se.rds"))
+rowRanges(cnp_se)
+se.chr8 <- cnp_se[5, ]
 ```
 
-Below, we focus on a CNV region on chromosome 1 that we obtained from the 1000 Genomes Project (@url) and subset the `SummarizedExperiment` to the 8 SNPs that are contained in this region.  For each sample, we summarize their log$_2 R$ ratios by the median.
 
+As in any large-scale study, sources of technical variation can potentially confound statistical inference @Leek2010.  Here, the inferential goal is to identify the germline integer copy number for these participants.  To model latent sources of technical variation, the user can provide a variable that we call a 'provisional batch'. This is a variable that CNPBayes will evaluate as for whether it is a likely source of technical variation between groups of samples, and for which CNPBayes will further collapse into fewer variables if possible (details provided in vignette).  Examples of a provisional batch variable could include the chemistry plate on which the samples were processed, the date genomic libraries were prepared, the source of DNA (i.e., blood, buccal, saliva, etc), lab technician, or study site.  Below, we specify chemistry plate as the provisional batch.  So that the example runs quickly, we focus on samples belonging to the first 20 chemistry plates.
 
-```{r cnv_region}
-cnv_region <- GRanges("chr1", IRanges(1627805, 1673809), seqinfo=seqinfo(se))
-se2 <- subsetByOverlaps(se, cnv_region)
-medians <- apply(assays(se2)[["lrr"]], 2, median, na.rm=TRUE) %>%
-    matrix(nrow=1)
-cnv_se <- SummarizedExperiment(assays=SimpleList(cnv_summary=medians),
-                               rowRanges=cnv_region,
-                               colData=colData(se2))
-```
-
-By modelling the copy number across samples instead of sample by sample, we can take into account technical sources of variation that may effect these measurements.  The largest sources of technical variation are not known, and can potentially differ by region.  For example, some regions may be more susceptible to PCR-induced batch effects.  Since the technical sources of variation are not known, we allow the user to specify a batch surrogate.  The function `summarize_region` compares the empirical cumulative distribution function (eCDF) of the CNV summaries between these surrogates using a Kolmogorov-Smirnov test. One can specify a cutoff for the p-value derived from Kolmogorov-Smirnov test statistic.  If the p-value exceeds the cutoff, the two surrogate batches are combined, otherwise the samples are left in separate groups.  The test is repeated recursively until no 2 batches can be combined.  An important argument of this function, particularly for rarer CNVs, is a threshold below which homozygous deletions are likely. For log$_2 R$ ratios from SNP arrays, -1 is often a useful cutoff.  This cutoff is used so that the sources of technical variation where the bulk of the data exists is more likely to drive clustering rather than rare CNVs in the tails.  The helper function `ggMixture` can be used to visualize the clustering.  Below, we use the 96-well chemistry plate on which the samples were processed as a surrogate for capturing sources of technical variation and limit our analysis to the first 20 chemistry plates so that the example runs quickly.
-
-```{r batch_surrogates}
-plates <- colData(cnv_se)$plate
-##
-## To keep the unit test short, focus on first 10 plates
-##
+```{r batch}
+set.seed(1234)
+plates <- se.chr8$Sample.Plate
 plates1_20 <- plates[ plates %in% unique(plates)[1:20] ]
-keep <- colData(cnv_se)$plate %in% plates1_20
-mb.subsamp <- summarize_region(cnv_se[, keep],
+keep <- colData(se.chr8)$Sample.Plate %in% plates1_20
+se.chr8 <- se.chr8[, keep]
+mb <- summarize_region(se.chr8[, keep],
                                provisional_batch=plates1_20,
-                               THR=-1)
-dat <- median_summary(cnv_se[, keep], provisional_batch=plates1_20, THR=-1)
+                               THR=-1,
+                               S=1000)
+mb
 ```
 
+The object created from `summarize_region` contains median summaries of log$_2 R$ ratios for 1000 participants sampled randomly with replacement. The helper function `ggMixture` can be used to visualize the median summaries.
 
+```{r mixtures, fig.align="center", fig.width=10, fig.height=8}
+hd <- tibble(oned=min(oned(mb)),
+             batch=3)
+assays(mb) %>%
+    ggplot(aes(oned, ..count..)) +
+    geom_histogram(aes(oned, ..density..), bins=200) +
+    geom_point(data=hd, aes(x=oned, y=0),
+               shape=21,
+               fill="transparent",
+               size=7,
+               color="steelblue")  +
+    facet_wrap(~batch, ncol=1) +
+    theme_bw()
+```
 
+This is an obvious deletion polymorphism.  The bulk of the data corresponds to diploid individuals with median log$_2 R$ ratios near zero, and the small cluster to the left of this model contains subjects with a hemizygous deletion.  At the very left end of the plot is a single individual with a homozygous deletion. Our goal is to model all of the available data and, in particular, not to treat the extreme observation at -5 in batch 3 as an outlier (circled observation). While fitting mixture models to accomplish this basic idea robustly at thousands of candidate CNV regions across the genome is challenging and requires fitting many models, here we sidestep these issues and focus on fitting this data as a finite mixture of near-Gaussian distributions using Markov Chain Monte Carlo to approximate the joint distribution of the unknown parameters. Due to the apparent batch effects, we speed up computation by skipping the evaluation of single-batch models (`SB_skip=TRUE`) in the code-chunk below:
 
+```{r deletion_models}
+mp <- McmcParams(burnin=100, iter=1000, thin=1)
+model <- homdel_model(mb, mp, skip_SB=TRUE)
+model
+```
 
+The resulting `model` object contains information about the type of model that was fit and the number of mixture components.  Here `MBP3` means that the selected model is a multi-batch (MB) model with a pooled (P) variance having 3 mixture components.  In addition, notice that the resulting model contains 1125 observation whereas the initial `mb` object contained only 1001 observations.  As we have flagged the observation as a likely homozygous deletion, CNPBayes simulates additional data at this location to encourage a model that dedicates a mixture component to the likely homozygous deletions. The primary effects of this augmentation are two-fold: (1) the mixture components capturing the bulk of the data  are not heavy-tailed and (2) we obtain a left-most mixture component with a scale component that is the same as the variance of the other mixture components, even for batches in which the homozygous deletion was not observed (additional discussion in vignette). To evaluate goodness of fit, we overlay the density of the posterior predictive distribution on the empirical data using the `ggMixture` function with and without the simulated observations.
 
-# Detailed workflow
+```{r posterior_predictive, fig.align="center"}
+ggMixture(model)
+obs <- model[ !isSimulated(model) ]
+obs
+hd$batch <- paste0("Batch ", hd$batch)
+ggMixture(obs) +
+    geom_point(data=hd, aes(x=oned, y=0),
+               shape=21,
+               fill="transparent",
+               size=7,
+               color="steelblue", inherit.aes=F) 
+```
 
+Finally, we genotype the samples using the available SNP B allele frequency data at this region and extrapolate the probabilistic inference for the copy number assignments to the full dataset.
 
-# Related tools
+```{r genotype}
+gmodel <- genotype_model(model, snp.chr8)
+mapping(gmodel)
+```
 
-- cnvCall
+```{r upsampling}
+snp.chr8 <- subsetByOverlaps(snp_se, se.chr8)
+full <- upsample(gmodel, se.chr8,
+                 provisional_batch=plates1_20)
+full
+```
 
-- Birdsuite
+Finally, we compare the observed copy number frequencies based on the maximum a posteriori estimaate to the expected frequency of a deletion allele segregating in a population using the `hwe` function in the `gap` package.
 
-- XHMM
+```{r hwe}
+freq <- as.integer(table(full$copynumber))
+pval <- gap::hwe(freq, data.type="count")$p.x2 
+round(pval, 2)
+```
+
+# Related software
+
+- cnvCall @Cardin2011
+
+- Birdsuite (@Korn2008)
+
+- XHMM (@Fromer2012)
+
+- CnvTools (@Barnes2008)
+
+# References
 
 
