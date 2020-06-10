@@ -169,7 +169,7 @@ MultiBatch <- function(model="MB3",
     data$batch <- 1L
   }
   if(nrow(data) > 0){
-    if("batch" %in% colnames(data)){
+      if("batch" %in% colnames(data)){
       data <- data[order(data$batch), , drop=FALSE]
     }
   }
@@ -3346,7 +3346,7 @@ equivalent_variance <- function(model){
   NA
 }
 
-homdel_model <- function(mb, mp, THR){
+homdel_model <- function(mb, mp, THR, skip_SB=FALSE){
     if(missing(THR)){
         THR <- summaries(mb)$deletion_cutoff
     } else summaries(mb)$deletion_cutoff <- THR
@@ -3356,15 +3356,18 @@ homdel_model <- function(mb, mp, THR){
         summaries(mb)$deletion_cutoff <- THR
     }
     simdat <- augment_homozygous(mb)
-    sb3 <- warmup(simdat, "SBP3", "SB3")
-    mcmcParams(sb3) <- mp
-    sb3 <- posteriorSimulation(sb3)
-    finished <- stop_early(sb3)
-    if(numBatch(mb) == 1) return(sb3)
-    if(!finished){
-      ## Since not finished, keep going
-        final <- explore_multibatch(sb3, simdat, THR)
-    }  else final <- sb3
+    if(!skip_SB){
+        sb3 <- warmup(simdat, "SBP3", "SB3")
+        mcmcParams(sb3) <- mp
+        sb3 <- posteriorSimulation(sb3)
+        finished <- stop_early(sb3)
+        if(numBatch(mb) == 1) return(sb3)
+        if(finished) return(sb3)
+    } else{
+        sb3 <- warmup(simdat, "SB3")
+    }
+    ## Since not finished, keep going
+    final <- explore_multibatch(sb3, simdat, THR)
     final
 }
 
