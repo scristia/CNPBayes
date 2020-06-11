@@ -42,7 +42,8 @@ Suggests:
     BiocCheck,
     MASS,
     VanillaICE,
-    tidyverse
+    tidyverse,
+    gap
 Collate: 
     'help.R'
     'AllGenerics.R'

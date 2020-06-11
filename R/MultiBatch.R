@@ -2710,11 +2710,13 @@ duplication_cutoff <- function(dat, min_cutoff=0.1){
   lowest_point_before_peak
 }
 
+#' @export
 median_summary <- function(se, provisional_batch, THR){
     dat <- tibble(id=colnames(se),
-                  ##oned=assays(se)[["MEDIAN"]][1, ],
                   oned=assays(se)[[1]][1, ],
-                  provisional_batch=provisional_batch) %>%
+                  provisional_batch=provisional_batch,
+                  batch=1,
+                  batch_labels="1") %>%
         mutate(likely_deletion = oned < THR)
     ## if no homozygous deletions, check for hemizygous deletions
     ##  if(!any(dat$likely_deletion)){
@@ -2736,7 +2738,8 @@ resampleFromRareProvisionalBatches <- function(dat, dat.nohd){
   dat.nohd
 }
 
-kolmogorov_batches <- function(dat, KS_cutoff, THR, S=1000){
+#' @export
+down_sample <- function(dat, S){
     dat.nohd <- filter(dat, !likely_deletion)
     ##
     ## Group chemistry plates, excluding homozygous deletions
@@ -2748,10 +2751,17 @@ kolmogorov_batches <- function(dat, KS_cutoff, THR, S=1000){
     ## ensure all provisional batches were sampled
     ##
     dat.nohd <- resampleFromRareProvisionalBatches(dat, dat.nohd)
-    mb.subsamp <- dat.nohd %>%
+    dat.subsampled <- dat.nohd %>%
         bind_rows(filter(dat, likely_deletion)) %>%
-        mutate(is_simulated=FALSE) %>%
-        MultiBatch("MB3", data=.) %>%
+        mutate(is_simulated=FALSE)
+    dat.subsampled
+}
+
+
+kolmogorov_batches <- function(dat, KS_cutoff, THR, S=1000){
+    dat.subsampled <- down_sample(dat, S)
+    mb <- MultiBatch("MB3", data=dat.subsampled)
+    mb.ks <- mb %>%
         findSurrogates(KS_cutoff, THR)
 }
 
@@ -2864,6 +2874,7 @@ select_highconfidence_samples2 <- function(model, snpdat){
 }
 
 
+#' @export
 genotype_model <- function(model, snpdat){
   gmodel <- select_highconfidence_samples2(model, snpdat)
   if(all(mapping(gmodel) == "?")) {
@@ -3346,7 +3357,8 @@ equivalent_variance <- function(model){
   NA
 }
 
-homdel_model <- function(mb, mp, THR, skip_SB=FALSE){
+#' @export
+homdel_model <- function(mb, mp, THR, skip_SB=FALSE, augment=TRUE){
     if(missing(THR)){
         THR <- summaries(mb)$deletion_cutoff
     } else summaries(mb)$deletion_cutoff <- THR
@@ -3355,7 +3367,9 @@ homdel_model <- function(mb, mp, THR, skip_SB=FALSE){
         THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
         summaries(mb)$deletion_cutoff <- THR
     }
-    simdat <- augment_homozygous(mb)
+    if(augment){
+        simdat <- augment_homozygous(mb)
+    } else simdat <- mb
     if(!skip_SB){
         sb3 <- warmup(simdat, "SBP3", "SB3")
         mcmcParams(sb3) <- mp
@@ -3446,6 +3460,8 @@ homdeldup_model <- function(mb, mp, THR, skip_SB=FALSE){
       }
       finished <- stop_early(sb, 0.98, 0.98)
       if(finished) return(sb)
+  } else {
+      sb <- warmup(assays(mb), "SBP4", Nrep=1)
   }
   ##
   ## 4th component variance is much too big
@@ -3864,29 +3880,29 @@ cnv_models <- function(mb,
 
 #' @export
 upsample <- function(model, se, provisional_batch){
-  dat <- getData2(se[1, ], provisional_batch, model)
-  pred <- predictiveDist(model)
-  dat2 <- predictiveProb(pred, dat) %>%
-    mutate(copynumber=mapping(model)[inferred_component])
-  if(nrow(dat2) == 0) return(dat2)
-  ix <- which(colnames(dat2) %in% as.character(0:4))
-  ##
-  ## multiple components can map to the same copy number state
-  ## -- add probabilities belonging to same component
-  select <- dplyr::select
-  tmp <- dat2[, ix] %>%
-      mutate(id=dat2$id) %>%
-      gather("state", "prob", -c(id)) %>%
-      mutate(component_index=as.numeric(state) + 1) %>%
-      mutate(copynumber=mapping(model)[component_index]) %>%
-      group_by(id, copynumber) %>%
-      summarize(prob=sum(prob)) %>%
-      select(c(id, prob, copynumber)) %>%
-      spread(copynumber, prob)
-  dat2 <- dat2[, -ix] %>%
-    left_join(tmp, by="id")
-  dat3 <- tidy_cntable(dat2)
-  dat3
+    dat <- getData2(se[1, ], provisional_batch, model)
+    pred <- predictiveDist(model)
+    dat2 <- predictiveProb(pred, dat) %>%
+        mutate(copynumber=mapping(model)[inferred_component])
+    if(nrow(dat2) == 0) return(dat2)
+    ix <- which(colnames(dat2) %in% as.character(0:4))
+    ##
+    ## multiple components can map to the same copy number state
+    ## -- add probabilities belonging to same component
+    select <- dplyr::select
+    tmp <- dat2[, ix] %>%
+        mutate(id=dat2$id) %>%
+        gather("state", "prob", -c(id)) %>%
+        mutate(component_index=as.numeric(state) + 1) %>%
+        mutate(copynumber=mapping(model)[component_index]) %>%
+        group_by(id, copynumber) %>%
+        summarize(prob=sum(prob)) %>%
+        select(c(id, prob, copynumber)) %>%
+        spread(copynumber, prob)
+    dat2 <- dat2[, -ix] %>%
+      left_join(tmp, by="id")
+    dat3 <- tidy_cntable(dat2)
+    dat3
 }
 
 tidy_cntable <- function(dat){
