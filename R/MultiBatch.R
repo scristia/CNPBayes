@@ -1665,71 +1665,71 @@ listModelsByDecreasingK <- function(object){
 
 
 .find_surrogates <- function(x, B, THR=0.1){
-  if(length(unique(B))==1) return(list(pval=1, batches=B))
-  B2 <- B
-  dat <- tibble(x=x, batch=B) %>%
-    group_by(batch) %>%
-    summarize(n=n()) %>%
-    arrange(-n)
-  uB <- unique(dat$batch)
-  ##uB <- unique(B)
-  ## One plate can pair with many other plates.
-  stat <- matrix(NA, length(uB), length(uB))
-  comparison <- stat
-  pval <- stat
-  for(j in seq_along(uB)){
-    for(k in seq_along(uB)){
-      if(k <= j) next() ## next k
-      ## get rid of duplicate values
-      x <- x + runif(length(x), -1e-10, 1e-10)
-      b1 <- uB[j]
-      b2 <- uB[k]
-      ## edits
-      tmp <- ks.test(x[B==b1], x[B==b2])
-      stat[j, k] <- tmp$statistic
-      bb <- c(b1, b2) %>%
-        sort %>%
-        paste(collapse="::")
-      comparison[j, k] <- bb
-      pval[j, k] <- tmp$p.value
+    if(length(unique(B)) == 1) return(list(pval=1, batches=B))
+    B2 <- B
+    dat <- tibble(x=x, batch=B) %>%
+        group_by(batch) %>%
+        summarize(n=n()) %>%
+        arrange(-n)
+    uB <- unique(dat$batch)
+    ## One plate can pair with many other plates.
+    stat <- matrix(NA, length(uB), length(uB))
+    comparison <- stat
+    pval <- stat
+    for(j in seq_along(uB)){
+        for(k in seq_along(uB)){
+            if(k <= j) next() ## next k
+            ## get rid of duplicate values
+            x <- x + runif(length(x), -1e-10, 1e-10)
+            b1 <- uB[j]
+            b2 <- uB[k]
+            ## edits
+            tmp <- ks.test(x[B==b1], x[B==b2])
+            stat[j, k] <- tmp$statistic
+            bb <- c(b1, b2) %>%
+                sort %>%
+                paste(collapse="::")
+            comparison[j, k] <- bb
+            pval[j, k] <- tmp$p.value
+        }
     }
-  }
-  ## Combine the most similar plates according to the KS test statistic (smallest test statistic)
-  stat2 <- as.numeric(stat)
-  comp2 <- as.character(comparison)
-  pval2 <- as.numeric(pval)
-  ##min.index <- which.min(stat2)
-  max.index <- which.max(pval2)
-  sim.batches <- strsplit(comp2[max.index], "::")[[1]]
-  max.pval <- pval2[max.index]
-  if(max.pval < THR) return(list(pval=max.pval, batches=B))
-  comp3 <- gsub("::", ",", comp2[max.index])
-  B2[ B %in% sim.batches ] <- comp3
-  result <- list(pval=max.pval, batches=B2)
-  result
+    ## Combine the most similar plates according to the KS test statistic (smallest test statistic)
+    stat2 <- as.numeric(stat)
+    comp2 <- as.character(comparison)
+    pval2 <- as.numeric(pval)
+    ##min.index <- which.min(stat2)
+    max.index <- which.max(pval2)
+    sim.batches <- strsplit(comp2[max.index], "::")[[1]]
+    max.pval <- pval2[max.index]
+    if(max.pval < THR) return(list(pval=max.pval, batches=B))
+    comp3 <- gsub("::", ",", comp2[max.index])
+    B2[ B %in% sim.batches ] <- comp3
+    result <- list(pval=max.pval, batches=B2)
+    result
 }
 
-find_surrogates <- function(dat, THR=0.1, min_oned=-1){
+find_surrogates <- function(dat, THR=0.1){
   ## do not define batches based on homozygous deletion
-  dat2 <- filter(dat, oned > min_oned)
-  current <- dat2$provisional_batch
-  oned <- dat2$oned
-  latest <- NULL
-  while(!identical(current, latest)){
-    if(is.null(latest)) latest <- current
-    current <- latest
-    latest <- .find_surrogates(oned, current, THR)$batches
-  }
-  result <- tibble(provisional_batch=dat2$provisional_batch,
-                   batch=latest) %>%
-    group_by(provisional_batch) %>%
-    summarize(batch=unique(batch))
-  if("batch" %in% colnames(dat)){
-    dat <- select(dat, -batch)
-  }
-  dat3 <- dat %>%
-    left_join(result, by="provisional_batch")
-  dat3
+    ##dat2 <- filter(dat, oned > min_oned)
+    dat2 <- filter(dat, !likely_deletion)
+    current <- dat2$provisional_batch
+    oned <- dat2$oned
+    latest <- NULL
+    while(!identical(current, latest)){
+        if(is.null(latest)) latest <- current
+        current <- latest
+        latest <- .find_surrogates(oned, current, THR)$batches
+    }
+    result <- tibble(provisional_batch=dat2$provisional_batch,
+                     batch=latest) %>%
+        group_by(provisional_batch) %>%
+        summarize(batch=unique(batch))
+    if("batch" %in% colnames(dat)){
+        dat <- select(dat, -batch)
+    }
+    dat3 <- dat %>%
+        left_join(result, by="provisional_batch")
+    dat3
 }
 
 #' Estimate batch from any sample-level surrogate variables that capture aspects of sample processing, such as the PCR experiment (e.g., the 96 well chemistry plate), laboratory, DNA source, or DNA extraction method.
@@ -1765,51 +1765,90 @@ find_surrogates <- function(dat, THR=0.1, min_oned=-1){
 #' @return MultiBatch object
 setMethod("findSurrogates", "MultiBatch",
           function(object, THR=0.1, min_oned=-1){
-  dat <- assays(object) %>%
-    select(c(id, provisional_batch, oned))
-  message("Putting rows of data in batch order")
-  dat2 <- find_surrogates(dat, THR, min_oned) %>%
-    mutate(batch=factor(batch, levels=unique(batch)),
-           batch_labels=as.character(batch),
-           batch=as.integer(batch)) %>%
-    filter(!duplicated(id)) %>%
-    arrange(batch) %>%
-    select(c(provisional_batch, batch, batch_labels))  %>%
-    filter(!duplicated(provisional_batch))
-  if(any(is.na(dat2$batch))){
-    ## randomly assign to one of available batches
-    nna <- sum(is.na(dat2$batch))
-    ub <- unique(dat2$batch)
-    ub <- ub[!is.na(ub)]
-    dat2$batch[is.na(dat2$batch)] <- sample(ub, nna, replace=TRUE)
-  }
-  ##
-  ## There is a many to one mapping from provisional_batch to batch
-  ## Since each sample belongs to a single plate, samples in the downsampled data will only belong to a single batch
-  full.data <- assays(object)
-  full.data2 <- full.data %>%
-    select(-batch) %>%
-    left_join(dat2, by="provisional_batch") %>%
-    ##filter(!duplicated(id)) %>%
-    arrange(batch)
-  assays(object) <- full.data2
-  L <- length(unique(full.data2$batch))
-  if( L == specs(object)$number_batches ) return(object)
-  spec <- specs(object)
-  spec$number_batches <- L
-  specs(object) <- spec
-  current_values(object) <- modelValues2(specs(object),
-                                         assays(object),
-                                         parameters(object)[["hp"]])
-  s <- modelSummaries(specs(object))
-  s$data.mean <- computeMeans(object)
-  s$data.prec <- computePrec(object)
-  summaries(object) <- s
-  chains(object) <- initialize_mcmc(k(object),
-                                    iter(object),
-                                    numBatch(object))
-  object
+    dat <- assays(object) %>%
+        select(c(id, provisional_batch, oned, likely_deletion))
+    ##message("Putting rows of data in batch order")
+    ##dat2 <- find_surrogates(dat, THR, min_oned) %>%
+    dat2 <- find_surrogates(dat, THR) %>%    
+        mutate(batch=factor(batch, levels=unique(batch)),
+               batch_labels=as.character(batch),
+               batch=as.integer(batch)) %>%
+        filter(!duplicated(id)) %>%
+        arrange(batch) %>%
+        select(c(provisional_batch, batch, batch_labels, likely_deletion))  %>%
+        filter(!duplicated(provisional_batch))
+    if(any(is.na(dat2$batch))){
+        ## randomly assign to one of available batches
+        nna <- sum(is.na(dat2$batch))
+        ub <- unique(dat2$batch)
+        ub <- ub[!is.na(ub)]
+        dat2$batch[is.na(dat2$batch)] <- sample(ub, nna, replace=TRUE)
+    }
+    ##
+    ## There is a many to one mapping from provisional_batch to batch
+    ## Since each sample belongs to a single plate, samples in the downsampled data will only belong to a single batch
+    batch_mapping <- select(dat2, c(provisional_batch, batch))
+    ## Remove the previous batch assignment that was arbitrary
+    full.data <- assays(object) %>%
+        select(-batch)
+    ## update batch assignment by joining
+    full.data2 <- full.data %>%
+        left_join(batch_mapping, by="provisional_batch") %>%
+        arrange(batch)
+    assays(object) <- full.data2
+    L <- length(unique(full.data2$batch))
+    if( L == specs(object)$number_batches ) return(object)
+    spec <- specs(object)
+    spec$number_batches <- L
+    specs(object) <- spec
+    current_values(object) <- modelValues2(specs(object),
+                                           assays(object),
+                                           parameters(object)[["hp"]])
+    s <- modelSummaries(specs(object))
+    s$data.mean <- computeMeans(object)
+    s$data.prec <- computePrec(object)
+    summaries(object) <- s
+    chains(object) <- initialize_mcmc(k(object),
+                                      iter(object),
+                                      numBatch(object))
+    object
+          })
+
+setMethod("findSurrogates", "tbl_df",
+          function(object, THR=0.1, min_oned=-1){
+    dat <- object %>%
+        select(c(id, provisional_batch, oned, likely_deletion))
+    ##message("Putting rows of data in batch order")
+    ##dat2 <- find_surrogates(dat, THR, min_oned) %>%
+    dat2 <- find_surrogates(dat, THR) %>%    
+        mutate(batch=factor(batch, levels=unique(batch)),
+               batch_labels=as.character(batch),
+               batch=as.integer(batch)) %>%
+        filter(!duplicated(id)) %>%
+        arrange(batch) %>%
+        select(c(provisional_batch, batch, batch_labels, likely_deletion))  %>%
+        filter(!duplicated(provisional_batch))
+    if(any(is.na(dat2$batch))){
+        ## randomly assign to one of available batches
+        nna <- sum(is.na(dat2$batch))
+        ub <- unique(dat2$batch)
+        ub <- ub[!is.na(ub)]
+        dat2$batch[is.na(dat2$batch)] <- sample(ub, nna, replace=TRUE)
+    }
+    ##
+    ## There is a many to one mapping from provisional_batch to batch
+    ## Since each sample belongs to a single plate, samples in the downsampled data will only belong to a single batch
+    batch_mapping <- select(dat2, c(provisional_batch, batch))
+    ## Remove the previous batch assignment that was arbitrary
+    full.data <- object %>%
+        select(-batch)
+    ## update batch assignment by joining
+    full.data2 <- full.data %>%
+        left_join(batch_mapping, by="provisional_batch") %>%
+        arrange(batch)
+    full.data2
 })
+
 
 .candidate_mapping <- function(model){
   if(k(model) == 5){
