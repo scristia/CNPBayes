@@ -2750,9 +2750,10 @@ duplication_cutoff <- function(dat, min_cutoff=0.1){
 }
 
 #' @export
-median_summary <- function(se, provisional_batch, THR){
+median_summary <- function(se, provisional_batch, assay_index=1, THR){
+    medians <- colMedians(assays(se)[[assay_index]], na.rm=TRUE)
     dat <- tibble(id=colnames(se),
-                  oned=assays(se)[[1]][1, ],
+                  oned=medians,
                   provisional_batch=provisional_batch,
                   batch=1,
                   batch_labels="1") %>%
