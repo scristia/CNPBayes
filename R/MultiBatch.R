@@ -3119,26 +3119,36 @@ mixture_layout <- function(figure_list, augmented=TRUE,
   popViewport(2)
 }
 
-fit_restricted <- function(mb, sb, THR, model="MBP2",
+fit_restricted <- function(mb, sb, model="MBP2",
                            use_restricted=FALSE){
-  fdat <- filter(assays(mb), oned > THR)  %>%
-    mutate(is_simulated=FALSE)
-  mb <- warmup(fdat, model)
-  mcmcParams(mb) <- McmcParams(iter=500, burnin=50)
-  restricted <- posteriorSimulation(mb)
-  ok <- ok_hemizygous(sb)
-  if(!ok) {
-    restricted <- augment_rarecomponent(restricted, sb,
-                                        use_restricted=use_restricted)
-    restricted <- posteriorSimulation(restricted)
-  }
-  restricted
+    ##fdat <- filter(assays(mb), oned > THR)  %>%
+    fdat <- filter(assays(mb), !likely_deletion) %>%
+        mutate(is_simulated=FALSE)
+    mb <- warmup(fdat, model)
+    mcmcParams(mb) <- McmcParams(iter=500, burnin=50)
+    restricted <- posteriorSimulation(mb)
+    ok <- ok_hemizygous(sb)
+    if(!ok) {
+        restricted <- augment_rarecomponent(restricted,
+                                            sb,
+                                            use_restricted=use_restricted)
+        restricted <- posteriorSimulation(restricted)
+    }
+    restricted
 }
 
-explore_multibatch <- function(sb, simdat, THR=-1,
-                               model="MBP2"){
+fit_restricted2 <- function(mb, model="MBP2"){
+    fdat <- filter(assays(mb), !likely_deletion) %>%
+        mutate(is_simulated=FALSE)
+    mb <- warmup(fdat, model)
+    mcmcParams(mb) <- McmcParams(iter=500, burnin=50)
+    restricted <- posteriorSimulation(mb)
+    restricted
+}
+
+explore_multibatch <- function(sb, simdat, model="MBP2"){
     mb <- revertToMultiBatch(sb)
-    restricted <- fit_restricted(mb, sb, THR, model=model)
+    restricted <- fit_restricted(mb, sb, model=model)
     ## augment_rareduplication?
     ##message("Fitting full model")
     full <- mcmcWithHomDel(mb, sb, restricted, THR)
