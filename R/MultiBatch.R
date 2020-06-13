@@ -2608,67 +2608,91 @@ batchLevels <- function(mb){
 }
 
 .mcmcWithHomDel <- function(simdat, mod_2.3){
-  is_pooledvar <- ncol(sigma2(mod_2.3))==1
-  hdmean <- simdat$homozygousdel_mean[1]
-  batch_labels <- batchLevels(mod_2.3)
-  ##
-  ## Rerun 3 batch model with augmented data
-  ##
-  mbl <- MultiBatchList(data=simdat)
-  model <- incrementK(mod_2.3)
-  mod_1.3 <- mbl[[ model ]]
-  theta(mod_1.3) <- cbind(hdmean, theta(mod_2.3))
-  if(is_pooledvar){
-    sigma2(mod_1.3) <- sigma2(mod_2.3)
-  } else {
-    sigma2(mod_1.3) <- cbind(sigma2(sb3)[1], sigma2(mod_2.3))
-  }
-  burnin(mod_1.3) <- 200
-  iter(mod_1.3) <- 0
-  tmp <- tryCatch(posteriorSimulation(mod_1.3),
-                  warning=function(w) NULL)
-  bad_start <- FALSE
-  if(is.null(tmp)){
-    bad_start <- TRUE
-  }
-  if(!is.null(tmp)){
-    if(is.nan(log_lik(tmp)))
-    bad_start <- TRUE
-  }
-  if(bad_start){
-    adat <- assays(mod_1.3)
-    fdat <- filter(adat, oned > -1, !is_simulated) 
-    mod_1.3 <- warmup(fdat, model)
-  } else mod_1.3 <- tmp
-  if(is.null(mod_1.3)) return(NULL)
-  internal.count <- flags(mod_1.3)$.internal.counter
-  any_dropped <- TRUE
-  if(internal.count < 100){
-    iter(mod_1.3) <- 1000
-    mod_1.3 <- posteriorSimulation(mod_1.3)
-  }
-  mod_1.3
+    mp <- mcmcParams(mod_2.3)
+    is_pooledvar <- ncol(sigma2(mod_2.3))==1
+    hdmean <- simdat$homozygousdel_mean[1]
+    batch_labels <- batchLevels(mod_2.3)
+    ##
+    ## Rerun 3 batch model with augmented data
+    ##
+    mbl <- MultiBatchList(data=simdat)
+    model <- incrementK(mod_2.3)
+    mod_1.3 <- mbl[[ model ]]
+    theta(mod_1.3) <- cbind(hdmean, theta(mod_2.3))
+    if(is_pooledvar){
+        sigma2(mod_1.3) <- sigma2(mod_2.3)
+    } else {
+        sigma2(mod_1.3) <- cbind(sigma2(sb3)[1], sigma2(mod_2.3))
+    }
+    burnin(mod_1.3) <- 200
+    iter(mod_1.3) <- 0
+    tmp <- tryCatch(posteriorSimulation(mod_1.3),
+                    warning=function(w) NULL)
+    bad_start <- FALSE
+    if(is.null(tmp)){
+        bad_start <- TRUE
+    }
+    if(!is.null(tmp)){
+        if(is.nan(log_lik(tmp)))
+            bad_start <- TRUE
+    }
+    if(bad_start){
+        adat <- assays(mod_1.3)
+        ##fdat <- filter(adat, oned > -1, !is_simulated)
+        fdat <- filter(adat, !likely_deletion, !is_simulated) 
+        mod_1.3 <- warmup(fdat, model)
+    } else mod_1.3 <- tmp
+    if(is.null(mod_1.3)) return(NULL)
+    internal.count <- flags(mod_1.3)$.internal.counter
+    any_dropped <- TRUE
+    if(internal.count < 100){
+        ##iter(mod_1.3) <- 1000
+        mcmcParams(mod_1.3) <- mp
+        mod_1.3 <- posteriorSimulation(mod_1.3)
+    }
+    mod_1.3
 }
+
+
+meanFull_sdRestricted <- function(mb, restricted){
+    hdmean <- filter(assays(mb), likely_deletion) %>%
+        pull(oned) %>%
+        mean(na.rm=TRUE)
+    restricted.sd <- sdRestrictedModel(restricted)
+    mn_sd <- list(hdmean, restricted.sd)
+    mn_sd
+}
+
 
 mcmcWithHomDel <- function(mb, sb,
                            restricted_model,
                            THR,
                            model="MB3"){
-  hdmean <- homozygousdel_mean(sb, THR)
-  mn_sd <- list(hdmean, sdRestrictedModel(restricted_model))
-  ## If at least one batch has fewer than 5% subjects with
-  ## homozygous deletion, augment the data for homozygous deletions
-  mb.observed <- mb[ !isSimulated(mb) ]
-  mb1 <- filter(assays(restricted_model),
-                isSimulated(restricted_model)) %>%
-    bind_rows(assays(mb.observed)) %>%
-    arrange(batch) %>%
-    MultiBatchList(data=.) %>%
-      "[["(model)
-  simdat <- .augment_homozygous(mb1, mn_sd, -1,
-                                phat=max(p(sb)[1], 0.05))  
-  full <- .mcmcWithHomDel(simdat, restricted_model)
-  full
+    mb.observed <- mb[ !isSimulated(mb) ]        
+    if(any(isSimulated(restricted_model))){
+        ##
+        ## Bind the simulated observations from the restricted model
+        ## to the observed data from the full model
+        ##
+        ##
+        mb1 <- filter(assays(restricted_model),
+                      is_simulated) %>%
+            bind_rows(assays(mb.observed)) %>%
+            arrange(batch) %>%
+            MultiBatchList(data=.) %>%
+            "[["(model)
+    } else {
+        ## If there were no simulated observtions in the restricted model,
+        ## mb1 is just the observed data in the full model
+        mb1 <- MultiBatchList(data=assays(mb.observed))[[model]]
+    }
+    ## If at least one batch has fewer than 5% subjects with
+    ## homozygous deletion, augment the data for homozygous deletions
+    mn_sd <- meanFull_sdRestricted(mb, restricted)
+    simdat <- .augment_homozygous(mb1, mn_sd, -1,
+                                  phat=max(p(sb)[1], 0.05))  
+    full <- .mcmcWithHomDel(simdat, restricted_model)
+    full
 }
 
 
