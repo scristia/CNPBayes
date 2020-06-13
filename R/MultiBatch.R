@@ -3791,7 +3791,8 @@ hemdeldup_model2 <- function(mb.subsamp, mp, THR,
 }
 
 restricted_homhemdup <- function(mb, mb.subsamp, mp){
-  THR <- summaries(mb.subsamp)$deletion_cutoff
+    ##THR <- summaries(mb.subsamp)$deletion_cutoff
+    THR <- deletion_midpoint(mb.subsamp)
   mod_2.4 <- suppressWarnings(posteriorSimulation(mb))
   is_flagged <- mod_2.4@flags$.internal.counter > 40
   if(!is_flagged) return(mod_2.4)
