@@ -13,6 +13,18 @@ test_that("common deletion", {
     mb.subsamp <- readRDS(file.path(path2, "mb_subsamp.rds"))
     ## batch effect is subtle.  Try both SB and MB
     ##ggMixture(mb.subsamp)
+    if(FALE){
+        ggMixture(mb.subsamp, bins=300) +
+            coord_cartesian(xlim=c(-1, 1)) +
+            theme_bw() +
+            geom_vline(xintercept=0)
+        ## mode of 3rd batch is shifted to right
+        mb2 <- toSingleBatch(mb.subsamp)
+        ggMixture(mb2, bins=300) +
+            coord_cartesian(xlim=c(-1.5, 1)) +
+            theme_bw() +
+            geom_vline(xintercept=0)        
+    }
     ## should do more iterations in practice
     mp <- McmcParams(iter=400, burnin=100)
     ## model.list <- deletion_models(mb.subsamp, snp_se, mp)
