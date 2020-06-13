@@ -3482,15 +3482,15 @@ equivalent_variance <- function(model){
 }
 
 #' @export
-homdel_model <- function(mb, mp, THR, skip_SB=FALSE, augment=TRUE){
-    if(missing(THR)){
-        THR <- summaries(mb)$deletion_cutoff
-    } else summaries(mb)$deletion_cutoff <- THR
-    if(is.null(THR)){
-        dat <- assays(mb)
-        THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
-        summaries(mb)$deletion_cutoff <- THR
-    }
+homdel_model <- function(mb, mp, skip_SB=FALSE, augment=TRUE){
+    ##if(missing(THR)){
+    ##THR <- summaries(mb)$deletion_cutoff
+    ##} else summaries(mb)$deletion_cutoff <- THR
+    ##if(is.null(THR)){
+    ##dat <- assays(mb)
+    ##THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
+    ##summaries(mb)$deletion_cutoff <- THR
+    ##}
     if(augment){
         simdat <- augment_homozygous(mb)
     } else simdat <- mb
