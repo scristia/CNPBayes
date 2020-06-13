@@ -3505,7 +3505,9 @@ homdel_model <- function(mb, mp, skip_SB=FALSE, augment=TRUE){
         sb3 <- warmup(simdat, "SB3")
     }
     ## Since not finished, keep going
-    final <- explore_multibatch(sb3, simdat, THR)
+    ##THR <- deletion_midpoint(sb3)
+    ##final <- explore_multibatch(sb3, simdat, THR)
+    final <- explore_multibatch(sb3, simdat)
     final
 }
 
@@ -3527,7 +3529,8 @@ hemdel_model <- function(mb.subsamp, mp, skip_SB=FALSE){
 hd4comp <- function(mod_2.4, simdat2, mb.subsamp, mp){
     model <- incrementK(mod_2.4) %>%
         gsub("P", "", .)
-    THR <- summaries(mb.subsamp)$deletion_cutoff
+    ##THR <- summaries(mb.subsamp)$deletion_cutoff
+    THR <- deletion_midpoint(mb.subsamp)
     mod_1.4 <- MultiBatchList(data=simdat2)[[ model ]]
     hdmean <- homozygousdel_mean(mb.subsamp, THR)
     hdvar <- homozygousdel_var(mb.subsamp, THR)
@@ -3545,7 +3548,8 @@ hd4comp <- function(mod_2.4, simdat2, mb.subsamp, mp){
 hd3comp <- function(restricted, simdat, mb.subsamp, mp){
   model <- incrementK(restricted) %>%
     gsub("P", "", .)
-  THR <- summaries(mb.subsamp)$deletion_cutoff
+  ##THR <- summaries(mb.subsamp)$deletion_cutoff
+  THR <- deletion_midpoint(mb.subsamp)
   mod_1.3 <- MultiBatchList(data=simdat)[[ model ]]
   hdmean <- homozygousdel_mean(mb.subsamp, THR)
   hdvar <- homozygousdel_var(mb.subsamp, THR)
