@@ -1,0 +1,14 @@
+model{
+     ## likelihood
+     for(i in 1:N){
+            y[i]  ~ dbern(theta[i])
+            cn[i] ~ dcat(P[i, ])
+            ##            cn_centered[i] <- cn[i] - mean_cn
+            logit(theta[i]) <- b0 + z*b1*cn[i]
+    }
+    ## Priors
+    z ~ dbern(0.5)
+    b0 ~ dt(0, 1/2.5^2, 1)
+    b1  ~ dt(0, 1/2.5^2, 1)
+    zbeta <- z * b1
+}
