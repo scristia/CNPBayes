@@ -2838,63 +2838,96 @@ down_sample <- function(dat, S){
     dat.subsampled
 }
 
+down_sample2 <- function(dat, S, min_size=100){
+    ##
+    ## Principles:
+    ##  -- we do not want to downsample likely deletions; these tend to be rare
+    ##  -- we do not want to downsample batches for which there is little data
+    ##
+    ## Based on S and the number per group,
+    ## we could predict the batches that would be adversely affected by
+    ## the downsampling
+    expected <- group_by(dat, batch) %>%
+        tally() %>%
+        mutate(p=n/sum(n),
+               expected=p*S) %>%
+        pull(expected)
+    small.batches <- which(expected < min_size)
+    holdouts <- filter(dat, likely_deletion | batch %in% small.batches)
+    downsamp <- filter(dat, !id %in% holdouts$id) %>%
+        slice_sample(n=1000) %>%
+        bind_rows(holdouts) %>%
+        mutate(batch_labels=as.character(batch)) %>%
+        arrange(batch)
+    downsamp
+}
 
-kolmogorov_batches <- function(dat, KS_cutoff, THR, S=1000){
-    dat.subsampled <- down_sample(dat, S)
-    mb <- MultiBatch("MB3", data=dat.subsampled)
-    mb.ks <- mb %>%
-        findSurrogates(KS_cutoff, THR)
+
+##kolmogorov_batches <- function(dat, KS_cutoff, THR){
+##    mb <- MultiBatch("MB3", data=dat)
+##    mb.ks <- mb %>%
+##        findSurrogates(KS_cutoff)
+##}
+
+kolmogorov_batches <- function(dat, KS_cutoff, THR){
+    ##mb <- MultiBatch("MB3", data=dat)
+    findSurrogates(dat, KS_cutoff)
 }
 
 add_batchinfo <- function(dat, mb){
-  batches <- assays(mb) %>%
-    group_by(provisional_batch) %>%
-    summarize(batch=unique(batch))
-  pr.batch <- assays(mb)$provisional_batch
-  stopifnot(all(pr.batch %in% dat$provisional_batch))
-  dat <- left_join(dat, batches, by="provisional_batch")
-  dat
+    batches <- assays(mb) %>%
+        group_by(provisional_batch) %>%
+        summarize(batch=unique(batch))
+    pr.batch <- assays(mb)$provisional_batch
+    stopifnot(all(pr.batch %in% dat$provisional_batch))
+    dropbatch <- select(dat, -batch)
+    dat <- left_join(dropbatch, batches, by="provisional_batch")
+    dat
 }
 
-add2small_batches <- function(dat, mb){
+add2small_batches <- function(dat, mb, min_size=50){
     ##message("Check batches")
     ##
     batchfreq <- assays(mb) %>%
         group_by(batch) %>%
         summarize(n=n())
-    if(any(batchfreq$n < 50)){
-        batchlabels <- group_by(assays(mb), batch) %>%
-            summarize(n=n(),
-                      batch_labels=unique(batch_labels))
-        batchfreq <- filter(batchfreq, n < 50)
-        adat <- assays(mb) %>%
-            filter(!batch %in% batchfreq$batch)
-        bdat <- filter(dat, batch %in% batchfreq$batch) %>%
-            left_join(batchlabels, by="batch") %>%
-            mutate(is_simulated=FALSE) %>%
-            select(colnames(adat))
-        adat2 <- bind_rows(adat, bdat)
-        mb <- MultiBatch("MB2", data=adat2)
-    }
+    if(all(batchfreq$n >= min_size)) return(mb)
+    batchlabels <- group_by(assays(mb), batch) %>%
+        summarize(n=n(),
+                  batch_labels=unique(batch_labels))
+    batchfreq <- filter(batchfreq, n < min_size)
+    adat <- assays(mb) %>%
+        filter(!batch %in% batchfreq$batch)
+    bdat <- filter(dat, batch %in% batchfreq$batch) %>%
+        left_join(batchlabels, by="batch") %>%
+        mutate(is_simulated=FALSE) %>%
+        select(colnames(adat))
+    adat2 <- bind_rows(adat, bdat)
+    mb <- MultiBatch("MB2", data=adat2)
     mb
 }
 
 add_deletion_stats <- function(dat, mb, THR){
-  hdmean <- median(dat$oned[dat$likely_deletion])
-  ##expect_equal(hdmean, -3.887, tolerance=0.001)
-  ##
-  if(is.na(hdmean)) THR <- hdmean <- -1
-  assays(mb)$homozygousdel_mean <- hdmean
-  summaries(mb)$deletion_cutoff <- THR
-  mb
+    hdmean <- median(dat$oned[dat$likely_deletion])
+    ##expect_equal(hdmean, -3.887, tolerance=0.001)
+    ##
+    if(is.na(hdmean)) THR <- hdmean <- -1
+    assays(mb)$homozygousdel_mean <- hdmean
+    summaries(mb)$deletion_cutoff <- deletion_midpoint(dat)
+    mb
 }
 
 
 #' @export
-summarize_region <- function(se, provisional_batch, THR=-1,
+summarize_region <- function(se, provisional_batch,
+                             THR=-1,
+                             assay_index=1,
                              KS_cutoff=0.001, S=1000){
-    dat <- median_summary(se, provisional_batch, THR)
-    mb <- kolmogorov_batches(dat, KS_cutoff, THR, S=S)
+    dat <- median_summary(se, provisional_batch,
+                          assay_index=assay_index,
+                          THR=THR)
+    dat2 <- down_sample(dat, S)
+    mb <- kolmogorov_batches(dat2, KS_cutoff, THR)
     dat <- add_batchinfo(dat, mb)
     mb <- add2small_batches(dat, mb)
     mb <- add_deletion_stats(dat, mb, THR)
