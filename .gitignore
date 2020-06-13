@@ -29,3 +29,6 @@ inst/unitTests
 /man/dot-.TrioBatchModel.Rd
 /tests/testthat/*R:CNPBayes*
 README_files
+vignettes/*.png
+/vignettes/scratch.Rmd
+cnpbayes_files/

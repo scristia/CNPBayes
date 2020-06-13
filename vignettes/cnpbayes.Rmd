@@ -1,0 +1,267 @@
+---
+title: "CNPBayes: Bayesian copy number detection and association in large-scale studies"
+author: "Stephen Cristiano, Jacob Carey, David McKean, Gary L. Rosner, Ingo Ruczinski, Alison Klein, and Robert B. Scharpf"
+date: "`r format(Sys.Date())`"
+output:	
+  html_document:
+    keep_md: true
+bibliography: refs.bib	
+---
+
+# Overview
+
+Germline copy number variants (CNVs) increase risk for many diseases, yet detection of CNVs and quantifying their contribution to disease risk in large-scale studies is challenging due to biological and technical sources of heterogeneity that vary across the genome within and between samples. We developed an approach called CNPBayes to identify latent batch effects in genome-wide association studies involving copy number, to provide probabilistic estimates of integer copy number across the estimated batches, and to fully integrate the copy number uncertainty in the association model for disease. 
+
+This vignette follows the general outline of the README provided with this package, but goes into additional detail on modeling copy number in the presence of latent batch effects, modeling homozygous deletions when they are rare, and model selection.  The number of MCMC simulations and thoroughness of which any model is evaluated will be inadequate, but we hope this provides general guidance for the overall approach and motivation for some of the modeling decisions.
+
+# Data organization
+
+For SNP arrays, convenient container for storing SNP-level summaries for log$_2 R$ ratios and B allele frequencies (BAFs) at SNPs along the genome is a `SummarizedExperiment`.   Similarly, for whole exome sequencing, log ratios of normalized coverage for exon-level or gene-level inference can be stored in a `SummarizedExperiment`.  For illustration, we load a small `SummarizedExperiment` containing log$_2 R$ ratios and BAFs from the Pancreatic Cancer Case Control Consortium (PanC4)..  This example container includes 7 different CNV regions from multiple chromosomes as can be seen from the `rowRanges`. 
+
+```{r packages, message=FALSE}
+library(tidyverse)
+library(SummarizedExperiment)
+library(CNPBayes)
+library(ggplot2)
+library(gap)
+library(rjags)
+```
+
+```{r summarized_experiment}
+extdir <- system.file("extdata", package="CNPBayes")
+se <- readRDS(file.path(extdir, "snp_se.rds"))
+rowRanges(se)
+```
+
+The above `se` object contains log ratios and BAFs for `r nrow(se)` SNPs and `r ncol(se)` samples.
+Below, we focus on a CNV region on chromosome 2 that we obtained from the 1000 Genomes Project and subset the `SummarizedExperiment` to 7 SNPs that are contained in this region. A quick look at the median log R ratios for the 6,038 subjects:
+
+```{r cnv_region_2, fig.width=8, fig.height=2}
+cnv_region <- GRanges("chr2", IRanges(90010895, 90248037), seqinfo=seqinfo(se))
+se2 <- subsetByOverlaps(se, cnv_region)
+dat <- assays(se2)[["lrr"]] %>%
+    colMedians() %>%
+    tibble(median=.)
+smallvals <- filter(dat, median < -1)
+dat %>%
+    ggplot(aes(median)) +
+    geom_histogram(bins=500) +
+    geom_point(data=smallvals, aes(median, 0),
+               shape=21, size=6,
+               fill="transparent") +
+    theme_bw(base_size=12)
+
+dat %>%
+    ggplot(aes(median)) +
+    geom_histogram(bins=500) +
+    geom_point(data=smallvals, aes(median, 0),
+               shape=21, size=6,
+               fill="transparent") +
+    theme_bw(base_size=12) +
+    coord_cartesian(xlim=c(-1, 0.75))
+```
+
+From the histogram, we see that the bulk of the data has a median log R Ratio at 0, but there is a small mode to the left at -0.5 as well as several observations in the far left tail that we've circled. The circled observations are likely homozygous deletions.  For germline homozygous deletions, the log R ratios are nearly always well separated from the rest of the data.  Before we modeling this data, lets first check if some of the skew in the central component could be explained by technical sources of variation.  To do this, we will provide a provisional definition of batch.  The provisional batch variable should be a feature that may capture technical sources of variation between groups of samples.  Examples include chemistry plate (below), the date genomic libraries were prepared, DNA source, or study site.  Here, we list chemistry plate as the provisional batch variable -- we think chemistry plate may be a useful surrogate for technical sources of variation arising from PCR and when the samples were processed, but acknowledge that many of the plates are likely to be similar.  The function `median_summary` below encapsulates the median log R ratio at this region for each sample, as well as the batch batches and possible homozygous deletions.
+
+```{r cnv_region}
+dat <- median_summary(se2,
+                      provisional_batch=se2$Sample.Plate,
+                      assay_index=2,
+                      THR=-1)
+dat
+```
+
+Next, we compare the empirical cumulative distribution function (eCDF) of the median log R ratios for the provisional batches using a Kolmogorov-Smirnov (KS test). If the p-value for KS test is statistically significant for two provisional batches, the samples are combined into a single batch. Otherwise, the samples are left in separate groups.  The test is repeated recursively until no 2 batches can be combined.  Since all `r nrow(dat)` individuals are not needed to approximate the density of the median log ratios, we take a random sample.  Samples with likely deletions or batches with fewer than 100 samples are not down-sampled.
+
+```{r batch_surrogates}
+## P-values are senstive to sample size...
+batched.data <- kolmogorov_batches(dat, 1e-6)    ## 30 more seconds
+##expect_true(length(batched.data$batch_labels) > 1)
+downsampled.data <- down_sample2(batched.data, 1000, min_size=100)
+```
+
+```{r histogram_downsampled, fig.align="center", fig.width=5, fig.height=3, fig.cap="Distribution of median log ratios after down-sampling."}
+downsampled.data %>%
+    ggplot(aes(oned)) +
+    geom_histogram(bins=500) +
+    geom_point(data=smallvals, aes(median, 0),
+               shape=21, size=6,
+               fill="transparent") +
+    theme_bw(base_size=12)
+```
+
+```{r histogram_downsampled_by_batch, fig.align="center", fig.width=5, fig.height=8, fig.cap="Some of the skew in the marginal distribution can be explained by technical variation between the estimated batches. The distribution of the log ratios where the bulk of the data exists appears more symmetric around the mode after stratification by batch."}
+smallvals2 <- filter(downsampled.data, oned < -1)
+downsampled.data %>%
+    ggplot(aes(oned)) +
+    geom_histogram(bins=200) +
+    geom_point(data=smallvals2, aes(oned, 0),
+               shape=21, size=6,
+               fill="transparent") +
+    theme_bw(base_size=12)  +
+    theme(panel.grid=element_blank(),
+          strip.background=element_blank()) +
+    facet_wrap(~batch, ncol=1) +
+    geom_vline(xintercept=0)
+```
+
+# Finite-mixture models
+
+## No batch adjustment
+
+
+## Batch adjustment
+
+
+### Homozygous deletions not observed in every batch
+
+
+### Approach
+
+We model the data hierarchically across the estimated batches as a finite-mixture of near-Gaussian densities. As several individuals have likely homozygous deletions, the region likely harbors a deletion polymorphism and we will fit a series of mixture models with different assumptions about the number of batches and whether we should pool variance estimates of the  mixture components.  To begin, we instantiate an object of "MultiBatch" that will be used to encapsulate parameters of the mixture model, hyper-parameters, initial values for Markov Chain Monte Carlo (MCMC), and a slot for storing chains from the MCMC.  The `show` method for the `MultiBatch` class provides a concise summary of the data and parameters encapsulated in this object, while `assays` can be used to extract the down-sampled data.
+
+```{r instantiate_mb}
+mb <- MultiBatch(data=downsampled.data)
+mb
+assays(mb)
+```
+
+While the `MultiBatch` function created a model with three mixture components, the  number here is not very important as the functions we will evaluate for modeling this data will explore multiple models. In the next code chunk, we tell CNPBayes to explore a set of mixture models that would be consistent with a homozygous deletion polymorphism.  CNPBayes allows a many-to-one mapping of mixture components to copy number states but never one-to-many,  implying we would need at least 3 components to capture copy number states 0-2.
+
+Single batch model has hard time:
+
+```{r sb_model}
+sb <- MultiBatchList(data=assays(mb))[["SB3"]]
+mcmcParams(sb) <- McmcParams(burnin=100, iter=500)
+sb2 <- posteriorSimulation(sb)
+ggMixture(sb2)
+sb <- MultiBatchList(data=assays(mb))[["SB4"]]
+mcmcParams(sb) <- McmcParams(burnin=100, iter=500)
+sb2 <- posteriorSimulation(sb)
+ggMixture(sb2)
+sb <- MultiBatchList(data=assays(mb))[["SB4"]]
+mcmcParams(sb) <- McmcParams(burnin=100, iter=500)
+sb2 <- posteriorSimulation(sb)
+ggMixture(sb2)
+```
+
+Multibatch model does even worse as some of the batches do not contain homozygous deletion component:
+
+```{r no_augmentation}
+mb2 <- MultiBatchList(data=assays(mb))[["MB3"]]
+mcmcParams(mb2) <- mcmcParams(full)
+full2 <- posteriorSimulation(mb2)
+ggMixture(full2) +
+    coord_cartesian(xlim=c(-5, 1))
+```
+
+
+
+First, we fit a single-batch model to get a rough approximation where the overall modes lie.  We will use values from this model to initiate a multi-batch model.  We check whether additional observations would be helpful for the deletion component with the `augment_homozygous` function (none needed here), and then do a short warmup a single-baratch model.
+
+```{r fit_sb}
+
+```
+
+The component means can be accessed by `theta`.  We can check to see whether these values might be reasonable starting values for the `MultiBatch` model:
+
+```{r sb_starts, fig.align="center", fig.width=4, fig.height=3}
+th <- as.numeric(theta(sb))
+ggMixture(sb3) +
+    geom_vline(xintercept=th)
+```
+
+Reverting the `sb` object to a `MultiBatch` object:
+
+```{r multibatch}
+##adat <- augment_homozygous(mb)
+##sb <- warmup(adat, "SB3", Nrep=2, .burnin=100)
+
+## Fit restricted model
+
+restricted <- fit_restricted2(mb, model="MBP2")
+##mb.observed <- mb[ !isSimulated(mb) ]
+##mb1 <- MultiBatchList(data=assays(mb.observed))[["MB3"]]
+mb1 <- MultiBatch(data=filter(assays(mb), !is_simulated))
+mn_sd <- meanFull_sdRestricted(mb, restricted)
+##trace(.augment_homozygous, browser)
+pdel <- assays(mb) %>%
+    pull(likely_deletion) %>%
+    mean()
+simdat <- .augment_homozygous(mb1,
+                              mn_sd,
+                              phat=pdel)
+mcmcParams(restricted) <- McmcParams(iter=500, burnin=100)
+full <- .mcmcWithHomDel(simdat, restricted)
+expect_identical(iter(full), iter(restricted))
+expect_identical(burnin(full), burnin(restricted))
+ok <- ok_model(full, restricted)
+smallvals3 <- smallvals2 %>%
+    mutate(batch=paste0("Batch ", batch))
+ggMixture(full, bins=200) +
+    geom_point(data=smallvals3, aes(oned, 0),
+               shape=21, size=6,
+               fill="transparent", inherit.aes=FALSE) +
+    geom_vline(xintercept=0)
+```
+
+Skipping the augmentation step.
+
+
+
+
+```{r deletion_models}
+mp <- McmcParams(burnin=50, iter=200, thin=1)
+model <- homdel_model(mb, mp, skip_SB=FALSE)
+model
+```
+
+Note that the `model` object contains `r sum(isSimulated(model))` additional observations that were simulated to stabilize the mixture component for the homozygous deletions.
+
+```{r posterior_predictive, fig.align="center"}
+
+obs <- model[ !isSimulated(model) ]
+obs
+ggMixture(obs)
+```
+
+To evaluate goodness of fit, one can overlay the density of the posterior predictive distribution.
+
+## Genotyping
+
+```{r genotype}
+gmodel <- genotype_model(model, se2)
+mapping(gmodel)
+mapping(gmodel) <- c("0", "1", "2")
+```
+
+## Upsampling
+
+```{r upsampling}
+full <- upsample(gmodel, cnv_se,
+                 provisional_batch=plates)
+full
+
+freq <- as.integer(table(full$copynumber))
+gap::hwe(freq, data.type="count")
+```
+
+# Related software
+
+- cnvCall @Cardin2011
+
+- Birdsuite (@Korn2008)
+
+- XHMM (@Fromer2012)
+
+- CnvTools (@Barnes2008)
+
+
+# Scratch
+
+CNPBayes models latent sources of technical variation starting with a provisional batch variable derived from some aspect of the experiment.  Examples of a provisional batch variable could include the chemistry plate on which the samples were processed, the date genomic libraries were prepared, the source of DNA (i.e., blood, buccal, saliva, etc), lab technician, or study site. For now, we leave these details to the vignette and focus on a region for which the sources of batch variation are small relative to the copy number variation. 
+
+
+Here, the inferential goal is to identify the germline integer copy number for these participants.  To model latent sources of technical variation, we begin with a provisional concept of batch derived from some aspect of the experiment. Below, we specify chemistry plate as the provisional batch.   So that the example runs quickly, we focus on samples belonging to the first 20 chemistry plates.  Additional details on this step are discussed in the vignette.
+
+The primary effects of this augmentation are two-fold: (1) the mixture components capturing the bulk of the data  are not heavy-tailed and (2) we obtain a left-most mixture component with a scale component that is the same as the variance of the other mixture components, even for batches in which the homozygous deletion was not observed (additional discussion in vignette). 
