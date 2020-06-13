@@ -170,7 +170,10 @@ MultiBatch <- function(model="MB3",
   }
   if(nrow(data) > 0){
       if("batch" %in% colnames(data)){
-      data <- data[order(data$batch), , drop=FALSE]
+          data <- data[order(data$batch), , drop=FALSE]
+          if(!"is_simulated" %in% colnames(data)){
+              data$is_simulated <- FALSE
+          }
     }
   }
   if(!"batch" %in% colnames(data)) data$batch <- 1L
