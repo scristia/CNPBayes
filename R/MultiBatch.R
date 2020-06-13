@@ -3664,11 +3664,12 @@ model_checks <- function(models){
 }
 
 deletion_models <- function(mb, snp_se, mp, THR){
-  if(missing(THR)){
-    if("deletion_cutoff" %in% names(summaries(mb))){
-      THR <- summaries(mb)$deletion_cutoff
-    } else stop("THR not provided")
-  } else summaries(mb)$deletion_cutoff <- THR
+##  if(missing(THR)){
+##    if("deletion_cutoff" %in% names(summaries(mb))){
+##      THR <- summaries(mb)$deletion_cutoff
+##    } else stop("THR not provided")
+    ##  } else summaries(mb)$deletion_cutoff <- THR
+  THR <- deletion_midpoint(mb)
   if(!any(oned(mb) < THR)) stop("No observations below deletion cutoff")
   model3 <- homdel_model(mb, mp)
   model4 <- homdeldup_model(mb, mp)
