@@ -3720,8 +3720,8 @@ hemdeldup_model <- function(mb.subsamp, mp, THR=-0.25){
   finished <- stop_early(sb, 0.99, 0.99)
   if(is.na(finished)) finished <- FALSE
   if(finished) return(sb)
-  THR <- summaries(mb.subsamp)$deletion_cutoff
-  mb <- explore_multibatch(sb, simdat, THR)
+  ##THR <- summaries(mb.subsamp)$deletion_cutoff
+  mb <- explore_multibatch(sb, simdat)
   return(mb)
 }
 
