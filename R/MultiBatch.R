@@ -2253,55 +2253,67 @@ sdRestrictedModel <- function(restricted){
     sigma2_ <- cbind(sigma2(restricted)[1, 2],
                      sigma2(restricted))
   }
-  sigma2_
+  sqrt(sigma2_)
 }
 
-.augment_homozygous <- function(mb, mean_sd, THR=-1, phat=0.01){
-  if(all(is.na(mean_sd[[2]]))) mean_sd[[2]] <- 0.1
-  freq.hd <- assays(mb) %>%
-    filter(!is_simulated) %>%
-    group_by(batch) %>%
-    summarize(N=n(),
-              n=sum(likely_deletion)) %>%
-    filter(n/N < 0.05)
-  if(nrow(freq.hd) == 0){
-    obsdat <- assays(mb)
-    return(obsdat)
-  }
-  loc.scale <- tibble(theta=mean_sd[[1]],
-                      sigma2=mean_sd[[2]]^2,
-                      phat=phat,
-                      batch=seq_len(nrow(theta(mb))))
-  loc.scale <- left_join(freq.hd, loc.scale, by="batch") %>%
-    select(-N)
-  start.index <- length(grep("augment", id(mb))) + 1
-  any_simulated <- any(isSimulated(mb))
-  imp.hd <- impute(mb, loc.scale, start.index=start.index)
-  if(any_simulated){
-    simulated <- bind_rows(imp.hd,
-                           filter(assays(mb), is_simulated))
-  } else simulated <- imp.hd
-  obsdat <- assays(mb) %>%
-    filter(is_simulated==FALSE)
-  simdat <- bind_rows(obsdat, simulated) %>%
-    arrange(batch) %>%
-    mutate(homozygousdel_mean=mean_sd[[1]])
-  simdat
+.augment_homozygous <- function(mb, mean_sd, phat=0.01){
+    if(all(is.na(mean_sd[[2]]))) mean_sd[[2]] <- 0.1
+    freq.hd <- assays(mb) %>%
+        filter(!is_simulated) %>%
+        group_by(batch) %>%
+        summarize(N=n(),
+                  n=sum(likely_deletion)) %>%
+        filter(n/N < 0.05)
+    if(nrow(freq.hd) == 0){
+        obsdat <- assays(mb)
+        return(obsdat)
+    }
+    loc.scale <- tibble(theta=mean_sd[[1]],
+                        sigma2=mean_sd[[2]]^2,
+                        phat=phat,
+                        batch=seq_len(nrow(theta(mb))))
+    loc.scale <- left_join(freq.hd, loc.scale, by="batch") %>%
+        select(-N)
+    start.index <- length(grep("augment", id(mb))) + 1
+    any_simulated <- any(isSimulated(mb))
+    imp.hd <- impute(mb, loc.scale, start.index=start.index)
+    if(any_simulated){
+        simulated <- bind_rows(imp.hd,
+                               filter(assays(mb), is_simulated))
+    } else simulated <- imp.hd
+    obsdat <- assays(mb) %>%
+        filter(is_simulated==FALSE)
+    simdat <- bind_rows(obsdat, simulated) %>%
+        arrange(batch) %>%
+        mutate(homozygousdel_mean=mean_sd[[1]])
+    simdat
+}
+
+deletion_midpoint <- function(mb){
+    vals <- assays(mb) %>%
+        group_by(likely_deletion) %>%
+        summarize(min_oned=min(oned, na.rm=TRUE),
+                  max_oned=max(oned, na.rm=TRUE))
+    midpoint <- mean(c(vals$max_oned[vals$likely_deletion],
+                       vals$min_oned[!vals$likely_deletion]))
+    
+    midpoint
 }
 
 augment_homozygous <- function(mb.subsamp){
-  THR <- summaries(mb.subsamp)$deletion_cutoff
-  mean_sd <- meanSdHomDel(mb.subsamp, THR)
-  rare_homozygous <- sum(oned(mb.subsamp) < THR) < 5
-  ##expect_false(rare_homozygous)
-  if(rare_homozygous){
-    simdat <- .augment_homozygous(mb.subsamp, mean_sd, THR)
-  } else {
-    simdat <- assays(mb.subsamp) %>%
-      arrange(batch) %>%
-      mutate(homozygousdel_mean=mean_sd[[1]])
-  }
-  simdat
+    ##THR <- summaries(mb.subsamp)$deletion_cutoff
+    THR <- deletion_midpoint(mb.subsamp)
+    mean_sd <- meanSdHomDel(mb.subsamp, THR)
+    rare_homozygous <- sum(oned(mb.subsamp) < THR) < 5
+    ##expect_false(rare_homozygous)
+    if(rare_homozygous){
+        simdat <- .augment_homozygous(mb.subsamp, mean_sd, THR)
+    } else {
+        simdat <- assays(mb.subsamp) %>%
+            arrange(batch) %>%
+            mutate(homozygousdel_mean=mean_sd[[1]])
+    }
+    simdat
 }
 
 ok_hemizygous <- function(sb){
