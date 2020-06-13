@@ -1731,7 +1731,7 @@ find_surrogates <- function(dat, THR=0.1){
         dat <- select(dat, -batch)
     }
     dat3 <- dat %>%
-        left_join(result, by="provisional_batch")
+       left_join(result, by="provisional_batch")
     dat3
 }
 
@@ -1818,7 +1818,8 @@ setMethod("findSurrogates", "MultiBatch",
           })
 
 setMethod("findSurrogates", "tbl_df",
-          function(object, THR=0.1, min_oned=-1){
+          function(object, THR=0.1,
+                   min_oned=-1){
     dat <- object %>%
         select(c(id, provisional_batch, oned, likely_deletion))
     ##message("Putting rows of data in batch order")
