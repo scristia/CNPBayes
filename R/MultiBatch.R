@@ -2322,18 +2322,19 @@ ok_hemizygous <- function(sb){
 }
 
 .warmup <- function(tib, model, Nrep=10, .burnin=100){
-  mbl <- replicate(Nrep, MultiBatchList(data=tib)[[model]])
-  for(j in seq_along(mbl)){
-    cat(".")
-    mb <- mbl[[j]]
-    iter(mb) <- 0
-    burnin(mb) <- .burnin
-    mb <- tryCatch(posteriorSimulation(mb),
-                   warning=function(w) NULL)
-    if(is.null(mb)) next()
-    mbl[[j]] <- mb
-  }
-  mbl
+    ##if(model=="MBP2") browser()
+    mbl <- replicate(Nrep, MultiBatchList(data=tib)[[model]])
+    for(j in seq_along(mbl)){
+        cat(".")
+        mb <- mbl[[j]]
+        iter(mb) <- 0
+        burnin(mb) <- .burnin
+        mb <- tryCatch(posteriorSimulation(mb),
+                       warning=function(w) NULL)
+        if(is.null(mb)) next()
+        mbl[[j]] <- mb
+    }
+    mbl
 }
 
 warmup <- function(tib, model1, model2=NULL, model2.penalty=50,
