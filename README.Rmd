@@ -1,6 +1,6 @@
 ---
 title: "CNPBayes: Bayesian copy number detection and association in large-scale studies"
-author: "Stephen Cristiano, Jacob Carey, David McKean, Alison Klein, and Rob Scharpf"
+author: "Stephen Cristiano, Jacob Carey, David McKean, Gary L. Rosner, Ingo Ruczinski, Alison Klein, and Robert B. Scharpf"
 date: "`r format(Sys.Date())`"
 output:	
   html_document:
@@ -28,6 +28,7 @@ install.packages("gap")
 The simplest way to illustrate how to fit finite normal mixture models in CNPBayes is to start with a `SummarizedExperiment` object provided in CNPBayes that contains median summaries of a few CNV regions for individuals analyzed as part of the Pancreatic Cancer Case Control Consortium (PanC4) @Childs2015.  Here, we will focus on a CNV region on chromosome 8:
 
 ```{r multibatch_data}
+library(tidyverse)
 library(CNPBayes)
 library(SummarizedExperiment)
 library(ggplot2)
@@ -42,7 +43,7 @@ se <- cnp_se[5, ]
 
 ## Identifying possible sources of batch effects
 
-As in any large-scale study, sources of technical variation can potentially confound statistical inference @Leek2010. CNPBayes estimates the batches for a given CNV region starting with a provisional definition of batch (chemistry plate on which the samples were processed, the date genomic libraries were prepared, etc.) provided by the user.  Leaving these details  the [vignette](vignettes/cnpbayes.Rmd), here we focus on the logistics of fitting a mixture model in CNPBayes and the subsequent genotyping. The following step uses the `median_summary` function to compute the median log$_2 R$ ratio for each participant at the CNV region and down-samples the observed data since we can derive useful approximations of the mixture components without all 6000 individuals.  Since the down-sampling is random, it is important to set a seed for reproducibility.
+As in any large-scale study, sources of technical variation can potentially confound statistical inference @Leek2010. CNPBayes estimates the batches for a given CNV region starting with a provisional definition of batch (chemistry plate on which the samples were processed, the date genomic libraries were prepared, etc.) provided by the user.  Leaving these details  the [vignette](vignettes/cnpbayes.Rmd), here we focus on the logistics of fitting a mixture model in CNPBayes and the subsequent genotyping. The following step uses the `median_summary` function extracts the median log$_2 R$ ratio from the `SummarizedExperiment` object and down-samples the observed data since we can derive useful approximations of the mixture components without all 6000 individuals.  Since the down-sampling is random, it is important to set a seed for reproducibility.
 
 ```{r median_summary, message=FALSE}
 set.seed(1234)
@@ -74,7 +75,7 @@ cnv.summaries %>%
 
 ## Fitting finite mixture models
 
-The bulk of the data corresponds to diploid individuals with median log$_2 R$ ratios near zero, and the small cluster to the left of this model contains subjects with a hemizygous deletion.  At the very left end of the plot are 6 individual with a likely homozygous deletion. Our goal is to model all of the available data and, in particular, not to treat the extreme observations in the left tail as outliers. Below, we first create an object of class `MultiBatch` that organizes the data in a container that contains parameters for the mixture models.  While the code below instantiates a `MultiBatch` object with 3 components, the only critical piece at this step is the creation of a `MultiBatch` object.  While model selection can be challenging and requires evaluating many models, here we sidestep these issues and tell CNPBayes to focus on models that would be consistent with the deletion polymorphism evident from the preceding figure. Additional details regarding model selection are provided in the vignette.
+The bulk of the data corresponds to diploid individuals with median log$_2 R$ ratios near zero, and the small cluster to the left of this model contains subjects with a hemizygous deletion.  At the very left end of the plot are 6 individual with a likely homozygous deletion that we've circled. Below, we first create an object of class `MultiBatch` that organizes the data in a container that contains parameters for the mixture models.  While the code below instantiates a `MultiBatch` object with 3 components, the only critical piece at this step is the creation of a `MultiBatch` object.  While model selection can be challenging and requires evaluating many models, here we sidestep these issues and tell CNPBayes to focus on models that would be consistent with the deletion polymorphism evident from the preceding figure. Additional details regarding model selection are provided in the vignette.
 
 ```{r deletion_models, message=FALSE, cache=TRUE}
 ## Assume batch effects effects are neglible and that there is a single batch
@@ -106,7 +107,7 @@ mapping(gmodel)
 As we fit the mixture model using a subset of the available data, we extrapolate the probabilistic estimates of copy number to the entire population using the `upsample` function.  While we did not make use of the provisional batch labels in this simple example, the up-sampling does require that we provide these labels from the full data.
 
 
-```{r upsampling}
+```{r upsampling, cache=TRUE}
 full <- upsample(gmodel, se,
                  provisional_batch=se$Sample.Plate)
 full
@@ -119,7 +120,7 @@ From the above analyses, we find that the frequencies of copy number states 0, 1
 
 # Association model
 
-If the mixture components were always as well separated as above, standard Bayesian and frequentist regression models using the maximum a posteriori copy number estimate would be appropriate.
+If the mixture components were always as well separated as above, standard Bayesian and frequentist regression models using the maximum a posteriori copy number estimate would be appropriate.  To illustrate the approach using a toy example, we simulate disease status for 1000 observations.
 
 
 ```{r simulate_disease}
@@ -157,7 +158,7 @@ samples <- coda.samples(fit,
 
 Our jags model includes a latent indicator variable $z$ that multiplies the copy number coefficient. This is essentially Bayesian model averaging where the two models of interest are an intercept-only model and a model that includes copy number.  Below, we show the traceplot of the regression coefficient when $z$ is 1:
 
-```{r posterior_summaries, fig.align="center", fig.cap="Traceplot of the copy number regression coefficient. The horizontal line indicates the true value of this parameter.", fig.width=8, fig.height=3}
+```{r posterior_summaries, fig.align="center", fig.cap="We used a Bayesian model averaging approach to choose between models where the regression coefficient for copy number was non-zero and an intercept-only model.  Here, we show the traceplot for beta when the copy number model was selected.  The horizontal line is the estimate of the regression coefficient from the `glm` model.", fig.width=8, fig.height=3}
 b <- filter(samples, Parameter=="zbeta")
 b %>%
     filter(value != 0) %>%
