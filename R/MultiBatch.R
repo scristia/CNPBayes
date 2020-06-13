@@ -3174,7 +3174,7 @@ few_hemizygous <- function(model){
 explore_restricted <- function(mb, sb, THR=-1, model="MB3"){
   if(few_hemizygous(mb))
     return(mb)
-  mbp <- fit_restricted(mb, sb, THR=-1)
+  mbp <- fit_restricted(mb, sb)
   restricted <- mcmcHomDelOnly(assays(mb),
                                restricted_model=mbp,
                                sb,
