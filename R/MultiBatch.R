@@ -3564,14 +3564,14 @@ hd3comp <- function(restricted, simdat, mb.subsamp, mp){
 }
 
 homdeldup_model <- function(mb, mp, THR, skip_SB=FALSE){
-  if(missing(THR)){
-    THR <- summaries(mb)$deletion_cutoff
-  } else summaries(mb)$deletion_cutoff <- THR
-  if(is.null(THR)){
-    dat <- assays(mb)
-    THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
-    summaries(mb)$deletion_cutoff <- THR
-  }
+##  if(missing(THR)){
+##    THR <- summaries(mb)$deletion_cutoff
+##  } else summaries(mb)$deletion_cutoff <- THR
+##  if(is.null(THR)){
+##    dat <- assays(mb)
+##    THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
+##    summaries(mb)$deletion_cutoff <- THR
+##  }
   simdat <- augment_homozygous(mb)
   if(!skip_SB){
       sb <- warmup(assays(mb),
