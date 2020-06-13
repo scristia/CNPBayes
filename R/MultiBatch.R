@@ -3684,7 +3684,7 @@ deletion_models <- function(mb, snp_se, mp, THR){
 
 hemideletion_models <- function(mb.subsamp, snp_se, mp, THR=-0.25,
                                 skip_SB=FALSE){
-  assays(mb.subsamp)$deletion_cutoff <- THR
+    assays(mb.subsamp)$deletion_cutoff <- THR
   mb1 <- hemdel_model(mb.subsamp, mp, skip_SB=skip_SB)
   mb2 <- hemdeldup_model2(mb.subsamp, mp, THR=THR,
                           skip_SB=skip_SB)
