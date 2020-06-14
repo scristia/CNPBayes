@@ -242,7 +242,8 @@ impute <- function(model, loc.scale, start.index){
   impdat <- tibble(id=paste0("augment_", index),
                    oned=imp,
                    provisional_batch=NA,
-                   likely_hd=TRUE,
+                   ##likely_hd=TRUE,
+                   likely_deletion=TRUE,
                    batch=rep(x$batch, x$expected),
                    is_simulated=TRUE)
   batch_mapping <- assays(model) %>%

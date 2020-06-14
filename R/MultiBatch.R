@@ -2868,7 +2868,7 @@ down_sample2 <- function(dat, S, min_size=100){
 ##        findSurrogates(KS_cutoff)
 ##}
 
-kolmogorov_batches <- function(dat, KS_cutoff, THR){
+kolmogorov_batches <- function(dat, KS_cutoff){
     ##mb <- MultiBatch("MB3", data=dat)
     findSurrogates(dat, KS_cutoff)
 }
@@ -2918,19 +2918,24 @@ add_deletion_stats <- function(dat, mb, THR){
 
 
 #' @export
-summarize_region <- function(se, provisional_batch,
+summarize_region <- function(se,
+                             provisional_batch,
                              THR=-1,
                              assay_index=1,
-                             KS_cutoff=0.001, S=1000){
-    dat <- median_summary(se, provisional_batch,
+                             KS_cutoff=0.001,
+                             S=1000,
+                             min_size=50){
+    dat <- median_summary(se,
+                          provisional_batch,
                           assay_index=assay_index,
                           THR=THR)
-    dat2 <- down_sample(dat, S)
-    mb <- kolmogorov_batches(dat2, KS_cutoff, THR)
-    dat <- add_batchinfo(dat, mb)
-    mb <- add2small_batches(dat, mb)
-    mb <- add_deletion_stats(dat, mb, THR)
-    mb
+    ##dat2 <- down_sample(dat, S)
+    dat2 <- kolmogorov_batches(dat, KS_cutoff)
+    ##dat <- add_batchinfo(dat, mb)
+    ##mb <- add2small_batches(dat, mb)
+    ##mb <- add_deletion_stats(dat, mb, THR)
+    dat3 <- down_sample2(dat2, S, min_size)
+    dat3
 }
 
 ## select high confidence samples for each component
@@ -3123,9 +3128,12 @@ fit_restricted <- function(mb, sb, model="MBP2",
     ##fdat <- filter(assays(mb), oned > THR)  %>%
     fdat <- filter(assays(mb), !likely_deletion) %>%
         mutate(is_simulated=FALSE)
-    mb <- warmup(fdat, model)
-    mcmcParams(mb) <- McmcParams(iter=500, burnin=50)
-    restricted <- posteriorSimulation(mb)
+    warm <- warmup(fdat, model)
+    mcmcParams(warm) <- mcmcParams(mb)
+    restricted <- posteriorSimulation(warm)
+    ##
+    ## why check sb and not restricted?
+    ##
     ok <- ok_hemizygous(sb)
     if(!ok) {
         restricted <- augment_rarecomponent(restricted,
@@ -3136,21 +3144,27 @@ fit_restricted <- function(mb, sb, model="MBP2",
     restricted
 }
 
-fit_restricted2 <- function(mb, model="MBP2"){
-    fdat <- filter(assays(mb), !likely_deletion) %>%
-        mutate(is_simulated=FALSE)
-    mb <- warmup(fdat, model)
-    mcmcParams(mb) <- McmcParams(iter=500, burnin=50)
-    restricted <- posteriorSimulation(mb)
+fit_restricted2 <- function(mb, model="MBP2", ...){
+    ##    fdat <- filter(assays(mb), !likely_deletion) %>%
+    ##        mutate(is_simulated=FALSE)
+    warm <- warmup(assays(mb), model, ...)
+    mcmcParams(warm) <- mcmcParams(mb)
+    restricted <- posteriorSimulation(warm)
     restricted
 }
 
-explore_multibatch <- function(sb, simdat, model="MBP2"){
+explore_multibatch <- function(sb, model="MBP2", ...){
     mb <- revertToMultiBatch(sb)
-    restricted <- fit_restricted(mb, sb, model=model)
-    ## augment_rareduplication?
-    ##message("Fitting full model")
-    full <- mcmcWithHomDel(mb, sb, restricted, THR)
+    mbr <- assays(mb) %>%
+        filter(!likely_deletion) %>%
+        MultiBatch(data=.)
+    mcmcParams(mbr) <- mcmcParams(mb)
+    ok <- ok_hemizygous(sb)
+    if(!ok) {
+        mbr <- augment_rarecomponent(mbr, sb)
+    }
+    restricted <- fit_restricted2(mbr, model=model, ...)
+    full <- mcmcWithHomDel(mb, sb, restricted)
     ok <- ok_model(full, restricted)
     if(!ok){
         model <- gsub("P", "", modelName(full))
@@ -3158,6 +3172,21 @@ explore_multibatch <- function(sb, simdat, model="MBP2"){
     }
     full
 }
+
+##explore_multibatch2 <- function(sb, model="MBP2"){
+##    mb <- revertToMultiBatch(sb)
+##    restricted <- fit_restricted2(mb, sb, model=model)
+##    
+##    ## augment_rareduplication?
+##    ##message("Fitting full model")
+##    full <- mcmcWithHomDel(mb, sb, restricted, THR)
+##    ok <- ok_model(full, restricted)
+##    if(!ok){
+##        model <- gsub("P", "", modelName(full))
+##        full <- mcmcHomDelOnly(assays(full), restricted, sb, model)
+##    }
+##    full
+##}
 
 few_hemizygous <- function(model){
   pz <- probz(model) %>%
@@ -3188,14 +3217,14 @@ as_tibble.density <- function(x, ...){
                    y=dens$y)
 }
 
-compute_density <- function(mb, THR){
+compute_density <- function(mb, thr){
     batches <- batchLevels(mb)
     densities <- vector("list", length(batches))
     for(i in seq_along(batches)){
         ##
         ## Coarse
         ##
-        index <- which(batch(mb)==i & oned(mb) < THR)
+        index <- which(batch(mb)==i & oned(mb) > thr)
         if(length(index) > 2){
             tmp <- density(oned(mb)[index])
             tmp <- as_tibble(tmp)
@@ -3203,7 +3232,7 @@ compute_density <- function(mb, THR){
         ##
         ## Fine
         ##
-        tmp2 <- density(oned(mb)[batch(mb)==i & oned(mb) > THR]) %>%
+        tmp2 <- density(oned(mb)[batch(mb)==i & oned(mb) < thr]) %>%
             as_tibble()
         densities[[i]] <- list(coarse=as_tibble(tmp),
                                fine=as_tibble(tmp2))
@@ -3480,45 +3509,30 @@ equivalent_variance <- function(model){
   NA
 }
 
+evaluate_sb3 <- function(mb, mp, ...){
+    sb3 <- warmup(assays(mb), "SBP3", "SB3", ...)
+    mcmcParams(sb3) <- mp
+    sb3 <- posteriorSimulation(sb3)
+    sb3
+}
+
 #' @export
-homdel_model <- function(mb, mp, skip_SB=FALSE, augment=TRUE){
-    ##if(missing(THR)){
-    ##THR <- summaries(mb)$deletion_cutoff
-    ##} else summaries(mb)$deletion_cutoff <- THR
-    ##if(is.null(THR)){
-    ##dat <- assays(mb)
-    ##THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
-    ##summaries(mb)$deletion_cutoff <- THR
-    ##}
+homdel_model <- function(mb, mp, augment=TRUE, ...){
     if(augment){
-        simdat <- augment_homozygous(mb)
-    } else simdat <- mb
-    if(!skip_SB){
-        sb3 <- warmup(simdat, "SBP3", "SB3")
-        mcmcParams(sb3) <- mp
-        sb3 <- posteriorSimulation(sb3)
-        finished <- stop_early(sb3)
-        if(numBatch(mb) == 1) return(sb3)
-        if(finished) return(sb3)
-    } else{
-        sb3 <- warmup(simdat, "SB3")
-    }
-    ## Since not finished, keep going
-    ##THR <- deletion_midpoint(sb3)
-    ##final <- explore_multibatch(sb3, simdat, THR)
-    final <- explore_multibatch(sb3, simdat)
+        assays(mb) <- augment_homozygous(mb)
+    } 
+    sb3 <- evaluate_sb3(mb, mp, ...)
+    if(stop_early(sb3) || numBatch(mb) == 1) return(sb3)
+    final <- explore_multibatch(sb3, ...)
     final
 }
 
-hemdel_model <- function(mb.subsamp, mp, skip_SB=FALSE){
-    THR <- summaries(mb.subsamp)$deletion_cutoff
-    if(!skip_SB){
-        sb <- warmup(assays(mb.subsamp), "SBP2", "SB2")
-        mcmcParams(sb) <- mp
-        sb <- posteriorSimulation(sb)
-        finished <- stop_early(sb)
-        if(finished) return(sb)
-    }
+hemdel_model <- function(mb.subsamp, mp, ...){
+    sb <- warmup(assays(mb.subsamp), "SBP2", "SB2", ...)
+    mcmcParams(sb) <- mp
+    sb <- posteriorSimulation(sb)
+    finished <- stop_early(sb)
+    if(finished) return(sb)
     mb <- warmup(assays(mb.subsamp), "MBP2", "MB1")
     mcmcParams(mb) <- mp
     mb <- posteriorSimulation(mb)
@@ -3562,47 +3576,35 @@ hd3comp <- function(restricted, simdat, mb.subsamp, mp){
   mod_1.3
 }
 
-homdeldup_model <- function(mb, mp, THR, skip_SB=FALSE){
-##  if(missing(THR)){
-##    THR <- summaries(mb)$deletion_cutoff
-##  } else summaries(mb)$deletion_cutoff <- THR
-##  if(is.null(THR)){
-##    dat <- assays(mb)
-##    THR <- median(dat$oned[dat$likely_deletion], na.rm=TRUE)
-##    summaries(mb)$deletion_cutoff <- THR
-##  }
-  simdat <- augment_homozygous(mb)
-  if(!skip_SB){
-      sb <- warmup(assays(mb),
-                   "SBP4",
-                   "SB4")
-      mcmcParams(sb) <- mp
-      sb <- posteriorSimulation(sb)
-      if(substr(modelName(sb), 3, 3) == "P"){
-          ##
-          ## if 4th component appears diploid in pooled variance model, I don't think we should proceed
-          ##
-          appears_diploid <- not_duplication(sb)
-          if(appears_diploid) return(sb)
-      }
-      finished <- stop_early(sb, 0.98, 0.98)
-      if(finished) return(sb)
-  } else {
-      sb <- warmup(assays(mb), "SBP4", Nrep=1)
-  }
-  ##
-  ## 4th component variance is much too big
-  ##
-  mb.subsamp <- mb
-  fdat <- filter(assays(mb.subsamp), oned > THR)
-  mb <- warmup(fdat, "MBP3")
-  mcmcParams(mb) <- mp
-  message("Fitting restricted model")
-  mod_2.4 <- restricted_homhemdup(mb, mb.subsamp, mp)
-  message("Data augmentation for homozygous deletions")
-  simdat2 <- augment_rarehomdel(mod_2.4, sb, mb.subsamp, THR)
-  mod_1.4 <- hd4comp(mod_2.4, simdat2, mb.subsamp, mp)
-  mod_1.4
+homdeldup_model <- function(mb, mp, augment=TRUE, ...){
+    if(augment){
+        assays(mb) <- augment_homozygous(mb)
+    }
+    sb <- warmup(assays(mb), "SBP4", "SB4", ...)
+    mcmcParams(sb) <- mp
+    sb <- posteriorSimulation(sb)
+    if(substr(modelName(sb), 3, 3) == "P"){
+        ##
+        ## if 4th component appears diploid in pooled variance model, don't proceed
+        ##
+        appears_diploid <- not_duplication(sb)
+        if(appears_diploid) return(sb)
+    }
+    finished <- stop_early(sb, 0.98, 0.98)
+    if(finished) return(sb)
+    ##
+    ## 4th component variance is much too big
+    ##
+    mb.subsamp <- mb
+    fdat <- filter(assays(mb.subsamp), !likely_deletion)
+    mb <- warmup(fdat, "MBP3", ...)
+    mcmcParams(mb) <- mp
+    message("Fitting restricted model")
+    mod_2.4 <- restricted_homhemdup(mb, mb.subsamp, mp, ...)
+    message("Data augmentation for homozygous deletions")
+    simdat2 <- augment_rarehomdel(mod_2.4, sb, mb.subsamp)
+    mod_1.4 <- hd4comp(mod_2.4, simdat2, mb.subsamp, mp)
+    mod_1.4
 }
 
 setMethod("bic", "MultiBatchP", function(object){
@@ -3681,24 +3683,23 @@ deletion_models <- function(mb, snp_se, mp, THR){
   model.list
 }
 
-hemideletion_models <- function(mb.subsamp, snp_se, mp, THR=-0.25,
-                                skip_SB=FALSE){
-    assays(mb.subsamp)$deletion_cutoff <- THR
-  mb1 <- hemdel_model(mb.subsamp, mp, skip_SB=skip_SB)
-  mb2 <- hemdeldup_model2(mb.subsamp, mp, THR=THR,
-                          skip_SB=skip_SB)
-  if(is.null(snp_se)){
+hemideletion_models <- function(mb.subsamp, snp_se, mp, 
+                                augment=TRUE, ...){
+    ##assays(mb.subsamp)$deletion_cutoff <- THR
+    mb1 <- hemdel_model(mb.subsamp, mp, ...)
+    mb2 <- hemdeldup_model2(mb.subsamp, mp, ...)
+    if(is.null(snp_se)){
+        model.list <- list(mb1, mb2)
+        model.list
+        return(model.list)
+    }
+    if(nrow(snp_se) > 0){
+        mb1 <- genotype_model(mb1, snp_se)
+        if(!is.null(mb2))
+            mb2 <- genotype_model(mb2, snp_se)
+    }
     model.list <- list(mb1, mb2)
     model.list
-    return(model.list)
-  }
-  if(nrow(snp_se) > 0){
-    mb1 <- genotype_model(mb1, snp_se)
-    if(!is.null(mb2))
-      mb2 <- genotype_model(mb2, snp_se)
-  }
-  model.list <- list(mb1, mb2)
-  model.list
 }
 
 posthoc_checks <- function(model.list){
@@ -3724,32 +3725,24 @@ hemdeldup_model <- function(mb.subsamp, mp, THR=-0.25){
   return(mb)
 }
 
-hemdeldup_model2 <- function(mb.subsamp, mp, THR,
-                             skip_SB=FALSE){
-    if(!skip_SB){
-        sb <- warmup(assays(mb.subsamp),
-                     "SBP3",
-                     "SB3")
-        mcmcParams(sb) <- mp
-        sb <- tryCatch(posteriorSimulation(sb),
-                       warning=function(w) NULL)
-        if(is.null(sb)) return(NULL)
-        finished <- stop_early(sb, 0.98, 0.98)
-        if(is.na(finished)) finished <- FALSE
-        if(finished) return(sb)
-    } else{
-        sb <- warmup(assays(mb.subsamp),
-                     "SB3", Nrep=1,
-                     .burnin=200)
-        mcmcParams(sb) <- mp
-        sb <- tryCatch(posteriorSimulation(sb),
-                       warning=function(w) NULL)        
-    }
-    while(sum(oned(mb.subsamp) < THR) < 5){
-        THR <- THR + 0.05
-    }
+hemdeldup_model2 <- function(mb.subsamp, mp, ...){
+    sb <- warmup(assays(mb.subsamp),
+                 "SBP3",
+                 "SB3", ...)
+    mcmcParams(sb) <- mp
+    sb <- tryCatch(posteriorSimulation(sb),
+                   warning=function(w) NULL)
+    if(is.null(sb)) return(NULL)
+    finished <- stop_early(sb, 0.98, 0.98)
+    if(is.na(finished)) finished <- FALSE
+    if(finished) return(sb)
+    ##    while(sum(oned(mb.subsamp) < THR) < 5){
+    ##        THR <- THR + 0.05
+    ##    }
     sb.meds <- colMedians(theta(chains(sb)))
-    densities <- compute_density(mb.subsamp, THR)
+    ##thr <- deletion_midpoint(mb.subsamp)
+    thr <- theta(sb3)[, 3] - 2*sigma(sb3)[1, 1]    
+    densities <- compute_density(mb.subsamp, thr)
     diploid_modes <- compute_modes(densities)
     dist <- c(sb.meds[2] - sb.meds[1],
               sb.meds[3] - sb.meds[2])
@@ -3757,7 +3750,7 @@ hemdeldup_model2 <- function(mb.subsamp, mp, THR,
     dup <- diploid_modes + dist[2]
     ## standard deviations will be inflated in SB model
     if(modelName(sb)=="SBP3"){
-      s <- rep(sigma(sb)[1,1]/2, 2)
+        s <- rep(sigma(sb)[1,1]/2, 2)
     } else s <- sigma(sb)[1, c(1, 3)]/2
     B <- numBatch(mb.subsamp)
     model_names <- rep(c("hemidel", "dup"), each=B)
@@ -3768,7 +3761,7 @@ hemdeldup_model2 <- function(mb.subsamp, mp, THR,
                   sd=sds)
     x <- vector("list", nrow(tab))
     for(i in seq_len(nrow(tab))){
-      x[[i]] <- rnorm(10, tab$mean[i], tab$sd[i])
+        x[[i]] <- rnorm(10, tab$mean[i], tab$sd[i])
     }
     x <- unlist(x)
     likely_deletion <- c(rep(TRUE, B*10), rep(FALSE, B*10))
@@ -3778,43 +3771,42 @@ hemdeldup_model2 <- function(mb.subsamp, mp, THR,
                    likely_deletion=likely_deletion,
                    is_simulated=TRUE,
                    batch=rep(rep(seq_len(B), each=10), 2),
-                   homozygousdel_mean=NA,
-                   likely_hd=NA)
+                   homozygousdel_mean=NA)
+                   ##likely_hd=NA)
     tmp <- bind_rows(assays(mb.subsamp), sdat) %>%
       arrange(batch)
     mb <- MultiBatchList(data=tmp)[["MBP3"]]
-    mb <- warmup(tmp, "MBP3", "MB3")
+    mb <- warmup(tmp, "MBP3", "MB3", ...)
     mcmcParams(mb) <- mp
     mb <- posteriorSimulation(mb)
     return(mb)
 }
 
-restricted_homhemdup <- function(mb, mb.subsamp, mp){
-    ##THR <- summaries(mb.subsamp)$deletion_cutoff
-    THR <- deletion_midpoint(mb.subsamp)
-  mod_2.4 <- suppressWarnings(posteriorSimulation(mb))
-  is_flagged <- mod_2.4@flags$.internal.counter > 40
-  if(!is_flagged) return(mod_2.4)
-  filtered.dat <- filter(assays(mb.subsamp), oned > THR)
-  sb3 <- warmup(filtered.dat, "SBP3")
-  mcmcParams(sb3) <- mp
-  sb3 <- posteriorSimulation(sb3)
-  ## simulate from the pooled model for each batch
-  full.dat <- assays(mb.subsamp)
-  simdat <- augment_rareduplication(sb3, mod_2.4,
-                                    full_data=full.dat,
-                                    THR=THR)
-  mod_2.4.2 <- MultiBatchList(data=simdat)[["MBP3"]]
-  simdat <- augment_rarehemdel(sb3,
-                               mod_2.4.2,
-                               full_data=full.dat,
-                               THR)
-  ## try again
-  filtered.dat <- filter(simdat, oned > THR)
-  mb <- warmup(filtered.dat, "MBP3")
-  mcmcParams(mb) <- mp
-  mod_2.4 <- posteriorSimulation(mb)
-  mod_2.4
+restricted_homhemdup <- function(mb, mb.subsamp, mp, ...){
+    mod_2.4 <- suppressWarnings(posteriorSimulation(mb))
+    is_flagged <- mod_2.4@flags$.internal.counter > 40
+    if(!is_flagged) return(mod_2.4)
+    sb3 <- warmup(assays(mb), "SBP3", ...)
+    mcmcParams(sb3) <- mp
+    sb3 <- posteriorSimulation(sb3)
+    ## simulate from the pooled model for each batch
+    full.dat <- assays(mb.subsamp)
+    ##    ggMixture(mod_2.4) +
+    ##        geom_vline(xintercept=theta(sb3)[, 3] - 2*sigma(sb3)[1, 1])
+    thr <- theta(sb3)[, 3] - 2*sigma(sb3)[1, 1]
+    simdat <- augment_rareduplication(sb3,
+                                      mod_2.4,
+                                      full_data=full.dat,
+                                      THR=thr)
+    mod_2.4.2 <- MultiBatchList(data=simdat)[["MBP3"]]
+    simdat2 <- augment_rarehemdel(sb3,
+                                  mod_2.4.2,
+                                  full_data=full.dat)
+    filtered.dat <- filter(simdat2, !likely_deletion)
+    mb <- warmup(filtered.dat, "MBP3", ...)
+    mcmcParams(mb) <- mp
+    mod_2.4 <- posteriorSimulation(mb)
+    mod_2.4
 }
 
 dropSimulated <- function(model) model[!isSimulated(model)]
