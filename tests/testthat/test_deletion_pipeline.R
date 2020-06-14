@@ -2,47 +2,6 @@ context("Deletion pipeline")
 
 ## CNP_001 is a somewhat rare homozygous deletion.  Hemizygous deletions overlap the diploid component, and so we undercount the number of hemizygous deletions 
 
-prepareData <- function(){
-    ##data(cnp_se, package="panc.data")
-    ##data(snp_se, package="panc.data")
-    extdir <- system.file("extdata", package="CNPBayes")
-    cnp_se <- readRDS(file.path(extdir, "cnp_se.rds"))
-    snp_se <- readRDS(file.path(extdir, "snp_se.rds"))
-    g <- GRanges("chr1", IRanges(1627805, 1673809),
-                 seqinfo=Seqinfo("chr1", seqlengths=249250621, genome="hg19"))
-    snp_se <- snp_se[overlapsAny(snp_se, g), ]
-    i <- 1
-    se <- cnp_se[i, ]
-    CNP <- rownames(se)
-    basedir <- tempdir()
-    figname <- file.path(basedir, paste0(CNP, ".pdf"))
-    modeldir <- file.path(basedir, "cnp.models/inst/extdata")
-    if(!dir.exists(modeldir)) dir.create(modeldir, recursive=TRUE)
-    colnames(cnp_se) <- colnames(snp_se)
-    snpdat <- snp_se[overlapsAny(snp_se, se), ]
-    ##
-    ## Flag homozygous deletions
-    ##
-    message("Flagging apparent homozygous deletions")
-    THR <- -1
-    dat <- tibble(id=colnames(se),
-                  oned=assays(se)[[1]][1, ],
-                  provisional_batch=colData(se)$Sample.Plate) %>%
-        mutate(likely_deletion = oned < THR)
-}
-
-addBatchLabels <- function(dat, mb.subsamp){
-    batches <- assays(mb.subsamp) %>%
-        select(provisional_batch, batch) %>%
-        group_by(provisional_batch) %>%
-        summarize(batch=unique(batch), .groups='drop')
-    pr.batch <- assays(mb.subsamp)$provisional_batch
-    stopifnot(all(pr.batch %in% dat$provisional_batch))
-    message("Adding the estimated batches to the original data")
-    dat <- left_join(dat, batches, by="provisional_batch")
-    dat
-}
-
 numberLowProb <- function(sb){
     pz <- probz(sb)
     maxprob <- rowMax(pz)
@@ -50,7 +9,7 @@ numberLowProb <- function(sb){
     number_lowprob
 }
 
-test_that("homdel_model", {
+test_that("sb_model", {
     library(SummarizedExperiment)
     library(ggplot2)
     library(grid)
@@ -60,54 +19,27 @@ test_that("homdel_model", {
     set.seed(123)
     seeds <- sample(seq_len(10000), nrow(cnp_se), replace=TRUE)
     set.seed(seeds[ 1 ])    
-    THR <- -1
-    dat <- prepareData()
-    xlimit <- range(dat$oned)
-    if(diff(xlimit) < 4){
-        xlimit <- c(-3, 1)
-    }
-    dat.nohd <- filter(dat, !likely_deletion)
-    ##
-    ## Group chemistry plates, excluding homozygous deletions
-    ##
-    ix <- sample(seq_len(nrow(dat.nohd)), 1000, replace=TRUE)
-    message("Downsampling non-homozygous deletions")
-    if(FALSE){
-        mb.subsamp <- dat.nohd[ix, ] %>%
-            bind_rows(filter(dat, likely_hd)) %>%
-            mutate(is_simulated=FALSE) %>%
-            MultiBatch("MB3", data=.) %>%
-            findSurrogates(0.001, THR)
-    }
     extdir <- system.file("extdata", package="CNPBayes")
-    path1 <- file.path(extdir, "CNP_001")
-    mb.subsamp <- readRDS(file.path(path1, "mb_subsamp.rds"))            
-    expect_identical(numBatch(mb.subsamp), 5L)
-    dat2 <- addBatchLabels(dat, mb.subsamp)
-    if(FALSE){
-        a <- ggMixture(mb.subsamp, bins=200) +
-            xlim(xlimit) +
-            geom_vline(xintercept=THR, color="gray", linetype="dashed")
-    }
-    ##
+    fname <- file.path(extdir, "CNP_001",
+                       "batched_data.rds")
+    batched.data <- readRDS(fname)
     message("Check batch size")
-    ##
-    batchfreq <- assays(mb.subsamp) %>%
+    batchfreq <- batched.data %>%
         group_by(batch) %>%
-        summarize(n=n(), .groups='drop')
+        tally()
     expect_false(any(batchfreq$n < 50))
     ##
     ## With a bad choice of start, we can get stuck in a local mode
     ## Look at several starts and select the most promising
     ##
-    ## - 10 random starts for both SB3 and SBP3 models
+    ## - 5 random starts for both SB3 and SBP3 models
     ## - additional MCMC simulations for model with highest log lik
     ##
-    expect_false(sum(oned(mb.subsamp) < THR) < 5)
-    simdat <- assays(mb.subsamp)
-    ##
-    sb3 <- warmup(simdat, "SBP3", "SB3",
-                  model2.penalty=50)
+    expect_identical(sum(batched.data$likely_deletion), 10L)
+    sb3 <- warmup(batched.data,
+                  "SBP3", "SB3",
+                  model2.penalty=50,
+                  Nrep=5)
     expect_identical(modelName(sb3), "SB3")
     ##
     message("Run 500 burnin and 400 additional simulations.")
@@ -129,65 +61,49 @@ test_that("homdel_model", {
     }
 })
 
-test_that("fit_restricted", {
+test_that("explore_multibatch", {
     ## Focus on non-homozygous component
     set.seed(13)
     extdir <- system.file("extdata", package="CNPBayes")
-    THR <- -1
     sb <- readRDS(file.path(extdir, "sb3_001.rds"))
     mb <- revertToMultiBatch(sb)
-    restricted <- fit_restricted(mb, sb, THR, model="MBP2")
+    expect_identical(iter(mb), iter(sb))
+    expect_identical(burnin(mb), burnin(sb))        
+    mbr <- assays(mb) %>%
+        filter(!likely_deletion) %>%
+        MultiBatch(data=.)
+    mcmcParams(mbr) <- mcmcParams(mb)
+    ok <- ok_hemizygous(sb)
+    expect_false(ok)
+    mbr <- augment_rarecomponent(mbr, sb)
+    restricted <- fit_restricted2(mbr, model="MBP2")
     if(FALSE){
+        ggMixture(restricted)
         rdsfile <- file.path("..", "..", "inst", "extdata",
                              "mb2_001.rds")
         saveRDS(restricted, file=rdsfile)
     }
-    expect_equal(sum(assays(restricted)$is_simulated), 78)
-    pz <- probz(restricted)
-    calls <- ifelse(pz[, 1] > 0.5, 1, 2)
-    nhom <- sum(oned(sb) < THR)
-    freq <- c(nhom, as.integer(table(calls)))
-    p <- gap::hwe(freq, data.type="count")$p.x2
-    ## consistent with HWE
-    expect_true(p > 0.05)
 })
 
-test_that("explore_multibatch", {
-    set.seed(15)
-    extdir <- system.file("extdata", package="CNPBayes")    
-    sb <- readRDS(file.path(extdir, "sb3_001.rds"))
-    mb <- revertToMultiBatch(sb)    
-    restricted.mb <- readRDS(file.path(extdir, "mb2_001.rds"))
-
-    hdmean <- homozygousdel_mean(sb, -1)
-    mn_sd <- list(hdmean, sdRestrictedModel(restricted.mb))
-    mb.observed <- mb[ !isSimulated(mb) ]
-    rename <- dplyr::rename
-    assays(mb.observed) <- assays(mb.observed) %>%
-        rename(likely_deletion=likely_hd)
-        
-    model <- "MB3"
-    mb1 <- filter(assays(restricted.mb),
-                  isSimulated(restricted.mb)) %>%
-        bind_rows(assays(mb.observed)) %>%
-        arrange(batch) %>%
-        MultiBatchList(data=.) %>%
-        "[["(model)
-    ##
-    ## need to define likely_deletion in mb1 object
-    ##
-    simdat <- .augment_homozygous(mb1, mn_sd, -1,
-                                  phat=max(p(sb)[1], 0.05))  
-    full <- .mcmcWithHomDel(simdat, restricted.mb)
-    f <- ggMixture(full)
-    ok <- ok_model(full, restricted.mb)
-    expect_true(ok)
+test_that("homdel_model", {
+    extdir <- system.file("extdata", package="CNPBayes")
+    fname <- file.path(extdir, "CNP_001",
+                       "batched_data.rds")
+    batched.data <- readRDS(fname)
+    mb <- MultiBatch(data=batched.data)
+    ## Start of homdel_model
+    assays(mb) <- augment_homozygous(mb)
+    mp <- McmcParams(iter=500, burnin=100)
+    sb3 <- evaluate_sb3(mb, mp)
+    expect_false(stop_early(sb3) || numBatch(mb) == 1)
+    final <- explore_multibatch(sb3)
+    f <- ggMixture(final)
+    expect_identical(modelName(final), "MBP3")
     if(FALSE){
-        saveRDS(full, file=file.path("..", "..",
-                                     "inst", "extdata",
-                                     "full_001.rds"))
+        saveRDS(final, file=file.path("..", "..",
+                                      "inst", "extdata",
+                                      "full_001.rds"))        
     }
-        
 })
 
 test_that("genotype_model", {
@@ -197,16 +113,10 @@ test_that("genotype_model", {
     cnp_se <- readRDS(file.path(extdir, "cnp_se.rds"))    
     snp_se <- subsetByOverlaps(snp_se, cnp_se[1, ])
     full <- readRDS(file.path(extdir, "full_001.rds"))
-    
     model <- full
     snpdat <- snp_se
-    ## this seems pretty stringent
-    gmodel <- select_highconfidence_samples(model, snpdat)
-    expect_true(all(mapping(gmodel)=="?"))
-    gmodel2 <- select_highconfidence_samples2(model, snpdat)    
-    gmodel <- gmodel2
-    keep <- !duplicated(id(gmodel))
-    gmodel <- gmodel[ keep ]
+    gmodel <- select_highconfidence_samples2(model, snpdat)    
+    expect_false(any(duplicated(id(gmodel))))
     snpdat2 <- snpdat[, id(gmodel) ]
     ##identical(colnames(snpdat), id(final.model))
     clist <- CnList(gmodel)
@@ -223,18 +133,18 @@ test_that("genotype_model", {
     freq <- as.integer(table(map_z(model2)))
     ## we are undercounting the number of hemizygous deletions
     expect_true(gap::hwe(freq, data.type="count")$p.x2 < 0.05)
-
-
-    extdir <- system.file("extdata", package="CNPBayes")
-    path1 <- file.path(extdir, "CNP_001")
-    mb.subsamp <- readRDS(file.path(path1, "mb_subsamp.rds"))
-    cnp_se <- readRDS(file.path(extdir, "cnp_se.rds"))
-    snp_se <- readRDS(file.path(extdir, "snp_se.rds"))
-    g <- GRanges("chr1", IRanges(1627805, 1673809),
-                 seqinfo=Seqinfo("chr1", seqlengths=249250621, genome="hg19"))
-    snp_se <- snp_se[overlapsAny(snp_se, g), ]    
-    model3 <- cnv_models(mb.subsamp, rowRanges(cnp_se)[1], snp_se)
-    expect_identical(mapping(model3), mapping(model2))
+    if(FALSE){
+        extdir <- system.file("extdata", package="CNPBayes")
+        path1 <- file.path(extdir, "CNP_001")
+        mb.subsamp <- readRDS(file.path(path1, "mb_subsamp.rds"))
+        cnp_se <- readRDS(file.path(extdir, "cnp_se.rds"))
+        snp_se <- readRDS(file.path(extdir, "snp_se.rds"))
+        g <- GRanges("chr1", IRanges(1627805, 1673809),
+                     seqinfo=Seqinfo("chr1", seqlengths=249250621, genome="hg19"))
+        snp_se <- snp_se[overlapsAny(snp_se, g), ]    
+        model3 <- cnv_models(mb.subsamp, rowRanges(cnp_se)[1], snp_se)
+        expect_identical(mapping(model3), mapping(model2))
+    }
     if(FALSE){
         ## verify probabilities well calibrated with constrained mcmc
         model <- model3
