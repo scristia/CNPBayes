@@ -2827,38 +2827,47 @@ down_sample2 <- function(dat, S, min_size=100){
     ## Goals:
     ##  -- we do not want to downsample likely deletions; these tend to be rare
     ##  -- we do not want to downsample batches for which there is little data
-    ##  -- the number of observations in each batch should roughly reflect the overall proportions
     ##
     ## Based on S and the number per group,
     ## computed the expected number of observations after downsampling
-    expected <- group_by(dat, batch) %>%
-        tally() %>%
-        mutate(p=n/sum(n),
-               expected=p*S)  %>%
-        select(batch, expected)
-    dat2 <- left_join(dat, expected, by="batch")
-    holdout1 <- filter(dat2, likely_deletion)
-    holdout2 <- filter(dat2, expected < min_size, !likely_deletion)
-    if(nrow(holdout2) > 0){
-        ## if min_size is greater than number of observations in group,
-        ## the result will be silently truncated to the group size
-        holdout2.resampled <- holdout2 %>%
-            group_by(batch) %>%
-            slice_sample(n=min_size) %>%
-            ungroup()
-
-    } else holdout2.resampled <- holdout2
-    H <- nrow(holdout2.resampled)
-    holdouts <- bind_rows(holdout1, holdout2)
-    downsamp <- filter(dat2, !id %in% holdouts$id) %>%
-        slice_sample(n=S-H)
-    downsamp2 <- holdout2.resampled %>%
-        bind_rows(downsamp) %>%
+    ##    expected <- group_by(dat, batch) %>%
+    ##        tally() %>%
+    ##        mutate(p=n/sum(n),
+    ##               expected=p*S)  %>%
+    ##        select(batch, expected)
+    ##    dat2 <- left_join(dat, expected, by="batch")
+    holdout1 <- filter(dat, likely_deletion)
+    downsamp <- filter(dat, !likely_deletion) %>%
+        group_by(batch) %>%
+        slice_sample(n=min_size) %>%
+        ungroup() %>%
         bind_rows(holdout1) %>%
         arrange(batch) %>%
-        mutate(batch_labels=as.character(batch)) %>%
-        select(-expected)
-    downsamp2
+        mutate(batch_labels=as.character(batch))
+    return(downsamp)
+    ##    
+    ##
+    ##    
+    ##    holdout2 <- filter(dat2, expected < min_size, !likely_deletion)
+    ##    if(nrow(holdout2) > 0){
+    ##        ## if min_size is greater than number of observations in group,
+    ##        ## the result will be silently truncated to the group size
+    ##        holdout2.resampled <- holdout2 %>%
+    ##            group_by(batch) %>%
+    ##            slice_sample(n=min_size) %>%
+    ##            ungroup()
+    ##    } else holdout2.resampled <- holdout2
+    ##    H <- nrow(holdout2.resampled)
+    ##    holdouts <- bind_rows(holdout1, holdout2)
+    ##    downsamp <- filter(dat2, !id %in% holdouts$id) %>%
+    ##        slice_sample(n=S)
+    ##    downsamp2 <- holdout2.resampled %>%
+    ##        bind_rows(downsamp) %>%
+    ##        bind_rows(holdout1) %>%
+    ##        arrange(batch) %>%
+    ##        mutate(batch_labels=as.character(batch)) %>%
+    ##        select(-expected)
+    ##    downsamp2
 }
 
 
