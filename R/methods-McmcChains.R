@@ -506,7 +506,7 @@ setAs("McmcChains", "list", function(from){
                    sigma2.0=sigma2.0(from),
                    logprior=logPrior(from),
                    loglik=log_lik(from)) %>%
-    gather("parameter", "value", -s)
+      gather("parameter", "value", -s)
   list(theta=theta,
        sigma2=sigma2,
        p=p,

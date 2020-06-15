@@ -4,7 +4,7 @@
 \alias{findSurrogates,MultiBatch-method}
 \title{Estimate batch from any sample-level surrogate variables that capture aspects of sample processing, such as the PCR experiment (e.g., the 96 well chemistry plate), laboratory, DNA source, or DNA extraction method.}
 \usage{
-\S4method{findSurrogates}{MultiBatch}(object, THR = 0.1, min_oned = -1)
+\S4method{findSurrogates}{MultiBatch}(object, THR = 0.1)
 }
 \arguments{
 \item{object}{a MultiBatch instance}
