@@ -3599,7 +3599,7 @@ homdeldup_model <- function(mb, mp, augment=TRUE, ...){
         appears_diploid <- not_duplication(sb)
         if(appears_diploid) return(sb)
     }
-    finished <- stop_early(sb, 0.98, 0.98)
+    finished <- stop_early(sb, 0.99, 0.99)
     if(finished) return(sb)
     ##
     ## 4th component variance is much too big
@@ -3673,23 +3673,30 @@ model_checks <- function(models){
                 distinct_comp=distinct)
 }
 
+del_models <- function(mb, mp){
+    ##THR <- deletion_midpoint(mb)
+    ##if(!any(oned(mb) < THR)) stop("No observations below deletion cutoff")
+    model3 <- homdel_model(mb, mp)
+    model4 <- homdeldup_model(mb, mp)
+    list(model3, model4)
+}
+
 deletion_models <- function(mb, snp_se, mp, THR){
-##  if(missing(THR)){
-##    if("deletion_cutoff" %in% names(summaries(mb))){
-##      THR <- summaries(mb)$deletion_cutoff
-##    } else stop("THR not provided")
+    ##  if(missing(THR)){
+    ##    if("deletion_cutoff" %in% names(summaries(mb))){
+    ##      THR <- summaries(mb)$deletion_cutoff
+    ##    } else stop("THR not provided")
     ##  } else summaries(mb)$deletion_cutoff <- THR
-  THR <- deletion_midpoint(mb)
-  if(!any(oned(mb) < THR)) stop("No observations below deletion cutoff")
-  model3 <- homdel_model(mb, mp)
-  model4 <- homdeldup_model(mb, mp)
-  if(!is.null(snp_se)){
-    model3 <- genotype_model(model3, snp_se)
-    model4 <- genotype_model(model4, snp_se)
-  }
-  ##compare bic without data augmentation
-  model.list <- list(model3, model4)
-  model.list
+    model.list <- del_models(mb, mp)
+    model3 <- model.list[[1]]
+    model4 <- model.list[[2]]
+    if(!is.null(snp_se)){
+        model3 <- genotype_model(model3, snp_se)
+        model4 <- genotype_model(model4, snp_se)
+    }
+    ##compare bic without data augmentation
+    model.list <- list(model3, model4)
+    model.list
 }
 
 hemideletion_models <- function(mb.subsamp, snp_se, mp, 
@@ -3742,7 +3749,7 @@ hemdeldup_model2 <- function(mb.subsamp, mp, ...){
     sb <- tryCatch(posteriorSimulation(sb),
                    warning=function(w) NULL)
     if(is.null(sb)) return(NULL)
-    finished <- stop_early(sb, 0.98, 0.98)
+    finished <- stop_early(sb, 0.99, 0.99)
     if(is.na(finished)) finished <- FALSE
     if(finished) return(sb)
     ##    while(sum(oned(mb.subsamp) < THR) < 5){
@@ -3793,7 +3800,7 @@ hemdeldup_model2 <- function(mb.subsamp, mp, ...){
 
 restricted_homhemdup <- function(mb, mb.subsamp, mp, ...){
     mod_2.4 <- suppressWarnings(posteriorSimulation(mb))
-    is_flagged <- mod_2.4@flags$.internal.counter > 40
+    is_flagged <- mod_2.4@flags$.internal.counter > 10
     if(!is_flagged) return(mod_2.4)
     sb3 <- warmup(assays(mb), "SBP3", ...)
     mcmcParams(sb3) <- mp
@@ -3905,7 +3912,7 @@ duplication_models <- function(mb.subsamp, snpdat, mp, THR=-0.25){
       sb <- genotype_model(sb, snpdat)
     }
     ## probability > 0.98 for 99% or more of participants
-    finished <- stop_early(sb, 0.98, 0.99)
+    finished <- stop_early(sb, 0.99, 0.99)
     if(finished){
       return(list(sb))
     }
@@ -4008,9 +4015,35 @@ cnv_models <- function(mb,
   model
 }
 
-#' @export
 upsample <- function(model, se, provisional_batch){
     dat <- getData2(se[1, ], provisional_batch, model)
+    pred <- predictiveDist(model)
+    dat2 <- predictiveProb(pred, dat) %>%
+        mutate(copynumber=mapping(model)[inferred_component])
+    if(nrow(dat2) == 0) return(dat2)
+    ix <- which(colnames(dat2) %in% as.character(0:4))
+    ##
+    ## multiple components can map to the same copy number state
+    ## -- add probabilities belonging to same component
+    select <- dplyr::select
+    tmp <- dat2[, ix] %>%
+        mutate(id=dat2$id) %>%
+        gather("state", "prob", -c(id)) %>%
+        mutate(component_index=as.numeric(state) + 1) %>%
+        mutate(copynumber=mapping(model)[component_index]) %>%
+        group_by(id, copynumber) %>%
+        summarize(prob=sum(prob)) %>%
+        select(c(id, prob, copynumber)) %>%
+        spread(copynumber, prob)
+    dat2 <- dat2[, -ix] %>%
+      left_join(tmp, by="id")
+    dat3 <- tidy_cntable(dat2)
+    dat3
+}
+
+#' @export
+upsample2 <- function(model, dat){ ##, provisional_batch){
+    ##dat <- getData2(se[1, ], provisional_batch, model)
     pred <- predictiveDist(model)
     dat2 <- predictiveProb(pred, dat) %>%
         mutate(copynumber=mapping(model)[inferred_component])
