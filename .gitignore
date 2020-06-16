@@ -32,3 +32,4 @@ README_files
 vignettes/*.png
 /vignettes/scratch.Rmd
 cnpbayes_files/
+cnpbayes_cache/
