@@ -16,9 +16,10 @@ test_that("summarize_region", {
     keep <- colData(cnp_se)$Sample.Plate %in% plates1_20
     dat <- summarize_region(cnp_se[1, keep],
                             provisional_batch=plates1_20,
-                            THR=-1)
+                            THR=-1,
+                            min_size=300)
     expect_identical(length(unique(dat$batch)), 5L)
-    expect_identical(nrow(dat), 1001L)
+    expect_identical(nrow(dat), 1222L)
     if(FALSE){
         ##
         ## Save downsampled data from entire dataset

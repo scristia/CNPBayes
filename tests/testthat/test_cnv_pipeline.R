@@ -35,6 +35,35 @@ test_that("common deletion", {
     expect_identical(modelName(gmodel), "MBP3")
 })
 
+.test_that("deletion_models", {
+    library(SummarizedExperiment)
+    path1 <- system.file("extdata", package="CNPBayes")
+    path <- file.path(path1, "CNP_029")
+    cnp_se <- readRDS(file.path(path1, "cnp_se.rds"))["CNP_029", ]
+    snp_se <- readRDS(file.path(path1, "snp_se.rds"))
+    snp_se <- subsetByOverlaps(snp_se, cnp_se)
+    mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
+    mp <- McmcParams(iter=400, burnin=500)
+    set.seed(5)
+    ## Only identified when I did 10 starts
+    ##
+    ## -- needs augmentation at duplicated allele
+    ##
+    model <- deletion_models(mb.subsamp, snp_semp, Nrep=10)
+    if(FALSE){
+        up1.4 <- readRDS("temp8.rds")
+        g <- genotype_model(up1.4, snp_se)
+    }
+    gmodel <- genotype_model(model, snp_se)
+    expect_identical(mapping(gmodel), c("0", "1", "2", "3"))
+    if(FALSE){
+        model2 <- select_highconfidence_samples2(model, snp_se)
+        bafdat <- join_baf_oned(model2, snp_se)
+        figs <- list_mixture_plots(model, bafdat)
+        mixture_layout(figs, augmented=FALSE)    
+    }
+})
+
 ## homozygous deletion and duplication, as well as obvious batch effects
 test_that("homdeldup_model", {
     library(SummarizedExperiment)
@@ -309,7 +338,7 @@ test_that("hemideletion_model", {
     ##
     ## we mess up the first batch -- variance is too big
     mb2 <- hemdeldup_model2(mb.subsamp, mp, Nrep=10)
-    expect_identical(modelName(mb2), "MBP3")
+    expect_identical(k(mb2), 3L)
     
     model.list <- list(mb1, mb2)
     mb1 <- genotype_model(mb1, snp_se)

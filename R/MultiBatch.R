@@ -2822,7 +2822,7 @@ down_sample <- function(dat, S){
     dat.subsampled
 }
 
-down_sample2 <- function(dat, S, min_size=100){
+down_sample2 <- function(dat, S, min_size=300){
     ##
     ## Goals:
     ##  -- we do not want to downsample likely deletions; these tend to be rare
@@ -2933,7 +2933,7 @@ summarize_region <- function(se,
                              assay_index=1,
                              KS_cutoff=0.001,
                              S=1000,
-                             min_size=50){
+                             min_size=250){
     dat <- median_summary(se,
                           provisional_batch,
                           assay_index=assay_index,
@@ -3757,7 +3757,9 @@ hemdeldup_model2 <- function(mb.subsamp, mp, ...){
     ##    }
     sb.meds <- colMedians(theta(chains(sb)))
     ##thr <- deletion_midpoint(mb.subsamp)
-    thr <- theta(sb3)[, 3] - 2*sigma(sb3)[1, 1]    
+    thr <- c(theta(sb3)[, 3] - 2*sigma(sb3)[1, 3],
+             theta(sb3)[, 2] + 2*sigma(sb3)[1, 2]) %>%
+        mean()
     densities <- compute_density(mb.subsamp, thr)
     diploid_modes <- compute_modes(densities)
     dist <- c(sb.meds[2] - sb.meds[1],
