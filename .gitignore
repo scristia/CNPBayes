@@ -28,7 +28,6 @@ inst/unitTests
 /R/.unison.methods-SummarizedExperiment.R.51d06c18e4462e2c3ef5597ef0084e65.unison.tmp
 /man/dot-.TrioBatchModel.Rd
 /tests/testthat/*R:CNPBayes*
-README_files
 vignettes/*.png
 /vignettes/scratch.Rmd
 cnpbayes_files/
