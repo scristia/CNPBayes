@@ -145,7 +145,7 @@ full.study <- upsample2(genotype.model, full.data)
 full.study
 ```
 
-```{r mixmodelfig, fig.align="center", fig.width=6, fig.height=4, fig.cap="To assess goodness of fit, we overlay the empirical median log2 R ratios with the density from the posterior predictive distribution."}
+```{r mixmodelfig, fig.align="center", fig.width=6, fig.height=4, fig.cap="To assess goodness of fit, we overlay the empirical median log2 R ratios with the density from the posterior predictive distribution.", fig.width=6, fig.height=8}
 ## Assess goodness of fit from posterior predictive distribution
 ggMixture(bayes.model[ !isSimulated(bayes.model) ], bins=300)
 ```
@@ -197,7 +197,7 @@ assays(mb) %>%
 While we would like to fit a multi-batch model to better model the non-Gaussian central mode, a hierarchical model across these batches will have difficulty. For batches without apparent homozygous deletions, the first mixture component will help explain variation in the observed data closer to the central model.  As CNPBayes assumes that the number of components is the same in each batch, the model will *borrow* information across batches with and without homozygous deletions.  As in the SB model, the result tends to be a mixture component with a very large variance and will have no clear biological interpretation (Figure 7).
 
 
-```{r mb3, fig.align="center", fig.cap="The hierarchical mixture model has mixture components that are heavy-tailed due to the presence of homozygous deletions in a subset of the batches. Note also that the color of the central peak differs between batches, indicating that the upper level of the hierarchical model is not capturing between-batch variation of the latent integer copy number and any attempts to map mixture component labels to copy number would need to be batch-specific. Finally, even for batches with multiple homozygous deletions (batch 4), the mixture component is very heavy-tailed as the mean and variance are yaffected by the other batches.", fig.width=6, fig.height=8}
+```{r mb3, fig.align="center", fig.cap="The hierarchical mixture model has mixture components that are heavy-tailed due to the presence of homozygous deletions in a subset of the batches. Note also that the color of the central peak differs between batches, indicating that the upper level of the hierarchical model is not capturing between-batch variation of the latent integer copy number and any attempts to map mixture component labels to copy number would need to be batch-specific. Finally, even for batches with multiple homozygous deletions (batch 4), the mixture component is very heavy-tailed as the mean and variance are affected by the other batches.", fig.width=6, fig.height=8}
 mb3 <- model.list[["MB3"]]
 ## In practice, one would want to specify more iterations and a larger burnin
 iter(mb3) <- 400
@@ -221,7 +221,7 @@ restricted <- fit_restricted2(mbr, model="MBP2")
 augmented.mb3 <- mcmcWithHomDel(mb3, sb3, restricted)
 ```
 
-```{r augmentationfig, fig.cap="Use of data augmentation to ensure that homozygous deletions are present in each batch. Only the circled observations were observed as batches 1, 5, 7, and 8 had no individuals with homozygous deletions.", fig.width=6, fig.height=8}
+```{r augmentationfig, fig.cap="Use of data augmentation to ensure that homozygous deletions are present in each batch. Only the circled observations were observed as batches 1, 5, 7, and 8 had no individuals with homozygous deletions. Note also that the mixture components for the modal peak near zero have the same color across batches, indicating that we are now modeling technical variation of the diploid mixture component between batches as intended.", fig.width=6, fig.height=8}
 ggMixture(augmented.mb3) +
     geom_point(data=smallvals3, aes(oned, 0),
                shape=21, size=6,
