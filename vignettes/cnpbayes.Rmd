@@ -237,7 +237,7 @@ To summarize, we have developed an approach that allows the user to speculate ab
 
 # Evaluating lack of convergence
 
-While we cannot really determine whether a given model has converged, we can usually determine when it has not converged.  Here, we illustrate how one can access the chains from the `MultiBatch` instances created in the preceding analses. 
+While we cannot really determine whether a given model has converged, we can usually tell when it has not.  Here, we illustrate how one can access the chains from the `MultiBatch` instances created in the preceding analses. 
 
 ```{r chains}
 ch <- chains(bayes.model)
