@@ -33,9 +33,22 @@ test_that("common deletion", {
     gmodel <- genotype_model(model, snp_se)
     expect_identical(mapping(gmodel), c("0", "1", "2"))
     expect_identical(modelName(gmodel), "MBP3")
+    expect_true(!any(isSimulated(gmodel)))
+
+    ## this calls 'deletion_models'
+    model2 <- cnv_models(mb.subsamp,
+                         rowRanges(cnp_se)["CNP_022"],
+                         snp_se,
+                         THR=-1)
+    expect_identical(nrow(model2), nrow(gmodel))
+
+    z_gmodel <- map_z(gmodel)
+    z_model2 <- map_z(model2)
+    expect_identical(modelName(gmodel), modelName(model2))
+    expect_true(mean(z_gmodel == z_model2) > 0.999)
 })
 
-.test_that("deletion_models", {
+test_that("deletion_models", {
     library(SummarizedExperiment)
     path1 <- system.file("extdata", package="CNPBayes")
     path <- file.path(path1, "CNP_029")
@@ -45,54 +58,61 @@ test_that("common deletion", {
     mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
     mp <- McmcParams(iter=400, burnin=500)
     set.seed(5)
+    model2 <- homdeldup_model(mb.subsamp, Nrep=10)
     ## Only identified when I did 10 starts
     ##
     ## -- needs augmentation at duplicated allele
     ##
-    model <- deletion_models(mb.subsamp, snp_semp, Nrep=10)
-    if(FALSE){
-        up1.4 <- readRDS("temp8.rds")
-        g <- genotype_model(up1.4, snp_se)
-    }
-    gmodel <- genotype_model(model, snp_se)
+    model.list <- deletion_models(mb.subsamp, snp_se)
+    gmodel <- choose_model(model.list, mb.subsamp)
     expect_identical(mapping(gmodel), c("0", "1", "2", "3"))
     if(FALSE){
-        model2 <- select_highconfidence_samples2(model, snp_se)
-        bafdat <- join_baf_oned(model2, snp_se)
-        figs <- list_mixture_plots(model, bafdat)
+        model2 <- select_highconfidence_samples2(gmodel, snp_se)
+        bafdat <- join_baf_oned(gmodel, snp_se)
+        figs <- list_mixture_plots(model2, bafdat)
         mixture_layout(figs, augmented=FALSE)    
     }
+
+    ## this fails
+    ##    .......Error in density.default(oned(mb)[batch(mb) == i & oned(mb) <
+    gmodel2 <- genotype_model(model2, snp_se)
+    expect_identical(modelName(model2), modelName(gmodel))
+    gmodel2.obs <- gmodel2[!isSimulated(gmodel2)]
+    gmodel.obs <- gmodel[!isSimulated(gmodel)]
+    z_gmodel1 <- map_z(gmodel.obs)
+    z_gmodel2 <- map_z(gmodel2.obs)        
+    expect_true(mean(z_gmodel1 == z_gmodel2) > 0.995)    
 })
 
 ## homozygous deletion and duplication, as well as obvious batch effects
-test_that("homdeldup_model", {
-    library(SummarizedExperiment)
-    path1 <- system.file("extdata", package="CNPBayes")
-    path <- file.path(path1, "CNP_029")
-    cnp_se <- readRDS(file.path(path1, "cnp_se.rds"))["CNP_029", ]
-    snp_se <- readRDS(file.path(path1, "snp_se.rds"))
-    snp_se <- subsetByOverlaps(snp_se, cnp_se)
-    mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
-    mp <- McmcParams(iter=400, burnin=500)
-    set.seed(5)
-    ## Only identified when I did 10 starts
-    ##
-    ## -- needs augmentation at duplicated allele
-    ##
-    model <- homdeldup_model(mb.subsamp, mp, Nrep=10)
-    if(FALSE){
-        up1.4 <- readRDS("temp8.rds")
-        g <- genotype_model(up1.4, snp_se)
-    }
-    gmodel <- genotype_model(model, snp_se)
-    expect_identical(mapping(gmodel), c("0", "1", "2", "3"))
-    if(FALSE){
-        model2 <- select_highconfidence_samples2(model, snp_se)
-        bafdat <- join_baf_oned(model2, snp_se)
-        figs <- list_mixture_plots(model, bafdat)
-        mixture_layout(figs, augmented=FALSE)    
-    }
-})
+##test_that("homdeldup_model", {
+##    library(SummarizedExperiment)
+##    path1 <- system.file("extdata", package="CNPBayes")
+##    path <- file.path(path1, "CNP_029")
+##    cnp_se <- readRDS(file.path(path1, "cnp_se.rds"))["CNP_029", ]
+##    snp_se <- readRDS(file.path(path1, "snp_se.rds"))
+##    snp_se <- subsetByOverlaps(snp_se, cnp_se)
+##    mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
+##    mp <- McmcParams(iter=400, burnin=500)
+##    set.seed(5)
+##    ## Only identified when I did 10 starts
+##    ##
+##    ## -- needs augmentation at duplicated allele
+##    ##
+##    model <- homdeldup_model(mb.subsamp, mp, Nrep=10)
+##    if(FALSE){
+##        up1.4 <- readRDS("temp8.rds")
+##        g <- genotype_model(up1.4, snp_se)
+##    }
+##    gmodel <- genotype_model(model, snp_se)
+##    expect_identical(mapping(gmodel), c("0", "1", "2", "3"))
+##    if(FALSE){
+##        model2 <- select_highconfidence_samples2(model, snp_se)
+##        bafdat <- join_baf_oned(model2, snp_se)
+##        figs <- list_mixture_plots(model, bafdat)
+##        mixture_layout(figs, augmented=FALSE)    
+##    }
+##})
 
 .test_that("homdeldup_steps", {
     skip("Not running homdeldup_steps")
