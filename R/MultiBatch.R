@@ -3530,7 +3530,8 @@ evaluate_sb3 <- function(mb, mp, ...){
 homdel_model <- function(mb, mp, augment=TRUE, ...){
     if(augment){
         assays(mb) <- augment_homozygous(mb)
-    } 
+    }
+    if(missing(mp)) mp <- mcmcParams(mb)
     sb3 <- evaluate_sb3(mb, mp, ...)
     if(stop_early(sb3) || numBatch(mb) == 1) return(sb3)
     final <- explore_multibatch(sb3, ...)
@@ -3538,6 +3539,7 @@ homdel_model <- function(mb, mp, augment=TRUE, ...){
 }
 
 hemdel_model <- function(mb.subsamp, mp, ...){
+    if(missing(mp)) mp <- mcmcParams(mb)
     sb <- warmup(assays(mb.subsamp), "SBP2", "SB2", ...)
     mcmcParams(sb) <- mp
     sb <- posteriorSimulation(sb)
@@ -3590,6 +3592,7 @@ homdeldup_model <- function(mb, mp, augment=TRUE, ...){
     if(augment){
         assays(mb) <- augment_homozygous(mb)
     }
+    if(missing(mp)) mp <- mcmcParams(mb)
     sb <- warmup(assays(mb), "SBP4", "SB4", ...)
     mcmcParams(sb) <- mp
     sb <- posteriorSimulation(sb)
