@@ -3691,6 +3691,7 @@ deletion_models <- function(mb, snp_se, mp, THR){
     ##      THR <- summaries(mb)$deletion_cutoff
     ##    } else stop("THR not provided")
     ##  } else summaries(mb)$deletion_cutoff <- THR
+    if(missing(mp)) mp <- mcmcParams(mb)
     model.list <- del_models(mb, mp)
     model3 <- model.list[[1]]
     model4 <- model.list[[2]]
@@ -3761,8 +3762,11 @@ hemdeldup_model2 <- function(mb.subsamp, mp, ...){
     ##    }
     sb.meds <- colMedians(theta(chains(sb)))
     ##thr <- deletion_midpoint(mb.subsamp)
-    thr <- c(theta(sb3)[, 3] - 2*sigma(sb3)[1, 3],
-             theta(sb3)[, 2] + 2*sigma(sb3)[1, 2]) %>%
+    if(modelName(sb) == "SBP3"){
+        sd_ <- sigma(sb)[1, 1]
+    } else sd_ <- sigma(sb)[1, 3]
+    thr <- c(theta(sb)[1, 3] - 2*sd_,
+             theta(sb)[1, 2] + 2*sd_) %>%
         mean()
     densities <- compute_density(mb.subsamp, thr)
     diploid_modes <- compute_modes(densities)
@@ -3771,12 +3775,12 @@ hemdeldup_model2 <- function(mb.subsamp, mp, ...){
     hemdel <- diploid_modes - dist[1]
     dup <- diploid_modes + dist[2]
     ## standard deviations will be inflated in SB model
-    if(modelName(sb)=="SBP3"){
-        s <- rep(sigma(sb)[1,1]/2, 2)
-    } else s <- sigma(sb)[1, c(1, 3)]/2
     B <- numBatch(mb.subsamp)
     model_names <- rep(c("hemidel", "dup"), each=B)
     means <- c(hemdel, dup)
+    if(modelName(sb)=="SBP3"){
+        s <- rep(sigma(sb)[1,1]/2, 2)
+    } else s <- sigma(sb)[1, c(1, 3)]/2        
     sds <- rep(s, each=B)
     tab <- tibble(component=model_names,
                   mean=means,
@@ -3936,17 +3940,17 @@ duplication_models <- function(mb.subsamp, snpdat, mp, THR=-0.25){
 }
 
 select_models <- function(mb){
-  minlogr <- min(oned(mb), na.rm=TRUE)
-  if(minlogr < -1){
-    model <- deletion_models
-    return(model)
-  }
-  number <- sum(oned(mb) >= -1  & oned(mb) < -0.25)
-  if(number > 1 && minlogr >= -1  && minlogr < -0.25){
-    model <- hemideletion_models
-    return(model)
-  }
-  duplication_models
+    minlogr <- min(oned(mb), na.rm=TRUE)
+    if(minlogr < -1){
+        model <- deletion_models
+        return(model)
+    }
+    number <- sum(oned(mb) >= -1  & oned(mb) < -0.25)
+    if(number > 1 && minlogr >= -1  && minlogr < -0.25){
+        model <- hemideletion_models
+        return(model)
+    }
+    duplication_models
 }
 
 #' @export
@@ -4008,17 +4012,17 @@ cnv_models <- function(mb,
                        snp_se,
                        mp=McmcParams(iter=400, burnin=500),
                        THR){
-  ok <- preliminary_checks(mb, grange)
-  stopifnot(ok)
-  grange <- grange[1]
-  if(!is.null(snp_se))
-    snpdat <- subsetByOverlaps(snp_se, grange)
-  modelfun <- select_models(mb)
-  if(missing(THR))
-    THR <- use_cutoff(mb)
-  model.list <- modelfun(mb, snpdat, mp, THR)
-  model <- choose_model(model.list, mb)
-  model
+    ok <- preliminary_checks(mb, grange)
+    stopifnot(ok)
+    grange <- grange[1]
+    if(!is.null(snp_se))
+        snpdat <- subsetByOverlaps(snp_se, grange)
+    modelfun <- select_models(mb)
+    if(missing(THR))
+        THR <- use_cutoff(mb)
+    model.list <- modelfun(mb, snpdat, mp, THR)
+    model <- choose_model(model.list, mb)
+    model
 }
 
 upsample <- function(model, se, provisional_batch){
