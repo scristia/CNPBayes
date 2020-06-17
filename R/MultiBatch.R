@@ -2822,6 +2822,7 @@ down_sample <- function(dat, S){
     dat.subsampled
 }
 
+#' @export
 down_sample2 <- function(dat, S, min_size=300){
     ##
     ## Goals:
