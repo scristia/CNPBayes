@@ -88,7 +88,7 @@ test_that("deletion_models", {
                          THR=-1)
     expect_identical(modelName(model3), modelName(model2))
     z_gmodel3 <- map_z(model3[ !isSimulated(model3) ])
-x    expect_true(mean(z_gmodel3 == z_gmodel2) > 0.995)
+    expect_true(mean(z_gmodel3 == z_gmodel2) > 0.995)
 })
 
 

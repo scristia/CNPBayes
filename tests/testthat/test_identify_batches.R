@@ -28,7 +28,6 @@ test_that("summarize_region", {
         dat <- summarize_region(cnp_se[1, ],
                                 provisional_batch=cnp_se$Sample.Plate,
                                 THR=-1,
-                                S=1500,
                                 min_size=200,
                                 KS_cutoff=1e-5)
         group_by(dat, batch) %>%
@@ -39,7 +38,6 @@ test_that("summarize_region", {
         dat2 <- summarize_region(cnp_se[1, ],
                                  provisional_batch=cnp_se$Sample.Plate,
                                  THR=-1,
-                                 S=6038,
                                  min_size=200,
                                  KS_cutoff=1e-5)
         tal <- group_by(dat2, batch) %>%
