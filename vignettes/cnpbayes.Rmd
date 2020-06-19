@@ -27,6 +27,7 @@ library(CNPBayes)
 library(ggplot2)
 library(gap)
 library(rjags)
+library(ggmcmc)
 ```
 
 # Motivating example
@@ -159,9 +160,85 @@ hwe.stats <- gap::hwe(cn.freq, data.type="count")
 hwe.stats
 ```
 
+
+# Association model
+
+Standard Bayesian and frequentist regression models using the maximum a posteriori copy number estimate are appropriate if there is little uncertainty in the copy number estimates.  To illustrate the approach using a toy example, we simulate disease status for 1000 observations and fit a logistic regression model to evaluate whether there is an association between copy number and the log odds of cancer.
+
+
+```{r simulate_disease}
+b0 <- 1.5
+b1 <- -0.75
+map_cn_estimates <- full.study$copynumber[1:1000]
+XB <- b0 + b1 * map_cn_estimates
+probs <- exp(XB)/(1 + exp(XB))
+y  <- rbinom(length(probs), 1, prob=probs)
+df <- tibble(y=y, cn=map_cn_estimates)
+fit1 <- glm(y~cn, data=df, family=binomial(link="logit"))
+coef(summary(fit1))
+glmbeta <- coef(summary(fit1))[2, "Estimate"]
+```
+
+Inevitably, many CNV regions will have a lower signal-to-noise ratio and probabilities for the integer copy number states will reflect the increased uncertainty.  When copy number estimates are uncertain, a Bayesian logistic regression model can incorporate the copy number probabilities directly. We include a simple model in JAGS (without other covariates), passing the posterior probabilities of the integer copy number assignments to the JAGS model in the variable `P`.
+
+```{r uncertainty, results="hide", message=FALSE, cache=TRUE, warning=FALSE}
+cn_probs <- ungroup(full.study[1:1000, ]) %>%
+    select(c("cn_0", "cn_1", "cn_2", "cn_3")) %>%
+    as.matrix()
+jags_data <- list(N=length(y),
+                  y=y,
+                  P=cn_probs)
+jagsdir <- system.file("JAGS", package="CNPBayes")
+fit <- jags.model(file.path(jagsdir, "cnv_assoc.jag"),
+                  data=jags_data,
+                  n.chains=1,
+                  n.adapt=500)
+samples <- coda.samples(fit,
+                        variable.names=c("b0", "b1", "zbeta"),
+                        n.iter=2000*50, thin=50) %>%
+    ggs()
+```
+
+In addition to the regression coefficient for copy number, the jags model includes a latent indicator variable $z$ that multiplies the copy number coefficient. Through Bayesian model averaging, we obtain a posterior distribution over the odds that an intercept-only model is adequate.  Below, we show the traceplot of the regression coefficient when $z$ is 1 and copy number is included in the model:
+
+```{r posterior_summaries, fig.align="center", fig.cap="Traceplot for copy number regression coefficient conditional for simulations where $z = 1$.", fig.width=8, fig.height=3}
+b <- filter(samples, Parameter=="zbeta")
+b %>%
+    filter(value != 0) %>%
+    ggs_traceplot() +
+    geom_line(color="gray")+
+    geom_hline(yintercept=glmbeta, color="steelblue") +
+    theme_bw()
+```
+
+Due to the autocorrelation in this chain, regions of the traceplot near where $z$ was zero are still evident -- additional thinning and more iterations would be required to provide a better approximation for the posterior of the copy number regression coefficient. However, an advantage of this approach is that we get a direct estimate of the probability that the regression coefficient for copy number is non-zero (probability `r round(mean(b$value!=0), 2)`).
+
+
+# Discussion
+
+To summarize, we have developed an approach that allows the user to speculate about the possible sources of technical variation between groups of samples in large-scale studies. Ideally, this speculation should be granular enough to allow CNPBayes to evaluate whether the batch variable can be coarsened on the basis on the similarity of the eCDFs for the provisional batches. Modeling the data hierarchically can help resolve irregularities in the modal peaks that are attributable to technical variation, allowing further separation of mixture components by copy number and reducing false positives.  Rare, extreme observations that appear in a subset of the estimated batches can complicate fitting these hierarchical models.  CNPBayes currently employs a data augmentation step that simulates extreme observations in each batch based on the observed data. This approach helps to ensure that the mixture components capture data with similar location and scale between batches.  As our model does not make any assumptions about HWE, post-hoc assessments of HWE for germline CNVs can provide independent affirmation that the estimated copy numbers are reasonable for many CNV regions. 
+
+# Appendix
+
+## MCMC chains
+
+While we cannot really determine whether a given model has converged, we can usually tell when it has not.  Here, we illustrate how one can access the chains from the `MultiBatch` instances created in the preceding analyses. 
+
+```{r chains}
+ch <- chains(bayes.model)
+ch
+tmp <- as(ch, "list")
+th <- tmp$theta
+th %>%
+    filter(k == "k 3") %>%
+    ggplot(aes(s, value)) +
+    geom_line() +
+    facet_grid(b~.)
+```
+
 ## Alternative models
 
-In the previous section, we used the function `homdeldup_model` to evaluate a series of models consistent with deletion and duplication polymorphisms. CNPBayes allows a many-to-one mapping of mixture components to copy number states but never one-to-many,  implying we would need at least 3 components to model the integer copy numbers 0, 1, and 2, and 4 components if duplications are present. The models `homdeldup_model` evaluated included single-batch (SB) finite mixture models with 3 or 4 components (abbreviated as SB3 or SB4) that assume the batch effects were neglible, as well as multi-batch models MB3 and MB4. In addition, we evaluated pooled (P) variance models that assume that mixture components have the same variance denoted as SBP3 and SBP4.  For MBP3 and and MBP4, the mixture components are assumed to have the same variance within a batch, but the variance can differ between batches.  One can fit these models directly by (1) creating a list of models with `MultiBatchList` and selecting one of the possible models in the named list and (2) using the function `posteriorSimulation` to run the MCMC.  In this section, we step through some of these models. 
+We previously used the function `homdeldup_model` to evaluate a series of models consistent with deletion and duplication polymorphisms. CNPBayes allows a many-to-one mapping of mixture components to copy number states but never one-to-many,  implying we would need at least 3 components to model the integer copy numbers 0, 1, and 2, and 4 components if duplications are present. The models `homdeldup_model` evaluated included single-batch (SB) finite mixture models with 3 or 4 components (abbreviated as SB3 or SB4) that assume the batch effects were neglible, as well as multi-batch models MB3 and MB4. In addition, we evaluated pooled (P) variance models that assume that mixture components have the same variance denoted as SBP3 and SBP4.  For MBP3 and and MBP4, the mixture components are assumed to have the same variance within a batch, but the variance can differ between batches.  One can fit these models directly by (1) creating a list of models with `MultiBatchList` and selecting one of the possible models in the named list and (2) using the function `posteriorSimulation` to run the MCMC.  In this section, we step through some of these models. 
 
 For a deletion or duplication polymorphism, CNPBayes begins with the most parsimonious models at our disposal for modeling a deletion polymorphism -- SB and pooled-variance models with 3 components, or SB3 and SBP3. In the following code-chunk, we fit the SB3 model that allows the mixture components to have different variances. 
 
@@ -171,13 +248,13 @@ model.list <- MultiBatchList(data=downsampled.data)
 names(model.list)
 sb3 <- model.list[["SB3"]]
 ## In practice, one would want to specify more iterations and a larger burnin
-iter(sb3) <- 400
-burnin(sb3) <- 100
+iter(sb3) <- 500
+burnin(sb3) <- 200
 sb3 <- posteriorSimulation(sb3)
 ggMixture(sb3)
 ```
 
-	The SB3 model devotes one of the mixture components to a very heavy-tailed distribution in order to handle both the homozygous deletion as well as the observations in the right tail of the diploid component (Figure 5). The log likelihood for the parameters at the last iteration of the model is `r log_lik(sb3)`.  Since we think the non-Gaussian characteristics of the central model near 0 can be explained by batch effects, the next logical choice is a multi-batch model with 3 components (MB3 model). However, an obvious dilemma will arise that one could anticipate for homozygous deletions that are relatively rare -- many of the batches will not contain individuals with a homozygous deletion. We plot the data by batch below, again circling the rare homozygous deletions (Figure 6).
+	The SB3 model devotes one of the mixture components to a very heavy-tailed distribution in order to handle both the homozygous deletion as well as the observations in the right tail of the diploid component (Figure 5). The log likelihood for the parameters at the last iteration of the model is `r log_lik(sb3)`.  Since we think the non-Gaussian characteristics of the central model near 0 can be explained by batch effects, the next logical choice is a multi-batch model with 3 components (MB3 model). However, an obvious dilemma arises that one can anticipate for homozygous deletions that are relatively rare -- many of the batches will not contain individuals with a homozygous deletion. We plot the data by batch below, again circling the rare homozygous deletions (Figure 6).
 
 ```{r homozygousdeletions, fig.width=6, fig.height=8, fig.cap="Many of the batches do not contain individuals with homozygous deletions. Circled values highlight the 8 participants with an apparent homozygous deletion."}
 smallvals <- filter(assays(mb), oned < -1)
@@ -197,8 +274,8 @@ assays(mb) %>%
 While we would like to fit a multi-batch model to better model the non-Gaussian central mode, a hierarchical model across these batches will have difficulty. For batches without apparent homozygous deletions, the first mixture component will help explain variation in the observed data closer to the central model.  As CNPBayes assumes that the number of components is the same in each batch, the model will *borrow* information across batches with and without homozygous deletions.  As in the SB model, the result tends to be a mixture component with a very large variance and will have no clear biological interpretation (Figure 7).
 
 
-```{r mb3, fig.align="center", fig.cap="The hierarchical mixture model has mixture components that are heavy-tailed due to the presence of homozygous deletions in a subset of the batches. Note also that the color of the central peak differs between batches, indicating that the upper level of the hierarchical model is not capturing between-batch variation of the latent integer copy number and any attempts to map mixture component labels to copy number would need to be batch-specific. Finally, even for batches with multiple homozygous deletions (batch 4), the mixture component is very heavy-tailed as the mean and variance are affected by the other batches.", fig.width=6, fig.height=8}
-mb3 <- model.list[["MB3"]]
+```{r mb3, fig.align="center", fig.cap="The hierarchical mixture model has mixture components that are heavy-tailed due to the presence of homozygous deletions in a subset of the batches. Note also that the color of the central peak differs between batches, indicating that the upper level of the hierarchical model is not capturing between-batch variation of the latent integer copy number and any attempts to map mixture component labels to copy number would need to be batch-specific. Finally, even for batches with multiple homozygous deletions (batch 4), the mixture component is very heavy-tailed as the mean and variance are affected by the other batches.", fig.width=6, fig.height=8, cache=TRUE}
+mb3 <- revertToMultiBatch(sb3)
 ## In practice, one would want to specify more iterations and a larger burnin
 iter(mb3) <- 400
 burnin(mb3) <- 100
@@ -222,6 +299,8 @@ augmented.mb3 <- mcmcWithHomDel(mb3, sb3, restricted)
 ```
 
 ```{r augmentationfig, fig.cap="Use of data augmentation to ensure that homozygous deletions are present in each batch. Only the circled observations were observed as batches 1, 5, 7, and 8 had no individuals with homozygous deletions. Note also that the mixture components for the modal peak near zero have the same color across batches, indicating that we are now modeling technical variation of the diploid mixture component between batches as intended.", fig.width=6, fig.height=8}
+smallvals3 <- smallvals2 %>%
+    mutate(batch=paste("Batch", batch))
 ggMixture(augmented.mb3) +
     geom_point(data=smallvals3, aes(oned, 0),
                shape=21, size=6,
@@ -231,25 +310,7 @@ ggMixture(augmented.mb3) +
 
 Note that many of the batches have a few observations in the right tail of the diploid mixture component even after accounting for the differences between batches.  These observations are potentially single-copy duplications that appear in a subset of the batches (e.g., batch 4).  Again, an augmentation step could be implemented as a device to ensure that the fourth component is dedicated only to the right tail of each batch. 
 
-# Discussion
 
-To summarize, we have developed an approach that allows the user to speculate about the possible sources of technical variation between groups of samples in large-scale studies. Ideally, this speculation should be granular enough to allow CNPBayes to evaluate whether the batch variable can be coarsened on the basis on the similarity of the eCDFs for the provisional batches. Modeling the data hierarchically can help resolve irregularities in the modal peaks that are attributable to technical variation, allowing further separation of mixture components by copy number and reducing false positives.  Rare, extreme observations that appear in a subset of the estimated batches can complicate fitting these hierarchical models.  CNPBayes currently employs a data augmentation step that simulates extreme observations in each batch based on the observed data. This approach helps to ensure that the mixture components capture data with similar location and scale between batches.  As our model does not make any assumptions about HWE, post-hoc assessments of HWE for germline CNVs can provide independent affirmation that the estimated copy numbers are reasonable for many CNV regions. 
-
-# Evaluating lack of convergence
-
-While we cannot really determine whether a given model has converged, we can usually tell when it has not.  Here, we illustrate how one can access the chains from the `MultiBatch` instances created in the preceding analses. 
-
-```{r chains}
-ch <- chains(bayes.model)
-ch
-tmp <- as(ch, "list")
-th <- tmp$theta
-th %>%
-    filter(k == "k 3") %>%
-    ggplot(aes(s, value)) +
-    geom_line() +
-    facet_grid(b~.)
-```
 # Session Information
 
 ```{r sessioninfo}

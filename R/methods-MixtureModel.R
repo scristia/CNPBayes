@@ -189,6 +189,9 @@ setMethod("computePrior", "SingleBatchModel", function(object){
   pZ
 }
 
+
+#' Number of observations in mixture model object
+#' 
 #' @aliases numberObs,MixtureModel-method
 #' @rdname numberObs-method
 setMethod("numberObs", "MixtureModel", function(model) length(y(model)))

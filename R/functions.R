@@ -152,7 +152,6 @@ defineCnpRegions <- function(grl, thr=0.02){
 #' will return a length-zero GRanges object
 #' @return a \code{GRanges} object providing the intervals of all
 #' identified CNPs above a user-specified prevalance cutoff.
-#' @export
 consensusCNP <- function(grl, transcripts, min.width=2e3,
                          max.width=200e3, min.prevalance=0.02){
   g <- as(unlist(grl), "GRanges")
@@ -237,9 +236,7 @@ permnK <- function(k, maxperm){
   kperm
 }
 
-#' @param tiles a tibble as constructed by \code{tileMedians}
-#' @rdname tile-functions
-#' @export
+
 tileSummaries <- function(tiles){
   batch <- tile <- logratio <- NULL
   tile.summaries <- tiles %>% group_by(tile) %>%
@@ -373,7 +370,6 @@ freeParams <- function(model){
 #'
 #' @param model.list list of models from \code{gibbs}
 #' @param prior.odds scalar
-#' @export
 bayesFactor <- function(model.list, prior.odds=1){
   ## set null model to be the model with the fewest free parameters
   free.params <- sapply(model.list, freeParams)

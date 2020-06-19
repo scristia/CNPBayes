@@ -1188,7 +1188,6 @@ combineChains <- function(model.list){
 
 ## update the current values with the posterior means across all chains
 
-#' @export
 combineModels <- function(model.list){
   mc <- combineChains(model.list)
   pz.list <- lapply(model.list, probz)
@@ -1753,7 +1752,6 @@ find_surrogates <- function(dat, THR=0.1){
 #' compares all pairwise combinations of plates.  The \code{ks.test}
 #' is performed recursively on the batch variables defined for a given
 #' CNP until no batches can be combined. For smaller values of THR, plates are more likely to be judged as similar and combined.
-#' @export
 #' @param object a MultiBatch instance
 #' @param THR scalar for the p-value cutoff from the K-S test.  Two batches with p-value > THR will be combined to define a single new batch
 #'
@@ -1929,7 +1927,6 @@ isAugmented <- function(model){
   seq_len(nrow(model)) %in% ix
 }
 
-#' @export
 CnList <- function(mb){
   mb <- mb[ !isAugmented(mb) ]
   cn.specs <- .candidate_mapping(mb) %>%
@@ -1989,7 +1986,6 @@ setMethod("numberObs", "MultiBatch", function(model) {
 setGeneric("id", function(object) standardGeneric("id"))
 setMethod("id", "MultiBatch", function(object) assays(object)$id)
 
-#' @export
 id2 <- function(object){
   id(object)[!isSimulated(object)]
 }
@@ -2095,16 +2091,14 @@ gr <- function(x){
   stat$mpsrf
 }
 
-#' @export
 is_high_mpsrf <- function(m){
-  mpsrf <- tryCatch(gr(m), error=function(e) NULL)
-  if(is.null(mpsrf) || mpsrf > 1.25){
-    return(TRUE)
-  }
-  FALSE
+    mpsrf <- tryCatch(gr(m), error=function(e) NULL)
+    if(is.null(mpsrf) || mpsrf > 1.25){
+        return(TRUE)
+    }
+    FALSE
 }
 
-#' @export
 setGeneric("fails_gr<-", function(object, value) standardGeneric("fails_gr<-"))
 
 setReplaceMethod("fails_gr", "MultiBatch", function(object, value){
@@ -2112,7 +2106,6 @@ setReplaceMethod("fails_gr", "MultiBatch", function(object, value){
   object
 })
 
-#' @export
 reset <- function(from, to){
   sp <- specs(to)
   nsim <- sum(isSimulated(to))
@@ -2156,7 +2149,6 @@ reset <- function(from, to){
 
 #' Downsampling will not work well if the range of the downsampled data is not similar to the range of the original data
 #'
-#' @export
 sample2 <- function(mb, N){
   ix <- sort(sample(seq_len(nrow(mb)), N, replace=TRUE))
   r <- oned(mb)[ix]
@@ -2176,7 +2168,6 @@ setMethod("min_GR", "MultiBatch", function(object){
   min_GR(mcmcParams(object))
 })
 
-#' @export
 incrementK <- function(object){
   model_name <- modelName(object)
   K <- substr(model_name, nchar(model_name), nchar(model_name))
@@ -2186,7 +2177,6 @@ incrementK <- function(object){
   model_name
 }
 
-#' @export
 genotypeModel <- function(model, snpdat){
   keep <- !duplicated(id(model)) & !isSimulated(model)
   gmodel <- model[ keep ]
@@ -2197,7 +2187,6 @@ genotypeModel <- function(model, snpdat){
   gmodel
 }
 
-#' @export
 genotypeData <- function(gmodel, snpdat, min_probz=0.9){
   snpdat <- snpdat[, id(gmodel)]
   maxpz <- probz(gmodel) %>%
@@ -2648,9 +2637,17 @@ meanFull_sdRestricted <- function(mb, restricted){
 }
 
 
+#' Wrapper for fitting likely homozygous deletion polymorphisms
+#'
+#' 
+#' @param mb `MultiBatch` object with multiple batches (MB)
+#' @param sb `MultiBatch` object with a single batch (SB)
+#' @param restricted_model `MultiBatch` object that is restricted to a subset of the observations.  For example, often extreme observations in the tails are excluded.
+#' @param model name of to evaluate.  See `modelName()`
+#' @seealso [modelName()]
+#' @export
 mcmcWithHomDel <- function(mb, sb,
                            restricted_model,
-                           THR,
                            model="MB3"){
     mb.observed <- mb[ !isSimulated(mb) ]        
     if(any(isSimulated(restricted_model))){
@@ -2803,7 +2800,6 @@ resampleFromRareProvisionalBatches <- function(dat, dat.nohd){
   dat.nohd
 }
 
-#' @export
 down_sample <- function(dat, S){
     dat.nohd <- filter(dat, !likely_deletion)
     ##
@@ -2822,8 +2818,15 @@ down_sample <- function(dat, S){
     dat.subsampled
 }
 
+#' Downsamples the data to reduce computation
+#'
+#' Downsampling observations within each batch.
+#'
+#' Downsampling is performed to reduce computation as typically 100-300 observations is sufficient to approximate the multi-modal deletions/duplications of germline copy number events.  Data points that have been marked as `likely_deletion` are not down-sampled as these tend to be rare and are an important indication of the type of polymorphism.
+#' @param dat a `tibble` containing the one-dimensional summaries for each sample and the batch labels
+#' @param min_size integer indicating the minimum size per batch.  For batches smaller than `min_size`, no down-sampling is performed.
 #' @export
-down_sample2 <- function(dat, S, min_size=300){
+down_sample2 <- function(dat, min_size=300){
     ##
     ## Goals:
     ##  -- we do not want to downsample likely deletions; these tend to be rare
@@ -2846,38 +2849,17 @@ down_sample2 <- function(dat, S, min_size=300){
         arrange(batch) %>%
         mutate(batch_labels=as.character(batch))
     return(downsamp)
-    ##    
-    ##
-    ##    
-    ##    holdout2 <- filter(dat2, expected < min_size, !likely_deletion)
-    ##    if(nrow(holdout2) > 0){
-    ##        ## if min_size is greater than number of observations in group,
-    ##        ## the result will be silently truncated to the group size
-    ##        holdout2.resampled <- holdout2 %>%
-    ##            group_by(batch) %>%
-    ##            slice_sample(n=min_size) %>%
-    ##            ungroup()
-    ##    } else holdout2.resampled <- holdout2
-    ##    H <- nrow(holdout2.resampled)
-    ##    holdouts <- bind_rows(holdout1, holdout2)
-    ##    downsamp <- filter(dat2, !id %in% holdouts$id) %>%
-    ##        slice_sample(n=S)
-    ##    downsamp2 <- holdout2.resampled %>%
-    ##        bind_rows(downsamp) %>%
-    ##        bind_rows(holdout1) %>%
-    ##        arrange(batch) %>%
-    ##        mutate(batch_labels=as.character(batch)) %>%
-    ##        select(-expected)
-    ##    downsamp2
 }
 
 
-##kolmogorov_batches <- function(dat, KS_cutoff, THR){
-##    mb <- MultiBatch("MB3", data=dat)
-##    mb.ks <- mb %>%
-##        findSurrogates(KS_cutoff)
-##}
-
+#' Group provisional batch labels by similarity of eCDFs
+#'
+#' This function groups provisional batches (e.g., chemistry plate, date, or DNA source) by similarity of the empirical cummulative distribution function (eCDF).  Similarity of the eCDFs is based on the p-value from Kolmogorov-Smirnov  test statistic.  All pairwise combinations of batches are compared, and repeated recursively until no two batches can be combined.
+#'
+#' @param dat typically a `tibble` gotten by `assays(MultiBatch)`
+#' @param KS_cutoff scalar indicating cutoff for Kolmogorov-Smirnov p-value.  Two provisional batches with p-value above this cutoff are combined.
+#' @seealso [ks.test()]
+#' @export
 kolmogorov_batches <- function(dat, KS_cutoff){
     ##mb <- MultiBatch("MB3", data=dat)
     findSurrogates(dat, KS_cutoff)
@@ -3001,8 +2983,13 @@ select_highconfidence_samples2 <- function(model, snpdat){
     gmodel
 }
 
-
+#' Map mixture component labels to integer copy numbers
+#'
+#' Mapping is performed using the B allele frquencies for SNPs spanned by the candidate deletion/duplication polymorphism. Multiple components can be mapped to a single copy number state, but one-to-many mapping is not permitted
+#' @param model a `MultiBatch` instance
+#' @param snpdat a `SummarizedExperiment` containing B allele frequences 
 #' @export
+#' @return a `MultiBatch` instance. The mapping is now accessible through `mapping`.
 genotype_model <- function(model, snpdat){
   gmodel <- select_highconfidence_samples2(model, snpdat)
   if(all(mapping(gmodel) == "?")) {
@@ -3154,6 +3141,12 @@ fit_restricted <- function(mb, sb, model="MBP2",
     restricted
 }
 
+#' Wrapper for running many independent chains with a short burnin and one longer run
+#'
+#' @param mb a `MultiBatch` object
+#' @param model name of model to evaluate (e.g., MB2, MBP2, SB2, ...).
+#' @seealso [modelName()]
+#' @export
 fit_restricted2 <- function(mb, model="MBP2", ...){
     ##    fdat <- filter(assays(mb), !likely_deletion) %>%
     ##        mutate(is_simulated=FALSE)
@@ -3526,7 +3519,15 @@ evaluate_sb3 <- function(mb, mp, ...){
     sb3
 }
 
+
+#' Wrapper for evaluating mixture models consistent with copy number deletion polymorphisms
+#'
+#' Fits single-batch and multi-batch models consistent with a deletion polymorphism.
+#' @param mb a `MultiBatch` instance
+#' @param mp a `McmcParams` instance
+#' @param augment whether to use data augmentation for rare observations that may be present in a subset of batches
 #' @export
+#' @seealso [mcmcParams()]
 homdel_model <- function(mb, mp, augment=TRUE, ...){
     if(augment){
         assays(mb) <- augment_homozygous(mb)
@@ -3588,6 +3589,13 @@ hd3comp <- function(restricted, simdat, mb.subsamp, mp){
   mod_1.3
 }
 
+#' Wrapper for evaluating mixture models consistent with copy number deletion and gain polymorphisms
+#'
+#' @param mb a `MultiBatch` instance
+#' @param mp a `McmcParams` instance
+#' @param augment whether to use data augmentation for rare observations that may be present in a subset of batches
+#' @export
+#' @seealso [mcmcParams()]
 homdeldup_model <- function(mb, mp, augment=TRUE, ...){
     if(augment){
         assays(mb) <- augment_homozygous(mb)
@@ -3953,7 +3961,6 @@ select_models <- function(mb){
     duplication_models
 }
 
-#' @export
 use_cutoff <- function(mb){
   minlogr <- min(oned(mb), na.rm=TRUE)
   if(minlogr < -1){

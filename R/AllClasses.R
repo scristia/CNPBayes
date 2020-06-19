@@ -294,16 +294,12 @@ setClass("UnivariateBatchModel", contains="MultiBatchModel")
 #' @slot mapping character string vector indicating the copy number states.  Typically '0', '1', '2', '3', or '4'.
 #'
 #' @details Suppose a mixture model with four components is selected, where the 3rd and 4th components both correspond to the diploid state.  The mapping slot will be the vector "0", "1", "2", and "2".
-#' @rdname CopyNumber-classes
-#' @rdname SingleBatchModel-class
 setClass("SingleBatchCopyNumber", contains="SingleBatchModel",
          representation(mapping="character"))
 
-#' @rdname CopyNumber-classes
 setClass("MultiBatchCopyNumber", contains="MultiBatchModel",
          representation(mapping="character"))
 
-#' @rdname CopyNumber-classes
 setClass("MultiBatchCopyNumberPooled", contains="MultiBatchModel",
          representation(mapping="character"))
 
@@ -317,7 +313,6 @@ setClass("MultiBatchCopyNumberPooled", contains="MultiBatchModel",
 #' @slot current_values current value of each chain
 #' @slot summaries list of empirical data and model summaries
 #' @slot flags list of model flags
-#' @export
 setClass("MultiBatch", representation(data="tbl_df",
                                       specs="tbl_df",
                                       parameters="list",

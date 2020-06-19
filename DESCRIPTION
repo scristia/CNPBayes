@@ -76,11 +76,10 @@ VignetteBuilder: knitr
 License: Artistic-2.0
 LinkingTo: Rcpp
 biocViews: CopyNumberVariation, Bayesian
-Roxygen: list(wrap=FALSE)
+Roxygen: 
 LazyData: TRUE
 URL: https://github.com/scristia/CNPBayes
 BugReports: https://github.com/scristia/CNPBayes/issues
 NeedsCompilation: yes
 Encoding: UTF-8
 RoxygenNote: 7.1.0
-PackageStatus: Deprecated

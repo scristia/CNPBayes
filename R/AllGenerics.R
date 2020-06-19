@@ -267,12 +267,10 @@ setGeneric("nStarts<-", function(object, value) standardGeneric("nStarts<-"))
 
 setGeneric("alpha", function(object) standardGeneric("alpha"))
 
+
 #' Retrieve log likelihood.
 #'
 #' @examples
-#' ## retrieve log likelihood at each MCMC iteration
-#' head(log_lik(chains(SingleBatchModelExample)))
-#' ## retrieve log likelihood at last MCMC iteration
 #' log_lik(SingleBatchModelExample)
 #' @param object see showMethods(log_lik)
 #' @return The log likelihood
@@ -285,6 +283,7 @@ setGeneric("log_lik<-", function(object,value) standardGeneric("log_lik<-"))
 
 setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 
+
 #' Number of burnin iterations.
 #'
 #' This function retrieves the number of burnin simulations to be discarded.
@@ -296,8 +295,8 @@ setGeneric("computeLoglik", function(object) standardGeneric("computeLoglik"))
 #' @return The number of burnin simulations.
 #' @export
 #' @docType methods
-#' @rdname burnin-method
 setGeneric("burnin", function(object) standardGeneric("burnin"))
+
 
 setGeneric("min_GR", function(object) standardGeneric("min_GR"))
 
@@ -554,28 +553,22 @@ setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
 #'   fig.mix <- ggMixture(sb)
 setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 
-#' @rdname ggplot-functions
+#' Plotting posterior predictive densities from mixture model
+#' 
 #' @param bins a length-one numeric vector indicating the number of bins -- passed to \code{geom_hist}
 #' @param mixtheme a ggplot theme
 #' @export
 #' @rdname ggplot-functions
 setGeneric("ggMixture", function(model, bins=100, mixtheme, shift_homozygous) standardGeneric("ggMixture"))
 
+
 setGeneric("CopyNumberModel", function(model, params=mapParams()) standardGeneric("CopyNumberModel"))
 
 #' Map mixture components to copy number states
 #'
-#'
+#' @return a character vector of length k (number of components) indicating the inferred copy number of each component.  The mapping is not neccessarily one-to-one as multiple mixture components can be mapped to a single copy number state.
 #' @export
-#' @examples
-#' cn.model <- CopyNumberModel(SingleBatchModelExample)
-#' ## manually remap first two components to the same copy number state
-#' \dontrun{
-#'  mapping(cn.model) <- c(1, 1, 2)
-#'  ggMixture(cn.model)
-#' }
-#' @param object a SB, SBP, MB, or MBP model
-#' @seealso \code{\link{CopyNumberModel}}
+#' @param object a `MultiBatch` model
 #' @rdname mapping
 setGeneric("mapping", function(object) standardGeneric("mapping"))
 
@@ -682,6 +675,11 @@ setGeneric("useModes", function(object) standardGeneric("useModes"))
 
 setGeneric("compute_marginal_lik", function(object, params) standardGeneric("compute_marginal_lik"))
 
+#' Accessor for name of MultiBatch model
+#'
+#' MultiBatch objects are named according to whether the mixture components are stratified by batch (MB) or single batch (SB), the variance across all mixture components within a batch is pooled (P), and the number of mixture components.  For example, MB3 is a multi-batch 3-component mixture model without pooled variance, while SBP4 is a 4-component single-batch mixture model using a pooled estimate of the variance.  
+#' @param object a `MultiBatch` object
+#' @export
 setGeneric("modelName", function(object) standardGeneric("modelName"))
 
 setGeneric("singleBatchGuided", function(x, guide) standardGeneric("singleBatchGuided"))

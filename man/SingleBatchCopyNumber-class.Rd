@@ -3,8 +3,6 @@
 \docType{class}
 \name{SingleBatchCopyNumber-class}
 \alias{SingleBatchCopyNumber-class}
-\alias{MultiBatchCopyNumber-class}
-\alias{MultiBatchCopyNumberPooled-class}
 \title{Mixture model container where mixture components have been genotyped}
 \description{
 The components in a mixture model need not correspond to distinct copy number states. For example, when batch or copy number does not explain skewness or heavy-tails.

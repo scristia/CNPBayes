@@ -160,7 +160,6 @@ setValidity("McmcChains", function(object){
 })
 
 
-setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 
 setMethod("McmcChains", "MixtureModel", function(object){
   .initializeMcmc(object)
@@ -249,18 +248,27 @@ setMethod("McmcChains", "MultiBatchPooled", function(object){
   chains_mb(object)
 })
 
+#' Accessor for mu slot of McmcChains class
+#' 
 #' @rdname mu-method
 #' @aliases mu,McmcChains-method
 setMethod("mu", "McmcChains", function(object) object@mu)
 
+                                        
+#' Accessor for tau2 slot of McmcChains class
+#' 
 #' @rdname tau2-method
 #' @aliases tau2,McmcChains-method
 setMethod("tau2", "McmcChains", function(object) object@tau2)
 
+#' Accessor for theta slot of McmcChains class
+#' 
 #' @rdname theta-method
 #' @aliases theta,McmcChains-method
 setMethod("theta", "McmcChains", function(object) object@theta)
 
+#' Accessor for sigma2 slot of McmcChains class
+#' 
 #' @rdname sigma2-method
 #' @aliases sigma2,missing-method
 setMethod("sigma2", "McmcChains", function(object) object@sigma2)
@@ -332,10 +340,14 @@ setMethod("[", "McmcChainsTrios", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+#' Accessor for nu.0 slot of McmcChains class
+#' 
 #' @rdname nu.0-method
 #' @aliases nu.0,McmcChains-method
 setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 
+#' Accessor for sigma2.0 slot of McmcChains class
+#' 
 #' @rdname sigma2.0-method
 #' @aliases sigma2.0,McmcChains-method
 setMethod("sigma2.0", "McmcChains", function(object) object@sigma2.0)
@@ -403,16 +415,14 @@ setMethod("log_lik", "McmcChains", function(object){
 #' @rdname names-methods
 setMethod("names", "McmcChains", function(x) slotNames(x))
 
+#' Accessor for frequency of mixture component label in McmcChains class
+#' 
 #' @rdname zfreq-method
 #' @aliases zfreq,McmcChains-method
 setMethod("zFreq", "McmcChains", function(object) object@zfreq )
 
-#' @rdname zfreqpar-method
-#' @aliases zfreqpar,McmcChains-method
 setMethod("zFreqPar", "McmcChains", function(object) object@zfreq_parents )
 
-#' @rdname logPrior-method
-#' @aliases logPrior,McmcChains-method
 setMethod("logPrior", "McmcChains", function(object) object@logprior)
 
 setReplaceMethod("logPrior", "McmcChains", function(object, value) {

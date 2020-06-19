@@ -2,7 +2,7 @@ CNPBayes: Copy number estimation and association in large-scale studies
 ================
 Stephen Cristiano, Jacob Carey, David McKean, Gary L. Rosner, Ingo
 Ruczinski, Alison Klein, and Robert B. Scharpf
-17 June, 2020
+18 June, 2020
 
 # Overview
 
@@ -42,8 +42,6 @@ library(dplyr)
 library(CNPBayes)
 library(SummarizedExperiment)
 library(ggplot2)
-library(rjags)
-library(ggmcmc)
 extdir <- system.file("extdata", package="CNPBayes")
 cnp_se <- readRDS(file.path(extdir, "cnp_se.rds"))
 snp_se <- readRDS(file.path(extdir, "snp_se.rds"))
@@ -274,116 +272,23 @@ full
     ## 10 1006      1          2 0.0000959 5.74e-11  1.00     0     0
     ## # … with 6,028 more rows
 
+For germline copy number polymorphisms, the deletion allele often
+segregates at Hardy Weinberg equilibrium (HWE). As CNPBayes does not
+make any assumptions about HWE, evaluation of HWE post-hoc can be useful
+for qualithy control.
+
 ``` r
 freq <- as.integer(table(full$copynumber))
-freq
-```
-
-    ## [1]    7  330 5701
-
-``` r
 pval <- gap::hwe(freq, data.type="count")$p.x2 
 ```
 
     ## Pearson x2=  0.954   , df=   1   , p=    0.3287148
 
-From the above analyses, we find that the frequencies of copy number
-states 0, 1, and 2 in this dataset (n = 7, 330, 5701) are consistent
-with a deletion allele segregating at Hardy Weinberg equilibrium in the
-population.
-
-# Association model
-
-If the mixture components were always as well separated as above,
-standard Bayesian and frequentist regression models using the maximum a
-posteriori copy number estimate would be appropriate. To illustrate the
-approach using a toy example, we simulate disease status for 1000
-observations and fit a logistic regression model to evaluate whether
-there is an association between copy number and the log odds of cancer.
-
-``` r
-b0 <- 1.5
-b1 <- -0.75
-map_cn_estimates <- full$copynumber[1:1000]
-XB <- b0 + b1 * map_cn_estimates
-probs <- exp(XB)/(1 + exp(XB))
-y  <- rbinom(length(probs), 1, prob=probs)
-df <- tibble(y=y, cn=map_cn_estimates)
-fit1 <- glm(y~cn, data=df, family=binomial(link="logit"))
-coef(summary(fit1))
-```
-
-    ##               Estimate Std. Error   z value    Pr(>|z|)
-    ## (Intercept)  1.4596673  0.5550053  2.630006 0.008538341
-    ## cn          -0.7366034  0.2830051 -2.602792 0.009246801
-
-``` r
-glmbeta <- coef(summary(fit1))[2, "Estimate"]
-```
-
-Inevitably, many CNV regions will have a lower signal-to-noise ratio and
-probabilities for the integer copy number states will reflect the
-increased uncertainty. When copy number estimates are uncertain, a
-Bayesian logistic regression model can incorporate the uncertainty of
-the latent copy number. We include a simple model in JAGS (without other
-covariates), passing the posterior probabilities of the integer copy
-number assignments to the JAGS model in the variable `P`.
-
-``` r
-cn_probs <- ungroup(full[1:1000, ]) %>%
-    select(c("cn_0", "cn_1", "cn_2")) %>%
-    as.matrix()
-jags_data <- list(N=length(y),
-                  y=y,
-                  P=cn_probs)
-jagsdir <- system.file("JAGS", package="CNPBayes")
-fit <- jags.model(file.path(jagsdir, "cnv_assoc.jag"),
-                  data=jags_data,
-                  n.chains=1,
-                  n.adapt=500)
-samples <- coda.samples(fit,
-                        variable.names=c("b0", "b1", "zbeta"),
-                        n.iter=2000*50, thin=50) %>%
-    ggs()
-```
-
-In addition to the regression coefficient for copy number, the jags
-model includes a latent indicator variable \(z\) that multiplies the
-copy number coefficient. Through Bayesian model averaging, we obtain a
-posterior distribution over the odds that an intercept-only model is
-adequate. Below, we show the traceplot of the regression coefficient
-when \(z\) is 1 and copy number is included in the model:
-
-``` r
-b <- filter(samples, Parameter=="zbeta")
-b %>%
-    filter(value != 0) %>%
-    ggs_traceplot() +
-    geom_line(color="gray")+
-    geom_hline(yintercept=glmbeta, color="steelblue") +
-    theme_bw()
-```
-
-<div class="figure" style="text-align: center">
-
-<img src="README_files/figure-gfm/posterior_summaries-1.png" alt="Traceplot for copy number regression coefficient conditional for simulations where $z = 1$."  />
-
-<p class="caption">
-
-Traceplot for copy number regression coefficient conditional for
-simulations where \(z = 1\).
-
-</p>
-
-</div>
-
-Due to the autocorrelation in this chain, regions of the traceplot near
-where \(z\) was zero are still evident – additional thinning and more
-iterations would be required to provide a better approximation for the
-posterior of the copy number regression coefficient. However, an
-advantage of this approach is that we get a direct estimate of the
-probability that the regression coefficient for copy number is non-zero
-(probability 0.76).
+For this region on chr8, we find that the frequencies of copy number
+states 0, 1, and 2 (n = 7, 330, 5701) are consistent with HWE. The copy
+number posterior probabilities can be incorporated directly in risk
+models for disease (see the
+[vignette](vignette/cnpbayes.html%20for%20details).
 
 # Related software
 
@@ -395,7 +300,7 @@ Expection-Maximization implementations of mixture models are available
 in the canary package of the Birdsuite software (Korn et al. (2008)).
 Mixture model based approaches for modeling copy number at specific
 regions of the genome have also been useful in whole exome sequencing
-application (e.g., Fromer et al. (2012) and others).
+applications (e.g., Fromer et al. (2012) and others).
 
 # References
 
