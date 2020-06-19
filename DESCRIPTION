@@ -43,7 +43,8 @@ Suggests:
     MASS,
     VanillaICE,
     tidyverse,
-    gap
+    gap,
+    magick
 Collate: 
     'help.R'
     'AllGenerics.R'

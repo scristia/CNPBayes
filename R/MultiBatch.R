@@ -2363,6 +2363,11 @@ stop_early <- function(model, min_prob=0.99, prop_greater=0.995){
   mean_maxp > prop_greater
 }
 
+#' Convert a single-batch object to a multi-batch model
+#'
+#' We often evaluate single-batch models even when `kolmogorov_batches` identifies multiple batches.  In particular, if the batch effects are modest and the overlap of mixture components is minimal in the single-batch model, the more parsimonious single-batch model is preferred.  We can convert the single-batch instance back to a multi-batch instance by using the `batch-labels` field. The vignette provides an example.
+#' @export
+#' @param sb a `MultiBatch` object
 revertToMultiBatch <- function(sb){
   adat <- assays(sb)
   batch_levels <- unique(assays(sb)$batch_labels)
@@ -2926,7 +2931,7 @@ summarize_region <- function(se,
     ##dat <- add_batchinfo(dat, mb)
     ##mb <- add2small_batches(dat, mb)
     ##mb <- add_deletion_stats(dat, mb, THR)
-    dat3 <- down_sample2(dat2, S, min_size)
+    dat3 <- down_sample2(dat2, min_size)
     dat3
 }
 

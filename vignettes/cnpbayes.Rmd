@@ -93,8 +93,7 @@ Since all `r nrow(full.data)` individuals are not needed to approximate the dens
 
 ```{r batchfig, fig.align="center", fig.width=5, fig.height=8, fig.cap="Some of the skew in the marginal distribution (top facet) can be explained by technical variation between the estimated batches (batches 1-8). The distribution of the log ratios where the bulk of the data exists appears more symmetric around the mode after stratification by batch."}
 set.seed(134)
-downsampled.data <- down_sample2(batched.data, 1000,
-                                 min_size=200)
+downsampled.data <- down_sample2(batched.data, min_size=200)
 smallvals2 <- filter(downsampled.data, oned < -1)
 marginal <- downsampled.data %>%
     mutate(batch=0L, batch_labels="0") %>%
