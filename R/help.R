@@ -25,7 +25,7 @@
 #' @importFrom purrr map map2 map_lgl map_dbl map_chr
 #' @importFrom tidyr gather spread complete
 #' @importFrom stringr str_pad
-#' @importFrom dplyr mutate bind_rows group_by summarize arrange filter n left_join select ungroup rowwise slice_sample
+#' @importFrom dplyr mutate bind_rows group_by summarize arrange filter n pull left_join select ungroup rowwise slice_sample
 #' @import grid
 #' @import tibble
 #' @useDynLib CNPBayes

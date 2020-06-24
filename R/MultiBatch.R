@@ -2265,8 +2265,8 @@ sdRestrictedModel <- function(restricted){
     obsdat <- assays(mb) %>%
         filter(is_simulated==FALSE)
     simdat <- bind_rows(obsdat, simulated) %>%
-        arrange(batch) %>%
-        mutate(homozygousdel_mean=mean_sd[[1]])
+        arrange(batch)
+        ##mutate(homozygousdel_mean=mean_sd[[1]])
     simdat
 }
 
@@ -2318,6 +2318,16 @@ ok_hemizygous <- function(sb){
     mbl
 }
 
+
+#' Run short burnin from multiple independent starts and select a single model for further MCMC
+#' 
+#' @export
+#' @param tib a tibble containing data, sample identifiers, and batch information
+#' @param model1 Name of model (e.g., "MB3", "MBP3", "SB3", ...)
+#' @param model2 Second model to evaluate (optional)
+#' @param model2.penalty Typically we compare a simple model (SB3) to a more complicated model (MB3).  This allows the user to specify a penalty for the more complicated model.
+#' @param Nrep Integer specifying number of independent starts
+#' @param .burnin Integer specifying number of burnin simulations 
 warmup <- function(tib, model1, model2=NULL, model2.penalty=50,
                    Nrep=10, .burnin=100){
     ##
@@ -2566,7 +2576,8 @@ augment_rarehomdel <- function(restricted, sb4, mb.subsamp){
             imp.hd <- bind_rows(imp.hd, imp1)
         }
         obsdat <- assays(mb.subsamp) %>%
-            mutate(is_simulated=FALSE)
+            filter(!is_simulated)
+        ##mutate(is_simulated=FALSE)
         simdat <- bind_rows(obsdat, imp.hd) %>%
             arrange(batch)
     } else {
@@ -3240,8 +3251,11 @@ compute_density <- function(mb, thr){
         ##
         ## Fine
         ##
-        tmp2 <- density(oned(mb)[batch(mb)==i & oned(mb) < thr]) %>%
-            as_tibble()
+        index <- which(batch(mb)==i & oned(mb) < thr)
+        if(length(index) > 2){
+            tmp2 <- density(oned(mb)[index]) %>%
+                as_tibble()
+        } else tmp2 <- NULL
         densities[[i]] <- list(coarse=as_tibble(tmp),
                                fine=as_tibble(tmp2))
     }
@@ -3535,7 +3549,8 @@ evaluate_sb3 <- function(mb, mp, ...){
 #' @seealso [mcmcParams()]
 homdel_model <- function(mb, mp, augment=TRUE, ...){
     if(augment){
-        assays(mb) <- augment_homozygous(mb)
+        simdat <- augment_homozygous(mb)
+        mb <- MultiBatch(modelName(mb), data=simdat)
     }
     if(missing(mp)) mp <- mcmcParams(mb)
     sb3 <- evaluate_sb3(mb, mp, ...)
@@ -3544,14 +3559,22 @@ homdel_model <- function(mb, mp, augment=TRUE, ...){
     final
 }
 
-hemdel_model <- function(mb.subsamp, mp, ...){
+#' Fits a series of models consistent for a deletion CNV where only hemizygous deletions are present (no homozygous deletions)
+#' 
+#' @export
+#' @param mb a MultiBatch instance
+#' @param mp a McmcParams instance
+#' @param ... additional arguments passed to warmup
+#' @seealso [warmup()]
+hemdel_model <- function(mb, mp, ...){
+    mb_ <- mb
     if(missing(mp)) mp <- mcmcParams(mb)
-    sb <- warmup(assays(mb.subsamp), "SBP2", "SB2", ...)
+    sb <- warmup(assays(mb), "SBP2", "SB2", ...)
     mcmcParams(sb) <- mp
     sb <- posteriorSimulation(sb)
     finished <- stop_early(sb)
     if(finished) return(sb)
-    mb <- warmup(assays(mb.subsamp), "MBP2", "MB1")
+    mb <- warmup(assays(mb_), "MBP2", "MB1")
     mcmcParams(mb) <- mp
     mb <- posteriorSimulation(mb)
     mb
@@ -3603,7 +3626,8 @@ hd3comp <- function(restricted, simdat, mb.subsamp, mp){
 #' @seealso [mcmcParams()]
 homdeldup_model <- function(mb, mp, augment=TRUE, ...){
     if(augment){
-        assays(mb) <- augment_homozygous(mb)
+        simdat <- augment_homozygous(mb)
+        mb <- MultiBatch(modelName(mb), data=simdat)        
     }
     if(missing(mp)) mp <- mcmcParams(mb)
     sb <- warmup(assays(mb), "SBP4", "SB4", ...)
@@ -3621,15 +3645,14 @@ homdeldup_model <- function(mb, mp, augment=TRUE, ...){
     ##
     ## 4th component variance is much too big
     ##
-    mb.subsamp <- mb
-    fdat <- filter(assays(mb.subsamp), !likely_deletion)
-    mb <- warmup(fdat, "MBP3", ...)
-    mcmcParams(mb) <- mp
+    restricted.dat <- filter(assays(mb), !likely_deletion)
+    restricted.mb <- warmup(restricted.dat, "MBP3", ...)
+    mcmcParams(restricted.mb) <- mp
     message("Fitting restricted model")
-    mod_2.4 <- restricted_homhemdup(mb, mb.subsamp, mp, ...)
+    mod_2.4 <- restricted_homhemdup(restricted.mb, mb, mp, ...)
     message("Data augmentation for homozygous deletions")
-    simdat2 <- augment_rarehomdel(mod_2.4, sb, mb.subsamp)
-    mod_1.4 <- hd4comp(mod_2.4, simdat2, mb.subsamp, mp)
+    simdat2 <- augment_rarehomdel(mod_2.4, sb, mb)
+    mod_1.4 <- hd4comp(mod_2.4, simdat2, mb, mp)
     mod_1.4
 }
 
@@ -3698,7 +3721,7 @@ del_models <- function(mb, mp){
     list(model3, model4)
 }
 
-deletion_models <- function(mb, snp_se, mp, THR){
+deletion_models <- function(mb, snp_se, mp){
     ##  if(missing(THR)){
     ##    if("deletion_cutoff" %in% names(summaries(mb))){
     ##      THR <- summaries(mb)$deletion_cutoff
@@ -4022,17 +4045,17 @@ preliminary_checks <- function(mb, grange){
 cnv_models <- function(mb,
                        grange,
                        snp_se,
-                       mp=McmcParams(iter=400, burnin=500),
-                       THR){
+                       mp=McmcParams(iter=1000, burnin=200)){
     ok <- preliminary_checks(mb, grange)
     stopifnot(ok)
     grange <- grange[1]
     if(!is.null(snp_se))
         snpdat <- subsetByOverlaps(snp_se, grange)
     modelfun <- select_models(mb)
-    if(missing(THR))
-        THR <- use_cutoff(mb)
-    model.list <- modelfun(mb, snpdat, mp, THR)
+    ##if(missing(THR))
+    ##THR <- use_cutoff(mb)
+    ##model.list <- modelfun(mb, snpdat, mp, THR)
+    model.list <- modelfun(mb, snpdat, mp)
     model <- choose_model(model.list, mb)
     model
 }

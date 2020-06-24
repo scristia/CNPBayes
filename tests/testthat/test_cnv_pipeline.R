@@ -38,10 +38,8 @@ test_that("common deletion", {
     ## this calls 'deletion_models'
     model2 <- cnv_models(mb.subsamp,
                          rowRanges(cnp_se)["CNP_022"],
-                         snp_se,
-                         THR=-1)
+                         snp_se)
     expect_identical(nrow(model2), nrow(gmodel))
-
     z_gmodel <- map_z(gmodel)
     z_model2 <- map_z(model2)
     expect_identical(modelName(gmodel), modelName(model2))
@@ -56,18 +54,19 @@ test_that("deletion_models", {
     snp_se <- readRDS(file.path(path1, "snp_se.rds"))
     snp_se <- subsetByOverlaps(snp_se, cnp_se)
     mb.subsamp <- readRDS(file.path(path, "mb_subsamp.rds"))
-    mp <- McmcParams(iter=400, burnin=500)
+    mp <- McmcParams(iter=1000, burnin=200, nStarts=4)
     set.seed(5)
-    model2 <- homdeldup_model(mb.subsamp, Nrep=10)
+    model2 <- homdeldup_model(mb.subsamp, mp=mp, Nrep=10)
     ## Only identified when I did 10 starts
     ##
     ## -- needs augmentation at duplicated allele
     ##
-    model.list <- deletion_models(mb.subsamp, snp_se)
+    model.list <- deletion_models(mb.subsamp, snp_se, mp=mp)
     gmodel <- choose_model(model.list, mb.subsamp)
     expect_identical(mapping(gmodel), c("0", "1", "2", "3"))
     if(FALSE){
-        model2 <- select_highconfidence_samples2(gmodel, snp_se)
+        model2 <- CNPBayes:::select_highconfidence_samples2(gmodel,
+                                                            snp_se)
         bafdat <- join_baf_oned(gmodel, snp_se)
         figs <- list_mixture_plots(model2, bafdat)
         mixture_layout(figs, augmented=FALSE)    
@@ -81,11 +80,12 @@ test_that("deletion_models", {
     z_gmodel2 <- map_z(gmodel2.obs)        
     expect_true(mean(z_gmodel1 == z_gmodel2) > 0.995)
 
-
+    ##additional starts helped
+    ##mp <- McmcParams(burnin=200, iter=1000, nStarts=4)
     model3 <- cnv_models(mb.subsamp,
                          rowRanges(cnp_se)["CNP_029"],
                          snp_se,
-                         THR=-1)
+                         mp)
     expect_identical(modelName(model3), modelName(model2))
     z_gmodel3 <- map_z(model3[ !isSimulated(model3) ])
     expect_true(mean(z_gmodel3 == z_gmodel2) > 0.995)
@@ -167,3 +167,40 @@ test_that("Hemizygous deletion +/- duplication pipeline", {
 })
 
 
+.test_that("cnp240", {
+    ##
+    ## This is a 37kb region with  78 SNPs
+    ##
+    ## It is likely that the CNV region is not well defined and that many of the SNPs fall outside the deletion boundaries
+    ## 
+    library(panc.data)
+    data(cnp_se, package="panc.data")
+    data(snp_se, package="panc.data")
+    snps <- subsetByOverlaps(snp_se, cnp_se["CNP_240", ])
+    full.data <- median_summary(snps,
+                                assay_index=2,
+                                provisional_batch=cnp_se$Sample.Plate,
+                                THR=-1)
+    batched.data <- kolmogorov_batches(full.data, 1e-6)
+    set.seed(1234)
+    downsampled.data <- down_sample2(batched.data, min_size=250)
+    mb <- MultiBatch("MB3", data=downsampled.data)
+    expect_true(validObject(mb))
+    mp <- McmcParams(burnin=100, iter=1000, thin=1)
+    devtools::load_all()
+    fit <- homdeldup_model(mb, mp)
+    ggMixture(fit)
+    ggMixture(fit[ !isSimulated(fit) ], bins=200 )
+    bmodel <- fit[!isSimulated(fit)]
+    expect_true(all(id(bmodel) %in% colnames(snps)))
+    gmodel <- genotype_model(bmodel, snps)
+    tmp <- upsample2(gmodel, full.data)
+    freq <- as.integer(table(tmp$copynumber))
+    gap::hwe(freq, data.type="count")
+    if(FALSE){
+        model2 <- select_highconfidence_samples2(gmodel, snps)
+        bafdat <- join_baf_oned(gmodel, snps)
+        figs <- list_mixture_plots(model2, bafdat)
+        mixture_layout(figs, augmented=FALSE)
+    }
+})
