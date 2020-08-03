@@ -150,7 +150,7 @@ full.study
 ggMixture(bayes.model[ !isSimulated(bayes.model) ], bins=300)
 ```
 
-As we hypothesized that the CNV region was a deletion polymorphism, we can check whether the copy number frequencies are consistent with a deletion allele segregating at Hardy Weinberg equilibrium (HWE).  Since our model does not assume a 1 to 1 mapping between mixture components and copy number nor that any of the alterations identified will be in HWE, the assessment for germline CNVs can be a useful quality control. While evidence against HWE does not necessarily indicate problems with the CNV calling, support for HWE would be unlikely if there were major sources of technical variation not yet accounted for. 
+As we hypothesized that the CNV region was a deletion polymorphism, we can check whether the copy number frequencies are consistent with a deletion allele segregating at Hardy Weinberg equilibrium (HWE).  Since our model does not assume a one-to-one mapping between mixture components and copy number nor that any of the alterations identified will be in HWE, the assessment for germline CNVs can be useful for purposes of quality control. While evidence against HWE does not necessarily indicate problems with the CNV calling, support for HWE would be unlikely if there were major sources of technical variation not yet accounted for. 
 
 
 ```{r hwe, eval=FALSE}
@@ -253,7 +253,7 @@ sb3 <- posteriorSimulation(sb3)
 ggMixture(sb3)
 ```
 
-	The SB3 model devotes one of the mixture components to a very heavy-tailed distribution in order to handle both the homozygous deletion as well as the observations in the right tail of the diploid component (Figure 5). The log likelihood for the parameters at the last iteration of the model is `r log_lik(sb3)`.  Since we think the non-Gaussian characteristics of the central model near 0 can be explained by batch effects, the next logical choice is a multi-batch model with 3 components (MB3 model). However, an obvious dilemma arises that one can anticipate for homozygous deletions that are relatively rare -- many of the batches will not contain individuals with a homozygous deletion. We plot the data by batch below, again circling the rare homozygous deletions (Figure 6).
+	The SB3 model devotes one of the mixture components to a very heavy-tailed distribution in order to handle both the homozygous deletion as well as the observations in the right tail of the diploid component (Figure 5). The log likelihood for the parameters at the last iteration of the model is `r log_lik(sb3)`.  Hypothesizing that the non-Gaussian characteristics of the central model near 0 can be explained by batch effects, the next logical choice is a multi-batch model with 3 components (MB3 model). However, an obvious dilemma arises that one can anticipate for homozygous deletions that are relatively rare -- many of the batches will not contain individuals with a homozygous deletion. We plot the data by batch below, again circling the rare homozygous deletions (Figure 6).
 
 ```{r homozygousdeletions, fig.width=6, fig.height=8, fig.cap="Many of the batches do not contain individuals with homozygous deletions. Circled values highlight the 8 participants with an apparent homozygous deletion."}
 smallvals <- filter(assays(mb), oned < -1)
@@ -283,7 +283,7 @@ ggMixture(mb3, bins=300) +
     coord_cartesian(xlim=c(-4.25, 0.75))
 ```
 
-From a Bayesian point-of-view, we have a strong prior that the large negative values at these CNV regions are homozygous deletions -- they are neither artifacts that should be discarded nor outiers that should be modeled with heavy-tailed distrubutions.  Allowing the number of mixture components to vary between batches is one possible solution, but would greatly increase the model space and computational complexity.  As an alternative, CNPBayes currently uses a data augmentation step where additional observations are simulated.  Our approach does not make any assumption about the underlying copy number for the extreme observations -- strictly speaking, we simply want to ensure that every batch has a left tail.  We rationalize the augmentation as an informative prior that each batch should have a mixture component for large negative values.  While we make no assumption about the underlying copy number at this stage, the approach does allows probabilistic estimates of copy number for the observed data albeit influenced by the simulation.  To implement this approach, we first fit a restricted model that excludes the homozygous deletions to obtain reasonable initial values for the means and variance of the remaining copy number states.  
+From a Bayesian point-of-view, we have a strong prior that the large negative values at these CNV regions are homozygous deletions -- they are neither artifacts that should be discarded nor outiers that should be modeled with heavy-tailed distrubutions.  Allowing the number of mixture components to vary between batches is one possible solution, but would greatly increase the model space and computational complexity.  As an alternative, CNPBayes currently uses a data augmentation step where additional observations are simulated.  Our approach does not make any assumption about the underlying copy number for the extreme observations -- strictly speaking, we simply want to ensure that every batch has a left tail.  We rationalize the augmentation as an informative prior that each batch should have a mixture component for large negative values.  While we make no assumption about the underlying copy number at this stage, the approach does allows probabilistic estimates of copy number for the observed data albeit influenced by the simulation.  To implement this approach, we first fit a restricted model that excludes the homozygous deletions to obtain reasonable initial values for the means and variance of the remaining copy number states.
 
 ```{r restricted_model, cache=TRUE}
 ## For restricted model
@@ -303,12 +303,14 @@ w.augmentation <- bayes.model[ !isSimulated(bayes.model) &
 pz <- probz(w.augmentation)
 ## remove the homozygous deletion component / combine the 3rd and 4th components
 pz.w.augmentation <- cbind(pz[, 2], pz[, 3] + pz[, 4])
+pz.wo.augmentation <- probz(restricted)
 all(rowSums(pz.w.augmentation) == 1)
-proportion_thesame <- mean(abs(pz.w.augmentation[, 1] -
-                               pz.wo.augmentation[, 1]) < 0.1)
+all(rowSums(pz.wo.augmentation) == 1)
+prop_same <- mean(abs(pz.w.augmentation[, 1] -
+                      pz.wo.augmentation[, 1]) < 0.1)
 ```
 
-The above results demonstrate that `r round(proportion_thesame, 3)*100`% of the posterior probabilities are the same between the restricted model (without augmentation and homozygous deletions removed) to the model using augmentation. 
+The above results demonstrate that `r round(prop_same, 3)*100`% of the posterior probabilities are the same between the restricted model (without augmentation and homozygous deletions removed) to the model using augmentation. 
 
 Next, we augment the observed data with simulated homozygous deletions and fit the full model.
 
@@ -327,7 +329,7 @@ ggMixture(augmented.mb3) +
     geom_vline(xintercept=0)
 ```
 
-Note that many of the batches have a few observations in the right tail of the diploid mixture component even after accounting for the differences between batches.  These observations are potentially single-copy duplications that appear in a subset of the batches (e.g., batch 4).  Again, an augmentation step could be implemented as a device to ensure that the fourth component is dedicated only to the right tail of each batch. 
+Note that many of the batches have a few observations in the right tail of the diploid mixture component even after accounting for the differences between batches.  These observations are potentially single-copy duplications that appear in a subset of the batches (e.g., batch 4).  Again, an augmentation step could be implemented to ensure that the fourth component is dedicated only to the right tail of each batch. 
 
 
 # Session Information

@@ -86,4 +86,4 @@ URL: https://github.com/scristia/CNPBayes
 BugReports: https://github.com/scristia/CNPBayes/issues
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
