@@ -2318,6 +2318,16 @@ ok_hemizygous <- function(sb){
     mbl
 }
 
+
+#' Run short burnin from multiple independent starts and select a single model for further MCMC
+#' 
+#' @export
+#' @param tib a tibble containing data, sample identifiers, and batch information
+#' @param model1 Name of model (e.g., "MB3", "MBP3", "SB3", ...)
+#' @param model2 Second model to evaluate (optional)
+#' @param model2.penalty Typically we compare a simple model (SB3) to a more complicated model (MB3).  This allows the user to specify a penalty for the more complicated model.
+#' @param Nrep Integer specifying number of independent starts
+#' @param .burnin Integer specifying number of burnin simulations 
 warmup <- function(tib, model1, model2=NULL, model2.penalty=50,
                    Nrep=10, .burnin=100){
     ##
@@ -3549,14 +3559,22 @@ homdel_model <- function(mb, mp, augment=TRUE, ...){
     final
 }
 
-hemdel_model <- function(mb.subsamp, mp, ...){
+#' Fits a series of models consistent for a deletion CNV where only hemizygous deletions are present (no homozygous deletions)
+#' 
+#' @export
+#' @param mb a MultiBatch instance
+#' @param mp a McmcParams instance
+#' @param ... additional arguments passed to warmup
+#' @seealso [warmup()]
+hemdel_model <- function(mb, mp, ...){
+    mb_ <- mb
     if(missing(mp)) mp <- mcmcParams(mb)
-    sb <- warmup(assays(mb.subsamp), "SBP2", "SB2", ...)
+    sb <- warmup(assays(mb), "SBP2", "SB2", ...)
     mcmcParams(sb) <- mp
     sb <- posteriorSimulation(sb)
     finished <- stop_early(sb)
     if(finished) return(sb)
-    mb <- warmup(assays(mb.subsamp), "MBP2", "MB1")
+    mb <- warmup(assays(mb_), "MBP2", "MB1")
     mcmcParams(mb) <- mp
     mb <- posteriorSimulation(mb)
     mb

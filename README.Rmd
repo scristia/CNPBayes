@@ -1,0 +1,138 @@
+---
+title: "CNPBayes: Copy number estimation and association in large-scale studies"
+author: Stephen Cristiano, Jacob Carey, David McKean, Gary L. Rosner, Ingo Ruczinski, Alison Klein, and Robert B. Scharpf
+output:	github_document
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+bibliography: refs.bib	
+---
+
+# Overview
+
+Germline copy number variants (CNVs) increase risk for many diseases, yet detection of CNVs and quantifying their contribution to disease risk in large-scale studies is challenging due to biological and technical sources of heterogeneity. We developed an approach called CNPBayes to identify latent batch effects in genome-wide association studies involving copy number, to provide probabilistic estimates of integer copy number across the estimated batches, and to fully integrate the copy number uncertainty in the association model for disease. 
+
+# Installation
+
+```{r installation, eval=FALSE}
+## install.packages("devtools")
+devtools::install_github("scristia/CNPBayes")
+## Requires a working installation of JAGS
+install.packages("rjags")
+## Working with MCMC output
+install.packages("ggmcmc")
+```
+
+# Usage and workflow
+
+## Example data
+
+The simplest way to illustrate how to fit finite normal mixture models in CNPBayes is to start with a `SummarizedExperiment` object provided in CNPBayes that contains a small slice of data from the Pancreatic Cancer Case Control Consortium (PanC4) (@Childs2015).  Here, we will focus on a CNV region on chromosome 8:
+
+```{r multibatch_data, message=FALSE}
+library(tidyr)
+library(dplyr)
+library(CNPBayes)
+library(SummarizedExperiment)
+library(ggplot2)
+extdir <- system.file("extdata", package="CNPBayes")
+cnp_se <- readRDS(file.path(extdir, "cnp_se.rds"))
+snp_se <- readRDS(file.path(extdir, "snp_se.rds"))
+rowRanges(cnp_se)[5]
+se <- cnp_se[5, ]
+```
+
+## Identifying possible sources of batch effects
+
+Technical sources of variation between groups of samples can potentially confound statistical inference (@Leek2010). CNPBayes allows the analyst to indicate and subsequently evaluate potential sources of batch effect.  Below, we use the chemistry plate on which the samples were processed as a provisional batch variable, but other sources of variation such as DNA source, date of library preparation, and laboratory could be evaluated in a similar fashion.  We begin by calculating the median log2 R ratio in the CNV region for each individual in the `SummarizedExperiment` object and indicate that chemistry plate (`se$Sample.Plate`) is a potential source of batch effects.
+	
+
+```{r median_summary, message=FALSE}
+set.seed(1234)
+full.data <- median_summary(se,
+                            provisional_batch=se$Sample.Plate,
+                            THR=-1)
+```
+
+We use `kolmogorov_batches` to evaluate whether the empirical cumulative distribution function (eCDF) of the median log2 R ratios differs between chemistry plates, and to group chemistry plates with similar eCDFs (see vignette). 
+
+```{r kolmogorov_batches, message=FALSE, cache=TRUE}
+batched.data <- kolmogorov_batches(full.data, 1e-6)
+```
+From the `r length(unique(se$Sample.Plate))` chemistry plates in this experiment, we have identified `r length(unique(batched.data$batch))` batches.   Each batch is comprised of a collection of chemistry plates that we tabulate below.
+
+```{r batches}
+batched.data %>%
+    group_by(batch) %>%
+    summarize(number_plates = length(unique(provisional_batch)),
+              .groups='drop')
+```
+
+Finally, we use `down_sample2` to down-sample the observed data since all 6000+ observations are not needed to approximate the multi-modal distribution of median log2 R ratios.  Since the down-sampling is random, we set a seed for reproducibility.
+
+```{r downsample2, fig.align="center", fig.width=6, fig.height=4, fig.cap="Down-sampled data"}
+set.seed(1234)
+downsampled.data <- down_sample2(batched.data, min_size=250) 
+downsampled.data
+downsampled.data %>%
+    ggplot(aes(oned)) +
+    geom_histogram(aes(oned, ..density..), bins=100,
+                   fill="gray") +
+    geom_density(fill="transparent") +
+    theme_bw() +
+    xlab("Median log2 R ratio")
+```
+
+## Fitting finite mixture models
+
+The bulk of the data corresponds at this CNV region corresponds to diploid individuals with median log$_2 R$ ratios near zero (Figure "Down-sampled data"). The small cluster immediately adjacent to the central mode contains subjects with a likely hemizygous deletion, and the 6 participants scattered at the far left of the graph likely have a homozygous deletion. Below, we create an object of class `MultiBatch` that re-organizes the data in a container for fitting mixture models in CNPBayes.  While model selection can be challenging and requires evaluating many models, here we sidestep these issues and tell CNPBayes to simply fit models consistent with a deletion polymorphism (i.e, 3 - 4 component models) using the `homdel_model` function.
+
+```{r deletion_models, message=FALSE, cache=TRUE}
+## Assume batch effects effects are neglible and that there is a single batch
+mb <- MultiBatch("SBP3", data=downsampled.data)
+mp <- McmcParams(burnin=100, iter=1000, thin=1)
+mcmcParams(mb) <- mp
+model <- homdel_model(mb, mp)
+model
+```
+
+The resulting `model` object contains information about the type of model that was fit and the number of mixture components.  Here `SB3` means that the selected model has a single batch (SB) with 3 mixture components.  To assess goodness of fit, we overlay the density of the posterior predictive distribution on the empirical data using the `ggMixture` function.
+
+```{r posteriorpredictive, fig.align="center", fig.cap="Posterior predictive distribution from CNPBayes overlaying the median log2 R ratios.", fig.width=6, fig.height=4} 
+ggMixture(model) + xlab("median log R ratio") +
+    coord_cartesian(xlim=c(-5.1, 1))
+```
+
+## Genotyping the mixture components
+
+While we have assigned each sample to a mixture component, the mixture components do not necessarily correspond to distinct copy number states.  Using the available SNPs in the CNV region, we identify the set of integer copy numbers that would most likely give rise to the observed B allele frequencies (BAFs). After limiting the SNP `SummarizedExperiment` object to the CNV region of interest, we call the `genotype_model` function to map mixture components to integer copy numbers.  The `mapping` accessor returns a character vector of the copy numbers for each mixture component.  Here, we see that the three mixture components do in fact map to copy numbers 0, 1, and 2.
+
+```{r genotype}
+snp.chr8 <- subsetByOverlaps(snp_se, se)
+gmodel <- genotype_model(model, snp.chr8)
+mapping(gmodel)
+```
+
+As we fit the mixture model using a subset of the available data, we extrapolate the probabilistic estimates of copy number to the entire population using the `upsample2` function.  While we did not make use of the provisional batch labels in this simple example, the up-sampling does require that we provide these labels from the full data.
+
+
+```{r upsampling, cache=TRUE}
+full <- upsample2(gmodel, full.data)
+full
+```
+
+For germline copy number polymorphisms, the deletion allele often segregates at Hardy Weinberg equilibrium (HWE).  As CNPBayes does not make any assumptions about HWE, evaluation of HWE post-hoc can be useful for qualithy control.
+
+
+```{r hwe}
+freq <- as.integer(table(full$copynumber))
+pval <- gap::hwe(freq, data.type="count")$p.x2 
+```
+
+For this region on chr8, we find that the frequencies of copy number states 0, 1, and 2 (n = `r paste(freq, collapse=", ")`) are consistent with HWE.  The copy number posterior probabilities can  be incorporated directly in risk models for disease (see the [vignette](vignette/cnpbayes.html for details).
+
+
+# Related software
+
+cnvCall fits Bayesian hierarchical models of t-distributions assuming the principal sources of batch effects are known (@Cardin2011), building on and extending many of the ideas for modeling copy number variation in the R package `CnvTools` (@Barnes2008).  Expection-Maximization implementations of mixture models are available in the canary package of the Birdsuite software (@Korn2008).  Mixture model based approaches for modeling copy number at specific regions of the genome have also been useful in whole exome sequencing applications (e.g., @Fromer2012 and others).
+
+# References
+

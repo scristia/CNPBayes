@@ -1,0 +1,165 @@
+@Article{Cardin2011,
+  author      = {Cardin, Niall and Holmes, Chris and , Wellcome Trust Case Control Consortium and Donnelly, Peter and Marchini, Jonathan},
+  journal     = {Genet Epidemiol},
+  title       = {Bayesian Hierarchical Mixture Modeling to Assign Copy Number from a Targeted Cnv Array.},
+  year        = {2011},
+  month       = sep,
+  number      = {6},
+  pages       = {536--548},
+  volume      = {35},
+  abstract    = {Accurate assignment of copy number at known copy number variant (CNV) loci is important for both increasing understanding of the structural evolution of genomes as well as for carrying out association studies of copy number with disease. As with calling SNP genotypes, the task can be framed as a clustering problem but for a number of reasons assigning copy number is much more challenging. CNV assays have lower signal-to-noise ratios than SNP assays, often display heavy tailed and asymmetric intensity distributions, contain outlying observations and may exhibit systematic technical differences among different cohorts. In addition, the number of copy-number classes at a CNV in the population may be unknown a priori. Due to these complications, automatic and robust assignment of copy number from array data remains a challenging problem. We have developed a copy number assignment algorithm, CNVCALL, for a targeted CNV array, such as that used by the Wellcome Trust Case Control Consortium's recent CNV association study. We use a Bayesian hierarchical mixture model that robustly identifies both the number of different copy number classes at a specific locus as well as relative copy number for each individual in the sample. This approach is fully automated which is a critical requirement when analyzing large numbers of CNVs. We illustrate the methods performance using real data from the Wellcome Trust Case Control Consortium's CNV association study and using simulated data.},
+  doi         = {10.1002/gepi.20604},
+  institution = {Department of Statistics, University of Oxford, 1 South Parks Road, Oxford, United Kingdom. NiallC@gmail.com},
+  keywords    = {Algorithms; Bayes Theorem; Cluster Analysis; Cohort Studies; Computer Simulation; DNA Copy Number Variations; Gene Dosage; Genotype; Humans; Models, Genetic; Molecular Epidemiology, methods},
+  language    = {eng},
+  medline-pst = {ppublish},
+  owner       = {rscharpf},
+  pmid        = {21769931},
+  timestamp   = {2013.11.13},
+}
+
+@Article{Korn2008,
+  author      = {Joshua M Korn and Finny G Kuruvilla and Steven A McCarroll and Alec Wysoker and James Nemesh and Simon Cawley and Earl Hubbell and Jim Veitch and Patrick J Collins and Katayoon Darvishi and Charles Lee and Marcia M Nizzari and Stacey B Gabriel and Shaun Purcell and Mark J Daly and David Altshuler},
+  journal     = {Nat Genet},
+  title       = {Integrated Genotype Calling and Association Analysis of {SNP}s, Common Copy Number Polymorphisms and Rare {CNV}s.},
+  year        = {2008},
+  month       = oct,
+  number      = {10},
+  pages       = {1253--1260},
+  volume      = {40},
+  abstract    = {Accurate and complete measurement of single nucleotide (SNP) and copy number (CNV) variants, both common and rare, will be required to understand the role of genetic variation in disease. We present Birdsuite, a four-stage analytical framework instantiated in software for deriving integrated and mutually consistent copy number and SNP genotypes. The method sequentially assigns copy number across regions of common copy number polymorphisms (CNPs), calls genotypes of SNPs, identifies rare CNVs via a hidden Markov model (HMM), and generates an integrated sequence and copy number genotype at every locus (for example, including genotypes such as A-null, AAB and BBB in addition to AA, AB and BB calls). Such genotypes more accurately depict the underlying sequence of each individual, reducing the rate of apparent mendelian inconsistencies. The Birdsuite software is applied here to data from the Affymetrix SNP 6.0 array. Additionally, we describe a method, implemented in PLINK, to utilize these combined SNP and CNV genotypes for association testing with a phenotype.},
+  doi         = {10.1038/ng.237},
+  institution = {Broad Institute of Harvard and Massachusetts Institute of Technology, Cambridge, Massachusetts 02142, USA. jkorn@broad.mit.edu},
+  owner       = {rscharpf},
+  pii         = {ng.237},
+  pmid        = {18776909},
+  timestamp   = {2008.10.07},
+}
+
+@Article{Fromer2012,
+  author      = {Fromer, Menachem and Moran, Jennifer L. and Chambert, Kimberly and Banks, Eric and Bergen, Sarah E. and Ruderfer, Douglas M. and Handsaker, Robert E. and McCarroll, Steven A. and O'Donovan, Michael C. and Owen, Michael J. and Kirov, George and Sullivan, Patrick F. and Hultman, Christina M. and Sklar, Pamela and Purcell, Shaun M.},
+  journal     = {Am J Hum Genet},
+  title       = {Discovery and Statistical Genotyping of Copy-number Variation from Whole-exome Sequencing Depth.},
+  year        = {2012},
+  month       = oct,
+  number      = {4},
+  pages       = {597--607},
+  volume      = {91},
+  abstract    = {Sequencing of gene-coding regions (the
+ exome) is increasingly used for studying human
+ disease, for which copy-number variants (CNVs) are a
+ critical genetic component. However, detecting copy
+ number from exome sequencing is challenging because
+ of the noncontiguous nature of the captured
+ exons. This is compounded by the complex
+ relationship between read depth and copy number;
+ this results from biases in targeted genomic
+ hybridization, sequence factors such as GC content,
+ and batching of samples during collection and
+ sequencing. We present a statistical tool (exome
+ hidden Markov model [XHMM]) that uses
+ principal-component analysis (PCA) to normalize
+ exome read depth and a hidden Markov model (HMM) to
+ discover exon-resolution CNV and genotype variation
+ across samples. We evaluate performance on 90
+ schizophrenia trios and 1,017 case-control
+ samples. XHMM detects a median of two rare (<1\%)
+ CNVs per individual (one deletion and one
+ duplication) and has 79\% sensitivity to similarly
+ rare CNVs overlapping three or more exons discovered
+ with microarrays. With sensitivity similar to
+ state-of-the-art methods, XHMM achieves higher
+ specificity by assigning quality metrics to the CNV
+ calls to filter out bad ones, as well as to
+ statistically genotype the discovered CNV in all
+ individuals, yielding a trio call set with
+ Mendelian-inheritance properties highly consistent
+ with expectation. We also show that XHMM breakpoint
+ quality scores enable researchers to explicitly
+ search for novel classes of structural
+ variation. For example, we apply XHMM to extract
+ those CNVs that are highly likely to disrupt (delete
+ or duplicate) only a portion of a gene.},
+  doi         = {10.1016/j.ajhg.2012.08.005},
+  institution = {Division of Psychiatric Genomics, Mount Sinai School of Medicine, New York, NY 10029, USA. menachem.fromer@mssm.edu},
+  keywords    = {Case-Control Studies; DNA Copy Number Variations; Exome; Exons; Genome-Wide Association Study, methods; Genotype; Genotyping Techniques, methods; High-Throughput Nucleotide Sequencing, methods; Humans; Models, Genetic; Nucleic Acid Hybridization, methods; Oligonucleotide Array Sequence Analysis, methods},
+  language    = {eng},
+  medline-pst = {ppublish},
+  owner       = {rscharpf},
+  pii         = {S0002-9297(12)00417-X},
+  pmcid       = {PMC3484655},
+  pmid        = {23040492},
+  timestamp   = {2013.05.12},
+}
+
+@Article{Barnes2008,
+  author      = {Chris Barnes and Vincent Plagnol and Tomas Fitzgerald and Richard Redon and Jonathan Marchini and David Clayton and Matthew E Hurles},
+  journal     = {Nat Genet},
+  title       = {A Robust Statistical Method for Case-control Association Testing with Copy Number Variation.},
+  year        = {2008},
+  month       = oct,
+  number      = {10},
+  pages       = {1245--1252},
+  volume      = {40},
+  abstract    = {Copy number variation (CNV) is pervasive in the human genome and can play a causal role in genetic diseases. The functional impact of CNV cannot be fully captured through linkage disequilibrium with SNPs. These observations motivate the development of statistical methods for performing direct CNV association studies. We show through simulation that current tests for CNV association are prone to false-positive associations in the presence of differential errors between cases and controls, especially if quantitative CNV measurements are noisy. We present a statistical framework for performing case-control CNV association studies that applies likelihood ratio testing of quantitative CNV measurements in cases and controls. We show that our methods
+
+are robust to differential errors and noisy data and can achieve maximal theoretical power. We illustrate the power of these methods for testing for association with binary and quantitative traits, and have made this software available as the R package CNVtools.},
+  doi         = {10.1038/ng.206},
+  institution = {Wellcome Trust Sanger Institute, Wellcome Trust Genome Campus, Hinxton, Cambridge, UK.},
+  keywords    = {Case-Control Studies; Chromosomes, Human; Cohort Studies; Computer Simulation; DNA; Diabetes Mellitus, Type 1; Gene Dosage; Genome, Human; Haplotypes; Humans; Models, Genetic; Oligonucleotide Array Sequence Analysis; Polymerase Chain Reaction; Polymorphism, Single Nucleotide; Quantitative Trait Loci},
+  owner       = {rscharpf},
+  pii         = {ng.206},
+  pmid        = {18776912},
+  timestamp   = {2008.11.21},
+}
+
+
+@Article{Childs2015,
+  author          = {Childs, Erica J and Mocci, Evelina and Campa, Daniele and Bracci, Paige M and Gallinger, Steven and Goggins, Michael and Li, Donghui and Neale, Rachel E and Olson, Sara H and Scelo, Ghislaine and Amundadottir, Laufey T and Bamlet, William R and Bijlsma, Maarten F and Blackford, Amanda and Borges, Michael and Brennan, Paul and Brenner, Hermann and Bueno-de-Mesquita, H Bas and Canzian, Federico and Capurso, Gabriele and Cavestro, Giulia M and Chaffee, Kari G and Chanock, Stephen J and Cleary, Sean P and Cotterchio, Michelle and Foretova, Lenka and Fuchs, Charles and Funel, Niccola and Gazouli, Maria and Hassan, Manal and Herman, Joseph M and Holcatova, Ivana and Holly, Elizabeth A and Hoover, Robert N and Hung, Rayjean J and Janout, Vladimir and Key, Timothy J and Kupcinskas, Juozas and Kurtz, Robert C and Landi, Stefano and Lu, Lingeng and Malecka-Panas, Ewa and Mambrini, Andrea and Mohelnikova-Duchonova, Beatrice and Neoptolemos, John P and Oberg, Ann L and Orlow, Irene and Pasquali, Claudio and Pezzilli, Raffaele and Rizzato, Cosmeri and Saldia, Amethyst and Scarpa, Aldo and Stolzenberg-Solomon, Rachael Z and Strobel, Oliver and Tavano, Francesca and Vashist, Yogesh K and Vodicka, Pavel and Wolpin, Brian M and Yu, Herbert and Petersen, Gloria M and Risch, Harvey A and Klein, Alison P},
+  journal         = {Nature Genetics},
+  title           = {Common Variation at 2p13.3, 3q29, 7p13 and 17q25.1 Associated with Susceptibility to Pancreatic Cancer.},
+  year            = {2015},
+  issn            = {1546-1718},
+  month           = aug,
+  pages           = {911--916},
+  volume          = {47},
+  abstract        = {Pancreatic cancer is the fourth leading cause of cancer death in the developed world. Both inherited high-penetrance mutations in BRCA2 (ref. 2), ATM, PALB2 (ref. 4), BRCA1 (ref. 5), STK11 (ref. 6), CDKN2A and mismatch-repair genes and low-penetrance loci are associated with increased risk. To identify new risk loci, we performed a genome-wide association study on 9,925 pancreatic cancer cases and 11,569 controls, including 4,164 newly genotyped cases and 3,792 controls in 9 studies from North America, Central Europe and Australia. We identified three newly associated regions: 17q25.1 (LINC00673, rs11655237, odds ratio (OR) = 1.26, 95% confidence interval (CI) = 1.19-1.34, P = 1.42 × 10(-14)), 7p13 (SUGCT, rs17688601, OR = 0.88, 95% CI = 0.84-0.92, P = 1.41 × 10(-8)) and 3q29 (TP63, rs9854771, OR = 0.89, 95% CI = 0.85-0.93, P = 2.35 × 10(-8)). We detected significant association at 2p13.3 (ETAA1, rs1486134, OR = 1.14, 95% CI = 1.09-1.19, P = 3.36 × 10(-9)), a region with previous suggestive evidence in Han Chinese. We replicated previously reported associations at 9q34.2 (ABO), 13q22.1 (KLF5), 5p15.33 (TERT and CLPTM1), 13q12.2 (PDX1), 1q32.1 (NR5A2), 7q32.3 (LINC-PINT), 16q23.1 (BCAR1) and 22q12.1 (ZNRF3). Our study identifies new loci associated with pancreatic cancer risk.},
+  citation-subset = {IM},
+  completed       = {2015-10-26},
+  country         = {United States},
+  doi             = {10.1038/ng.3341},
+  issn-linking    = {1061-4036},
+  issue           = {8},
+  keywords        = {Aged; Australia; Chromosomes, Human, Pair 17, genetics; Chromosomes, Human, Pair 2, genetics; Chromosomes, Human, Pair 3, genetics; Chromosomes, Human, Pair 7, genetics; Europe; Female; Gene Frequency; Genetic Loci, genetics; Genetic Predisposition to Disease, genetics; Genome-Wide Association Study, methods; Genotype; Humans; Male; Middle Aged; North America; Pancreatic Neoplasms, genetics; Polymorphism, Single Nucleotide; Risk Factors},
+  mid             = {NIHMS695333},
+  nlm-id          = {9216904},
+  owner           = {NLM},
+  pii             = {ng.3341},
+  pmc             = {PMC4520746},
+  pmid            = {26098869},
+  pubmodel        = {Print-Electronic},
+  pubstatus       = {ppublish},
+  revised         = {2017-09-30},
+}
+
+@Article{Leek2010,
+  author      = {Jeffrey T Leek and Robert B Scharpf and Héctor Corrada Bravo and David Simcha and Benjamin Langmead and W. Evan Johnson and Donald Geman and Keith Baggerly and Rafael A Irizarry},
+  journal     = {Nat Rev Genet},
+  title       = {Tackling the Widespread and Critical Impact of Batch Effects in High-throughput Data.},
+  year        = {2010},
+  month       = oct,
+  number      = {10},
+  pages       = {733--739},
+  volume      = {11},
+  abstract    = {High-throughput technologies are widely used, for example to assay genetic variants, gene and protein expression, and epigenetic modifications. One often overlooked complication with such studies is batch effects, which occur because measurements are affected by laboratory conditions, reagent lots and personnel differences. This becomes a major problem when batch effects are correlated with an outcome of interest and lead to incorrect conclusions. Using both published studies and our own analyses, we argue that batch effects (as well as other technical and biological artefacts) are widespread and critical to address. We review experimental and computational approaches for doing so.},
+  doi         = {10.1038/nrg2825},
+  institution = {Department of Biostatistics, Johns Hopkins Bloomberg School of Public Health, Baltimore, Maryland 21205-2179, USA.},
+  keywords    = {Biotechnology, methods/standards/statistics /&/ numerical data; Computational Biology, methods; Genomics, methods/standards/statistics /&/ numerical data; Oligonucleotide Array Sequence Analysis, methods/standards/statistics /&/ numerical data; Periodicals as Topic, standards; Research Design, standards/statistics /&/ numerical data; Sequence Analysis, DNA, methods/standards/statistics /&/ numerical data},
+  language    = {eng},
+  medline-pst = {ppublish},
+  owner       = {rscharpf},
+  pii         = {nrg2825},
+  pmcid       = {NIHMS:322071},
+  pmid        = {20838408},
+  timestamp   = {2011.02.28},
+}

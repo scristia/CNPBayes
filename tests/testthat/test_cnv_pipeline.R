@@ -65,7 +65,8 @@ test_that("deletion_models", {
     gmodel <- choose_model(model.list, mb.subsamp)
     expect_identical(mapping(gmodel), c("0", "1", "2", "3"))
     if(FALSE){
-        model2 <- select_highconfidence_samples2(gmodel, snp_se)
+        model2 <- CNPBayes:::select_highconfidence_samples2(gmodel,
+                                                            snp_se)
         bafdat <- join_baf_oned(gmodel, snp_se)
         figs <- list_mixture_plots(model2, bafdat)
         mixture_layout(figs, augmented=FALSE)    

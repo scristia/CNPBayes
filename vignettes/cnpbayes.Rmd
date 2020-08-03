@@ -1,0 +1,337 @@
+---
+title: "CNPBayes: Bayesian copy number estimation and association in large-scale studies"
+author: "Stephen Cristiano, Jacob Carey, David McKean, Gary L. Rosner, Ingo Ruczinski, Alison Klein, and Robert B. Scharpf"
+date: "`r format(Sys.Date())`"
+output:	
+  BiocStyle::html_document:
+    keep_md: true
+vignette: >
+  %\VignetteIndexEntry{CNPBayes: Bayesian copy number estimation and association in large-scale studies}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Overview
+
+Germline copy number variants (CNVs) increase risk for many diseases, yet detection of CNVs and quantifying their contribution to disease risk in large-scale studies is challenging due to biological and technical sources of heterogeneity. We developed an approach called CNPBayes to identify latent batch effects in genome-wide association studies involving copy number, to provide probabilistic estimates of integer copy number across the estimated batches, and to fully integrate the copy number uncertainty in the association model for disease. 
+
+This vignette follows the general outline of the README provided with this package, but provides additional details on strategies for modeling copy number in the presence of latent batch effects, modeling homozygous deletions when they are rare, and model selection.  The number of MCMC simulations and thoroughness of which any model is evaluated will be inadequate, but we hope this provides general guidance for the overall approach and motivation for some of the modeling decisions.
+
+# Required packages
+
+
+```{r packages, message=FALSE}
+library(tidyverse)
+library(SummarizedExperiment)
+library(CNPBayes)
+library(ggplot2)
+library(gap)
+library(rjags)
+library(ggmcmc)
+```
+
+# Motivating example
+
+Estimation of copy number at regions where germline CNVs are known to occur has the potential to improve sensitivity and specificity over single-sample approaches.  Technical sources of variation across the genome due to probe-effects, GC content, and replication timing are largely controlled when limited to a focal genomic region.  In addition, variation between samples, ignored in single-sample methods, can be explicitly modeled.  We illustrate our approach using a known CNV region on chr2 in a case-control dataset of 6,038 individuals with pancreatic cancer and healthy controls @Childs.  Anonymized SNP data for 7 CNV regions, including the region on chr2, are available as a `SummarizedExperiment`.  Below, we compute the median log2 R ratio  for each participant at the region of interest and plot the data.
+
+```{r SummarizedExperiment, fig.align="center", fig.width=6, fig.height=4, fig.cap="Median log2 R ratios for 6,038 participants at a known CNV region on chr2.  Seven participants have large negative values consistent with a homozygous deletion (circled)."}
+extdir <- system.file("extdata", package="CNPBayes")
+se <- readRDS(file.path(extdir, "snp_se.rds"))
+cnv_region <- GRanges("chr2", IRanges(90010895, 90248037),
+                      seqinfo=seqinfo(se))
+se2 <- subsetByOverlaps(se, cnv_region)
+dat <- assays(se2)[["lrr"]] %>%
+    colMedians(na.rm=TRUE) %>%
+    tibble(median=.)
+smallvals <- filter(dat, median < -1)
+dat %>%
+    ggplot(aes(median)) +
+    geom_histogram(bins=300, aes(y=..density..),
+                   fill="gray") +
+    geom_density() +
+    geom_point(data=smallvals, aes(median, 0),
+               shape=21, size=6,
+               fill="transparent") +
+    theme_bw(base_size=12)
+```
+
+
+As the left and right tails partially overlap with smaller peaks containing single-copy loss and gains (Figure 2), our general approach is to (1) determine whether technical sources of variation (batch effects) could better separate the mixture components due to copy number, (2) fit finite mixture models to cluster observations both with and without stratification by batch, and (3) incorporate any uncertainty in the copy number estimates from the posterior distribution to risk models for disease.
+
+```{r diploid, fig.align="center", fig.cap="The diploid component containing the bulk of the data is not quite symmetric and the left and right tails partially overlap with smaller peaks containing single-copy loss and gains.", fig.width=6, fig.height=4}
+dat %>%
+    ggplot(aes(median)) +
+    geom_histogram(bins=300, aes(y=..density..),
+                   fill="gray") +
+    geom_density() +    
+    theme_bw(base_size=12) +
+    coord_cartesian(xlim=c(-1, 0.75))
+```
+
+# Batch effects
+
+To format the data in a more consistent format, we use the function `median_summary`.  This function additionally will additionally attach a variable that many explain technical variation between groups of samples through the `provisional_batch` argument.  Examples of a provisional batch variable include the date genomic libraries were prepared, the source of DNA (i.e., blood, buccal, saliva, etc), lab technician, or study site. Here, we use the PCR plate as the provisional batch.
+
+```{r cnv_region}
+provisional_batch <- se2$Sample.Plate
+full.data <- median_summary(se2,
+                            provisional_batch=provisional_batch,
+                            assay_index=2,
+                            THR=-1)
+full.data
+```
+
+To evaluate batch effects, we compare the empirical cumulative distribution function (eCDF) of the median log2 R ratios for the provisional batches using a Kolmogorov-Smirnov (KS test). If the p-value for the KS test comparing the eCDF of two provisional batches is greater than a user specified cutoff, the samples in the two provisional batches are combined into a single new batch. Otherwise, the samples are left in separate groups.  The test is repeated recursively until no 2 batches can be combined.  As p-values are sensitive to the size of the study and fitting mixture models with a large number of batches would greatly increase computational complexity, identifying an appropriate cutoff may require trial-and-error. Below, we settled on a cutoff of `1e-6` as this cutoff identified 8 batches from the 94 chemistry plates that were visually distinct.
+
+```{r batch_surrogates, cache=TRUE}
+## P-values are senstive to sample size...
+batched.data <- kolmogorov_batches(full.data, 1e-6)    ## 30 more seconds
+```
+
+Since all `r nrow(full.data)` individuals are not needed to approximate the density of the median log ratios and would further increase computation, we take a random sample of observatons within each batch using the `down_sample2` function.  Batches with fewer than `min_size` samples are not down-sampled.
+
+
+```{r batchfig, fig.align="center", fig.width=5, fig.height=8, fig.cap="Some of the skew in the marginal distribution (top facet) can be explained by technical variation between the estimated batches (batches 1-8). The distribution of the log ratios where the bulk of the data exists appears more symmetric around the mode after stratification by batch."}
+set.seed(134)
+downsampled.data <- down_sample2(batched.data, min_size=200)
+smallvals2 <- filter(downsampled.data, oned < -1)
+marginal <- downsampled.data %>%
+    mutate(batch=0L, batch_labels="0") %>%
+    bind_rows(downsampled.data)
+relabel <- setNames(c("Marginal", paste0("Batch ", 1:8)), 0:8)
+marginal %>%
+    ggplot(aes(oned)) +
+    geom_histogram(bins=300, aes(y=..density..), fill="gray") +
+    geom_density() +
+    geom_point(data=smallvals2, aes(oned, 0),
+               shape=21, size=6,
+               fill="transparent") +
+    theme_bw(base_size=12)  +
+    theme(panel.grid=element_blank(),
+          strip.background=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank()) +
+    facet_wrap(~batch, ncol=1, scales="free_y",
+               labeller=labeller(batch=relabel)) +
+    geom_vline(xintercept=0) +
+    coord_cartesian(xlim=c(-0.5, 0.4)) +
+    xlab("Median log ratio")
+```
+
+# Finite-mixture models
+
+## Approach
+
+We will model the data hierarchically across the estimated batches as a finite-mixture of near-Gaussian densities. Rather than fit an ordinary mixture model and hope that the resulting mixture components have a biologically meaningful interpretation, our approach leverages information about the likely deletion or duplication polymorphisms at these regions.  For this particularly CNV, we have already highlighted that several individuals have a likely homozygous deletion (circled observations in Figure 1), indicating that this is a deletion polymorphism.  We fit a series of mixture models with a sufficient number of components to model deletion polymorphisms.  Below, we instantiate an object of class `MultiBatch` that will be used to encapsulate parameters of the mixture model, hyper-parameters, initial values, and a slot for storing chains for each parameter.  The `show` method for the `MultiBatch` class provides a concise summary of the data and parameters encapsulated in this object, while `assays` can be used to extract the down-sampled data.
+
+```{r instantiate_mb}
+mb <- MultiBatch(data=downsampled.data)
+mb
+assays(mb)
+mp <- McmcParams(iter=500, burnin=200)
+mp
+```
+
+For now, we postpone the discussion of the set of models that are evaluated by CNPBayes, and instead run a single function `homdeldup_model` that fits a series of models and chooses one.  To assess goodness of fit, we use the function `ggMixture` to overlay the empirical median log R ratios with the density of the posterior predictive distribution from the final model.  The function `genotype_model` maps the mixture components labels to integer copy number using the B allele frequencies stored in the original `SummarizedExperiment` object. Finally, we use `upsample` to obtain probabilistic estimates of the integer copy number as well as the maximum a posteriori copy number for the entire study population.
+
+```{r selected_model, cache=TRUE, results="hide", message=FALSE}
+set.seed(123)
+bayes.model <- homdeldup_model(mb, mp)
+genotype.model <- genotype_model(bayes.model, se2)
+genotype.model
+mapping(genotype.model)
+## Provide probabilistic estimates of copy number for the full study
+full.study <- upsample2(genotype.model, full.data)
+full.study
+```
+
+```{r mixmodelfig, fig.align="center", fig.width=6, fig.height=4, fig.cap="To assess goodness of fit, we overlay the empirical median log2 R ratios with the density from the posterior predictive distribution.", fig.width=6, fig.height=8}
+## Assess goodness of fit from posterior predictive distribution
+ggMixture(bayes.model[ !isSimulated(bayes.model) ], bins=300)
+```
+
+As we hypothesized that the CNV region was a deletion polymorphism, we can check whether the copy number frequencies are consistent with a deletion allele segregating at Hardy Weinberg equilibrium (HWE).  Since our model does not assume a 1 to 1 mapping between mixture components and copy number nor that any of the alterations identified will be in HWE, the assessment for germline CNVs can be a useful quality control. While evidence against HWE does not necessarily indicate problems with the CNV calling, support for HWE would be unlikely if there were major sources of technical variation not yet accounted for. 
+
+
+```{r hwe, eval=FALSE}
+cn.freq <- as.integer(table(full.study$copynumber)[1:3])
+hwe.stats <- gap::hwe(cn.freq, data.type="count")
+hwe.stats
+```
+
+
+# Association model
+
+Standard Bayesian and frequentist regression models using the maximum a posteriori copy number estimate are appropriate if there is little uncertainty in the copy number estimates.  To illustrate the approach using a toy example, we simulate disease status for 1000 observations and fit a logistic regression model to evaluate whether there is an association between copy number and the log odds of cancer.
+
+
+```{r simulate_disease}
+b0 <- 1.5
+b1 <- -0.75
+map_cn_estimates <- full.study$copynumber[1:1000]
+XB <- b0 + b1 * map_cn_estimates
+probs <- exp(XB)/(1 + exp(XB))
+y  <- rbinom(length(probs), 1, prob=probs)
+df <- tibble(y=y, cn=map_cn_estimates)
+fit1 <- glm(y~cn, data=df, family=binomial(link="logit"))
+coef(summary(fit1))
+glmbeta <- coef(summary(fit1))[2, "Estimate"]
+```
+
+Inevitably, many CNV regions will have a lower signal-to-noise ratio and probabilities for the integer copy number states will reflect the increased uncertainty.  When copy number estimates are uncertain, a Bayesian logistic regression model can incorporate the copy number probabilities directly. We include a simple model in JAGS (without other covariates), passing the posterior probabilities of the integer copy number assignments to the JAGS model in the variable `P`.
+
+```{r uncertainty, results="hide", message=FALSE, cache=TRUE, warning=FALSE}
+cn_probs <- ungroup(full.study[1:1000, ]) %>%
+    select(c("cn_0", "cn_1", "cn_2", "cn_3")) %>%
+    as.matrix()
+jags_data <- list(N=length(y),
+                  y=y,
+                  P=cn_probs)
+jagsdir <- system.file("JAGS", package="CNPBayes")
+fit <- jags.model(file.path(jagsdir, "cnv_assoc.jag"),
+                  data=jags_data,
+                  n.chains=1,
+                  n.adapt=500)
+samples <- coda.samples(fit,
+                        variable.names=c("b0", "b1", "zbeta"),
+                        n.iter=2000*50, thin=50) %>%
+    ggs()
+```
+
+In addition to the regression coefficient for copy number, the jags model includes a latent indicator variable $z$ that multiplies the copy number coefficient. Through Bayesian model averaging, we obtain a posterior distribution over the odds that an intercept-only model is adequate.  Below, we show the traceplot of the regression coefficient when $z$ is 1 and copy number is included in the model:
+
+```{r posterior_summaries, fig.align="center", fig.cap="Traceplot for copy number regression coefficient conditional for simulations where $z = 1$.", fig.width=8, fig.height=3}
+b <- filter(samples, Parameter=="zbeta")
+b %>%
+    filter(value != 0) %>%
+    ggs_traceplot() +
+    geom_line(color="gray")+
+    geom_hline(yintercept=glmbeta, color="steelblue") +
+    theme_bw()
+```
+
+Due to the autocorrelation in this chain, regions of the traceplot near where $z$ was zero are still evident -- additional thinning and more iterations would be required to provide a better approximation for the posterior of the copy number regression coefficient. However, an advantage of this approach is that we get a direct estimate of the probability that the regression coefficient for copy number is non-zero (probability `r round(mean(b$value!=0), 2)`).
+
+
+# Discussion
+
+To summarize, we have developed an approach that allows the user to speculate about the possible sources of technical variation between groups of samples in large-scale studies. Ideally, this speculation should be granular enough to allow CNPBayes to evaluate whether the batch variable can be coarsened on the basis on the similarity of the eCDFs for the provisional batches. Modeling the data hierarchically can help resolve irregularities in the modal peaks that are attributable to technical variation, allowing further separation of mixture components by copy number and reducing false positives.  Rare, extreme observations that appear in a subset of the estimated batches can complicate fitting these hierarchical models.  CNPBayes currently employs a data augmentation step that simulates extreme observations in each batch based on the observed data. This approach helps to ensure that the mixture components capture data with similar location and scale between batches.  As our model does not make any assumptions about HWE, post-hoc assessments of HWE for germline CNVs can provide independent affirmation that the estimated copy numbers are reasonable for many CNV regions. 
+
+# Appendix
+
+## MCMC chains
+
+While we cannot really determine whether a given model has converged, we can usually tell when it has not.  Here, we illustrate how one can access the chains from the `MultiBatch` instances created in the preceding analyses. 
+
+```{r chains}
+ch <- chains(bayes.model)
+ch
+tmp <- as(ch, "list")
+th <- tmp$theta
+th %>%
+    filter(k == "k 3") %>%
+    ggplot(aes(s, value)) +
+    geom_line() +
+    facet_grid(b~.)
+```
+
+## Alternative models
+
+We previously used the function `homdeldup_model` to evaluate a series of models consistent with deletion and duplication polymorphisms. CNPBayes allows a many-to-one mapping of mixture components to copy number states but never one-to-many,  implying we would need at least 3 components to model the integer copy numbers 0, 1, and 2, and 4 components if duplications are present. The models `homdeldup_model` evaluated included single-batch (SB) finite mixture models with 3 or 4 components (abbreviated as SB3 or SB4) that assume the batch effects were neglible, as well as multi-batch models MB3 and MB4. In addition, we evaluated pooled (P) variance models that assume that mixture components have the same variance denoted as SBP3 and SBP4.  For MBP3 and and MBP4, the mixture components are assumed to have the same variance within a batch, but the variance can differ between batches.  One can fit these models directly by (1) creating a list of models with `MultiBatchList` and selecting one of the possible models in the named list and (2) using the function `posteriorSimulation` to run the MCMC.  In this section, we step through some of these models. 
+
+For a deletion or duplication polymorphism, CNPBayes begins with the most parsimonious model at our disposal for modeling a deletion polymorphism -- single batch and single batch pooled variance models with 3 components, or SB3 and SBP3 respectively. In the following code-chunk, we fit the SB3 model that allows the mixture components to have different variances. 
+
+
+```{r sb4, fig.align="center", fig.cap="The single-batch model has trouble with the heavy-tailed variation near copy number 2 (median log Ratio of 0) where the bulk of the data exists. The non-Gaussian diploid component is largely due to batch effects.", fig.width=6, fig.height=4}
+model.list <- MultiBatchList(data=downsampled.data)
+names(model.list)
+sb3 <- model.list[["SB3"]]
+## In practice, one would want to specify more iterations and a larger burnin
+iter(sb3) <- 500
+burnin(sb3) <- 200
+sb3 <- posteriorSimulation(sb3)
+ggMixture(sb3)
+```
+
+	The SB3 model devotes one of the mixture components to a very heavy-tailed distribution in order to handle both the homozygous deletion as well as the observations in the right tail of the diploid component (Figure 5). The log likelihood for the parameters at the last iteration of the model is `r log_lik(sb3)`.  Since we think the non-Gaussian characteristics of the central model near 0 can be explained by batch effects, the next logical choice is a multi-batch model with 3 components (MB3 model). However, an obvious dilemma arises that one can anticipate for homozygous deletions that are relatively rare -- many of the batches will not contain individuals with a homozygous deletion. We plot the data by batch below, again circling the rare homozygous deletions (Figure 6).
+
+```{r homozygousdeletions, fig.width=6, fig.height=8, fig.cap="Many of the batches do not contain individuals with homozygous deletions. Circled values highlight the 8 participants with an apparent homozygous deletion."}
+smallvals <- filter(assays(mb), oned < -1)
+assays(mb) %>%
+    ggplot(aes(oned)) +
+    geom_histogram(bins=300, aes(y=..density..),
+                   fill="gray") +
+    geom_density() +
+    geom_point(data=smallvals, aes(oned, 0),
+               shape=21, size=6,
+               fill="transparent",
+               inherit.aes=FALSE) +
+    theme_bw(base_size=12) +
+    facet_wrap(~batch, ncol=1)
+```
+
+While we would like to fit a multi-batch model to better model the non-Gaussian central mode, a hierarchical model across the batches will have difficulty. For batches without apparent homozygous deletions, the first mixture component will help explain variation in the observed data closer to the central model.  As CNPBayes assumes that the number of components is the same in each batch, the model will *borrow* information across batches with and without homozygous deletions.  As in the SB model, the result tends to be a mixture component with a very large variance and will have no clear biological interpretation (Figure 7).  
+
+
+```{r mb3, fig.align="center", fig.cap="The hierarchical mixture model has mixture components that are heavy-tailed due to the presence of homozygous deletions in a subset of the batches. Note also that the color of the central peak differs between batches, indicating that the upper level of the hierarchical model is not capturing between-batch variation of the latent integer copy number and any attempts to map mixture component labels to copy number would need to be batch-specific. Finally, even for batches with multiple homozygous deletions (batch 4), the mixture component is very heavy-tailed as the mean and variance are affected by the other batches.", fig.width=6, fig.height=8, cache=TRUE}
+mb3 <- revertToMultiBatch(sb3)
+## In practice, one would want to specify more iterations and a larger burnin
+iter(mb3) <- 400
+burnin(mb3) <- 100
+mb3 <- posteriorSimulation(mb3)
+ggMixture(mb3, bins=300) +
+    coord_cartesian(xlim=c(-4.25, 0.75))
+```
+
+From a Bayesian point-of-view, we have a strong prior that the large negative values at these CNV regions are homozygous deletions -- they are neither artifacts that should be discarded nor outiers that should be modeled with heavy-tailed distrubutions.  Allowing the number of mixture components to vary between batches is one possible solution, but would greatly increase the model space and computational complexity.  As an alternative, CNPBayes currently uses a data augmentation step where additional observations are simulated.  Our approach does not make any assumption about the underlying copy number for the extreme observations -- strictly speaking, we simply want to ensure that every batch has a left tail.  We rationalize the augmentation as an informative prior that each batch should have a mixture component for large negative values.  While we make no assumption about the underlying copy number at this stage, the approach does allows probabilistic estimates of copy number for the observed data albeit influenced by the simulation.  To implement this approach, we first fit a restricted model that excludes the homozygous deletions to obtain reasonable initial values for the means and variance of the remaining copy number states.  
+
+```{r restricted_model, cache=TRUE}
+## For restricted model
+mbr <- assays(mb3) %>%
+    filter(!likely_deletion) %>%
+    MultiBatch(data=.)
+mcmcParams(mbr) <- mcmcParams(mb3)
+## Obtain reasonable initial values for copy number states greater than zero
+restricted <- fit_restricted2(mbr, model="MBP2")
+```
+
+Note, the model using data augmentation that we obtained in the previous section has nearly equivalent posterior probabilities to the restricted model without augmentation that excludes the rare observations:
+
+```{r augmentations_vs_restricted}
+w.augmentation <- bayes.model[ !isSimulated(bayes.model) &
+                              !assays(bayes.model)$likely_deletion]
+pz <- probz(w.augmentation)
+## remove the homozygous deletion component / combine the 3rd and 4th components
+pz.w.augmentation <- cbind(pz[, 2], pz[, 3] + pz[, 4])
+all(rowSums(pz.w.augmentation) == 1)
+proportion_thesame <- mean(abs(pz.w.augmentation[, 1] -
+                               pz.wo.augmentation[, 1]) < 0.1)
+```
+
+The above results demonstrate that `r round(proportion_thesame, 3)*100`% of the posterior probabilities are the same between the restricted model (without augmentation and homozygous deletions removed) to the model using augmentation. 
+
+Next, we augment the observed data with simulated homozygous deletions and fit the full model.
+
+```{r augmentation, cache=TRUE}
+## Fit the full model
+augmented.mb3 <- mcmcWithHomDel(mb3, sb3, restricted)
+```
+
+```{r augmentationfig, fig.cap="Use of data augmentation to ensure that homozygous deletions are present in each batch. Only the circled observations were observed as batches 1, 5, 7, and 8 had no individuals with homozygous deletions. Note also that the mixture components for the modal peak near zero have the same color across batches, indicating that we are now modeling technical variation of the diploid mixture component between batches as intended.", fig.width=6, fig.height=8}
+smallvals3 <- smallvals2 %>%
+    mutate(batch=paste("Batch", batch))
+ggMixture(augmented.mb3) +
+    geom_point(data=smallvals3, aes(oned, 0),
+               shape=21, size=6,
+               fill="transparent", inherit.aes=FALSE) +
+    geom_vline(xintercept=0)
+```
+
+Note that many of the batches have a few observations in the right tail of the diploid mixture component even after accounting for the differences between batches.  These observations are potentially single-copy duplications that appear in a subset of the batches (e.g., batch 4).  Again, an augmentation step could be implemented as a device to ensure that the fourth component is dedicated only to the right tail of each batch. 
+
+
+# Session Information
+
+```{r sessioninfo}
+sessionInfo()
+```
