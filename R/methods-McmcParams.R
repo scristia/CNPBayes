@@ -94,6 +94,8 @@ setValidity("McmcParams", function(object){
 ##  }
 })
 
+#' Number of random starts for MCMC
+#' 
 #' @rdname nStarts-method
 #' @aliases nStarts,McmcParams-method
 setMethod("nStarts", "McmcParams", function(object) object@nstarts)

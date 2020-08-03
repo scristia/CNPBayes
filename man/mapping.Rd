@@ -10,21 +10,13 @@ mapping(object)
 mapping(object) <- value
 }
 \arguments{
-\item{object}{a SB, SBP, MB, or MBP model}
+\item{object}{a `MultiBatch` model}
 
 \item{value}{a k-length numeric vector with values in {1, 2, ..., k}, where k is the number of mixture components}
 }
+\value{
+a character vector of length k (number of components) indicating the inferred copy number of each component.  The mapping is not neccessarily one-to-one as multiple mixture components can be mapped to a single copy number state.
+}
 \description{
 Map mixture components to copy number states
-}
-\examples{
-cn.model <- CopyNumberModel(SingleBatchModelExample)
-## manually remap first two components to the same copy number state
-\dontrun{
- mapping(cn.model) <- c(1, 1, 2)
- ggMixture(cn.model)
-}
-}
-\seealso{
-\code{\link{CopyNumberModel}}
 }

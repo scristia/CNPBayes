@@ -238,6 +238,8 @@ Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="trios") return(HyperparametersTrios(k, ...))
 }
 
+#' Accessor for number of mixture components
+#' '
 #' @rdname k-method
 #' @aliases k<-,Hyperparameters-method
 setReplaceMethod("k", "Hyperparameters", function(object, value){

@@ -160,7 +160,6 @@ setValidity("McmcChains", function(object){
 })
 
 
-setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 
 setMethod("McmcChains", "MixtureModel", function(object){
   .initializeMcmc(object)
@@ -249,18 +248,27 @@ setMethod("McmcChains", "MultiBatchPooled", function(object){
   chains_mb(object)
 })
 
+#' Accessor for mu slot of McmcChains class
+#' 
 #' @rdname mu-method
 #' @aliases mu,McmcChains-method
 setMethod("mu", "McmcChains", function(object) object@mu)
 
+                                        
+#' Accessor for tau2 slot of McmcChains class
+#' 
 #' @rdname tau2-method
 #' @aliases tau2,McmcChains-method
 setMethod("tau2", "McmcChains", function(object) object@tau2)
 
+#' Accessor for theta slot of McmcChains class
+#' 
 #' @rdname theta-method
 #' @aliases theta,McmcChains-method
 setMethod("theta", "McmcChains", function(object) object@theta)
 
+#' Accessor for sigma2 slot of McmcChains class
+#' 
 #' @rdname sigma2-method
 #' @aliases sigma2,missing-method
 setMethod("sigma2", "McmcChains", function(object) object@sigma2)
@@ -332,10 +340,14 @@ setMethod("[", "McmcChainsTrios", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+#' Accessor for nu.0 slot of McmcChains class
+#' 
 #' @rdname nu.0-method
 #' @aliases nu.0,McmcChains-method
 setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 
+#' Accessor for sigma2.0 slot of McmcChains class
+#' 
 #' @rdname sigma2.0-method
 #' @aliases sigma2.0,McmcChains-method
 setMethod("sigma2.0", "McmcChains", function(object) object@sigma2.0)
@@ -403,16 +415,14 @@ setMethod("log_lik", "McmcChains", function(object){
 #' @rdname names-methods
 setMethod("names", "McmcChains", function(x) slotNames(x))
 
+#' Accessor for frequency of mixture component label in McmcChains class
+#' 
 #' @rdname zfreq-method
 #' @aliases zfreq,McmcChains-method
 setMethod("zFreq", "McmcChains", function(object) object@zfreq )
 
-#' @rdname zfreqpar-method
-#' @aliases zfreqpar,McmcChains-method
 setMethod("zFreqPar", "McmcChains", function(object) object@zfreq_parents )
 
-#' @rdname logPrior-method
-#' @aliases logPrior,McmcChains-method
 setMethod("logPrior", "McmcChains", function(object) object@logprior)
 
 setReplaceMethod("logPrior", "McmcChains", function(object, value) {
@@ -426,37 +436,37 @@ setReplaceMethod("zFreq", "McmcChains", function(object, value){
 })
 
 longFormatKB <- function(x, K, B){
-  col_names <- expand.grid(seq_len(B), seq_len(K)) %>%
-    mutate(col_names=paste(Var1, Var2, sep=",")) %$%
-    col_names
-  ##col_names <- col_names[ !duplicated(col_names) ]
-  x <- x %>%
-    as_tibble %>%
-    set_colnames(col_names) %>%
-    mutate(s=seq_len(nrow(.))) %>%
-    gather("bk", "value", -s) %>%
-    mutate(b=sapply(strsplit(bk, ","), "[", 1),
-           k=sapply(strsplit(bk, ","), "[", 2)) %>%
-    mutate(b=factor(paste("batch", b)),
-           k=factor(paste("k", k))) %>%
-    select(-bk)
-  x
+    col_names <- expand.grid(seq_len(B), seq_len(K)) %>%
+        mutate(col_names=paste(Var1, Var2, sep=",")) %$%
+        col_names
+    ##col_names <- col_names[ !duplicated(col_names) ]
+    x <- x %>%
+        set_colnames(col_names) %>%
+        as_tibble %>%
+        mutate(s=seq_len(nrow(.))) %>%
+        gather("bk", "value", -s) %>%
+        mutate(b=sapply(strsplit(bk, ","), "[", 1),
+               k=sapply(strsplit(bk, ","), "[", 2)) %>%
+        mutate(b=factor(paste("batch", b)),
+               k=factor(paste("k", k))) %>%
+        select(-bk)
+    x
 }
 
 longFormatKB2 <- function(x, K, B){
   col_names <- rep(seq_len(B), B) %>%
-    paste(rep(seq_len(K), each=K), sep=",")
+      paste(rep(seq_len(K), each=K), sep=",")
   col_names <- col_names[ !duplicated(col_names) ]
   x <- x %>%
-    as_tibble %>%
-    set_colnames(col_names) %>%
-    mutate(s=seq_len(nrow(.))) %>%
-    gather("bk", "value", -s) %>%
-    mutate(b=sapply(strsplit(bk, ","), "[", 1),
-           k=sapply(strsplit(bk, ","), "[", 2)) %>%
-    mutate(b=factor(paste("batch", b)),
-           k=factor(paste("k", k))) %>%
-    select(-bk)
+      set_colnames(col_names) %>%      
+      as_tibble %>%
+      mutate(s=seq_len(nrow(.))) %>%
+      gather("bk", "value", -s) %>%
+      mutate(b=sapply(strsplit(bk, ","), "[", 1),
+             k=sapply(strsplit(bk, ","), "[", 2)) %>%
+      mutate(b=factor(paste("batch", b)),
+             k=factor(paste("k", k))) %>%
+      select(-bk)
   x
 }
 
@@ -464,11 +474,11 @@ longFormatK <- function(x, K){
   col_names <- seq_len(K) %>%
     as.character
   x <- x %>%
-    as_tibble %>%
-    set_colnames(col_names) %>%
-    mutate(s=seq_len(nrow(.))) %>%
-    gather("k", "value", -s) %>%
-    mutate(k=factor(paste("k ", k)))
+      set_colnames(col_names) %>%
+      as_tibble() %>%
+      mutate(s=seq_len(nrow(.))) %>%
+      gather("k", "value", -s) %>%
+      mutate(k=factor(paste("k ", k)))
   x
 }
 
@@ -506,7 +516,7 @@ setAs("McmcChains", "list", function(from){
                    sigma2.0=sigma2.0(from),
                    logprior=logPrior(from),
                    loglik=log_lik(from)) %>%
-    gather("parameter", "value", -s)
+      gather("parameter", "value", -s)
   list(theta=theta,
        sigma2=sigma2,
        p=p,
@@ -665,7 +675,7 @@ gelman_rubin <- function(mcmc_list, hp){
     r <- gelman.diag(mcmc_list, autoburnin=FALSE)
     if(FALSE){
       mc <- do.call(rbind, mcmc_list) %>%
-        as_tibble
+        as_tibble()
       mc$iter <- rep(seq_len(nrow(mcmc_list[[1]])), length(mcmc_list))
       dat <- gather(mc, key="parameter", value="chain", -iter)
       ggplot(dat, aes(iter, chain)) + geom_line() +

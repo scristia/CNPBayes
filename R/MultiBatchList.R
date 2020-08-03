@@ -555,7 +555,7 @@ extractFromModelList <- function(from, FUN){
   cv
 }
 
-#' @export
+
 listToMultiBatchList <- function(x){
   models <- names(x)
   kk <- sapply(x, k)

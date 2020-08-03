@@ -10,7 +10,7 @@ setMethod("runBurnin", "TrioBatchModel", function(object){
 })
 
 setMethod("runMcmc", "MultiBatchModel", function(object){
-  cpp_mcmc(object)
+    cpp_mcmc(object)
 })
 
 setMethod("runMcmc", "TrioBatchModel", function(object){
@@ -146,15 +146,16 @@ setMethod("revertBack", "MultiBatchP", function(object, mbm){
 })
 
 setMethod("posteriorSimulation", "MultiBatch", function(object){
-  mbm <- as(object, "MultiBatchModel")
-  mbm <- runBurnin(mbm)
-  mbm <- sortComponentLabels(mbm)
-  mbm <- runMcmc(mbm)
-  if(!isOrdered(mbm)) label_switch(mbm) <- TRUE
-  mbm <- sortComponentLabels(mbm)
-  mb <- revertBack(object, mbm)
-  summaries(mb) <- summarizeModel(mb)
-  return(mb)
+##    browser()
+    mbm <- as(object, "MultiBatchModel")
+    mbm <- runBurnin(mbm)
+    mbm <- sortComponentLabels(mbm)
+    mbm <- runMcmc(mbm)
+    if(!isOrdered(mbm)) label_switch(mbm) <- TRUE
+    mbm <- sortComponentLabels(mbm)
+    mb <- revertBack(object, mbm)
+    summaries(mb) <- summarizeModel(mb)
+    return(mb)
 })
 
 setGeneric("mcmc_homozygous", function(object) standardGeneric("mcmc_homozygous"))

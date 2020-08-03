@@ -20,8 +20,5 @@ The log likelihood
 Retrieve log likelihood.
 }
 \examples{
-## retrieve log likelihood at each MCMC iteration
-head(log_lik(chains(SingleBatchModelExample)))
-## retrieve log likelihood at last MCMC iteration
 log_lik(SingleBatchModelExample)
 }

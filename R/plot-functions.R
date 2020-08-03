@@ -1,17 +1,17 @@
 predictiveTibble <- function(object){
-  pred <- predictive(object)
-  pred2 <- pred %>%
-    longFormatKB(K=k(object), B=numBatch(object)) %>%
-    set_colnames(c("s", "oned", "batch", "component")) %>%
-    mutate(model=modelName(object)) %>%
-    mutate(batch=as.character(batch),
-           batch=gsub("batch ", "", batch)) %>%
-    select(-component) ## component labels are wrong
-  zz <- zstar(object) %>%
-    longFormatKB(K=k(object), B=numBatch(object)) %>%
-    mutate(component=factor(value))
-  pred2$component <- zz$component
-  pred2
+    pred <- predictive(object)
+    pred2 <- pred %>%
+        longFormatKB(K=k(object), B=numBatch(object)) %>%
+        set_colnames(c("s", "oned", "batch", "component")) %>%
+        mutate(model=modelName(object)) %>%
+        mutate(batch=as.character(batch),
+               batch=gsub("batch ", "", batch)) %>%
+        select(-component) ## component labels are wrong
+    zz <- zstar(object) %>%
+        longFormatKB(K=k(object), B=numBatch(object)) %>%
+        mutate(component=factor(value))
+    pred2$component <- zz$component
+    pred2
 }
 
 .meltMultiBatchChains <- function(model){
@@ -690,17 +690,17 @@ multibatch_figure <- function(theoretical, empirical, model){
 
 setMethod("ggMixture", "MultiBatchCopyNumber",
           function(model, bins=100, mixtheme, shift_homozygous){
-  .gg_multibatch_copynumber(model, bins)
+              .gg_multibatch_copynumber(model, bins)
 })
 
 setMethod("ggMixture", "MultiBatchCopyNumberPooled",
           function(model, bins=100, mixtheme, shift_homozygous){
-  .gg_multibatch_copynumber(model, bins)
+              .gg_multibatch_copynumber(model, bins)
 })
 
 setMethod("ggMixture", "MultiBatchModel",
           function(model, bins=100, mixtheme, shift_homozygous){
-  .gg_multibatch(model, bins=bins, mixtheme, shift_homozygous)
+              .gg_multibatch(model, bins=bins, mixtheme, shift_homozygous)
 })
 
 #' @export
@@ -708,12 +708,12 @@ setMethod("ggMixture", "MultiBatchModel",
 #' @aliases ggMixture,MultiBatchModel-method
 setMethod("ggMixture", "MultiBatch",
           function(model, bins=100, mixtheme, shift_homozygous){
-  .gg_multibatch(model, bins=bins, mixtheme, shift_homozygous)
+              .gg_multibatch(model, bins=bins, mixtheme, shift_homozygous)
 })
 
 setMethod("ggMixture", "MultiBatchPooled",
           function(model, bins=100, mixtheme, shift_homozygous){
-  .gg_multibatch_pooled(model, bins)
+              .gg_multibatch_pooled(model, bins)
 })
 
 setMethod("ggChains", "MultiBatchModel", function(model){
