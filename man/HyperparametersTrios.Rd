@@ -23,7 +23,3 @@ An object of class HyperparameterTrios
 \description{
 Create an object of class 'Hyperparameters' with additional parameters for Trios
 }
-\examples{
-    hyp.trio <- HyperparametersTrios(k=3)
-
-}

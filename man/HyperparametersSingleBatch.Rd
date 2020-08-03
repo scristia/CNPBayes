@@ -64,6 +64,3 @@ An object of class HyperparametersSingleBatch
 Create an object of class 'HyperparametersSingleBatch' for the
 single batch mixture model
 }
-\examples{
-HyperparametersSingleBatch(k=3)
-}

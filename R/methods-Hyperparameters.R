@@ -7,37 +7,6 @@
 }
 
 
-#' Quantiles, shape, and rate of the prior for the inverse of tau2 (the precision)
-#'
-#' The precision prior for tau2 in the hiearchical model is given by
-#' gamma(shape, rate). The shape and rate are a function of the
-#' hyperparameters eta.0 and m2.0.  Specifically, shape=1/2*eta.0 and
-#' the rate=1/2*eta.0*m2.0.  Quantiles for this distribution and the
-#' shape and rate can be obtained by specifying the hyperparameters
-#' eta.0 and m2.0, or alternatively by specifying the desired mean and
-#' standard deviation of the precisions.
-#' @param eta.0 hyperparameter for precision
-#' @param m2.0 hyperparameter for precision
-#' @param mn mean of precision
-#' @param sd standard deviation of precision
-#' @return a list with elements 'quantiles', 'eta.0', 'm2.0', 'mean', and 'sd'
-#'
-#'
-#' @examples
-#' results <- qInverseTau2(mn=100, sd=1)
-#' precision.quantiles <- results$quantiles
-#' sd.quantiles <- sqrt(1/precision.quantiles)
-#' results$mean
-#' results$sd
-#' results$eta.0
-#' results$m2.0
-#'
-#' results2 <- qInverseTau2(eta.0=1800, m2.0=100)
-#'
-#' ## Find quantiles from the default set of hyperparameters
-#' hypp <- Hyperparameters(type="batch")
-#' results3 <- qInverseTau2(eta.0(hypp), m2.0(hypp))
-#' default.precision.quantiles <- results3$quantiles
 qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
   if(!missing(mn) && !missing(sd)){
     params <- .parameterizeGammaByMeanSd(mn, sd)
@@ -58,9 +27,6 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
 #' Create an object of class 'Hyperparameters' with additional parameters for Trios
 #'
 #' @return An object of class HyperparameterTrios
-#' @examples
-#'     hyp.trio <- HyperparametersTrios(k=3)
-#'
 HyperparametersTrios <- function(k=3,
                                  mu.0=0,
                                  tau2.0=0.4,
@@ -122,10 +88,6 @@ HyperparametersTrios <- function(k=3,
 #' variances)
 #' @param dfr length-one numeric vector for t-distribution degrees of freedom
 #' @return An object of class HyperparametersBatch
-#' @examples
-#' HyperparametersMultiBatch(k=3)
-#'
-#' @seealso \code{\link{hpList}}
 HyperparametersMultiBatch <- function(k=3L,
                                       mu.0=0,
                                       tau2.0=0.4,
@@ -184,8 +146,6 @@ HyperparametersMultiBatch <- function(k=3L,
 #' @param dfr length-one numeric vector for t-distribution degrees of freedom
 #'
 #' @return An object of class HyperparametersSingleBatch
-#' @examples
-#' HyperparametersSingleBatch(k=3)
 HyperparametersSingleBatch <- function(k=0L,
                                     mu.0=0,
                                     tau2.0=0.4,
@@ -222,8 +182,6 @@ setValidity("Hyperparameters", function(object){
 
 #' Create an object of class 'Hyperparameters'
 #'
-#' @examples
-#'      hypp <- Hyperparameters("marginal", k=2)
 #' @param type specifies 'marginal' or 'batch'
 #' @param k number of components
 #' @return An object of class HyperparametersMarginal or HyperparametersBatch
@@ -240,7 +198,7 @@ Hyperparameters <- function(type="batch", k=2L, ...){
 }
 
 #' Accessor for number of mixture components
-#' '
+#' 
 #' @rdname k-method
 #' @aliases k<-,Hyperparameters-method
 setReplaceMethod("k", "Hyperparameters", function(object, value){
@@ -265,7 +223,10 @@ setValidity("Hyperparameters", function(object){
   }
 })
 
+#' @rdname k-method
+#' @export
 setMethod("k", "Hyperparameters", function(object) object@k)
+
 setMethod("alpha", "Hyperparameters", function(object) object@alpha)
 
 ## beta is a base function
@@ -292,17 +253,7 @@ setMethod("show", "Hyperparameters", function(object){
   cat("   b      :", b(object), "\n")
 })
 
-#' Create a list of hyperparameter objects for each of the four mixture model implmentations
-#'
-#' The elements of the list are named by the type of model (SB, MB, SBP, MBP).
-#'
-#' @param ... additional arguments passed to hyperparameter constructors
-#' @return a list of hyperparameter objects
-#' @examples
-#' hp.list <- hpList(k=3)
-#' hp.list[["SB"]]
-#' @rdname Hyperparameters
-#' @seealso \code{\link{HyperparametersMultiBatch}} \code{\link{Hyperparameters}} \code{\link{HyperparametersTrios}}
+# Create a list of hyperparameter objects for each of the four mixture model implmentations
 hpList <- function(...){
   sbp <- sb <- Hyperparameters(...)
   mb <- mbp <- HyperparametersMultiBatch(...)

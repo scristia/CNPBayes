@@ -363,7 +363,7 @@ setGeneric("thin<-", function(object, value) standardGeneric("thin<-"))
 #' Run MCMC simulation.
 #'
 #' nStarts chains are run. b burnin iterations are run and then discarded.
-#' Next, s iterations are run in each train. The user can also specify
+#' Next, s iterations are run in each crain. The user can also specify
 #' an alternative number of components.
 #' The mode of the MCMC simulation is also calculated.
 #' @examples
@@ -375,26 +375,15 @@ setGeneric("thin<-", function(object, value) standardGeneric("thin<-"))
 #' mcmcParams(sb) <- mp
 #' posteriorSimulation(sb)
 #'
-#' # Run additional iterations, but set nStart = 0 so that the last value of the
-#' # chain is the first value of the next chain
+#' # Run additional iterations, but set nStart = 0 so that the last value of the chain is the first value of the next chain
 #' mcmcParams(sb) <- McmcParams(iter=5, nStarts=0, burnin=0)
 #' posteriorSimulation(sb)
-#'
-#' # Fit batch models of different sizes (k=1 and 2)
-#' mb <- MultiBatchModelExample
-#' mcmcParams(mb) <- mp
-#' yy <- sample(y(mb), 300)
-#' batches <- rep(1:3, length.out=length(yy))
-#' mp <- McmcParams(iter=1000, burnin=500, thin=1, nStarts=4)
-#' \dontrun{
-#'   mlist <- gibbs(model="MB", k_range=c(1, 2), dat=yy, batches=batches)
-#' }
 #' @param object see showMethods(posteriorSimulation)
 #' @param k The number of a priori components. This is optional and if not
 #' specified, the stored k model components are used. This parameters is
 #' useful for running multiple models of varying components.
 #' @return An object of class 'MarginalModel' or 'BatchModel'
-#' @seealso  \code{\link{ggChains}} for diagnosing convergence.  See \code{\link{ggMixture}} for plotting the model-based densities.
+#' @seealso  See \code{\link{ggMixture}} for plotting the model-based densities.
 #' @export
 #' @docType methods
 #' @rdname posteriorSimulation-method
@@ -526,31 +515,6 @@ setGeneric("sortComponentLabels", function(model) standardGeneric("sortComponent
 
 setGeneric("isOrdered", function(object) standardGeneric("isOrdered"))
 
-#' Trace plots of MCMC chains and mixture model densities
-#'
-#' The \code{ggChains} method provides a convenient wrapper for plotting the chains of all parameters in the various mixture model implementations.  In addition to the estimated number of independent MCMC draws (effective sample size) and Gelman-Rubin convergence diagnostics implemented in \code{gibbs}, visualization of the chains is helpful for assessing convergence.
-#'
-#' The \code{ggMixture} method overlays the density of the posterior predictive distribution of the Gaussian mixture on the empirical data. \code{ggMixture} assumes that you have already run the Gibbs sampler either by the \code{gibbs} function or by the \code{posteriorSimulation} function.
-#'
-#' @seealso \code{\link{gibbs}} 
-#'
-#' @param model A SB, MB, SBP, or MBP model
-#' @rdname ggplot-functions
-#' @return A \code{gg} object
-#' @export
-#' @examples
-#'   sb <- SingleBatchModelExample
-#'   iter(sb) <- 1000
-#'   burnin(sb) <- 100
-#'   sb <- posteriorSimulation(sb)
-#'   fig.chains <- ggChains(sb)
-#'   ## component-specific chains
-#'   fig.chains[["comp"]]
-#'   ## single-parameter chains and log-likelihood
-#'   fig.chains[["single"]]
-#'
-#'   ## plot the mixture
-#'   fig.mix <- ggMixture(sb)
 setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 
 #' Plotting posterior predictive densities from mixture model

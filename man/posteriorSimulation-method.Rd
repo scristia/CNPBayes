@@ -25,7 +25,7 @@ An object of class 'MarginalModel' or 'BatchModel'
 }
 \description{
 nStarts chains are run. b burnin iterations are run and then discarded.
-Next, s iterations are run in each train. The user can also specify
+Next, s iterations are run in each crain. The user can also specify
 an alternative number of components.
 The mode of the MCMC simulation is also calculated.
 }
@@ -38,21 +38,10 @@ sb <- SingleBatchModelExample
 mcmcParams(sb) <- mp
 posteriorSimulation(sb)
 
-# Run additional iterations, but set nStart = 0 so that the last value of the
-# chain is the first value of the next chain
+# Run additional iterations, but set nStart = 0 so that the last value of the chain is the first value of the next chain
 mcmcParams(sb) <- McmcParams(iter=5, nStarts=0, burnin=0)
 posteriorSimulation(sb)
-
-# Fit batch models of different sizes (k=1 and 2)
-mb <- MultiBatchModelExample
-mcmcParams(mb) <- mp
-yy <- sample(y(mb), 300)
-batches <- rep(1:3, length.out=length(yy))
-mp <- McmcParams(iter=1000, burnin=500, thin=1, nStarts=4)
-\dontrun{
-  mlist <- gibbs(model="MB", k_range=c(1, 2), dat=yy, batches=batches)
-}
 }
 \seealso{
-\code{\link{ggChains}} for diagnosing convergence.  See \code{\link{ggMixture}} for plotting the model-based densities.
+See \code{\link{ggMixture}} for plotting the model-based densities.
 }

@@ -46,53 +46,6 @@ blockUpdates <- function(reduced_gibbs, root) {
   pstar <- apply(reduced_gibbs, 2, function(x) log(mean(x^(root), na.rm=TRUE)))
 }
 
-#' Parameters for evaluating marginal likelihood
-#'
-#' @param root length-one numeric vector. We exponentiate \code{p(theta* | ...)}
-#'   by the value of \code{root}. Values less than one reduce the influence of
-#'   extreme observations.
-#' @param reject.threshold length-one numeric vector between 0 and 1.
-#'   Probabilities in the reduced Gibbs model for the thetas that are less than
-#'   this threshold are flagged.
-#' @param prop.threshold length-one numeric vector between 0 and 1. If more than
-#'   \code{prop.threshold} are flagged, the marginal likelihood is not
-#'   evaluated.
-#' @param prop.effective.size Logical. If the effective size / total iterations
-#'   is less than \code{prop.effective.size}, the marginal likelihood is not
-#'   evaluated (unless \code{ignore.effective.size} is \code{TRUE}).
-#' @param ignore.effective.size Logical. By default, if the effective size of
-#'   any theta chain is less than 0.02, the marginal likelihood is not
-#'   calculated. If this parameter is set to TRUE, the effective size is
-#'   ignored. Occasionally, the effective size is misleading. See details.
-#' @param ignore.small.pstar Logical. Flags from the \code{reject.threshold}
-#'   parameter are ignored and the marginal likelihood is calculated.
-#'
-#' @param warnings Logical. If FALSE, warnings are not issued. This is FALSE by
-#'   default for the marginalLikelihood-list method, and TRUE otherwise.
-#'
-#' @details
-#'
-#'
-#'  For mixture models, a low effective size of one or more theta chains can
-#'  occur for the following reasons:
-#'
-#' A. the model has not yet converged
-#'
-#' B. the model is overfit and there is lots of mixing (label swapping )between
-#'   some of the chains
-#'
-#' C. the model is not overfit but there is a lot of mixing of the thetas
-#'
-#' For both (A) and (B) it is desirable to return NAs. While (C) can also occur,
-#' it can be easily diagnosed by visual inspection of the chains. To the extent
-#' that (C) occurs, the correction factor may not be needed.
-#'
-#' @examples
-#' mlParams()
-#'
-#'
-#' @return a list of parameters to be passed to \code{marginalLikelihood}.
-#' @seealso \code{\link[coda]{effectiveSize}} \code{\link{marginalLikelihood}}
 mlParams <- function(root=1/10,
                      reject.threshold=exp(-10),
                      prop.threshold=0.5,

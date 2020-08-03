@@ -3,14 +3,15 @@
 \name{k<-,Hyperparameters-method}
 \alias{k<-,Hyperparameters-method}
 \alias{k<-,HyperparametersTrios-method}
-\title{Accessor for number of mixture components
-'}
+\alias{k,Hyperparameters-method}
+\title{Accessor for number of mixture components}
 \usage{
 \S4method{k}{Hyperparameters}(object) <- value
 
 \S4method{k}{HyperparametersTrios}(object) <- value
+
+\S4method{k}{Hyperparameters}(object)
 }
 \description{
 Accessor for number of mixture components
-'
 }

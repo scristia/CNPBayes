@@ -69,10 +69,3 @@ An object of class HyperparametersBatch
 Create an object of class 'HyperparametersMultiBatch' for the
 batch mixture model
 }
-\examples{
-HyperparametersMultiBatch(k=3)
-
-}
-\seealso{
-\code{\link{hpList}}
-}
