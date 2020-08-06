@@ -3,7 +3,6 @@
 \docType{class}
 \name{Hyperparameters-class}
 \alias{Hyperparameters-class}
-\alias{k,Hyperparameters-method}
 \title{An object to specify the hyperparameters of a model.}
 \description{
 An object to specify the hyperparameters of a model.

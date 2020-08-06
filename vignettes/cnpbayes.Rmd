@@ -8,7 +8,7 @@ output:
 vignette: >
   %\VignetteIndexEntry{CNPBayes: Bayesian copy number estimation and association in large-scale studies}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  %\VignetteEncoding[UTF-8]{inputenc}
 ---
 
 # Overview
@@ -132,7 +132,7 @@ mp <- McmcParams(iter=500, burnin=200)
 mp
 ```
 
-For now, we postpone the discussion of the set of models that are evaluated by CNPBayes, and instead run a single function `homdeldup_model` that fits a series of models and chooses one.  To assess goodness of fit, we use the function `ggMixture` to overlay the empirical median log R ratios with the density of the posterior predictive distribution from the final model.  The function `genotype_model` maps the mixture components labels to integer copy number using the B allele frequencies stored in the original `SummarizedExperiment` object. Finally, we use `upsample` to obtain probabilistic estimates of the integer copy number as well as the maximum a posteriori copy number for the entire study population.
+For now, we postpone the discussion of the set of models that are evaluated by CNPBayes, and instead run a single function `homdeldup_model` that fits a series of models and chooses one.  To assess goodness of fit, we use the function `ggMixture` to overlay the empirical median log R ratios with the density of the posterior predictive distribution from the final model.  The function `genotype_model` maps the mixture components labels to integer copy number using the B allele frequencies stored in the original `SummarizedExperiment` object. Finally, we use `upsample2` to obtain probabilistic estimates of the integer copy number as well as the maximum a posteriori copy number for the entire study population.
 
 ```{r selected_model, cache=TRUE, results="hide", message=FALSE}
 set.seed(123)

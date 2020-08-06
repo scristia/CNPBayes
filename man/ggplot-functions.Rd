@@ -4,14 +4,11 @@
 \alias{ggMixture}
 \alias{ggMixture,MultiBatch-method}
 \alias{ggMixture,MultiBatchModel-method}
-\alias{ggChains,MultiBatch-method}
 \title{Plotting posterior predictive densities from mixture model}
 \usage{
 ggMixture(model, bins = 100, mixtheme, shift_homozygous)
 
 \S4method{ggMixture}{MultiBatch}(model, bins = 100, mixtheme, shift_homozygous)
-
-\S4method{ggChains}{MultiBatch}(model)
 }
 \arguments{
 \item{bins}{a length-one numeric vector indicating the number of bins -- passed to \code{geom_hist}}

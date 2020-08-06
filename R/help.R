@@ -1,5 +1,7 @@
 #' Bayesian mixture models for copy number estimation
 #'
+#' The CNPBayes package provides functions median_summary, kolmogorov_batches, and down_sample2 for summarizing genomic data at a specific region of the genome for thousands of samples and identifying latent batch effects. Functions MultiBatch, posteriorSimulation, and genotype_model can be used to fit a finite hierarchical mixture of t-distributions across the identified batches and genotype the estimated mixture components.
+#'
 #' @docType package
 #' @name CNPBayes
 #' @import methods
@@ -16,7 +18,7 @@
 #' @importFrom matrixStats colSds colVars colMedians rowProds colMaxs rowMaxs
 #' @importFrom BiocGenerics unlist
 #' @importFrom graphics lines par
-#' @importFrom stats dnorm qnorm kmeans ks.test plot.ts qgamma rbeta rgamma dbeta pnorm prcomp rbinom t.test
+#' @importFrom stats dnorm qnorm kmeans ks.test plot.ts qgamma rbeta rgamma dbeta pnorm prcomp rbinom t.test density
 #' @importFrom stats rgeom rnorm runif setNames rpois rchisq dgamma df
 #' @importFrom coda effectiveSize mcmc.list gelman.diag mcmc as.mcmc.list
 #' @import SummarizedExperiment

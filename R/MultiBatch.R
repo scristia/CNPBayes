@@ -942,7 +942,7 @@ setReplaceMethod("batch", c("MultiBatch", "numeric"), function(object, value){
   assays(object)[["batch"]] <- as.integer(value)
   L <- length(unique(batch(object)))
   if( L != specs(object)$number_batches ){
-    spec(object)$number_batches <- L
+    specs(object)$number_batches <- L
     chains(object) <- mcmc_chains( specs(object), parameters(object) )
   }
   object
@@ -1105,6 +1105,7 @@ setMethod("computeMixProbs", "MultiBatch", function(object){
 })
 
 setMethod("computePrec", "MultiBatch", function(object){
+    prec <- NULL
   z(object) <- map_z(object)
   tib <- assays(object) %>%
     mutate(z=z(object)) %>%
@@ -1154,6 +1155,7 @@ collectFlags <- function(model.list){
 }
 
 combineChains <- function(model.list){
+    . <- NULL
   ch.list <- map(model.list, chains)
   th <- map(ch.list, theta) %>% do.call(rbind, .)
   s2 <- map(ch.list, sigma2) %>% do.call(rbind, .)
@@ -1189,6 +1191,7 @@ combineChains <- function(model.list){
 ## update the current values with the posterior means across all chains
 
 combineModels <- function(model.list){
+    . <- NULL
   mc <- combineChains(model.list)
   pz.list <- lapply(model.list, probz)
   pz <- Reduce("+", pz.list) %>%
@@ -1234,28 +1237,28 @@ continueMcmc <- function(mp){
   mp
 }
 
-setFlags <- function(mb.list){
-  mb1 <- mb.list[[1]]
-  mp <- mcmcParams(mb1)
-  hp <- hyperParams(mb1)
-  mcmc_list <- mcmcList(mb.list)
-  r <- tryCatch(gelman_rubin(mcmc_list, hp), error=function(e) NULL)
-  mb <- combineModels(mb.list)
-  if(is.null(r)){
-    flags(mb)[["fails_GR"]]
-  }
-  tmp <- tryCatch(validObject(mb), error=function(e) NULL)
-  if(is.null(tmp)) browser()
-  flags(mb)[["fails_GR"]] <- r$mpsrf > min_GR(mp)
-  neff <- tryCatch(effectiveSize(mcmc_list), error=function(e) NULL)
-  if(is.null(neff)){
-    neff <- 0
-  }else {
-    neff <- neff[ neff > 0 ]
-  }
-  flags(mb)[["small_effsize"]] <- mean(neff) < min_effsize(mp)
-  mb
-}
+##setFlags <- function(mb.list){
+##  mb1 <- mb.list[[1]]
+##  mp <- mcmcParams(mb1)
+##  hp <- hyperParams(mb1)
+##  mcmc_list <- mcmcList(mb.list)
+##  r <- tryCatch(gelman_rubin(mcmc_list, hp), error=function(e) NULL)
+##  mb <- combineModels(mb.list)
+##  if(is.null(r)){
+##    flags(mb)[["fails_GR"]]
+##  }
+##  tmp <- tryCatch(validObject(mb), error=function(e) NULL)
+##  if(is.null(tmp)) browser()
+##  flags(mb)[["fails_GR"]] <- r$mpsrf > min_GR(mp)
+##  neff <- tryCatch(effectiveSize(mcmc_list), error=function(e) NULL)
+##  if(is.null(neff)){
+##    neff <- 0
+##  }else {
+##    neff <- neff[ neff > 0 ]
+##  }
+##  flags(mb)[["small_effsize"]] <- mean(neff) < min_effsize(mp)
+##  mb
+##}
 
 setMethod("convergence", "MultiBatch", function(object){
   ml <- mcmcList(object)
@@ -1309,64 +1312,64 @@ startingValues2 <- function(object){
   stop("problem identifying starting values")
 }
 
-setMethod("mcmc2", c("MultiBatch", "missing"), function(object, guide){
-  mb <- object
-  mp <- mcmcParams(mb)
-  K <- specs(object)$k
-  if(iter(mp) < 500)
-    if(flags(object)$warn) warning("Very few Monte Carlo simulations specified")
-  maxb <- max(max_burnin(mp), burnin(mp))
-  while(burnin(mp) <= maxb && thin(mp) < 100){
-    ##message("  k: ", K, ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    mcmcParams(mb) <- mp
-    ##
-    ## Convert to list of MultiBatchModels with independent starting values
-    ##
-    mb.list <- as(mb, "list")
-    ##
-    ## Run posterior simulation on each
-    ##
-    mb.list <- posteriorSimulation(mb.list)
-    mb <- setFlags(mb.list)
-    assays(mb) <- assays(object)
-    ## if no flags, move on
-    if( convergence(mb) ) break()
-    mp <- continueMcmc(mp)
-  }
-  if( convergence(mb) ) {
-    mb <- setModes(mb)
-    mb <- compute_marginal_lik(mb)
-  }
-  stopifnot(validObject(mb))
-  mb
-})
-
-
-setMethod("mcmc2", c("MultiBatch", "MultiBatch"), function(object, guide){
-  mb <- object
-  mp <- mcmcParams(mb)
-  K <- specs(object)$k
-  if(iter(mp) < 500)
-    if(flags(object)$warn) warning("Very few Monte Carlo simulations specified")
-  maxb <- max(max_burnin(mp), burnin(mp))
-  while(burnin(mp) <= maxb && thin(mp) < 100){
-    message("  k: ", K, ", burnin: ", burnin(mp), ", thin: ", thin(mp))
-    mcmcParams(mb) <- mp
-    mb.list <- replicate(nStarts(mb), singleBatchGuided(mb, guide))
-    mb.list <- posteriorSimulation(mb.list)
-    mb <- setFlags(mb.list)
-    assays(mb) <- assays(object)
-    ## if no flags, move on
-    if( convergence(mb) ) break()
-    mp <- continueMcmc(mp)
-  }
-  if( convergence(mb) ) {
-    mb <- setModes(mb)
-    mb <- compute_marginal_lik(mb)
-  }
-  stopifnot(validObject(mb))
-  mb
-})
+##setMethod("mcmc2", c("MultiBatch", "missing"), function(object, guide){
+##  mb <- object
+##  mp <- mcmcParams(mb)
+##  K <- specs(object)$k
+##  if(iter(mp) < 500)
+##    if(flags(object)$warn) warning("Very few Monte Carlo simulations specified")
+##  maxb <- max(max_burnin(mp), burnin(mp))
+##  while(burnin(mp) <= maxb && thin(mp) < 100){
+##    ##message("  k: ", K, ", burnin: ", burnin(mp), ", thin: ", thin(mp))
+##    mcmcParams(mb) <- mp
+##    ##
+##    ## Convert to list of MultiBatchModels with independent starting values
+##    ##
+##    mb.list <- as(mb, "list")
+##    ##
+##    ## Run posterior simulation on each
+##    ##
+##    mb.list <- posteriorSimulation(mb.list)
+##    mb <- setFlags(mb.list)
+##    assays(mb) <- assays(object)
+##    ## if no flags, move on
+##    if( convergence(mb) ) break()
+##    mp <- continueMcmc(mp)
+##  }
+##  if( convergence(mb) ) {
+##    mb <- setModes(mb)
+##    mb <- compute_marginal_lik(mb)
+##  }
+##  stopifnot(validObject(mb))
+##  mb
+##})
+##
+##
+##setMethod("mcmc2", c("MultiBatch", "MultiBatch"), function(object, guide){
+##  mb <- object
+##  mp <- mcmcParams(mb)
+##  K <- specs(object)$k
+##  if(iter(mp) < 500)
+##    if(flags(object)$warn) warning("Very few Monte Carlo simulations specified")
+##  maxb <- max(max_burnin(mp), burnin(mp))
+##  while(burnin(mp) <= maxb && thin(mp) < 100){
+##    message("  k: ", K, ", burnin: ", burnin(mp), ", thin: ", thin(mp))
+##    mcmcParams(mb) <- mp
+##    mb.list <- replicate(nStarts(mb), singleBatchGuided(mb, guide))
+##    mb.list <- posteriorSimulation(mb.list)
+##    mb <- setFlags(mb.list)
+##    assays(mb) <- assays(object)
+##    ## if no flags, move on
+##    if( convergence(mb) ) break()
+##    mp <- continueMcmc(mp)
+##  }
+##  if( convergence(mb) ) {
+##    mb <- setModes(mb)
+##    mb <- compute_marginal_lik(mb)
+##  }
+##  stopifnot(validObject(mb))
+##  mb
+##})
 
 setMethod("compute_marginal_lik", "MultiBatch", function(object, params){
   if(missing(params)){
@@ -1467,28 +1470,28 @@ setMethod("upsample_z", "MultiBatch", function(object){
   zz
 })
 
-setMethod("upSampleModel", "MultiBatch",
-          function(downsampled.model, data.full){
-            dat.ds <- assays(downsampled.model)
-            ##dat.full <- assays(full.model)
-            full.model <- arrange(data.full, batch) %>%
-              MultiBatchList(data=.) %>%
-              "[["(modelName(downsampled.model))
-            m <- modes(downsampled.model)
-            m[["u"]] <- modes(full.model)[["u"]]
-            m[["z"]] <- modes(full.model)[["z"]]
-            m[["probz"]] <- modes(full.model)[["probz"]]
-            modes(full.model) <- m
-
-            cv <- current_values(downsampled.model)
-            cv[["u"]] <- current_values(full.model)[["u"]]
-            cv[["z"]] <- current_values(full.model)[["z"]]
-            cv[["probz"]] <- current_values(full.model)[["probz"]]
-            current_values(full.model) <- cv
-            burnin(full.model) <- 0L
-            ##full.model <- posteriorSimulation(full.model)
-            full.model
-          })
+##setMethod("upSampleModel", "MultiBatch",
+##          function(downsampled.model, data.full){
+##            dat.ds <- assays(downsampled.model)
+##            ##dat.full <- assays(full.model)
+##            full.model <- arrange(data.full, batch) %>%
+##              MultiBatchList(data=.) %>%
+##              "[["(modelName(downsampled.model))
+##            m <- modes(downsampled.model)
+##            m[["u"]] <- modes(full.model)[["u"]]
+##            m[["z"]] <- modes(full.model)[["z"]]
+##            m[["probz"]] <- modes(full.model)[["probz"]]
+##            modes(full.model) <- m
+##
+##            cv <- current_values(downsampled.model)
+##            cv[["u"]] <- current_values(full.model)[["u"]]
+##            cv[["z"]] <- current_values(full.model)[["z"]]
+##            cv[["probz"]] <- current_values(full.model)[["probz"]]
+##            current_values(full.model) <- cv
+##            burnin(full.model) <- 0L
+##            ##full.model <- posteriorSimulation(full.model)
+##            full.model
+##          })
 
 ##singleBatchGuided <- function(model, sb){
 ##  modes(sb) <- computeModes(sb)
@@ -1704,6 +1707,8 @@ listModelsByDecreasingK <- function(object){
 }
 
 find_surrogates <- function(dat, THR=0.1){
+    likely_deletion <- NULL
+    provisional_batch <- NULL
   ## do not define batches based on homozygous deletion
     ##dat2 <- filter(dat, oned > min_oned)
     dat2 <- filter(dat, !likely_deletion)
@@ -1759,6 +1764,9 @@ find_surrogates <- function(dat, THR=0.1){
 #' @return MultiBatch object
 setMethod("findSurrogates", "MultiBatch",
           function(object, THR=0.1){
+              provisional_batch <- NULL
+              likely_deletion <- NULL
+              batch_labels <- NULL
     dat <- assays(object) %>%
         select(c(id, provisional_batch, oned, likely_deletion))
     ##message("Putting rows of data in batch order")
@@ -1810,6 +1818,9 @@ setMethod("findSurrogates", "MultiBatch",
 
 setMethod("findSurrogates", "tbl_df",
           function(object, THR=0.1){
+              provisional_batch <- NULL
+              likely_deletion <- NULL
+              batch_labels <- NULL              
     dat <- object %>%
         select(c(id, provisional_batch, oned, likely_deletion))
     ##message("Putting rows of data in batch order")
@@ -2187,26 +2198,28 @@ genotypeModel <- function(model, snpdat){
   gmodel
 }
 
-genotypeData <- function(gmodel, snpdat, min_probz=0.9){
-  snpdat <- snpdat[, id(gmodel)]
-  maxpz <- probz(gmodel) %>%
-    "/"(rowSums(.)) %>%
-    rowMaxs
-  bafdat <- assays(snpdat)[["baf"]] %>%
-      as_tibble() %>%
-      mutate(rsid=rownames(snpdat)) %>%
-      gather("id", "BAF", -rsid)
-  cndat <- tibble(id=id(gmodel),
-                  batch=batch(gmodel),
-                  oned=oned(gmodel),
-                  pz=maxpz,
-                  z=map_z(gmodel)) %>%
-    mutate(cn=mapping(gmodel)[z]) %>%
-    mutate(cn=factor(cn))
-  bafdat <- left_join(bafdat, cndat, by="id")
-  bafdat2 <- filter(bafdat, pz > min_probz)
-  bafdat2
-}
+##genotypeData <- function(gmodel, snpdat, min_probz=0.9){
+##    . <- NULL
+##    rsid <- NULL
+##  snpdat <- snpdat[, id(gmodel)]
+##  maxpz <- probz(gmodel) %>%
+##    "/"(rowSums(.)) %>%
+##    rowMaxs
+##  bafdat <- assays(snpdat)[["baf"]] %>%
+##      as_tibble() %>%
+##      mutate(rsid=rownames(snpdat)) %>%
+##      gather("id", "BAF", -rsid)
+##  cndat <- tibble(id=id(gmodel),
+##                  batch=batch(gmodel),
+##                  oned=oned(gmodel),
+##                  pz=maxpz,
+##                  z=map_z(gmodel)) %>%
+##    mutate(cn=mapping(gmodel)[z]) %>%
+##    mutate(cn=factor(cn))
+##  bafdat <- left_join(bafdat, cndat, by="id")
+##  bafdat2 <- filter(bafdat, pz > min_probz)
+##  bafdat2
+##}
 
 homozygousdel_mean <- function(object, THR=-1) {
   mn <- mean(oned(object)[ oned(object) < THR])
@@ -2238,6 +2251,12 @@ sdRestrictedModel <- function(restricted){
 }
 
 .augment_homozygous <- function(mb, mean_sd, phat=0.01){
+    ##
+    is_simulated <- NULL
+    likely_deletion <- NULL
+    N <- NULL
+    ##
+        
     if(all(is.na(mean_sd[[2]]))) mean_sd[[2]] <- 0.1
     freq.hd <- assays(mb) %>%
         filter(!is_simulated) %>%
@@ -2271,6 +2290,7 @@ sdRestrictedModel <- function(restricted){
 }
 
 deletion_midpoint <- function(mb){
+    likely_deletion <- NULL
     vals <- assays(mb) %>%
         group_by(likely_deletion) %>%
         summarize(min_oned=min(oned, na.rm=TRUE),
@@ -2364,6 +2384,7 @@ warmup <- function(tib, model1, model2=NULL, model2.penalty=50,
 }
 
 stop_early <- function(model, min_prob=0.99, prop_greater=0.995){
+    . <- NULL
   pz <- probz(model)
   maxprob <- rowMaxs(pz)
   pz <- probz(model) %>%
@@ -2408,6 +2429,9 @@ augment_rarecomponent <- function(restricted,
                                   rare_component_sb=2,
                                   diploid_component_sb=3,
                                   use_restricted_theta=FALSE){
+    ##
+    . <- NULL
+    ##
     batch_labels <- batchLevels(restricted)
     ## normalize probabilities
     pz <- probz(restricted) %>%
@@ -2520,6 +2544,7 @@ augment_rareduplication <- function(sb3,
 augment_rarehemdel <- function(sb3,
                                mod_2.4,
                                full_data){
+    is_simulated <- NULL
     loc.scale <- tibble(theta=theta(sb3)[1],
                         sigma2=sigma2(sb3),
                         phat=max(p(sb3)[1, 1], 0.05),
@@ -2543,6 +2568,12 @@ augment_rarehemdel <- function(sb3,
 }
 
 augment_rarehomdel <- function(restricted, sb4, mb.subsamp){
+    ##
+    . <- NULL
+    likely_deletion <- NULL
+    N <- NULL
+    is_simulated <- NULL
+    ##
     p_ <- cbind(p(sb4)[1, 1], p(restricted)) %>%
         "/"(rowSums(.))
     dat <- assays(mb.subsamp)
@@ -2597,6 +2628,11 @@ batchLevels <- function(mb){
 }
 
 .mcmcWithHomDel <- function(simdat, mod_2.3){
+    ##
+    likely_deletion <- NULL
+    is_simulated <- NULL
+    ##
+    
     mp <- mcmcParams(mod_2.3)
     is_pooledvar <- ncol(sigma2(mod_2.3))==1
     hdmean <- simdat$homozygousdel_mean[1]
@@ -2611,7 +2647,8 @@ batchLevels <- function(mb){
     if(is_pooledvar){
         sigma2(mod_1.3) <- sigma2(mod_2.3)
     } else {
-        sigma2(mod_1.3) <- cbind(sigma2(sb3)[1], sigma2(mod_2.3))
+        ## sb3 not defined?
+        ## sigma2(mod_1.3) <- cbind(sigma2(sb3)[1], sigma2(mod_2.3))
     }
     burnin(mod_1.3) <- 200
     iter(mod_1.3) <- 0
@@ -2644,6 +2681,7 @@ batchLevels <- function(mb){
 
 
 meanFull_sdRestricted <- function(mb, restricted){
+    likely_deletion <- NULL
     hdmean <- filter(assays(mb), likely_deletion) %>%
         pull(oned) %>%
         mean(na.rm=TRUE)
@@ -2665,6 +2703,8 @@ meanFull_sdRestricted <- function(mb, restricted){
 mcmcWithHomDel <- function(mb, sb,
                            restricted_model,
                            model="MB3"){
+    is_simulated <- NULL
+    . <- NULL
     mb.observed <- mb[ !isSimulated(mb) ]        
     if(any(isSimulated(restricted_model))){
         ##
@@ -2697,6 +2737,7 @@ mcmcHomDelOnly <- function(simdat,
                            restricted_model,
                            sb,
                            model){
+    . <- NULL
   mp <- mcmcParams(sb)
   mbl <- MultiBatchList(data=simdat)
   mod_1.3 <- mbl[[ model ]]
@@ -2725,6 +2766,7 @@ mcmcHomDelOnly <- function(simdat,
 }
 
 ok_model <- function(mod_1.3, restricted_model){
+    . <- NULL
   if(is.null(mod_1.3)){
     return(FALSE)
   }
@@ -2744,48 +2786,49 @@ ok_model <- function(mod_1.3, restricted_model){
   !bad_pooled_variance
 }
 
-hemizygous_cutoff <- function(dat){
-  ## is there a peak less than -0.2
-  dens <- density(dat$oned[ dat$oned < -0.2] )
-  firstderivative <- diff(dens$y)
-  changesign <- which(diff(sign(firstderivative)) != 0)
-  if(length(changesign) == 0){
-    return(-Inf)
-  }
-  ## choose the one with the maximal y
-  index <- changesign[which.max(dens$y[-1][changesign])]
-  if(FALSE){
-    plot(dens)
-    abline(v=dens$x[index])
-  }
-  peak <- dens$x[index]
-  xy <- tibble(x=dens$x, y=dens$y) %>%
-    filter(x > peak)
-  lowest_point_after_peak <- xy$x[xy$y==min(xy$y)]
-  lowest_point_after_peak
-}
+##hemizygous_cutoff <- function(dat){
+##  ## is there a peak less than -0.2
+##  dens <- density(dat$oned[ dat$oned < -0.2] )
+##  firstderivative <- diff(dens$y)
+##  changesign <- which(diff(sign(firstderivative)) != 0)
+##  if(length(changesign) == 0){
+##    return(-Inf)
+##  }
+##  ## choose the one with the maximal y
+##  index <- changesign[which.max(dens$y[-1][changesign])]
+##  if(FALSE){
+##    plot(dens)
+##    abline(v=dens$x[index])
+##  }
+##  peak <- dens$x[index]
+##  xy <- tibble(x=dens$x, y=dens$y) %>%
+##    filter(x > peak)
+##  lowest_point_after_peak <- xy$x[xy$y==min(xy$y)]
+##  lowest_point_after_peak
+##}
 
-duplication_cutoff <- function(dat, min_cutoff=0.1){
-  ## is there a peak greater than 0.1
-  dens <- density(dat$oned[ dat$oned > min_cutoff] , adjust=1/2)
-  firstderivative <- diff(dens$y)
-  changesign <- which(diff(sign(firstderivative)) != 0)
-  if(length(changesign) == 0){
-    return(+Inf)
-  }
-  ## choose the one with the maximal y
-  changesign <- changesign[-1]
-  index <- changesign[which.max(dens$y[-1][changesign])]
-  if(FALSE){
-    plot(dens)
-    abline(v=dens$x[index])
-  }
-  peak <- dens$x[index]
-  xy <- tibble(x=dens$x, y=dens$y) %>%
-    filter(x < peak, x > min_cutoff)
-  lowest_point_before_peak <- xy$x[xy$y==min(xy$y)]
-  lowest_point_before_peak
-}
+##duplication_cutoff <- function(dat, min_cutoff=0.1){
+##    x <- NULL
+##  ## is there a peak greater than 0.1
+##  dens <- density(dat$oned[ dat$oned > min_cutoff] , adjust=1/2)
+##  firstderivative <- diff(dens$y)
+##  changesign <- which(diff(sign(firstderivative)) != 0)
+##  if(length(changesign) == 0){
+##    return(+Inf)
+##  }
+##  ## choose the one with the maximal y
+##  changesign <- changesign[-1]
+##  index <- changesign[which.max(dens$y[-1][changesign])]
+##  if(FALSE){
+##    plot(dens)
+##    abline(v=dens$x[index])
+##  }
+##  peak <- dens$x[index]
+##  xy <- tibble(x=dens$x, y=dens$y) %>%
+##    filter(x < peak, x > min_cutoff)
+##  lowest_point_before_peak <- xy$x[xy$y==min(xy$y)]
+##  lowest_point_before_peak
+##}
 
 #' @export
 median_summary <- function(se, provisional_batch, assay_index=1, THR){
@@ -2804,35 +2847,35 @@ median_summary <- function(se, provisional_batch, assay_index=1, THR){
     dat
 }
 
-resampleFromRareProvisionalBatches <- function(dat, dat.nohd){
-  prov.batch <- unique(dat.nohd$provisional_batch)
-  all.prov.batch <- unique(dat$provisional_batch)
-  notsampled <- all.prov.batch[ !all.prov.batch %in% prov.batch ]
-  ## just include all samples from these batches
-  ix <- which(dat$provisional_batch %in% notsampled)
-  dat2 <- dat[ix, ]
-  dat.nohd <- bind_rows(dat.nohd, dat2) %>%
-    filter(!likely_deletion)
-  dat.nohd
-}
+##resampleFromRareProvisionalBatches <- function(dat, dat.nohd){
+##  prov.batch <- unique(dat.nohd$provisional_batch)
+##  all.prov.batch <- unique(dat$provisional_batch)
+##  notsampled <- all.prov.batch[ !all.prov.batch %in% prov.batch ]
+##  ## just include all samples from these batches
+##  ix <- which(dat$provisional_batch %in% notsampled)
+##  dat2 <- dat[ix, ]
+##  dat.nohd <- bind_rows(dat.nohd, dat2) %>%
+##    filter(!likely_deletion)
+##  dat.nohd
+##}
 
-down_sample <- function(dat, S){
-    dat.nohd <- filter(dat, !likely_deletion)
-    ##
-    ## Group chemistry plates, excluding homozygous deletions
-    ##
-    S <- min(nrow(dat.nohd), S)
-    ix <- sample(seq_len(nrow(dat.nohd)), S, replace=TRUE)
-    dat.nohd <- dat.nohd[ix, ]
-    ##
-    ## ensure all provisional batches were sampled
-    ##
-    dat.nohd <- resampleFromRareProvisionalBatches(dat, dat.nohd)
-    dat.subsampled <- dat.nohd %>%
-        bind_rows(filter(dat, likely_deletion)) %>%
-        mutate(is_simulated=FALSE)
-    dat.subsampled
-}
+##down_sample <- function(dat, S){
+##    dat.nohd <- filter(dat, !likely_deletion)
+##    ##
+##    ## Group chemistry plates, excluding homozygous deletions
+##    ##
+##    S <- min(nrow(dat.nohd), S)
+##    ix <- sample(seq_len(nrow(dat.nohd)), S, replace=TRUE)
+##    dat.nohd <- dat.nohd[ix, ]
+##    ##
+##    ## ensure all provisional batches were sampled
+##    ##
+##    dat.nohd <- resampleFromRareProvisionalBatches(dat, dat.nohd)
+##    dat.subsampled <- dat.nohd %>%
+##        bind_rows(filter(dat, likely_deletion)) %>%
+##        mutate(is_simulated=FALSE)
+##    dat.subsampled
+##}
 
 #' Downsamples the data to reduce computation
 #'
@@ -2843,6 +2886,7 @@ down_sample <- function(dat, S){
 #' @param min_size integer indicating the minimum size per batch.  For batches smaller than `min_size`, no down-sampling is performed.
 #' @export
 down_sample2 <- function(dat, min_size=300){
+    likely_deletion <- NULL
     ##
     ## Goals:
     ##  -- we do not want to downsample likely deletions; these tend to be rare
@@ -2881,38 +2925,38 @@ kolmogorov_batches <- function(dat, KS_cutoff){
     findSurrogates(dat, KS_cutoff)
 }
 
-add_batchinfo <- function(dat, mb){
-    batches <- assays(mb) %>%
-        group_by(provisional_batch) %>%
-        summarize(batch=unique(batch))
-    pr.batch <- assays(mb)$provisional_batch
-    stopifnot(all(pr.batch %in% dat$provisional_batch))
-    dropbatch <- select(dat, -batch)
-    dat <- left_join(dropbatch, batches, by="provisional_batch")
-    dat
-}
+##add_batchinfo <- function(dat, mb){
+##    batches <- assays(mb) %>%
+##        group_by(provisional_batch) %>%
+##        summarize(batch=unique(batch))
+##    pr.batch <- assays(mb)$provisional_batch
+##    stopifnot(all(pr.batch %in% dat$provisional_batch))
+##    dropbatch <- select(dat, -batch)
+##    dat <- left_join(dropbatch, batches, by="provisional_batch")
+##    dat
+##}
 
-add2small_batches <- function(dat, mb, min_size=50){
-    ##message("Check batches")
-    ##
-    batchfreq <- assays(mb) %>%
-        group_by(batch) %>%
-        summarize(n=n())
-    if(all(batchfreq$n >= min_size)) return(mb)
-    batchlabels <- group_by(assays(mb), batch) %>%
-        summarize(n=n(),
-                  batch_labels=unique(batch_labels))
-    batchfreq <- filter(batchfreq, n < min_size)
-    adat <- assays(mb) %>%
-        filter(!batch %in% batchfreq$batch)
-    bdat <- filter(dat, batch %in% batchfreq$batch) %>%
-        left_join(batchlabels, by="batch") %>%
-        mutate(is_simulated=FALSE) %>%
-        select(colnames(adat))
-    adat2 <- bind_rows(adat, bdat)
-    mb <- MultiBatch("MB2", data=adat2)
-    mb
-}
+##add2small_batches <- function(dat, mb, min_size=50){
+##    ##message("Check batches")
+##    ##
+##    batchfreq <- assays(mb) %>%
+##        group_by(batch) %>%
+##        summarize(n=n())
+##    if(all(batchfreq$n >= min_size)) return(mb)
+##    batchlabels <- group_by(assays(mb), batch) %>%
+##        summarize(n=n(),
+##                  batch_labels=unique(batch_labels))
+##    batchfreq <- filter(batchfreq, n < min_size)
+##    adat <- assays(mb) %>%
+##        filter(!batch %in% batchfreq$batch)
+##    bdat <- filter(dat, batch %in% batchfreq$batch) %>%
+##        left_join(batchlabels, by="batch") %>%
+##        mutate(is_simulated=FALSE) %>%
+##        select(colnames(adat))
+##    adat2 <- bind_rows(adat, bdat)
+##    mb <- MultiBatch("MB2", data=adat2)
+##    mb
+##}
 
 add_deletion_stats <- function(dat, mb, THR){
     hdmean <- median(dat$oned[dat$likely_deletion])
@@ -2949,6 +2993,9 @@ summarize_region <- function(se,
 ## select high confidence samples for each component
 ## - assume component corresponds to same copy number state across batches
 select_highconfidence_samples <- function(model, snpdat){
+    . <- NULL
+    prob <- NULL
+    cutoff <- NULL
     if(iter(model) == 0) stop("No saved MCMC simulations. Must specify iter > 0")
     model2 <- dropSimulated(model)
     pz <- probz(model2) %>%
@@ -2974,6 +3021,8 @@ select_highconfidence_samples <- function(model, snpdat){
 }
 
 select_highconfidence_samples2 <- function(model, snpdat){
+    . <- NULL
+    prob <- NULL
     if(iter(model) == 0) stop("No saved MCMC simulations. Must specify iter > 0")
     model2 <- dropSimulated(model)
     pz <- probz(model2) %>%
@@ -3025,6 +3074,9 @@ genotype_model <- function(model, snpdat){
 }
 
 join_baf_oned <- function(model, snpdat){
+    . <- NULL
+    rsid <- NULL
+    cn <- NULL
   ## Plot BAFs for samples with high confidence
   ##model2 <- select_highconfidence_samples(model, snpdat)
   xlimit <- range(oned(model))
@@ -3075,6 +3127,8 @@ component_labels <- function(model){
 
 list_mixture_plots <- function(model, bafdat,
                                xlimit=c(-4, 1), bins=100){
+    BAF <- NULL
+    pz <- NULL
   rg <- range(theta(model)[, 1])
   if(min(rg) < xlimit[1]){
     s <- mean(sigma(model)[, 1])
@@ -3136,26 +3190,26 @@ mixture_layout <- function(figure_list, augmented=TRUE,
   popViewport(2)
 }
 
-fit_restricted <- function(mb, sb, model="MBP2",
-                           use_restricted=FALSE){
-    ##fdat <- filter(assays(mb), oned > THR)  %>%
-    fdat <- filter(assays(mb), !likely_deletion) %>%
-        mutate(is_simulated=FALSE)
-    warm <- warmup(fdat, model)
-    mcmcParams(warm) <- mcmcParams(mb)
-    restricted <- posteriorSimulation(warm)
-    ##
-    ## why check sb and not restricted?
-    ##
-    ok <- ok_hemizygous(sb)
-    if(!ok) {
-        restricted <- augment_rarecomponent(restricted,
-                                            sb,
-                                            use_restricted=use_restricted)
-        restricted <- posteriorSimulation(restricted)
-    }
-    restricted
-}
+##fit_restricted <- function(mb, sb, model="MBP2",
+##                           use_restricted=FALSE){
+##    ##fdat <- filter(assays(mb), oned > THR)  %>%
+##    fdat <- filter(assays(mb), !likely_deletion) %>%
+##        mutate(is_simulated=FALSE)
+##    warm <- warmup(fdat, model)
+##    mcmcParams(warm) <- mcmcParams(mb)
+##    restricted <- posteriorSimulation(warm)
+##    ##
+##    ## why check sb and not restricted?
+##    ##
+##    ok <- ok_hemizygous(sb)
+##    if(!ok) {
+##        restricted <- augment_rarecomponent(restricted,
+##                                            sb,
+##                                            use_restricted_theta=use_restricted)
+##        restricted <- posteriorSimulation(restricted)
+##    }
+##    restricted
+##}
 
 #' Wrapper for running many independent chains with a short burnin and one longer run
 #'
@@ -3173,6 +3227,8 @@ fit_restricted2 <- function(mb, model="MBP2", ...){
 }
 
 explore_multibatch <- function(sb, model="MBP2", ...){
+    likely_deletion <- NULL
+    . <- NULL
     mb <- revertToMultiBatch(sb)
     mbr <- assays(mb) %>%
         filter(!likely_deletion) %>%
@@ -3207,27 +3263,27 @@ explore_multibatch <- function(sb, model="MBP2", ...){
 ##    full
 ##}
 
-few_hemizygous <- function(model){
-  pz <- probz(model) %>%
-    "/"(rowSums(.)) %>%
-    rowMaxs
-  tmp <- tibble(batch=batch(model), z=map_z(model), pz=pz) %>%
-    group_by(batch) %>%
-    summarize(N=n(),
-              n=sum(z==2 & pz > 0.9))
-  any(tmp$n < 10)
-}
-
-explore_restricted <- function(mb, sb, THR=-1, model="MB3"){
-  if(few_hemizygous(mb))
-    return(mb)
-  mbp <- fit_restricted(mb, sb)
-  restricted <- mcmcHomDelOnly(assays(mb),
-                               restricted_model=mbp,
-                               sb,
-                               model=model)
-  restricted
-}
+##few_hemizygous <- function(model){
+##  pz <- probz(model) %>%
+##    "/"(rowSums(.)) %>%
+##    rowMaxs
+##  tmp <- tibble(batch=batch(model), z=map_z(model), pz=pz) %>%
+##    group_by(batch) %>%
+##    summarize(N=n(),
+##              n=sum(z==2 & pz > 0.9))
+##  any(tmp$n < 10)
+##}
+##
+##explore_restricted <- function(mb, sb, THR=-1, model="MB3"){
+##  if(few_hemizygous(mb))
+##    return(mb)
+##  mbp <- fit_restricted(mb, sb)
+##  restricted <- mcmcHomDelOnly(assays(mb),
+##                               restricted_model=mbp,
+##                               sb,
+##                               model=model)
+##  restricted
+##}
 
 as_tibble.density <- function(x, ...){
   dens <- x
@@ -3320,31 +3376,36 @@ impute_needed <- function(mb, THR){
   TRUE
 }
 
-impute_homozygous <- function(mb, modes, densities, THR){
-  need2impute <- impute_needed(mb, THR)
-  dat <- assays(mb)
-  if(!need2impute) return(dat)
-  isnull_dens <- sapply(densities, function(x) nrow(x[[1]])==0)
-  if(any(!isnull_dens)) sample_from_density <- TRUE
-  if(sample_from_density){
-    x <- sample_homdel_from_density(densities, modes, N=5)
-  } else {
-    x <- sample_from_distribution(dat, THR)
-  }
-  nsim <- sum(isSimulated(mb))
-  impdat <- tibble(id=paste0("augment_", seq_len(nrow(x)) + nsim),
-                   oned=x$x,
-                   provisional_batch=NA,
-                   likely_deletion=TRUE,
-                   batch=x$batch,
-                   batch_labels=NA,
-                   is_simulated=TRUE)
-  dat2 <- bind_rows(dat, imputed) %>%
-    arrange(batch)
-  dat2
-}
+##impute_homozygous <- function(mb, modes, densities, THR){
+##  need2impute <- impute_needed(mb, THR)
+##  dat <- assays(mb)
+##  if(!need2impute) return(dat)
+##  isnull_dens <- sapply(densities, function(x) nrow(x[[1]])==0)
+##  if(any(!isnull_dens)) sample_from_density <- TRUE
+##  if(sample_from_density){
+##    x <- sample_homdel_from_density(densities, modes, N=5)
+##  } else {
+##    x <- sample_from_distribution(dat, THR)
+##  }
+##  nsim <- sum(isSimulated(mb))
+##  impdat <- tibble(id=paste0("augment_", seq_len(nrow(x)) + nsim),
+##                   oned=x$x,
+##                   provisional_batch=NA,
+##                   likely_deletion=TRUE,
+##                   batch=x$batch,
+##                   batch_labels=NA,
+##                   is_simulated=TRUE)
+##  dat2 <- bind_rows(dat, imputed) %>%
+##    arrange(batch)
+##  dat2
+##}
 
 .peak <- function(dens, h){
+    ##
+    x <- NULL
+    region <- NULL
+    ##
+    
   exceeds_h <- dens$y >= h
   regions <- cumsum(c(0, diff(exceeds_h) != 0))
   dens$region <- regions
@@ -3359,7 +3420,7 @@ impute_homozygous <- function(mb, modes, densities, THR){
 }
 
 find_peaks <- function(dens, max_number=5, min_number=3){
-  miny <- min(dens$y[dens$y > 0]) ## smallest y greater than 0
+  miny <- min(dens$y[dens$y > 0])  ##smallest y greater than 0
   maxy <- max(dens$y)
   heights <- seq(miny, maxy, length.out=100)
   peak_list <- vector("list", length(heights))
@@ -3440,84 +3501,84 @@ duplication_cutoff2 <- function(dens){
   handle_missing(duplication_peaks, dens)
 }
 
-impute_hemizygous <- function(mb, modes, densities, N){
-  ##hemizygous_cutoff2(densities[[1]])
-  cutoffs <- round(sapply(densities, hemizygous_cutoff2),
-                   3)
-  cuts <- tibble(batch=seq_along(densities),
-                 hemizygous_cutoff=cutoffs)
-  dat2 <- assays(mb) %>%
-    left_join(cuts, by="batch")
-  tab <- dat2 %>%
-    group_by(batch) %>%
-    summarize(n=sum(oned < hemizygous_cutoff))
-  ## if TRUE, no need to impute
-  if(all(tab$n > N)) return(assays(mb))
-  batches <- batchLevels(mb)
-  imputed_list <- vector("list", sum(tab$n <= N))
-  for(i in seq_along(batches)){
-    freq <- tab$n[tab$batch==i]
-    if(freq > N) next()
-    dens <- densities[[i]]
-    if(!is.null(dens)){
-      x <- sample_hemdel_from_density(dens, N=N)
-    } else{
-      browser()
-      ##imputed <- sample_hemdel_from_distribution(dat, THR)
-    }
-    imputed <- tibble(x=x, batch=i)
-    imputed_list[[i]] <- imputed
-  }
-  imputed <- do.call(rbind, imputed_list)
-  index <- sum(isSimulated(mb)) + 1
-  impdat <- tibble(id=paste0("augment_", index),
-                   oned=imputed$x,
-                   provisional_batch=NA,
-                   likely_deletion=TRUE,
-                   batch=imputed$batch,
-                   batch_labels=NA,
-                   is_simulated=TRUE)
-  dat <- bind_rows(assays(mb), imputed) %>%
-    arrange(batch)
-  dat
-}
+##impute_hemizygous <- function(mb, modes, densities, N){
+##  ##hemizygous_cutoff2(densities[[1]])
+##  cutoffs <- round(sapply(densities, hemizygous_cutoff2),
+##                   3)
+##  cuts <- tibble(batch=seq_along(densities),
+##                 hemizygous_cutoff=cutoffs)
+##  dat2 <- assays(mb) %>%
+##    left_join(cuts, by="batch")
+##  tab <- dat2 %>%
+##    group_by(batch) %>%
+##    summarize(n=sum(oned < hemizygous_cutoff))
+##  ## if TRUE, no need to impute
+##  if(all(tab$n > N)) return(assays(mb))
+##  batches <- batchLevels(mb)
+##  imputed_list <- vector("list", sum(tab$n <= N))
+##  for(i in seq_along(batches)){
+##    freq <- tab$n[tab$batch==i]
+##    if(freq > N) next()
+##    dens <- densities[[i]]
+##    if(!is.null(dens)){
+##      x <- sample_hemdel_from_density(dens, N=N)
+##    } else{
+##      browser()
+##      ##imputed <- sample_hemdel_from_distribution(dat, THR)
+##    }
+##    imputed <- tibble(x=x, batch=i)
+##    imputed_list[[i]] <- imputed
+##  }
+##  imputed <- do.call(rbind, imputed_list)
+##  index <- sum(isSimulated(mb)) + 1
+##  impdat <- tibble(id=paste0("augment_", index),
+##                   oned=imputed$x,
+##                   provisional_batch=NA,
+##                   likely_deletion=TRUE,
+##                   batch=imputed$batch,
+##                   batch_labels=NA,
+##                   is_simulated=TRUE)
+##  dat <- bind_rows(assays(mb), imputed) %>%
+##    arrange(batch)
+##  dat
+##}
 
-summarize_blocks <- function(blocks){
-  blocks2 <- blocks %>%
-    group_by(type) %>%
-    summarize(min_mean=mean(min, na.rm=TRUE),
-              max_mean=mean(max, na.rm=TRUE))
-  blocks3 <- left_join(blocks, blocks2, by="type") %>%
-    mutate(min=ifelse(is.na(min) | !is.finite(min), min_mean, min),
-           max=ifelse(is.na(max) | !is.finite(max), max_mean, max)) %>%
-    select(-c(min_mean, max_mean)) %>%
-    filter(!is.na(min))
-  blocks4 <- blocks3 %>%
-    mutate(mn=(min+max)/2)
-  ##blocks4 <- blocks3 %>%
-  blocks3
-}
+##summarize_blocks <- function(blocks){
+##  blocks2 <- blocks %>%
+##    group_by(type) %>%
+##    summarize(min_mean=mean(min, na.rm=TRUE),
+##              max_mean=mean(max, na.rm=TRUE))
+##  blocks3 <- left_join(blocks, blocks2, by="type") %>%
+##    mutate(min=ifelse(is.na(min) | !is.finite(min), min_mean, min),
+##           max=ifelse(is.na(max) | !is.finite(max), max_mean, max)) %>%
+##    select(-c(min_mean, max_mean)) %>%
+##    filter(!is.na(min))
+##  blocks4 <- blocks3 %>%
+##    mutate(mn=(min+max)/2)
+##  ##blocks4 <- blocks3 %>%
+##  blocks3
+##}
 
-make_blocks <- function(densities){
-  homdel_cutoffs <- lapply(densities, homozygous_cutoff2) %>%
-    do.call(rbind, .) %>%
-    mutate(batch=paste("Batch", seq_along(densities)),
-           type="homozygous deletion")
-  hemdel_cutoffs <- lapply(densities, hemizygous_cutoff2) %>%
-    do.call(rbind, .) %>%
-    mutate(batch=paste("Batch", seq_along(densities)),
-           type="hemizygous deletion")
-  dup_cutoffs <- lapply(densities, duplication_cutoff2) %>%
-    do.call(rbind, .) %>%
-    mutate(batch=paste("Batch", seq_along(densities))) %>%
-    mutate(type="duplication")
-  cuts <- bind_rows(homdel_cutoffs, hemdel_cutoffs) %>%
-    bind_rows(dup_cutoffs) %>%
-    mutate(ymin=0,
-           ymax=Inf)
-  blocks <- summarize_blocks(cuts)
-  blocks
-}
+##make_blocks <- function(densities){
+##  homdel_cutoffs <- lapply(densities, homozygous_cutoff2) %>%
+##    do.call(rbind, .) %>%
+##    mutate(batch=paste("Batch", seq_along(densities)),
+##           type="homozygous deletion")
+##  hemdel_cutoffs <- lapply(densities, hemizygous_cutoff2) %>%
+##    do.call(rbind, .) %>%
+##    mutate(batch=paste("Batch", seq_along(densities)),
+##           type="hemizygous deletion")
+##  dup_cutoffs <- lapply(densities, duplication_cutoff2) %>%
+##    do.call(rbind, .) %>%
+##    mutate(batch=paste("Batch", seq_along(densities))) %>%
+##    mutate(type="duplication")
+##  cuts <- bind_rows(homdel_cutoffs, hemdel_cutoffs) %>%
+##    bind_rows(dup_cutoffs) %>%
+##    mutate(ymin=0,
+##           ymax=Inf)
+##  blocks <- summarize_blocks(cuts)
+##  blocks
+##}
 
 equivalent_variance <- function(model){
   s <- colMeans(sigma(chains(model)))
@@ -3581,6 +3642,7 @@ hemdel_model <- function(mb, mp, ...){
 }
 
 hd4comp <- function(mod_2.4, simdat2, mb.subsamp, mp){
+    . <- NULL
     model <- incrementK(mod_2.4) %>%
         gsub("P", "", .)
     ##THR <- summaries(mb.subsamp)$deletion_cutoff
@@ -3599,23 +3661,23 @@ hd4comp <- function(mod_2.4, simdat2, mb.subsamp, mp){
     mod_1.4
 }
 
-hd3comp <- function(restricted, simdat, mb.subsamp, mp){
-  model <- incrementK(restricted) %>%
-    gsub("P", "", .)
-  ##THR <- summaries(mb.subsamp)$deletion_cutoff
-  THR <- deletion_midpoint(mb.subsamp)
-  mod_1.3 <- MultiBatchList(data=simdat)[[ model ]]
-  hdmean <- homozygousdel_mean(mb.subsamp, THR)
-  hdvar <- homozygousdel_var(mb.subsamp, THR)
-  theta(mod_1.3) <- cbind(hdmean, theta(restricted))
-  V <- matrix(sigma2(restricted)[, 1],
-              nrow(sigma2(restricted)), 3,
-              byrow=FALSE)
-  sigma2(mod_1.3) <- cbind(hdvar, V)
-  mcmcParams(mod_1.3) <- mp
-  mod_1.3 <- mcmc_homozygous(mod_1.3)
-  mod_1.3
-}
+##hd3comp <- function(restricted, simdat, mb.subsamp, mp){
+##  model <- incrementK(restricted) %>%
+##    gsub("P", "", .)
+##  ##THR <- summaries(mb.subsamp)$deletion_cutoff
+##  THR <- deletion_midpoint(mb.subsamp)
+##  mod_1.3 <- MultiBatchList(data=simdat)[[ model ]]
+##  hdmean <- homozygousdel_mean(mb.subsamp, THR)
+##  hdvar <- homozygousdel_var(mb.subsamp, THR)
+##  theta(mod_1.3) <- cbind(hdmean, theta(restricted))
+##  V <- matrix(sigma2(restricted)[, 1],
+##              nrow(sigma2(restricted)), 3,
+##              byrow=FALSE)
+##  sigma2(mod_1.3) <- cbind(hdvar, V)
+##  mcmcParams(mod_1.3) <- mp
+##  mod_1.3 <- mcmc_homozygous(mod_1.3)
+##  mod_1.3
+##}
 
 #' Wrapper for evaluating mixture models consistent with copy number deletion and gain polymorphisms
 #'
@@ -3625,6 +3687,7 @@ hd3comp <- function(restricted, simdat, mb.subsamp, mp){
 #' @export
 #' @seealso [mcmcParams()]
 homdeldup_model <- function(mb, mp, augment=TRUE, ...){
+    likely_deletion <- NULL
     if(augment){
         simdat <- augment_homozygous(mb)
         mb <- MultiBatch(modelName(mb), data=simdat)        
@@ -3845,6 +3908,7 @@ hemdeldup_model2 <- function(mb.subsamp, mp, ...){
 }
 
 restricted_homhemdup <- function(mb, mb.subsamp, mp, ...){
+    likely_deletion <- NULL
     mod_2.4 <- suppressWarnings(posteriorSimulation(mb))
     is_flagged <- mod_2.4@flags$.internal.counter > 10
     if(!is_flagged) return(mod_2.4)
@@ -3874,6 +3938,9 @@ restricted_homhemdup <- function(mb, mb.subsamp, mp, ...){
 dropSimulated <- function(model) model[!isSimulated(model)]
 
 distinct_components <- function(model){
+    number_equivalent <- NULL
+    prop_equivalent <- NULL
+    N <- NULL
   if(numBatch(model) == 1) return(TRUE)
   p <- probz(model)
   nearly_equivalent <- rowSums(p > 0.4 & p < 0.6) > 0
@@ -4005,6 +4072,8 @@ use_cutoff <- function(mb){
 
 
 choose_model <- function(model.list, mb){
+    N <- NULL
+    mp <- NULL
   is_null <- sapply(model.list, is.null)
   model.list <- model.list[ !is_null ]
   if(length(model.list) == 1) return(model.list[[1]])
@@ -4060,34 +4129,39 @@ cnv_models <- function(mb,
     model
 }
 
-upsample <- function(model, se, provisional_batch){
-    dat <- getData2(se[1, ], provisional_batch, model)
-    pred <- predictiveDist(model)
-    dat2 <- predictiveProb(pred, dat) %>%
-        mutate(copynumber=mapping(model)[inferred_component])
-    if(nrow(dat2) == 0) return(dat2)
-    ix <- which(colnames(dat2) %in% as.character(0:4))
-    ##
-    ## multiple components can map to the same copy number state
-    ## -- add probabilities belonging to same component
-    select <- dplyr::select
-    tmp <- dat2[, ix] %>%
-        mutate(id=dat2$id) %>%
-        gather("state", "prob", -c(id)) %>%
-        mutate(component_index=as.numeric(state) + 1) %>%
-        mutate(copynumber=mapping(model)[component_index]) %>%
-        group_by(id, copynumber) %>%
-        summarize(prob=sum(prob)) %>%
-        select(c(id, prob, copynumber)) %>%
-        spread(copynumber, prob)
-    dat2 <- dat2[, -ix] %>%
-      left_join(tmp, by="id")
-    dat3 <- tidy_cntable(dat2)
-    dat3
-}
+##upsample <- function(model, se, provisional_batch){
+##    dat <- getData2(se[1, ], provisional_batch, model)
+##    pred <- predictiveDist(model)
+##    dat2 <- predictiveProb(pred, dat) %>%
+##        mutate(copynumber=mapping(model)[inferred_component])
+##    if(nrow(dat2) == 0) return(dat2)
+##    ix <- which(colnames(dat2) %in% as.character(0:4))
+##    ##
+##    ## multiple components can map to the same copy number state
+##    ## -- add probabilities belonging to same component
+##    select <- dplyr::select
+##    tmp <- dat2[, ix] %>%
+##        mutate(id=dat2$id) %>%
+##        gather("state", "prob", -c(id)) %>%
+##        mutate(component_index=as.numeric(state) + 1) %>%
+##        mutate(copynumber=mapping(model)[component_index]) %>%
+##        group_by(id, copynumber) %>%
+##        summarize(prob=sum(prob)) %>%
+##        select(c(id, prob, copynumber)) %>%
+##        spread(copynumber, prob)
+##    dat2 <- dat2[, -ix] %>%
+##      left_join(tmp, by="id")
+##    dat3 <- tidy_cntable(dat2)
+##    dat3
+##}
 
 #' @export
 upsample2 <- function(model, dat){ ##, provisional_batch){
+    inferred_component <- NULL
+    state <- NULL
+    component_index <- NULL
+    copynumber <- NULL
+    prob <- NULL
     ##dat <- getData2(se[1, ], provisional_batch, model)
     pred <- predictiveDist(model)
     dat2 <- predictiveProb(pred, dat) %>%
@@ -4114,6 +4188,7 @@ upsample2 <- function(model, dat){ ##, provisional_batch){
 }
 
 tidy_cntable <- function(dat){
+    copynumber <- NULL
     tmp <- tibble(id=dat$id,
                   `0`=rep(0, nrow(dat)),
                   `1`=rep(0, nrow(dat)),

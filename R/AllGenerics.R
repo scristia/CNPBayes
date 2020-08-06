@@ -468,9 +468,9 @@ setGeneric("quantiles", function(object) standardGeneric("quantiles"))
 #' @param model An object of class \code{MarginalModel}, or a list of
 #'        \code{MarginalModel}'s. Can also be an object of \code{BatchModel} or
 #'        a list of such models.
-#' @param params A list containing parameters for marginalLikelihood computation. See \code{mlParams} for details.
+#' @param params A list containing parameters for marginalLikelihood computation. 
 #'
-#' @seealso See \code{\link{mlParams}} for parameters related to computing the log marginal likelihood via Chib's estimator. See \code{\link{gibbs}} for fitting multiple mixture models and returning a list sorted by the marginal likelihood.  See \code{\link{marginal_lik}} for the accessor.
+#' @seealso See \code{\link{marginal_lik}} for the accessor.
 #'
 #' Note: currently thinning of the reduced MCMC chains is not allowed.
 #'
@@ -526,7 +526,7 @@ setGeneric("ggChains", function(model) standardGeneric("ggChains"))
 setGeneric("ggMixture", function(model, bins=100, mixtheme, shift_homozygous) standardGeneric("ggMixture"))
 
 
-setGeneric("CopyNumberModel", function(model, params=mapParams()) standardGeneric("CopyNumberModel"))
+##setGeneric("CopyNumberModel", function(model, params=mapParams()) standardGeneric("CopyNumberModel"))
 
 #' Map mixture components to copy number states
 #'
@@ -595,9 +595,9 @@ setGeneric("findSurrogates", function(object, THR=0.1, min_oned=-1) standardGene
 
 setGeneric("isSampled", function(object, THR=0.1) standardGeneric("isSampled"))
 
-setGeneric("down_sample", function(object) standardGeneric("down_sample"))
+##setGeneric("down_sample", function(object) standardGeneric("down_sample"))
 
-setGeneric("down_sample<-", function(object, value) standardGeneric("down_sample<-"))
+##setGeneric("down_sample<-", function(object, value) standardGeneric("down_sample<-"))
 
 setGeneric("downSampledData", function(object) standardGeneric("downSampledData"))
 
@@ -617,7 +617,7 @@ setGeneric("specs<-", function(object, value) standardGeneric("specs<-"))
 
 setGeneric("downSampleModel", function(object, N, i) standardGeneric("downSampleModel") )
 
-setGeneric("upSampleModel", function(downsampled.model, data.full) standardGeneric("upSampleModel"))
+##setGeneric("upSampleModel", function(downsampled.model, data.full) standardGeneric("upSampleModel"))
 
 setGeneric("listChains", function(object) standardGeneric("listChains"))
 

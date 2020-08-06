@@ -88,7 +88,8 @@ posteriorSimulationPooled <- function(object, iter=1000,
   }
   mp <- McmcParams(iter=iter, burnin=burnin, thin=thin,
                    param_updates=param_updates)
-  mcmcParams(object, force=TRUE) <- mp
+  ##mcmcParams(object, force=TRUE) <- mp
+  mcmcParams(object) <- mp
   object <- runBurnin(object)
   object <- sortComponentLabels(object)
   if(!iter(object) > 0) return(object)

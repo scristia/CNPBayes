@@ -4,3 +4,6 @@
 \name{CNPBayes}
 \alias{CNPBayes}
 \title{Bayesian mixture models for copy number estimation}
+\description{
+The CNPBayes package provides functions median_summary, kolmogorov_batches, and down_sample2 for summarizing genomic data at a specific region of the genome for thousands of samples and identifying latent batch effects. Functions MultiBatch, posteriorSimulation, and genotype_model can be used to fit a finite hierarchical mixture of t-distributions across the identified batches and genotype the estimated mixture components.
+}

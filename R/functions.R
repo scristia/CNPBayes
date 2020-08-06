@@ -290,15 +290,15 @@ readLocalHapmap <- function(){
   avg.lrr
 }
 
-mclustMeans <- function(y, batch){
-  ylist <- split(y, batch)
-  .mclust <- function(y){
-    Mclust(y)$parameters$mean
-  }
-  mns <- lapply(ylist, .mclust)
-  L <- sapply(mns, length)
-  collections <- split(names(L), L)
-}
+##mclustMeans <- function(y, batch){
+##  ylist <- split(y, batch)
+##  .mclust <- function(y){
+##    Mclust(y)$parameters$mean
+##  }
+##  mns <- lapply(ylist, .mclust)
+##  L <- sapply(mns, length)
+##  collections <- split(names(L), L)
+##}
 
 missingBatch <- function(dat, ix){
   batches <- dat$provisional_batch
@@ -414,28 +414,28 @@ marginalLik <- function(models){
   ml2
 }
 
-getData <- function(cnp_se, provisional_batch, model, THR=-1){
-  dat <- median_summary(cnp_se, provisional_batch, THR) %>%
-    select(-likely_deletion)
-  model <- dropSimulated(model)
-  batches <- assays(model) %>%
-    group_by(provisional_batch) %>%
-    summarize(batch=unique(batch))
-  dat <- left_join(dat, batches, by="provisional_batch")
-  index <- which(is.na(dat$batch))
-  if(length(index) > 0){
-    stop("batch not modeled")
-    dat$batch[index] <- 1L
-  }
-  ids_ <- id(model)
-  dat2 <- dat %>%
-    mutate(modeled=id %in% ids_)
-  dat2
-}
+##getData <- function(cnp_se, provisional_batch, model, THR=-1){
+##  dat <- median_summary(cnp_se, provisional_batch, THR) %>%
+##    select(-likely_deletion)
+##  model <- dropSimulated(model)
+##  batches <- assays(model) %>%
+##    group_by(provisional_batch) %>%
+##    summarize(batch=unique(batch))
+##  dat <- left_join(dat, batches, by="provisional_batch")
+##  index <- which(is.na(dat$batch))
+##  if(length(index) > 0){
+##    stop("batch not modeled")
+##    dat$batch[index] <- 1L
+##  }
+##  ids_ <- id(model)
+##  dat2 <- dat %>%
+##    mutate(modeled=id %in% ids_)
+##  dat2
+##}
 
 
 getData2 <- function(cnp_se, provisional_batch, model, THR=-1){
-    ##browser()
+    likely_deletion <- NULL
     dat <- median_summary(cnp_se, provisional_batch, THR) %>%
         select(-likely_deletion)
     model <- dropSimulated(model)
@@ -451,6 +451,7 @@ getData2 <- function(cnp_se, provisional_batch, model, THR=-1){
 }
 
 predictiveDist <- function(model){
+    freq <- NULL
   ##dat2 %>% filter(modeled == FALSE)
   mb <- model[!isSimulated(model)]
   comb <- tibble(component=map_z(mb),

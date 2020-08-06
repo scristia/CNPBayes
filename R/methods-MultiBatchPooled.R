@@ -122,7 +122,6 @@ setMethod("sigma2", "MultiBatchCopyNumberPooled", function(object) {
 
 setMethod("sigma", "MultiBatchCopyNumberPooled", function(object) {
   sqrt(sigma2(object))
-  s2
 })
 
 setReplaceMethod("sigma2", "MultiBatchCopyNumberPooled", function(object, value){

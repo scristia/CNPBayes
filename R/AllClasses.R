@@ -15,7 +15,6 @@ setClassUnion("numericOrMatrix", c("numeric", "matrix"))
 #' @slot a shape for sigma2.0
 #' @slot b rate for sigma2.0
 #' @slot dfr positive number for t-distribution degrees of freedom
-#' @aliases k,Hyperparameters-method
 setClass("Hyperparameters", representation(k="integer",
                                            mu.0="numeric",
                                            tau2.0="numeric",

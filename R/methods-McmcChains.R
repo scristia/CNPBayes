@@ -200,24 +200,24 @@ setMethod("McmcChains", "MultiBatchModel", function(object){
   .initializeMcmcBatch(object)
 })
 
-.initializeMcmcTrios <- function(object){
-  mcmc.params <- mcmcParams(object)
-  S <- iter(mcmc.params)[1]
-  ns <- length(y(object))
-  K <- k(object)
-  B <- nBatch(object)
-  dat <- triodata(object)
-  T <- length(unique(dat$id))
-  initialize_mcmcT(K, S, B, T)
-}
+##.initializeMcmcTrios <- function(object){
+##  mcmc.params <- mcmcParams(object)
+##  S <- iter(mcmc.params)[1]
+##  ns <- length(y(object))
+##  K <- k(object)
+##  B <- nBatch(object)
+##  dat <- triodata(object)
+##  T <- length(unique(dat$id))
+##  initialize_mcmcT(K, S, B, T)
+##}
 
-setMethod("McmcChainsTrios", "TrioBatchModel", function(object){
-  K <- k(object)
-  S <- iter(object)
-  B <- numBatch(object)
-  T <- nTrios(object)
-  initialize_mcmcT(K, S, B, T)
-})
+##setMethod("McmcChainsTrios", "TrioBatchModel", function(object){
+##  K <- k(object)
+##  S <- iter(object)
+##  B <- numBatch(object)
+##  T <- nTrios(object)
+##  initialize_mcmcT(K, S, B, T)
+##})
 
 chains_mb <- function(object){
   mcmc.params <- mcmcParams(object)
@@ -436,6 +436,10 @@ setReplaceMethod("zFreq", "McmcChains", function(object, value){
 })
 
 longFormatKB <- function(x, K, B){
+    Var1 <- Var2 <- NULL
+    . <- NULL
+    s <- NULL
+    bk <- NULL
     col_names <- expand.grid(seq_len(B), seq_len(K)) %>%
         mutate(col_names=paste(Var1, Var2, sep=",")) %$%
         col_names
@@ -453,34 +457,34 @@ longFormatKB <- function(x, K, B){
     x
 }
 
-longFormatKB2 <- function(x, K, B){
-  col_names <- rep(seq_len(B), B) %>%
-      paste(rep(seq_len(K), each=K), sep=",")
-  col_names <- col_names[ !duplicated(col_names) ]
-  x <- x %>%
-      set_colnames(col_names) %>%      
-      as_tibble %>%
-      mutate(s=seq_len(nrow(.))) %>%
-      gather("bk", "value", -s) %>%
-      mutate(b=sapply(strsplit(bk, ","), "[", 1),
-             k=sapply(strsplit(bk, ","), "[", 2)) %>%
-      mutate(b=factor(paste("batch", b)),
-             k=factor(paste("k", k))) %>%
-      select(-bk)
-  x
-}
-
-longFormatK <- function(x, K){
-  col_names <- seq_len(K) %>%
-    as.character
-  x <- x %>%
-      set_colnames(col_names) %>%
-      as_tibble() %>%
-      mutate(s=seq_len(nrow(.))) %>%
-      gather("k", "value", -s) %>%
-      mutate(k=factor(paste("k ", k)))
-  x
-}
+##longFormatKB2 <- function(x, K, B){
+##  col_names <- rep(seq_len(B), B) %>%
+##      paste(rep(seq_len(K), each=K), sep=",")
+##  col_names <- col_names[ !duplicated(col_names) ]
+##  x <- x %>%
+##      set_colnames(col_names) %>%      
+##      as_tibble %>%
+##      mutate(s=seq_len(nrow(.))) %>%
+##      gather("bk", "value", -s) %>%
+##      mutate(b=sapply(strsplit(bk, ","), "[", 1),
+##             k=sapply(strsplit(bk, ","), "[", 2)) %>%
+##      mutate(b=factor(paste("batch", b)),
+##             k=factor(paste("k", k))) %>%
+##      select(-bk)
+##  x
+##}
+##
+##longFormatK <- function(x, K){
+##  col_names <- seq_len(K) %>%
+##    as.character
+##  x <- x %>%
+##      set_colnames(col_names) %>%
+##      as_tibble() %>%
+##      mutate(s=seq_len(nrow(.))) %>%
+##      gather("k", "value", -s) %>%
+##      mutate(k=factor(paste("k ", k)))
+##  x
+##}
 
 setMethod("k", "McmcChains",  function(object) object@k)
 setMethod("iter", "McmcChains",  function(object) object@iter)
@@ -497,34 +501,34 @@ setReplaceMethod("numBatch", "McmcChains",  function(object, value){
   object@B <- value
 })
 
-setAs("McmcChains", "list", function(from){
-  K <- k(from)
-  B <- from@B
-  S <- iter(from)
-  theta <- longFormatKB(theta(from), K, B)
-  if(ncol(sigma2(from)) == K*B){
-    sigma2 <- longFormatKB(sigma2(from), K, B)
-  } else {
-    sigma2 <- longFormatK(sigma2(from), K)
-  }
-  p <- longFormatKB(p(from), K, B)
-  mu <- longFormatK(mu(from), K)
-  tau2 <- longFormatK(tau2(from), K)
-  zfreq <- longFormatK(zFreq(from), K)
-  params <- tibble(s=seq_len(S),
-                   nu.0=nu.0(from),
-                   sigma2.0=sigma2.0(from),
-                   logprior=logPrior(from),
-                   loglik=log_lik(from)) %>%
-      gather("parameter", "value", -s)
-  list(theta=theta,
-       sigma2=sigma2,
-       p=p,
-       mu=mu,
-       tau2=tau2,
-       zfreq=zfreq,
-       scalars=params)
-})
+##setAs("McmcChains", "list", function(from){
+##  K <- k(from)
+##  B <- from@B
+##  S <- iter(from)
+##  theta <- longFormatKB(theta(from), K, B)
+##  if(ncol(sigma2(from)) == K*B){
+##    sigma2 <- longFormatKB(sigma2(from), K, B)
+##  } else {
+##    sigma2 <- longFormatK(sigma2(from), K)
+##  }
+##  p <- longFormatKB(p(from), K, B)
+##  mu <- longFormatK(mu(from), K)
+##  tau2 <- longFormatK(tau2(from), K)
+##  zfreq <- longFormatK(zFreq(from), K)
+##  params <- tibble(s=seq_len(S),
+##                   nu.0=nu.0(from),
+##                   sigma2.0=sigma2.0(from),
+##                   logprior=logPrior(from),
+##                   loglik=log_lik(from)) %>%
+##      gather("parameter", "value", -s)
+##  list(theta=theta,
+##       sigma2=sigma2,
+##       p=p,
+##       mu=mu,
+##       tau2=tau2,
+##       zfreq=zfreq,
+##       scalars=params)
+##})
 
 
 setMethod("predictive", "McmcChains", function(object) object@predictive)

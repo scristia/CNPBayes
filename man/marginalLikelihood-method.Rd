@@ -23,7 +23,7 @@ marginalLikelihood(model, params = mlParams())
 \code{MarginalModel}'s. Can also be an object of \code{BatchModel} or
 a list of such models.}
 
-\item{params}{A list containing parameters for marginalLikelihood computation. See \code{mlParams} for details.}
+\item{params}{A list containing parameters for marginalLikelihood computation.}
 }
 \value{
 A vector of the marginal likelihood of the model(s)
@@ -40,7 +40,7 @@ The recommended function for fitting mixture models and evaluating convergence i
    marginalLikelihood(mm)
 }
 \seealso{
-See \code{\link{mlParams}} for parameters related to computing the log marginal likelihood via Chib's estimator. See \code{\link{gibbs}} for fitting multiple mixture models and returning a list sorted by the marginal likelihood.  See \code{\link{marginal_lik}} for the accessor.
+See \code{\link{marginal_lik}} for the accessor.
 
 Note: currently thinning of the reduced MCMC chains is not allowed.
 }

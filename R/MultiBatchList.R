@@ -11,6 +11,7 @@ setClass("MultiBatchList", representation(data="tbl_df",
 
 
 modelSpecs <- function(models, K, data) {
+    model <- NULL
   if(missing(models)){
     models <- c("SB", "SBP", "MB", "MBP")
     if(missing(K)) K <- 1:4
