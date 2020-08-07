@@ -2,7 +2,9 @@
 % Please edit documentation in R/AllGenerics.R
 \name{mapping}
 \alias{mapping}
+\alias{mapping,MultiBatch-method}
 \alias{mapping<-}
+\alias{mapping<-,MultiBatch-method}
 \title{Map mixture components to copy number states}
 \usage{
 mapping(object)

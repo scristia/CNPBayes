@@ -3,7 +3,10 @@
 \docType{methods}
 \name{oned}
 \alias{oned}
-\title{Retrieve data.}
+\alias{oned,MixtureModel-method}
+\alias{oned,MultiBatch-method}
+\alias{oned,MultiBatchList-method}
+\title{Retrieve one-dimensional summaries of the log ratios for each subject.}
 \usage{
 oned(object)
 }
@@ -14,5 +17,5 @@ oned(object)
 A vector the length of the data
 }
 \description{
-Retrieve data.
+Retrieve one-dimensional summaries of the log ratios for each subject.
 }

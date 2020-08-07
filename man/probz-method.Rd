@@ -3,6 +3,8 @@
 \docType{methods}
 \name{probz}
 \alias{probz}
+\alias{probz,MixtureModel-method}
+\alias{probz,MultiBatch-method}
 \title{Retrieve the probability of latent variable membership by observation.}
 \usage{
 probz(object)

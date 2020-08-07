@@ -12,10 +12,12 @@ homdel_model(mb, mp, augment = TRUE, ...)
 \item{mp}{a `McmcParams` instance}
 
 \item{augment}{whether to use data augmentation for rare observations that may be present in a subset of batches}
+
+\item{...}{additional arguments passed to \code{warmup}}
 }
 \description{
 Fits single-batch and multi-batch models consistent with a deletion polymorphism.
 }
 \seealso{
-[mcmcParams()]
+\code{\link{warmup}}
 }

@@ -6,6 +6,9 @@
 \usage{
 \S4method{mu}{McmcChains}(object)
 }
+\arguments{
+\item{object}{a McmcChains instance}
+}
 \description{
 Accessor for mu slot of McmcChains class
 }

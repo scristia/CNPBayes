@@ -11,11 +11,11 @@ hemdel_model(mb, mp, ...)
 
 \item{mp}{a McmcParams instance}
 
-\item{...}{additional arguments passed to warmup}
+\item{...}{additional arguments passed to \code{warmup}}
 }
 \description{
 Fits a series of models consistent for a deletion CNV where only hemizygous deletions are present (no homozygous deletions)
 }
 \seealso{
-[warmup()]
+\code{\link{warmup}}
 }

@@ -3,6 +3,10 @@
 \docType{methods}
 \name{bic}
 \alias{bic}
+\alias{bic,MultiBatch-method}
+\alias{bic,MultiBatchModel-method}
+\alias{bic,MultiBatchP-method}
+\alias{bic,MultiBatchPooled-method}
 \title{Calculate BIC of a model}
 \usage{
 bic(object)

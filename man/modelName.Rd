@@ -2,6 +2,8 @@
 % Please edit documentation in R/AllGenerics.R
 \name{modelName}
 \alias{modelName}
+\alias{modelName,MultiBatch-method}
+\alias{modelName,MultiBatchList-method}
 \title{Accessor for name of MultiBatch model}
 \usage{
 modelName(object)

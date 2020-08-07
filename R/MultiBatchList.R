@@ -80,6 +80,9 @@ setMethod("specs", "MultiBatchList", function(object){
 ##
 ## Subsetting
 ##
+
+#' @aliases "[[",MultiBatchList,numeric,ANY
+#' @rdname subsetting-methods
 setMethod("[[", c("MultiBatchList", "numeric"), function(x, i){
   ## return MultiBatch instance
   model <- specs(x)$model[i]
@@ -119,11 +122,15 @@ setMethod("[[", c("MultiBatchList", "numeric"), function(x, i){
   mb
 })
 
+#' @aliases [[,MultiBatchList,character,ANY
+#' @rdname subsetting-methods
 setMethod("[[", c("MultiBatchList", "character"), function(x, i){
   j <- match(i, names(x))
   x[[j]]
 })
 
+#' @aliases [,MultiBatchList,numeric,ANY,ANY
+#' @rdname subsetting-methods
 setMethod("[", c("MultiBatchList", "numeric"), function(x, i, j, ...){
   ## return MultiBatchList 
   MultiBatchList(data=assays(x),
@@ -135,18 +142,25 @@ setMethod("[", c("MultiBatchList", "numeric"), function(x, i, j, ...){
                  flags=flags(x)[i])
 })
 
+#' @aliases [,MultiBatchList,character,ANY,ANY
+#' @rdname subsetting-methods
 setMethod("[", c("MultiBatchList", "character"), function(x, i, j, ...){
   i <- match(i, names(x))
   x[i]
 })
 
+#' @aliases [,MultiBatchList,logical,ANY,ANY
+#' @rdname subsetting-methods
 setMethod("[", c("MultiBatchList", "logical"), function(x, i, j, ...){
   i <- which(i)
   x[i]
 })
 
 
-
+#' @aliases [[<-,MultiBatchList,ANY,ANY
+#' @aliases [[<-,MultiBatchList,ANY,ANY-method
+#' @param value a MultiBatch instance
+#' @rdname subsetting-methods
 setReplaceMethod("[[", "MultiBatchList", function(x, i, value){
   ## return MultiBatchList instance
   current_values(x)[[i]] <- current_values(value)
@@ -156,7 +170,8 @@ setReplaceMethod("[[", "MultiBatchList", function(x, i, value){
   x
 })
 
-## value is a MultiBatchList
+#' @aliases [,MultiBatchList,ANY,ANY,ANY
+#' @rdname subsetting-methods
 setReplaceMethod("[", "MultiBatchList", function(x, i, j, value){
   if(length(value) != length(i)) stop("Length of replacement and i must be the same")
   current_values(x)[i] <- current_values(value)
@@ -428,7 +443,30 @@ listFlags <- function(model_specs){
 }
 
 
+#'  Constructor for a list of MultiBatch objects
+#'
+#' MultiBatch is the container used by CNPBayes for the organization of the primary data, current values of the mixture model parameters, hyperparameters, and MCMC chains. A list of MultiBatch objects is often created internally to evaluate and compare different models.
+#'
+#' @param models vector of abbreviated model names
+#' @param data one-dimensional summaries of log-ratios at a CNV-region for a collection of samples.  See details for required columns.
+#' @param specs additional model specifications
+#' @param num_models ignored
+#' @param iter total number of saved MCMC iterations (after thinning and does not include burnin)
+#' @param burnin number of burnin MCMC simulations
+#' @param current_values values of mixture model parameters from the last iteration of the MCMC. These values can be used to initialize another chain if more MCMC simulations are needed.
+#' @param K vector for numer of mixture components in the list object
+#' @param thin number indicating how often MCMC updates are saved in the McmcChains slot of a MultiBatch instance
+#' @param nStarts number of independent chains
+#' @param max_burnin ignored
+#' @param hp a Hyperparameters instance
+#' @param mp a McmcParams instance
+#' @param parameters Parameters of the finite Bayesian mixture model
+#' @param chains a McmcChains instance
+#' @param summaries list of model summaries 
+#' @param flags list of flags that could indicate possible problems with convergence
 #' @export
+#' @seealso \code{\link{MultiBatch}}
+#' @return a MultiBatchList
 MultiBatchList <- function(models,
                            data=modelData(),
                            K,
@@ -705,6 +743,8 @@ mcmc3 <- function(mlist){
 ##
 ##          })
 
+#' @rdname MultiBatch-accessors
+#' @aliases names,MultiBatchList-method
 setMethod("names", "MultiBatchList", function(x){
   specs(x)$model
 })
@@ -765,22 +805,22 @@ setReplaceMethod("max_burnin", "MultiBatchList", function(object, value){
   object
 })
 
-#' Use values from SingleBatch model to simulate reasonable starting values for the SingleBatch-pooled and MultiBatch models of the same number of components
-#'
-setMethod("singleBatchGuided", c("MultiBatchList", "MultiBatch"),
-          function(x, guide){
-            modes(guide) <- computeModes(guide)
-            if(any(k(x) != k(guide))){
-              stop("models 'x' and 'guide' must have same number of components")
-            }
-            ns <- nStarts(x)
-            mod.list <- vector("list", length(x))
-            for(j in seq_along(x)){
-              mod.list[[j]] <- replicate(ns, singleBatchGuided(x[[j]], guide))
-            }
-            names(mod.list) <- modelName(x)
-            mod.list
-          })
+## #' Use values from SingleBatch model to simulate reasonable starting values for the SingleBatch-pooled and MultiBatch models of the same number of components
+## #'
+## setMethod("singleBatchGuided", c("MultiBatchList", "MultiBatch"),
+##           function(x, guide){
+##             modes(guide) <- computeModes(guide)
+##             if(any(k(x) != k(guide))){
+##               stop("models 'x' and 'guide' must have same number of components")
+##             }
+##             ns <- nStarts(x)
+##             mod.list <- vector("list", length(x))
+##             for(j in seq_along(x)){
+##               mod.list[[j]] <- replicate(ns, singleBatchGuided(x[[j]], guide))
+##             }
+##             names(mod.list) <- modelName(x)
+##             mod.list
+##           })
 
 setMethod("convergence", "MultiBatchList", function(object){
   sapply(object, convergence)

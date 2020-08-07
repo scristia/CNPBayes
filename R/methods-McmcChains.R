@@ -252,13 +252,17 @@ setMethod("McmcChains", "MultiBatchPooled", function(object){
 #' 
 #' @rdname mu-method
 #' @aliases mu,McmcChains-method
+#' @param object a McmcChains instance
 setMethod("mu", "McmcChains", function(object) object@mu)
 
                                         
 #' Accessor for tau2 slot of McmcChains class
+#'
+#' tau2 describes the variation of component means across batches
 #' 
 #' @rdname tau2-method
 #' @aliases tau2,McmcChains-method
+#' @param object a MultiBatch instance
 setMethod("tau2", "McmcChains", function(object) object@tau2)
 
 #' Accessor for theta slot of McmcChains class
@@ -286,7 +290,10 @@ setMethod("show", "McmcChains", function(object){
 #' @aliases [,McmcChains-method [,McmcChains,ANY-method
 #' @return An object of class 'McmcChains'
 #' @docType methods
-#' @rdname extract-methods
+#' @rdname subsetting-methods
+#' @param j ignored
+#' @param ... ignored
+#' @param drop ignored
 setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     x@theta <- x@theta[i, , drop=FALSE]
@@ -310,46 +317,40 @@ setMethod("[", "McmcChains", function(x, i, j, ..., drop=FALSE){
   x
 })
 
-#' extract estimated parameters at particular iteration of simulation.
-#' @aliases [,McmcChainsTrios-method [,McmcChainsTrios,ANY-method
-#' @return An object of class 'McmcChainsTrios'
-#' @docType methods
-#' @rdname extract-methods
-setMethod("[", "McmcChainsTrios", function(x, i, j, ..., drop=FALSE){
-  if(!missing(i)){
-    x@theta <- x@theta[i, , drop=FALSE]
-    x@sigma2 <- x@sigma2[i, , drop=FALSE]
-    x@pi <- x@pi[i, , drop=FALSE]
-    x@pi_parents <- x@pi_parents[i, , drop=FALSE]
-    if(is.matrix(x@mu)){
-      x@mu <- x@mu[i, , drop=FALSE]
-    } else x@mu <- x@mu[i]
-    if(is.matrix(x@tau2)){
-      x@tau2 <- x@tau2[i, , drop=FALSE]
-    } else  x@tau2 <- x@tau2[i]
-    x@nu.0 <- x@nu.0[i]
-    x@sigma2.0 <- x@sigma2.0[i]
-    x@logprior <- x@logprior[i]
-    x@loglik <- x@loglik[i]
-    x@zfreq <- x@zfreq[i, , drop=FALSE]
-    x@zfreq_parents <- x@zfreq_parents[i, , drop=FALSE]
-    x@predictive <- x@predictive[i, , drop=FALSE]
-    x@zstar <- x@zstar[i, , drop=FALSE]
-  }
-  x@iter <- nrow(x@theta)
-  x
-})
+## #' extract estimated parameters at particular iteration of simulation.
+## #' @aliases [,McmcChainsTrios-method [,McmcChainsTrios,ANY-method
+## #' @return An object of class 'McmcChainsTrios'
+## #' @docType methods
+## #' @rdname subsetting-methods
+## setMethod("[", "McmcChainsTrios", function(x, i, j, ..., drop=FALSE){
+##   if(!missing(i)){
+##     x@theta <- x@theta[i, , drop=FALSE]
+##     x@sigma2 <- x@sigma2[i, , drop=FALSE]
+##     x@pi <- x@pi[i, , drop=FALSE]
+##     x@pi_parents <- x@pi_parents[i, , drop=FALSE]
+##     if(is.matrix(x@mu)){
+##       x@mu <- x@mu[i, , drop=FALSE]
+##     } else x@mu <- x@mu[i]
+##     if(is.matrix(x@tau2)){
+##       x@tau2 <- x@tau2[i, , drop=FALSE]
+##     } else  x@tau2 <- x@tau2[i]
+##     x@nu.0 <- x@nu.0[i]
+##     x@sigma2.0 <- x@sigma2.0[i]
+##     x@logprior <- x@logprior[i]
+##     x@loglik <- x@loglik[i]
+##     x@zfreq <- x@zfreq[i, , drop=FALSE]
+##     x@zfreq_parents <- x@zfreq_parents[i, , drop=FALSE]
+##     x@predictive <- x@predictive[i, , drop=FALSE]
+##     x@zstar <- x@zstar[i, , drop=FALSE]
+##   }
+##   x@iter <- nrow(x@theta)
+##   x
+## })
 
-#' Accessor for nu.0 slot of McmcChains class
-#' 
-#' @rdname nu.0-method
-#' @aliases nu.0,McmcChains-method
+
 setMethod("nu.0", "McmcChains", function(object) object@nu.0)
 
-#' Accessor for sigma2.0 slot of McmcChains class
-#' 
-#' @rdname sigma2.0-method
-#' @aliases sigma2.0,McmcChains-method
+
 setMethod("sigma2.0", "McmcChains", function(object) object@sigma2.0)
 
 setReplaceMethod("pp", "McmcChains", function(object, value){
@@ -419,6 +420,8 @@ setMethod("names", "McmcChains", function(x) slotNames(x))
 #' 
 #' @rdname zfreq-method
 #' @aliases zfreq,McmcChains-method
+#' @param object a McmcChains instance
+#' @details A running tally of the mixture component assignments is obtained by the `zFreq` accessor.  The running tally can also be extracted from a `MultiBatch` instance by \code{zFreq(chains(mb))}, where `mb` is a MultiBatch object.
 setMethod("zFreq", "McmcChains", function(object) object@zfreq )
 
 setMethod("zFreqPar", "McmcChains", function(object) object@zfreq_parents )
@@ -474,17 +477,19 @@ longFormatKB <- function(x, K, B){
 ##  x
 ##}
 ##
-##longFormatK <- function(x, K){
-##  col_names <- seq_len(K) %>%
-##    as.character
-##  x <- x %>%
-##      set_colnames(col_names) %>%
-##      as_tibble() %>%
-##      mutate(s=seq_len(nrow(.))) %>%
-##      gather("k", "value", -s) %>%
-##      mutate(k=factor(paste("k ", k)))
-##  x
-##}
+longFormatK <- function(x, K){
+    . <- NULL
+    s <- NULL
+  col_names <- seq_len(K) %>%
+    as.character
+  x <- x %>%
+      set_colnames(col_names) %>%
+      as_tibble() %>%
+      mutate(s=seq_len(nrow(.))) %>%
+      gather("k", "value", -s) %>%
+      mutate(k=factor(paste("k ", k)))
+  x
+}
 
 setMethod("k", "McmcChains",  function(object) object@k)
 setMethod("iter", "McmcChains",  function(object) object@iter)
@@ -501,34 +506,35 @@ setReplaceMethod("numBatch", "McmcChains",  function(object, value){
   object@B <- value
 })
 
-##setAs("McmcChains", "list", function(from){
-##  K <- k(from)
-##  B <- from@B
-##  S <- iter(from)
-##  theta <- longFormatKB(theta(from), K, B)
-##  if(ncol(sigma2(from)) == K*B){
-##    sigma2 <- longFormatKB(sigma2(from), K, B)
-##  } else {
-##    sigma2 <- longFormatK(sigma2(from), K)
-##  }
-##  p <- longFormatKB(p(from), K, B)
-##  mu <- longFormatK(mu(from), K)
-##  tau2 <- longFormatK(tau2(from), K)
-##  zfreq <- longFormatK(zFreq(from), K)
-##  params <- tibble(s=seq_len(S),
-##                   nu.0=nu.0(from),
-##                   sigma2.0=sigma2.0(from),
-##                   logprior=logPrior(from),
-##                   loglik=log_lik(from)) %>%
-##      gather("parameter", "value", -s)
-##  list(theta=theta,
-##       sigma2=sigma2,
-##       p=p,
-##       mu=mu,
-##       tau2=tau2,
-##       zfreq=zfreq,
-##       scalars=params)
-##})
+setAs("McmcChains", "list", function(from){
+    s <- NULL
+  K <- k(from)
+  B <- from@B
+  S <- iter(from)
+  theta <- longFormatKB(theta(from), K, B)
+  if(ncol(sigma2(from)) == K*B){
+    sigma2 <- longFormatKB(sigma2(from), K, B)
+  } else {
+    sigma2 <- longFormatK(sigma2(from), K)
+  }
+  p <- longFormatKB(p(from), K, B)
+  mu <- longFormatK(mu(from), K)
+  tau2 <- longFormatK(tau2(from), K)
+  zfreq <- longFormatK(zFreq(from), K)
+  params <- tibble(s=seq_len(S),
+                   nu.0=nu.0(from),
+                   sigma2.0=sigma2.0(from),
+                   logprior=logPrior(from),
+                   loglik=log_lik(from)) %>%
+      gather("parameter", "value", -s)
+  list(theta=theta,
+       sigma2=sigma2,
+       p=p,
+       mu=mu,
+       tau2=tau2,
+       zfreq=zfreq,
+       scalars=params)
+})
 
 
 setMethod("predictive", "McmcChains", function(object) object@predictive)

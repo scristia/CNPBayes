@@ -3,7 +3,14 @@
 \docType{methods}
 \name{thin}
 \alias{thin}
+\alias{thin,MixtureModel-method}
+\alias{thin,MultiBatch-method}
+\alias{thin,MultiBatchList-method}
 \alias{thin<-}
+\alias{thin<-,McmcParams,numeric-method}
+\alias{thin<-,MixtureModel,numeric-method}
+\alias{thin<-,MultiBatch,numeric-method}
+\alias{thin<-,MultiBatchList,numeric-method}
 \alias{thin,McmcParams-method}
 \title{Get or set the number of thinning intervals.}
 \usage{
@@ -15,6 +22,8 @@ thin(object) <- value
 }
 \arguments{
 \item{object}{see showMethods(thin)}
+
+\item{value}{numeric.  Setting the thin parameter to 5 implies that every fifth iteration would be saved.}
 }
 \value{
 An integer of the number of thinning intervals
@@ -22,6 +31,9 @@ An integer of the number of thinning intervals
 \description{
 This function gets or sets the number of thinning intervals used for an MCMC
 simulation.
+}
+\details{
+The total number of iterations saved in the MultiBatch object is specified by the `iter` parameter.  If, for example, iter is set to 1000 and the thin parameter is set to 5, the MCMC will perform 5000 simulations but only 1000 will be saved.
 }
 \examples{
      thin(SingleBatchModelExample)

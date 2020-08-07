@@ -3,7 +3,16 @@
 \docType{methods}
 \name{mcmcParams}
 \alias{mcmcParams}
+\alias{mcmcParams,MixtureModel-method}
+\alias{mcmcParams,MultiBatch-method}
+\alias{mcmcParams,MultiBatchList-method}
+\alias{mcmcParams,list-method}
 \alias{mcmcParams<-}
+\alias{mcmcParams<-,MixtureModel,ANY-method}
+\alias{mcmcParams<-,MultiBatch,McmcParams-method}
+\alias{mcmcParams<-,MultiBatchList,McmcParams-method}
+\alias{mcmcParams<-,MultiBatchP,McmcParams-method}
+\alias{mcmcParams<-,list,ANY-method}
 \title{Retrieve MCMC parameters from model.}
 \usage{
 mcmcParams(object)
@@ -14,16 +23,12 @@ mcmcParams(object) <- value
 \item{object}{see \code{showMethods(mcmcParams)}}
 
 \item{value}{an object of class 'McmcParams' containing the new number of iterations, etc.}
-
-\item{force}{logical value. If false (default) the update will not proceed.}
 }
 \value{
 An object of class 'McmcParams'
 }
 \description{
 View number of iterations, burnin, etc.
-
-Replace number of iterations, burnin, etc. Any update of the MCMC parameters will trigger an update of the chains. However, if iter (the number of MCMC iterations) is set to a nonpositive value, the chains will not be updated and kept as is.
 }
 \examples{
      mcmcParams(SingleBatchModelExample)

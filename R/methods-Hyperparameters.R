@@ -24,32 +24,6 @@ qInverseTau2 <- function(eta.0=1800, m2.0=100, mn, sd){
   list(quantiles=x, eta.0=eta.0, m2.0=m2.0, mean=mn, sd=sd)
 }
 
-#' Create an object of class 'Hyperparameters' with additional parameters for Trios
-#'
-#' @return An object of class HyperparameterTrios
-HyperparametersTrios <- function(k=3,
-                                 mu.0=0,
-                                 tau2.0=0.4,
-                                 eta.0=32,
-                                 m2.0=0.5,
-                                 alpha,
-                                 beta=0.1, ## mean is 1/10
-                                 a=1.8,
-                                 b=6,
-                                 dfr=100){
-  if(missing(alpha)) alpha <- rep(1, k)
-  new("HyperparametersTrios",
-      k=as.integer(k),
-      mu.0=mu.0,
-      tau2.0=tau2.0,
-      eta.0=eta.0,
-      m2.0=m2.0,
-      alpha=alpha,
-      beta=beta,
-      a=a,
-      b=b,
-      dfr=dfr)
-}
 
 #' Create an object of class 'HyperparametersMultiBatch' for the
 #' batch mixture model
@@ -184,6 +158,7 @@ setValidity("Hyperparameters", function(object){
 #'
 #' @param type specifies 'marginal' or 'batch'
 #' @param k number of components
+#' @param ... additional arguments are names of the slots of the Hyperparameters class, including `mu.0`, `tau2.0`, `eta.0`, `m2.0`, `alpha`, `beta`, `a`, `b`, and `dfr`).
 #' @return An object of class HyperparametersMarginal or HyperparametersBatch
 #'
 #' @details
@@ -194,26 +169,28 @@ setValidity("Hyperparameters", function(object){
 Hyperparameters <- function(type="batch", k=2L, ...){
   if(type=="marginal") return(HyperparametersSingleBatch(k, ...))
   if(type=="batch") return(HyperparametersMultiBatch(k, ...))
-  if(type=="trios") return(HyperparametersTrios(k, ...))
+  ##if(type=="trios") return(HyperparametersTrios(k, ...))
 }
 
 #' Accessor for number of mixture components
 #' 
 #' @rdname k-method
 #' @aliases k<-,Hyperparameters-method
+#' @param object A Hyperparameters instance
+#' @param value An integer specifying the number of mixture components for the mixture model
 setReplaceMethod("k", "Hyperparameters", function(object, value){
   object@k <- as.integer(value)
   object@alpha <- rep(1L, value)
   object
 })
 
-#' @rdname k-method
-#' @aliases k<-,HyperparametersTrios-method
-setReplaceMethod("k", "HyperparametersTrios", function(object, value){
-  object@k <- as.integer(value)
-  object@alpha <- rep(1L, value)
-  object
-})
+## #' @rdname k-method
+## #' @aliases k<-,HyperparametersTrios-method
+## setReplaceMethod("k", "HyperparametersTrios", function(object, value){
+##   object@k <- as.integer(value)
+##   object@alpha <- rep(1L, value)
+##   object
+## })
 
 setValidity("Hyperparameters", function(object){
   msg <- NULL
@@ -257,12 +234,11 @@ setMethod("show", "Hyperparameters", function(object){
 hpList <- function(...){
   sbp <- sb <- Hyperparameters(...)
   mb <- mbp <- HyperparametersMultiBatch(...)
-  tbm <- HyperparametersTrios(...)
+  ##tbm <- HyperparametersTrios(...)
   list(SB=sb,
        MB=mb,
        SBP=sbp,
-       MBP=mbp,
-       TBM=tbm)
+       MBP=mbp)
 }
 
 setMethod("dfr", "Hyperparameters", function(object) object@dfr)

@@ -3,6 +3,8 @@
 \docType{methods}
 \name{z}
 \alias{z}
+\alias{z,MixtureModel-method}
+\alias{z,MultiBatch-method}
 \title{Retrieve latent variable assignments.}
 \usage{
 z(object)

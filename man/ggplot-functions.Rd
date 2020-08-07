@@ -2,6 +2,9 @@
 % Please edit documentation in R/AllGenerics.R, R/plot-functions.R
 \name{ggMixture}
 \alias{ggMixture}
+\alias{ggMixture,MultiBatchCopyNumber-method}
+\alias{ggMixture,MultiBatchCopyNumberPooled-method}
+\alias{ggMixture,MultiBatchPooled-method}
 \alias{ggMixture,MultiBatch-method}
 \alias{ggMixture,MultiBatchModel-method}
 \title{Plotting posterior predictive densities from mixture model}
@@ -11,9 +14,13 @@ ggMixture(model, bins = 100, mixtheme, shift_homozygous)
 \S4method{ggMixture}{MultiBatch}(model, bins = 100, mixtheme, shift_homozygous)
 }
 \arguments{
+\item{model}{MultiBatch instance}
+
 \item{bins}{a length-one numeric vector indicating the number of bins -- passed to \code{geom_hist}}
 
 \item{mixtheme}{a ggplot theme}
+
+\item{shift_homozygous}{todo: deprecate}
 }
 \description{
 Plotting posterior predictive densities from mixture model

@@ -3,6 +3,8 @@
 \docType{methods}
 \name{log_lik}
 \alias{log_lik}
+\alias{log_lik,MixtureModel-method}
+\alias{log_lik,MultiBatch-method}
 \alias{log_lik,McmcChains-method}
 \title{Retrieve log likelihood.}
 \usage{

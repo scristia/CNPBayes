@@ -2,7 +2,12 @@
 % Please edit documentation in R/AllGenerics.R
 \name{marginal_lik}
 \alias{marginal_lik}
+\alias{marginal_lik,MixtureModel-method}
+\alias{marginal_lik,MultiBatch-method}
+\alias{marginal_lik,MultiBatchList-method}
 \alias{marginal_lik<-}
+\alias{marginal_lik<-,MixtureModel,numeric-method}
+\alias{marginal_lik<-,MultiBatch,numeric-method}
 \title{Accessor for the log marginal likelihood of a SB, SBP, MB, or MBP model}
 \usage{
 marginal_lik(object)
@@ -11,6 +16,8 @@ marginal_lik(object) <- value
 }
 \arguments{
 \item{object}{a SB, SBP, MB, or MBP model}
+
+\item{value}{the marginal likelihood}
 }
 \description{
 The marginal likelihood is computed by Chib's estimator (JASA, Volume 90 (435), 1995).

@@ -3,6 +3,9 @@
 \docType{methods}
 \name{batch}
 \alias{batch}
+\alias{batch,MixtureModel-method}
+\alias{batch,MultiBatch-method}
+\alias{batch,MultiBatchList-method}
 \title{Retrieve batches from object.}
 \usage{
 batch(object)

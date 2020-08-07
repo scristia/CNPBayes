@@ -337,7 +337,7 @@ predictiveTibble <- function(object){
 ## }
 
 .gg_multibatch <- function(model, bins=100, mixtheme, shift_homozygous){
-    is_homozygous <- NULL
+  is_homozygous <- NULL
   colors <- c("#999999", "#56B4E9", "#E69F00", "#0072B2",
               "#D55E00", "#CC79A7",  "#009E73")
   pred <- predictiveTibble(model)

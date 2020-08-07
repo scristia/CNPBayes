@@ -10,6 +10,8 @@ Hyperparameters(type = "batch", k = 2L, ...)
 \item{type}{specifies 'marginal' or 'batch'}
 
 \item{k}{number of components}
+
+\item{...}{additional arguments are names of the slots of the Hyperparameters class, including `mu.0`, `tau2.0`, `eta.0`, `m2.0`, `alpha`, `beta`, `a`, `b`, and `dfr`).}
 }
 \value{
 An object of class HyperparametersMarginal or HyperparametersBatch

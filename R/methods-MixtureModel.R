@@ -190,10 +190,6 @@ setMethod("computePrior", "SingleBatchModel", function(object){
 }
 
 
-#' Number of observations in mixture model object
-#' 
-#' @aliases numberObs,MixtureModel-method
-#' @rdname numberObs-method
 setMethod("numberObs", "MixtureModel", function(model) length(y(model)))
 
 
@@ -637,6 +633,10 @@ setReplaceMethod("dfr", c("MixtureModel", "numeric"),
                  })
 
 ## i can be logical or numeric
+
+
+#' @aliases "[",MixtureModel,logical,ANY,ANY
+#' @rdname subsetting-methods
 setMethod("[", c("MixtureModel", "logical"),
           function(x, i, j, ..., drop=TRUE){
             x@data <- oned(x)[i]
@@ -648,6 +648,8 @@ setMethod("[", c("MixtureModel", "logical"),
             return(x)
 })
 
+#' @aliases "[",MixtureModel,numeric,ANY,ANY
+#' @rdname subsetting-methods
 setMethod("[", c("MixtureModel", "numeric"),
           function(x, i, j, ..., drop=TRUE){
             x@data <- oned(x)[i]

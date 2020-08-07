@@ -3,7 +3,13 @@
 \docType{methods}
 \name{theta}
 \alias{theta}
+\alias{theta,MixtureModel-method}
+\alias{theta,MultiBatch-method}
 \alias{theta<-}
+\alias{theta<-,McmcChains,ANY-method}
+\alias{theta<-,MixtureModel,ANY-method}
+\alias{theta<-,MultiBatch,matrix-method}
+\alias{theta<-,MultiBatchModel,ANY-method}
 \alias{theta,McmcChains-method}
 \title{Accessor for the theta parameter in the hierarchical mixture model}
 \usage{
@@ -15,6 +21,8 @@ theta(object) <- value
 }
 \arguments{
 \item{object}{see \code{showMethods(theta)}}
+
+\item{value}{a numeric matrix of mixture component means: rows correspond to batches and columns correspond to the mixture component}
 }
 \value{
 A vector of length number of components or a matrix of size
@@ -32,6 +40,9 @@ vector of length K. Each element of \code{theta} can be interpreted
 as the mean for a component. See the following examples for accessing
 the current value of \code{theta} from a \code{MixtureModel}-derived
 object, and for plotting the chain of \code{theta} values.
+}
+\details{
+For a 4-component model at a CNV region with 8 batches, the theta matrix would have dimensions 8 x 4.
 }
 \examples{
 ## MarginalModel

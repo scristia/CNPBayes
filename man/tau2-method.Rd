@@ -6,6 +6,9 @@
 \usage{
 \S4method{tau2}{McmcChains}(object)
 }
+\arguments{
+\item{object}{a MultiBatch instance}
+}
 \description{
-Accessor for tau2 slot of McmcChains class
+tau2 describes the variation of component means across batches
 }

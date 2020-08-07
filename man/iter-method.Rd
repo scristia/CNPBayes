@@ -3,26 +3,31 @@
 \docType{methods}
 \name{iter<-}
 \alias{iter<-}
+\alias{iter<-,McmcChains,ANY-method}
+\alias{iter<-,MixtureModel,ANY-method}
+\alias{iter<-,MultiBatch,numeric-method}
+\alias{iter<-,MultiBatchList,numeric-method}
 \alias{iter}
-\alias{iter,McmcParams-method}
+\alias{iter,McmcChains-method}
+\alias{iter,MixtureModel-method}
+\alias{iter,MultiBatch-method}
+\alias{iter,MultiBatchList-method}
 \alias{iter<-,McmcParams,ANY-method}
-\alias{iter<-,McmcParams-method}
+\alias{iter,McmcParams-method}
 \title{Reset number of iterations.}
 \usage{
 iter(object) <- value
 
 iter(object)
 
-\S4method{iter}{McmcParams}(object)
-
 \S4method{iter}{McmcParams,ANY}(object) <- value
+
+\S4method{iter}{McmcParams}(object)
 }
 \arguments{
 \item{object}{see \code{showMethods(iter)}}
 
-\item{value}{new number of iterations}
-
-\item{force}{Allow changing of the size of the elements?}
+\item{value}{number of iterations to save after burnin}
 }
 \value{
 The number of MCMC iterations
@@ -31,6 +36,9 @@ The number of MCMC iterations
 This function changes the number of simulations.
 
 This function retrieves the number of iterations of an MCMC simulation.
+}
+\details{
+The total number of iterations saved in the MultiBatch object is specified by the `iter` parameter.  If, for example, iter is set to 1000 and the thin parameter is set to 5, the MCMC will perform 5000 simulations but only 1000 will be saved.
 }
 \examples{
      iter(SingleBatchModelExample)

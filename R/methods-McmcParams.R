@@ -6,6 +6,10 @@
 #' @param burnin number of burnin iterations
 #' @param thin thinning interval
 #' @param nStarts number of chains to run
+#' @param min_GR not in use
+#' @param min_effsize not in use
+#' @param max_burnin not in use
+#' @param min_chains not in use
 #' @param param_updates labeled vector specifying whether each parameter is to be updated (1) or not (0).
 #' @return An object of class 'McmcParams'
 #' @export
@@ -94,10 +98,7 @@ setValidity("McmcParams", function(object){
 ##  }
 })
 
-#' Number of random starts for MCMC
-#' 
-#' @rdname nStarts-method
-#' @aliases nStarts,McmcParams-method
+
 setMethod("nStarts", "McmcParams", function(object) object@nstarts)
 
 #' @rdname nStarts-method
@@ -122,12 +123,6 @@ setReplaceMethod("paramUpdates", "McmcParams", function(x, value){
   x
 })
 
-#' @rdname iter-method
-#' @aliases iter<-,McmcParams-method
-setReplaceMethod("iter", "McmcParams", function(object, value){
-  object@iter <- value
-  object
-})
 
 setMethod("updateObject", "McmcParams", function(object){
   obj <- callNextMethod(object)

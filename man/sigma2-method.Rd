@@ -3,6 +3,10 @@
 \docType{methods}
 \name{sigma2}
 \alias{sigma2}
+\alias{sigma2,MixtureModel-method}
+\alias{sigma2,MultiBatch-method}
+\alias{sigma2,MultiBatchCopyNumberPooled-method}
+\alias{sigma2,MultiBatchPooled-method}
 \alias{sigma2,McmcChains-method}
 \alias{sigma2,missing-method}
 \title{Retrieve the variances of each component and batch distribution}

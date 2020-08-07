@@ -207,7 +207,8 @@ ensureAllComponentsObserved <- function(obj){
   obj
 }
 
-
+#' @aliases "[",MultiBatchModel,ANY,ANY,ANY
+#' @rdname subsetting-methods
 setMethod("[", "MultiBatchModel", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     y(x) <- y(x)[i]

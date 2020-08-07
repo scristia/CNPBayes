@@ -3,6 +3,10 @@
 \docType{methods}
 \name{posteriorSimulation}
 \alias{posteriorSimulation}
+\alias{posteriorSimulation,MultiBatch-method}
+\alias{posteriorSimulation,MultiBatchList-method}
+\alias{posteriorSimulation,MultiBatchP-method}
+\alias{posteriorSimulation,list-method}
 \alias{posteriorSimulation,MixtureModel-method}
 \alias{posteriorSimulation,TrioBatchModel-method}
 \title{Run MCMC simulation.}

@@ -141,10 +141,42 @@ mcmc_chains <- function(specs, parameters){
   initialize_mcmc(K, S, B)
 }
 
-##
-## Constructor
-##
+#' Constructor for MultiBatch objects
+#
+#' MultiBatch is the container used by CNPBayes for the organization of the primary data, current values of the mixture model parameters, hyperparameters, and MCMC chains.
+#'
+#' @param model character string abbreviation for the type of mixture model.  See details.
+#' @param data one-dimensional summaries of log-ratios at a CNV-region for a collection of samples.  See details for required columns.
+#' @param specs additional model specifications
+#' @param iter total number of saved MCMC iterations (after thinning and does not include burnin)
+#' @param burnin number of burnin MCMC simulations
+#' @param thin number indicating how often MCMC updates are saved in the McmcChains slot of a MultiBatch instance
+#' @param nStarts number of independent chains
+#' @param current_values values of mixture model parameters from the last iteration of the MCMC. These values can be used to initialize another chain if more MCMC simulations are needed.
+#' @param max_burnin ignored
+#' @param hp a Hyperparameters instance
+#' @param mp a McmcParams instance
+#' @param parameters Parameters of the finite Bayesian mixture model
+#' @param chains a McmcChains instance
+#' @param summaries list of model summaries 
+#' @param flags list of flags that could indicate possible problems with convergence
 #' @export
+#' @return a MultiBatch instance
+#' @details
+#' 
+#' CNPBayes fits finite mixture models with batch-specific means and variances, where multi-batch models are denoted by MB. Special cases of the MB model include a pooled variance model (MBP) with a single variance estimate per batch.  In addition, we evaluate models with a single batch (SB) and a single batch model with pooled variances (SBP). The abbreviation MB3  indicates a multi-batch model with 3 mixture components, while SBP2 corresponds to a single batch model with pooled variance with 2 mixture components.  This short-hand for the type of model and number of mixture components can be passed as the `model` argument to the MultiBatch constructor.  As described in the vignette, our general strategy that works well in most cases is to instantiate a default MultiBatch instance without to create a general container without regard to the number of mixture components and whether to pool at this stage.  Next, we fit some of the wrappers provided with CNPBayes that will explore several possible models. We refer the reader to the vignette for a detailed example of an example workflow.  While an effort has been made to automate these processes, exploratory data analyses and associated visualizations are extremely helpful.  Several such visualizations are provided in the vignette using the `ggMixture` function.
+#'
+#' @examples
+#'  extdir <- system.file("extdata", package="CNPBayes")
+#'  fname <- file.path(extdir, "CNP_001",
+#'                     "batched_data.rds")
+#'  batched.data <- readRDS(fname)
+#'  mb <- MultiBatch(data=batched.data)
+#'  mb
+#'  ## Batch information is ignored if a SB model is created, but can be recovered using `revertToMultiBatch`.
+#'  sb <- MultiBatch(model="SBP2", data=batched.data)
+#'  mb2 <- revertToMultiBatch(sb)
+#' @seealso \code{\link{ggMixture}} \code{\link{revertToMultiBatch}} \code{\link{median_summary}} \code{\link{kolmogorov_batches}}
 MultiBatch <- function(model="MB3",
                        data=modelData(),
                        ## by default, assume no downsampling
@@ -211,6 +243,14 @@ setMethod("show", "MultiBatch", function(object){
     cat("   log marginal lik    :", round(ml, 1), "\n")
 })
 
+#' MultiBatch accessors
+#'
+#' Find length (number of samples), model names of MultiBatchList object etc.
+#'
+#' @rdname MultiBatch-accessors
+#' @aliases length,CnList-method
+#' @aliases length,MultiBatchList-method
+#' @param x object of class `CnList`
 setMethod("length", "CnList", function(x)  nrow(specs(x)))
 
 setMethod("show", "CnList", function(object){
@@ -1512,145 +1552,145 @@ setReplaceMethod("max_burnin", "MultiBatch", function(object, value){
 setMethod("predictive", "MultiBatch", function(object) predictive(chains(object)))
 setMethod("zstar", "MultiBatch", function(object) zstar(chains(object)))
 
-setMethod("singleBatchGuided", c("MultiBatchP", "MultiBatch"), function(x, guide){
-  stopifnot(k(x) == k(guide))
-  means <- theta(guide)[1, ]
-  sds <- sqrt(sigma2(guide))[1, ]
-  ##
-  ## number of means to simulate depends on the model
-  ##
-  mu(x) <- mu(guide)
-  tau2(x) <- tau2(guide)
-  B <- numBatch(x)
-  K <- k(x)
-  th <- theta(x)
-  if(FALSE){
-    ## Is prior to informative for these not to give reasonable values of theta?
-    ##
-    ## -- tau seems much too big -- is prior driving tau to larger values
-    ## -- simulated values of theta too disperse
-    for(j in seq_len(K)){
-      th[, j] <- rnorm(B, mu(guide)[j], tau(guide)[j])
-    }
-  }
-  for(j in seq_len(K)){
-    th[, j] <- rnorm(B, theta(guide)[, j], sds[j]/2)
-  }
-  theta(x) <- th
-  nu.0(x) <- nu.0(guide)
-  sigma2.0(x) <- sigma2.0(guide)
-  ## 1/sigma2 ~gamma
-  ## sigma2 is invgamma
-  w <- as.numeric(table(z(guide)))
-  sigma2(x) <- matrix((sum((w * sds)/sum(w)))^2, B, 1)
-  nStarts(x) <- 1L
-  x <- as(x, "MultiBatchPooled")
-  m <- modes(x)
-  m[["mixprob"]] <- matrix(modes(guide)[["p"]][1, ], B, k(x), byrow=TRUE)
-  m[["theta"]] <- theta(x)
-  m[["sigma2"]] <- sigma2(x)
-  modes(x) <- m
-  ##
-  ## shouldn't have to initialize z since z is the first update of the gibbs sampler (and its update would be conditional on the above values)
-  x
-})
+## setMethod("singleBatchGuided", c("MultiBatchP", "MultiBatch"), function(x, guide){
+##   stopifnot(k(x) == k(guide))
+##   means <- theta(guide)[1, ]
+##   sds <- sqrt(sigma2(guide))[1, ]
+##   ##
+##   ## number of means to simulate depends on the model
+##   ##
+##   mu(x) <- mu(guide)
+##   tau2(x) <- tau2(guide)
+##   B <- numBatch(x)
+##   K <- k(x)
+##   th <- theta(x)
+##   if(FALSE){
+##     ## Is prior to informative for these not to give reasonable values of theta?
+##     ##
+##     ## -- tau seems much too big -- is prior driving tau to larger values
+##     ## -- simulated values of theta too disperse
+##     for(j in seq_len(K)){
+##       th[, j] <- rnorm(B, mu(guide)[j], tau(guide)[j])
+##     }
+##   }
+##   for(j in seq_len(K)){
+##     th[, j] <- rnorm(B, theta(guide)[, j], sds[j]/2)
+##   }
+##   theta(x) <- th
+##   nu.0(x) <- nu.0(guide)
+##   sigma2.0(x) <- sigma2.0(guide)
+##   ## 1/sigma2 ~gamma
+##   ## sigma2 is invgamma
+##   w <- as.numeric(table(z(guide)))
+##   sigma2(x) <- matrix((sum((w * sds)/sum(w)))^2, B, 1)
+##   nStarts(x) <- 1L
+##   x <- as(x, "MultiBatchPooled")
+##   m <- modes(x)
+##   m[["mixprob"]] <- matrix(modes(guide)[["p"]][1, ], B, k(x), byrow=TRUE)
+##   m[["theta"]] <- theta(x)
+##   m[["sigma2"]] <- sigma2(x)
+##   modes(x) <- m
+##   ##
+##   ## shouldn't have to initialize z since z is the first update of the gibbs sampler (and its update would be conditional on the above values)
+##   x
+## })
+## 
+## setMethod("singleBatchGuided", c("MultiBatchP", "MultiBatchP"), function(x, guide){
+##   stopifnot(k(x) == k(guide))
+##   ##means <- theta(guide)[1, ]
+##   means <- colMeans(theta(guide))
+##   sds <- median(sigma(guide)[, 1])
+##   mu(x) <- mu(guide)
+##   tau2(x) <- tau2(guide)
+##   B <- numBatch(x)
+##   K <- k(x)
+##   th <- t(replicate(B, rnorm(k(x), means, sds)))
+##   theta(x) <- th
+##   nu.0(x) <- nu.0(guide)
+##   sigma2.0(x) <- sigma2.0(guide)
+##   sigma2(x)[, 1] <- 2*sigma2(guide) ## start at more diffuse value
+##   nStarts(x) <- 1L
+##   x <- as(x, "MultiBatchPooled")
+##   x
+## })
+## 
+## setMethod("singleBatchGuided", c("MultiBatch", "MultiBatchP"), function(x, guide){
+##   stopifnot(k(x) == k(guide))
+##   means <- theta(guide)[1, ]
+##   sds <- sqrt(sigma2(guide))[1, ]
+##   ##
+##   ## number of means to simulate depends on the model
+##   ##
+##   mu(x) <- mu(guide)
+##   tau2(x) <- tau2(guide)
+##   B <- numBatch(x)
+##   K <- k(x)
+##   th <- theta(x)
+##   if(FALSE){
+##     ## Is prior to informative for these not to give reasonable values of theta?
+##     ##
+##     ## -- tau seems much too big -- is prior driving tau to larger values
+##     ## -- simulated values of theta too disperse
+##     for(j in seq_len(K)){
+##       th[, j] <- rnorm(B, mu(guide)[j], tau(guide)[j])
+##     }
+##   }
+##   for(j in seq_len(K)){
+##     th[, j] <- rnorm(B, theta(guide)[, j], sds[j]/2)
+##   }
+##   theta(x) <- th
+##   nu.0(x) <- nu.0(guide)
+##   sigma2.0(x) <- sigma2.0(guide)
+##   ## 1/sigma2 ~gamma
+##   ## sigma2 is invgamma
+##   NC <- ncol(sigma2(x))
+##   if(NC == 1){
+##     w <- as.numeric(table(z(guide)))
+##     sigma2(x) <- matrix((sum((w * sds)/sum(w)))^2, B, 1)
+##   } else{
+##     sigma2(x) <- matrix(sds/2, B, K, byrow=TRUE)
+##   }
+##   nStarts(x) <- 1L
+##   x <- as(x, "MultiBatchModel")
+##   ##
+##   ## shouldn't have to initialize z since z is the first update of the gibbs sampler (and its update would be conditional on the above values)
+##   x
+## })
 
-setMethod("singleBatchGuided", c("MultiBatchP", "MultiBatchP"), function(x, guide){
-  stopifnot(k(x) == k(guide))
-  ##means <- theta(guide)[1, ]
-  means <- colMeans(theta(guide))
-  sds <- median(sigma(guide)[, 1])
-  mu(x) <- mu(guide)
-  tau2(x) <- tau2(guide)
-  B <- numBatch(x)
-  K <- k(x)
-  th <- t(replicate(B, rnorm(k(x), means, sds)))
-  theta(x) <- th
-  nu.0(x) <- nu.0(guide)
-  sigma2.0(x) <- sigma2.0(guide)
-  sigma2(x)[, 1] <- 2*sigma2(guide) ## start at more diffuse value
-  nStarts(x) <- 1L
-  x <- as(x, "MultiBatchPooled")
-  x
-})
 
-setMethod("singleBatchGuided", c("MultiBatch", "MultiBatchP"), function(x, guide){
-  stopifnot(k(x) == k(guide))
-  means <- theta(guide)[1, ]
-  sds <- sqrt(sigma2(guide))[1, ]
-  ##
-  ## number of means to simulate depends on the model
-  ##
-  mu(x) <- mu(guide)
-  tau2(x) <- tau2(guide)
-  B <- numBatch(x)
-  K <- k(x)
-  th <- theta(x)
-  if(FALSE){
-    ## Is prior to informative for these not to give reasonable values of theta?
-    ##
-    ## -- tau seems much too big -- is prior driving tau to larger values
-    ## -- simulated values of theta too disperse
-    for(j in seq_len(K)){
-      th[, j] <- rnorm(B, mu(guide)[j], tau(guide)[j])
-    }
-  }
-  for(j in seq_len(K)){
-    th[, j] <- rnorm(B, theta(guide)[, j], sds[j]/2)
-  }
-  theta(x) <- th
-  nu.0(x) <- nu.0(guide)
-  sigma2.0(x) <- sigma2.0(guide)
-  ## 1/sigma2 ~gamma
-  ## sigma2 is invgamma
-  NC <- ncol(sigma2(x))
-  if(NC == 1){
-    w <- as.numeric(table(z(guide)))
-    sigma2(x) <- matrix((sum((w * sds)/sum(w)))^2, B, 1)
-  } else{
-    sigma2(x) <- matrix(sds/2, B, K, byrow=TRUE)
-  }
-  nStarts(x) <- 1L
-  x <- as(x, "MultiBatchModel")
-  ##
-  ## shouldn't have to initialize z since z is the first update of the gibbs sampler (and its update would be conditional on the above values)
-  x
-})
-
-
-setMethod("singleBatchGuided", c("MultiBatch", "MultiBatch"), function(x, guide){
-  stopifnot(k(x) == k(guide))
-  means <- theta(guide)[1, ]
-  sds <- sqrt(sigma2(guide))[1, ]
-  ##
-  ## number of means to simulate depends on the model
-  ##
-  mu(x) <- mu(guide)
-  tau2(x) <- tau2(guide)
-  B <- numBatch(x)
-  K <- k(x)
-  th <- theta(x)
-  for(j in seq_len(K)){
-    th[, j] <- rnorm(B, theta(guide)[, j], sds[j]/2)
-  }
-  theta(x) <- th
-  nu.0(x) <- nu.0(guide)
-  sigma2.0(x) <- sigma2.0(guide)
-  ## 1/sigma2 ~gamma
-  ## sigma2 is invgamma
-  NC <- ncol(sigma2(x))
-  if(NC == 1){
-    w <- as.numeric(table(z(guide)))
-    sigma2(x) <- matrix((sum((w * sds)/sum(w)))^2, B, 1)
-  } else{
-    sigma2(x) <- matrix(sds/2, B, K, byrow=TRUE)
-  }
-  nStarts(x) <- 1L
-  ##
-  ## shouldn't have to initialize z since z is the first update of the gibbs sampler (and its update would be conditional on the above values)
-  x <- as(x, "MultiBatchModel")
-  x
-})
+##setMethod("singleBatchGuided", c("MultiBatch", "MultiBatch"), function(x, guide){
+##  stopifnot(k(x) == k(guide))
+##  means <- theta(guide)[1, ]
+##  sds <- sqrt(sigma2(guide))[1, ]
+##  ##
+##  ## number of means to simulate depends on the model
+##  ##
+##  mu(x) <- mu(guide)
+##  tau2(x) <- tau2(guide)
+##  B <- numBatch(x)
+##  K <- k(x)
+##  th <- theta(x)
+##  for(j in seq_len(K)){
+##    th[, j] <- rnorm(B, theta(guide)[, j], sds[j]/2)
+##  }
+##  theta(x) <- th
+##  nu.0(x) <- nu.0(guide)
+##  sigma2.0(x) <- sigma2.0(guide)
+##  ## 1/sigma2 ~gamma
+##  ## sigma2 is invgamma
+##  NC <- ncol(sigma2(x))
+##  if(NC == 1){
+##    w <- as.numeric(table(z(guide)))
+##    sigma2(x) <- matrix((sum((w * sds)/sum(w)))^2, B, 1)
+##  } else{
+##    sigma2(x) <- matrix(sds/2, B, K, byrow=TRUE)
+##  }
+##  nStarts(x) <- 1L
+##  ##
+##  ## shouldn't have to initialize z since z is the first update of the gibbs sampler (and its update would be conditional on the above values)
+##  x <- as(x, "MultiBatchModel")
+##  x
+##})
 
 listModelsByDecreasingK <- function(object){
   N <- nrow(object)
@@ -1902,6 +1942,13 @@ setMethod("findSurrogates", "tbl_df",
          paste, collapse=","))
 }
 
+#' Subsetting methods for CNPBayes objects
+#'
+#' Many of the classes defined in CNPBayes can be subset using the "[" operator.
+#'
+#' @param x a MultiBatch instance
+#' @param i elements to select
+#' @rdname subsetting-methods
 setMethod("[[", c("CnList", "numeric"), function(x, i){
   spec <- specs(x)[i, ]
   model <- spec$model
@@ -1993,14 +2040,15 @@ setMethod("numberObs", "MultiBatch", function(model) {
   specs(model)$number_obs[1]
 })
 
-#' @export
-setGeneric("id", function(object) standardGeneric("id"))
+
 setMethod("id", "MultiBatch", function(object) assays(object)$id)
 
 id2 <- function(object){
   id(object)[!isSimulated(object)]
 }
 
+## #' @aliases [,MultiBatch,numeric,ANY,ANY
+#' @rdname subsetting-methods
 setMethod("[", c("MultiBatch", "numeric"), function(x, i, j, ..., drop=FALSE){
   nbatch1 <- numBatch(x)
   x@data <- x@data[i, , drop=FALSE]
@@ -2057,6 +2105,8 @@ setMethod("[", c("MultiBatch", "numeric"), function(x, i, j, ..., drop=FALSE){
   x
 })
 
+## #' @aliases "[",MultiBatch,logical,ANY,ANY
+#' @rdname subsetting-methods
 setMethod("[", c("MultiBatch", "logical"), function(x, i, j, ..., drop=FALSE){
   i <- which(i)
   x <- x[i]
@@ -2158,18 +2208,17 @@ reset <- function(from, to){
   from
 }
 
-#' Downsampling will not work well if the range of the downsampled data is not similar to the range of the original data
-#'
-sample2 <- function(mb, N){
-  ix <- sort(sample(seq_len(nrow(mb)), N, replace=TRUE))
-  r <- oned(mb)[ix]
-  minr <- min(r)
-  if(minr > -2 && min(oned(mb)) < -2){
-    ix2 <- which(oned(mb) < -2)
-    ix <- sort(c(ix, ix2))
-  }
-  ix
-}
+
+##sample2 <- function(mb, N){
+##  ix <- sort(sample(seq_len(nrow(mb)), N, replace=TRUE))
+##  r <- oned(mb)[ix]
+##  minr <- min(r)
+##  if(minr > -2 && min(oned(mb)) < -2){
+##    ix2 <- which(oned(mb) < -2)
+##    ix <- sort(c(ix, ix2))
+##  }
+##  ix
+##}
 
 setMethod("min_effsize", "MultiBatch", function(object){
   min_effsize(mcmcParams(object))
@@ -2830,6 +2879,28 @@ ok_model <- function(mod_1.3, restricted_model){
 ##  lowest_point_before_peak
 ##}
 
+
+#' Compute median summaries of log ratios at a CNV region
+#'
+#' Compute median summaries of log ratios at a CNV region and define an indicator for likely deletions based on a user specified threshold for the median log ratio.  The identification of likely deletions can be helpful to flag possibly rare deletions.
+#'
+#' @param se a SummarizedExperiment with assays containing SNP or bin-level summaries of copy number, typically log ratios.
+#' @param provisional_batch A provisional definition of batch. Examples include PCR data, study center, DNA source, etc. See details.
+#' @param assay_index If multiple assays are included in the SummarizedExperiment, the user should indicate which assay should be median summarized by a numeric index.
+#' @param THR numeric value indicate that log ratios below this value are potentially samples with hemizygous or homozygous deletions.
+#' @examples
+#' extdir <- system.file("extdata", package="CNPBayes")
+#' se <- readRDS(file.path(extdir, "snp_se.rds"))
+#' cnv_region <- GRanges("chr2", IRanges(90010895, 90248037),
+#'                       seqinfo=seqinfo(se))
+#' se2 <- subsetByOverlaps(se, cnv_region)
+#' provisional_batch <- se2$Sample.Plate
+#' full.data <- median_summary(se2,
+#'                             provisional_batch=provisional_batch,
+#'                             assay_index=2,
+#'                             THR=-1)
+#' @details
+#' See vignette for additional details.
 #' @export
 median_summary <- function(se, provisional_batch, assay_index=1, THR){
     medians <- colMedians(assays(se)[[assay_index]], na.rm=TRUE)
@@ -2883,7 +2954,9 @@ median_summary <- function(se, provisional_batch, assay_index=1, THR){
 #'
 #' Downsampling is performed to reduce computation as typically 100-300 observations is sufficient to approximate the multi-modal deletions/duplications of germline copy number events.  Data points that have been marked as `likely_deletion` are not down-sampled as these tend to be rare and are an important indication of the type of polymorphism.
 #' @param dat a `tibble` containing the one-dimensional summaries for each sample and the batch labels
-#' @param min_size integer indicating the minimum size per batch.  For batches smaller than `min_size`, no down-sampling is performed.
+#' @param min_size integer indicating the number of samples to randomly select for each batch. The actual number of samples included may be larger as samples flagged as likely deleted are not down-sampled.
+#' @return a down-sampled tibble
+#' @seealso \code{\link{upsample2}}
 #' @export
 down_sample2 <- function(dat, min_size=300){
     likely_deletion <- NULL
@@ -2914,11 +2987,26 @@ down_sample2 <- function(dat, min_size=300){
 
 #' Group provisional batch labels by similarity of eCDFs
 #'
-#' This function groups provisional batches (e.g., chemistry plate, date, or DNA source) by similarity of the empirical cummulative distribution function (eCDF).  Similarity of the eCDFs is based on the p-value from Kolmogorov-Smirnov  test statistic.  All pairwise combinations of batches are compared, and repeated recursively until no two batches can be combined.
+#' This function groups provisional batches (e.g., chemistry plate, date, or DNA source) by similarity of the empirical cummulative distribution function (eCDF).  Similarity of the eCDFs is based on the p-value from Kolmogorov-Smirnov  test statistic.  All pairwise combinations of batches are compared recursively until no two batches can be combined.
 #'
 #' @param dat typically a `tibble` gotten by `assays(MultiBatch)`
 #' @param KS_cutoff scalar indicating cutoff for Kolmogorov-Smirnov p-value.  Two provisional batches with p-value above this cutoff are combined.
-#' @seealso [ks.test()]
+#' @seealso \code{\link[stats]{ks.test}}
+#' @examples
+#' extdir <- system.file("extdata", package="CNPBayes")
+#' se <- readRDS(file.path(extdir, "snp_se.rds"))
+#' cnv_region <- GRanges("chr2", IRanges(90010895, 90248037),
+#'                       seqinfo=seqinfo(se))
+#' se2 <- subsetByOverlaps(se, cnv_region)
+#' provisional_batch <- se2$Sample.Plate
+#' full.data <- median_summary(se2,
+#'                             provisional_batch=provisional_batch,
+#'                             assay_index=2,
+#'                             THR=-1)
+#' \dontrun{
+#'    batched.data <- kolmogorov_batches(full.data, 1e-6)
+#' }
+#' 
 #' @export
 kolmogorov_batches <- function(dat, KS_cutoff){
     ##mb <- MultiBatch("MB3", data=dat)
@@ -2968,8 +3056,21 @@ add_deletion_stats <- function(dat, mb, THR){
     mb
 }
 
-
-#' @export
+#' Wrapper for summarizing CNV regions
+#'
+#' Computes a median summary of log ratios for each sample at CNV regions, identifies batches from the provisional batch labels, and down samples the resulting summarized data for subsequent evaluation by finite mixture models.
+#'
+#' @param se A SummarizedExperiment containing log ratios at SNPs or genomic bins for a collection of samples at a single CNV region
+#' @param provisional_batch  A provisional batch label such as date of PCR, study center, or DNA source.
+#' @param THR log ratios below this value are potentially hemizygous or homozygous deletions
+#' @param assay_index index of the assay element in the SummarizedExperiment object that contains the log ratios that are to be summarized.
+#' @param KS_cutoff Cutoff for Kolmogorov-Smirnov (KS) p-value.  For two batches that have a KS p-value above this threshold, the batches are combined to form a single batch.
+#' @param S desired number of samples to include in the down-sampled dataset
+#' @param min_size integer indicating the number of samples to randomly select for each batch. The actual number of samples included may be larger as samples flagged as likely deleted are not down-sampled.
+#'
+#' @details Helpful to provide a provisional batch label that is fairly granular, allowing `kolmogorov_batches` to provide a further coarsening of the batch labels.
+#'
+#' @seealso \code{\link{kolmogorov_batches}} \code{\link{median_summary}} \code{\link{down_sample2}} \code{\link{MultiBatch}}
 summarize_region <- function(se,
                              provisional_batch,
                              THR=-1,
@@ -3110,7 +3211,19 @@ join_baf_oned <- function(model, snpdat){
   bafdat2
 }
 
+#' List of figures useful for evaluating model fit.
+#'
+#'
+#' Creates list of figures used by CNPBayes to evaluate model fit and mapping of mixture component assignments to copy number states
+#' 
+#' @param model a MultiBatch instance for a CNV region 
+#' @param snpdat a SummarizedExperiment containing B allele frequencies at SNPs in the CNV region
+#' @param xlimit x-axis limits for log ratio density and posterior predictive distribution
+#' @param bins number of bins used by \code{geom_histogram} to display the primary data
+#' @return a list of figures
 #' @export
+#' @details The resulting list of figures can be plotted as a composite using the function \code{mixture_layout}.
+#' @seealso \code{\link{mixture_layout}}
 mixture_plot <- function(model, snpdat, xlimit=c(-4, 1), bins=100){
   bafdat <- join_baf_oned(model, snpdat)
   figs <- list_mixture_plots(model, bafdat, xlimit=xlimit, bins=bins)
@@ -3166,7 +3279,15 @@ list_mixture_plots <- function(model, bafdat,
        baf=B)
 }
 
+#' Layout of grid-based graphics for visualization of posterior predictive distributions and mapping of mixture components to copy number states.
+#'
+#' @param figure_list list of grid graphics created by \code{mixture_plot}
+#' @param augmented whether to display simulated datapoints that were used to fit rarer deletions. See details.
+#' @param newpage whether to display the composite figure on a newpage or use existing graphics device
+#' @details
+#' For studies of germline CNVs, extreme observations in the left-tail typically correspond to homozygous deletions and, when rare, may be present in a subset of the estimated batches.  The consequences of a rare deletion present in a subset of batches  are two-fold: (1) due to the hierarchical nature of the model, a mixture-component with a very large variance will be needed to accommodate the extreme observations and  (2) the mixture component indices may correspond to different copy number states between batches, complicating subsequent efforts to map mixture component indices to integer copy numbers.  Rather than exclude these observations, we augment the observed data with simulated homozygous deletions.  The simulated observations ensure the mixture component indices capture the same latent copy number in each batch. We rationalize this approach as being comparable to an empirically derived prior that large negative values at such germline CNV regions are not outliers of the hemizygous and diploid states but bona fide homozygous deletions.  Since our model does not assume a one-to-one mapping between mixture components and copy number nor that any of the alterations identified will be in Hardy Weinberg equilibrium (HWE), the assessment of HWE for germline CNVs can be a useful post-hoc quality control. While evidence against HWE does not necessarily indicate problems with the CNV calling, support for HWE would be unlikely if there were major sources of technical variation not yet accounted for.  
 #' @export
+#' @seealso \code{\link{ggMixture}} \code{\link{mixture_plot}}
 mixture_layout <- function(figure_list, augmented=TRUE,
                            newpage=TRUE){
   if(augmented) {
@@ -3215,7 +3336,8 @@ mixture_layout <- function(figure_list, augmented=TRUE,
 #'
 #' @param mb a `MultiBatch` object
 #' @param model name of model to evaluate (e.g., MB2, MBP2, SB2, ...).
-#' @seealso [modelName()]
+#' @param ... additional arguments passed to warmup
+#' @seealso \code{\link{warmup}}
 #' @export
 fit_restricted2 <- function(mb, model="MBP2", ...){
     ##    fdat <- filter(assays(mb), !likely_deletion) %>%
@@ -3606,8 +3728,9 @@ evaluate_sb3 <- function(mb, mp, ...){
 #' @param mb a `MultiBatch` instance
 #' @param mp a `McmcParams` instance
 #' @param augment whether to use data augmentation for rare observations that may be present in a subset of batches
+#' @param ... additional arguments passed to \code{warmup}
 #' @export
-#' @seealso [mcmcParams()]
+#' @seealso \code{\link{warmup}}
 homdel_model <- function(mb, mp, augment=TRUE, ...){
     if(augment){
         simdat <- augment_homozygous(mb)
@@ -3625,8 +3748,8 @@ homdel_model <- function(mb, mp, augment=TRUE, ...){
 #' @export
 #' @param mb a MultiBatch instance
 #' @param mp a McmcParams instance
-#' @param ... additional arguments passed to warmup
-#' @seealso [warmup()]
+#' @param ... additional arguments passed to \code{warmup}
+#' @seealso \code{\link{warmup}}
 hemdel_model <- function(mb, mp, ...){
     mb_ <- mb
     if(missing(mp)) mp <- mcmcParams(mb)
@@ -3684,8 +3807,9 @@ hd4comp <- function(mod_2.4, simdat2, mb.subsamp, mp){
 #' @param mb a `MultiBatch` instance
 #' @param mp a `McmcParams` instance
 #' @param augment whether to use data augmentation for rare observations that may be present in a subset of batches
+#' @param ... additional arguments passed to \code{warmup}
 #' @export
-#' @seealso [mcmcParams()]
+#' @seealso \code{\link{warmup}}
 homdeldup_model <- function(mb, mp, augment=TRUE, ...){
     likely_deletion <- NULL
     if(augment){
@@ -4110,6 +4234,29 @@ preliminary_checks <- function(mb, grange){
   TRUE
 }
 
+#' Fit a series of Gaussian finite mixture models at a CNV region for a collection of samples
+#'
+#' Fits a number of Gaussian finite mixture models at a CNV region for a collection of samples and returns a single best-fitting model.
+#' 
+#' @param mb a MultiBatch instance
+#' @param grange GRanges object indicating the CNV region
+#' @param snp_se a SummarizedExperiment with assay data containing B allele frequencies at SNPs
+#' @param mp a McmcParams instance
+#' @return a MultiBatch instance
+#' @seealso \code{\link{MultiBatch}}
+#' @examples
+#' path <- system.file("extdata", package="CNPBayes")
+#' set.seed(555)
+#' cnp_se <- readRDS(file.path(path, "cnp_se.rds"))["CNP_022", ]
+#' snp_se <- readRDS(file.path(path, "snp_se.rds"))
+#' snp_se <- subsetByOverlaps(snp_se, cnp_se)
+#' path2 <- file.path(path, "CNP_022")
+#' mb.subsamp <- readRDS(file.path(path2, "mb_subsamp.rds"))
+#' \dontrun{
+#'     mb <- cnv_models(mb.subsamp,
+#'                      rowRanges(cnp_se)["CNP_022"],
+#'                      snp_se)
+#' }
 #' @export
 cnv_models <- function(mb,
                        grange,
@@ -4155,7 +4302,16 @@ cnv_models <- function(mb,
 ##    dat3
 ##}
 
+#' Provides probabilistic assignments for mixture components to the entire study after down-sampling
+#'
+#' For large studies, tens of thousands of observations are not needed to approximate the mixture component densities and down-sampling is used to speed up computation.  The inverse, up-sampling, is used after fitting mixture models to provide mixture component probabilities for all participants in the study.
+#'
+#' @param model a MultiBatch instance
+#' @param dat a \code{tibble} of the full dataset typically created by \code{median_summary}
+#' @details See the vignette or README for an example workflow.
+#' @return a \code{tibble} for the full dataset with mixture component assignments
 #' @export
+#' @seealso \code{\link{down_sample2}}
 upsample2 <- function(model, dat){ ##, provisional_batch){
     inferred_component <- NULL
     state <- NULL

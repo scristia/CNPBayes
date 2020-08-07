@@ -12,8 +12,24 @@ kolmogorov_batches(dat, KS_cutoff)
 \item{KS_cutoff}{scalar indicating cutoff for Kolmogorov-Smirnov p-value.  Two provisional batches with p-value above this cutoff are combined.}
 }
 \description{
-This function groups provisional batches (e.g., chemistry plate, date, or DNA source) by similarity of the empirical cummulative distribution function (eCDF).  Similarity of the eCDFs is based on the p-value from Kolmogorov-Smirnov  test statistic.  All pairwise combinations of batches are compared, and repeated recursively until no two batches can be combined.
+This function groups provisional batches (e.g., chemistry plate, date, or DNA source) by similarity of the empirical cummulative distribution function (eCDF).  Similarity of the eCDFs is based on the p-value from Kolmogorov-Smirnov  test statistic.  All pairwise combinations of batches are compared recursively until no two batches can be combined.
+}
+\examples{
+extdir <- system.file("extdata", package="CNPBayes")
+se <- readRDS(file.path(extdir, "snp_se.rds"))
+cnv_region <- GRanges("chr2", IRanges(90010895, 90248037),
+                      seqinfo=seqinfo(se))
+se2 <- subsetByOverlaps(se, cnv_region)
+provisional_batch <- se2$Sample.Plate
+full.data <- median_summary(se2,
+                            provisional_batch=provisional_batch,
+                            assay_index=2,
+                            THR=-1)
+\dontrun{
+   batched.data <- kolmogorov_batches(full.data, 1e-6)
+}
+
 }
 \seealso{
-[ks.test()]
+\code{\link[stats]{ks.test}}
 }

@@ -12,10 +12,12 @@ homdeldup_model(mb, mp, augment = TRUE, ...)
 \item{mp}{a `McmcParams` instance}
 
 \item{augment}{whether to use data augmentation for rare observations that may be present in a subset of batches}
+
+\item{...}{additional arguments passed to \code{warmup}}
 }
 \description{
 Wrapper for evaluating mixture models consistent with copy number deletion and gain polymorphisms
 }
 \seealso{
-[mcmcParams()]
+\code{\link{warmup}}
 }

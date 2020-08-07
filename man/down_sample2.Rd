@@ -9,11 +9,17 @@ down_sample2(dat, min_size = 300)
 \arguments{
 \item{dat}{a `tibble` containing the one-dimensional summaries for each sample and the batch labels}
 
-\item{min_size}{integer indicating the minimum size per batch.  For batches smaller than `min_size`, no down-sampling is performed.}
+\item{min_size}{integer indicating the number of samples to randomly select for each batch. The actual number of samples included may be larger as samples flagged as likely deleted are not down-sampled.}
+}
+\value{
+a down-sampled tibble
 }
 \description{
 Downsampling observations within each batch.
 }
 \details{
 Downsampling is performed to reduce computation as typically 100-300 observations is sufficient to approximate the multi-modal deletions/duplications of germline copy number events.  Data points that have been marked as `likely_deletion` are not down-sampled as these tend to be rare and are an important indication of the type of polymorphism.
+}
+\seealso{
+\code{\link{upsample2}}
 }

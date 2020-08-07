@@ -3,7 +3,13 @@
 \docType{methods}
 \name{hyperParams}
 \alias{hyperParams}
+\alias{hyperParams,MixtureModel-method}
+\alias{hyperParams,MultiBatch-method}
+\alias{hyperParams,MultiBatchList-method}
 \alias{hyperParams<-}
+\alias{hyperParams<-,MixtureModel,Hyperparameters-method}
+\alias{hyperParams<-,MultiBatch,Hyperparameters-method}
+\alias{hyperParams<-,MultiBatchList,Hyperparameters-method}
 \title{Accessor for Hyperparameters object for a MixtureModel-derived object}
 \usage{
 hyperParams(object)

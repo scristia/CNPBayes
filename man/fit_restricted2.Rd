@@ -10,10 +10,12 @@ fit_restricted2(mb, model = "MBP2", ...)
 \item{mb}{a `MultiBatch` object}
 
 \item{model}{name of model to evaluate (e.g., MB2, MBP2, SB2, ...).}
+
+\item{...}{additional arguments passed to warmup}
 }
 \description{
 Wrapper for running many independent chains with a short burnin and one longer run
 }
 \seealso{
-[modelName()]
+\code{\link{warmup}}
 }

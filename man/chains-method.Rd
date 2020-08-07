@@ -3,6 +3,9 @@
 \docType{methods}
 \name{chains}
 \alias{chains}
+\alias{chains,MixtureModel-method}
+\alias{chains,MultiBatch-method}
+\alias{chains,MultiBatchList-method}
 \title{Retrieve simulated chains from model object.}
 \usage{
 chains(object)

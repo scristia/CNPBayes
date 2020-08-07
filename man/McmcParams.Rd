@@ -26,6 +26,14 @@ McmcParams(
 \item{nStarts}{number of chains to run}
 
 \item{param_updates}{labeled vector specifying whether each parameter is to be updated (1) or not (0).}
+
+\item{min_GR}{not in use}
+
+\item{min_effsize}{not in use}
+
+\item{max_burnin}{not in use}
+
+\item{min_chains}{not in use}
 }
 \value{
 An object of class 'McmcParams'
